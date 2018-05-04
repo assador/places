@@ -6,6 +6,12 @@
 	outline-style: none;
 }
 
+.border0,
+img,
+form, fieldset,
+table.border0, table.border0 > * > tr > td, table.border0 > * > tr > th {
+	border: none;
+}
 .border1,
 code, pre, .pre,
 td, th,
@@ -171,10 +177,60 @@ input[type="hidden"] {
 	cursor: not-allowed;
 }
 
+.hidden {display: none !important;}
+.appear, .disappear {transition: transform 0.2s, opacity 0.2s;}
+.appear {transform: scale(1, 1);}
+.disappear {transform: scale(0, 0); opacity: 0 !important;}
+@keyframes show {
+	from {
+		transform: scale(0, 1);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1, 1);
+		opacity: 1;
+	}
+}
+@keyframes hide {
+	from {
+		transform: scale(1, 1);
+		opacity: 1;
+	}
+	to {
+		transform: scale(0, 1);
+		opacity: 0;
+	}
+}
+table.table-wohead > tbody > tr > th {
+	padding-right: 0.8em;
+	text-align: right;
+}
+table.table-wopadd th, table.table-wopadd td {
+	padding: 0;
+}
+.popup table img {
+	margin-top: 1em; margin-bottom: 1em;
+}
+.popup {
+	position: absolute;
+	top: 30px; right: 30px;
+	padding: 1em;
+	border-radius: 7px;
+	background-color: rgba(255, 255, 255, 0.9);
+	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.13);
+	z-index: 1000;
+}
 #app {
+	box-sizing: border-box;
 	width: 100%;
-	max-width: 1600px; min-width: 1000px; min-height: 100%;
-	margin: 0 auto;
+	min-height: 100%;
+	padding: 30px;
 	background-color: #f5f5f5;
 	box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+.places-table {
+	margin: 0 auto;
+}
+.places-table tbody tr {
+	cursor: pointer;
 }
