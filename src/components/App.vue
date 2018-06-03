@@ -9,7 +9,9 @@
 				<h1>Geo Store</h1>
 			</div>
 			<div id="top-right" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-right-' + sidebarMode.right">
-				<button class="fontsize_n" @click="$store.commit('removePlace', currentIndex); setCurrentPlace(currentIndex);" title="Удалить место">×</button>
+				<button class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
+				<button class="actions-button" @click="$store.commit('removePlace', currentIndex); setCurrentPlace(currentIndex);" title="Удалить текущее место">×</button>
+				<button class="actions-button" @click="saveToFile();" title="Сохранить на диск">⭳</button>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -51,7 +53,7 @@
 				<dl class="place-detailed">
 					<template v-for="field in Object.keys(currentPlace)" :key="field">
 						<dt>{{ field }}:</dt>
-						<dd v-if="field == 'image'" style="margin: 7px 0 0 0;">
+						<dd v-if="field == 'image'" style="margin: 7px 0 0 0; padding: 0;">
 							<img
 								class="border_1"
 								:src="currentPlace[field]"
@@ -144,6 +146,17 @@ export default {
 			let popup = document.getElementById("detailed");
 			popup.classList.remove(show ? "disappear" : "appear");
 			popup.classList.add(show ? "appear" : "disappear");
+		},
+		saveToFile: () => function() {
+			const data = JSON.stringify(this.$store.state.places);
+			const blob = new Blob([data], {type: "text/plain"});
+			const e = document.createEvent("MouseEvents"),
+			a = document.createElement("a");
+			a.download = "places.json";
+			a.href = window.URL.createObjectURL(blob);
+			a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
+			e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+			a.dispatchEvent(e);
 		},
 	},
 }

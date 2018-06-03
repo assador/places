@@ -180,6 +180,8 @@ td, th {
 }
 ul, ol, dd {
 	display: table;
+	box-sizing: border-box;
+	width: 100%;
 	border-collapse: separate;
 }
 ol {
@@ -189,7 +191,7 @@ ul {
 	list-style-type: none;
 }
 ul > li, dd {
-	margin-left: 1.5em;
+	padding-left: 1.5em;
 }
 ul > li::before {
 	content: "\25cf";
@@ -228,7 +230,6 @@ input[type="checkbox"], input[type="color"], input[type="file"], input[type="ima
 	border: none;
 }
 button, input[type="button"], input[type="reset"], input[type="search"], input[type="submit"] {
-	padding-right: 7px; padding-left: 7px;
 	cursor: pointer;
 }
 button {
@@ -465,6 +466,15 @@ table.table-wopadd th, table.table-wopadd td {
 }
 .place-button {
 	text-align: left;
+}
+#top-right {
+	font-size: 0 !important;
+}
+#top-right * {
+	margin: 4px;
+	padding: 13px 7px;
+	line-height: 0;
+	font-size: 22px;
 }
 .place-detailed textarea {
 	width: 100%; height: 1.286em;
