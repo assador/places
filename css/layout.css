@@ -52,9 +52,11 @@ body {
 #top-basic.sbm-top-1 {
 	padding-left: 38px;
 }
+/*
 *[class*="sbm-"] {
 	transition: all 0.7s;
 }
+*/
 .sbm-top-0, .sbm-right-0, .sbm-bottom-0, .sbm-left-0 {
 	display: none;
 }

@@ -3,32 +3,32 @@
 		"id": "place_1",
 		"name": "Наш дом",
 		"description": "Описание нашего дома.",
-		"latitude": 55.86821494347795,
-		"longitude": 37.65688219576906,
+		"latitude": 55.8682149,
+		"longitude": 37.6568821,
 		"image": "/images/image_blue.jpg"
 	},
 	{
 		"id": "place_2",
 		"name": "Дом Бородея",
 		"description": "Описание бородеевского дома.",
-		"latitude": 55.85965166139838,
-		"longitude": 37.63764295707721,
+		"latitude": 55.8596516,
+		"longitude": 37.6376429,
 		"image": "/images/image_red.jpg"
 	},
 	{
 		"id": "place_3",
 		"name": "Дом Дениса Абрамыча",
 		"description": "Описание дома Дениса Абрамыча.",
-		"latitude": 55.87525833859409,
-		"longitude": 37.66287933786997,
+		"latitude": 55.8752583,
+		"longitude": 37.6628793,
 		"image": "/images/image_green.jpg"
 	},
 	{
 		"id": "place_4",
 		"name": "Дом Станислава Моисеича",
 		"description": "Описание дома Станислава Моисеича.",
-		"latitude": 55.86628956300812,
-		"longitude": 37.65042692447268,
+		"latitude": 55.8662895,
+		"longitude": 37.6504269,
 		"image": "/images/image_yellow.jpg"
 	}
 ]

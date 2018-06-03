@@ -93,6 +93,7 @@ export default {
 				window.addEventListener("load", function() {
 					this.$refs.ym.showMap(0, 0);
 					this.setCurrentPlace(this.currentIndex);
+					this.$refs.ym.fitMap();
 				}.bind(this), false);
 			}
 		},
@@ -135,12 +136,7 @@ export default {
 			if(modeToSet === null) {modeToSet = mode;}
 			this.sidebarMode[sidebar] = modeToSet;
 			if(this.$refs.ym.map != null) {
-				document.getElementById("mapblock").style.right = "100%";
-				this.$refs.ym.map.container.fitToViewport();
-				setTimeout(function () {
-					document.getElementById("mapblock").style.right = "24px";
-					this.$refs.ym.map.container.fitToViewport();
-				}.bind(this), 700);
+				this.$refs.ym.fitMap();
 			}
 		},
 		showPopup: (show, event) => function(show, event) {

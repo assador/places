@@ -94,8 +94,8 @@ Vue.component('yandexmap', {
 						id: newId,
 						name: newName,
 						description: newDescription,
-						latitude: this.map.getCenter()[0],
-						longitude: this.map.getCenter()[1],
+						latitude: this.map.getCenter()[0].toFixed(7),
+						longitude: this.map.getCenter()[1].toFixed(7),
 						image: "",
 					});
 					setTimeout(function() {
@@ -118,8 +118,8 @@ Vue.component('yandexmap', {
 					this.$store.commit("changePlace", {
 						index: this.mrk.placeIndex,
 						change: {
-							latitude: coordinates[0],
-							longitude: coordinates[1],
+							latitude: coordinates[0].toFixed(7),
+							longitude: coordinates[1].toFixed(7),
 						},
 					});
 				}.bind(this));
@@ -132,14 +132,17 @@ Vue.component('yandexmap', {
 			this.mrk.properties.set("hintContent", this.name);
 			this.mrk.properties.set("balloonContent", this.description);
 		},
-	},
-	mounted: function() {
-		window.addEventListener("resize", function() {
+		fitMap: () => function() {
 			document.getElementById("mapblock").style.right = "100%";
 			this.map.container.fitToViewport();
-			document.getElementById("mapblock").style.right = "24px";
-			this.map.container.fitToViewport();
-		}.bind(this), false);
+			setTimeout(function() {
+				document.getElementById("mapblock").style.right = "24px";
+				this.map.container.fitToViewport();
+			}.bind(this), 50);
+		}
+	},
+	mounted: function() {
+		window.addEventListener("resize", function() {this.fitMap();}.bind(this), false);
 	},
 	template: `
 		<div id="mapblock" class="margin_bottom"></div>
