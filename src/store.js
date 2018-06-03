@@ -1,8 +1,25 @@
 export const store = new Vuex.Store({
-	state: {places: []},
+	state: {
+		places: [],
+		ready: false,
+	},
 	mutations: {
-		jsoned(state, places) {
+		placesReady(state, places) {
 			Vue.set(state, "places", places);
+			Vue.set(state, "ready", true);
+		},
+		addPlace(state, place) {
+			Vue.set(state, "places", state.places.concat(place));
+		},
+		removePlace(state, index) {
+			state.places.splice(index, 1);
+		},
+		changePlace(state, changes) {
+			let place = state.places[changes.index];
+			let keys = Object.keys(changes.change);
+			for(var i = 0; i < keys.length; i++) {
+				place[keys[i]] = changes.change[keys[i]];
+			}
 		},
 	},
 	actions: {
@@ -12,7 +29,7 @@ export const store = new Vuex.Store({
 			placesRequest.onreadystatechange = function(event) {
 				if(placesRequest.readyState == 4) {
 					if(placesRequest.status == 200) {
-						commit("jsoned", JSON.parse(placesRequest.responseText));
+						commit("placesReady", JSON.parse(placesRequest.responseText));
 					} else {
 						console.log("Не могу скачать /json/places.json");
 					}
@@ -22,9 +39,11 @@ export const store = new Vuex.Store({
 		},
 	},
 	getters: {
-		getPlaces: state => state.places,
-		getDetailed: (state, getters) => (id) => {
-			return state.places.find(p => p.id === id);
+		getPlace: (state, getters) => (index) => {
+			return state.places[index];
+		},
+		getIndexById: (state, getters) => (id) => {
+			return state.places.indexOf(state.places.find(p => p.id === id));
 		},
 	},
 });

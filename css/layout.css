@@ -1,0 +1,98 @@
+
+/* Основные стили */
+
+html, body {
+	height: 100%;
+}
+body {
+	position: relative;
+	min-height: 100%;
+}
+#a {
+	position: absolute;
+}
+.app-row, .app-cell {
+	position: relative;
+}
+#mapblock {
+	position: absolute;
+	top: 24px; right: 24px; bottom: 6px; left: 24px;
+}
+.table {
+	display: table;
+	position: relative;
+	width: 100%; height: 100%;
+}
+.app-row {
+	display: table-row;
+}
+.app-cell {
+	display: table-cell;
+	box-sizing: border-box;
+	padding: 24px;
+	vertical-align: top;
+	text-align: left;
+}
+#top-left, #top-right, #bottom-right, #bottom-left {
+	vertical-align: middle;
+	text-align: center;
+/* Временно */
+	line-height: 0;
+	font-size: 18px;
+}
+#bottom, #top-basic, #bottom-basic {
+	z-index: 10;
+}
+#top, #basic-left, #basic-right {
+	z-index: 20;
+}
+#basic, #basic-basic {
+	z-index: 30;
+}
+#top-basic.sbm-top-1 {
+	padding-left: 38px;
+}
+*[class*="sbm-"] {
+	transition: all 0.7s;
+}
+.sbm-top-0, .sbm-right-0, .sbm-bottom-0, .sbm-left-0 {
+	display: none;
+}
+.sbm-left-1, .sbm-right-1 {
+	width: 76px;
+	padding: 12px;
+}
+.sbm-left-2, .sbm-right-2 {
+	width: 200px;
+	padding: 12px;
+}
+.sbm-left-3, .sbm-right-3 {
+	width: 300px;
+	padding: 12px;
+}
+.sbm-top-1, .sbm-bottom-1 {
+	height: 47px;
+	padding: 12px;
+}
+.sbm-top-2, .sbm-bottom-2 {
+	height: 76px;
+}
+.sbm-top-3, .sbm-bottom-3 {
+	height: 200px;
+}
+.sbm-left-1 .row, .sbm-right-1 .row {
+	margin: -6px;
+}
+.sbm-left-1 *[class*="col-"], .sbm-right-1 *[class*="col-"] {
+	padding: 6px;
+}
+
+/* Разные стили */
+
+.block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
+	display: block;
+	position: relative;
+	margin-bottom: 18px;
+	padding: 11px 16px;
+	z-index: 0;
+}
