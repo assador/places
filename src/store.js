@@ -1,6 +1,7 @@
 export const store = new Vuex.Store({
 	state: {
 		places: [],
+		center: {},
 		ready: false,
 	},
 	mutations: {
@@ -20,6 +21,9 @@ export const store = new Vuex.Store({
 			for(var i = 0; i < keys.length; i++) {
 				place[keys[i]] = changes.change[keys[i]];
 			}
+		},
+		changeCenter(state, center) {
+			Vue.set(state, "center", center);
 		},
 	},
 	actions: {

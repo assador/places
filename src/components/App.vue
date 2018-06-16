@@ -2,8 +2,8 @@
 	<div id="app" class="table">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left">
-				<input v-model="currentPlace.latitude" placeholder="latitude" title="latitude" class="fieldwidth_100 fontsize_n margin_bottom_1" />
-				<input v-model="currentPlace.longitude" placeholder="longitude" title="longitude" class="fieldwidth_100 fontsize_n" />
+				<input v-model="$store.state.center.latitude" placeholder="latitude" title="latitude" class="fieldwidth_100 fontsize_n margin_bottom_1" />
+				<input v-model="$store.state.center.longitude" placeholder="longitude" title="longitude" class="fieldwidth_100 fontsize_n" />
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<h1>Geo Store</h1>
@@ -43,9 +43,11 @@
 					:id="currentPlace.id"
 					:name="currentPlace.name"
 					:description="currentPlace.description"
+					:image="currentPlace.image"
 					:latitude="currentPlace.latitude"
 					:longitude="currentPlace.longitude"
-					:image="currentPlace.image"
+					:centerLatitude="$store.state.center.latitude"
+					:centerLongitude="$store.state.center.longitude"
 				>
 				</yandexmap>
 			</div>
@@ -114,7 +116,11 @@ export default {
 			}
 			this.currentId = this.$store.state.places[i].id;
 			this.currentIndex = i;
-			this.currentPlace = this.getPlace(this.currentIndex),
+			this.currentPlace = this.getPlace(this.currentIndex);
+			this.$store.commit("changeCenter", {
+				latitude: this.currentPlace.latitude,
+				longitude: this.currentPlace.longitude,
+			});
 			this.$refs.ym.mrk.placeIndex = this.currentIndex;
 			document.getElementById(this.currentId).classList.add("active");
 		},

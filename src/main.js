@@ -6,7 +6,7 @@ import { store } from './store.js'
 Vue.use(Vuex);
 
 Vue.component('yandexmap', {
-	props: ['id', 'name', 'description', 'latitude', 'longitude', 'image'],
+	props: ['id', 'name', 'description', 'image', 'latitude', 'longitude', 'centerLatitude', 'centerLongitude'],
 	data() {return {
 		map: null,
 		mrk: null,
@@ -14,57 +14,27 @@ Vue.component('yandexmap', {
 	watch: {
 		id: function() {
 			this.updatePlacemark();
-			this.$store.commit("changePlace", {
-				index: this.mrk.placeIndex,
-				change: {
-					id: this.id,
-				},
-			});
 		},
 		latitude: function() {
 			this.updatePlacemark();
-			this.$store.commit("changePlace", {
-				index: this.mrk.placeIndex,
-				change: {
-					latitude: this.mrk.geometry.getCoordinates()[0],
-				},
-			});
 		},
 		longitude: function() {
 			this.updatePlacemark();
-			this.$store.commit("changePlace", {
-				index: this.mrk.placeIndex,
-				change: {
-					longitude: this.mrk.geometry.getCoordinates()[1],
-				},
-			});
+		},
+		centerLatitude: function() {
+			this.updateCenter();
+		},
+		centerLongitude: function() {
+			this.updateCenter();
 		},
 		name: function() {
 			this.updatePlacemark();
-			this.$store.commit("changePlace", {
-				index: this.mrk.placeIndex,
-				change: {
-					name: this.name,
-				},
-			});
 		},
 		description: function() {
 			this.updatePlacemark();
-			this.$store.commit("changePlace", {
-				index: this.mrk.placeIndex,
-				change: {
-					description: this.description,
-				},
-			});
 		},
 		image: function() {
 			this.updatePlacemark();
-			this.$store.commit("changePlace", {
-				index: this.mrk.placeIndex,
-				change: {
-					image: this.image,
-				},
-			});
 		},
 	},
 	computed: {
@@ -81,6 +51,13 @@ Vue.component('yandexmap', {
 				this.map.controls.add(new ymaps.control.ZoomControl());
 				this.map.controls.add("scaleLine");
 				this.map.controls.add(new ymaps.control.TrafficControl({providerKey: "traffic#archive"}));
+				this.map.events.add("actionend", function() {
+					var coordinates = this.map.getCenter();
+					this.$store.commit("changeCenter", {
+						latitude: coordinates[0].toFixed(7),
+						longitude: coordinates[1].toFixed(7),
+					});
+				}.bind(this));
 				this.mrk = new ymaps.Placemark(
 					[lat, lng],
 					{
@@ -109,6 +86,9 @@ Vue.component('yandexmap', {
 			this.mrk.geometry.setCoordinates([this.latitude, this.longitude]);
 			this.mrk.properties.set("hintContent", this.name);
 			this.mrk.properties.set("balloonContent", this.description);
+		},
+		updateCenter: () => function() {
+			this.map.setCenter([this.centerLatitude, this.centerLongitude]);
 		},
 		fitMap: () => function() {
 			document.getElementById("mapblock").style.right = "100%";
