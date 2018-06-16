@@ -57,6 +57,9 @@ Vue.component('yandexmap', {
 						latitude: coordinates[0].toFixed(7),
 						longitude: coordinates[1].toFixed(7),
 					});
+					if(this.$store.state.places.length == 0) {
+						this.mrk.geometry.setCoordinates(this.map.getCenter());
+					}
 				}.bind(this));
 				this.mrk = new ymaps.Placemark(
 					[lat, lng],
@@ -70,13 +73,17 @@ Vue.component('yandexmap', {
 				);
 				this.mrk.events.add("dragend", function() {
 					var coordinates = this.mrk.geometry.getCoordinates();
-					this.$store.commit("changePlace", {
-						index: this.mrk.placeIndex,
-						change: {
-							latitude: coordinates[0].toFixed(7),
-							longitude: coordinates[1].toFixed(7),
-						},
-					});
+					if(!this.$store.state.empty) {
+						this.$store.commit("changePlace", {
+							index: this.mrk.placeIndex,
+							change: {
+								latitude: coordinates[0].toFixed(7),
+								longitude: coordinates[1].toFixed(7),
+							},
+						});
+					} else {
+						this.map.setCenter(coordinates);
+					}
 				}.bind(this));
 				this.map.geoObjects.add(this.mrk);
 			};
