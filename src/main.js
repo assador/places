@@ -106,13 +106,15 @@ Vue.component('yandexmap', {
 		appendPlace: () => function() {
 			let newId = "place_" + (this.$store.state.places.length + 1);
 			let newName = "Новое место (ID: " + newId + ")";
-			let newDescription = newName + ", добавленное в Geo Store.";
+			let newDescription = newName + ", добавленное в “The Places”.";
 			this.$store.commit("addPlace", {
-				srt: Math.ceil(Math.max(
-					...this.$store.state.places.map(function(place) {
-						return place.srt;
-					})
-				)) + 1,
+				srt: this.$store.state.places.length > 0
+					? Math.ceil(Math.max(
+						...this.$store.state.places.map(function(place) {
+							return place.srt;
+						})
+					)) + 1
+					: 1,
 				id: newId,
 				name: newName,
 				description: newDescription,

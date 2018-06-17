@@ -1360,11 +1360,11 @@ __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('yandexmap', {
 			return function () {
 				var newId = "place_" + (this.$store.state.places.length + 1);
 				var newName = "Новое место (ID: " + newId + ")";
-				var newDescription = newName + ", добавленное в Geo Store.";
+				var newDescription = newName + ", добавленное в “The Places”.";
 				this.$store.commit("addPlace", {
-					srt: Math.ceil(Math.max.apply(Math, _toConsumableArray(this.$store.state.places.map(function (place) {
+					srt: this.$store.state.places.length > 0 ? Math.ceil(Math.max.apply(Math, _toConsumableArray(this.$store.state.places.map(function (place) {
 						return place.srt;
-					})))) + 1,
+					})))) + 1 : 1,
 					id: newId,
 					name: newName,
 					description: newDescription,
