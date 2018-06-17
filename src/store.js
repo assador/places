@@ -4,12 +4,24 @@ export const store = new Vuex.Store({
 		center: {},
 		empty: true,
 		ready: false,
+		placeFields: {
+			"srt"         : "Сортировка",
+			"id"          : "Идентификатор метки",
+			"name"        : "Название",
+			"description" : "Описание",
+			"latitude"    : "Широта",
+			"longitude"   : "Долгота",
+			"image"       : "Фотография",
+		},
 	},
 	mutations: {
-		placesReady(state, places) {
+		placesReady(state, places, empty) {
 			Vue.set(state, "places", places);
-			Vue.set(state, "empty", true);
+			Vue.set(state, "empty", empty);
 			Vue.set(state, "ready", true);
+		},
+		modifyPlaces(state, places) {
+			Vue.set(state, "places", places);
 		},
 		addPlace(state, place) {
 			Vue.set(state, "places", state.places.concat(place));

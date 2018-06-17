@@ -1,5 +1,6 @@
 [
 	{
+		"srt": 2.56,
 		"id": "place_1",
 		"name": "Наш дом",
 		"description": "Описание нашего дома.",
@@ -8,6 +9,7 @@
 		"image": "/images/image_blue.jpg"
 	},
 	{
+		"srt": 2,
 		"id": "place_2",
 		"name": "Дом Бородея",
 		"description": "Описание бородеевского дома.",
@@ -16,6 +18,7 @@
 		"image": "/images/image_red.jpg"
 	},
 	{
+		"srt": 4.1,
 		"id": "place_3",
 		"name": "Дом Дениса Абрамыча",
 		"description": "Описание дома Дениса Абрамыча.",
@@ -24,6 +27,7 @@
 		"image": "/images/image_green.jpg"
 	},
 	{
+		"srt": 4,
 		"id": "place_4",
 		"name": "Дом Станислава Моисеича",
 		"description": "Описание дома Станислава Моисеича.",

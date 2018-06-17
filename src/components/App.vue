@@ -1,12 +1,14 @@
 <template>
 	<div id="app" class="table">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
-			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left">
-				<input v-model="$store.state.center.latitude" placeholder="latitude" title="latitude" class="fieldwidth_100 fontsize_n margin_bottom_1" />
-				<input v-model="$store.state.center.longitude" placeholder="longitude" title="longitude" class="fieldwidth_100 fontsize_n" />
+			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
+				<h3 class="fonsize_n">Координаты центра карты</h3>
+				<input v-model="$store.state.center.latitude" placeholder="latitude" title="latitude" class="fieldwidth_100 margin_bottom_1" />
+				<input v-model="$store.state.center.longitude" placeholder="longitude" title="longitude" class="fieldwidth_100" />
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
-				<h1>Geo Store</h1>
+				<h1>The Places</h1>
+				<p>Another yet geo placemarks viewer and editor service</p>
 			</div>
 			<div id="top-right" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-right-' + sidebarMode.right">
 				<button class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
@@ -16,7 +18,7 @@
 		</div>
 		<div class="app-row" id="basic">
 			<div id="basic-left" :class="'app-cell' + ' sbm-left-' + sidebarMode.left">
-				<button :id="place.id" :key="place.id" class="place-button block_01 fieldwidth_100" v-for="place in $store.state.places" @click="setCurrentPlace($store.state.places.indexOf(place));">
+				<button :id="place.id" :key="place.id" class="place-button block_01 fieldwidth_100" v-for="place in sortObjects($store.state.places, 'srt')" @click="setCurrentPlace($store.state.places.indexOf(place));">
 					<h2 class="margin_bottom_1">{{ place.name }}</h2>
 					<div>{{ place.latitude }}, {{ place.longitude }}</div>
 				</button>
@@ -54,8 +56,11 @@
 			<div id="basic-right" :class="'app-cell' + ' sbm-right-' + sidebarMode.right">
 				<dl class="place-detailed">
 					<template v-for="field in Object.keys(currentPlace)" :key="field">
-						<dt>{{ field }}:</dt>
-						<dd v-if="field == 'image'" style="margin: 7px 0 0 0; padding: 0;">
+						<dt>{{ $store.state.placeFields[field] }}:</dt>
+						<dd v-if="field == 'srt' || field == 'id' || field == 'latitude' || field == 'longitude'">
+							<input v-model="currentPlace[field]" class="fieldwidth_100" type="text" value="currentPlace[field]" />
+						</dd>
+						<dd v-else-if="field == 'image'" style="margin: 7px 0 0 0; padding: 0;">
 							<img
 								class="border_1"
 								:src="currentPlace[field]"
@@ -64,7 +69,7 @@
 							/>
 						</dd>
 						<dd v-else>
-							<textarea v-model="currentPlace[field]">{{ currentPlace[field] }}</textarea>
+							<textarea v-model="currentPlace[field]" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
 						</dd>
 					</template>
 				</dl>
@@ -96,8 +101,8 @@ export default {
 			if(ready) {
 				window.addEventListener("load", function() {
 					this.$refs.ym.showMap(0, 0);
+					this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, 'srt'));
 					this.setCurrentPlace(this.currentIndex);
-					this.$refs.ym.fitMap();
 				}.bind(this), false);
 			}
 		},
@@ -124,6 +129,11 @@ export default {
 			this.$refs.ym.mrk.placeIndex = this.currentIndex;
 			document.getElementById(this.currentId).classList.add("active");
 		},
+		sortObjects: (array, field) => function(array, field) {
+			return array.slice().sort(function(a, b) {
+				return a[field] - b[field];
+			});
+		},
 		changeSidebarMode: (sidebar, mode, ceiling) => function(sidebar, mode, ceiling) {
 			let modeCurrent = this.sidebarMode[sidebar];
 			let modeToSet = null;
@@ -143,9 +153,6 @@ export default {
 			}
 			if(modeToSet === null) {modeToSet = mode;}
 			this.sidebarMode[sidebar] = modeToSet;
-			if(this.$refs.ym.map != null) {
-				this.$refs.ym.fitMap();
-			}
 		},
 		showPopup: (show, event) => function(show, event) {
 			event.stopPropagation();

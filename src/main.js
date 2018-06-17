@@ -100,16 +100,19 @@ Vue.component('yandexmap', {
 		fitMap: () => function() {
 			document.getElementById("mapblock").style.right = "100%";
 			this.map.container.fitToViewport();
-			setTimeout(function() {
-				document.getElementById("mapblock").style.right = "24px";
-				this.map.container.fitToViewport();
-			}.bind(this), 50);
+			document.getElementById("mapblock").style.right = "24px";
+			this.map.container.fitToViewport();
 		},
 		appendPlace: () => function() {
 			let newId = "place_" + (this.$store.state.places.length + 1);
 			let newName = "Новое место (ID: " + newId + ")";
 			let newDescription = newName + ", добавленное в Geo Store.";
 			this.$store.commit("addPlace", {
+				srt: Math.ceil(Math.max(
+					...this.$store.state.places.map(function(place) {
+						return place.srt;
+					})
+				)) + 1,
 				id: newId,
 				name: newName,
 				description: newDescription,
@@ -123,7 +126,9 @@ Vue.component('yandexmap', {
 		},
 	},
 	mounted: function() {
-		window.addEventListener("resize", function() {this.fitMap();}.bind(this), false);
+		new ResizeSensor(document.getElementById("basic-basic"), function() {
+			this.fitMap();
+		}.bind(this));
 	},
 	template: `
 		<div id="mapblock" class="margin_bottom"></div>

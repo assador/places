@@ -1125,6 +1125,11 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 //
 //
 //
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["a"] = ({
@@ -1143,8 +1148,8 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 			if (ready) {
 				window.addEventListener("load", function () {
 					this.$refs.ym.showMap(0, 0);
+					this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, 'srt'));
 					this.setCurrentPlace(this.currentIndex);
-					this.$refs.ym.fitMap();
 				}.bind(this), false);
 			}
 		}
@@ -1172,6 +1177,13 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 				document.getElementById(this.currentId).classList.add("active");
 			};
 		},
+		sortObjects: function sortObjects(array, field) {
+			return function (array, field) {
+				return array.slice().sort(function (a, b) {
+					return a[field] - b[field];
+				});
+			};
+		},
 		changeSidebarMode: function changeSidebarMode(sidebar, mode, ceiling) {
 			return function (sidebar, mode, ceiling) {
 				var modeCurrent = this.sidebarMode[sidebar];
@@ -1194,9 +1206,6 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 					modeToSet = mode;
 				}
 				this.sidebarMode[sidebar] = modeToSet;
-				if (this.$refs.ym.map != null) {
-					this.$refs.ym.fitMap();
-				}
 			};
 		},
 		showPopup: function showPopup(show, event) {
@@ -1233,6 +1242,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vuex__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_App_vue__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__store_js__ = __webpack_require__(11);
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 
 
 
@@ -1341,10 +1352,8 @@ __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('yandexmap', {
 			return function () {
 				document.getElementById("mapblock").style.right = "100%";
 				this.map.container.fitToViewport();
-				setTimeout(function () {
-					document.getElementById("mapblock").style.right = "24px";
-					this.map.container.fitToViewport();
-				}.bind(this), 50);
+				document.getElementById("mapblock").style.right = "24px";
+				this.map.container.fitToViewport();
 			};
 		},
 		appendPlace: function appendPlace() {
@@ -1353,6 +1362,9 @@ __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('yandexmap', {
 				var newName = "Новое место (ID: " + newId + ")";
 				var newDescription = newName + ", добавленное в Geo Store.";
 				this.$store.commit("addPlace", {
+					srt: Math.ceil(Math.max.apply(Math, _toConsumableArray(this.$store.state.places.map(function (place) {
+						return place.srt;
+					})))) + 1,
 					id: newId,
 					name: newName,
 					description: newDescription,
@@ -1367,9 +1379,9 @@ __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('yandexmap', {
 		}
 	},
 	mounted: function mounted() {
-		window.addEventListener("resize", function () {
+		new ResizeSensor(document.getElementById("basic-basic"), function () {
 			this.fitMap();
-		}.bind(this), false);
+		}.bind(this));
 	},
 	template: '\n\t\t<div id="mapblock" class="margin_bottom"></div>\n\t'
 });
@@ -12784,7 +12796,7 @@ process.umask = function() { return 0; };
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_App_vue__ = __webpack_require__(2);
 /* unused harmony namespace reexport */
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_22586b6c_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_App_vue__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_49a8d0ef_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_App_vue__ = __webpack_require__(10);
 var normalizeComponent = __webpack_require__(9)
 /* script */
 
@@ -12801,7 +12813,7 @@ var __vue_scopeId__ = null
 var __vue_module_identifier__ = null
 var Component = normalizeComponent(
   __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_App_vue__["a" /* default */],
-  __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_22586b6c_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_App_vue__["a" /* default */],
+  __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_49a8d0ef_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_App_vue__["a" /* default */],
   __vue_template_functional__,
   __vue_styles__,
   __vue_scopeId__,
@@ -12925,7 +12937,7 @@ module.exports = function normalizeComponent (
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"table",attrs:{"id":"app"}},[_c('div',{class:'app-row' + ' sbm-top-' + _vm.sidebarMode.top,attrs:{"id":"top"}},[_c('div',{class:'app-cell' + ' sbm-top-' + _vm.sidebarMode.top + ' sbm-left-' + _vm.sidebarMode.left,attrs:{"id":"top-left"}},[_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.$store.state.center.latitude),expression:"$store.state.center.latitude"}],staticClass:"fieldwidth_100 fontsize_n margin_bottom_1",attrs:{"placeholder":"latitude","title":"latitude"},domProps:{"value":(_vm.$store.state.center.latitude)},on:{"input":function($event){if($event.target.composing){ return; }_vm.$set(_vm.$store.state.center, "latitude", $event.target.value)}}}),_vm._v(" "),_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.$store.state.center.longitude),expression:"$store.state.center.longitude"}],staticClass:"fieldwidth_100 fontsize_n",attrs:{"placeholder":"longitude","title":"longitude"},domProps:{"value":(_vm.$store.state.center.longitude)},on:{"input":function($event){if($event.target.composing){ return; }_vm.$set(_vm.$store.state.center, "longitude", $event.target.value)}}})]),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-top-' + _vm.sidebarMode.top,attrs:{"id":"top-basic"}},[_c('h1',[_vm._v("Geo Store")])]),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-top-' + _vm.sidebarMode.top + ' sbm-right-' + _vm.sidebarMode.right,attrs:{"id":"top-right"}},[_c('button',{staticClass:"actions-button",attrs:{"title":"Добавить место в центре карты"},on:{"click":function($event){_vm.$refs.ym.appendPlace();}}},[_vm._v("+")]),_vm._v(" "),_c('button',{staticClass:"actions-button",attrs:{"title":"Удалить текущее место"},on:{"click":function($event){_vm.$store.commit('removePlace', _vm.currentIndex); _vm.setCurrentPlace(_vm.currentIndex);}}},[_vm._v("×")]),_vm._v(" "),_c('button',{staticClass:"actions-button",attrs:{"title":"Сохранить на диск"},on:{"click":function($event){_vm.saveToFile();}}},[_vm._v("⭳")])])]),_vm._v(" "),_c('div',{staticClass:"app-row",attrs:{"id":"basic"}},[_c('div',{class:'app-cell' + ' sbm-left-' + _vm.sidebarMode.left,attrs:{"id":"basic-left"}},_vm._l((_vm.$store.state.places),function(place){return _c('button',{key:place.id,staticClass:"place-button block_01 fieldwidth_100",attrs:{"id":place.id},on:{"click":function($event){_vm.setCurrentPlace(_vm.$store.state.places.indexOf(place));}}},[_c('h2',{staticClass:"margin_bottom_1"},[_vm._v(_vm._s(place.name))]),_vm._v(" "),_c('div',[_vm._v(_vm._s(place.latitude)+", "+_vm._s(place.longitude))])])})),_vm._v(" "),_c('div',{staticClass:"app-cell",attrs:{"id":"basic-basic"}},[_c('div',{staticClass:"sbas-top"},[_c('a',{staticClass:"sba-u",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('top', 'smaller');}}}),_vm._v(" "),_c('a',{staticClass:"sba-d",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('top', 'bigger');}}})]),_vm._v(" "),_c('div',{class:'sbas-right' + (!_vm.sidebarMode.right ? ' sbas-0' : '')},[_c('a',{staticClass:"sba-l",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('right', 'bigger');}}}),_vm._v(" "),_c('a',{staticClass:"sba-r",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('right', 'smaller');}}})]),_vm._v(" "),_c('div',{class:'sbas-bottom' + (!_vm.sidebarMode.bottom ? ' sbas-0' : '')},[_c('a',{staticClass:"sba-u",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('bottom', 'bigger');}}}),_vm._v(" "),_c('a',{staticClass:"sba-d",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('bottom', 'smaller');}}})]),_vm._v(" "),_c('div',{staticClass:"sbas-left"},[_c('a',{staticClass:"sba-l",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('left', 'smaller');}}}),_vm._v(" "),_c('a',{staticClass:"sba-r",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('left', 'bigger');}}})]),_vm._v(" "),_c('yandexmap',{ref:"ym",attrs:{"id":_vm.currentPlace.id,"name":_vm.currentPlace.name,"description":_vm.currentPlace.description,"image":_vm.currentPlace.image,"latitude":_vm.currentPlace.latitude,"longitude":_vm.currentPlace.longitude,"centerLatitude":_vm.$store.state.center.latitude,"centerLongitude":_vm.$store.state.center.longitude}})],1),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-right-' + _vm.sidebarMode.right,attrs:{"id":"basic-right"}},[_c('dl',{staticClass:"place-detailed"},[_vm._l((Object.keys(_vm.currentPlace)),function(field){return [_c('dt',[_vm._v(_vm._s(field)+":")]),_vm._v(" "),(field == 'image')?_c('dd',{staticStyle:{"margin":"7px 0 0 0","padding":"0"}},[_c('img',{staticClass:"border_1",attrs:{"src":_vm.currentPlace[field],"alt":_vm.currentPlace.name,"title":_vm.currentPlace.name}})]):_c('dd',[_c('textarea',{directives:[{name:"model",rawName:"v-model",value:(_vm.currentPlace[field]),expression:"currentPlace[field]"}],domProps:{"value":(_vm.currentPlace[field])},on:{"input":function($event){if($event.target.composing){ return; }_vm.$set(_vm.currentPlace, field, $event.target.value)}}},[_vm._v(_vm._s(_vm.currentPlace[field]))])])]})],2)])]),_vm._v(" "),_c('div',{class:'app-row' + ' sbm-bottom-' + _vm.sidebarMode.bottom,attrs:{"id":"bottom"}},[_c('div',{class:'app-cell' + ' sbm-bottom-' + _vm.sidebarMode.bottom + ' sbm-left-' + _vm.sidebarMode.left,attrs:{"id":"bottom-left"}}),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-bottom-' + _vm.sidebarMode.bottom,attrs:{"id":"bottom-basic"}}),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-bottom-' + _vm.sidebarMode.bottom + ' sbm-right-' + _vm.sidebarMode.right,attrs:{"id":"bottom-right"}})])])}
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"table",attrs:{"id":"app"}},[_c('div',{class:'app-row' + ' sbm-top-' + _vm.sidebarMode.top,attrs:{"id":"top"}},[_c('div',{staticClass:"fieldwidth_100 fontsize_n",class:'app-cell' + ' sbm-top-' + _vm.sidebarMode.top + ' sbm-left-' + _vm.sidebarMode.left,attrs:{"id":"top-left"}},[_c('h3',{staticClass:"fonsize_n"},[_vm._v("Координаты центра карты")]),_vm._v(" "),_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.$store.state.center.latitude),expression:"$store.state.center.latitude"}],staticClass:"fieldwidth_100 margin_bottom_1",attrs:{"placeholder":"latitude","title":"latitude"},domProps:{"value":(_vm.$store.state.center.latitude)},on:{"input":function($event){if($event.target.composing){ return; }_vm.$set(_vm.$store.state.center, "latitude", $event.target.value)}}}),_vm._v(" "),_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.$store.state.center.longitude),expression:"$store.state.center.longitude"}],staticClass:"fieldwidth_100",attrs:{"placeholder":"longitude","title":"longitude"},domProps:{"value":(_vm.$store.state.center.longitude)},on:{"input":function($event){if($event.target.composing){ return; }_vm.$set(_vm.$store.state.center, "longitude", $event.target.value)}}})]),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-top-' + _vm.sidebarMode.top,attrs:{"id":"top-basic"}},[_c('h1',[_vm._v("The Places")]),_vm._v(" "),_c('p',[_vm._v("Another yet geo placemarks viewer and editor service")])]),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-top-' + _vm.sidebarMode.top + ' sbm-right-' + _vm.sidebarMode.right,attrs:{"id":"top-right"}},[_c('button',{staticClass:"actions-button",attrs:{"title":"Добавить место в центре карты"},on:{"click":function($event){_vm.$refs.ym.appendPlace();}}},[_vm._v("+")]),_vm._v(" "),_c('button',{staticClass:"actions-button",attrs:{"title":"Удалить текущее место"},on:{"click":function($event){_vm.$store.commit('removePlace', _vm.currentIndex); _vm.setCurrentPlace(_vm.currentIndex);}}},[_vm._v("×")]),_vm._v(" "),_c('button',{staticClass:"actions-button",attrs:{"title":"Сохранить на диск"},on:{"click":function($event){_vm.saveToFile();}}},[_vm._v("⭳")])])]),_vm._v(" "),_c('div',{staticClass:"app-row",attrs:{"id":"basic"}},[_c('div',{class:'app-cell' + ' sbm-left-' + _vm.sidebarMode.left,attrs:{"id":"basic-left"}},_vm._l((_vm.sortObjects(_vm.$store.state.places, 'srt')),function(place){return _c('button',{key:place.id,staticClass:"place-button block_01 fieldwidth_100",attrs:{"id":place.id},on:{"click":function($event){_vm.setCurrentPlace(_vm.$store.state.places.indexOf(place));}}},[_c('h2',{staticClass:"margin_bottom_1"},[_vm._v(_vm._s(place.name))]),_vm._v(" "),_c('div',[_vm._v(_vm._s(place.latitude)+", "+_vm._s(place.longitude))])])})),_vm._v(" "),_c('div',{staticClass:"app-cell",attrs:{"id":"basic-basic"}},[_c('div',{staticClass:"sbas-top"},[_c('a',{staticClass:"sba-u",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('top', 'smaller');}}}),_vm._v(" "),_c('a',{staticClass:"sba-d",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('top', 'bigger');}}})]),_vm._v(" "),_c('div',{class:'sbas-right' + (!_vm.sidebarMode.right ? ' sbas-0' : '')},[_c('a',{staticClass:"sba-l",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('right', 'bigger');}}}),_vm._v(" "),_c('a',{staticClass:"sba-r",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('right', 'smaller');}}})]),_vm._v(" "),_c('div',{class:'sbas-bottom' + (!_vm.sidebarMode.bottom ? ' sbas-0' : '')},[_c('a',{staticClass:"sba-u",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('bottom', 'bigger');}}}),_vm._v(" "),_c('a',{staticClass:"sba-d",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('bottom', 'smaller');}}})]),_vm._v(" "),_c('div',{staticClass:"sbas-left"},[_c('a',{staticClass:"sba-l",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('left', 'smaller');}}}),_vm._v(" "),_c('a',{staticClass:"sba-r",attrs:{"href":"javascript:void(0);"},on:{"click":function($event){_vm.changeSidebarMode('left', 'bigger');}}})]),_vm._v(" "),_c('yandexmap',{ref:"ym",attrs:{"id":_vm.currentPlace.id,"name":_vm.currentPlace.name,"description":_vm.currentPlace.description,"image":_vm.currentPlace.image,"latitude":_vm.currentPlace.latitude,"longitude":_vm.currentPlace.longitude,"centerLatitude":_vm.$store.state.center.latitude,"centerLongitude":_vm.$store.state.center.longitude}})],1),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-right-' + _vm.sidebarMode.right,attrs:{"id":"basic-right"}},[_c('dl',{staticClass:"place-detailed"},[_vm._l((Object.keys(_vm.currentPlace)),function(field){return [_c('dt',[_vm._v(_vm._s(_vm.$store.state.placeFields[field])+":")]),_vm._v(" "),(field == 'srt' || field == 'id' || field == 'latitude' || field == 'longitude')?_c('dd',[_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.currentPlace[field]),expression:"currentPlace[field]"}],staticClass:"fieldwidth_100",attrs:{"type":"text","value":"currentPlace[field]"},domProps:{"value":(_vm.currentPlace[field])},on:{"input":function($event){if($event.target.composing){ return; }_vm.$set(_vm.currentPlace, field, $event.target.value)}}})]):(field == 'image')?_c('dd',{staticStyle:{"margin":"7px 0 0 0","padding":"0"}},[_c('img',{staticClass:"border_1",attrs:{"src":_vm.currentPlace[field],"alt":_vm.currentPlace.name,"title":_vm.currentPlace.name}})]):_c('dd',[_c('textarea',{directives:[{name:"model",rawName:"v-model",value:(_vm.currentPlace[field]),expression:"currentPlace[field]"}],staticClass:"fieldwidth_100",domProps:{"value":(_vm.currentPlace[field])},on:{"input":function($event){if($event.target.composing){ return; }_vm.$set(_vm.currentPlace, field, $event.target.value)}}},[_vm._v(_vm._s(_vm.currentPlace[field]))])])]})],2)])]),_vm._v(" "),_c('div',{class:'app-row' + ' sbm-bottom-' + _vm.sidebarMode.bottom,attrs:{"id":"bottom"}},[_c('div',{class:'app-cell' + ' sbm-bottom-' + _vm.sidebarMode.bottom + ' sbm-left-' + _vm.sidebarMode.left,attrs:{"id":"bottom-left"}}),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-bottom-' + _vm.sidebarMode.bottom,attrs:{"id":"bottom-basic"}}),_vm._v(" "),_c('div',{class:'app-cell' + ' sbm-bottom-' + _vm.sidebarMode.bottom + ' sbm-right-' + _vm.sidebarMode.right,attrs:{"id":"bottom-right"}})])])}
 var staticRenderFns = []
 var esExports = { render: render, staticRenderFns: staticRenderFns }
 /* harmony default export */ __webpack_exports__["a"] = (esExports);
@@ -12941,13 +12953,25 @@ var store = new Vuex.Store({
 		places: [],
 		center: {},
 		empty: true,
-		ready: false
+		ready: false,
+		placeFields: {
+			"srt": "Сортировка",
+			"id": "Идентификатор метки",
+			"name": "Название",
+			"description": "Описание",
+			"latitude": "Широта",
+			"longitude": "Долгота",
+			"image": "Фотография"
+		}
 	},
 	mutations: {
-		placesReady: function placesReady(state, places) {
+		placesReady: function placesReady(state, places, empty) {
 			Vue.set(state, "places", places);
-			Vue.set(state, "empty", true);
+			Vue.set(state, "empty", empty);
 			Vue.set(state, "ready", true);
+		},
+		modifyPlaces: function modifyPlaces(state, places) {
+			Vue.set(state, "places", places);
 		},
 		addPlace: function addPlace(state, place) {
 			Vue.set(state, "places", state.places.concat(place));

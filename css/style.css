@@ -56,7 +56,8 @@ table.borderv > * > tr > td, table.borderv > * > tr > th {
 	border-top: none; border-right: 1px solid rgba(200, 177, 160, 0.2); border-bottom: none; border-left: 1px solid rgba(200, 177, 160, 0.2);
 }
 img.border_1 {
-	border: none; outline: 1px solid rgba(200, 177, 160, 0.1); outline-offset: -1px;
+	border: none; outline: 1px solid rgba(64, 36, 18, 0.8); outline-offset: -1px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 .back_0,
 table.table_decor > * > tr:hover, table.table_decor > * > tr:focus {
@@ -273,7 +274,8 @@ select[multiple], textarea {
 	vertical-align: top;
 }
 input:hover, select:hover, .selectspan:hover, textarea:hover, input:focus, select:focus, .selectspan:focus, textarea:focus {
-	box-shadow: 0 0 8px rgba(255, 243, 201, 0.1);
+	background-color: rgba(218, 166, 126, 0.2);
+	box-shadow: 0 0 8px rgba(255, 243, 201, 0.2);
 }
 input, select, .selectspan, textarea {
 	background-color: rgba(144, 98, 62, 0.1);
@@ -476,12 +478,14 @@ table.table-wopadd th, table.table-wopadd td {
 	line-height: 0;
 	font-size: 22px;
 }
+.place-detailed dd {
+	padding-left: 0;
+}
+.place-detailed textarea, .place-detailed input[type="text"] {
+	margin: 3px 0 8px 0;
+}
 .place-detailed textarea {
-	width: 100%; height: 1.286em;
-	padding: 0;
-	background: none;
-	border: none;
-	box-shadow: none;
+	height: 40px;
 }
 *[class*="sbas-"], *[class*="sba-"] {
 	position: absolute;

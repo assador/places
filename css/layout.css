@@ -33,12 +33,16 @@ body {
 	vertical-align: top;
 	text-align: left;
 }
-#top-left, #top-right, #bottom-right, #bottom-left {
+#top-left, #top-basic, #top-right, #bottom-right, #bottom-basic, #bottom-left {
 	vertical-align: middle;
+}
+#top-left h3 {
+	margin: -8px 0 4px 0;
+}
+#top-right {
 	text-align: center;
-/* Временно */
-	line-height: 0;
-	font-size: 18px;
+}
+#top-basic {
 }
 #bottom, #top-basic, #bottom-basic {
 	z-index: 10;
@@ -73,11 +77,11 @@ body {
 	padding: 12px;
 }
 .sbm-top-1, .sbm-bottom-1 {
-	height: 47px;
+	height: 94px;
 	padding: 12px;
 }
 .sbm-top-2, .sbm-bottom-2 {
-	height: 76px;
+	height: 100px;
 }
 .sbm-top-3, .sbm-bottom-3 {
 	height: 200px;
