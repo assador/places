@@ -164,6 +164,7 @@ export default {
 				});
 				this.currentIndex--;
 			}
+			this.$refs.ym.mrk.placeIndex = this.currentIndex;
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, 'srt'));
 		},
 		changeSidebarMode: (sidebar, mode, ceiling) => function(sidebar, mode, ceiling) {
