@@ -17,8 +17,14 @@
 			</div>
 		</div>
 		<div class="app-row" id="basic">
-			<div id="basic-left" :class="'app-cell' + ' sbm-left-' + sidebarMode.left">
-				<button :id="place.id" :key="place.id" class="place-button block_01 fieldwidth_100" v-for="place in sortObjects($store.state.places, 'srt')" @click="setCurrentPlace($store.state.places.indexOf(place));">
+			<div id="basic-left" :class="'app-cell' + ' sbm-left-' + sidebarMode.left" v-on:wheel="movePlaceButton($event);">
+				<button
+					:id="place.id"
+					:key="place.id"
+					class="place-button block_01 fieldwidth_100"
+					v-for="place in sortObjects($store.state.places, 'srt')"
+					@click="setCurrentPlace($store.state.places.indexOf(place));"
+				>
 					<h2 class="margin_bottom_1">{{ place.name }}</h2>
 					<div>{{ place.latitude }}, {{ place.longitude }}</div>
 				</button>
@@ -40,7 +46,7 @@
 					<a href="javascript:void(0);" class="sba-l" @click="changeSidebarMode('left', 'smaller');"></a>
 					<a href="javascript:void(0);" class="sba-r" @click="changeSidebarMode('left', 'bigger');"></a>
 				</div>
-				<yandexmap
+				<mapyandex
 					ref="ym"
 					:id="currentPlace.id"
 					:name="currentPlace.name"
@@ -51,7 +57,7 @@
 					:centerLatitude="$store.state.center.latitude"
 					:centerLongitude="$store.state.center.longitude"
 				>
-				</yandexmap>
+				</mapyandex>
 			</div>
 			<div id="basic-right" :class="'app-cell' + ' sbm-right-' + sidebarMode.right">
 				<dl class="place-detailed">
@@ -62,11 +68,13 @@
 						</dd>
 						<dd v-else-if="field == 'image'" style="margin: 7px 0 0 0; padding: 0;">
 							<img
+								v-if="currentPlace[field] != ''"
 								class="border_1"
 								:src="currentPlace[field]"
 								:alt="currentPlace.name"
 								:title="currentPlace.name"
 							/>
+							<input v-else type="file" value="Загрузить фотография…" />
 						</dd>
 						<dd v-else>
 							<textarea v-model="currentPlace[field]" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
@@ -130,9 +138,33 @@ export default {
 			document.getElementById(this.currentId).classList.add("active");
 		},
 		sortObjects: (array, field) => function(array, field) {
-			return array.slice().sort(function(a, b) {
+			let sorted = array.slice().sort(function(a, b) {
 				return a[field] - b[field];
 			});
+			if(this.currentId == null || this.currentId.trim() == "") {
+				this.currentIndex = 0;
+			} else {
+				this.currentIndex = this.getIndexById(this.currentId);
+			}
+			return sorted;
+		},
+		movePlaceButton: (event) => function(event) {
+			let active = document.getElementById("basic-left").querySelector(".active");
+			if(event.deltaY > 0 && active.nextElementSibling) {
+				this.$store.commit("swapPlacesValues", {
+					indexes: [this.currentIndex, this.currentIndex + 1],
+					values: ["srt"],
+				});
+				this.currentIndex++;
+			}
+			if(event.deltaY < 0 && active.previousElementSibling) {
+				this.$store.commit("swapPlacesValues", {
+					indexes: [this.currentIndex, this.currentIndex - 1],
+					values: ["srt"],
+				});
+				this.currentIndex--;
+			}
+			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, 'srt'));
 		},
 		changeSidebarMode: (sidebar, mode, ceiling) => function(sidebar, mode, ceiling) {
 			let modeCurrent = this.sidebarMode[sidebar];

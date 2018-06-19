@@ -40,6 +40,13 @@ export const store = new Vuex.Store({
 				place[keys[i]] = changes.change[keys[i]];
 			}
 		},
+		swapPlacesValues(state, changes) {
+			let p1 = state.places[changes.indexes[0]];
+			let p2 = state.places[changes.indexes[1]];
+			changes.values.forEach(function(key) {
+				p1[key] = [p2[key], p2[key] = p1[key]][0];
+			});
+		},
 		changeCenter(state, center) {
 			Vue.set(state, "center", center);
 		},

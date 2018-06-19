@@ -274,8 +274,8 @@ select[multiple], textarea {
 	vertical-align: top;
 }
 input:hover, select:hover, .selectspan:hover, textarea:hover, input:focus, select:focus, .selectspan:focus, textarea:focus {
-	background-color: rgba(218, 166, 126, 0.2);
-	box-shadow: 0 0 8px rgba(255, 243, 201, 0.2);
+	background-color: rgba(218, 166, 126, 0.14);
+	box-shadow: 0 0 8px rgba(255, 243, 201, 0.14);
 }
 input, select, .selectspan, textarea {
 	background-color: rgba(144, 98, 62, 0.1);

@@ -1,11 +1,9 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-import App from './components/App.vue'
-import { store } from './store.js'
+<template>
+	<div id="mapblock" class="margin_bottom"></div>
+<template>
 
-Vue.use(Vuex);
-
-Vue.component('mapyandex', {
+<script>
+export default {
 	props: ['id', 'name', 'description', 'image', 'latitude', 'longitude', 'centerLatitude', 'centerLongitude'],
 	data() {return {
 		map: null,
@@ -132,16 +130,5 @@ Vue.component('mapyandex', {
 			this.fitMap();
 		}.bind(this));
 	},
-	template: `
-		<div id="mapblock" class="margin_bottom"></div>
-	`,
-});
-
-let app = new Vue({
-	store,
-	el: '#app',
-	render: h => h(App),
-	mounted: function() {
-		store.dispatch('setPlaces');
-	},
-});
+}
+</script>
