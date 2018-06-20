@@ -106,6 +106,11 @@ export default {
 			let newName = "Новое место (ID: " + newId + ")";
 			let newDescription = newName + ", добавленное в “The Places”.";
 			this.$store.commit("addPlace", {
+				name: newName,
+				description: newDescription,
+				latitude: this.map.getCenter()[0].toFixed(7),
+				longitude: this.map.getCenter()[1].toFixed(7),
+				id: newId,
 				srt: this.$store.state.places.length > 0
 					? Math.ceil(Math.max(
 						...this.$store.state.places.map(function(place) {
@@ -113,11 +118,6 @@ export default {
 						})
 					)) + 1
 					: 1,
-				id: newId,
-				name: newName,
-				description: newDescription,
-				latitude: this.map.getCenter()[0].toFixed(7),
-				longitude: this.map.getCenter()[1].toFixed(7),
 				image: "",
 			});
 			setTimeout(function() {

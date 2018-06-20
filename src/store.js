@@ -54,13 +54,13 @@ export const store = new Vuex.Store({
 	actions: {
 		setPlaces({ commit }) {
 			let placesRequest = new XMLHttpRequest();
-			placesRequest.open("GET", "/json/places.json", true);
+			placesRequest.open("GET", "/backend/get_places.php", true);
 			placesRequest.onreadystatechange = function(event) {
 				if(placesRequest.readyState == 4) {
 					if(placesRequest.status == 200) {
 						commit("placesReady", JSON.parse(placesRequest.responseText), false);
 					} else {
-						console.log("Не могу скачать /json/places.json");
+						alert("Не могу получить данные из БД");
 						commit("placesReady", [], true);
 					}
 				}

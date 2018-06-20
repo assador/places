@@ -14,6 +14,7 @@
 				<button class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
 				<button class="actions-button" @click="$store.commit('removePlace', currentIndex); setCurrentPlace(currentIndex);" title="Удалить текущее место">×</button>
 				<button class="actions-button" @click="saveToFile();" title="Сохранить на диск">⭳</button>
+				<button class="actions-button" @click="setPlacesToDB();" title="Сохранить в БД">⭽</button>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -141,7 +142,7 @@ export default {
 			let sorted = array.slice().sort(function(a, b) {
 				return a[field] - b[field];
 			});
-			if(this.currentId == null || this.currentId.trim() == "") {
+			if(this.currentId == null) {
 				this.currentIndex = 0;
 			} else {
 				this.currentIndex = this.getIndexById(this.currentId);
@@ -203,6 +204,21 @@ export default {
 			a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
 			e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
 			a.dispatchEvent(e);
+		},
+		setPlacesToDB: () => function() {
+			let placesRequest = new XMLHttpRequest();
+			placesRequest.open("POST", "/backend/set_places.php", true);
+			placesRequest.onreadystatechange = function(event) {
+				if(placesRequest.readyState == 4) {
+					if(placesRequest.status == 200) {
+						alert("Ваши изменения сохранены в базе данных.");
+					} else {
+						alert("Не могу внести данные в БД");
+					}
+				}
+			};
+			placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			placesRequest.send("places=" + JSON.stringify(this.$store.state.places));
 		},
 	},
 }

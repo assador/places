@@ -473,6 +473,7 @@ table.table-wopadd th, table.table-wopadd td {
 	font-size: 0 !important;
 }
 #top-right * {
+	width: 28px; height: 28px;
 	margin: 4px;
 	padding: 13px 7px;
 	line-height: 0;
