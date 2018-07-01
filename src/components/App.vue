@@ -76,6 +76,13 @@
 										:alt="currentPlace.name"
 										:title="currentPlace.name"
 									/>
+									<a
+										class="dd-images__delete button"
+										href="javascript:void(0);"
+										@click="deleteFiles(currentPlace[field], [image], $event);"
+									>
+										×
+									</a>
 								</div>
 							</a>
 						</dd>
@@ -83,8 +90,9 @@
 							<textarea v-model="currentPlace[field]" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
 						</dd>
 					</template>
-					<div>
-						<input ref="inputUploadFiles" name="files" type="file" multiple @change="uploadFiles($event);" />
+					<div class="images-add">
+						<div class="images-add__div button">Добавить фотографии</div>
+						<input class="images-add__input" ref="inputUploadFiles" name="files" type="file" multiple @change="uploadFiles($event);" />
 					</div>
 				</dl>
 			</div>
@@ -101,6 +109,7 @@
 			<component
 				:is="popupComponent"
 				:data="popupData"
+				:currentPlace="currentPlace"
 			>
 			</component>
 		</div>
@@ -263,7 +272,25 @@ export default {
 					}.bind(this));
 					this.$store.commit("changePlace", {
 						index: this.currentIndex,
-						change: {images: this.$store.state.places[this.currentIndex].images.concat(filesArray)},
+						change: {images: this.$store.state.places[this.currentIndex].images
+							? this.$store.state.places[this.currentIndex].images.concat(filesArray)
+							: filesArray
+						},
+					});
+				});
+		},
+		deleteFiles: (inarray, files, event) => function(inarray, files, event) {
+			event.stopPropagation();
+			let data = new FormData();
+			for(var i = 0; i < files.length; i++) {
+				data.append("file_" + i , files[i].file);
+				inarray.splice(inarray.indexOf(files[i]), 1);
+			}
+			axios.post("/backend/delete.php", data)
+				.then((response) => {
+					this.$store.commit("changePlace", {
+						index: this.currentIndex,
+						change: {images: inarray},
 					});
 				});
 		},

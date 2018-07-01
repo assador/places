@@ -212,7 +212,7 @@ code, pre, .pre, .code {
 pre, .pre {
 	overflow: auto;
 }
-button, input, select, .selectspan, textarea {
+.button, button, input, select, .selectspan, textarea {
 	display: inline-block;
 	box-sizing: border-box;
 	height: 22px;
@@ -230,10 +230,11 @@ input[type="checkbox"], input[type="color"], input[type="file"], input[type="ima
 	background-color: transparent;
 	border: none;
 }
-button, input[type="button"], input[type="reset"], input[type="search"], input[type="submit"] {
+.button, button, input[type="button"], input[type="reset"], input[type="submit"] {
+	text-align: center;
 	cursor: pointer;
 }
-button {
+.button, button {
 	height: auto;
 	min-height: 22px;
 }
@@ -281,7 +282,7 @@ input, select, .selectspan, textarea {
 	background-color: rgba(144, 98, 62, 0.1);
 	border-color: rgba(200, 177, 160, 0.05) rgba(200, 177, 160, 0.1) rgba(200, 177, 160, 0.6) rgba(200, 177, 160, 0.1);
 }
-button, input[type="button"], button[disabled]:hover, input[type="button"][disabled]:hover {
+.button, button, input[type="button"], button[disabled]:hover, input[type="button"][disabled]:hover {
 	background-color: rgb(193, 170, 154);
 	border-color: rgb(152, 131, 115) rgb(207, 184, 167) rgb(221, 198, 181) rgb(166, 144, 128);
 	color: rgb(70, 41, 23);
@@ -291,7 +292,7 @@ input[type="submit"], input[type="reset"], input[type="submit"][disabled]:hover,
 	border-color: rgb(144, 98, 62) rgb(200, 149, 110) rgb(214, 162, 123) rgb(158, 110, 74);
 	color: rgb(70, 41, 23);
 }
-button:hover, input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover,
+.button:hover, .button:focus, button:hover, input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover,
 button:focus, input[type="button"]:focus, input[type="submit"]:focus, input[type="reset"]:focus {
 	background-color: rgb(218, 166, 126);
 	border-color: rgb(175, 126, 89) rgb(232, 179, 139) rgb(247, 193, 152) rgb(189, 139, 101);
@@ -455,16 +456,15 @@ table.table-wopadd th, table.table-wopadd td {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	position: absolute;
-	top: 30px; right: 317px; bottom: 30px; left: 50px;
-	padding: 1em;
-	border-radius: 7px;
-	background-color: rgba(193, 170, 154, 0.3);
-	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.13);
+	position: fixed;
+	top: 0; right: 0; bottom: 0; left: 0;
+	padding: 50px;
+	background-color: rgba(0, 0, 0, 0.85);
 	z-index: 1000;
 }
 .popup-image {
 	max-height: 100%;
+	cursor: pointer;
 }
 *[class*="col-"] > *[class*="block_"] {
 	display: flex !important;
@@ -499,6 +499,30 @@ table.table-wopadd th, table.table-wopadd td {
 	width: auto;
 	margin-top: 7px !important; margin-bottom: 7px !important;
 	padding: 0;
+}
+.dd-images__delete {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: -5px; right: -5px;
+	width: 20px; height: 20px;
+	min-height: 0;
+	padding: 0;
+	border-radius: 50%;
+	font-size: 22px;
+}
+.dd-images *[class*="block_"] {
+	padding: 7px;
+}
+.images-add__div {
+	width: 100%;
+}
+.images-add__input {
+	width: 100%;
+	margin-top: -44px;
+	opacity: 0;
+	cursor: pointer;
 }
 *[class*="sbas-"], *[class*="sba-"] {
 	position: absolute;

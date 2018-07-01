@@ -1,16 +1,27 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-import App from './components/App.vue'
-import { store } from './store.js'
+import Vue from "vue"
+import Vuex from "vuex"
+import App from "./components/App.vue"
+import { store } from "./store.js"
 
 Vue.use(Vuex);
 
 Vue.component("popup-image", {
-	props: ["data"],
+	props: ["data", "currentPlace"],
+	computed: {
+		showNextImage: (event) => function(event) {
+			event.stopPropagation();
+			let currentIndex = this.currentPlace.images.indexOf(this.data)
+			let ImagesLength = this.currentPlace.images.length;
+			currentIndex = currentIndex == ImagesLength - 1 ? 0 : currentIndex + 1;
+			this.data = this.currentPlace.images[currentIndex];
+		},
+	},
 	template: `
 		<img
 			class="popup-image border_1"
 			:src="$store.state.dirs.upload.images.big + data.file"
+			title="Следующая"
+			@click="showNextImage($event);"
 		/>
 	`,
 });
@@ -146,9 +157,9 @@ Vue.component("mapyandex", {
 
 let app = new Vue({
 	store,
-	el: '#app',
+	el: "#app",
 	render: h => h(App),
 	mounted: function() {
-		store.dispatch('setPlaces');
+		store.dispatch("setPlaces");
 	},
 });

@@ -51,8 +51,9 @@ export const store = new Vuex.Store({
 			let place = state.places[changes.index];
 			let keys = Object.keys(changes.change);
 			for(var i = 0; i < keys.length; i++) {
-				place[keys[i]] = changes.change[keys[i]];
+				Vue.set(place, keys[i], changes.change[keys[i]]);
 			}
+			Vue.set(state.places, changes.index, place);
 		},
 		swapPlacesValues(state, changes) {
 			let p1 = state.places[changes.indexes[0]];
