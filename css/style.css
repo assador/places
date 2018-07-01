@@ -56,7 +56,7 @@ table.borderv > * > tr > td, table.borderv > * > tr > th {
 	border-top: none; border-right: 1px solid rgba(200, 177, 160, 0.2); border-bottom: none; border-left: 1px solid rgba(200, 177, 160, 0.2);
 }
 img.border_1 {
-	border: none; outline: 1px solid rgba(64, 36, 18, 0.8); outline-offset: -1px;
+	border: none; outline: 1px solid rgba(255, 217, 164, 0.35); outline-offset: -1px;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 .back_0,
@@ -451,17 +451,24 @@ table.table-wohead > tbody > tr > th {
 table.table-wopadd th, table.table-wopadd td {
 	padding: 0;
 }
-.popup table img {
-	margin-top: 1em; margin-bottom: 1em;
-}
 .popup {
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	position: absolute;
-	top: 30px; right: 30px;
+	top: 30px; right: 317px; bottom: 30px; left: 50px;
 	padding: 1em;
 	border-radius: 7px;
-	background-color: rgba(255, 255, 255, 0.9);
+	background-color: rgba(193, 170, 154, 0.3);
 	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.13);
 	z-index: 1000;
+}
+.popup-image {
+	max-height: 100%;
+}
+*[class*="col-"] > *[class*="block_"] {
+	display: flex !important;
+	align-items: center;
 }
 .places-table tbody tr {
 	cursor: pointer;
@@ -472,7 +479,7 @@ table.table-wopadd th, table.table-wopadd td {
 #top-right {
 	font-size: 0 !important;
 }
-#top-right * {
+.actions-button {
 	width: 28px; height: 28px;
 	margin: 4px;
 	padding: 13px 7px;
@@ -487,6 +494,11 @@ table.table-wopadd th, table.table-wopadd td {
 }
 .place-detailed textarea {
 	height: 40px;
+}
+.dd-images {
+	width: auto;
+	margin-top: 7px !important; margin-bottom: 7px !important;
+	padding: 0;
 }
 *[class*="sbas-"], *[class*="sba-"] {
 	position: absolute;

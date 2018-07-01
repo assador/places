@@ -7,9 +7,10 @@
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>The Places — Another yet geo placemarks viewer and editor service</title>
+	<title>The Places — Yet another geo placemarks viewer and editor service</title>
 	<link href="/css/style.css" rel="stylesheet" type="text/css">
 	<link href="/css/layout.css" rel="stylesheet" type="text/css">
+	<link href="/css/grid.css" rel="stylesheet" type="text/css">
 
 	<script src="/vendor/scripts/vue.js"></script>
 	<script src="/vendor/scripts/vuex"></script>

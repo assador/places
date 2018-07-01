@@ -4,7 +4,7 @@
 
 <script>
 export default {
-	props: ['id', 'name', 'description', 'image', 'latitude', 'longitude', 'centerLatitude', 'centerLongitude'],
+	props: ['id', 'name', 'description', 'images', 'latitude', 'longitude', 'centerLatitude', 'centerLongitude'],
 	data() {return {
 		map: null,
 		mrk: null,
@@ -31,7 +31,7 @@ export default {
 		description: function() {
 			this.updatePlacemark();
 		},
-		image: function() {
+		images: function() {
 			this.updatePlacemark();
 		},
 	},
@@ -118,7 +118,7 @@ export default {
 						})
 					)) + 1
 					: 1,
-				image: "",
+				images: [],
 			});
 			setTimeout(function() {
 				this.$parent.setCurrentPlace(this.$store.state.places.length - 1)

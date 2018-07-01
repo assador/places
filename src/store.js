@@ -5,13 +5,27 @@ export const store = new Vuex.Store({
 		empty: true,
 		ready: false,
 		placeFields: {
-			"srt"         : "Сортировка",
-			"id"          : "Идентификатор метки",
-			"name"        : "Название",
-			"description" : "Описание",
-			"latitude"    : "Широта",
-			"longitude"   : "Долгота",
-			"image"       : "Фотография",
+			srt         : "Сортировка",
+			id          : "Идентификатор метки",
+			name        : "Название",
+			description : "Описание",
+			latitude    : "Широта",
+			longitude   : "Долгота",
+			images      : "Фотографии",
+		},
+		lengths: {
+			name        : 500,
+			description : 5000,
+			url         : 2048,
+		},
+		dirs: {
+			common: "/var/www/places/",
+			upload: {
+				images: {
+					big: "/uploads/images/big/",
+					small: "/uploads/images/small/",
+				},
+			},
 		},
 	},
 	mutations: {
@@ -58,7 +72,8 @@ export const store = new Vuex.Store({
 			placesRequest.onreadystatechange = function(event) {
 				if(placesRequest.readyState == 4) {
 					if(placesRequest.status == 200) {
-						commit("placesReady", JSON.parse(placesRequest.responseText), false);
+						let places = JSON.parse(placesRequest.responseText);
+						commit("placesReady", places, false);
 					} else {
 						alert("Не могу получить данные из БД");
 						commit("placesReady", [], true);

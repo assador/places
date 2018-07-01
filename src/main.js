@@ -5,15 +5,23 @@ import { store } from './store.js'
 
 Vue.use(Vuex);
 
-Vue.component('mapyandex', {
-	props: ['id', 'name', 'description', 'image', 'latitude', 'longitude', 'centerLatitude', 'centerLongitude'],
+Vue.component("popup-image", {
+	props: ["data"],
+	template: `
+		<img
+			class="popup-image border_1"
+			:src="$store.state.dirs.upload.images.big + data.file"
+		/>
+	`,
+});
+Vue.component("mapyandex", {
+	props: ["id", "name", "description", "images", "latitude", "longitude", "centerLatitude", "centerLongitude"],
 	data() {return {
 		map: null,
 		mrk: null,
 	}},
 	watch: {
 		id: function() {
-			this.updatePlacemark();
 		},
 		latitude: function() {
 			this.updatePlacemark();
@@ -33,8 +41,7 @@ Vue.component('mapyandex', {
 		description: function() {
 			this.updatePlacemark();
 		},
-		image: function() {
-			this.updatePlacemark();
+		images: function() {
 		},
 	},
 	computed: {
@@ -120,7 +127,7 @@ Vue.component('mapyandex', {
 						})
 					)) + 1
 					: 1,
-				image: "",
+				images: [],
 			});
 			setTimeout(function() {
 				this.$parent.setCurrentPlace(this.$store.state.places.length - 1)

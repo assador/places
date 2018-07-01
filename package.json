@@ -1,6 +1,6 @@
 {
   "name": "places",
-  "description": "A Vue.js project",
+  "description": "Yet another geo placemarks viewer and editor service",
   "version": "1.0.0",
   "author": "Dmitry Sokolov <dmitry@scrofa-tridens.ru>",
   "license": "MIT",
@@ -10,6 +10,7 @@
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "vue": "^2.5.11",
     "vuex": "^3.0.1"
   },

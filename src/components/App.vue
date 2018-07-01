@@ -1,5 +1,5 @@
 <template>
-	<div id="app" class="table">
+	<div id="app" class="table" @click="showPopup({show: false}, $event);">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
 				<h3 class="fonsize_n">Координаты центра карты</h3>
@@ -8,13 +8,13 @@
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<h1>The Places</h1>
-				<p>Another yet geo placemarks viewer and editor service</p>
+				<p>Yet another geo placemarks viewer and editor service</p>
 			</div>
 			<div id="top-right" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-right-' + sidebarMode.right">
 				<button class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
 				<button class="actions-button" @click="$store.commit('removePlace', currentIndex); setCurrentPlace(currentIndex);" title="Удалить текущее место">×</button>
-				<button class="actions-button" @click="saveToFile();" title="Сохранить на диск">⭳</button>
-				<button class="actions-button" @click="setPlacesToDB();" title="Сохранить в БД">⭽</button>
+				<button class="actions-button" @click="saveToFile();" title="Сохранить на диск">⭱</button>
+				<button class="actions-button" @click="setPlacesToDB();" title="Сохранить в БД">⭻</button>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -52,7 +52,7 @@
 					:id="currentPlace.id"
 					:name="currentPlace.name"
 					:description="currentPlace.description"
-					:image="currentPlace.image"
+					:images="currentPlace.images"
 					:latitude="currentPlace.latitude"
 					:longitude="currentPlace.longitude"
 					:centerLatitude="$store.state.center.latitude"
@@ -67,20 +67,25 @@
 						<dd v-if="field == 'srt' || field == 'id' || field == 'latitude' || field == 'longitude'">
 							<input v-model="currentPlace[field]" class="fieldwidth_100" type="text" value="currentPlace[field]" />
 						</dd>
-						<dd v-else-if="field == 'image'" style="margin: 7px 0 0 0; padding: 0;">
-							<img
-								v-if="currentPlace[field] != ''"
-								class="border_1"
-								:src="currentPlace[field]"
-								:alt="currentPlace.name"
-								:title="currentPlace.name"
-							/>
-							<input v-else type="file" value="Загрузить фотография…" />
+						<dd v-else-if="field == 'images'" class="dd-images row_01">
+							<a v-for="image in currentPlace[field]" href="javascript:void(0);" @click="showPopup({show: true, type: 'image', data: image}, $event);" class="col-6">
+								<div class="block_02">
+									<img
+										class="border_1"
+										:src="$store.state.dirs.upload.images.small + image.file"
+										:alt="currentPlace.name"
+										:title="currentPlace.name"
+									/>
+								</div>
+							</a>
 						</dd>
 						<dd v-else>
 							<textarea v-model="currentPlace[field]" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
 						</dd>
 					</template>
+					<div>
+						<input ref="inputUploadFiles" name="files" type="file" multiple @change="uploadFiles($event);" />
+					</div>
 				</dl>
 			</div>
 		</div>
@@ -92,10 +97,18 @@
 			<div id="bottom-right" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-right-' + sidebarMode.right">
 			</div>
 		</div>
+		<div :class="'popup ' + popuped">
+			<component
+				:is="popupComponent"
+				:data="popupData"
+			>
+			</component>
+		</div>
 	</div>
 </template>
 
 <script>
+import axios from 'axios'
 import { mapGetters } from 'vuex'
 export default {
 	data() {return {
@@ -103,6 +116,9 @@ export default {
 		currentId: null,
 		currentIndex: 0,
 		currentPlace: {},
+		popuped: "disappear",
+		popupComponent: "popup-text",
+		popupData: {},
 		sidebarMode: {top: 2, right: 2, bottom: 1, left: 2},
 	}},
 	watch: {
@@ -188,11 +204,18 @@ export default {
 			if(modeToSet === null) {modeToSet = mode;}
 			this.sidebarMode[sidebar] = modeToSet;
 		},
-		showPopup: (show, event) => function(show, event) {
+		showPopup: (opts, event) => function(opts, event) {
 			event.stopPropagation();
-			let popup = document.getElementById("detailed");
-			popup.classList.remove(show ? "disappear" : "appear");
-			popup.classList.add(show ? "appear" : "disappear");
+			switch(opts.type) {
+				case "image" :
+					this.popupComponent = "popup-image";
+					this.popupData = opts.data;
+					break;
+				default :
+					this.popupComponent = "popup-text";
+					this.popupData = "";
+			}
+			this.popuped = opts["show"] ? "appear" : "disappear";
 		},
 		saveToFile: () => function() {
 			const data = JSON.stringify(this.$store.state.places);
@@ -213,12 +236,36 @@ export default {
 					if(placesRequest.status == 200) {
 						alert("Ваши изменения сохранены в базе данных.");
 					} else {
-						alert("Не могу внести данные в БД");
+						alert("Не могу внести данные в БД.");
 					}
 				}
 			};
 			placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			placesRequest.send("places=" + JSON.stringify(this.$store.state.places));
+		},
+		uploadFiles: (event) => function(event) {
+			event.preventDefault();
+			let data = new FormData(), files = this.$refs.inputUploadFiles.files;
+			for(var i = 0; i < files.length; i++) {
+				data.append("file_" + i , files[i]);
+			}
+			axios.post("/backend/upload.php", data)
+				.then((response) => {
+					let i = 0, filesArray = [...files].map(function(file) {
+						return {
+							id: i,
+							file: file.name,
+							size: file.size,
+							type: file.type,
+							lastmodified: file.lastModified,
+							places_id: this.currentId,
+						};
+					}.bind(this));
+					this.$store.commit("changePlace", {
+						index: this.currentIndex,
+						change: {images: this.$store.state.places[this.currentIndex].images.concat(filesArray)},
+					});
+				});
 		},
 	},
 }
