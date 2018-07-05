@@ -4,7 +4,7 @@ include 'newpdo.php';
 
 $query = $conn->query("SELECT * FROM `places` ORDER BY `srt`");
 $places = $query->fetchAll(PDO::FETCH_ASSOC);
-$query = $conn->query("SELECT * FROM `images` ORDER BY `id`");
+$query = $conn->query("SELECT * FROM `images` ORDER BY `srt`");
 $images = $query->fetchAll(PDO::FETCH_ASSOC);
 foreach($places as $places_key => $places_value) {
 	foreach($images as $images_value) {
@@ -13,4 +13,5 @@ foreach($places as $places_key => $places_value) {
 		}
 	}
 }
+$places[] = count($images);
 echo json_encode($places, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

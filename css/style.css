@@ -475,6 +475,14 @@ table.table-wopadd th, table.table-wopadd td {
 }
 .place-button {
 	text-align: left;
+	cursor: pointer;
+
+}
+.draggable * {
+	pointer-events: none;
+}
+.draggable .dd-images__delete {
+	pointer-events: all;
 }
 #top-right {
 	font-size: 0 !important;
@@ -514,6 +522,9 @@ table.table-wopadd th, table.table-wopadd td {
 }
 .dd-images *[class*="block_"] {
 	padding: 7px;
+}
+.images-add {
+	margin-top: 14px;
 }
 .images-add__div {
 	width: 100%;

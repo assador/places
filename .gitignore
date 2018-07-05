@@ -1,4 +1,6 @@
 node_modules/
+uploads/
+*~
 *.geany
 *.log
 .gitignore

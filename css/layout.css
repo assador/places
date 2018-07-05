@@ -43,6 +43,14 @@ body {
 	text-align: center;
 }
 #top-basic {
+	overflow: hidden;
+}
+.brand {
+	float: left;
+}
+.message {
+	float: right;
+	padding-left: 20px;
 }
 #bottom, #top-basic, #bottom-basic {
 	z-index: 10;

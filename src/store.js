@@ -1,9 +1,11 @@
 export const store = new Vuex.Store({
 	state: {
 		places: [],
+		imagesCount: 0,
 		center: {},
 		empty: true,
 		ready: false,
+		message: "",
 		placeFields: {
 			srt         : "Сортировка",
 			id          : "Идентификатор метки",
@@ -29,10 +31,25 @@ export const store = new Vuex.Store({
 		},
 	},
 	mutations: {
+		setMessage(state, message) {
+			Vue.set(state, "message", state.message += (state.message != "" ? "<br />" : "") + message);
+			if(typeof(document.intrvl) == "undefined") {
+				document.intrvl = setInterval(function() {
+					Vue.set(state, "message", state.message.replace(/^.*?(<br\ \/>|$)/, ""));
+					if(state.message == "") {
+						clearInterval(document.intrvl);
+						delete document.intrvl;
+					}
+				}, 10000);
+			}
+		},
 		placesReady(state, places, empty) {
 			Vue.set(state, "places", places);
 			Vue.set(state, "empty", empty);
 			Vue.set(state, "ready", true);
+		},
+		updateImagesCount(state, imagesCount) {
+			Vue.set(state, "imagesCount", imagesCount);
 		},
 		modifyPlaces(state, places) {
 			Vue.set(state, "places", places);
@@ -55,11 +72,12 @@ export const store = new Vuex.Store({
 			}
 			Vue.set(state.places, changes.index, place);
 		},
-		swapPlacesValues(state, changes) {
-			let p1 = state.places[changes.indexes[0]];
-			let p2 = state.places[changes.indexes[1]];
+		swapValues(state, changes) {
+			let p1 = changes.parent[changes.indexes[0]];
+			let p2 = changes.parent[changes.indexes[1]];
 			changes.values.forEach(function(key) {
-				p1[key] = [p2[key], p2[key] = p1[key]][0];
+//				p1[key] = [p2[key], p2[key] = p1[key]][0];
+				Vue.set(p1, key, [p2[key], Vue.set(p2, key, p1[key])][0]);
 			});
 		},
 		changeCenter(state, center) {
@@ -67,13 +85,14 @@ export const store = new Vuex.Store({
 		},
 	},
 	actions: {
-		setPlaces({ commit }) {
+		setPlaces({ state, commit }) {
 			let placesRequest = new XMLHttpRequest();
 			placesRequest.open("GET", "/backend/get_places.php", true);
 			placesRequest.onreadystatechange = function(event) {
 				if(placesRequest.readyState == 4) {
 					if(placesRequest.status == 200) {
 						let places = JSON.parse(placesRequest.responseText);
+						Vue.set(state, "imagesCount", places.pop());
 						commit("placesReady", places, false);
 					} else {
 						alert("Не могу получить данные из БД");
@@ -85,11 +104,20 @@ export const store = new Vuex.Store({
 		},
 	},
 	getters: {
+		getMessage: (state, getters) => {
+			return state.message;
+		},
 		getPlace: (state, getters) => (index) => {
 			return state.places[index];
 		},
-		getIndexById: (state, getters) => (id) => {
-			return state.places.indexOf(state.places.find(p => p.id === id));
+		getImages: (state, getters) => (index) => {
+			return state.places[index].images;
+		},
+		getImagesCount: (state, getters) => {
+			return state.imagesCount;
+		},
+		getIndexById: (state, getters) => (args) => {
+			return args.parent.indexOf(args.parent.find(p => p.id === args.id));
 		},
 	},
 });

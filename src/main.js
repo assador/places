@@ -69,6 +69,7 @@ Vue.component("mapyandex", {
 				this.map.controls.add(new ymaps.control.ZoomControl());
 				this.map.controls.add("scaleLine");
 				this.map.controls.add(new ymaps.control.TrafficControl({providerKey: "traffic#archive"}));
+				this.map.behaviors.enable("scrollZoom");
 				this.map.events.add("actionend", function() {
 					var coordinates = this.map.getCenter();
 					this.$store.commit("changeCenter", {
@@ -116,10 +117,12 @@ Vue.component("mapyandex", {
 			this.map.setCenter([this.centerLatitude, this.centerLongitude]);
 		},
 		fitMap: () => function() {
-			document.getElementById("mapblock").style.right = "100%";
-			this.map.container.fitToViewport();
-			document.getElementById("mapblock").style.right = "24px";
-			this.map.container.fitToViewport();
+			if(this.map) {
+				document.getElementById("mapblock").style.right = "100%";
+				this.map.container.fitToViewport();
+				document.getElementById("mapblock").style.right = "24px";
+				this.map.container.fitToViewport();
+			}
 		},
 		appendPlace: () => function() {
 			let newId = this.$store.state.places.length + 1;
