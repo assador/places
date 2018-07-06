@@ -6,7 +6,8 @@ $data = json_decode($_POST["data"]);
 
 $images = array();
 foreach($data as $dval) {
-	foreach($dval->{"images"} as $ival) {
+	$pimg = $dval->{"images"};
+	foreach($pimg as $ival) {
 		$images[] = $ival;
 	}
 }
