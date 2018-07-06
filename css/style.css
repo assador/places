@@ -468,9 +468,14 @@ table.table-wopadd th, table.table-wopadd td {
 	background-color: rgba(0, 0, 0, 0.85);
 	z-index: 1000;
 }
+.popup-image, .popup-text {
+	max-width: 100%; max-height: 100%;
+}
 .popup-image {
-	max-height: 100%;
 	cursor: pointer;
+}
+.about {
+	text-align: center;
 }
 *[class*="col-"] > *[class*="block_"] {
 	display: flex !important;

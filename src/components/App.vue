@@ -20,6 +20,7 @@
 				<button class="actions-button" @click="$store.commit('removePlace', currentIndex); setCurrentPlace(currentIndex);" title="Удалить текущее место">×</button>
 				<button class="actions-button" @click="saveToFile();" title="Сохранить на диск">⭱</button>
 				<button class="actions-button" @click="toDB();" title="Сохранить в БД">⭻</button>
+				<button class="actions-button" @click="showAbout();" title="О “The Places”, справка">?</button>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -134,6 +135,7 @@
 <script>
 import mapyandex from "./MapYandex.vue"
 import popupimage from "./PopupImage.vue"
+import popuptext from "./PopupText.vue"
 import axios from "axios"
 import { mapGetters } from "vuex"
 export default {
@@ -154,6 +156,7 @@ export default {
 	components: {
 		mapyandex,
 		popupimage,
+		popuptext,
 	},
 	watch: {
 		"$store.state.ready": function(ready) {
@@ -275,9 +278,33 @@ export default {
 					break;
 				default :
 					this.popupComponent = "popuptext";
-					this.popupData = "";
+					this.popupData = opts.data;
 			}
 			this.popuped = opts["show"] ? "appear" : "disappear";
+		},
+		showAbout: (event) => function(event) {
+				let aboutRequest = new XMLHttpRequest();
+				aboutRequest.open("GET", "/about.htm", true);
+				aboutRequest.onreadystatechange = function(event) {
+					if(aboutRequest.readyState == 4) {
+						if(aboutRequest.status == 200) {
+							this.showPopup({
+								show: true,
+								type: "text",
+								data:
+									JSON.stringify(aboutRequest.responseText)
+										.replace(/^\s*\"/, "")
+										.replace(/\"\s*$/, "")
+										.replace(/(?:\\(?=")|\\(?=\/)|\\t|\\n)/gi, "")
+								,
+							}, event);
+						} else {
+							this.$store.commit("setMessage", "Не могу найти справку");
+						}
+					}
+				}.bind(this);
+				aboutRequest.setRequestHeader("Content-type", "application/json");
+				aboutRequest.send();
 		},
 		saveToFile: () => function() {
 			const data = JSON.stringify(this.$store.state.places);
