@@ -74,32 +74,32 @@
 							<input v-model="currentPlace[field]" class="fieldwidth_100" type="text" value="currentPlace[field]" />
 						</dd>
 						<dd v-else-if="field == 'images'" id="place-images" class="dd-images row_01">
-							<a
+							<div
 								v-for="image in sortObjects(currentImages, 'srt')"
 								:id="image.id"
 								:key="image.id"
-								href="javascript:void(0);"
 								class="col-6 draggable"
 								draggable="true"
 								@click="showPopup({show: true, type: 'image', data: image}, $event);"
 							>
-								<div class="block_02">
+								<div
+									class="block_02"
+								>
 									<img
 										class="border_1"
 										:src="$store.state.dirs.upload.images.small + image.file"
 										:alt="currentPlace.name"
 										:title="currentPlace.name"
 									/>
-									<a
+									<div
 										class="dd-images__delete button"
-										href="javascript:void(0);"
 										draggable="false"
 										@click="deleteFiles(Array.from(currentImages), [image], $event);"
 									>
 										×
-									</a>
+									</div>
 								</div>
-							</a>
+							</div>
 						</dd>
 						<dd v-else>
 							<textarea v-model="currentPlace[field]" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>

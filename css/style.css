@@ -508,6 +508,12 @@ table.table-wopadd th, table.table-wopadd td {
 	margin-top: 7px !important; margin-bottom: 7px !important;
 	padding: 0;
 }
+.dd-images *[class*="col-"] {
+	cursor: pointer;
+}
+.dd-images *[class*="block_"] {
+	padding: 7px;
+}
 .dd-images__delete {
 	display: flex;
 	justify-content: center;
@@ -519,9 +525,6 @@ table.table-wopadd th, table.table-wopadd td {
 	padding: 0;
 	border-radius: 50%;
 	font-size: 22px;
-}
-.dd-images *[class*="block_"] {
-	padding: 7px;
 }
 .images-add {
 	margin-top: 14px;
