@@ -74,6 +74,12 @@ tr:hover, tr:focus,
 body, body.iframe {
 	background-color: rgb(70, 41, 23);
 }
+.value_correct:focus {
+	background-color: rgb(78, 85, 24) !important;
+}
+.value_wrong:focus {
+	background-color: rgb(100, 44, 36) !important;
+}
 .un_color,
 .un_imp {
 	color: rgba(200, 177, 160, 0.5);

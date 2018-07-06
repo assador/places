@@ -3,8 +3,8 @@
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
 				<h3 class="fonsize_n">Координаты центра карты</h3>
-				<input v-model="$store.state.center.latitude" placeholder="latitude" title="latitude" class="fieldwidth_100 margin_bottom_1" />
-				<input v-model="$store.state.center.longitude" placeholder="longitude" title="longitude" class="fieldwidth_100" />
+				<input v-model.number.trim="$store.state.center.latitude" placeholder="latitude" title="latitude" class="fieldwidth_100 margin_bottom_1" />
+				<input v-model.number.trim="$store.state.center.longitude" placeholder="longitude" title="longitude" class="fieldwidth_100" />
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
@@ -71,14 +71,14 @@
 					<template v-for="field in Object.keys(currentPlace)" :key="field">
 						<dt>{{ $store.state.placeFields[field] }}:</dt>
 						<dd v-if="field == 'srt' || field == 'id' || field == 'latitude' || field == 'longitude'">
-							<input v-model="currentPlace[field]" class="fieldwidth_100" type="text" value="currentPlace[field]" />
+							<input v-model.number.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100" type="text" value="currentPlace[field]" />
 						</dd>
 						<dd v-else-if="field == 'images'" id="place-images" class="dd-images row_01">
 							<div
 								v-for="image in sortObjects(currentImages, 'srt')"
 								:id="image.id"
 								:key="image.id"
-								class="col-6 draggable"
+								:class="'col-' + gridMode + ' draggable'"
 								draggable="true"
 								@click="showPopup({show: true, type: 'image', data: image}, $event);"
 							>
@@ -102,7 +102,7 @@
 							</div>
 						</dd>
 						<dd v-else>
-							<textarea v-model="currentPlace[field]" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
+							<textarea v-model.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
 						</dd>
 					</template>
 					<div class="images-add">
@@ -146,6 +146,8 @@ export default {
 		popupData: {},
 		draggingElement: null,
 		sidebarMode: {top: 2, right: 2, bottom: 1, left: 2},
+		gridMode: 6,
+		crossSidebarGrid: [12, 6, 4],
 	}},
 	watch: {
 		"$store.state.ready": function(ready) {
@@ -155,6 +157,7 @@ export default {
 					this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
 					this.setCurrentPlace(this.currentIndex);
 				}.bind(this), false);
+				window.addEventListener("load", make_fields_validatable, false);
 				document.addEventListener("dragover", this.handleDragOver, false);
 				document.addEventListener("drop", this.handleDrop, false);
 			}
@@ -255,6 +258,7 @@ export default {
 			}
 			if(modeToSet === null) {modeToSet = mode;}
 			this.sidebarMode[sidebar] = modeToSet;
+			this.gridMode = this.crossSidebarGrid[this.sidebarMode.right - 1];
 		},
 		showPopup: (opts, event) => function(opts, event) {
 			event.stopPropagation();
@@ -281,19 +285,23 @@ export default {
 			a.dispatchEvent(e);
 		},
 		toDB: (todo, data) => function(todo = "places", data = JSON.stringify(this.$store.state.places)) {
-			let placesRequest = new XMLHttpRequest();
-			placesRequest.open("POST", "/backend/set_places.php", true);
-			placesRequest.onreadystatechange = function(event) {
-				if(placesRequest.readyState == 4) {
-					if(placesRequest.status == 200) {
-						this.$store.commit("setMessage", "Изменения сохранены в базе данных");
-					} else {
-						this.$store.commit("setMessage", "Не могу внести данные в БД");
+			if(!document.querySelector(".value_wrong")) {
+				let placesRequest = new XMLHttpRequest();
+				placesRequest.open("POST", "/backend/set_places.php", true);
+				placesRequest.onreadystatechange = function(event) {
+					if(placesRequest.readyState == 4) {
+						if(placesRequest.status == 200) {
+							this.$store.commit("setMessage", "Изменения сохранены в базе данных");
+						} else {
+							this.$store.commit("setMessage", "Не могу внести данные в БД");
+						}
 					}
-				}
-			}.bind(this);
-			placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			placesRequest.send("todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
+				}.bind(this);
+				placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				placesRequest.send("todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
+			} else {
+				this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
+			}
 		},
 		uploadFiles: (event) => function(event) {
 			event.preventDefault();
