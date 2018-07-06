@@ -132,6 +132,8 @@
 </template>
 
 <script>
+import mapyandex from "./MapYandex.vue"
+import popupimage from "./PopupImage.vue"
 import axios from "axios"
 import { mapGetters } from "vuex"
 export default {
@@ -142,13 +144,17 @@ export default {
 		currentPlace: {},
 		currentImages: {},
 		popuped: "disappear",
-		popupComponent: "popup-text",
+		popupComponent: "popuptext",
 		popupData: {},
 		draggingElement: null,
 		sidebarMode: {top: 2, right: 2, bottom: 1, left: 2},
 		gridMode: 6,
 		crossSidebarGrid: [12, 6, 4],
 	}},
+	components: {
+		mapyandex,
+		popupimage,
+	},
 	watch: {
 		"$store.state.ready": function(ready) {
 			if(ready) {
@@ -264,11 +270,11 @@ export default {
 			event.stopPropagation();
 			switch(opts.type) {
 				case "image" :
-					this.popupComponent = "popup-image";
+					this.popupComponent = "popupimage";
 					this.popupData = opts.data;
 					break;
 				default :
-					this.popupComponent = "popup-text";
+					this.popupComponent = "popuptext";
 					this.popupData = "";
 			}
 			this.popuped = opts["show"] ? "appear" : "disappear";
