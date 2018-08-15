@@ -8,6 +8,37 @@ body {
 	position: relative;
 	min-height: 100%;
 }
+#main {
+	height: 100%;
+}
+.auth_forms, .auth__registration__fields {
+	display: flex;
+}
+.auth_forms, .auth__login, .auth__registration, .auth__registration__fields__left, .auth__registration__fields__right {
+	width: 50%;
+}
+.auth .brand {
+	position: relative;
+	top: -100px;
+}
+.auth .brand  {
+	position: relative;
+	top: -100px;
+	text-align: center;
+}
+.auth__login {
+	padding-right: 25px;
+	text-align: right;
+}
+.auth__registration {
+	padding-left: 25px;
+}
+.auth__registration__fields__left {
+	padding-right: 5px;
+}
+.auth__registration__fields__right {
+	padding-left: 5px;
+}
 #a {
 	position: absolute;
 }
@@ -48,6 +79,9 @@ body {
 .brand {
 	float: left;
 }
+.auth .brand {
+	float: none !important;
+}
 .message {
 	float: right;
 	padding-left: 20px;
@@ -60,6 +94,9 @@ body {
 }
 #basic, #basic-basic {
 	z-index: 30;
+}
+#basic {
+	height: 100%;
 }
 #top-basic.sbm-top-1 {
 	padding-left: 38px;
@@ -115,4 +152,11 @@ body {
 	margin-bottom: 18px;
 	padding: 11px 16px;
 	z-index: 0;
+}
+.centered {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	min-height: 100%;
 }

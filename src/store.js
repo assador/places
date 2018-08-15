@@ -1,5 +1,9 @@
+import {bus} from "./shared/bus.js"
 export const store = new Vuex.Store({
 	state: {
+		status: 0,
+		already: false,
+		login: "",
 		places: [],
 		imagesCount: 0,
 		center: {},
@@ -31,6 +35,28 @@ export const store = new Vuex.Store({
 		},
 	},
 	mutations: {
+		unload(state) {
+			Vue.set(state, "status", 0);
+			Vue.set(state, "already", false);
+			Vue.set(state, "login", "");
+			Vue.set(state, "places", []);
+			Vue.set(state, "imagesCount", 0);
+			Vue.set(state, "center", {});
+			Vue.set(state, "empty", true);
+			Vue.set(state, "ready", false);
+			Vue.set(state, "message", "");
+			localStorage.removeItem("user-token");
+			localStorage.removeItem("user-id");
+		},
+		loaded(state) {
+			Vue.set(state, "status", 1);
+		},
+		already(state) {
+			Vue.set(state, "already", true);
+		},
+		login(state, login) {
+			Vue.set(state, "login", login);
+		},
 		setMessage(state, message) {
 			Vue.set(state, "message", state.message += (state.message != "" ? "<br />" : "") + message);
 			if(typeof(document.intrvl) == "undefined") {
@@ -76,7 +102,6 @@ export const store = new Vuex.Store({
 			let p1 = changes.parent[changes.indexes[0]];
 			let p2 = changes.parent[changes.indexes[1]];
 			changes.values.forEach(function(key) {
-//				p1[key] = [p2[key], p2[key] = p1[key]][0];
 				Vue.set(p1, key, [p2[key], Vue.set(p2, key, p1[key])][0]);
 			});
 		},
@@ -85,15 +110,16 @@ export const store = new Vuex.Store({
 		},
 	},
 	actions: {
-		setPlaces({ state, commit }) {
+		setPlaces({state, commit}) {
 			let placesRequest = new XMLHttpRequest();
-			placesRequest.open("GET", "/backend/get_places.php", true);
+			placesRequest.open("GET", "/backend/get_places.php?id=" + localStorage.getItem("user-id"), true);
 			placesRequest.onreadystatechange = function(event) {
 				if(placesRequest.readyState == 4) {
 					if(placesRequest.status == 200) {
 						let places = JSON.parse(placesRequest.responseText);
 						Vue.set(state, "imagesCount", places.pop());
 						commit("placesReady", places, false);
+						bus.$emit("placesFilled");
 					} else {
 						alert("Не могу получить данные из БД");
 						commit("placesReady", [], true);

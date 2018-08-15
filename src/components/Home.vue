@@ -1,5 +1,5 @@
 <template>
-	<div id="app" class="table" @click="showPopup({show: false}, $event);">
+	<div class="table" @click="showPopup({show: false}, $event);">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
 				<h3 class="fonsize_n">Координаты центра карты</h3>
@@ -8,8 +8,8 @@
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
-					<h1>The Places</h1>
-					<p>Yet another geo placemarks viewer and editor service</p>
+					<h1>Места</h1>
+					<p>Сервис просмотра и редактирования библиотек геометок</p>
 				</div>
 				<div class="message">
 					<span v-html="getMessage"></span>
@@ -20,7 +20,8 @@
 				<button class="actions-button" @click="$store.commit('removePlace', currentIndex); setCurrentPlace(currentIndex);" title="Удалить текущее место">×</button>
 				<button class="actions-button" @click="saveToFile();" title="Сохранить на диск">⭱</button>
 				<button class="actions-button" @click="toDB();" title="Сохранить в БД">⭻</button>
-				<button class="actions-button" @click="showAbout();" title="О “The Places”, справка">?</button>
+				<button class="actions-button" @click="showAbout();" title="О «Местах», справка">?</button>
+				<button class="actions-button" @click="exit();" title="Выйтм">↪</button>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -29,9 +30,11 @@
 					v-for="place in sortObjects($store.state.places, 'srt')"
 					:id="place.id"
 					:key="place.id"
-					class="place-button block_01 draggable"
+					:class="'place-button block_01 draggable' + (place.id == currentId ? ' active' : '')"
 					draggable="true"
 					@click="setCurrentPlace($store.state.places.indexOf(place));"
+					@dragstart="handleDragStart"
+					@dragenter="handleDragEnter"
 				>
 					<h2 class="margin_bottom_1">{{ place.name }}</h2>
 					<div>{{ place.latitude }}, {{ place.longitude }}</div>
@@ -82,6 +85,8 @@
 								:class="'col-' + gridMode + ' draggable'"
 								draggable="true"
 								@click="showPopup({show: true, type: 'image', data: image}, $event);"
+								@dragstart="handleDragStart"
+								@dragenter="handleDragEnter"
 							>
 								<div
 									class="block_02"
@@ -133,11 +138,12 @@
 </template>
 
 <script>
+import {bus} from "../shared/bus.js"
 import mapyandex from "./MapYandex.vue"
 import popupimage from "./PopupImage.vue"
 import popuptext from "./PopupText.vue"
 import axios from "axios"
-import { mapGetters } from "vuex"
+import {mapGetters} from "vuex"
 export default {
 	data() {return {
 		places: this.$store.state,
@@ -158,19 +164,24 @@ export default {
 		popupimage,
 		popuptext,
 	},
-	watch: {
-		"$store.state.ready": function(ready) {
-			if(ready) {
+	mounted: function() {
+		bus.$on("placesFilled", () => {
+			if(this.$refs.ym) {this.$refs.ym.showMap(0, 0);}
+			if(this.$store.state.already) {
 				window.addEventListener("load", function() {
-					this.$refs.ym.showMap(0, 0);
-					this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
 					this.setCurrentPlace(this.currentIndex);
+					document.addEventListener("dragover", this.handleDragOver, false);
+					document.addEventListener("drop", this.handleDrop, false);
 				}.bind(this), false);
-				window.addEventListener("load", make_fields_validatable, false);
-				document.addEventListener("dragover", this.handleDragOver, false);
-				document.addEventListener("drop", this.handleDrop, false);
+			} else {
+				this.setCurrentPlace(this.currentIndex);
 			}
-		},
+			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
+			make_fields_validatable();
+			window.setTimeout(function() {
+				this.$store.commit("setMessage", "Не забывайте сохранять изменения в базу данных");
+			}.bind(this), 5000);
+		});
 	},
 	methods: {
 		handleDragStart: function(event) {
@@ -209,6 +220,10 @@ export default {
 	},
 	computed: {
 		...mapGetters(["getPlace", "getImages", "getMessage", "getImagesCount", "getIndexById"]),
+		exit: () => function() {
+			this.$store.commit("unload");
+			bus.$emit("loggedChange", "auth");
+		},
 		setCurrentPlace: i => function(i) {
 			if(document.getElementById(this.currentId)) {
 				document.getElementById(this.currentId).classList.remove("active");
@@ -227,15 +242,7 @@ export default {
 				latitude: this.currentPlace.latitude,
 				longitude: this.currentPlace.longitude,
 			});
-			this.$refs.ym.mrk.placeIndex = this.currentIndex;
-			setTimeout(function() {
-				let ds = document.querySelectorAll(".draggable");
-				for(var i = 0; i < ds.length; i++) {
-					ds[i].addEventListener("dragstart", this.handleDragStart, false);
-					ds[i].addEventListener("dragenter", this.handleDragEnter, false);
-				}
-			}.bind(this), 500);
-			document.getElementById(this.currentId).classList.add("active");
+			if(this.$refs.ym) {this.$refs.ym.mrk.placeIndex = this.currentIndex;}
 		},
 		sortObjects: (array, field) => function(array, field) {
 			let sorted = array.slice().sort(function(a, b) {

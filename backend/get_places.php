@@ -1,8 +1,8 @@
 <?php
-include 'config.php';
-include 'newpdo.php';
+include "config.php";
+include "newpdo.php";
 
-$query = $conn->query("SELECT * FROM `places` ORDER BY `srt`");
+$query = $conn->query("SELECT `p`.`id`, `p`.`name`, `p`.`description`, `p`.`latitude`, `p`.`longitude`, `p`.`srt` FROM `places` `p` WHERE `p`.`users_id` = " . $_GET["id"] . " ORDER BY `srt`");
 $places = $query->fetchAll(PDO::FETCH_ASSOC);
 $query = $conn->query("SELECT * FROM `images` ORDER BY `srt`");
 $images = $query->fetchAll(PDO::FETCH_ASSOC);

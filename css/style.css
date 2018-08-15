@@ -38,7 +38,8 @@ table.table_form, table.table_form > * > tr > td, table.table_form > * > tr > th
 }
 .border_1,
 td, th,
-table.border_1 > * > tr > td, table.border_1 > * > tr > th {
+table.border_1 > * > tr > td, table.border_1 > * > tr > th,
+.auth__login {
 	border: 1px solid rgba(200, 177, 160, 0.2);
 }
 .border_2,
@@ -458,6 +459,9 @@ table.table-wohead > tbody > tr > th {
 table.table-wopadd th, table.table-wopadd td {
 	padding: 0;
 }
+.auth__login {
+	border-width: 0 1px 0 0;
+}
 .popup {
 	display: flex;
 	justify-content: center;
@@ -487,7 +491,7 @@ table.table-wopadd th, table.table-wopadd td {
 .place-button {
 	text-align: left;
 	cursor: pointer;
-
+	transition: all 0.3s;
 }
 .draggable * {
 	pointer-events: none;

@@ -7,7 +7,7 @@
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>The Places — Yet another geo placemarks viewer and editor service</title>
+	<title>Места — сервис просмотра и редактирования библиотек геометок</title>
 	<link href="/css/style.css" rel="stylesheet" type="text/css">
 	<link href="/css/layout.css" rel="stylesheet" type="text/css">
 	<link href="/css/grid.css" rel="stylesheet" type="text/css">

@@ -10,8 +10,6 @@ export default {
 		mrk: null,
 	}},
 	watch: {
-		id: function() {
-		},
 		latitude: function() {
 			this.updatePlacemark();
 		},
@@ -29,8 +27,6 @@ export default {
 		},
 		description: function() {
 			this.updatePlacemark();
-		},
-		images: function() {
 		},
 	},
 	computed: {
@@ -105,7 +101,7 @@ export default {
 		appendPlace: () => function() {
 			let newId = this.$store.state.places.length + 1;
 			let newName = "Новое место (ID: " + newId + ")";
-			let newDescription = newName + ", добавленное в “The Places”.";
+			let newDescription = newName + ", добавленное в «Местах».";
 			this.$store.commit("addPlace", {
 				name: newName,
 				description: newDescription,
@@ -121,9 +117,7 @@ export default {
 					: 1,
 				images: [],
 			});
-			setTimeout(function() {
-				this.$parent.setCurrentPlace(this.$store.state.places.length - 1)
-			}.bind(this), 50);
+			this.$parent.setCurrentPlace(this.$store.state.places.length - 1);
 		},
 	},
 	mounted: function() {
