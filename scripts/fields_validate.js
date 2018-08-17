@@ -5,19 +5,24 @@ function validate_field(value, type) {
 		"decimal"  : /^-?\d+(?:\.\d+)?$/,
 		"decimalm" : /^\d+(?:\.\d+)?$/,
 		"latlong"  : /^-?(?:\d){1,3}(?:\.\d+)?$/,
+		"login"    : /^.{1,24}$/,
+		"name"     : /^.{0,100}$/,
 		"e-mail"   : /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i,
-		"phone"    : /^\+\d+\s*[(-]?\s*\d{2,}\s*[)-]?\s*(?:\d|\d\s*-\s*\d){2,}$/,
-		"names"    : /^(?:[а-яА-Я]|[а-яА-Я][-'\u2019][а-яА-Я]|\s(?!:\s|$)|[а-яА-Я]\.(?=\s|\u00A0|$))+$/,
-		"street"   : /^(?:[а-яА-Я]|[а-яА-Я][-'\u2019][а-яА-Я]|\s(?!:\s|$)|[а-яА-Я]\.(?=\s|\u00A0|$)|[а-яА-Я]\,(?=\s|\u00A0)|\d+[\s-][а-яА-Я])+$/,
-		"building" : /^(?:\d|\d[\s\u00A0]*\/[\s\u00A0]*\d|\s(?!:\s|$)|(?:д|корп|стр)\.(?=\s*\d)|\d\,(?=\s|\u00A0))+$/,
-		"postcode" : /^\d{6}$/,
-		"locality" : /^(?:[а-яА-Я]|[а-яА-Я][-'\u2019][а-яА-Я]|\s(?!:\s|$)|[а-яА-Я]\.(?=\s|\u00A0|$))+$/,
+		"phone"    : /^[+\d]*$/,
 	}
 	if(typeof value !== "string" || typeof re[type] === "undefined") {throw "Illegal function attributes";}
 	return re[type].test(value);
 }
 function make_fields_validatable() {
 	var fields = {
+		"authLogin"          : ["login",    "Не более 24 символов"],
+		"regLogin"           : ["login",    "Не более 24 символов"],
+		"authPassword"       : ["login",    "Не более 24 символов"],
+		"regPassword"        : ["login",    "Не более 24 символов"],
+		"regPasswordRepeat"  : ["login",    "Не более 24 символов"],
+		"regName"            : ["name",     "Не более 100 символов."],
+		"regPhone"           : ["phone",    "Слитно, с ведущим +7. Пример: +71234567890"],
+		"regEmail"           : ["e-mail",   "Пример: my.Name@хост.рф"],
 		"email"              : ["e-mail",   "Пример: my.Name@хост.рф"],
 		"detailed-latitude"  : ["latlong",  "Пример: 55.5555555"],
 		"detailed-longitude" : ["latlong",  "Пример: 55.5555555"],

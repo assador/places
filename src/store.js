@@ -7,16 +7,14 @@ export const store = new Vuex.Store({
 		places: [],
 		imagesCount: 0,
 		center: {},
-		empty: true,
 		ready: false,
 		message: "",
 		placeFields: {
-			srt         : "Сортировка",
-			id          : "Идентификатор метки",
 			name        : "Название",
 			description : "Описание",
 			latitude    : "Широта",
 			longitude   : "Долгота",
+			srt         : "Сортировка",
 			images      : "Фотографии",
 		},
 		lengths: {
@@ -42,7 +40,6 @@ export const store = new Vuex.Store({
 			Vue.set(state, "places", []);
 			Vue.set(state, "imagesCount", 0);
 			Vue.set(state, "center", {});
-			Vue.set(state, "empty", true);
 			Vue.set(state, "ready", false);
 			Vue.set(state, "message", "");
 			localStorage.removeItem("user-token");
@@ -69,10 +66,14 @@ export const store = new Vuex.Store({
 				}, 10000);
 			}
 		},
-		placesReady(state, places, empty) {
+		placesReady(state, places) {
 			Vue.set(state, "places", places);
-			Vue.set(state, "empty", empty);
 			Vue.set(state, "ready", true);
+			for(let place of places) {
+				Vue.set(place, "added", false);
+				Vue.set(place, "deleted", false);
+				Vue.set(place, "updated", false);
+			}
 		},
 		updateImagesCount(state, imagesCount) {
 			Vue.set(state, "imagesCount", imagesCount);
@@ -82,13 +83,11 @@ export const store = new Vuex.Store({
 		},
 		addPlace(state, place) {
 			Vue.set(state, "places", state.places.concat(place));
-			Vue.set(state, "empty", false);
 		},
 		removePlace(state, index) {
-			state.places.splice(index, 1);
-			if(state.places.length == 0) {
-				Vue.set(state, "empty", true);
-			}
+			Vue.set(state.places[index], "added", false);
+			Vue.set(state.places[index], "deleted", true);
+			Vue.set(state.places[index], "updated", false);
 		},
 		changePlace(state, changes) {
 			let place = state.places[changes.index];
@@ -97,6 +96,7 @@ export const store = new Vuex.Store({
 				Vue.set(place, keys[i], changes.change[keys[i]]);
 			}
 			Vue.set(state.places, changes.index, place);
+			Vue.set(state.places[changes.index], "updated", true);
 		},
 		swapValues(state, changes) {
 			let p1 = changes.parent[changes.indexes[0]];
@@ -104,6 +104,8 @@ export const store = new Vuex.Store({
 			changes.values.forEach(function(key) {
 				Vue.set(p1, key, [p2[key], Vue.set(p2, key, p1[key])][0]);
 			});
+			Vue.set(p1, "updated", true);
+			Vue.set(p2, "updated", true);
 		},
 		changeCenter(state, center) {
 			Vue.set(state, "center", center);
@@ -143,7 +145,7 @@ export const store = new Vuex.Store({
 			return state.imagesCount;
 		},
 		getIndexById: (state, getters) => (args) => {
-			return args.parent.indexOf(args.parent.find(p => p.id === args.id));
+			return args.parent.indexOf(args.parent.find(p => p.id == args.id));
 		},
 	},
 });

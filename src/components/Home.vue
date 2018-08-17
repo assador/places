@@ -17,7 +17,7 @@
 			</div>
 			<div id="top-right" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-right-' + sidebarMode.right">
 				<button class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
-				<button class="actions-button" @click="$store.commit('removePlace', currentIndex); setCurrentPlace(currentIndex);" title="Удалить текущее место">×</button>
+				<button class="actions-button" @click="deletePlace(currentIndex);" title="Удалить текущее место">×</button>
 				<button class="actions-button" @click="saveToFile();" title="Сохранить на диск">⭱</button>
 				<button class="actions-button" @click="toDB();" title="Сохранить в БД">⭻</button>
 				<button class="actions-button" @click="showAbout();" title="О «Местах», справка">?</button>
@@ -26,18 +26,21 @@
 		</div>
 		<div class="app-row" id="basic">
 			<div id="basic-left" :class="'app-cell' + ' sbm-left-' + sidebarMode.left">
-				<div
-					v-for="place in sortObjects($store.state.places, 'srt')"
-					:id="place.id"
-					:key="place.id"
-					:class="'place-button block_01 draggable' + (place.id == currentId ? ' active' : '')"
-					draggable="true"
-					@click="setCurrentPlace($store.state.places.indexOf(place));"
-					@dragstart="handleDragStart"
-					@dragenter="handleDragEnter"
-				>
-					<h2 class="margin_bottom_1">{{ place.name }}</h2>
-					<div>{{ place.latitude }}, {{ place.longitude }}</div>
+				<div class="scrollable">
+					<div
+						v-for="place in sortObjects($store.state.places, 'srt')"
+						v-if="!place.deleted"
+						:id="place.id"
+						:key="place.id"
+						:class="'place-button block_01 draggable' + (place.id == currentId ? ' active' : '')"
+						draggable="true"
+						@click="setCurrentPlace($store.state.places.indexOf(place));"
+						@dragstart="handleDragStart"
+						@dragenter="handleDragEnter"
+					>
+						<h2 class="margin_bottom_0">{{ place.name }}</h2>
+<!--						<div>{{ place.latitude }}, {{ place.longitude }}</div>-->
+					</div>
 				</div>
 			</div>
 			<div class="app-cell" id="basic-basic">
@@ -71,51 +74,53 @@
 				</mapyandex>
 			</div>
 			<div id="basic-right" :class="'app-cell' + ' sbm-right-' + sidebarMode.right">
-				<dl class="place-detailed">
-					<template v-for="field in Object.keys(currentPlace)" :key="field">
-						<dt>{{ $store.state.placeFields[field] }}:</dt>
-						<dd v-if="field == 'srt' || field == 'id' || field == 'latitude' || field == 'longitude'">
-							<input v-model.number.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100" type="text" value="currentPlace[field]" />
-						</dd>
-						<dd v-else-if="field == 'images'" id="place-images" class="dd-images row_01">
-							<div
-								v-for="image in sortObjects(currentImages, 'srt')"
-								:id="image.id"
-								:key="image.id"
-								:class="'col-' + gridMode + ' draggable'"
-								draggable="true"
-								@click="showPopup({show: true, type: 'image', data: image}, $event);"
-								@dragstart="handleDragStart"
-								@dragenter="handleDragEnter"
-							>
+				<div class="scrollable">
+					<dl class="place-detailed margin_bottom_0">
+						<template v-for="field in Object.keys(currentPlace)" :key="field">
+							<dt v-if="field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated'">{{ $store.state.placeFields[field] }}:</dt>
+							<dd v-if="field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
+								<input v-model.number.trim="currentPlace[field]" :id="'detailed-' + field" @click="validatable();" class="fieldwidth_100" type="text" value="currentPlace[field]" />
+							</dd>
+							<dd v-else-if="field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'images'" id="place-images" class="dd-images row_01">
 								<div
-									class="block_02"
+									v-for="image in sortObjects(currentImages, 'srt')"
+									:id="image.id"
+									:key="image.id"
+									:class="'col-' + gridMode + ' draggable'"
+									draggable="true"
+									@click="showPopup({show: true, type: 'image', data: image}, $event);"
+									@dragstart="handleDragStart"
+									@dragenter="handleDragEnter"
 								>
-									<img
-										class="border_1"
-										:src="$store.state.dirs.upload.images.small + image.file"
-										:alt="currentPlace.name"
-										:title="currentPlace.name"
-									/>
 									<div
-										class="dd-images__delete button"
-										draggable="false"
-										@click="deleteFiles(Array.from(currentImages), [image], $event);"
+										class="block_02"
 									>
-										×
+										<img
+											class="border_1"
+											:src="$store.state.dirs.upload.images.small + image.file"
+											:alt="currentPlace.name"
+											:title="currentPlace.name"
+										/>
+										<div
+											class="dd-images__delete button"
+											draggable="false"
+											@click="deleteFiles(Array.from(currentImages), [image], $event);"
+										>
+											×
+										</div>
 									</div>
 								</div>
-							</div>
-						</dd>
-						<dd v-else>
-							<textarea v-model.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
-						</dd>
-					</template>
-					<div class="images-add">
-						<div class="images-add__div button">Добавить фотографии</div>
-						<input class="images-add__input" ref="inputUploadFiles" name="files" type="file" multiple @change="uploadFiles($event);" />
-					</div>
-				</dl>
+							</dd>
+							<dd v-else-if="field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated'">
+								<textarea v-model.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
+							</dd>
+						</template>
+						<div class="images-add">
+							<div class="images-add__div button">Добавить фотографии</div>
+							<input class="images-add__input" ref="inputUploadFiles" name="files" type="file" multiple @change="uploadFiles($event);" />
+						</div>
+					</dl>
+				</div>
 			</div>
 		</div>
 		<div id="bottom" :class="'app-row' + ' sbm-bottom-' + sidebarMode.bottom">
@@ -146,6 +151,7 @@ import axios from "axios"
 import {mapGetters} from "vuex"
 export default {
 	data() {return {
+		firstValidatable: false,
 		places: this.$store.state,
 		currentId: null,
 		currentIndex: 0,
@@ -155,7 +161,7 @@ export default {
 		popupComponent: "popuptext",
 		popupData: {},
 		draggingElement: null,
-		sidebarMode: {top: 2, right: 2, bottom: 1, left: 2},
+		sidebarMode: {top: 1, right: 2, bottom: 1, left: 2},
 		gridMode: 6,
 		crossSidebarGrid: [12, 6, 4],
 	}},
@@ -166,7 +172,7 @@ export default {
 	},
 	mounted: function() {
 		bus.$on("placesFilled", () => {
-			if(this.$refs.ym) {this.$refs.ym.showMap(0, 0);}
+			if(this.$refs.ym) {this.$refs.ym.showMap(55.7512848, 37.6190706);}
 			if(this.$store.state.already) {
 				window.addEventListener("load", function() {
 					this.setCurrentPlace(this.currentIndex);
@@ -177,13 +183,18 @@ export default {
 				this.setCurrentPlace(this.currentIndex);
 			}
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
-			make_fields_validatable();
 			window.setTimeout(function() {
 				this.$store.commit("setMessage", "Не забывайте сохранять изменения в базу данных");
 			}.bind(this), 5000);
 		});
 	},
 	methods: {
+		validatable: function() {
+			if(!this.firstValidatable) {
+				make_fields_validatable();
+				this.firstValidatable = true;
+			}
+		},
 		handleDragStart: function(event) {
 			event.dataTransfer.setData("text/plain", null);
 			this.draggingElement = event.target;
@@ -224,18 +235,18 @@ export default {
 			this.$store.commit("unload");
 			bus.$emit("loggedChange", "auth");
 		},
-		setCurrentPlace: i => function(i) {
+		setCurrentPlace: index => function(index) {
 			if(document.getElementById(this.currentId)) {
 				document.getElementById(this.currentId).classList.remove("active");
 			}
-			if(!this.$store.state.places[i]) {
-				i--;
-				if(!this.$store.state.places[i]) {
+			if(!this.$store.state.places[index]) {
+				index--;
+				if(!this.$store.state.places[index]) {
 					return;
 				}
 			}
-			this.currentId = this.$store.state.places[i].id;
-			this.currentIndex = i;
+			this.currentId = this.$store.state.places[index].id;
+			this.currentIndex = index;
 			this.currentPlace = this.getPlace(this.currentIndex);
 			this.currentImages = this.getImages(this.currentIndex);
 			this.$store.commit("changeCenter", {
@@ -243,6 +254,21 @@ export default {
 				longitude: this.currentPlace.longitude,
 			});
 			if(this.$refs.ym) {this.$refs.ym.mrk.placeIndex = this.currentIndex;}
+		},
+		deletePlace: index => function(index) {
+			this.$store.commit("removePlace", index);// setCurrentPlace(currentIndex);
+			for(var i = this.currentIndex + 1; i < this.$store.state.places.length; i++) {
+				if(!this.$store.state.places[i].deleted) {
+					this.setCurrentPlace(i);
+					return;
+				}
+			}
+			for(var i = this.currentIndex - 1; i >= 0; i--) {
+				if(!this.$store.state.places[i].deleted) {
+					this.setCurrentPlace(i);
+					return;
+				}
+			}
 		},
 		sortObjects: (array, field) => function(array, field) {
 			let sorted = array.slice().sort(function(a, b) {
@@ -338,7 +364,7 @@ export default {
 					}
 				}.bind(this);
 				placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-				placesRequest.send("todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
+				placesRequest.send("id=" + localStorage.getItem("user-id") + "&todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
 			} else {
 				this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
 			}
@@ -375,6 +401,7 @@ export default {
 						? this.currentImages.concat(filesArray)
 						: filesArray
 					;
+					this.currentImages = images;
 					this.$store.commit("updateImagesCount", id);
 					this.$store.commit("changePlace", {
 						index: this.currentIndex,
@@ -382,14 +409,18 @@ export default {
 					});
 					this.$store.commit("setMessage", "Файлы успешно загружены");
 					this.toDB("images_upload", JSON.stringify(filesArray));
+				})
+				.catch(error => {
+					this.$store.commit("setMessage", "При загрузке файлов произошла ошибка");
 				});
 		},
 		deleteFiles: (inarray, files, event) => function(inarray, files, event) {
 			event.stopPropagation();
 			let data = new FormData();
 			for(var i = 0; i < files.length; i++) {
-				data.append("file_" + i , files[i].file);
+				data.append("file_" + i, files[i].file);
 				inarray.splice(inarray.indexOf(files[i]), 1);
+				this.currentImages = inarray;
 			}
 			axios.post("/backend/delete.php", data)
 				.then(response => {

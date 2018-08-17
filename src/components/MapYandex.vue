@@ -66,7 +66,7 @@ export default {
 				);
 				this.mrk.events.add("dragend", function() {
 					var coordinates = this.mrk.geometry.getCoordinates();
-					if(!this.$store.state.empty) {
+					if(this.$store.state.places.length > 0) {
 						this.$store.commit("changePlace", {
 							index: this.mrk.placeIndex,
 							change: {
@@ -99,7 +99,10 @@ export default {
 			}
 		},
 		appendPlace: () => function() {
-			let newId = this.$store.state.places.length + 1;
+			let newId = 1;
+			for(let place of this.$store.state.places) {
+				if(place.id >= newId) {newId = place.id + 1;}
+			}
 			let newName = "Новое место (ID: " + newId + ")";
 			let newDescription = newName + ", добавленное в «Местах».";
 			this.$store.commit("addPlace", {
@@ -116,6 +119,9 @@ export default {
 					)) + 1
 					: 1,
 				images: [],
+				added: true,
+				deleted: false,
+				updated: false,
 			});
 			this.$parent.setCurrentPlace(this.$store.state.places.length - 1);
 		},

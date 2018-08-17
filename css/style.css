@@ -523,6 +523,12 @@ table.table-wopadd th, table.table-wopadd td {
 	margin-top: 7px !important; margin-bottom: 7px !important;
 	padding: 0;
 }
+.dd-images.row {
+	margin: -15px 0 -15px -15px;
+}
+.dd-images.row_01 {
+	margin: -7px 0 -7px -7px;
+}
 .dd-images *[class*="col-"] {
 	cursor: pointer;
 }

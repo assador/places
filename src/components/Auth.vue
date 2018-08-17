@@ -7,26 +7,27 @@
 		<div class="auth_forms">
 			<form class="auth__login" @submit.prevent="authLoginSubmit">
 				<h2>Авторизация</h2>
-				<input class="fieldwidth_100 margin_bottom" required v-model="authLogin" type="text" placeholder="Логин *" />
-				<input class="fieldwidth_100 margin_bottom" required v-model="authPassword" type="password" placeholder="Пароль *" />
+				<input class="fieldwidth_100 margin_bottom" required id="authLogin" v-model.trim="authLogin" type="text" placeholder="Логин *" @click="validatable();" />
+				<input class="fieldwidth_100 margin_bottom" required id="authPassword" v-model.trim="authPassword" type="password" placeholder="Пароль *" @click="validatable();" />
 				<button type="submit">Войти</button>
-				<div>{{ message }}</div>
+				<div v-html="loginMessage"></div>
 			</form>
-			<form class="auth__registration" @submit.prevent="regLoginSubmit">
+			<form class="auth__registration" @submit.prevent="authRegSubmit">
 				<h2>Регистрация</h2>
 				<div class="auth__registration__fields">
 					<div class="auth__registration__fields__left">
-						<input class="fieldwidth_100 margin_bottom" required v-model="regLogin" type="text" placeholder="Логин *" />
-						<input class="fieldwidth_100 margin_bottom" required v-model="regPassword" type="password" placeholder="Пароль *" />
-						<input class="fieldwidth_100 margin_bottom" required v-model="regEmail" type="text" placeholder="e-mail *" />
+						<input class="fieldwidth_100 margin_bottom" required id="regLogin" v-model.trim="regLogin" type="text" placeholder="Логин *" @click="validatable();" />
+						<input class="fieldwidth_100 margin_bottom" required id="regPassword" v-model.trim="regPassword" type="password" placeholder="Пароль *" @click="validatable();" />
+						<input class="fieldwidth_100 margin_bottom" required id="regEmail" v-model.trim="regEmail" type="text" placeholder="e-mail *" @click="validatable();" />
 					</div>
 					<div class="auth__registration__fields__right">
-						<input class="fieldwidth_100 margin_bottom" v-model="regName" type="text" placeholder="Обращение (имя)" />
-						<input class="fieldwidth_100 margin_bottom" required v-model="regPasswordRepeat" type="password" placeholder="Повторите пароль *" />
-						<input class="fieldwidth_100 margin_bottom" v-model="regPhone" type="text" placeholder="Телефон" />
+						<input class="fieldwidth_100 margin_bottom" id="regName" v-model.trim="regName" type="text" placeholder="Обращение (имя)" @click="validatable();" />
+						<input class="fieldwidth_100 margin_bottom" required id="regPasswordRepeat" v-model.trim="regPasswordRepeat" type="password" placeholder="Повторите пароль *" @click="validatable();" />
+						<input class="fieldwidth_100 margin_bottom" id="regPhone" v-model.trim="regPhone" type="text" placeholder="Телефон" @click="validatable();" />
 					</div>
 				</div>
 				<button type="submit">Зарегистрироваться</button>
+				<div v-html="regMessage"></div>
 			</form>
 		</div>
 	</div>
@@ -35,18 +36,42 @@
 <script>
 import {bus} from "../shared/bus.js"
 import {loginRoutine} from "../shared/auth.js"
+import {regRoutine} from "../shared/reg.js"
 export default {
 	data() {return {
-		message: "",
+		firstValidatable: false,
+		loginMessage: "",
+		regMessage: "",
 	}},
 	methods: {
+		validatable: function() {
+			if(!this.firstValidatable) {
+				make_fields_validatable();
+				this.firstValidatable = true;
+			}
+		},
 		authLoginSubmit: function() {
 			const {authLogin, authPassword} = this;
 			loginRoutine({authLogin, authPassword})
 				.then(response => {
-					this.message = response.message;
+					this.loginMessage = response.message;
 				});
-		}
+		},
+		authRegSubmit: function() {
+			if(!document.querySelector(".value_wrong")) {
+				const {regLogin, regPassword, regPasswordRepeat, regName, regEmail, regPhone} = this;
+				if(regPassword === regPasswordRepeat) {
+					regRoutine({regLogin, regPassword, regName, regEmail, regPhone})
+						.then(response => {
+							this.regMessage = response.message;
+						});
+				} else {
+					this.regMessage = "Введёные пароли не совпадают";
+				}
+			} else {
+				this.regMessage = "Некоторые поля заполнены некорректно";
+			}
+		},
 	},
 }
 </script>

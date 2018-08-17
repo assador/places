@@ -11,8 +11,5 @@ foreach($_FILES as $key => $file) {
 		$thumb->resizeImage(220, 220, Imagick::FILTER_LANCZOS, 1, true);
 		$thumb->writeImage($dirs["upload"]["images"]["small"] . $_FILES[$key]["name"]);
 		$thumb->destroy();
-		echo "Файл корректен и был успешно загружен.\n";
-	} else {
-		echo "Возможная атака с помощью файловой загрузки!\n";
 	}
 }
