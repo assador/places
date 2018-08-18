@@ -73,7 +73,14 @@ export const store = new Vuex.Store({
 				Vue.set(place, "added", false);
 				Vue.set(place, "deleted", false);
 				Vue.set(place, "updated", false);
+				Vue.set(place, "show", true);
 			}
+		},
+		show(state, index) {
+			Vue.set(state.places[index], "show", true);
+		},
+		hide(state, index) {
+			Vue.set(state.places[index], "show", false);
 		},
 		updateImagesCount(state, imagesCount) {
 			Vue.set(state, "imagesCount", imagesCount);

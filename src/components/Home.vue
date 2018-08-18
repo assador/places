@@ -2,9 +2,8 @@
 	<div class="table" @click="showPopup({show: false}, $event);">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
-				<h3 class="fonsize_n">Координаты центра карты</h3>
-				<input v-model.number.trim="$store.state.center.latitude" placeholder="latitude" title="latitude" class="fieldwidth_100 margin_bottom_1" />
-				<input v-model.number.trim="$store.state.center.longitude" placeholder="longitude" title="longitude" class="fieldwidth_100" />
+				<h3 class="margin_bottom_1">Поиск по названию мест</h3>
+				<input placeholder="Поиск" title="Поиск по названию мест" class="fieldwidth_100 margin_bottom_1" @keyup="selectPlaces" />
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
@@ -26,10 +25,10 @@
 		</div>
 		<div class="app-row" id="basic">
 			<div id="basic-left" :class="'app-cell' + ' sbm-left-' + sidebarMode.left">
-				<div class="scrollable">
+				<div id="basic-left__places" class="scrollable">
 					<div
 						v-for="place in sortObjects($store.state.places, 'srt')"
-						v-if="!place.deleted"
+						v-if="!place.deleted && place.show"
 						:id="place.id"
 						:key="place.id"
 						:class="'place-button block_01 draggable' + (place.id == currentId ? ' active' : '')"
@@ -77,11 +76,11 @@
 				<div class="scrollable">
 					<dl class="place-detailed margin_bottom_0">
 						<template v-for="field in Object.keys(currentPlace)" :key="field">
-							<dt v-if="field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated'">{{ $store.state.placeFields[field] }}:</dt>
-							<dd v-if="field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
+							<dt v-if="field != 'show' && field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated'">{{ $store.state.placeFields[field] }}:</dt>
+							<dd v-if="field != 'show' && field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
 								<input v-model.number.trim="currentPlace[field]" :id="'detailed-' + field" @click="validatable();" class="fieldwidth_100" type="text" value="currentPlace[field]" />
 							</dd>
-							<dd v-else-if="field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'images'" id="place-images" class="dd-images row_01">
+							<dd v-else-if="field != 'show' && field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'images'" id="place-images" class="dd-images row_01">
 								<div
 									v-for="image in sortObjects(currentImages, 'srt')"
 									:id="image.id"
@@ -111,7 +110,7 @@
 									</div>
 								</div>
 							</dd>
-							<dd v-else-if="field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated'">
+							<dd v-else-if="field != 'show' && field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated'">
 								<textarea v-model.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
 							</dd>
 						</template>
@@ -127,6 +126,11 @@
 			<div id="bottom-left" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-left-' + sidebarMode.left">
 			</div>
 			<div id="bottom-basic" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom">
+				<span class="imp">Координаты центра карты</span>
+				<span style="margin-left: 1em;">Широта:</span>
+				<input v-model.number.trim="$store.state.center.latitude" placeholder="latitude" title="latitude" />
+				<span style="margin-left: 1em;">Долгота:</span>
+				<input v-model.number.trim="$store.state.center.longitude" placeholder="longitude" title="longitude" />
 			</div>
 			<div id="bottom-right" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-right-' + sidebarMode.right">
 			</div>
@@ -204,7 +208,7 @@ export default {
 			if(event.target.draggable) {
 				let parent;
 				switch(this.draggingElement.parentNode.id) {
-					case "basic-left" :
+					case "basic-left__places" :
 						parent = this.$store.state.places;
 						break;
 					case "place-images" :
@@ -227,6 +231,22 @@ export default {
 		},
 		handleDrop: function(event) {
 			event.preventDefault();
+		},
+		selectPlaces: function(event) {
+			if(event.keyCode == 27) {
+				event.target.value = "";
+				for(let i = 0; i < this.$store.state.places.length; i++) {
+					this.$store.commit("show", i);
+				}
+			} else {
+				for(let i = 0; i < this.$store.state.places.length; i++) {
+					if(!this.$store.state.places[i].name.includes(event.target.value)) {
+						this.$store.commit("hide", i);
+					} else {
+						this.$store.commit("show", i);
+					}
+				}
+			}
 		},
 	},
 	computed: {
