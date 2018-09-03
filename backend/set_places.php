@@ -5,10 +5,12 @@ include "newpdo.php";
 $data = json_decode($_POST["data"], true);
 
 $images = array();
-foreach($data as $dval) {
-	$pimg = $dval["images"];
-	foreach($pimg as $ival) {
-		$images[] = $ival;
+if($_POST["todo"] == "places") {
+	foreach($data as $dval) {
+		$pimg = $dval["images"];
+		foreach($pimg as $ival) {
+			$images[] = $ival;
+		}
 	}
 }
 
@@ -21,7 +23,7 @@ function updateImages(&$conn, &$stmt, $images) {
 			`type`         ,
 			`lastmodified` ,
 			`srt`          ,
-			`places_id`
+			`placeid`
 		) VALUES (
 			:id            ,
 			:file          ,
@@ -29,7 +31,7 @@ function updateImages(&$conn, &$stmt, $images) {
 			:type          ,
 			:lastmodified  ,
 			:srt           ,
-			:places_id
+			:placeid
 		)
 	");
 	$stmt->bindParam( ":id"           , $id           );
@@ -38,7 +40,7 @@ function updateImages(&$conn, &$stmt, $images) {
 	$stmt->bindParam( ":type"         , $type         );
 	$stmt->bindParam( ":lastmodified" , $lastmodified );
 	$stmt->bindParam( ":srt"          , $srt          );
-	$stmt->bindParam( ":places_id"    , $places_id    );
+	$stmt->bindParam( ":placeid"      , $placeid      );
 	foreach($images as $row) {
 		$id           = $row[ "id"           ];
 		$file         = $row[ "file"         ];
@@ -46,13 +48,13 @@ function updateImages(&$conn, &$stmt, $images) {
 		$type         = $row[ "type"         ];
 		$lastmodified = $row[ "lastmodified" ];
 		$srt          = $row[ "srt"          ];
-		$places_id    = $row[ "places_id"    ];
+		$placeid      = $row[ "placeid"      ];
 		$stmt->execute();
 	}
 }
 
 if($_POST["todo"] == "places") {
-	$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id AND `users_id` = :users_id");
+	$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id AND `userid` = :userid");
 	$append = $conn->prepare("
 		INSERT INTO `places` (
 			`id`          ,
@@ -61,7 +63,7 @@ if($_POST["todo"] == "places") {
 			`latitude`    ,
 			`longitude`   ,
 			`srt`         ,
-			`users_id`
+			`userid`
 		) VALUES (
 			:id           ,
 			:name         ,
@@ -69,7 +71,7 @@ if($_POST["todo"] == "places") {
 			:latitude     ,
 			:longitude    ,
 			:srt          ,
-			:users_id
+			:userid
 		)
 	");
 	$update = $conn->prepare("
@@ -80,13 +82,13 @@ if($_POST["todo"] == "places") {
 			`latitude`    = :latitude    ,
 			`longitude`   = :longitude   ,
 			`srt`         = :srt         ,
-			`users_id`    = :users_id
+			`userid`    = :userid
 		WHERE `id` = :id
 	");
 	foreach($data as $row) {
 		if($row["deleted"] == true) {
 			$delete->bindParam( ":id"          , $row[ "id"          ]);
-			$delete->bindParam( ":users_id"    , $_POST["id"]);
+			$delete->bindParam( ":userid"    , $_POST["id"]);
 			try{$delete->execute();} catch(Exception $e) {}
 		} else if($row["added"] == true) {
 			$append->bindParam( ":id"          , $row[ "id"          ]);
@@ -95,7 +97,7 @@ if($_POST["todo"] == "places") {
 			$append->bindParam( ":latitude"    , $row[ "latitude"    ]);
 			$append->bindParam( ":longitude"   , $row[ "longitude"   ]);
 			$append->bindParam( ":srt"         , $row[ "srt"         ]);
-			$append->bindParam( ":users_id"    , $_POST["id"]);
+			$append->bindParam( ":userid"    , $_POST["id"]);
 			try{$append->execute();} catch(Exception $e) {}
 		}
 		if($row["updated"] == true) {
@@ -105,7 +107,7 @@ if($_POST["todo"] == "places") {
 			$update->bindParam( ":latitude"    , $row[ "latitude"    ]);
 			$update->bindParam( ":longitude"   , $row[ "longitude"   ]);
 			$update->bindParam( ":srt"         , $row[ "srt"         ]);
-			$update->bindParam( ":users_id"    , $_POST["id"]);
+			$update->bindParam( ":userid"    , $_POST["id"]);
 			try{$update->execute();} catch(Exception $e) {}
 		}
 	}

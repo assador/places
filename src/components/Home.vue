@@ -2,8 +2,8 @@
 	<div class="table" @click="showPopup({show: false}, $event);">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
-				<h3 class="margin_bottom_1">Поиск по названию мест</h3>
-				<input placeholder="Поиск" title="Поиск по названию мест" class="fieldwidth_100 margin_bottom_1" @keyup="selectPlaces" />
+				<h3 class="margin_bottom_1">Поиск по названию мест:</h3>
+				<input title="Поиск по названию мест" class="fieldwidth_100 margin_bottom_1" @keyup="selectPlaces" />
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
@@ -76,11 +76,11 @@
 				<div class="scrollable">
 					<dl class="place-detailed margin_bottom_0">
 						<template v-for="field in Object.keys(currentPlace)" :key="field">
-							<dt v-if="field != 'show' && field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated'">{{ $store.state.placeFields[field] }}:</dt>
-							<dd v-if="field != 'show' && field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
+							<dt v-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">{{ $store.state.placeFields[field] }}:</dt>
+							<dd v-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
 								<input v-model.number.trim="currentPlace[field]" :id="'detailed-' + field" @click="validatable();" class="fieldwidth_100" type="text" value="currentPlace[field]" />
 							</dd>
-							<dd v-else-if="field != 'show' && field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'images'" id="place-images" class="dd-images row_01">
+							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'images'" id="place-images" class="dd-images row_01">
 								<div
 									v-for="image in sortObjects(currentImages, 'srt')"
 									:id="image.id"
@@ -110,7 +110,7 @@
 									</div>
 								</div>
 							</dd>
-							<dd v-else-if="field != 'show' && field != 'id' && field != 'users_id' && field != 'added' && field != 'deleted' && field != 'updated'">
+							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
 								<textarea v-model.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
 							</dd>
 						</template>
@@ -371,23 +371,28 @@ export default {
 			a.dispatchEvent(e);
 		},
 		toDB: (todo, data) => function(todo = "places", data = JSON.stringify(this.$store.state.places)) {
-			if(!document.querySelector(".value_wrong")) {
-				let placesRequest = new XMLHttpRequest();
-				placesRequest.open("POST", "/backend/set_places.php", true);
-				placesRequest.onreadystatechange = function(event) {
-					if(placesRequest.readyState == 4) {
-						if(placesRequest.status == 200) {
-							this.$store.commit("setMessage", "Изменения сохранены в базе данных");
-						} else {
-							this.$store.commit("setMessage", "Не могу внести данные в БД");
+			return new Promise((resolve, reject) => {
+				if(!document.querySelector(".value_wrong")) {
+					let placesRequest = new XMLHttpRequest();
+					placesRequest.open("POST", "/backend/set_places.php", true);
+					placesRequest.onreadystatechange = function(event) {
+						if(placesRequest.readyState == 4) {
+							if(placesRequest.status == 200) {
+								this.$store.commit("setMessage", "Изменения сохранены в базе данных");
+								resolve("Изменения сохранены в базе данных");
+							} else {
+								this.$store.commit("setMessage", "Не могу внести данные в БД");
+								reject(new Error("Не могу внести данные в БД"));
+							}
 						}
-					}
-				}.bind(this);
-				placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-				placesRequest.send("id=" + localStorage.getItem("user-id") + "&todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
-			} else {
-				this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
-			}
+					}.bind(this);
+					placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+					placesRequest.send("id=" + localStorage.getItem("user-id") + "&todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
+				} else {
+					this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
+					reject(new Error("Некоторые поля заполнены некорректно"));
+				}
+			});
 		},
 		uploadFiles: (event) => function(event) {
 			event.preventDefault();
@@ -397,12 +402,10 @@ export default {
 			}
 			axios.post("/backend/upload.php", data)
 				.then(response => {
-					let id = this.getImagesCount, srt, storeImages;
-					if(this.currentImages) {
-						storeImages = this.currentImages;
-						if(Object.keys(storeImages).length > 0) {
-							srt = this.sortObjects(storeImages, "srt").pop().srt;
-						}
+					let id = this.getImagesCount, srt;
+					if(Object.keys(this.currentImages).length > 0) {
+						let storeImages = this.currentImages;
+						srt = this.sortObjects(storeImages, "srt").pop().srt;
 					} else {
 						srt = 0;
 					}
@@ -414,7 +417,7 @@ export default {
 							type: file.type,
 							lastmodified: file.lastModified,
 							srt: ++srt,
-							places_id: this.currentId,
+							placeid: this.currentId,
 						};
 					}.bind(this));
 					let images = this.currentImages
@@ -428,7 +431,10 @@ export default {
 						change: {images: images},
 					});
 					this.$store.commit("setMessage", "Файлы успешно загружены");
-					this.toDB("images_upload", JSON.stringify(filesArray));
+					this.toDB()
+						.then(response => {
+							this.toDB("images_upload", JSON.stringify(filesArray))
+						});
 				})
 				.catch(error => {
 					this.$store.commit("setMessage", "При загрузке файлов произошла ошибка");

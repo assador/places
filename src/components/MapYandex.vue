@@ -106,6 +106,7 @@ export default {
 			let newName = "Новое место (ID: " + newId + ")";
 			let newDescription = newName + ", добавленное в «Местах».";
 			this.$store.commit("addPlace", {
+				userid: localStorage.getItem("user-id"),
 				name: newName,
 				description: newDescription,
 				latitude: this.map.getCenter()[0].toFixed(7),

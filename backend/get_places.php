@@ -2,13 +2,14 @@
 include "config.php";
 include "newpdo.php";
 
-$query = $conn->query("SELECT `p`.`id`, `p`.`name`, `p`.`description`, `p`.`latitude`, `p`.`longitude`, `p`.`srt`, `p`.`users_id` FROM `places` `p` WHERE `p`.`users_id` = " . $_GET["id"] . " ORDER BY `srt`");
+$query = $conn->query("SELECT `p`.`id`, `p`.`name`, `p`.`description`, `p`.`latitude`, `p`.`longitude`, `p`.`srt`, `p`.`userid` FROM `places` `p` WHERE `p`.`userid` = " . $_GET["id"] . " ORDER BY `srt`");
 $places = $query->fetchAll(PDO::FETCH_ASSOC);
 $query = $conn->query("SELECT * FROM `images` ORDER BY `srt`");
 $images = $query->fetchAll(PDO::FETCH_ASSOC);
 foreach($places as $places_key => $places_value) {
+	$places[$places_key]["images"] = [];
 	foreach($images as $images_value) {
-		if($images_value["places_id"] == $places_value["id"]) {
+		if($images_value["placeid"] == $places_value["id"]) {
 			$places[$places_key]["images"][] = $images_value;
 		}
 	}

@@ -33,7 +33,7 @@ CREATE TABLE `images` (
   `type` varchar(45) NOT NULL,
   `lastmodified` int(11) NOT NULL,
   `srt` double UNSIGNED NOT NULL,
-  `places_id` int(11) NOT NULL
+  `placeid` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------

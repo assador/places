@@ -55,7 +55,15 @@ export const store = new Vuex.Store({
 			Vue.set(state, "login", login);
 		},
 		setMessage(state, message) {
-			Vue.set(state, "message", state.message += (state.message != "" ? "<br />" : "") + message);
+			let last = state.message.match(/([^<>]+)$/);
+			if(last != null && last[1] == message) {
+				Vue.set(state, "message", state.message.replace(/[^<>]+$/, ""));
+				setTimeout(function() {
+					Vue.set(state, "message", state.message += message);
+				}.bind(message), 200);
+			} else {
+				Vue.set(state, "message", state.message += (state.message != "" ? "<br />" : "") + message);
+			}
 			if(typeof(document.intrvl) == "undefined") {
 				document.intrvl = setInterval(function() {
 					Vue.set(state, "message", state.message.replace(/^.*?(<br\ \/>|$)/, ""));
