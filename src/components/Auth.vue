@@ -9,7 +9,7 @@
 				<h2>Авторизация</h2>
 				<input class="fieldwidth_100 margin_bottom" required id="authLogin" v-model.trim="authLogin" type="text" placeholder="Логин *" @click="validatable();" />
 				<input class="fieldwidth_100 margin_bottom" required id="authPassword" v-model.trim="authPassword" type="password" placeholder="Пароль *" @click="validatable();" />
-				<button type="submit">Войти</button>
+				<button type="submit" class="margin_bottom">Войти</button>
 				<div v-html="loginMessage"></div>
 			</form>
 			<form class="auth__registration" @submit.prevent="authRegSubmit">
@@ -26,7 +26,7 @@
 						<input class="fieldwidth_100 margin_bottom" id="regPhone" v-model.trim="regPhone" type="text" placeholder="Телефон" @click="validatable();" />
 					</div>
 				</div>
-				<button type="submit">Зарегистрироваться</button>
+				<button type="submit" class="margin_bottom">Зарегистрироваться</button>
 				<div v-html="regMessage"></div>
 			</form>
 		</div>

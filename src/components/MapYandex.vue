@@ -122,6 +122,7 @@ export default {
 				added: true,
 				deleted: false,
 				updated: false,
+				show: true,
 			});
 			this.$parent.setCurrentPlace(this.$store.state.places.length - 1);
 		},

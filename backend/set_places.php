@@ -52,7 +52,7 @@ function updateImages(&$conn, &$stmt, $images) {
 }
 
 if($_POST["todo"] == "places") {
-	$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id");
+	$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id AND `users_id` = :users_id");
 	$append = $conn->prepare("
 		INSERT INTO `places` (
 			`id`          ,
@@ -86,6 +86,7 @@ if($_POST["todo"] == "places") {
 	foreach($data as $row) {
 		if($row["deleted"] == true) {
 			$delete->bindParam( ":id"          , $row[ "id"          ]);
+			$delete->bindParam( ":users_id"    , $_POST["id"]);
 			try{$delete->execute();} catch(Exception $e) {}
 		} else if($row["added"] == true) {
 			$append->bindParam( ":id"          , $row[ "id"          ]);
@@ -108,11 +109,6 @@ if($_POST["todo"] == "places") {
 			try{$update->execute();} catch(Exception $e) {}
 		}
 	}
-
-
-
-
-#	updateImages($conn, $stmt, $images);
 } elseif($_POST["todo"] == "images_upload") {
 	updateImages($conn, $stmt, $data);
 } elseif($_POST["todo"] == "images_delete") {

@@ -175,7 +175,7 @@ export default {
 		popuptext,
 	},
 	mounted: function() {
-		bus.$on("placesFilled", () => {
+		bus.$once("placesFilled", () => {
 			if(this.$refs.ym) {this.$refs.ym.showMap(55.7512848, 37.6190706);}
 			if(this.$store.state.already) {
 				window.addEventListener("load", function() {
