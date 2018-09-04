@@ -21,6 +21,7 @@
 	<script src="https://api-maps.yandex.ru/2.0-stable/?load=package.full&amp;lang=ru-RU"></script>
 	<script src="/vendor/scripts/css-element-queries/src/ResizeSensor.js"></script>
 	<script src="/scripts/fields_validate.js"></script>
+	<script src="/scripts/randomstring.js"></script>
 <!--
 	<script src="/vendor/scripts/css-element-queries/src/ElementQueries.js"></script>
 -->

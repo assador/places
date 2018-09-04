@@ -396,30 +396,34 @@ export default {
 		},
 		uploadFiles: (event) => function(event) {
 			event.preventDefault();
-			let data = new FormData(), files = this.$refs.inputUploadFiles.files;
+			let data = new FormData(), files = this.$refs.inputUploadFiles.files, rndname, ext;
 			for(var i = 0; i < files.length; i++) {
-				data.append("file_" + i, files[i]);
+				files[i].rndname = generateRandomString(32);
+				ext = files[i].name.match(/\.([^.]+)$/);
+				files[i].ext = ext == null ? "" : ext[1];
+				data.append(files[i].rndname + "_" + files[i].ext, files[i]);
 			}
 			axios.post("/backend/upload.php", data)
 				.then(response => {
-					let id = this.getImagesCount, srt;
+					let id = this.getImagesCount, filesArray = [], srt;
 					if(Object.keys(this.currentImages).length > 0) {
 						let storeImages = this.currentImages;
 						srt = this.sortObjects(storeImages, "srt").pop().srt;
 					} else {
 						srt = 0;
 					}
-					let filesArray = [...files].map(function(file) {
-						return {
+					for(var i = 0; i < files.length; i++) {
+						filesArray.push({
 							id: ++id,
-							file: file.name,
-							size: file.size,
-							type: file.type,
-							lastmodified: file.lastModified,
+							file: files[i].rndname + (files[i].ext == "" ? "" : "." + files[i].ext),
+							size: files[i].size,
+							type: files[i].type,
+							lastmodified: files[i].lastModified,
 							srt: ++srt,
 							placeid: this.currentId,
-						};
-					}.bind(this));
+						});
+					}
+					console.dir(filesArray);
 					let images = this.currentImages
 						? this.currentImages.concat(filesArray)
 						: filesArray
