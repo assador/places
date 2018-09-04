@@ -8,6 +8,8 @@ export default {
 	data() {return {
 		map: null,
 		mrk: null,
+		mrks: {},
+		placemarksShown: true,
 	}},
 	watch: {
 		latitude: function() {
@@ -45,7 +47,7 @@ export default {
 				this.map.controls.add(new ymaps.control.TrafficControl({providerKey: "traffic#archive"}));
 				this.map.behaviors.enable("scrollZoom");
 				this.map.events.add("actionend", function() {
-					var coordinates = this.map.getCenter();
+					let coordinates = this.map.getCenter();
 					this.$store.commit("changeCenter", {
 						latitude: coordinates[0].toFixed(7),
 						longitude: coordinates[1].toFixed(7),
@@ -56,16 +58,11 @@ export default {
 				}.bind(this));
 				this.mrk = new ymaps.Placemark(
 					[lat, lng],
-					{
-						hintContent: "",
-						balloonContent: "",
-					},
-					{
-						draggable: true,
-					},
+					{hintContent: "", balloonContent: ""},
+					{draggable: true},
 				);
 				this.mrk.events.add("dragend", function() {
-					var coordinates = this.mrk.geometry.getCoordinates();
+					let coordinates = this.mrk.geometry.getCoordinates();
 					if(this.$store.state.places.length > 0) {
 						this.$store.commit("changePlace", {
 							index: this.mrk.placeIndex,
@@ -79,7 +76,28 @@ export default {
 					}
 				}.bind(this));
 				this.map.geoObjects.add(this.mrk);
+				this.$store.state.places.forEach(function(place) {
+					this.appendPlacemark(place);
+				}.bind(this));
 			};
+		},
+		appendPlacemark: (place) => function(place) {
+			this.mrks[place.id] = new ymaps.Placemark(
+				[place.latitude, place.longitude],
+				{hintContent: place.name, balloonContent: place.description},
+				{draggable: true},
+			);
+			this.mrks[place.id].events.add("dragend", function() {
+				let coordinates = this.mrks[place.id].geometry.getCoordinates();
+				this.$store.commit("changePlace", {
+					index: this.$store.state.places.indexOf(place),
+					change: {
+						latitude: coordinates[0].toFixed(7),
+						longitude: coordinates[1].toFixed(7),
+					},
+				});
+			}.bind(this));
+			this.map.geoObjects.add(this.mrks[place.id]);
 		},
 		updatePlacemark: () => function() {
 			this.map.setCenter([this.latitude, this.longitude]);
@@ -105,7 +123,7 @@ export default {
 			}
 			let newName = "Новое место (ID: " + newId + ")";
 			let newDescription = newName + ", добавленное в «Местах».";
-			this.$store.commit("addPlace", {
+			let newPlace = {
 				userid: localStorage.getItem("user-id"),
 				name: newName,
 				description: newDescription,
@@ -124,8 +142,22 @@ export default {
 				deleted: false,
 				updated: false,
 				show: true,
-			});
+			};
+			this.$store.commit("addPlace", newPlace);
+			this.appendPlacemark(newPlace);
 			this.$parent.setCurrentPlace(this.$store.state.places.length - 1);
+		},
+		placemarksShowHide: () => function() {
+			for(let key in this.mrks) {
+				if(this.placemarksShown) {
+					this.mrks[key].options.set("visible", false);
+					document.getElementById("placemarksShowHideButton").classList.remove("button-pressed");
+				} else {
+					this.mrks[key].options.set("visible", true);
+					document.getElementById("placemarksShowHideButton").classList.add("button-pressed");
+				}
+			}
+			this.placemarksShown = !this.placemarksShown;
 		},
 	},
 	mounted: function() {

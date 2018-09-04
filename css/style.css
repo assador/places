@@ -90,10 +90,16 @@ body, input, select, textarea,
 #top h1 {
 	color: rgb(200, 177, 160);
 }
+::placeholder {
+	color: rgba(200, 177, 160, 0.5);
+}
 .color, .imp, .imp_01, .imp_02,
 h1, h2, h3, h4, h5, h6, b, strong, caption, legend, dt, th,
 ul > li::before, .pseudo_button::before {
 	color: rgb(178, 126, 77);
+}
+.button-pressed {
+	color: rgb(153, 58, 0) !important;
 }
 *[class*="sba-"], *[class*="sba-"]:focus {
 	color: rgb(124, 80, 45);
@@ -644,4 +650,8 @@ table.table-wopadd th, table.table-wopadd td {
 }
 #bottom-left {
 	box-shadow: inset -100px 85px 20px -100px rgba(47, 20, 0, 0.6);
+}
+#placemarksShowHideButton {
+	padding: 0;
+	font-size: 13px;
 }

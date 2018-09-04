@@ -2,8 +2,7 @@
 	<div class="table" @click="showPopup({show: false}, $event);">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
-				<h3 class="margin_bottom_1">Поиск по названию мест:</h3>
-				<input title="Поиск по названию мест" class="fieldwidth_100 margin_bottom_1" @keyup="selectPlaces" />
+				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="fieldwidth_100" style="margin-top: 8px;" @keyup="selectPlaces" />
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
@@ -124,13 +123,12 @@
 		</div>
 		<div id="bottom" :class="'app-row' + ' sbm-bottom-' + sidebarMode.bottom">
 			<div id="bottom-left" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-left-' + sidebarMode.left">
+				<button id="placemarksShowHideButton" class="actions-button button-pressed" @click="$refs.ym.placemarksShowHide();" title="Показать / скрыть все геометки">◉</button>
 			</div>
 			<div id="bottom-basic" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom">
 				<span class="imp">Координаты центра карты</span>
-				<span style="margin-left: 1em;">Широта:</span>
-				<input v-model.number.trim="$store.state.center.latitude" placeholder="latitude" title="latitude" />
-				<span style="margin-left: 1em;">Долгота:</span>
-				<input v-model.number.trim="$store.state.center.longitude" placeholder="longitude" title="longitude" />
+				<span class="nobr" style="margin-left: 1em;">Широта: <input v-model.number.trim="$store.state.center.latitude" placeholder="latitude" title="latitude" /></span>
+				<span class="nobr" style="margin-left: 1em;">Долгота: <input v-model.number.trim="$store.state.center.longitude" placeholder="longitude" title="longitude" /></span>
 			</div>
 			<div id="bottom-right" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-right-' + sidebarMode.right">
 			</div>
@@ -276,7 +274,8 @@ export default {
 			if(this.$refs.ym) {this.$refs.ym.mrk.placeIndex = this.currentIndex;}
 		},
 		deletePlace: index => function(index) {
-			this.$store.commit("removePlace", index);// setCurrentPlace(currentIndex);
+			this.$store.commit("removePlace", index);
+			this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[this.$store.state.places[index].id]);
 			for(var i = this.currentIndex + 1; i < this.$store.state.places.length; i++) {
 				if(!this.$store.state.places[i].deleted) {
 					this.setCurrentPlace(i);
@@ -423,7 +422,6 @@ export default {
 							placeid: this.currentId,
 						});
 					}
-					console.dir(filesArray);
 					let images = this.currentImages
 						? this.currentImages.concat(filesArray)
 						: filesArray
