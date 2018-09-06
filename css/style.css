@@ -505,7 +505,7 @@ table.table-wopadd th, table.table-wopadd td {
 .draggable .dd-images__delete {
 	pointer-events: all;
 }
-#top-right {
+#top-right, #bottom-left {
 	font-size: 0 !important;
 }
 .actions-button {

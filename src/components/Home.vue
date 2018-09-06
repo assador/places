@@ -17,11 +17,11 @@
 				<button class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
 				<button class="actions-button" @click="deletePlace(currentIndex);" title="Удалить текущее место">×</button>
 				<input id="inputImportFromFile" ref="inputImportFromFile" name="jsonFile" type="file" @change="importFromFile($event);" />
-				<button class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать из JSON-файла">⭹</button>
-				<button class="actions-button" @click="exportToFile();" title="Экспортировать в JSON-файл">⭷</button>
-				<button class="actions-button" @click="toDB();" title="Сохранить в БД">⭳</button>
+				<button class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать из JSON-файла">↲</button>
+				<button class="actions-button" @click="exportToFile();" title="Экспортировать в JSON-файл">↱</button>
+				<button class="actions-button" @click="toDB();" title="Сохранить в БД">↯</button>
 				<button class="actions-button" @click="showAbout();" title="О «Местах», справка">?</button>
-				<button class="actions-button" onclick="document.location.reload(true);" title="Вернуться к версии в БД">⭯</button>
+				<button class="actions-button" onclick="document.location.reload(true);" title="Вернуться к версии в БД">↺</button>
 				<button class="actions-button" @click="exit();" title="Выйти">↪</button>
 			</div>
 		</div>
@@ -127,7 +127,7 @@
 		<div id="bottom" :class="'app-row' + ' sbm-bottom-' + sidebarMode.bottom">
 			<div id="bottom-left" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-left-' + sidebarMode.left">
 				<button id="placemarksShowHideButton" class="actions-button button-pressed" @click="$refs.ym.placemarksShowHide();" title="Показать / скрыть все геометки">◉</button>
-				<button id="centerPlacemarkShowHideButton" class="actions-button" @click="$refs.ym.centerPlacemarkShowHide();" title="Показать / скрыть метку центра карты">⭘</button>
+				<button id="centerPlacemarkShowHideButton" class="actions-button" @click="$refs.ym.centerPlacemarkShowHide();" title="Показать / скрыть метку центра карты">◈</button>
 			</div>
 			<div id="bottom-basic" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom">
 				<span class="imp">Координаты центра карты</span>
