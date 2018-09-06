@@ -85,6 +85,17 @@ if($_POST["todo"] == "places") {
 			`userid`      = :userid
 		WHERE `id` = :id
 	");
+	$updateimage = $conn->prepare("
+		UPDATE `images` SET
+			`id`           = :id           ,
+			`file`         = :file         ,
+			`size`         = :size         ,
+			`type`         = :type         ,
+			`lastmodified` = :lastmodified ,
+			`srt`          = :srt          ,
+			`placeid`      = :placeid
+		WHERE `id` = :id
+	");
 	foreach($data as $row) {
 		if($row["deleted"] == true) {
 			$delete->bindParam( ":id"          , $row[ "id"          ]);
@@ -109,6 +120,18 @@ if($_POST["todo"] == "places") {
 			$update->bindParam( ":srt"         , $row[ "srt"         ]);
 			$update->bindParam( ":userid"      , $_POST["id"]);
 			try{$update->execute();} catch(Exception $e) {}
+		}
+		foreach($row["images"] as $image) {
+			if($image["updated"] == true) {
+				$updateimage->bindParam( ":id"           , $image["id"           ]);
+				$updateimage->bindParam( ":file"         , $image["file"         ]);
+				$updateimage->bindParam( ":size"         , $image["size"         ]);
+				$updateimage->bindParam( ":type"         , $image["type"         ]);
+				$updateimage->bindParam( ":lastmodified" , $image["lastmodified" ]);
+				$updateimage->bindParam( ":srt"          , $image["srt"          ]);
+				$updateimage->bindParam( ":placeid"      , $image["placeid"      ]);
+				try{$updateimage->execute();} catch(Exception $e) {}
+			}
 		}
 	}
 } elseif($_POST["todo"] == "images_upload") {

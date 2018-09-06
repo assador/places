@@ -221,7 +221,6 @@ export default {
 					case "place-images" :
 						parent = this.currentImages;
 						break;
-					default :
 				}
 				this.$store.commit("swapValues", {
 					parent: parent,

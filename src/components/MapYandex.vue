@@ -14,10 +14,10 @@ export default {
 	}},
 	watch: {
 		latitude: function() {
-//			this.updatePlacemark();
+			this.updatePlacemark();
 		},
 		longitude: function() {
-//			this.updatePlacemark();
+			this.updatePlacemark();
 		},
 		centerLatitude: function() {
 			this.updateCenter();
@@ -89,6 +89,10 @@ export default {
 			this.map.geoObjects.add(this.mrks[place.id]);
 		},
 		updatePlacemark: () => function() {
+			this.mrks[this.id].geometry.setCoordinates([this.latitude, this.longitude]);
+			this.mrks[this.id].properties.set({hintContent: this.name, balloonContent: this.description});
+		},
+		updateCenterPlacemark: () => function() {
 			this.map.setCenter([this.latitude, this.longitude]);
 			this.mrk.geometry.setCoordinates([this.latitude, this.longitude]);
 		},
