@@ -14,7 +14,9 @@ if(count($result) > 0) {echo 1; exit;}
 
 $token = generateRandomString(32);
 $query = $conn->prepare(
-	"INSERT INTO `users` (`login`, `password`, `name`, `email`, `phone`, `confirmed`, `confirmbefore`, `token`) VALUES ('" .
+	"INSERT INTO `users` (`id`, `login`, `password`, `name`, `email`, `phone`, `confirmed`, `confirmbefore`, `token`) VALUES ('" .
+	generateRandomString(32) .
+	"', '" .
 	$_POST["regLogin"] .
 	"', '" .
 	password_hash($_POST["regPassword"], PASSWORD_DEFAULT) .
@@ -56,8 +58,3 @@ $message = '
 	</html>
 ';
 mail($_POST["regEmail"], $subject, $message, $headers);
-#if(count($result) == 0) {
-#	echo 0;
-#} else {
-#	echo generateRandomString() . "|" . $result[0]["id"];
-#}

@@ -511,7 +511,7 @@ table.table-wopadd th, table.table-wopadd td {
 .actions-button {
 	width: 28px; height: 28px;
 	margin: 4px;
-	padding: 13px 7px;
+	padding: 13px 0;
 	line-height: 0;
 	font-size: 22px;
 }
@@ -520,9 +520,6 @@ table.table-wopadd th, table.table-wopadd td {
 }
 .place-detailed textarea, .place-detailed input[type="text"] {
 	margin: 3px 0 8px 0;
-}
-.place-detailed textarea {
-	height: 40px;
 }
 .dd-images {
 	width: auto;
@@ -654,4 +651,13 @@ table.table-wopadd th, table.table-wopadd td {
 #placemarksShowHideButton {
 	padding: 0;
 	font-size: 13px;
+}
+#inputImportFromFile {
+	display: none;
+}
+#detailed-name {
+	height: 42px;
+}
+#detailed-description {
+	height: 80px;
 }

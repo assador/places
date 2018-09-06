@@ -2,7 +2,7 @@
 include "config.php";
 include "newpdo.php";
 
-$query = $conn->query("SELECT `p`.`id`, `p`.`name`, `p`.`description`, `p`.`latitude`, `p`.`longitude`, `p`.`srt`, `p`.`userid` FROM `places` `p` WHERE `p`.`userid` = " . $_GET["id"] . " ORDER BY `srt`");
+$query = $conn->query("SELECT `p`.`id`, `p`.`name`, `p`.`description`, `p`.`latitude`, `p`.`longitude`, `p`.`srt`, `p`.`userid` FROM `places` `p` WHERE `p`.`userid` = '" . $_GET["id"] . "' ORDER BY `srt`");
 $places = $query->fetchAll(PDO::FETCH_ASSOC);
 $query = $conn->query("SELECT * FROM `images` ORDER BY `srt`");
 $images = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -14,5 +14,4 @@ foreach($places as $places_key => $places_value) {
 		}
 	}
 }
-$places[] = count($images);
 echo json_encode($places, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);

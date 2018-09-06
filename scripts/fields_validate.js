@@ -27,7 +27,7 @@ function make_fields_validatable() {
 		"detailed-latitude"  : ["latlong",  "Пример: 55.5555555"],
 		"detailed-longitude" : ["latlong",  "Пример: 55.5555555"],
 		"detailed-id"        : ["integerm", "Пример: 238"],
-		"detailed-srt"       : ["decimal", "Пример: 3.752"],
+		"detailed-srt"       : ["decimal",  "Пример: 3.752"],
 	}
 	for(var id in fields) {
 		if(document.getElementById(id)) {

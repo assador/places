@@ -31,7 +31,7 @@ export default {
 		bus.$on("loggedChange", (component) => {
 			this.component = component;
 			if(component == "home") {
-				this.$store.dispatch("setPlaces");
+				this.$store.dispatch("setPlaces", false);
 			}
 		});
 	},

@@ -7,12 +7,14 @@ export const loginRoutine = user => new Promise((resolve, reject) => {
 				case 0 :
 					localStorage.removeItem("user-token");
 					localStorage.removeItem("user-id");
+					localStorage.removeItem("user-login");
 					response.message = "Неверные логин или пароль";
 					break;
 				default :
 					let data = response.data.split("|");
 					localStorage.setItem("user-token", data[0]);
 					localStorage.setItem("user-id", data[1]);
+					localStorage.setItem("user-login", data[2]);
 					bus.$emit("loggedChange", "home");
 			}
 			resolve(response);
@@ -20,6 +22,7 @@ export const loginRoutine = user => new Promise((resolve, reject) => {
 		.catch(error => {
 			localStorage.removeItem("user-token");
 			localStorage.removeItem("user-id");
+			localStorage.removeItem("user-login");
 			reject(error);
 		})
 });

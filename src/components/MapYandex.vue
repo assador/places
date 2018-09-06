@@ -117,11 +117,7 @@ export default {
 			}
 		},
 		appendPlace: () => function() {
-			let newId = 1;
-			for(let place of this.$store.state.places) {
-				if(place.id >= newId) {newId = place.id + 1;}
-			}
-			let newName = "Новое место (ID: " + newId + ")";
+			let newName = "Новое место";
 			let newDescription = newName + ", добавленное в «Местах».";
 			let newPlace = {
 				userid: localStorage.getItem("user-id"),
@@ -129,7 +125,7 @@ export default {
 				description: newDescription,
 				latitude: this.map.getCenter()[0].toFixed(7),
 				longitude: this.map.getCenter()[1].toFixed(7),
-				id: newId,
+				id: generateRandomString(32),
 				srt: this.$store.state.places.length > 0
 					? Math.ceil(Math.max(
 						...this.$store.state.places.map(function(place) {

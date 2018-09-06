@@ -6,7 +6,7 @@
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
-					<h1>Места</h1>
+					<h1>Места — <span v-html="getLogin"></span></h1>
 					<p>Сервис просмотра и редактирования библиотек геометок</p>
 				</div>
 				<div class="message">
@@ -16,10 +16,13 @@
 			<div id="top-right" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-right-' + sidebarMode.right">
 				<button class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
 				<button class="actions-button" @click="deletePlace(currentIndex);" title="Удалить текущее место">×</button>
-				<button class="actions-button" @click="saveToFile();" title="Сохранить на диск">⭱</button>
-				<button class="actions-button" @click="toDB();" title="Сохранить в БД">⭻</button>
+				<input id="inputImportFromFile" ref="inputImportFromFile" name="jsonFile" type="file" @change="importFromFile($event);" />
+				<button class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать из JSON-файла">⭹</button>
+				<button class="actions-button" @click="exportToFile();" title="Экспортировать в JSON-файл">⭷</button>
+				<button class="actions-button" @click="toDB();" title="Сохранить в БД">⭳</button>
 				<button class="actions-button" @click="showAbout();" title="О «Местах», справка">?</button>
-				<button class="actions-button" @click="exit();" title="Выйтм">↪</button>
+				<button class="actions-button" onclick="document.location.reload(true);" title="Вернуться к версии в БД">⭯</button>
+				<button class="actions-button" @click="exit();" title="Выйти">↪</button>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -173,8 +176,13 @@ export default {
 		popuptext,
 	},
 	mounted: function() {
-		bus.$once("placesFilled", () => {
-			if(this.$refs.ym) {this.$refs.ym.showMap(55.7512848, 37.6190706);}
+		bus.$on("placesFilled", () => {
+			if(this.$refs.ym && this.$refs.ym.map) {
+				this.$refs.ym.map.destroy();
+			}
+			if(this.$refs.ym) {
+				this.$refs.ym.showMap(55.7512848, 37.6190706);
+			}
 			if(this.$store.state.already) {
 				window.addEventListener("load", function() {
 					this.setCurrentPlace(this.currentIndex);
@@ -248,9 +256,9 @@ export default {
 		},
 	},
 	computed: {
-		...mapGetters(["getPlace", "getImages", "getMessage", "getImagesCount", "getIndexById"]),
+		...mapGetters(["getPlace", "getImages", "getLogin", "getMessage", "getImagesCount", "getIndexById"]),
 		exit: () => function() {
-			this.$store.commit("unload");
+			this.$store.dispatch("unload");
 			bus.$emit("loggedChange", "auth");
 		},
 		setCurrentPlace: index => function(index) {
@@ -358,7 +366,17 @@ export default {
 				aboutRequest.setRequestHeader("Content-type", "application/json");
 				aboutRequest.send();
 		},
-		saveToFile: () => function() {
+		importFromFile: (event) => function(event) {
+			event.preventDefault();
+			let reader = new FileReader();
+			reader.onload = function(event) {
+				this.$store.commit("reset");
+				this.$store.dispatch("setPlaces", reader.result);
+				document.getElementById("inputImportFromFile").value = "";
+			}.bind(this);
+			reader.readAsText(this.$refs.inputImportFromFile.files[0]);
+		},
+		exportToFile: () => function() {
 			const data = JSON.stringify(this.$store.state.places);
 			const blob = new Blob([data], {type: "text/plain"});
 			const e = document.createEvent("MouseEvents"),
@@ -404,7 +422,7 @@ export default {
 			}
 			axios.post("/backend/upload.php", data)
 				.then(response => {
-					let id = this.getImagesCount, filesArray = [], srt;
+					let filesArray = [], srt;
 					if(Object.keys(this.currentImages).length > 0) {
 						let storeImages = this.currentImages;
 						srt = this.sortObjects(storeImages, "srt").pop().srt;
@@ -413,7 +431,7 @@ export default {
 					}
 					for(var i = 0; i < files.length; i++) {
 						filesArray.push({
-							id: ++id,
+							id: generateRandomString(32),
 							file: files[i].rndname + (files[i].ext == "" ? "" : "." + files[i].ext),
 							size: files[i].size,
 							type: files[i].type,
@@ -427,7 +445,6 @@ export default {
 						: filesArray
 					;
 					this.currentImages = images;
-					this.$store.commit("updateImagesCount", id);
 					this.$store.commit("changePlace", {
 						index: this.currentIndex,
 						change: {images: images},

@@ -3,9 +3,7 @@ export const store = new Vuex.Store({
 	state: {
 		status: 0,
 		already: false,
-		login: "",
 		places: [],
-		imagesCount: 0,
 		center: {},
 		ready: false,
 		message: "",
@@ -33,26 +31,19 @@ export const store = new Vuex.Store({
 		},
 	},
 	mutations: {
-		unload(state) {
+		reset(state) {
 			Vue.set(state, "status", 0);
 			Vue.set(state, "already", false);
-			Vue.set(state, "login", "");
 			Vue.set(state, "places", []);
-			Vue.set(state, "imagesCount", 0);
 			Vue.set(state, "center", {});
 			Vue.set(state, "ready", false);
 			Vue.set(state, "message", "");
-			localStorage.removeItem("user-token");
-			localStorage.removeItem("user-id");
 		},
 		loaded(state) {
 			Vue.set(state, "status", 1);
 		},
 		already(state) {
 			Vue.set(state, "already", true);
-		},
-		login(state, login) {
-			Vue.set(state, "login", login);
 		},
 		setMessage(state, message) {
 			let last = state.message.match(/([^<>]+)$/);
@@ -74,13 +65,25 @@ export const store = new Vuex.Store({
 				}, 10000);
 			}
 		},
-		placesReady(state, places) {
-			Vue.set(state, "places", places);
+		placesReady(state, payload) {
+			Vue.set(state, "places", payload.places);
 			Vue.set(state, "ready", true);
-			for(let place of places) {
-				Vue.set(place, "added", false);
-				Vue.set(place, "deleted", false);
-				Vue.set(place, "updated", false);
+			let added = false, deleted = false, updated = false;
+			switch(payload.what) {
+				case "added" :
+					added = true;
+					break;
+				case "deleted" :
+					deleted = true;
+					break;
+				case "updated" :
+					updated = true;
+					break;
+			}
+			for(let place of payload.places) {
+				Vue.set(place, "added", added);
+				Vue.set(place, "deleted", deleted);
+				Vue.set(place, "updated", updated);
 				Vue.set(place, "show", true);
 			}
 		},
@@ -89,9 +92,6 @@ export const store = new Vuex.Store({
 		},
 		hide(state, index) {
 			Vue.set(state.places[index], "show", false);
-		},
-		updateImagesCount(state, imagesCount) {
-			Vue.set(state, "imagesCount", imagesCount);
 		},
 		modifyPlaces(state, places) {
 			Vue.set(state, "places", places);
@@ -127,26 +127,56 @@ export const store = new Vuex.Store({
 		},
 	},
 	actions: {
-		setPlaces({state, commit}) {
-			let placesRequest = new XMLHttpRequest();
-			placesRequest.open("GET", "/backend/get_places.php?id=" + localStorage.getItem("user-id"), true);
-			placesRequest.onreadystatechange = function(event) {
-				if(placesRequest.readyState == 4) {
-					if(placesRequest.status == 200) {
-						let places = JSON.parse(placesRequest.responseText);
-						Vue.set(state, "imagesCount", places.pop());
-						commit("placesReady", places, false);
-						bus.$emit("placesFilled");
-					} else {
-						alert("Не могу получить данные из БД");
-						commit("placesReady", [], true);
-					}
+		unload({state, commit}) {
+			commit("reset");
+			localStorage.removeItem("user-token");
+			localStorage.removeItem("user-id");
+		},
+		ipdateIds({state, commit, dispatch}) {
+			return new Promise((resolve, reject) => {
+				for(let place of state.places) {
+					place.userid = localStorage.getItem("user-id");
+					place.id = generateRandomString(32);
+					place.images = [];
 				}
-			};
-			placesRequest.send(null);
+				commit("modifyPlaces", state.places);
+				resolve(state.places);
+			});
+		},
+		setPlaces({state, commit, dispatch}, json) {
+			if(!json) {
+				let placesRequest = new XMLHttpRequest();
+				placesRequest.open("GET", "/backend/get_places.php?id=" + localStorage.getItem("user-id"), true);
+				placesRequest.onreadystatechange = function(event) {
+					if(placesRequest.readyState == 4) {
+						if(placesRequest.status == 200) {
+							let places = JSON.parse(placesRequest.responseText);
+							commit("placesReady", {places: places});
+							bus.$emit("placesFilled");
+						} else {
+							commit("setMessage", "Не могу получить данные из БД");
+							commit("placesReady", {places: []});
+						}
+					}
+				};
+				placesRequest.send(null);
+			} else {
+				commit("modifyPlaces", JSON.parse(json));
+				dispatch("ipdateIds")
+					.then(response => {
+						commit("placesReady", {places: state.places, what: "added"});
+						bus.$emit("placesFilled");
+					})
+					.catch(error => {
+						commit("placesReady", {places: []});
+					});
+			}
 		},
 	},
 	getters: {
+		getLogin: (state, getters) => {
+			return localStorage.getItem("user-login");
+		},
 		getMessage: (state, getters) => {
 			return state.message;
 		},
@@ -155,9 +185,6 @@ export const store = new Vuex.Store({
 		},
 		getImages: (state, getters) => (index) => {
 			return state.places[index].images;
-		},
-		getImagesCount: (state, getters) => {
-			return state.imagesCount;
 		},
 		getIndexById: (state, getters) => (args) => {
 			return args.parent.indexOf(args.parent.find(p => p.id == args.id));
