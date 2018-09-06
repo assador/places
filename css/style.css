@@ -648,7 +648,7 @@ table.table-wopadd th, table.table-wopadd td {
 #bottom-left {
 	box-shadow: inset -100px 85px 20px -100px rgba(47, 20, 0, 0.6);
 }
-#placemarksShowHideButton {
+#placemarksShowHideButton, #centerPlacemarkShowHideButton {
 	padding: 0;
 	font-size: 13px;
 }

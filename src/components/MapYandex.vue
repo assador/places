@@ -10,13 +10,14 @@ export default {
 		mrk: null,
 		mrks: {},
 		placemarksShown: true,
+		centerPlacemarkShown: false,
 	}},
 	watch: {
 		latitude: function() {
-			this.updatePlacemark();
+//			this.updatePlacemark();
 		},
 		longitude: function() {
-			this.updatePlacemark();
+//			this.updatePlacemark();
 		},
 		centerLatitude: function() {
 			this.updateCenter();
@@ -52,28 +53,16 @@ export default {
 						latitude: coordinates[0].toFixed(7),
 						longitude: coordinates[1].toFixed(7),
 					});
-					if(this.$store.state.places.length == 0) {
-						this.mrk.geometry.setCoordinates(this.map.getCenter());
-					}
+					this.mrk.geometry.setCoordinates(coordinates);
 				}.bind(this));
 				this.mrk = new ymaps.Placemark(
 					[lat, lng],
-					{hintContent: "", balloonContent: ""},
+					{hintContent: "Метка центра карты", balloonContent: "Метка текущих координат центра карты. Новое место будет создано здесь."},
 					{draggable: true},
 				);
+				this.mrk.options.set("visible", false);
 				this.mrk.events.add("dragend", function() {
-					let coordinates = this.mrk.geometry.getCoordinates();
-					if(this.$store.state.places.length > 0) {
-						this.$store.commit("changePlace", {
-							index: this.mrk.placeIndex,
-							change: {
-								latitude: coordinates[0].toFixed(7),
-								longitude: coordinates[1].toFixed(7),
-							},
-						});
-					} else {
-						this.map.setCenter(coordinates);
-					}
+					this.map.setCenter(this.mrk.geometry.getCoordinates());
 				}.bind(this));
 				this.map.geoObjects.add(this.mrk);
 				this.$store.state.places.forEach(function(place) {
@@ -102,8 +91,6 @@ export default {
 		updatePlacemark: () => function() {
 			this.map.setCenter([this.latitude, this.longitude]);
 			this.mrk.geometry.setCoordinates([this.latitude, this.longitude]);
-			this.mrk.properties.set("hintContent", this.name);
-			this.mrk.properties.set("balloonContent", this.description);
 		},
 		updateCenter: () => function() {
 			this.map.setCenter([this.centerLatitude, this.centerLongitude]);
@@ -154,6 +141,16 @@ export default {
 				}
 			}
 			this.placemarksShown = !this.placemarksShown;
+		},
+		centerPlacemarkShowHide: () => function() {
+			if(this.centerPlacemarkShown) {
+				this.mrk.options.set("visible", false);
+				document.getElementById("centerPlacemarkShowHideButton").classList.remove("button-pressed");
+			} else {
+				this.mrk.options.set("visible", true);
+				document.getElementById("centerPlacemarkShowHideButton").classList.add("button-pressed");
+			}
+			this.centerPlacemarkShown = !this.centerPlacemarkShown;
 		},
 	},
 	mounted: function() {

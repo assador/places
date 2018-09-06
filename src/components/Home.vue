@@ -127,6 +127,7 @@
 		<div id="bottom" :class="'app-row' + ' sbm-bottom-' + sidebarMode.bottom">
 			<div id="bottom-left" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-left-' + sidebarMode.left">
 				<button id="placemarksShowHideButton" class="actions-button button-pressed" @click="$refs.ym.placemarksShowHide();" title="Показать / скрыть все геометки">◉</button>
+				<button id="centerPlacemarkShowHideButton" class="actions-button" @click="$refs.ym.centerPlacemarkShowHide();" title="Показать / скрыть метку центра карты">⭘</button>
 			</div>
 			<div id="bottom-basic" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom">
 				<span class="imp">Координаты центра карты</span>
