@@ -513,7 +513,10 @@ table.table-wopadd th, table.table-wopadd td {
 	margin: 4px;
 	padding: 13px 0;
 	line-height: 0;
-	font-size: 22px;
+	font-size: 20px;
+}
+#actions-append, #actions-delete, #actions-about {
+	font-size: 24px;
 }
 .place-detailed dd {
 	padding-left: 0;

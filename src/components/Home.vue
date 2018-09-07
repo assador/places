@@ -14,15 +14,15 @@
 				</div>
 			</div>
 			<div id="top-right" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-right-' + sidebarMode.right">
-				<button class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
-				<button class="actions-button" @click="deletePlace(currentIndex);" title="Удалить текущее место">×</button>
+				<button id="actions-append" class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
+				<button id="actions-delete" class="actions-button" @click="deletePlace(currentIndex);" title="Удалить текущее место">×</button>
 				<input id="inputImportFromFile" ref="inputImportFromFile" name="jsonFile" type="file" @change="importFromFile($event);" />
-				<button class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать из JSON-файла">↲</button>
-				<button class="actions-button" @click="exportToFile();" title="Экспортировать в JSON-файл">↱</button>
-				<button class="actions-button" @click="toDB();" title="Сохранить в БД">↯</button>
-				<button class="actions-button" @click="showAbout();" title="О «Местах», справка">?</button>
-				<button class="actions-button" onclick="document.location.reload(true);" title="Вернуться к версии в БД">↺</button>
-				<button class="actions-button" @click="exit();" title="Выйти">↪</button>
+				<button id="actions-import" class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать из JSON-файла">↲</button>
+				<button id="actions-export" class="actions-button" @click="exportToFile();" title="Экспортировать в JSON-файл">↱</button>
+				<button id="actions-save" class="actions-button" @click="toDB();" title="Сохранить в БД">↯</button>
+				<button id="actions-about" class="actions-button" @click="showAbout();" title="О «Местах», справка">?</button>
+				<button id="actions-refresh" class="actions-button" onclick="document.location.reload(true);" title="Вернуться к версии в БД">↺</button>
+				<button id="actions-exit" class="actions-button" @click="exit();" title="Выйти">↪</button>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -246,7 +246,8 @@ export default {
 				}
 			} else {
 				for(let i = 0; i < this.$store.state.places.length; i++) {
-					if(!this.$store.state.places[i].name.includes(event.target.value)) {
+					let regexp = new RegExp(event.target.value, "i");
+					if(!regexp.test(this.$store.state.places[i].name)) {
 						this.$store.commit("hide", i);
 					} else {
 						this.$store.commit("show", i);
