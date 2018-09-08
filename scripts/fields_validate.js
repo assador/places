@@ -7,6 +7,7 @@ function validate_field(value, type) {
 		"latlong"  : /^-?(?:\d){1,3}(?:\.\d+)?$/,
 		"login"    : /^.{1,24}$/,
 		"name"     : /^.{0,100}$/,
+		"password" : /^.{0,255}$/,
 		"e-mail"   : /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i,
 		"phone"    : /^[+\d]*$/,
 	}
@@ -15,19 +16,26 @@ function validate_field(value, type) {
 }
 function make_fields_validatable() {
 	var fields = {
-		"authLogin"          : ["login",    "Не более 24 символов"],
-		"regLogin"           : ["login",    "Не более 24 символов"],
-		"authPassword"       : ["login",    "Не более 24 символов"],
-		"regPassword"        : ["login",    "Не более 24 символов"],
-		"regPasswordRepeat"  : ["login",    "Не более 24 символов"],
-		"regName"            : ["name",     "Не более 100 символов."],
-		"regPhone"           : ["phone",    "Слитно, с ведущим +7. Пример: +71234567890"],
-		"regEmail"           : ["e-mail",   "Пример: my.Name@хост.рф"],
-		"email"              : ["e-mail",   "Пример: my.Name@хост.рф"],
-		"detailed-latitude"  : ["latlong",  "Пример: 55.5555555"],
-		"detailed-longitude" : ["latlong",  "Пример: 55.5555555"],
-		"detailed-id"        : ["integerm", "Пример: 238"],
-		"detailed-srt"       : ["decimal",  "Пример: 3.752"],
+		"authLogin"                : ["login",    "Не более 24 символов"],
+		"regLogin"                 : ["login",    "Не более 24 символов"],
+		"accountLogin"             : ["login",    "Не более 24 символов"],
+		"authPassword"             : ["password", "Не более 255 символов"],
+		"regPassword"              : ["password", "Не более 255 символов"],
+		"regPasswordRepeat"        : ["password", "Не более 255 символов"],
+		"accountPassword"          : ["password", "Не более 255 символов"],
+		"accountNewPassword"       : ["password", "Не более 255 символов"],
+		"accountNewPasswordRepeat" : ["password", "Не более 255 символов"],
+		"regName"                  : ["name",     "Не более 100 символов."],
+		"accountName"              : ["name",     "Не более 100 символов."],
+		"regPhone"                 : ["phone",    "Слитно, с ведущим +7. Пример: +71234567890"],
+		"accountPhone"             : ["phone",    "Слитно, с ведущим +7. Пример: +71234567890"],
+		"regEmail"                 : ["e-mail",   "Пример: my.Name@хост.рф"],
+		"accountEmail"             : ["e-mail",   "Пример: my.Name@хост.рф"],
+		"email"                    : ["e-mail",   "Пример: my.Name@хост.рф"],
+		"detailed-latitude"        : ["latlong",  "Пример: 55.5555555"],
+		"detailed-longitude"       : ["latlong",  "Пример: 55.5555555"],
+		"detailed-id"              : ["integerm", "Пример: 238"],
+		"detailed-srt"             : ["decimal",  "Пример: 3.752"],
 	}
 	for(var id in fields) {
 		if(document.getElementById(id)) {

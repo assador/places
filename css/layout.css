@@ -8,22 +8,19 @@ body {
 	position: relative;
 	min-height: 100%;
 }
-#basic-left, .auth .brand, .app-row, .app-cell, .table, .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
+#basic-left, .brand, .app-row, .app-cell, .table, .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	position: relative;
 }
 #main {
 	height: 100%;
 }
-.auth_forms, .auth__registration__fields {
+.auth_forms, .auth__registration__fields, .account__form {
 	display: flex;
 }
-.auth_forms, .auth__login, .auth__registration, .auth__registration__fields__left, .auth__registration__fields__right {
+.auth_forms, .auth__login, .auth__registration, .auth__registration__fields__left, .auth__registration__fields__right, .account__form {
 	width: 50%;
 }
-.auth .brand {
-	top: -100px;
-}
-.auth .brand  {
+.auth .brand, .account .brand  {
 	top: -100px;
 	text-align: center;
 }
@@ -76,7 +73,7 @@ body {
 .brand {
 	float: left;
 }
-.auth .brand {
+.auth .brand, .account .brand {
 	float: none !important;
 }
 .message {
@@ -153,4 +150,10 @@ body {
 	justify-content: center;
 	align-items: center;
 	min-height: 100%;
+}
+
+@media screen and (max-width: 1000px) {
+	.auth_forms, .account__form {
+		width: 90%;
+	}
 }

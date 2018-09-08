@@ -37,7 +37,7 @@ $result = $query->execute();
 $headers =
 	"MIME-Version: 1.0" . "\r\n" .
 	"Content-type: text/html; charset=utf-8" . "\r\n" .
-	"From: Сервис «Места» <assador@gmail.com>"
+	"From: Сервис «Места» <service@scrofa-tridens.ru>"
 ;
 $subject = "Подтверждение регистрации в сервисе «Места»";
 $message = '

@@ -3,6 +3,7 @@ export const store = new Vuex.Store({
 	state: {
 		status: 0,
 		already: false,
+		user: {},
 		places: [],
 		center: {},
 		ready: false,
@@ -34,6 +35,7 @@ export const store = new Vuex.Store({
 		reset(state) {
 			Vue.set(state, "status", 0);
 			Vue.set(state, "already", false);
+			Vue.set(state, "user", {});
 			Vue.set(state, "places", []);
 			Vue.set(state, "center", {});
 			Vue.set(state, "ready", false);
@@ -45,22 +47,26 @@ export const store = new Vuex.Store({
 		already(state) {
 			Vue.set(state, "already", true);
 		},
+		setUser(state, user) {
+			Vue.set(state, "user", user);
+		},
 		setMessage(state, message) {
 			let last = state.message.match(/([^<>]+)$/);
 			if(last != null && last[1] == message) {
 				Vue.set(state, "message", state.message.replace(/[^<>]+$/, ""));
-				setTimeout(function() {
+				document.messageTimeout = setTimeout(function() {
 					Vue.set(state, "message", state.message += message);
+					document.messageTimeout = undefined;
 				}.bind(message), 200);
 			} else {
 				Vue.set(state, "message", state.message += (state.message != "" ? "<br />" : "") + message);
 			}
-			if(typeof(document.intrvl) == "undefined") {
-				document.intrvl = setInterval(function() {
+			if(typeof document.messageInterval === "undefined") {
+				document.messageInterval = setInterval(function() {
 					Vue.set(state, "message", state.message.replace(/^.*?(<br\ \/>|$)/, ""));
 					if(state.message == "") {
-						clearInterval(document.intrvl);
-						delete document.intrvl;
+						clearInterval(document.messageInterval);
+						document.messageInterval = undefined;
 					}
 				}, 10000);
 			}
@@ -129,13 +135,13 @@ export const store = new Vuex.Store({
 	actions: {
 		unload({state, commit}) {
 			commit("reset");
-			localStorage.removeItem("user-token");
-			localStorage.removeItem("user-id");
+			localStorage.removeItem("places-session");
+			localStorage.removeItem("places-userid");
 		},
-		ipdateIds({state, commit, dispatch}) {
+		ipdateIds({state, commit}) {
 			return new Promise((resolve, reject) => {
 				for(let place of state.places) {
-					place.userid = localStorage.getItem("user-id");
+					place.userid = localStorage.getItem("places-userid");
 					place.id = generateRandomString(32);
 					place.images = [];
 				}
@@ -143,10 +149,30 @@ export const store = new Vuex.Store({
 				resolve(state.places);
 			});
 		},
+		setUser({state, commit}) {
+			return new Promise((resolve, reject) => {
+				let userRequest = new XMLHttpRequest();
+				userRequest.open("GET", "/backend/get_account.php?id=" + localStorage.getItem("places-userid"), true);
+				userRequest.onreadystatechange = function(event) {
+					if(userRequest.readyState == 4) {
+						if(userRequest.status == 200) {
+							let user = JSON.parse(userRequest.responseText);
+							commit("setUser", user);
+							resolve("Данные аккаунта успешно получены");
+						} else {
+							commit("setMessage", "Не могу получить данные");
+							commit("setUser", {});
+							reject(new Error("Не могу получить данные"));
+						}
+					}
+				};
+				userRequest.send(null);
+			});
+		},
 		setPlaces({state, commit, dispatch}, json) {
 			if(!json) {
 				let placesRequest = new XMLHttpRequest();
-				placesRequest.open("GET", "/backend/get_places.php?id=" + localStorage.getItem("user-id"), true);
+				placesRequest.open("GET", "/backend/get_places.php?id=" + localStorage.getItem("places-userid"), true);
 				placesRequest.onreadystatechange = function(event) {
 					if(placesRequest.readyState == 4) {
 						if(placesRequest.status == 200) {
@@ -175,7 +201,7 @@ export const store = new Vuex.Store({
 	},
 	getters: {
 		getLogin: (state, getters) => {
-			return localStorage.getItem("user-login");
+			return state.user.login;
 		},
 		getMessage: (state, getters) => {
 			return state.message;

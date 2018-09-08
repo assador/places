@@ -65,10 +65,10 @@ table.table_decor > * > tr:hover, table.table_decor > * > tr:focus {
 	background: none !important;
 }
 .back_1,
-tr:hover, tr:focus,
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	background-color: rgba(144, 98, 62, 0.2);
 }
+tr:hover, tr:focus,
 *[class*="sba-"]:hover {
 	background-color: rgba(144, 98, 62, 0.1);
 }
@@ -458,11 +458,7 @@ table.table_form > * > tr > th {
 .showhide:checked + .showhide_next::before {
 	content: "\25b2";
 }
-table.table-wohead > tbody > tr > th {
-	padding-right: 0.8em;
-	text-align: right;
-}
-table.table-wopadd th, table.table-wopadd td {
+table.table_wopadd th, table.table_wopadd td {
 	padding: 0;
 }
 .auth__login {

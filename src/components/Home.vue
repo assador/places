@@ -6,7 +6,7 @@
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
-					<h1>Места — <span v-html="getLogin"></span></h1>
+					<h1>Места — <a href="javascript:void(0);" @click="account();" v-html="getLogin"></span></h1>
 					<p>Сервис просмотра и редактирования библиотек геометок</p>
 				</div>
 				<div class="message">
@@ -194,10 +194,10 @@ export default {
 				this.setCurrentPlace(this.currentIndex);
 			}
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
-			window.setTimeout(function() {
-				this.$store.commit("setMessage", "Не забывайте сохранять изменения в базу данных");
-			}.bind(this), 5000);
 		});
+		setTimeout(function() {
+			this.$store.commit("setMessage", "Не забывайте сохранять изменения в базу данных");
+		}.bind(this), 5000);
 	},
 	methods: {
 		validatable: function() {
@@ -261,6 +261,9 @@ export default {
 		exit: () => function() {
 			this.$store.dispatch("unload");
 			bus.$emit("loggedChange", "auth");
+		},
+		account: () => function() {
+			bus.$emit("loggedChange", "account");
 		},
 		setCurrentPlace: index => function(index) {
 			if(document.getElementById(this.currentId)) {
@@ -405,7 +408,7 @@ export default {
 						}
 					}.bind(this);
 					placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-					placesRequest.send("id=" + localStorage.getItem("user-id") + "&todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
+					placesRequest.send("id=" + localStorage.getItem("places-userid") + "&todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
 				} else {
 					this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
 					reject(new Error("Некоторые поля заполнены некорректно"));

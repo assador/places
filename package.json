@@ -2,7 +2,7 @@
   "name": "places",
   "description": "Yet another geo placemarks viewer and editor service",
   "version": "1.0.0",
-  "author": "Dmitry Sokolov <dmitry@scrofa-tridens.ru>",
+  "author": "Dmitry Sokolov <dmitry@sokolov.website>",
   "license": "MIT",
   "private": true,
   "scripts": {

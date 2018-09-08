@@ -108,10 +108,11 @@ export default {
 			}
 		},
 		appendPlace: () => function() {
+			console.dir(this.$store.state.user);
 			let newName = "Новое место";
 			let newDescription = newName + ", добавленное в «Местах».";
 			let newPlace = {
-				userid: localStorage.getItem("user-id"),
+				userid: localStorage.getItem("places-userid"),
 				name: newName,
 				description: newDescription,
 				latitude: this.map.getCenter()[0].toFixed(7),

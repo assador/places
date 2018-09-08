@@ -8,6 +8,7 @@
 import {bus} from "./shared/bus.js"
 import auth from "./components/Auth.vue"
 import home from "./components/Home.vue"
+import account from "./components/Account.vue"
 export default {
 	data() {return {
 		component: "auth",
@@ -15,15 +16,19 @@ export default {
 	components: {
 		auth,
 		home,
+		account,
 	},
 	mounted: function() {
 		if(this.$store.state.status == 0) {
 			this.$store.commit("loaded");
-			const token = localStorage.getItem("user-token");
-			if(token) {
+			const session = localStorage.getItem("places-session");
+			if(session) {
 				this.component = "home";
 				this.$store.commit("already");
-				this.$store.dispatch("setPlaces");
+				this.$store.dispatch("setUser")
+					.then(response => {
+						this.$store.dispatch("setPlaces");
+					});
 			} else {
 				this.component = "auth";
 			}
@@ -31,7 +36,10 @@ export default {
 		bus.$on("loggedChange", (component) => {
 			this.component = component;
 			if(component == "home") {
-				this.$store.dispatch("setPlaces", false);
+				this.$store.dispatch("setUser")
+					.then(response => {
+						this.$store.dispatch("setPlaces", false);
+					});
 			}
 		});
 	},
