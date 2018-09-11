@@ -1,6 +1,7 @@
 # places
 
-> A Vue.js project
+> A Vue.js project.
+> Testing address: http://places.scrofa-tridens.ru/
 
 ## Build Setup
 
