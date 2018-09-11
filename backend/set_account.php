@@ -68,9 +68,9 @@ $result = $query->execute();
 $headers =
 	"MIME-Version: 1.0" . "\r\n" .
 	"Content-type: text/html; charset=utf-8" . "\r\n" .
-	"From: Сервис «Места» <service@scrofa-tridens.ru>"
+	"From: =?utf-8?b?" . base64_encode("Сервис «Места»") . "?= <service@scrofa-tridens.ru>"
 ;
-$subject = "Подтверждение изменения данных аккаунта в сервисе «Места»";
+$subject = "=?utf-8?b?" . base64_encode("Подтверждение изменения данных аккаунта в сервисе «Места»") . "?=";
 $message = '
 	<html>
 	<head>
