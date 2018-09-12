@@ -3,6 +3,10 @@
 > A Vue.js project.
 > Testing address: http://places.scrofa-tridens.ru/
 
+## Installation
+
+> Clone repository to working directory. Create a database and import into it tables from the dump file /mezzanine/places.sql. Edit /backend/config.php file according to your preferencies.
+
 ## Build Setup
 
 ``` bash
