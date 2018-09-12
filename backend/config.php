@@ -16,11 +16,11 @@ $lengths = array(
 );
 $basepath = "/var/www/places/";
 $dirs = array(
-	"common" => "/var/www/places/",
+	"common" => $basepath,
 	"upload" => array(
 		"images" => array(
-			"big" => $basepath . "/uploads/images/big/",
-			"small" => $basepath . "/uploads/images/small/",
+			"big" => $basepath . "uploads/images/big/",
+			"small" => $basepath . "uploads/images/small/",
 		),
 	),
 );
