@@ -108,7 +108,6 @@ export default {
 			}
 		},
 		appendPlace: () => function() {
-			console.dir(this.$store.state.user);
 			let newName = "Новое место";
 			let newDescription = newName + ", добавленное в «Местах».";
 			let newPlace = {
