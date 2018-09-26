@@ -34,10 +34,11 @@ $query = $conn->prepare(
 );
 $result = $query->execute();
 
+$from = "service@places.scrofa-tridens.ru";
 $headers =
 	"MIME-Version: 1.0" . "\r\n" .
 	"Content-type: text/html; charset=utf-8" . "\r\n" .
-	"From: =?utf-8?b?" . base64_encode("Сервис «Места»") . "?= <service@places.scrofa-tridens.ru>"
+	"From: =?utf-8?b?" . base64_encode("Сервис «Места»") . "?= <" . $from . ">"
 ;
 $subject = "=?utf-8?b?" . base64_encode("Подтверждение регистрации в сервисе «Места»") . "?=";
 $message = '
@@ -57,4 +58,4 @@ $message = '
 	</body>
 	</html>
 ';
-mail($_POST["regEmail"], $subject, $message, $headers);
+mail($_POST["regEmail"], $subject, $message, $headers, "-f" . $from);
