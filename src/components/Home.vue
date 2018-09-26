@@ -111,8 +111,8 @@
 										:class="'col-' + gridMode + (currentPlaceCommon ? '' : ' draggable')"
 										:draggable="currentPlaceCommon ? false : true"
 										@click="showPopup({show: true, type: 'image', data: image}, $event);"
-										@dragstart="currentPlaceCommon ? {} : handleDragStart"
-										@dragenter="currentPlaceCommon ? {} : handleDragEnter"
+										@dragstart="handleDragStart"
+										@dragenter="handleDragEnter"
 									>
 										<div
 											class="block_02"
@@ -212,14 +212,12 @@ export default {
 			if(this.$refs.ym) {
 				this.$refs.ym.showMap(55.7512848, 37.6190706);
 			}
-			if(this.$store.state.already) {
+			if(this.$store.state.status == 0) {
 				window.addEventListener("load", function() {
-					this.setCurrentPlace(this.currentIndex);
 					document.addEventListener("dragover", this.handleDragOver, false);
 					document.addEventListener("drop", this.handleDrop, false);
+					this.$store.commit("loaded");
 				}.bind(this), false);
-			} else {
-				this.setCurrentPlace(this.currentIndex);
 			}
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
 			this.$store.commit("modifyCommonPlaces", this.sortObjects(this.$store.state.commonPlaces, "srt"));
@@ -345,7 +343,6 @@ export default {
 				latitude: this.currentPlace.latitude,
 				longitude: this.currentPlace.longitude,
 			});
-			if(this.$refs.ym) {this.$refs.ym.mrk.placeIndex = this.currentIndex;}
 		},
 		deletePlace: index => function(index) {
 			this.$store.commit("removePlace", index);

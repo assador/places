@@ -93,6 +93,7 @@ export default {
 				this.$store.state.commonPlaces.forEach(function(commonPlace) {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				}.bind(this));
+				this.$parent.setCurrentPlace(this.$parent.currentIndex);
 			};
 		},
 		appendPlacemark: (marks, place, type) => function(marks, place, type) {
