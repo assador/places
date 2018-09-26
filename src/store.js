@@ -5,6 +5,7 @@ export const store = new Vuex.Store({
 		already: false,
 		user: {},
 		places: [],
+		commonPlaces: [],
 		center: {},
 		ready: false,
 		message: "",
@@ -14,6 +15,7 @@ export const store = new Vuex.Store({
 			latitude    : "Широта",
 			longitude   : "Долгота",
 			srt         : "Сортировка",
+			common      : "Приватность",
 			images      : "Фотографии",
 		},
 		lengths: {
@@ -73,6 +75,9 @@ export const store = new Vuex.Store({
 		},
 		placesReady(state, payload) {
 			Vue.set(state, "places", payload.places);
+			if("commonPlaces" in payload) {
+				Vue.set(state, "commonPlaces", payload.commonPlaces);
+			}
 			Vue.set(state, "ready", true);
 			let added = false, deleted = false, updated = false;
 			switch(payload.what) {
@@ -101,6 +106,9 @@ export const store = new Vuex.Store({
 		},
 		modifyPlaces(state, places) {
 			Vue.set(state, "places", places);
+		},
+		modifyCommonPlaces(state, commonPlaces) {
+			Vue.set(state, "commonPlaces", commonPlaces);
 		},
 		addPlace(state, place) {
 			Vue.set(state, "places", state.places.concat(place));
@@ -176,12 +184,13 @@ export const store = new Vuex.Store({
 				placesRequest.onreadystatechange = function(event) {
 					if(placesRequest.readyState == 4) {
 						if(placesRequest.status == 200) {
-							let places = JSON.parse(placesRequest.responseText);
-							commit("placesReady", {places: places});
+							let all_places = JSON.parse(placesRequest.responseText);
+							let places = all_places[0], commonPlaces = all_places[1];
+							commit("placesReady", {places: places, commonPlaces: commonPlaces});
 							bus.$emit("placesFilled");
 						} else {
 							commit("setMessage", "Не могу получить данные из БД");
-							commit("placesReady", {places: []});
+							commit("placesReady", {places: [], commonPlaces: []});
 						}
 					}
 				};
@@ -206,11 +215,17 @@ export const store = new Vuex.Store({
 		getMessage: (state, getters) => {
 			return state.message;
 		},
-		getPlace: (state, getters) => (index) => {
-			return state.places[index];
+		getPlace: (state, getters) => (index, common = false) => {
+			return !common
+				? state.places[index]
+				: state.commonPlaces[index]
+			;
 		},
-		getImages: (state, getters) => (index) => {
-			return state.places[index].images;
+		getImages: (state, getters) => (index, common = false) => {
+			return !common
+				? state.places[index].images
+				: state.commonPlaces[index].images
+			;
 		},
 		getIndexById: (state, getters) => (args) => {
 			return args.parent.indexOf(args.parent.find(p => p.id == args.id));

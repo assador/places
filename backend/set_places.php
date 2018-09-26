@@ -63,6 +63,7 @@ if($_POST["todo"] == "places") {
 			`latitude`    ,
 			`longitude`   ,
 			`srt`         ,
+			`common`      ,
 			`userid`
 		) VALUES (
 			:id           ,
@@ -71,6 +72,7 @@ if($_POST["todo"] == "places") {
 			:latitude     ,
 			:longitude    ,
 			:srt          ,
+			:common       ,
 			:userid
 		)
 	");
@@ -82,6 +84,7 @@ if($_POST["todo"] == "places") {
 			`latitude`    = :latitude    ,
 			`longitude`   = :longitude   ,
 			`srt`         = :srt         ,
+			`common`      = :common      ,
 			`userid`      = :userid
 		WHERE `id` = :id
 	");
@@ -108,6 +111,7 @@ if($_POST["todo"] == "places") {
 			$append->bindParam( ":latitude"    , $row[ "latitude"    ]);
 			$append->bindParam( ":longitude"   , $row[ "longitude"   ]);
 			$append->bindParam( ":srt"         , $row[ "srt"         ]);
+			$append->bindParam( ":common"      , $row[ "common"      ]);
 			$append->bindParam( ":userid"      , $_POST["id"]);
 			try{$append->execute();} catch(Exception $e) {}
 		}
@@ -118,6 +122,7 @@ if($_POST["todo"] == "places") {
 			$update->bindParam( ":latitude"    , $row[ "latitude"    ]);
 			$update->bindParam( ":longitude"   , $row[ "longitude"   ]);
 			$update->bindParam( ":srt"         , $row[ "srt"         ]);
+			$update->bindParam( ":common"      , $row[ "common"      ]);
 			$update->bindParam( ":userid"      , $_POST["id"]);
 			try{$update->execute();} catch(Exception $e) {}
 		}

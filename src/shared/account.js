@@ -8,7 +8,7 @@ export const accountSaveRoutine = account => new Promise((resolve, reject) => {
 				case 0 :
 					break;
 				case 1 :
-					response.message = 'При сохранении данных произошла ошибка. Свяжитесь с <a href="mailto:service@scrofa-tridens.ru">техподдержкой</a>.';
+					response.message = 'При сохранении данных произошла ошибка. Свяжитесь с <a href="mailto:service@places.scrofa-tridens.ru">техподдержкой</a>.';
 					break;
 				case 2 :
 					response.message = "Этот логин занят. Выберите другой.";

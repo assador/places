@@ -5,7 +5,7 @@ export const regRoutine = reg => new Promise((resolve, reject) => {
 		.then(response => {
 			switch(response.data) {
 				case 0 :
-					response.message = 'При регистрации произошла ошибка. Свяжитесь с <a href="mailto:service@scrofa-tridens.ru">техподдержкой</a>.';
+					response.message = 'При регистрации произошла ошибка. Свяжитесь с <a href="mailto:service@places.scrofa-tridens.ru">техподдержкой</a>.';
 					break;
 				case 1 :
 					response.message = "Этот логин занят. Выберите другой.";

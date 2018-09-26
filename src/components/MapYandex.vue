@@ -9,15 +9,38 @@ export default {
 		map: null,
 		mrk: null,
 		mrks: {},
-		placemarksShown: true,
-		centerPlacemarkShown: false,
+		commonMrks: {},
+		placemarksShow: true,
+		commonPlacemarksShow: false,
+		centerPlacemarkShow: false,
+		activePlacemarkId: "",
+		placemarksOptions: {
+			private: {
+				visible: true,
+				draggable: true,
+				preset: "islands#icon",
+				iconColor: "rgb(100, 44, 36)",
+			},
+			common: {
+				visible: false,
+				draggable: false,
+				preset: "islands#icon",
+				iconColor: "rgba(144, 98, 62, 0.6)",
+			},
+		},
+		centerPlacemarkOptions: {
+			visible: true,
+			draggable: true,
+			preset: "islands#icon",
+			iconColor: "rgb(217, 82, 0)",
+		},
 	}},
 	watch: {
 		latitude: function() {
-			this.updatePlacemark();
+			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
 		},
 		longitude: function() {
-			this.updatePlacemark();
+			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
 		},
 		centerLatitude: function() {
 			this.updateCenter();
@@ -26,10 +49,10 @@ export default {
 			this.updateCenter();
 		},
 		name: function() {
-			this.updatePlacemark();
+			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
 		},
 		description: function() {
-			this.updatePlacemark();
+			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
 		},
 	},
 	computed: {
@@ -40,12 +63,9 @@ export default {
 					center: [lat, lng],
 					zoom: 15,
 				});
-				this.map.controls.add(new ymaps.control.MapTools());
-				this.map.controls.add(new ymaps.control.RouteEditor());
-				this.map.controls.add(new ymaps.control.TypeSelector(["yandex#map", "yandex#satellite", "yandex#hybrid"]));
-				this.map.controls.add(new ymaps.control.ZoomControl());
-				this.map.controls.add("scaleLine");
-				this.map.controls.add(new ymaps.control.TrafficControl({providerKey: "traffic#archive"}));
+				this.map.controls
+					.add(new ymaps.control.RouteButton())
+					.add(new ymaps.control.RulerControl());
 				this.map.behaviors.enable("scrollZoom");
 				this.map.events.add("actionend", function() {
 					let coordinates = this.map.getCenter();
@@ -58,7 +78,7 @@ export default {
 				this.mrk = new ymaps.Placemark(
 					[lat, lng],
 					{hintContent: "Метка центра карты", balloonContent: "Метка текущих координат центра карты. Новое место будет создано здесь."},
-					{draggable: true},
+					this.centerPlacemarkOptions,
 				);
 				this.mrk.options.set("visible", false);
 				this.mrk.events.add("dragend", function() {
@@ -66,18 +86,30 @@ export default {
 				}.bind(this));
 				this.map.geoObjects.add(this.mrk);
 				this.$store.state.places.forEach(function(place) {
-					this.appendPlacemark(place);
+					this.appendPlacemark(this.mrks, place, "private");
+				}.bind(this));
+				this.$store.state.commonPlaces.forEach(function(commonPlace) {
+					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				}.bind(this));
 			};
 		},
-		appendPlacemark: (place) => function(place) {
-			this.mrks[place.id] = new ymaps.Placemark(
+		appendPlacemark: (marks, place, type) => function(marks, place, type) {
+			let options;
+			switch(type) {
+				case "private" :
+					options = this.placemarksOptions.private;
+					break;
+				case "common" :
+					options = this.placemarksOptions.common;
+					break;
+			}
+			marks[place.id] = new ymaps.Placemark(
 				[place.latitude, place.longitude],
 				{hintContent: place.name, balloonContent: place.description},
-				{draggable: true},
+				options,
 			);
-			this.mrks[place.id].events.add("dragend", function() {
-				let coordinates = this.mrks[place.id].geometry.getCoordinates();
+			marks[place.id].events.add("dragend", function() {
+				let coordinates = marks[place.id].geometry.getCoordinates();
 				this.$store.commit("changePlace", {
 					index: this.$store.state.places.indexOf(place),
 					change: {
@@ -86,11 +118,11 @@ export default {
 					},
 				});
 			}.bind(this));
-			this.map.geoObjects.add(this.mrks[place.id]);
+			this.map.geoObjects.add(marks[place.id]);
 		},
-		updatePlacemark: () => function() {
-			this.mrks[this.id].geometry.setCoordinates([this.latitude, this.longitude]);
-			this.mrks[this.id].properties.set({hintContent: this.name, balloonContent: this.description});
+		updatePlacemark: (marks) => function(marks) {
+			marks[this.id].geometry.setCoordinates([this.latitude, this.longitude]);
+			marks[this.id].properties.set({hintContent: this.name, balloonContent: this.description});
 		},
 		updateCenterPlacemark: () => function() {
 			this.map.setCenter([this.latitude, this.longitude]);
@@ -124,6 +156,7 @@ export default {
 						})
 					)) + 1
 					: 1,
+				common: false,
 				images: [],
 				added: true,
 				deleted: false,
@@ -131,30 +164,48 @@ export default {
 				show: true,
 			};
 			this.$store.commit("addPlace", newPlace);
-			this.appendPlacemark(newPlace);
+			this.appendPlacemark(this.mrks, newPlace, "private");
 			this.$parent.setCurrentPlace(this.$store.state.places.length - 1);
 		},
 		placemarksShowHide: () => function() {
 			for(let key in this.mrks) {
-				if(this.placemarksShown) {
+				if(this.placemarksShow) {
 					this.mrks[key].options.set("visible", false);
-					document.getElementById("placemarksShowHideButton").classList.remove("button-pressed");
 				} else {
 					this.mrks[key].options.set("visible", true);
-					document.getElementById("placemarksShowHideButton").classList.add("button-pressed");
 				}
 			}
-			this.placemarksShown = !this.placemarksShown;
+			this.placemarksShow = !this.placemarksShow;
+			if(!this.placemarksShow) {
+				document.getElementById("placemarksShowHideButton").classList.remove("button-pressed");
+			} else {
+				document.getElementById("placemarksShowHideButton").classList.add("button-pressed");
+			}
+		},
+		commonPlacemarksShowHide: () => function() {
+			for(let key in this.commonMrks) {
+				if(this.commonPlacemarksShow) {
+					this.commonMrks[key].options.set("visible", false);
+				} else {
+					this.commonMrks[key].options.set("visible", true);
+				}
+			}
+			this.commonPlacemarksShow = !this.commonPlacemarksShow;
+			if(!this.commonPlacemarksShow) {
+				document.getElementById("commonPlacemarksShowHideButton").classList.remove("button-pressed");
+			} else {
+				document.getElementById("commonPlacemarksShowHideButton").classList.add("button-pressed");
+			}
 		},
 		centerPlacemarkShowHide: () => function() {
-			if(this.centerPlacemarkShown) {
+			if(this.centerPlacemarkShow) {
 				this.mrk.options.set("visible", false);
 				document.getElementById("centerPlacemarkShowHideButton").classList.remove("button-pressed");
 			} else {
 				this.mrk.options.set("visible", true);
 				document.getElementById("centerPlacemarkShowHideButton").classList.add("button-pressed");
 			}
-			this.centerPlacemarkShown = !this.centerPlacemarkShown;
+			this.centerPlacemarkShow = !this.centerPlacemarkShow;
 		},
 	},
 	mounted: function() {

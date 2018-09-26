@@ -26,7 +26,7 @@ address, blockquote, caption, legend, dl, form, h1, h2, h3, h4, h5, h6, hr, ol, 
 	margin-bottom: 18px;
 }
 .margin_bottom_0,
-.showhide + .showhide_next, #top h1 {
+.showhide + .showhide_next {
 	margin-bottom: 0 !important;
 }
 .border_0,
@@ -86,8 +86,7 @@ body, body.iframe {
 	color: rgba(200, 177, 160, 0.5);
 }
 .basiccolor,
-body, input, select, textarea,
-#top h1 {
+body, input, select, textarea {
 	color: rgb(200, 177, 160);
 }
 ::placeholder {
@@ -517,7 +516,8 @@ table.table_wopadd th, table.table_wopadd td {
 .place-detailed dd {
 	padding-left: 0;
 }
-.place-detailed textarea, .place-detailed input[type="text"] {
+.place-detailed textarea, .place-detailed input[type="text"], .place-detailed label {
+	display: inline-block;
 	margin: 3px 0 8px 0;
 }
 .dd-images {
@@ -647,7 +647,7 @@ table.table_wopadd th, table.table_wopadd td {
 #bottom-left {
 	box-shadow: inset -100px 85px 20px -100px rgba(47, 20, 0, 0.6);
 }
-#placemarksShowHideButton, #centerPlacemarkShowHideButton {
+#placemarksShowHideButton, #commonPlacesShowHideButton, #commonPlacemarksShowHideButton, #centerPlacemarkShowHideButton {
 	padding: 0;
 	font-size: 13px;
 }

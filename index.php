@@ -18,7 +18,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 	<script src="https://unpkg.com/vuex"></script>
 -->
-	<script src="https://api-maps.yandex.ru/2.0-stable/?load=package.full&amp;lang=ru-RU"></script>
+	<script src="https://api-maps.yandex.ru/2.1/?lang=ru-RU"></script>
 	<script src="/vendor/scripts/css-element-queries/src/ResizeSensor.js"></script>
 	<script src="/scripts/fields_validate.js"></script>
 	<script src="/scripts/randomstring.js"></script>

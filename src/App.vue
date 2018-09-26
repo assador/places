@@ -27,7 +27,7 @@ export default {
 				this.$store.commit("already");
 				this.$store.dispatch("setUser")
 					.then(response => {
-						this.$store.dispatch("setPlaces");
+						this.$store.dispatch("setPlaces", false);
 					});
 			} else {
 				this.component = "auth";

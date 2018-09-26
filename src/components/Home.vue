@@ -6,7 +6,7 @@
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
-					<h1>Места — <a href="javascript:void(0);" @click="account();" v-html="getLogin"></span></h1>
+					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="getLogin"></span></h1>
 					<p>Сервис просмотра и редактирования библиотек геометок</p>
 				</div>
 				<div class="message">
@@ -17,8 +17,8 @@
 				<button id="actions-append" class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
 				<button id="actions-delete" class="actions-button" @click="deletePlace(currentIndex);" title="Удалить текущее место">×</button>
 				<input id="inputImportFromFile" ref="inputImportFromFile" name="jsonFile" type="file" @change="importFromFile($event);" />
-				<button id="actions-import" class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать из JSON-файла">↲</button>
-				<button id="actions-export" class="actions-button" @click="exportToFile();" title="Экспортировать в JSON-файл">↱</button>
+				<button id="actions-import" class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать геометки из JSON-файла">↲</button>
+				<button id="actions-export" class="actions-button" @click="exportToFile();" title="Экспортировать свои геометки в JSON-файл">↱</button>
 				<button id="actions-save" class="actions-button" @click="toDB();" title="Сохранить в БД">↯</button>
 				<button id="actions-about" class="actions-button" @click="showAbout();" title="О «Местах», справка">?</button>
 				<button id="actions-refresh" class="actions-button" onclick="document.location.reload(true);" title="Вернуться к версии в БД">↺</button>
@@ -28,19 +28,33 @@
 		<div class="app-row" id="basic">
 			<div id="basic-left" :class="'app-cell' + ' sbm-left-' + sidebarMode.left">
 				<div id="basic-left__places" class="scrollable">
-					<div
-						v-for="place in sortObjects($store.state.places, 'srt')"
-						v-if="!place.deleted && place.show"
-						:id="place.id"
-						:key="place.id"
-						:class="'place-button block_01 draggable' + (place.id == currentId ? ' active' : '')"
-						draggable="true"
-						@click="setCurrentPlace($store.state.places.indexOf(place));"
-						@dragstart="handleDragStart"
-						@dragenter="handleDragEnter"
-					>
-						<h2 class="margin_bottom_0">{{ place.name }}</h2>
-<!--						<div>{{ place.latitude }}, {{ place.longitude }}</div>-->
+					<div v-if="$store.state.places.length > 0">
+						<h2 class="basiccolor" @click="debug();">Мои места</h2>
+						<div
+							v-for="place in sortObjects($store.state.places, 'srt')"
+							v-if="!place.deleted && place.show"
+							:id="place.id"
+							:key="place.id"
+							:class="'place-button block_01 draggable' + (place.id == currentId ? ' active' : '')"
+							draggable="true"
+							@click="setCurrentPlace($store.state.places.indexOf(place));"
+							@dragstart="handleDragStart"
+							@dragenter="handleDragEnter"
+						>
+							<h3 class="fontsize_01 margin_bottom_0">{{ place.name }}</h3>
+						</div>
+					</div>
+					<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
+						<h2 class="basiccolor">Другие места</h2>
+						<div
+							v-for="commonPlace in sortObjects($store.state.commonPlaces, 'srt')"
+							:id="commonPlace.id"
+							:key="commonPlace.id"
+							:class="'place-button block_01' + (commonPlace.id == currentId ? ' active' : '')"
+							@click="setCurrentPlace($store.state.commonPlaces.indexOf(commonPlace), true);"
+						>
+							<h3 class="fontsize_01 margin_bottom_0">{{ commonPlace.name }}</h3>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -80,40 +94,49 @@
 						<template v-for="field in Object.keys(currentPlace)" :key="field">
 							<dt v-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">{{ $store.state.placeFields[field] }}:</dt>
 							<dd v-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
-								<input v-model.number.trim="currentPlace[field]" :id="'detailed-' + field" @click="validatable();" class="fieldwidth_100" type="text" value="currentPlace[field]" />
+								<input :disabled="currentPlaceCommon" @focus="updateCurrentTrue();" v-model.number.trim="currentPlace[field]" :id="'detailed-' + field" @click="validatable();" class="fieldwidth_100" type="text" value="currentPlace[field]" />
 							</dd>
-							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'images'" id="place-images" class="dd-images row_01">
-								<div
-									v-for="image in sortObjects(currentImages, 'srt')"
-									:id="image.id"
-									:key="image.id"
-									:class="'col-' + gridMode + ' draggable'"
-									draggable="true"
-									@click="showPopup({show: true, type: 'image', data: image}, $event);"
-									@dragstart="handleDragStart"
-									@dragenter="handleDragEnter"
-								>
+							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'">
+								<label>
+									<input :disabled="currentPlaceCommon" @focus="updateCurrentTrue();" v-model="currentPlace[field]" :id="'detailed-' + field" type="checkbox" />
+									Место видимо другим
+								</label>
+							</dd>
+							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'images'" id="place-images">
+								<div class="dd-images row_01">
 									<div
-										class="block_02"
+										v-for="image in sortObjects(currentImages, 'srt')"
+										:id="image.id"
+										:key="image.id"
+										:class="'col-' + gridMode + (currentPlaceCommon ? '' : ' draggable')"
+										:draggable="currentPlaceCommon ? false : true"
+										@click="showPopup({show: true, type: 'image', data: image}, $event);"
+										@dragstart="currentPlaceCommon ? {} : handleDragStart"
+										@dragenter="currentPlaceCommon ? {} : handleDragEnter"
 									>
-										<img
-											class="border_1"
-											:src="$store.state.dirs.upload.images.small + image.file"
-											:alt="currentPlace.name"
-											:title="currentPlace.name"
-										/>
 										<div
-											class="dd-images__delete button"
-											draggable="false"
-											@click="deleteFiles(Array.from(currentImages), [image], $event);"
+											class="block_02"
 										>
-											×
+											<img
+												class="border_1"
+												draggable="false"
+												:src="$store.state.dirs.upload.images.small + image.file"
+												:alt="currentPlace.name"
+												:title="currentPlace.name"
+											/>
+											<div
+												class="dd-images__delete button"
+												draggable="false"
+												@click="currentPlaceCommon ? $event.stopPropagation() : deleteFiles(Array.from(currentImages), [image], $event);"
+											>
+												×
+											</div>
 										</div>
 									</div>
 								</div>
 							</dd>
 							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
-								<textarea v-model.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
+								<textarea :disabled="currentPlaceCommon" @focus="updateCurrentTrue();" v-model.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
 							</dd>
 						</template>
 						<div class="images-add">
@@ -126,7 +149,9 @@
 		</div>
 		<div id="bottom" :class="'app-row' + ' sbm-bottom-' + sidebarMode.bottom">
 			<div id="bottom-left" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-left-' + sidebarMode.left">
-				<button id="placemarksShowHideButton" class="actions-button button-pressed" @click="$refs.ym.placemarksShowHide();" title="Показать / скрыть все геометки">◉</button>
+				<button id="placemarksShowHideButton" class="actions-button button-pressed" @click="$refs.ym.placemarksShowHide();" title="Показать / скрыть все свои геометки">◉</button>
+				<button id="commonPlacesShowHideButton" class="actions-button" @click="commonPlacesShowHide();" title="Показать / скрыть все другие места и их геометки">◪</button>
+				<button id="commonPlacemarksShowHideButton" class="actions-button" @click="$refs.ym.commonPlacemarksShowHide();" title="Показать / скрыть все другие геометки">◎</button>
 				<button id="centerPlacemarkShowHideButton" class="actions-button" @click="$refs.ym.centerPlacemarkShowHide();" title="Показать / скрыть метку центра карты">◈</button>
 			</div>
 			<div id="bottom-basic" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom">
@@ -163,6 +188,9 @@ export default {
 		currentIndex: 0,
 		currentPlace: {},
 		currentImages: {},
+		commonPlacesShow: false,
+		currentPlaceCommon: false,
+		updateCurrent: false,
 		popuped: "disappear",
 		popupComponent: "popuptext",
 		popupData: {},
@@ -194,6 +222,7 @@ export default {
 				this.setCurrentPlace(this.currentIndex);
 			}
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
+			this.$store.commit("modifyCommonPlaces", this.sortObjects(this.$store.state.commonPlaces, "srt"));
 		});
 		setTimeout(function() {
 			this.$store.commit("setMessage", "Не забывайте сохранять изменения в базу данных");
@@ -214,7 +243,7 @@ export default {
 			event.preventDefault();
 			if(event.target.draggable) {
 				let parent;
-				switch(this.draggingElement.parentNode.id) {
+				switch(this.draggingElement.parentNode.parentNode.id) {
 					case "basic-left__places" :
 						parent = this.$store.state.places;
 						break;
@@ -256,8 +285,29 @@ export default {
 			}
 		},
 	},
+	watch: {
+		currentPlace: {
+			handler(value) {
+				if(this.updateCurrent) {
+					this.$store.commit("changePlace", {
+						index: this.currentIndex,
+						change: {updated: true},
+					});
+					this.updateCurrent = false;
+				}
+			},
+			deep: true,
+		},
+	},
 	computed: {
 		...mapGetters(["getPlace", "getImages", "getLogin", "getMessage", "getImagesCount", "getIndexById"]),
+		updateCurrentTrue: () => function() {
+			this.updateCurrent = true;
+		},
+		debug: () => function() {
+			console.dir(this.$store.state.places);
+			console.dir(this.$store.state.commonPlaces);
+		},
 		exit: () => function() {
 			this.$store.dispatch("unload");
 			bus.$emit("loggedChange", "auth");
@@ -265,20 +315,24 @@ export default {
 		account: () => function() {
 			bus.$emit("loggedChange", "account");
 		},
-		setCurrentPlace: index => function(index) {
+		setCurrentPlace: (index, common = false) => function(index, common = false) {
+			this.currentPlaceCommon = common ? true : false;
 			if(document.getElementById(this.currentId)) {
 				document.getElementById(this.currentId).classList.remove("active");
 			}
-			if(!this.$store.state.places[index]) {
+			if(!common && !this.$store.state.places[index]) {
 				index--;
 				if(!this.$store.state.places[index]) {
 					return;
 				}
 			}
-			this.currentId = this.$store.state.places[index].id;
+			this.currentId = !common
+				? this.$store.state.places[index].id
+				: this.$store.state.commonPlaces[index].id
+			;
 			this.currentIndex = index;
-			this.currentPlace = this.getPlace(this.currentIndex);
-			this.currentImages = this.getImages(this.currentIndex);
+			this.currentPlace = this.getPlace(this.currentIndex, common);
+			this.currentImages = this.getImages(this.currentIndex, common);
 			this.$store.commit("changeCenter", {
 				latitude: this.currentPlace.latitude,
 				longitude: this.currentPlace.longitude,
@@ -332,6 +386,24 @@ export default {
 			if(modeToSet === null) {modeToSet = mode;}
 			this.sidebarMode[sidebar] = modeToSet;
 			this.gridMode = this.crossSidebarGrid[this.sidebarMode.right - 1];
+		},
+		commonPlacesShowHide: () => function() {
+			this.commonPlacesShow = !this.commonPlacesShow;
+			this.$refs.ym.commonPlacemarksShow = this.commonPlacesShow;
+			for(let key in this.$refs.ym.commonMrks) {
+				if(!this.$refs.ym.commonPlacemarksShow) {
+					this.$refs.ym.commonMrks[key].options.set("visible", false);
+				} else {
+					this.$refs.ym.commonMrks[key].options.set("visible", true);
+				}
+			}
+			if(!this.commonPlacesShow) {
+				document.getElementById("commonPlacesShowHideButton").classList.remove("button-pressed");
+				document.getElementById("commonPlacemarksShowHideButton").classList.remove("button-pressed");
+			} else {
+				document.getElementById("commonPlacemarksShowHideButton").classList.add("button-pressed");
+				document.getElementById("commonPlacesShowHideButton").classList.add("button-pressed");
+			}
 		},
 		showPopup: (opts, event) => function(opts, event) {
 			event.stopPropagation();
