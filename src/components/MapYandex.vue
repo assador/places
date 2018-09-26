@@ -13,7 +13,9 @@ export default {
 		placemarksShow: true,
 		commonPlacemarksShow: false,
 		centerPlacemarkShow: false,
-		activePlacemarkId: "",
+		privatePlacemarksColor: "rgb(100, 44, 36)",
+		commonPlacemarksColor: "rgba(144, 98, 62, 0.6)",
+		activePlacemarksColor: "rgb(217, 82, 0)",
 		placemarksOptions: {
 			private: {
 				visible: true,
@@ -32,7 +34,7 @@ export default {
 			visible: true,
 			draggable: true,
 			preset: "islands#icon",
-			iconColor: "rgb(217, 82, 0)",
+			iconColor: "rgb(127, 143, 0)",
 		},
 	}},
 	watch: {

@@ -29,7 +29,7 @@
 			<div id="basic-left" :class="'app-cell' + ' sbm-left-' + sidebarMode.left">
 				<div id="basic-left__places" class="scrollable">
 					<div v-if="$store.state.places.length > 0">
-						<h2 class="basiccolor" @click="debug();">Мои места</h2>
+						<h2 class="basiccolor">Мои места</h2>
 						<div
 							v-for="place in sortObjects($store.state.places, 'srt')"
 							v-if="!place.deleted && place.show"
@@ -304,10 +304,6 @@ export default {
 		updateCurrentTrue: () => function() {
 			this.updateCurrent = true;
 		},
-		debug: () => function() {
-			console.dir(this.$store.state.places);
-			console.dir(this.$store.state.commonPlaces);
-		},
 		exit: () => function() {
 			this.$store.dispatch("unload");
 			bus.$emit("loggedChange", "auth");
@@ -326,10 +322,22 @@ export default {
 					return;
 				}
 			}
+			if(this.currentId) {
+				if(this.$store.state.places[this.currentIndex]) {
+					this.$refs.ym.mrks[this.currentId].options.set("iconColor", this.$refs.ym.privatePlacemarksColor);
+				} else {
+					this.$refs.ym.commonMrks[this.currentId].options.set("iconColor", this.$refs.ym.commonPlacemarksColor);
+				}
+			}
 			this.currentId = !common
 				? this.$store.state.places[index].id
 				: this.$store.state.commonPlaces[index].id
 			;
+			if(common) {
+				this.$refs.ym.commonMrks[this.currentId].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
+			} else {
+				this.$refs.ym.mrks[this.currentId].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
+			}
 			this.currentIndex = index;
 			this.currentPlace = this.getPlace(this.currentIndex, common);
 			this.currentImages = this.getImages(this.currentIndex, common);
