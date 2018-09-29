@@ -1,5 +1,5 @@
 <template>
-	<div class="account centered">
+	<div class="account centered" @click="showPopup({show: false}, $event);">
 		<div class="brand">
 			<h1 class="margin_bottom_0">Места</h1>
 			<p>Страница пользователя</p>
@@ -9,54 +9,55 @@
 				<tbody>
 					<tr>
 						<th>Логин:</th>
-						<td><input class="fieldwidth_100" required id="accountLogin" v-model="accountLogin" type="text" placeholder="Логин *" @click="validatable();" /></td>
+						<td colspan="2"><input class="fieldwidth_100" required id="accountLogin" v-model="accountLogin" type="text" placeholder="Логин *" @click="validatable();" /></td>
 					</tr>
-<!--
-					<tr>
-						<th>Существующий пароль:</th>
-						<td><input class="fieldwidth_100" required id="accountPassword" v-model="accountPassword" type="password" placeholder="Существующий пароль *" @click="validatable();" /></td>
-					</tr>
--->
 					<tr>
 						<th>Новый пароль:</th>
-						<td><input class="fieldwidth_100" id="accountNewPassword" v-model="accountNewPassword" type="password" placeholder="если нужно сменить пароль" @click="validatable();" /></td>
+						<td colspan="2"><input class="fieldwidth_100" id="accountNewPassword" v-model="accountNewPassword" type="password" placeholder="если нужно сменить пароль" @click="validatable();" /></td>
 					</tr>
 					<tr>
 						<th>Повторите новый пароль:</th>
-						<td><input class="fieldwidth_100" id="accountNewPasswordRepeat" v-model="accountNewPasswordRepeat" type="password" placeholder="если нужно сменить пароль" @click="validatable();" /></td>
+						<td colspan="2"><input class="fieldwidth_100" id="accountNewPasswordRepeat" v-model="accountNewPasswordRepeat" type="password" placeholder="если нужно сменить пароль" @click="validatable();" /></td>
 					</tr>
 					<tr>
 						<th>Обращение (имя):</th>
-						<td><input class="fieldwidth_100" id="accountName" v-model="accountName" type="text" placeholder="Обращение (имя)" @click="validatable();" /></td>
+						<td colspan="2"><input class="fieldwidth_100" id="accountName" v-model="accountName" type="text" placeholder="Обращение (имя)" @click="validatable();" /></td>
 					</tr>
 					<tr>
 						<th>e-mail:</th>
-						<td><input class="fieldwidth_100" required id="accountEmail" v-model="accountEmail" type="text" placeholder="e-mail *" @click="validatable();" /></td>
+						<td colspan="2"><input class="fieldwidth_100" required id="accountEmail" v-model="accountEmail" type="text" placeholder="e-mail *" @click="validatable();" /></td>
 					</tr>
 					<tr>
 						<th>Телефон:</th>
-						<td><input class="fieldwidth_100" id="accountPhone" v-model="accountPhone" type="text" placeholder="Телефон" @click="validatable();" /></td>
+						<td colspan="2"><input class="fieldwidth_100" id="accountPhone" v-model="accountPhone" type="text" placeholder="Телефон" @click="validatable();" /></td>
 					</tr>
 					<tr class="back_0">
 						<th></th>
-						<td style="padding-top: 18px;">
-							<button type="button" @click="back();">Назад</button>
+						<td style="padding-top: 18px; vertical-align: top;">
 							<button type="submit">Сохранить</button>
+							<button type="button" @click="back();">Назад</button>
 						</td>
+						<td style="padding-top: 18px; vertical-align: top; text-align: right;"><button type="button" @click="showDelete($event);">Удалить аккаунт</button></td>
 					</tr>
 					<tr class="back_0">
 						<th></th>
-						<td style="padding-top: 18px;" v-html="accountMessage"></td>
+						<td colspan="2" style="padding-top: 18px;" v-html="accountMessage"></td>
 					</tr>
 				</tbody>
 			</table>
 		</form>
+		<div :class="'popup ' + popuped">
+			<component
+				:is="popupComponent"
+			>
+			</component>
+		</div>
 	</div>
 </template>
 
 <script>
 import {bus} from "../shared/bus.js"
-import {accountLoadRoutine, accountSaveRoutine} from "../shared/account.js"
+import popupdelete from "./AccountDelete.vue"
 export default {
 	data() {return {
 		firstValidatable: false,
@@ -65,7 +66,12 @@ export default {
 		accountName: this.$store.state.user.name,
 		accountEmail: this.$store.state.user.email,
 		accountPhone: this.$store.state.user.phone,
+		popuped: "disappear",
+		popupComponent: "",
 	}},
+	components: {
+		popupdelete,
+	},
 	methods: {
 		validatable: function() {
 			if(!this.firstValidatable) {
@@ -97,6 +103,21 @@ export default {
 	computed: {
 		back: () => function() {
 			bus.$emit("loggedChange", "home");
+		},
+		showPopup: (opts, event) => function(opts, event) {
+			event.stopPropagation();
+			switch(opts.type) {
+				case "delete" :
+					this.popupComponent = "popupdelete";
+					break;
+			}
+			this.popuped = opts["show"] ? "appear" : "disappear";
+		},
+		showDelete: (event) => function(event) {
+			this.showPopup({
+				show: true,
+				type: "delete",
+			}, event);
 		},
 	},
 }

@@ -22,3 +22,12 @@ export const accountSaveRoutine = account => new Promise((resolve, reject) => {
 			reject(error);
 		})
 });
+export const accountDeletionRoutine = (userId, leavePlaces, leaveImages) => new Promise((resolve, reject) => {
+	axios.post("/backend/delete_account.php", userId, leavePlaces, leaveImages)
+		.then(response => {
+			resolve(response);
+		})
+		.catch(error => {
+			reject(error);
+		})
+});

@@ -120,6 +120,7 @@ export default {
 						longitude: coordinates[1].toFixed(7),
 					},
 				});
+				this.$parent.toDB(); this.$parent.makeUpdateCurrent(false);
 			}.bind(this));
 			this.map.geoObjects.add(marks[place.id]);
 		},

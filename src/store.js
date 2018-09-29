@@ -24,7 +24,7 @@ export const store = new Vuex.Store({
 		},
 		dirs: {
 			common: "/var/www/places/",
-			upload: {
+			uploads: {
 				images: {
 					big: "/uploads/images/big/",
 					small: "/uploads/images/small/",

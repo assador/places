@@ -1,7 +1,7 @@
 <template>
 	<img
 		class="popup-image border_1"
-		:src="$store.state.dirs.upload.images.big + data.file"
+		:src="$store.state.dirs.uploads.images.big + data.file"
 		title="Следующая"
 		@click="showNextImage($event);"
 	/>

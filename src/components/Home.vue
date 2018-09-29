@@ -20,7 +20,7 @@
 				<button id="actions-import" class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать геометки из JSON-файла">↲</button>
 				<button id="actions-export" class="actions-button" @click="exportToFile();" title="Экспортировать свои геометки в JSON-файл">↱</button>
 				<button id="actions-save" class="actions-button" @click="toDB();" title="Сохранить в БД">↯</button>
-				<button id="actions-about" class="actions-button" @click="showAbout();" title="О «Местах», справка">?</button>
+				<button id="actions-about" class="actions-button" @click="showAbout($event);" title="О «Местах», справка">?</button>
 				<button id="actions-refresh" class="actions-button" onclick="document.location.reload(true);" title="Вернуться к версии в БД">↺</button>
 				<button id="actions-exit" class="actions-button" @click="exit();" title="Выйти">↪</button>
 			</div>
@@ -92,17 +92,34 @@
 				<div class="scrollable">
 					<dl class="place-detailed margin_bottom_0">
 						<template v-for="field in Object.keys(currentPlace)" :key="field">
-							<dt v-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">{{ $store.state.placeFields[field] }}:</dt>
+							<dt v-if="!(field == 'images' && currentImages.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
+								{{ $store.state.placeFields[field] }}:
+							</dt>
 							<dd v-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
-								<input :disabled="currentPlaceCommon" @focus="updateCurrentTrue();" v-model.number.trim="currentPlace[field]" :id="'detailed-' + field" @click="validatable();" class="fieldwidth_100" type="text" value="currentPlace[field]" />
+								<input
+									type="text"
+									:id="'detailed-' + field"
+									:disabled="currentPlaceCommon"
+									v-model.number.trim="currentPlace[field]"
+									@click="validatable();"
+									@change="makeUpdateCurrent(true);"
+									@blur="if(updateCurrent) {toDB(); makeUpdateCurrent(false);}"
+									class="fieldwidth_100"
+								/>
 							</dd>
-							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'">
+							<dd v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'">
 								<label>
-									<input :disabled="currentPlaceCommon" @focus="updateCurrentTrue();" v-model="currentPlace[field]" :id="'detailed-' + field" type="checkbox" />
+									<input
+										type="checkbox"
+										:id="'detailed-' + field"
+										:disabled="currentPlaceCommon"
+										v-model="currentPlace[field]"
+										@change="toDB(); makeUpdateCurrent(false);"
+									/>
 									Место видимо другим
 								</label>
 							</dd>
-							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'images'" id="place-images">
+							<dd v-else-if="field == 'images' && currentImages.length > 0 && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
 								<div class="dd-images row_01">
 									<div
 										v-for="image in sortObjects(currentImages, 'srt')"
@@ -120,7 +137,7 @@
 											<img
 												class="border_1"
 												draggable="false"
-												:src="$store.state.dirs.upload.images.small + image.file"
+												:src="$store.state.dirs.uploads.images.small + image.file"
 												:alt="currentPlace.name"
 												:title="currentPlace.name"
 											/>
@@ -135,13 +152,29 @@
 									</div>
 								</div>
 							</dd>
-							<dd v-else-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
-								<textarea :disabled="currentPlaceCommon" @focus="updateCurrentTrue();" v-model.trim="currentPlace[field]" :id="'detailed-' + field" class="fieldwidth_100">{{ currentPlace[field] }}</textarea>
+							<dd v-else-if="field != 'common' && field != 'images' && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
+								<textarea
+									:id="'detailed-' + field"
+									:disabled="currentPlaceCommon"
+									v-model.trim="currentPlace[field]"
+									@change="makeUpdateCurrent(true);"
+									@blur="if(updateCurrent) {toDB(); makeUpdateCurrent(false);}"
+									class="fieldwidth_100"
+								>
+									{{ currentPlace[field] }}
+								</textarea>
 							</dd>
 						</template>
-						<div class="images-add">
+						<div v-if="!currentPlaceCommon && currentId" class="images-add">
 							<div class="images-add__div button">Добавить фотографии</div>
-							<input class="images-add__input" ref="inputUploadFiles" name="files" type="file" multiple @change="uploadFiles($event);" />
+							<input
+								type="file"
+								name="files"
+								ref="inputUploadFiles"
+								multiple
+								@change="uploadFiles($event);"
+								class="images-add__input"
+							/>
 						</div>
 					</dl>
 				</div>
@@ -222,9 +255,11 @@ export default {
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
 			this.$store.commit("modifyCommonPlaces", this.sortObjects(this.$store.state.commonPlaces, "srt"));
 		});
+/*
 		setTimeout(function() {
 			this.$store.commit("setMessage", "Не забывайте сохранять изменения в базу данных");
 		}.bind(this), 5000);
+*/
 	},
 	methods: {
 		validatable: function() {
@@ -239,7 +274,8 @@ export default {
 		},
 		handleDragEnter: function(event) {
 			event.preventDefault();
-			if(event.target.draggable) {
+			if(event.target.draggable && this.draggingElement != event.target) {
+				this.makeUpdateCurrent(true);
 				let parent;
 				switch(this.draggingElement.parentNode.parentNode.id) {
 					case "basic-left__places" :
@@ -264,6 +300,9 @@ export default {
 		},
 		handleDrop: function(event) {
 			event.preventDefault();
+			if(this.updateCurrent) {
+				this.toDB(); this.makeUpdateCurrent(false);
+			}
 		},
 		selectPlaces: function(event) {
 			if(event.keyCode == 27) {
@@ -283,24 +322,14 @@ export default {
 			}
 		},
 	},
-	watch: {
-		currentPlace: {
-			handler(value) {
-				if(this.updateCurrent) {
-					this.$store.commit("changePlace", {
-						index: this.currentIndex,
-						change: {updated: true},
-					});
-					this.updateCurrent = false;
-				}
-			},
-			deep: true,
-		},
-	},
 	computed: {
 		...mapGetters(["getPlace", "getImages", "getLogin", "getMessage", "getImagesCount", "getIndexById"]),
-		updateCurrentTrue: () => function() {
-			this.updateCurrent = true;
+		makeUpdateCurrent: (update) => function(update) {
+			this.$store.commit("changePlace", {
+				index: this.currentIndex,
+				change: {updated: update},
+			});
+			this.updateCurrent = update;
 		},
 		exit: () => function() {
 			this.$store.dispatch("unload");

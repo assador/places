@@ -660,3 +660,12 @@ table.table_wopadd th, table.table_wopadd td {
 #detailed-description {
 	height: 80px;
 }
+.account__form fieldset {
+	margin: 1em;
+}
+.account__form label {
+	display: flex;
+}
+.account__form label input[type="radio"], .account__form label input[type="checkbox"] {
+	margin: 0.3em 0.5em 0 0;
+}

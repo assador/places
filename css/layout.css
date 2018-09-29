@@ -17,7 +17,7 @@ body {
 .auth_forms, .auth__registration__fields, .account__form {
 	display: flex;
 }
-.auth_forms, .auth__login, .auth__registration, .auth__registration__fields__left, .auth__registration__fields__right, .account__form {
+.auth_forms, .auth__login, .auth__registration, .auth__registration__fields__left, .auth__registration__fields__right {
 	width: 50%;
 }
 .auth .brand, .account .brand  {

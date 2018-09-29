@@ -22,6 +22,7 @@
 	<script src="/vendor/scripts/css-element-queries/src/ResizeSensor.js"></script>
 	<script src="/scripts/fields_validate.js"></script>
 	<script src="/scripts/randomstring.js"></script>
+	<script src="/scripts/account.js"></script>
 <!--
 	<script src="/vendor/scripts/css-element-queries/src/ElementQueries.js"></script>
 -->
