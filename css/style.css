@@ -561,36 +561,6 @@ table.table_wopadd th, table.table_wopadd td {
 	opacity: 0;
 	cursor: pointer;
 }
-*[class*="sbas-"], *[class*="sba-"] {
-	position: absolute;
-	line-height: 0;
-	vertical-align: top;
-	font-size: 11px;
-	outline: none;
-}
-.sbas-top {top: -20px; right: -1px; left: 0; height: 40px;}
-.sbas-right {top: 0; right: -21px; bottom: 0; width: 40px;}
-.sbas-bottom {right: -1px; bottom: -20px; left: 0; height: 40px;}
-.sbas-left {top: 0; bottom: 0; left: -20px; width: 40px;}
-.sba-u {top: 0; right: 0; bottom: 50%; left: 0; padding-top: 8px;}
-.sba-r {top: 0; right: 0; bottom: 0; left: 50%; padding-left: 6px;}
-.sba-d {top: 50%; right: 0; bottom: 0; left: 0; padding-top: 8px;}
-.sba-l {top: 0; right: 50%; bottom: 0; left: 0; padding-left: 5px;}
-.sba-u, .sba-d {padding-right: 24px; padding-left: 24px;}
-.sba-l, .sba-r {padding-top: 8px; padding-bottom: 9px;}
-.sba-u::before {content: "\25b2";}
-.sba-d::before {content: "\25bc";}
-.sba-l::before {content: "\25c4";}
-.sba-r::before {content: "\25ba";}
-.sbas-right .sba-l {padding-left: 4px;}
-.sbas-right .sba-r {padding-left: 5px;}
-.sbas-bottom .sba-u, .sbas-bottom .sba-d {padding-top: 9px;}
-.sbas-right.sbas-0 {right: 0; width: 20px;}
-.sbas-right.sbas-0 .sba-r {display: none;}
-.sbas-right.sbas-0 .sba-l {right: 0;}
-.sbas-bottom.sbas-0 {bottom: 0; height: 20px;}
-.sbas-bottom.sbas-0 .sba-d {display: none;}
-.sbas-bottom.sbas-0 .sba-u {bottom: 0;}
 
 /* Оформление декорирования */
 

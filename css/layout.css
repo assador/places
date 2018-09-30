@@ -46,7 +46,7 @@ body {
 }
 .table {
 	display: table;
-	width: 100%; height: 100%;
+	width: 100%; min-height: 100%;
 }
 .app-row {
 	display: table-row;
@@ -70,11 +70,8 @@ body {
 #top-basic {
 	overflow: hidden;
 }
-.brand {
+#top-basic .brand {
 	float: left;
-}
-.auth .brand, .account .brand {
-	float: none !important;
 }
 .message {
 	float: right;
@@ -92,10 +89,19 @@ body {
 #basic {
 	height: 100%;
 }
+#basic-basic {
+	min-height: 250px;
+}
 .scrollable {
 	position: absolute;
 	top: 12px; right: 12px; bottom: 12px; left: 12px;
 	overflow: auto;
+}
+.find-places-input {
+	margin-top: 25px;
+}
+#bottom-basic input {
+	margin: 2px;
 }
 /*
 *[class*="sbm-"] {
@@ -135,6 +141,36 @@ body {
 .sbm-left-1 *[class*="col-"], .sbm-right-1 *[class*="col-"] {
 	padding: 6px;
 }
+*[class*="sbas-"], *[class*="sba-"] {
+	position: absolute;
+	line-height: 0;
+	vertical-align: top;
+	font-size: 11px;
+	outline: none;
+}
+.sbas-top {top: -20px; right: -1px; left: 0; height: 40px;}
+.sbas-right {top: 0; right: -21px; bottom: 0; width: 40px;}
+.sbas-bottom {right: -1px; bottom: -20px; left: 0; height: 40px;}
+.sbas-left {top: 0; bottom: 0; left: -20px; width: 40px;}
+.sba-u {top: 0; right: 0; bottom: 50%; left: 0; padding-top: 8px;}
+.sba-r {top: 0; right: 0; bottom: 0; left: 50%; padding-left: 6px;}
+.sba-d {top: 50%; right: 0; bottom: 0; left: 0; padding-top: 8px;}
+.sba-l {top: 0; right: 50%; bottom: 0; left: 0; padding-left: 5px;}
+.sba-u, .sba-d {padding-right: 24px; padding-left: 24px;}
+.sba-l, .sba-r {padding-top: 8px; padding-bottom: 9px;}
+.sba-u::before {content: "\25b2";}
+.sba-d::before {content: "\25bc";}
+.sba-l::before {content: "\25c4";}
+.sba-r::before {content: "\25ba";}
+.sbas-right .sba-l {padding-left: 4px;}
+.sbas-right .sba-r {padding-left: 5px;}
+.sbas-bottom .sba-u, .sbas-bottom .sba-d {padding-top: 9px;}
+.sbas-right.sbas-0 {right: 0; width: 20px;}
+.sbas-right.sbas-0 .sba-r {display: none;}
+.sbas-right.sbas-0 .sba-l {right: 0;}
+.sbas-bottom.sbas-0 {bottom: 0; height: 20px;}
+.sbas-bottom.sbas-0 .sba-d {display: none;}
+.sbas-bottom.sbas-0 .sba-u {bottom: 0;}
 
 /* Разные стили */
 
@@ -156,4 +192,97 @@ body {
 	.auth_forms, .account__form {
 		width: 90%;
 	}
+	.sbm-left-1, .sbm-right-1 {
+		width: 100px;
+	}
+	.sbm-left-2, .sbm-right-2 {
+		width: 150px;
+	}
+	.sbm-left-3, .sbm-right-3 {
+		width: 200px;
+	}
+	.sbas-top, .sbas-bottom {
+		display: none;
+	}
+	#top-basic .brand {
+		display: flex;
+		float: none;
+	}
+	#top-basic .brand > *:first-child + * {
+		display: flex;
+		flex: auto;
+		align-items: flex-end;
+		justify-content: flex-end;
+		padding-left: 20px;
+		text-align: right;
+	}
+	#top-basic .message {
+		padding: 0;
+	}
+	#basic-left .scrollable, #basic-right .scrollable {
+		position: relative;
+		top: auto; right: auto; bottom: auto; left: auto;
+	}
+	.place-button {
+		margin-bottom: 12px;
+		padding: 6px 8px;
+	}
+	.place-button > *:first-child {
+		font-size: 100%;
+	}
+}
+@media screen and (max-width: 650px) {
+	.app-row, .app-cell {
+		display: block;
+	}
+	.app-cell {
+		padding: 8px 24px;
+	}
+	.sbm-left-1, .sbm-right-1, .sbm-left-2, .sbm-right-2, .sbm-left-3, .sbm-right-3 {
+		width: 100%;
+	}
+	#main > .table:first-child, #basic, #basic-basic {
+		display: flex;
+		flex-direction: column;
+		flex: auto;
+	}
+	#top, #bottom, .sbm-top-1, .sbm-bottom-1, .sbm-top-2, .sbm-bottom-2, .sbm-top-3, .sbm-bottom-3 {
+		height: auto;
+	}
+	.find-places-input {
+		margin-top: 0;
+	}
+	#bottom-left {
+		text-align: center;
+	}
+	#bottom-right {
+		display: none;
+	}
+	#bottom-basic, #bottom-right, .sbm-left-0, .sbm-right-0, #top-left.sbm-left-1, #top-left.sbm-left-0 + *, #top-left.sbm-left-0 + * + *, #basic-left__places > *:first-child > *:first-child {
+		display: none;
+	}
+	#basic .sbm-left-1, #basic .sbm-right-1 {
+		max-height: 92px;
+	}
+	#basic .sbm-left-2, #basic .sbm-right-2 {
+		max-height: 134px;
+	}
+	#basic .sbm-left-3, #basic .sbm-right-3 {
+		max-height: 218px;
+	}
+	#basic .sbm-left-1 .scrollable, #basic .sbm-right-1 .scrollable {
+		max-height: 81px;
+	}
+	#basic .sbm-left-2 .scrollable, #basic .sbm-right-2 .scrollable {
+		max-height: 125px;
+	}
+	#basic .sbm-left-3 .scrollable, #basic .sbm-right-3 .scrollable {
+		max-height: 209px;
+	}
+	.sbas-left {top: 0; right: 0; bottom: auto; left: 0; width: 100%; height: 20px;}
+	.sbas-right {top: auto; right: 0; bottom: 0; left: 0; width: 100%; height: 20px;}
+	.sba-l {top: 0; right: 50%; bottom: 0; left: 0; padding: 10px 5px 7px 5px;}
+	.sba-r {top: 0; right: 0; bottom: 0; left: 50%; padding: 10px 5px 7px 5px; text-align: right;}
+	.sba-l::before {content: "\25b2";}
+	.sba-r::before {content: "\25bc";}
 }

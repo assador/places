@@ -2,12 +2,12 @@
 	<div class="table" @click="showPopup({show: false}, $event);">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
-				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="fieldwidth_100" style="margin-top: 8px;" @keyup="selectPlaces" />
+				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100" @keyup="selectPlaces" />
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
 				<div class="brand">
 					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="getLogin"></span></h1>
-					<p>Сервис просмотра и редактирования библиотек геометок</p>
+					<div>Сервис просмотра и редактирования библиотек геометок</div>
 				</div>
 				<div class="message">
 					<span v-html="getMessage"></span>
