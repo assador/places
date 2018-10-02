@@ -41,7 +41,7 @@
 					</tr>
 					<tr class="back_0">
 						<th></th>
-						<td colspan="2" style="padding-top: 18px;" v-html="accountMessage"></td>
+						<td colspan="2" style="padding-top: 18px;" v-html="getAccountChangeMessage"></td>
 					</tr>
 				</tbody>
 			</table>
@@ -58,10 +58,12 @@
 <script>
 import {bus} from "../shared/bus.js"
 import popupdelete from "./AccountDelete.vue"
+import {accountSaveRoutine} from "../shared/account.js"
+import {mapGetters} from "vuex"
 export default {
 	data() {return {
 		firstValidatable: false,
-		accountMessage: "",
+		getAccountChangeMessage: "",
 		accountLogin: this.$store.state.user.login,
 		accountName: this.$store.state.user.name,
 		accountEmail: this.$store.state.user.email,
@@ -80,27 +82,32 @@ export default {
 			}
 		},
 		accountSubmit: function() {
-			if(!document.querySelector(".value_wrong")) {
-				const {accountLogin, accountNewPassword, accountNewPasswordRepeat, accountName, accountEmail, accountPhone} = this;
-				if(accountNewPassword === accountNewPasswordRepeat) {
-					const accountId = localStorage.getItem("places-userid");
-					accountSaveRoutine({accountId, accountLogin, accountNewPassword, accountName, accountEmail, accountPhone})
-						.then(response => {
-							if(response.data === 0) {
-								bus.$emit("loggedChange", "home");
-							} else {
-								this.accountMessage = response.message;
-							}
-						});
-				} else {
-					this.accountMessage = "Введёные пароли не совпадают";
-				}
+			if(this.$store.state.user.testaccount) {
+				this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом, который изменить нельзя");
 			} else {
-				this.accountMessage = "Некоторые поля заполнены некорректно";
+				if(!document.querySelector(".value_wrong")) {
+					const {accountLogin, accountNewPassword, accountNewPasswordRepeat, accountName, accountEmail, accountPhone} = this;
+					if(accountNewPassword === accountNewPasswordRepeat) {
+						const accountId = localStorage.getItem("places-userid");
+						accountSaveRoutine({accountId, accountLogin, accountNewPassword, accountName, accountEmail, accountPhone})
+							.then(response => {
+								if(response.data === 0) {
+									bus.$emit("loggedChange", "home");
+								} else {
+									this.getAccountChangeMessage = response.message;
+								}
+							});
+					} else {
+						this.accountMessage = "Введёные пароли не совпадают";
+					}
+				} else {
+					this.accountMessage = "Некоторые поля заполнены некорректно";
+				}
 			}
 		},
 	},
 	computed: {
+		...mapGetters(["getAccountChangeMessage"]),
 		back: () => function() {
 			bus.$emit("loggedChange", "home");
 		},

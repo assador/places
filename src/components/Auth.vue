@@ -7,8 +7,24 @@
 		<div class="auth_forms">
 			<form class="auth__login" @submit.prevent="authLoginSubmit">
 				<h2>Авторизация</h2>
-				<input class="fieldwidth_100 margin_bottom" required id="authLogin" v-model.trim="authLogin" type="text" placeholder="Логин *" @click="validatable();" />
-				<input class="fieldwidth_100 margin_bottom" required id="authPassword" v-model.trim="authPassword" type="password" placeholder="Пароль *" @click="validatable();" />
+				<input
+					class="fieldwidth_100 margin_bottom"
+					required
+					id="authLogin"
+					v-model.trim="authLogin"
+					type="text"
+					placeholder="Логин *"
+					@click="validatable();"
+				/>
+				<input
+					class="fieldwidth_100 margin_bottom"
+					required
+					id="authPassword"
+					v-model.trim="authPassword"
+					type="password"
+					placeholder="Пароль *"
+					@click="validatable();"
+				/>
 				<button type="submit" class="margin_bottom">Войти</button>
 				<div v-html="loginMessage"></div>
 			</form>
@@ -16,14 +32,60 @@
 				<h2>Регистрация</h2>
 				<div class="auth__registration__fields">
 					<div class="auth__registration__fields__left">
-						<input class="fieldwidth_100 margin_bottom" required id="regLogin" v-model.trim="regLogin" type="text" placeholder="Логин *" @click="validatable();" />
-						<input class="fieldwidth_100 margin_bottom" required id="regPassword" v-model.trim="regPassword" type="password" placeholder="Пароль *" @click="validatable();" />
-						<input class="fieldwidth_100 margin_bottom" required id="regEmail" v-model.trim="regEmail" type="text" placeholder="e-mail *" @click="validatable();" />
+						<input
+							class="fieldwidth_100 margin_bottom"
+							required
+							id="regLogin"
+							v-model.trim="regLogin"
+							type="text"
+							placeholder="Логин *"
+							@click="validatable();"
+						/>
+						<input
+							class="fieldwidth_100 margin_bottom"
+							required
+							id="regPassword"
+							v-model.trim="regPassword"
+							type="password"
+							placeholder="Пароль *"
+							@click="validatable();"
+						/>
+						<input
+							class="fieldwidth_100 margin_bottom"
+							required
+							id="regEmail"
+							v-model.trim="regEmail"
+							type="text"
+							placeholder="e-mail *"
+							@click="validatable();"
+						/>
 					</div>
 					<div class="auth__registration__fields__right">
-						<input class="fieldwidth_100 margin_bottom" id="regName" v-model.trim="regName" type="text" placeholder="Обращение (имя)" @click="validatable();" />
-						<input class="fieldwidth_100 margin_bottom" required id="regPasswordRepeat" v-model.trim="regPasswordRepeat" type="password" placeholder="Повторите пароль *" @click="validatable();" />
-						<input class="fieldwidth_100 margin_bottom" id="regPhone" v-model.trim="regPhone" type="text" placeholder="Телефон" @click="validatable();" />
+						<input
+							class="fieldwidth_100 margin_bottom"
+							id="regName"
+							v-model.trim="regName"
+							type="text"
+							placeholder="Обращение (имя)"
+							@click="validatable();"
+						/>
+						<input
+							class="fieldwidth_100 margin_bottom"
+							required
+							id="regPasswordRepeat"
+							v-model.trim="regPasswordRepeat"
+							type="password"
+							placeholder="Повторите пароль *"
+							@click="validatable();"
+						/>
+						<input
+							class="fieldwidth_100 margin_bottom"
+							id="regPhone"
+							v-model.trim="regPhone"
+							type="text"
+							placeholder="Телефон"
+							@click="validatable();"
+						/>
 					</div>
 				</div>
 				<button type="submit" class="margin_bottom">Зарегистрироваться</button>
@@ -42,6 +104,8 @@ export default {
 		firstValidatable: false,
 		loginMessage: "",
 		regMessage: "",
+		authLogin: "test",
+		authPassword: "test",
 	}},
 	methods: {
 		validatable: function() {
@@ -58,7 +122,6 @@ export default {
 					if(typeof response.data === "object") {
 						localStorage.setItem("places-session", response.data.session);
 						localStorage.setItem("places-userid", response.data.id);
-						this.$store.commit("setUser", response.data);
 						bus.$emit("loggedChange", "home");
 					}
 				});

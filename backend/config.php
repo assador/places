@@ -24,6 +24,7 @@ $dirs = array(
 		),
 	),
 );
+$testaccountid = "WTFjfa3NGGW8CyeS6CXuvK62TIWPaltF";
 function empty2null($variable) {
 	return (trim($variable) == "") ? NULL : $variable;
 }

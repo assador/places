@@ -40,13 +40,16 @@
 				</fieldset>
 			</div>
 		</form>
-		<div v-html="accDelMessage"></div>
+		<div class="message">
+			<span v-html="getAccountDeleteMessage"></span>
+		</div>
 	</div>
 </template>
 
 <script>
 import {bus} from "../shared/bus.js"
 import {accountDeletionRoutine} from "../shared/account.js"
+import {mapGetters} from "vuex"
 export default {
 	data() {return {
 		userId: localStorage.getItem("places-userid"),
@@ -56,13 +59,20 @@ export default {
 	}},
 	methods: {
 		accountDeletionSubmit: function() {
-			const {userId, leavePlaces, leaveImages} = this;
-			accountDeletionRoutine({userId, leavePlaces, leaveImages})
-				.then(response => {
-					this.accDelMessage = response.message;
-					bus.$emit("loggedChange", "auth");
-				});
+			if(this.$store.state.user.testaccount) {
+				this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом, который удалить нельзя");
+			} else {
+				const {userId, leavePlaces, leaveImages} = this;
+				accountDeletionRoutine({userId, leavePlaces, leaveImages})
+					.then(response => {
+						this.accDelMessage = response.message;
+						bus.$emit("loggedChange", "auth");
+					});
+			}
 		},
+	},
+	computed: {
+		...mapGetters(["getAccountDeleteMessage"]),
 	},
 }
 </script>

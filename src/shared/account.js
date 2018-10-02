@@ -6,15 +6,17 @@ export const accountSaveRoutine = account => new Promise((resolve, reject) => {
 		.then(response => {
 			switch(response.data) {
 				case 0 :
+					response.message = 'При сохранении данных произошла ошибка, свяжитесь с <a href="mailto:service@places.scrofa-tridens.ru">техподдержкой</a>';
 					break;
 				case 1 :
-					response.message = 'При сохранении данных произошла ошибка. Свяжитесь с <a href="mailto:service@places.scrofa-tridens.ru">техподдержкой</a>.';
+					response.message = "На указанный вами e-mail отправлено письмо с инструкциями для подтверждения изменения данных, выполните их в течение суток";
 					break;
 				case 2 :
-					response.message = "Этот логин занят. Выберите другой.";
+					response.message = "Вы авторизовались под тестовым аккаунтом, который изменить нельзя";
 					break;
-				default :
-					response.message = "На указанный вами e-mail отправлено письмо с инструкциями для подтверждения изменения данных. Выполните их в течение суток.";
+				case 3 :
+					response.message = "Этот логин занят, выберите другой";
+					break;
 			}
 			resolve(response);
 		})

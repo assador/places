@@ -5,24 +5,88 @@
 				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100" @keyup="selectPlaces" />
 			</div>
 			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
-				<div class="brand">
-					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="getLogin"></span></h1>
-					<div>Сервис просмотра и редактирования библиотек геометок</div>
-				</div>
-				<div class="message">
-					<span v-html="getMessage"></span>
+				<div>
+					<div class="brand">
+						<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="getLogin"></span></h1>
+						<div>Сервис просмотра и редактирования библиотек геометок</div>
+					</div>
+					<div class="message">
+						<span v-html="getMessage"></span>
+					</div>
 				</div>
 			</div>
 			<div id="top-right" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-right-' + sidebarMode.right">
-				<button id="actions-append" class="actions-button" @click="$refs.ym.appendPlace();" title="Добавить место в центре карты">+</button>
-				<button id="actions-delete" class="actions-button" @click="deletePlace(currentIndex);" title="Удалить текущее место">×</button>
-				<input id="inputImportFromFile" ref="inputImportFromFile" name="jsonFile" type="file" @change="importFromFile($event);" />
-				<button id="actions-import" class="actions-button" onclick="document.getElementById('inputImportFromFile').click();" title="Импортировать геометки из JSON-файла">↲</button>
-				<button id="actions-export" class="actions-button" @click="exportToFile();" title="Экспортировать свои геометки в JSON-файл">↱</button>
-				<button id="actions-save" class="actions-button" @click="toDB();" title="Сохранить в БД">↯</button>
-				<button id="actions-about" class="actions-button" @click="showAbout($event);" title="О «Местах», справка">?</button>
-				<button id="actions-refresh" class="actions-button" onclick="document.location.reload(true);" title="Вернуться к версии в БД">↺</button>
-				<button id="actions-exit" class="actions-button" @click="exit();" title="Выйти">↪</button>
+				<button
+					id="actions-append"
+					class="actions-button"
+					title="Добавить место в центре карты"
+					@click="$refs.ym.appendPlace(); toDB(); makeUpdateCurrent(false);"
+				>
+					+
+				</button>
+				<button
+					id="actions-delete"
+					class="actions-button"
+					title="Удалить текущее место"
+					@click="if(currentPlace.userid == $store.state.user.id) {deletePlace(currentIndex); toDB(); makeUpdateCurrent(false);}"
+				>
+					×
+				</button>
+				<input
+					id="inputImportFromFile"
+					ref="inputImportFromFile"
+					name="jsonFile"
+					type="file"
+					@change="importFromFile($event);"
+				/>
+				<button
+					id="actions-import"
+					class="actions-button"
+					title="Импортировать геометки из JSON-файла"
+					onclick="document.getElementById('inputImportFromFile').click();"
+				>
+					↲
+				</button>
+				<button
+					id="actions-export"
+					class="actions-button"
+					title="Экспортировать свои геометки в JSON-файл"
+					@click="exportToFile();"
+				>
+					↱
+				</button>
+				<button
+					id="actions-save"
+					class="actions-button"
+					title="Сохранить в БД"
+					@click="if($store.state.user.testaccount) {$store.commit('setMessage', 'Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных');} else {toDB(); makeUpdateCurrent(false);}"
+				>
+					↯
+				</button>
+				<button
+					id="actions-about"
+					class="actions-button"
+					title="О «Местах», справка"
+					@click="showAbout($event);"
+				>
+					?
+				</button>
+				<button
+					id="actions-refresh"
+					class="actions-button"
+					title="Вернуться к версии в БД"
+					onclick="document.location.reload(true);"
+				>
+					↺
+				</button>
+				<button
+					id="actions-exit"
+					class="actions-button"
+					title="Выйти"
+					@click="toDB(); makeUpdateCurrent(false); exit();"
+				>
+					↪
+				</button>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -91,7 +155,7 @@
 			<div id="basic-right" :class="'app-cell' + ' sbm-right-' + sidebarMode.right">
 				<div class="scrollable">
 					<dl class="place-detailed margin_bottom_0">
-						<template v-for="field in Object.keys(currentPlace)" :key="field">
+						<template v-for="field in Object.keys(currentPlace)" v-if="!currentPlace.deleted" :key="field">
 							<dt v-if="!(field == 'images' && currentImages.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
 								{{ $store.state.placeFields[field] }}:
 							</dt>
@@ -165,7 +229,7 @@
 								</textarea>
 							</dd>
 						</template>
-						<div v-if="!currentPlaceCommon && currentId" class="images-add">
+						<div v-if="!currentPlace.deleted && !currentPlaceCommon && currentId" class="images-add">
 							<div class="images-add__div button">Добавить фотографии</div>
 							<input
 								type="file"
@@ -246,20 +310,18 @@ export default {
 				this.$refs.ym.showMap(55.7512848, 37.6190706);
 			}
 			if(this.$store.state.status == 0) {
-				window.addEventListener("load", function() {
-					document.addEventListener("dragover", this.handleDragOver, false);
-					document.addEventListener("drop", this.handleDrop, false);
-					this.$store.commit("loaded");
-				}.bind(this), false);
+				document.addEventListener("dragover", this.handleDragOver, false);
+				document.addEventListener("drop", this.handleDrop, false);
+				this.$store.commit("loaded");
 			}
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
 			this.$store.commit("modifyCommonPlaces", this.sortObjects(this.$store.state.commonPlaces, "srt"));
 		});
-/*
-		setTimeout(function() {
-			this.$store.commit("setMessage", "Не забывайте сохранять изменения в базу данных");
-		}.bind(this), 5000);
-*/
+		if(this.$store.state.user.testaccount) {
+			setTimeout(function() {
+				this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможны сохранение изменений в базу данных и загрузка файлов, в том числе фотографий");
+			}.bind(this), 5000);
+		}
 	},
 	methods: {
 		validatable: function() {
@@ -325,10 +387,12 @@ export default {
 	computed: {
 		...mapGetters(["getPlace", "getImages", "getLogin", "getMessage", "getImagesCount", "getIndexById"]),
 		makeUpdateCurrent: (update) => function(update) {
-			this.$store.commit("changePlace", {
-				index: this.currentIndex,
-				change: {updated: update},
-			});
+			if(this.currentIndex) {
+				this.$store.commit("changePlace", {
+					index: this.currentIndex,
+					change: {updated: update},
+				});
+			}
 			this.updateCurrent = update;
 		},
 		exit: () => function() {
@@ -498,93 +562,105 @@ export default {
 			a.dispatchEvent(e);
 		},
 		toDB: (todo, data) => function(todo = "places", data = JSON.stringify(this.$store.state.places)) {
-			return new Promise((resolve, reject) => {
-				if(!document.querySelector(".value_wrong")) {
-					let placesRequest = new XMLHttpRequest();
-					placesRequest.open("POST", "/backend/set_places.php", true);
-					placesRequest.onreadystatechange = function(event) {
-						if(placesRequest.readyState == 4) {
-							if(placesRequest.status == 200) {
-								this.$store.commit("setMessage", "Изменения сохранены в базе данных");
-								resolve("Изменения сохранены в базе данных");
-							} else {
-								this.$store.commit("setMessage", "Не могу внести данные в БД");
-								reject(new Error("Не могу внести данные в БД"));
+			if(!this.$store.state.user.testaccount) {
+				return new Promise((resolve, reject) => {
+					if(!document.querySelector(".value_wrong")) {
+						let placesRequest = new XMLHttpRequest();
+						placesRequest.open("POST", "/backend/set_places.php", true);
+						placesRequest.onreadystatechange = function(event) {
+							if(placesRequest.readyState == 4) {
+								if(placesRequest.status == 200) {
+									this.$store.commit("setMessage", "Изменения сохранены в базе данных");
+									resolve("Изменения сохранены в базе данных");
+								} else {
+									this.$store.commit("setMessage", "Не могу внести данные в БД");
+									reject(new Error("Не могу внести данные в БД"));
+								}
 							}
-						}
-					}.bind(this);
-					placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-					placesRequest.send("id=" + localStorage.getItem("places-userid") + "&todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
-				} else {
-					this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
-					reject(new Error("Некоторые поля заполнены некорректно"));
-				}
-			});
+						}.bind(this);
+						placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+						placesRequest.send("id=" + localStorage.getItem("places-userid") + "&todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
+					} else {
+						this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
+						reject(new Error("Некоторые поля заполнены некорректно"));
+					}
+				});
+			}
 		},
 		uploadFiles: (event) => function(event) {
 			event.preventDefault();
-			let data = new FormData(), files = this.$refs.inputUploadFiles.files, rndname, ext;
-			for(var i = 0; i < files.length; i++) {
-				files[i].rndname = generateRandomString(32);
-				ext = files[i].name.match(/\.([^.]+)$/);
-				files[i].ext = ext == null ? "" : ext[1];
-				data.append(files[i].rndname + "_" + files[i].ext, files[i]);
-			}
-			axios.post("/backend/upload.php", data)
-				.then(response => {
-					let filesArray = [], srt;
-					if(Object.keys(this.currentImages).length > 0) {
-						let storeImages = this.currentImages;
-						srt = this.sortObjects(storeImages, "srt").pop().srt;
-					} else {
-						srt = 0;
-					}
-					for(var i = 0; i < files.length; i++) {
-						filesArray.push({
-							id: generateRandomString(32),
-							file: files[i].rndname + (files[i].ext == "" ? "" : "." + files[i].ext),
-							size: files[i].size,
-							type: files[i].type,
-							lastmodified: files[i].lastModified,
-							srt: ++srt,
-							placeid: this.currentId,
+			if(this.$store.state.user.testaccount) {
+				this.$store.commit("setMessage", "Тестовый аккаунт не позволяет загрузку файлов");
+			} else {
+				let data = new FormData(), files = this.$refs.inputUploadFiles.files, rndname, ext;
+				for(var i = 0; i < files.length; i++) {
+					files[i].rndname = generateRandomString(32);
+					ext = files[i].name.match(/\.([^.]+)$/);
+					files[i].ext = ext == null ? "" : ext[1];
+					data.append(files[i].rndname + "_" + files[i].ext, files[i]);
+				}
+				data.append("userid", this.$store.state.user.id);
+				axios.post("/backend/upload.php", data)
+					.then(response => {
+						let filesArray = [], srt;
+						if(Object.keys(this.currentImages).length > 0) {
+							let storeImages = this.currentImages;
+							srt = this.sortObjects(storeImages, "srt").pop().srt;
+						} else {
+							srt = 0;
+						}
+						for(var i = 0; i < files.length; i++) {
+							filesArray.push({
+								id: generateRandomString(32),
+								file: files[i].rndname + (files[i].ext == "" ? "" : "." + files[i].ext),
+								size: files[i].size,
+								type: files[i].type,
+								lastmodified: files[i].lastModified,
+								srt: ++srt,
+								placeid: this.currentId,
+							});
+						}
+						let images = this.currentImages
+							? this.currentImages.concat(filesArray)
+							: filesArray
+						;
+						this.currentImages = images;
+						this.$store.commit("changePlace", {
+							index: this.currentIndex,
+							change: {images: images},
 						});
-					}
-					let images = this.currentImages
-						? this.currentImages.concat(filesArray)
-						: filesArray
-					;
-					this.currentImages = images;
-					this.$store.commit("changePlace", {
-						index: this.currentIndex,
-						change: {images: images},
+						this.$store.commit("setMessage", "Файлы успешно загружены");
+						this.toDB()
+							.then(response => {
+								this.toDB("images_upload", JSON.stringify(filesArray))
+							});
+					})
+					.catch(error => {
+						this.$store.commit("setMessage", "При загрузке файлов произошла ошибка");
 					});
-					this.$store.commit("setMessage", "Файлы успешно загружены");
-					this.toDB()
-						.then(response => {
-							this.toDB("images_upload", JSON.stringify(filesArray))
-						});
-				})
-				.catch(error => {
-					this.$store.commit("setMessage", "При загрузке файлов произошла ошибка");
-				});
+			}
 		},
 		deleteFiles: (inarray, files, event) => function(inarray, files, event) {
 			event.stopPropagation();
-			let data = new FormData();
-			for(var i = 0; i < files.length; i++) {
-				data.append("file_" + i, files[i].file);
-				inarray.splice(inarray.indexOf(files[i]), 1);
-				this.currentImages = inarray;
-			}
-			axios.post("/backend/delete.php", data)
-				.then(response => {
-					this.$store.commit("changePlace", {
-						index: this.currentIndex,
-						change: {images: inarray},
+			if(this.$store.state.user.testaccount) {
+				this.$store.commit("setMessage", "Тестовый аккаунт не позволяет удаление файлов");
+			} else {
+				let data = new FormData();
+				for(var i = 0; i < files.length; i++) {
+					data.append("file_" + i, files[i].file);
+					inarray.splice(inarray.indexOf(files[i]), 1);
+					this.currentImages = inarray;
+				}
+				data.append("userid", this.$store.state.user.id);
+				axios.post("/backend/delete.php", data)
+					.then(response => {
+						this.$store.commit("changePlace", {
+							index: this.currentIndex,
+							change: {images: inarray},
+						});
+						this.toDB("images_delete", JSON.stringify(files));
 					});
-					this.toDB("images_delete", JSON.stringify(files));
-				});
+			}
 		},
 	},
 }

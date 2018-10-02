@@ -210,6 +210,12 @@ export const store = new Vuex.Store({
 		getMessage: (state, getters) => {
 			return state.message;
 		},
+		getAccountDeleteMessage: (state, getters) => {
+			return state.message;
+		},
+		getAccountChangeMessage: (state, getters) => {
+			return state.message;
+		},
 		getPlace: (state, getters) => (index, common = false) => {
 			return !common
 				? state.places[index]

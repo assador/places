@@ -58,24 +58,32 @@ body {
 	vertical-align: top;
 	text-align: left;
 }
-#top-left, #top-basic, #top-right, #bottom-right, #bottom-basic, #bottom-left {
+#bottom-right, #bottom-basic, #bottom-left {
 	vertical-align: middle;
 }
 #top-left h3 {
 	margin: -8px 0 4px 0;
 }
-#top-right {
+#top-right, #bottom-left {
 	text-align: center;
 }
 #top-basic {
 	overflow: hidden;
 }
-#top-basic .brand {
-	float: left;
+#top-basic > *:first-child {
+	display: flex;
+	align-items: flex-start;
+}
+.brand {
+	min-width: 38.2%;
 }
 .message {
-	float: right;
+	flex: auto;
 	padding-left: 20px;
+	text-align: right;
+}
+.message > * {
+	flex: auto;
 }
 #bottom, #top-basic, #bottom-basic {
 	z-index: 10;
@@ -92,16 +100,19 @@ body {
 #basic-basic {
 	min-height: 250px;
 }
+#bottom-basic {
+	padding: 12px 24px;
+}
+#bottom-basic input {
+	margin: 2px;
+}
 .scrollable {
 	position: absolute;
 	top: 12px; right: 12px; bottom: 12px; left: 12px;
 	overflow: auto;
 }
 .find-places-input {
-	margin-top: 25px;
-}
-#bottom-basic input {
-	margin: 2px;
+	margin-top: 34px;
 }
 /*
 *[class*="sbm-"] {
@@ -124,16 +135,16 @@ body {
 	padding: 12px;
 }
 .sbm-top-1 {
-	height: 100px;
+	min-height: 100px;
 }
 .sbm-bottom-1 {
-	height: 60px;
+	min-height: 60px;
 }
 .sbm-top-2, .sbm-bottom-2 {
-	height: 150px;
+	min-height: 150px;
 }
 .sbm-top-3, .sbm-bottom-3 {
-	height: 200px;
+	min-height: 200px;
 }
 .sbm-left-1 .row, .sbm-right-1 .row {
 	margin: -6px;
@@ -204,21 +215,6 @@ body {
 	.sbas-top, .sbas-bottom {
 		display: none;
 	}
-	#top-basic .brand {
-		display: flex;
-		float: none;
-	}
-	#top-basic .brand > *:first-child + * {
-		display: flex;
-		flex: auto;
-		align-items: flex-end;
-		justify-content: flex-end;
-		padding-left: 20px;
-		text-align: right;
-	}
-	#top-basic .message {
-		padding: 0;
-	}
 	#basic-left .scrollable, #basic-right .scrollable {
 		position: relative;
 		top: auto; right: auto; bottom: auto; left: auto;
@@ -247,13 +243,18 @@ body {
 		flex: auto;
 	}
 	#top, #bottom, .sbm-top-1, .sbm-bottom-1, .sbm-top-2, .sbm-bottom-2, .sbm-top-3, .sbm-bottom-3 {
-		height: auto;
+		min-height: 0;
+	}
+	#top-basic .brand {
+		display: flex;
+	}
+	#top-basic .brand > *:first-child + * {
+		display: flex;
+		align-items: flex-end;
+		padding-left: 20px;
 	}
 	.find-places-input {
 		margin-top: 0;
-	}
-	#bottom-left {
-		text-align: center;
 	}
 	#bottom-right {
 		display: none;
@@ -285,4 +286,9 @@ body {
 	.sba-r {top: 0; right: 0; bottom: 0; left: 50%; padding: 10px 5px 7px 5px; text-align: right;}
 	.sba-l::before {content: "\25b2";}
 	.sba-r::before {content: "\25bc";}
+}
+@media screen and (max-width: 500px) {
+	#top-basic .brand > *:first-child + * {
+		display: none;
+	}
 }
