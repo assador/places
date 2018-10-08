@@ -63,7 +63,6 @@ import {mapGetters} from "vuex"
 export default {
 	data() {return {
 		firstValidatable: false,
-		getAccountChangeMessage: "",
 		accountLogin: this.$store.state.user.login,
 		accountName: this.$store.state.user.name,
 		accountEmail: this.$store.state.user.email,
@@ -94,7 +93,7 @@ export default {
 								if(response.data === 0) {
 									bus.$emit("loggedChange", "home");
 								} else {
-									this.getAccountChangeMessage = response.message;
+									this.$store.commit("setMessage", response.message);
 								}
 							});
 					} else {
