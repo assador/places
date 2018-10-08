@@ -387,7 +387,7 @@ export default {
 	computed: {
 		...mapGetters(["getPlace", "getImages", "getLogin", "getMessage", "getImagesCount", "getIndexById"]),
 		makeUpdateCurrent: (update) => function(update) {
-			if(this.currentIndex) {
+			if(this.currentIndex && this.currentIndex >= 0) {
 				this.$store.commit("changePlace", {
 					index: this.currentIndex,
 					change: {updated: update},
