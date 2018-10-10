@@ -1,7 +1,7 @@
 {
   "name": "places",
   "description": "Yet another geo placemarks viewer and editor service",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Dmitry Sokolov <dmitry@sokolov.website>",
   "license": "MIT",
   "private": true,

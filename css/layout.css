@@ -46,7 +46,7 @@ body {
 }
 .table {
 	display: table;
-	width: 100%; min-height: 100%;
+	width: 100%; height: 100%;
 }
 .app-row {
 	display: table-row;
@@ -228,6 +228,10 @@ body {
 	}
 }
 @media screen and (max-width: 650px) {
+	.table {
+		height: auto;
+		min-height: 100%;
+	}
 	.app-row, .app-cell {
 		display: block;
 	}
