@@ -479,6 +479,24 @@ table.table_wopadd th, table.table_wopadd td {
 .popup-image {
 	cursor: pointer;
 }
+.prev, .next, .close {
+	position: absolute;
+	line-height: 0;
+	font-size: 50px;
+}
+.prev, .next {
+	top: 50%;
+}
+.prev {
+	left: 0;
+}
+.next, .close {
+	right: 0;
+}
+.close {
+	top: 0;
+	padding: 30px 21px;
+}
 .about {
 	text-align: center;
 }

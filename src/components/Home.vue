@@ -1,5 +1,5 @@
 <template>
-	<div class="table" @click="showPopup({show: false}, $event);">
+	<div class="table">
 		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
 			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
 				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100" @keyup="selectPlaces" />
@@ -37,7 +37,7 @@
 					ref="inputImportFromFile"
 					name="jsonFile"
 					type="file"
-					@change="importFromFile($event);"
+					@change="importFromFile();"
 				/>
 				<button
 					id="actions-import"
@@ -246,15 +246,59 @@
 		</div>
 		<div id="bottom" :class="'app-row' + ' sbm-bottom-' + sidebarMode.bottom">
 			<div id="bottom-left" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-left-' + sidebarMode.left">
-				<button id="placemarksShowHideButton" class="actions-button button-pressed" @click="$refs.ym.placemarksShowHide();" title="Показать / скрыть все свои геометки">◉</button>
-				<button id="commonPlacesShowHideButton" class="actions-button" @click="commonPlacesShowHide();" title="Показать / скрыть все другие места и их геометки">◪</button>
-				<button id="commonPlacemarksShowHideButton" class="actions-button" @click="$refs.ym.commonPlacemarksShowHide();" title="Показать / скрыть все другие геометки">◎</button>
-				<button id="centerPlacemarkShowHideButton" class="actions-button" @click="$refs.ym.centerPlacemarkShowHide();" title="Показать / скрыть метку центра карты">◈</button>
+				<button
+					id="placemarksShowHideButton"
+					class="actions-button button-pressed"
+					@click="$refs.ym.placemarksShowHide();"
+					title="Показать / скрыть все свои геометки"
+				>
+					◉
+				</button>
+				<button
+					id="commonPlacesShowHideButton"
+					class="actions-button"
+					@click="commonPlacesShowHide();"
+					title="Показать / скрыть все другие места и их геометки"
+				>
+					◪
+				</button>
+				<button
+					id="commonPlacemarksShowHideButton"
+					class="actions-button"
+					@click="$refs.ym.commonPlacemarksShowHide();"
+					title="Показать / скрыть все другие геометки"
+				>
+					◎
+				</button>
+				<button
+					id="centerPlacemarkShowHideButton"
+					class="actions-button"
+					@click="$refs.ym.centerPlacemarkShowHide();"
+					title="Показать / скрыть метку центра карты"
+				>
+					◈
+				</button>
 			</div>
 			<div id="bottom-basic" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom">
-				<span class="imp">Координаты центра карты</span>
-				<span class="nobr" style="margin-left: 1em;">Широта: <input v-model.number.trim="$store.state.center.latitude" placeholder="latitude" title="latitude" /></span>
-				<span class="nobr" style="margin-left: 1em;">Долгота: <input v-model.number.trim="$store.state.center.longitude" placeholder="longitude" title="longitude" /></span>
+				<span class="imp">
+					Координаты центра карты
+				</span>
+				<span class="nobr" style="margin-left: 1em;">
+					Широта:
+					<input
+						v-model.number.trim="$store.state.center.latitude"
+						placeholder="latitude"
+						title="Широта"
+					/>
+				</span>
+				<span class="nobr" style="margin-left: 1em;">
+					Долгота:
+					<input
+						v-model.number.trim="$store.state.center.longitude"
+						placeholder="longitude"
+						title="Долгота"
+					/>
+				</span>
 			</div>
 			<div id="bottom-right" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-right-' + sidebarMode.right">
 			</div>
@@ -271,6 +315,7 @@
 </template>
 
 <script>
+import {constants} from "../shared/constants.js"
 import {bus} from "../shared/bus.js"
 import mapyandex from "./MapYandex.vue"
 import popupimage from "./PopupImage.vue"
@@ -312,6 +357,68 @@ export default {
 			if(this.$store.state.status == 0) {
 				document.addEventListener("dragover", this.handleDragOver, false);
 				document.addEventListener("drop", this.handleDrop, false);
+				document.addEventListener("keyup", function(event) {
+					if(event.altKey && event.shiftKey) {
+						switch(constants.shortcuts[event.keyCode]) {
+							case "add" :
+								this.$refs.ym.appendPlace();
+								this.toDB();
+								this.makeUpdateCurrent(false);
+								break;
+							case "delete" :
+								if(this.currentPlace.userid == this.$store.state.user.id) {
+									this.deletePlace(this.currentIndex);
+									this.toDB();
+									this.makeUpdateCurrent(false);
+								}
+								break;
+							case "import" :
+								document.getElementById("inputImportFromFile").click();
+								break;
+							case "export" :
+								this.exportToFile();
+								break;
+							case "save" :
+								if(this.$store.state.user.testaccount) {
+									this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных");
+								} else {
+									this.toDB();
+									this.makeUpdateCurrent(false);
+								}
+								break;
+							case "help" :
+								this.showAbout();
+								break;
+							case "revert" :
+								document.location.reload(true);
+								break;
+							case "quit" :
+								this.toDB();
+								this.makeUpdateCurrent(false);
+								this.exit();
+								break;
+							case "other" :
+								this.commonPlacesShowHide();
+								break;
+							case "placemarks" :
+								this.$refs.ym.placemarksShowHide();
+								break;
+							case "other placemarks" :
+								this.$refs.ym.commonPlacemarksShowHide();
+								break;
+							case "center" :
+								this.$refs.ym.centerPlacemarkShowHide();;
+								break;
+						}
+					}
+					if(this.popuped == "appear") {
+						switch(constants.shortcuts[event.keyCode]) {
+							case "close" :
+								this.showPopup({show: false}, event);
+								break;
+						}
+					}
+				}.bind(this), false);
 				this.$store.commit("loaded");
 			}
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
@@ -540,8 +647,7 @@ export default {
 				aboutRequest.setRequestHeader("Content-type", "application/json");
 				aboutRequest.send();
 		},
-		importFromFile: (event) => function(event) {
-			event.preventDefault();
+		importFromFile: () => function() {
 			let reader = new FileReader();
 			reader.onload = function(event) {
 				this.$store.commit("reset");
