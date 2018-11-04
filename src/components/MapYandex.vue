@@ -5,7 +5,7 @@
 <script>
 export default {
 	props: ["id", "name", "description", "images", "latitude", "longitude", "centerLatitude", "centerLongitude"],
-	data() {return {
+	data: function() {return {
 		map: null,
 		mrk: null,
 		mrks: {},
@@ -121,8 +121,22 @@ export default {
 					},
 				});
 				this.$parent.toDB(); this.$parent.makeUpdateCurrent(false);
+				this.setCurrentPlaceByPlacemark(type, place);
+			}.bind(this));
+			marks[place.id].events.add("mouseup", function() {
+				this.setCurrentPlaceByPlacemark(type, place);
 			}.bind(this));
 			this.map.geoObjects.add(marks[place.id]);
+		},
+		setCurrentPlaceByPlacemark: (type, place) => function(type, place) {
+			switch(type) {
+				case "private" :
+					this.$parent.setCurrentPlace(this.$store.state.places.findIndex(x => x.id === place.id));
+					break;
+				case "common" :
+					this.$parent.setCurrentPlace(this.$store.state.commonPlaces.findIndex(x => x.id === place.id), true);
+					break;
+			}
 		},
 		updatePlacemark: (marks) => function(marks) {
 			marks[this.id].geometry.setCoordinates([this.latitude, this.longitude]);

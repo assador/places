@@ -14,6 +14,8 @@ $lengths = array(
 	"description" => 5000,
 	"url"         => 2048
 );
+$host = "http://places.scrofa-tridens.ru";
+$from = "service@places.scrofa-tridens.ru";
 $basepath = "/var/www/places/";
 $dirs = array(
 	"common" => $basepath,

@@ -71,7 +71,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
 	$headers =
 		"MIME-Version: 1.0" . "\r\n" .
 		"Content-type: text/html; charset=utf-8" . "\r\n" .
-		"From: =?utf-8?b?" . base64_encode("Сервис «Места»") . "?= <service@places.scrofa-tridens.ru>"
+		"From: =?utf-8?b?" . base64_encode("Сервис «Места»") . "?= <" . $from . ">"
 	;
 	$subject = "=?utf-8?b?" . base64_encode("Подтверждение изменения данных аккаунта в сервисе «Места»") . "?=";
 	$message = '
@@ -85,8 +85,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
 				Ваш e-mail был указан как e-mail пользователя сервиса просмотра
 				и редактирования библиотек геометок «Места». Если это были вы,
 				для подтверждения изменения данных аккаунта перейдите по ссылке:<br />
-				<a href="http://places.scrofa-tridens.ru/confirmaccount.php?token=' . $token . '">
-					http://places.scrofa-tridens.ru/confirmaccount.php?token=' . $token . '
+				<a href="' . $host . '/confirmaccount.php?token=' . $token . '">
+					' . $host . '/confirmaccount.php?token=' . $token . '
 				</a>
 			</p>
 		</body>

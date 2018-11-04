@@ -1,3 +1,4 @@
+import {constants} from "./constants.js"
 import {bus} from "./bus.js"
 import axios from "axios"
 export const accountSaveRoutine = account => new Promise((resolve, reject) => {
@@ -6,7 +7,7 @@ export const accountSaveRoutine = account => new Promise((resolve, reject) => {
 		.then(response => {
 			switch(response.data) {
 				case 0 :
-					response.message = 'При сохранении данных произошла ошибка, свяжитесь с <a href="mailto:service@places.scrofa-tridens.ru">техподдержкой</a>';
+					response.message = 'При сохранении данных произошла ошибка, свяжитесь с <a href="mailto:' + constants.from + '">техподдержкой</a>';
 					break;
 				case 1 :
 					response.message = "На указанный вами e-mail отправлено письмо с инструкциями для подтверждения изменения данных, выполните их в течение суток";

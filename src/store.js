@@ -1,7 +1,6 @@
 import {bus} from "./shared/bus.js"
 export const store = new Vuex.Store({
 	state: {
-		status: 0,
 		user: {},
 		places: [],
 		commonPlaces: [],
@@ -34,15 +33,11 @@ export const store = new Vuex.Store({
 	},
 	mutations: {
 		reset(state) {
-			Vue.set(state, "status", 0);
 			Vue.set(state, "user", {});
 			Vue.set(state, "places", []);
 			Vue.set(state, "center", {});
 			Vue.set(state, "ready", false);
 			Vue.set(state, "message", "");
-		},
-		loaded(state) {
-			Vue.set(state, "status", 1);
 		},
 		setUser(state, user) {
 			Vue.set(state, "user", user);

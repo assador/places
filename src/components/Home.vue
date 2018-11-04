@@ -305,6 +305,7 @@
 		</div>
 		<div :class="'popup ' + popuped">
 			<component
+				ref="popup"
 				:is="popupComponent"
 				:data="popupData"
 				:currentPlace="currentPlace"
@@ -323,7 +324,12 @@ import popuptext from "./PopupText.vue"
 import axios from "axios"
 import {mapGetters} from "vuex"
 export default {
-	data() {return {
+	components: {
+		mapyandex,
+		popupimage,
+		popuptext,
+	},
+	data: function() {return {
 		firstValidatable: false,
 		places: this.$store.state,
 		currentId: null,
@@ -341,86 +347,17 @@ export default {
 		gridMode: 6,
 		crossSidebarGrid: [12, 6, 4],
 	}},
-	components: {
-		mapyandex,
-		popupimage,
-		popuptext,
-	},
 	mounted: function() {
 		bus.$on("placesFilled", () => {
 			if(this.$refs.ym && this.$refs.ym.map) {
 				this.$refs.ym.map.destroy();
 			}
 			if(this.$refs.ym) {
-				this.$refs.ym.showMap(55.7512848, 37.6190706);
+				this.$refs.ym.showMap(constants.map.initial.latitude, constants.map.initial.longitude);
 			}
-			if(this.$store.state.status == 0) {
-				document.addEventListener("dragover", this.handleDragOver, false);
-				document.addEventListener("drop", this.handleDrop, false);
-				document.addEventListener("keyup", function(event) {
-					if(event.altKey && event.shiftKey) {
-						switch(constants.shortcuts[event.keyCode]) {
-							case "add" :
-								this.$refs.ym.appendPlace();
-								this.toDB();
-								this.makeUpdateCurrent(false);
-								break;
-							case "delete" :
-								if(this.currentPlace.userid == this.$store.state.user.id) {
-									this.deletePlace(this.currentIndex);
-									this.toDB();
-									this.makeUpdateCurrent(false);
-								}
-								break;
-							case "import" :
-								document.getElementById("inputImportFromFile").click();
-								break;
-							case "export" :
-								this.exportToFile();
-								break;
-							case "save" :
-								if(this.$store.state.user.testaccount) {
-									this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных");
-								} else {
-									this.toDB();
-									this.makeUpdateCurrent(false);
-								}
-								break;
-							case "help" :
-								this.showAbout();
-								break;
-							case "revert" :
-								document.location.reload(true);
-								break;
-							case "quit" :
-								this.toDB();
-								this.makeUpdateCurrent(false);
-								this.exit();
-								break;
-							case "other" :
-								this.commonPlacesShowHide();
-								break;
-							case "placemarks" :
-								this.$refs.ym.placemarksShowHide();
-								break;
-							case "other placemarks" :
-								this.$refs.ym.commonPlacemarksShowHide();
-								break;
-							case "center" :
-								this.$refs.ym.centerPlacemarkShowHide();;
-								break;
-						}
-					}
-					if(this.popuped == "appear") {
-						switch(constants.shortcuts[event.keyCode]) {
-							case "close" :
-								this.showPopup({show: false}, event);
-								break;
-						}
-					}
-				}.bind(this), false);
-				this.$store.commit("loaded");
-			}
+			document.addEventListener("dragover", this.handleDragOver, false);
+			document.addEventListener("drop", this.handleDrop, false);
+			document.addEventListener("keyup", this.keyup, false);
 			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
 			this.$store.commit("modifyCommonPlaces", this.sortObjects(this.$store.state.commonPlaces, "srt"));
 		});
@@ -430,11 +367,89 @@ export default {
 			}.bind(this), 5000);
 		}
 	},
+	beforeDestroy: function() {
+		document.removeEventListener("dragover", this.handleDragOver, false);
+		document.removeEventListener("drop", this.handleDrop, false);
+		document.removeEventListener("keyup", this.keyup, false);
+		bus.$off("placesFilled");
+	},
 	methods: {
 		validatable: function() {
 			if(!this.firstValidatable) {
 				make_fields_validatable();
 				this.firstValidatable = true;
+			}
+		},
+		keyup: function(event) {
+			if(event.altKey && event.shiftKey) {
+				switch(constants.shortcuts[event.keyCode]) {
+					case "add" :
+						this.$refs.ym.appendPlace();
+						this.toDB();
+						this.makeUpdateCurrent(false);
+						break;
+					case "delete" :
+						if(this.currentPlace.userid == this.$store.state.user.id) {
+							this.deletePlace(this.currentIndex);
+							this.toDB();
+							this.makeUpdateCurrent(false);
+						}
+						break;
+					case "import" :
+						document.getElementById("inputImportFromFile").click();
+						break;
+					case "export" :
+						this.exportToFile();
+						break;
+					case "save" :
+						if(this.$store.state.user.testaccount) {
+							this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных");
+						} else {
+							this.toDB();
+							this.makeUpdateCurrent(false);
+						}
+						break;
+					case "help" :
+						this.showAbout();
+						break;
+					case "revert" :
+						document.location.reload(true);
+						break;
+					case "quit" :
+						this.toDB();
+						this.makeUpdateCurrent(false);
+						this.exit();
+						break;
+					case "other" :
+						this.commonPlacesShowHide();
+						break;
+					case "placemarks" :
+						this.$refs.ym.placemarksShowHide();
+						break;
+					case "other placemarks" :
+						this.$refs.ym.commonPlacemarksShowHide();
+						break;
+					case "center" :
+						this.$refs.ym.centerPlacemarkShowHide();;
+						break;
+				}
+			}
+			if(this.popuped == "appear") {
+				switch(constants.shortcuts[event.keyCode]) {
+					case "close" :
+						this.showPopup({show: false}, event);
+						break;
+					case "left" :
+						if(this.popupComponent == "popupimage") {
+							this.$refs.popup.showImage(-1, event);
+						}
+						break;
+					case "right" :
+						if(this.popupComponent == "popupimage") {
+							this.$refs.popup.showImage(1, event);
+						}
+						break;
+				}
 			}
 		},
 		handleDragStart: function(event) {

@@ -10,14 +10,14 @@ import auth from "./components/Auth.vue"
 import home from "./components/Home.vue"
 import account from "./components/Account.vue"
 export default {
-	data() {return {
-		component: "auth",
-	}},
 	components: {
 		auth,
 		home,
 		account,
 	},
+	data: function() {return {
+		component: "auth",
+	}},
 	mounted: function() {
 		const session = localStorage.getItem("places-session");
 		if(session) {

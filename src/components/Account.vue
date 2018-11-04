@@ -1,5 +1,5 @@
 <template>
-	<div class="account centered" @click="showPopup({show: false}, $event);">
+	<div class="account centered">
 		<div class="brand">
 			<h1 class="margin_bottom_0">Места</h1>
 			<p>Страница пользователя</p>
@@ -56,11 +56,15 @@
 </template>
 
 <script>
+import {constants} from "../shared/constants.js"
 import {bus} from "../shared/bus.js"
 import popupdelete from "./AccountDelete.vue"
 import {accountSaveRoutine} from "../shared/account.js"
 import {mapGetters} from "vuex"
 export default {
+	components: {
+		popupdelete,
+	},
 	data() {return {
 		firstValidatable: false,
 		accountLogin: this.$store.state.user.login,
@@ -70,14 +74,22 @@ export default {
 		popuped: "disappear",
 		popupComponent: "",
 	}},
-	components: {
-		popupdelete,
+	mounted: function() {
+		document.addEventListener("keyup", this.keyup, false);
+	},
+	beforeDestroy: function() {
+		document.removeEventListener("keyup", this.keyup, false);
 	},
 	methods: {
 		validatable: function() {
 			if(!this.firstValidatable) {
 				make_fields_validatable();
 				this.firstValidatable = true;
+			}
+		},
+		keyup: function(event) {
+			if(this.popuped == "appear" && constants.shortcuts[event.keyCode] == "close") {
+				this.showPopup({show: false}, event);
 			}
 		},
 		accountSubmit: function() {

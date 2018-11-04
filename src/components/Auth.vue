@@ -100,7 +100,7 @@ import {bus} from "../shared/bus.js"
 import {loginRoutine} from "../shared/auth.js"
 import {regRoutine} from "../shared/reg.js"
 export default {
-	data() {return {
+	data: function() {return {
 		firstValidatable: false,
 		loginMessage: "",
 		regMessage: "",

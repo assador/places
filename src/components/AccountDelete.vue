@@ -43,6 +43,7 @@
 		<div class="message">
 			<span v-html="getAccountDeleteMessage"></span>
 		</div>
+		<a href="javascript:void(0);" class="close" @click="$parent.showPopup({show: false}, $event);">×</a>
 	</div>
 </template>
 
@@ -51,7 +52,7 @@ import {bus} from "../shared/bus.js"
 import {accountDeletionRoutine} from "../shared/account.js"
 import {mapGetters} from "vuex"
 export default {
-	data() {return {
+	data: function() {return {
 		userId: localStorage.getItem("places-userid"),
 		leavePlaces: "none",
 		leaveImages: "none",

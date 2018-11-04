@@ -34,7 +34,6 @@ $query = $conn->prepare(
 );
 $result = $query->execute();
 
-$from = "service@places.scrofa-tridens.ru";
 $headers =
 	"MIME-Version: 1.0" . "\r\n" .
 	"Content-type: text/html; charset=utf-8" . "\r\n" .
@@ -51,8 +50,8 @@ $message = '
 		<p>
 			Для подтверждения регистрации в сервисе просмотра и редактирования
 			библиотек геометок «Места» перейдите по ссылке:<br />
-			<a href="http://places.scrofa-tridens.ru/confirm.php?token=' . $token . '">
-				http://places.scrofa-tridens.ru/confirm.php?token=' . $token . '
+			<a href="' . $host . '/confirm.php?token=' . $token . '">
+				' . $host . '/confirm.php?token=' . $token . '
 			</a>
 		</p>
 	</body>
