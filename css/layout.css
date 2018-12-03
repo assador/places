@@ -47,6 +47,7 @@ body {
 .table {
 	display: table;
 	width: 100%; height: 100%;
+	overflow: hidden;
 }
 .app-row {
 	display: table-row;
@@ -100,6 +101,9 @@ body {
 #basic-basic {
 	min-height: 250px;
 }
+#top-left, #top-right, #basic-left, #basic-right, #bottom-left, #bottom-right {
+	padding: 12px;
+}
 #bottom-basic {
 	padding: 12px 24px;
 }
@@ -114,74 +118,32 @@ body {
 .find-places-input {
 	margin-top: 34px;
 }
-/*
-*[class*="sbm-"] {
-	transition: all 0.7s;
-}
-*/
-.sbm-top-0, .sbm-right-0, .sbm-bottom-0, .sbm-left-0 {
-	display: none;
-}
-.sbm-left-1, .sbm-right-1 {
-	width: 150px;
-	padding: 12px;
-}
-.sbm-left-2, .sbm-right-2 {
-	width: 200px;
-	padding: 12px;
-}
-.sbm-left-3, .sbm-right-3 {
-	width: 300px;
-	padding: 12px;
-}
-.sbm-top-1 {
-	min-height: 100px;
-}
-.sbm-bottom-1 {
-	min-height: 60px;
-}
-.sbm-top-2, .sbm-bottom-2 {
-	min-height: 150px;
-}
-.sbm-top-3, .sbm-bottom-3 {
-	min-height: 200px;
-}
-.sbm-left-1 .row, .sbm-right-1 .row {
-	margin: -6px;
-}
-.sbm-left-1 *[class*="col-"], .sbm-right-1 *[class*="col-"] {
-	padding: 6px;
-}
-*[class*="sbas-"], *[class*="sba-"] {
+.sbs-top, .sbs-right, .sbs-bottom, .sbs-left {
 	position: absolute;
-	line-height: 0;
-	vertical-align: top;
-	font-size: 11px;
-	outline: none;
+	z-index: 100;
+	transition: all 0.5s;
 }
-.sbas-top {top: -20px; right: -1px; left: 0; height: 40px;}
-.sbas-right {top: 0; right: -21px; bottom: 0; width: 40px;}
-.sbas-bottom {right: -1px; bottom: -20px; left: 0; height: 40px;}
-.sbas-left {top: 0; bottom: 0; left: -20px; width: 40px;}
-.sba-u {top: 0; right: 0; bottom: 50%; left: 0; padding-top: 8px;}
-.sba-r {top: 0; right: 0; bottom: 0; left: 50%; padding-left: 6px;}
-.sba-d {top: 50%; right: 0; bottom: 0; left: 0; padding-top: 8px;}
-.sba-l {top: 0; right: 50%; bottom: 0; left: 0; padding-left: 5px;}
-.sba-u, .sba-d {padding-right: 24px; padding-left: 24px;}
-.sba-l, .sba-r {padding-top: 8px; padding-bottom: 9px;}
-.sba-u::before {content: "\25b2";}
-.sba-d::before {content: "\25bc";}
-.sba-l::before {content: "\25c4";}
-.sba-r::before {content: "\25ba";}
-.sbas-right .sba-l {padding-left: 4px;}
-.sbas-right .sba-r {padding-left: 5px;}
-.sbas-bottom .sba-u, .sbas-bottom .sba-d {padding-top: 9px;}
-.sbas-right.sbas-0 {right: 0; width: 20px;}
-.sbas-right.sbas-0 .sba-r {display: none;}
-.sbas-right.sbas-0 .sba-l {right: 0;}
-.sbas-bottom.sbas-0 {bottom: 0; height: 20px;}
-.sbas-bottom.sbas-0 .sba-d {display: none;}
-.sbas-bottom.sbas-0 .sba-u {bottom: 0;}
+.sbs-top, .sbs-bottom {
+	right: 0; left: 0;
+	height: 20px;
+	cursor: row-resize;
+}
+.sbs-right, .sbs-left {
+	width: 20px;
+	cursor: col-resize;
+}
+.sbs-top {
+	top: -10px;
+}
+.sbs-right {
+	right: -10px;
+}
+.sbs-bottom {
+	bottom: -10px;
+}
+.sbs-left {
+	left: -10px;
+}
 
 /* Разные стили */
 
@@ -202,18 +164,6 @@ body {
 @media screen and (max-width: 1000px) {
 	.auth_forms, .account__form {
 		width: 90%;
-	}
-	.sbm-left-1, .sbm-right-1 {
-		width: 100px;
-	}
-	.sbm-left-2, .sbm-right-2 {
-		width: 150px;
-	}
-	.sbm-left-3, .sbm-right-3 {
-		width: 200px;
-	}
-	.sbas-top, .sbas-bottom {
-		display: none;
 	}
 	#basic-left .scrollable, #basic-right .scrollable {
 		position: relative;
@@ -238,15 +188,19 @@ body {
 	.app-cell {
 		padding: 8px 24px;
 	}
-	.sbm-left-1, .sbm-right-1, .sbm-left-2, .sbm-right-2, .sbm-left-3, .sbm-right-3 {
-		width: 100%;
+	#top-left, #top-right, #basic-left, #basic-right, #bottom-left, #bottom-right {
+		width: 100% !important;
 	}
 	#main > .table:first-child, #basic, #basic-basic {
 		display: flex;
 		flex-direction: column;
 		flex: auto;
 	}
-	#top, #bottom, .sbm-top-1, .sbm-bottom-1, .sbm-top-2, .sbm-bottom-2, .sbm-top-3, .sbm-bottom-3 {
+	#basic-left__places {
+		max-height: 208px;
+	}
+	#top, #bottom {
+		height: auto !important;
 		min-height: 0;
 	}
 	#top-basic .brand {
@@ -260,36 +214,9 @@ body {
 	.find-places-input {
 		margin-top: 0;
 	}
-	#bottom-right {
+	#bottom-basic, #bottom-right, #basic-left__places > *:first-child > *:first-child, .sbs-top, .sbs-right, .sbs-bottom, .sbs-left {
 		display: none;
 	}
-	#bottom-basic, #bottom-right, .sbm-left-0, .sbm-right-0, #top-left.sbm-left-1, #top-left.sbm-left-0 + *, #top-left.sbm-left-0 + * + *, #basic-left__places > *:first-child > *:first-child {
-		display: none;
-	}
-	#basic .sbm-left-1, #basic .sbm-right-1 {
-		max-height: 92px;
-	}
-	#basic .sbm-left-2, #basic .sbm-right-2 {
-		max-height: 134px;
-	}
-	#basic .sbm-left-3, #basic .sbm-right-3 {
-		max-height: 218px;
-	}
-	#basic .sbm-left-1 .scrollable, #basic .sbm-right-1 .scrollable {
-		max-height: 81px;
-	}
-	#basic .sbm-left-2 .scrollable, #basic .sbm-right-2 .scrollable {
-		max-height: 125px;
-	}
-	#basic .sbm-left-3 .scrollable, #basic .sbm-right-3 .scrollable {
-		max-height: 209px;
-	}
-	.sbas-left {top: 0; right: 0; bottom: auto; left: 0; width: 100%; height: 20px;}
-	.sbas-right {top: auto; right: 0; bottom: 0; left: 0; width: 100%; height: 20px;}
-	.sba-l {top: 0; right: 50%; bottom: 0; left: 0; padding: 10px 5px 7px 5px;}
-	.sba-r {top: 0; right: 0; bottom: 0; left: 50%; padding: 10px 5px 7px 5px; text-align: right;}
-	.sba-l::before {content: "\25b2";}
-	.sba-r::before {content: "\25bc";}
 }
 @media screen and (max-width: 500px) {
 	#top-basic .brand > *:first-child + * {

@@ -24,4 +24,10 @@ export const constants = {
 			longitude : 37.6190706,
 		},
 	},
+	sidebars: {
+		top    : 100,
+		right  : 200,
+		bottom : 60,
+		left   : 200,
+	},
 }

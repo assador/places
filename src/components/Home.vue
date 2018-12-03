@@ -1,10 +1,25 @@
 <template>
-	<div class="table">
-		<div id="top" :class="'app-row' + ' sbm-top-' + sidebarMode.top">
-			<div id="top-left" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-left-' + sidebarMode.left" class="fieldwidth_100 fontsize_n">
+	<div
+		class="table"
+		@mousemove="documentMouseOver($event);"
+		@mouseup="sidebarDragStop($event);"
+	>
+		<div
+			id="top"
+			class="app-row"
+			:style="'height: ' + sidebarSize.top + 'px;' + (sidebarSize.top < 80 ? ' display: none;' : '')"
+		>
+			<div
+				id="top-left"
+				class="app-cell fieldwidth_100 fontsize_n"
+				:style="'width: ' + sidebarSize.left + 'px;' + (sidebarSize.top < 80 || sidebarSize.left < 120 ? ' display: none;' : '')"
+			>
 				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100" @keyup="selectPlaces" />
 			</div>
-			<div id="top-basic" :class="'app-cell' + ' sbm-top-' + sidebarMode.top">
+			<div
+				id="top-basic"
+				class="app-cell"
+			>
 				<div>
 					<div class="brand">
 						<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="getLogin"></span></h1>
@@ -15,7 +30,11 @@
 					</div>
 				</div>
 			</div>
-			<div id="top-right" :class="'app-cell' + ' sbm-top-' + sidebarMode.top + ' sbm-right-' + sidebarMode.right">
+			<div
+				id="top-right"
+				class="app-cell"
+				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.top < 80 || sidebarSize.right < 120 ? ' display: none;' : '')"
+			>
 				<button
 					id="actions-append"
 					class="actions-button"
@@ -90,7 +109,11 @@
 			</div>
 		</div>
 		<div class="app-row" id="basic">
-			<div id="basic-left" :class="'app-cell' + ' sbm-left-' + sidebarMode.left">
+			<div
+				id="basic-left"
+				class="app-cell"
+				:style="'width: ' + sidebarSize.left + 'px;' + (sidebarSize.left < 120 ? ' display: none;' : '')"
+			>
 				<div id="basic-left__places" class="scrollable">
 					<div v-if="$store.state.places.length > 0">
 						<h2 class="basiccolor">Мои места</h2>
@@ -123,22 +146,6 @@
 				</div>
 			</div>
 			<div class="app-cell" id="basic-basic">
-				<div class="sbas-top">
-					<a href="javascript:void(0);" class="sba-u" @click="changeSidebarMode('top', 'smaller');"></a>
-					<a href="javascript:void(0);" class="sba-d" @click="changeSidebarMode('top', 'bigger');"></a>
-				</div>
-				<div :class="'sbas-right' + (!sidebarMode.right ? ' sbas-0' : '')">
-					<a href="javascript:void(0);" class="sba-l" @click="changeSidebarMode('right', 'bigger');"></a>
-					<a href="javascript:void(0);" class="sba-r" @click="changeSidebarMode('right', 'smaller');"></a>
-				</div>
-				<div :class="'sbas-bottom' + (!sidebarMode.bottom ? ' sbas-0' : '')">
-					<a href="javascript:void(0);" class="sba-u" @click="changeSidebarMode('bottom', 'bigger');"></a>
-					<a href="javascript:void(0);" class="sba-d" @click="changeSidebarMode('bottom', 'smaller');"></a>
-				</div>
-				<div class="sbas-left">
-					<a href="javascript:void(0);" class="sba-l" @click="changeSidebarMode('left', 'smaller');"></a>
-					<a href="javascript:void(0);" class="sba-r" @click="changeSidebarMode('left', 'bigger');"></a>
-				</div>
 				<mapyandex
 					ref="ym"
 					:id="currentPlace.id"
@@ -151,8 +158,24 @@
 					:centerLongitude="$store.state.center.longitude"
 				>
 				</mapyandex>
+				<div
+					class="sbs-right"
+					:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+					@mousedown="sidebarDragStart('right', $event);"
+				>
+				</div>
+				<div
+					class="sbs-left"
+					:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+					@mousedown="sidebarDragStart('left', $event);"
+				>
+				</div>
 			</div>
-			<div id="basic-right" :class="'app-cell' + ' sbm-right-' + sidebarMode.right">
+			<div
+				id="basic-right"
+				class="app-cell"
+				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.right < 120 ? ' display: none;' : '')"
+			>
 				<div class="scrollable">
 					<dl class="place-detailed margin_bottom_0">
 						<template v-for="field in Object.keys(currentPlace)" v-if="!currentPlace.deleted" :key="field">
@@ -243,9 +266,27 @@
 					</dl>
 				</div>
 			</div>
+			<div
+				class="sbs-top"
+				@mousedown="sidebarDragStart('top', $event);"
+			>
+			</div>
+			<div
+				class="sbs-bottom"
+				@mousedown="sidebarDragStart('bottom', $event);"
+			>
+			</div>
 		</div>
-		<div id="bottom" :class="'app-row' + ' sbm-bottom-' + sidebarMode.bottom">
-			<div id="bottom-left" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-left-' + sidebarMode.left">
+		<div
+			id="bottom"
+			class="app-row"
+			:style="'height: ' + sidebarSize.bottom + 'px;' + (sidebarSize.bottom < 60 ? ' display: none;' : '')"
+		>
+			<div
+				id="bottom-left"
+				class="app-cell"
+				:style="'width: ' + sidebarSize.left + 'px;' + (sidebarSize.bottom < 60 || sidebarSize.left < 120 ? ' display: none;' : '')"
+			>
 				<button
 					id="placemarksShowHideButton"
 					class="actions-button button-pressed"
@@ -279,7 +320,10 @@
 					◈
 				</button>
 			</div>
-			<div id="bottom-basic" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom">
+			<div
+				id="bottom-basic"
+				class="app-cell"
+			>
 				<span class="imp">
 					Координаты центра карты
 				</span>
@@ -300,7 +344,11 @@
 					/>
 				</span>
 			</div>
-			<div id="bottom-right" :class="'app-cell' + ' sbm-bottom-' + sidebarMode.bottom + ' sbm-right-' + sidebarMode.right">
+			<div
+				id="bottom-right"
+				class="app-cell"
+				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.bottom < 60 || sidebarSize.right < 120 ? ' display: none;' : '')"
+			>
 			</div>
 		</div>
 		<div :class="'popup ' + popuped">
@@ -343,9 +391,14 @@ export default {
 		popupComponent: "popuptext",
 		popupData: {},
 		draggingElement: null,
-		sidebarMode: {top: 1, right: 2, bottom: 1, left: 2},
+		sidebarSize: {
+			top: constants.sidebars.top,
+			right: constants.sidebars.right,
+			bottom: constants.sidebars.bottom,
+			left: constants.sidebars.left,
+		},
+		sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
 		gridMode: 6,
-		crossSidebarGrid: [12, 6, 4],
 	}},
 	mounted: function() {
 		bus.$on("placesFilled", () => {
@@ -488,6 +541,49 @@ export default {
 				this.toDB(); this.makeUpdateCurrent(false);
 			}
 		},
+		sidebarDragStart: function(what, event) {
+			event.preventDefault();
+			this.sidebarDrag.what = what;
+			this.sidebarDrag.x = event.screenX;
+			this.sidebarDrag.y = event.screenY;
+			switch(this.sidebarDrag.what) {
+				case "top" :
+					this.sidebarDrag.h = this.sidebarSize.top;
+					break;
+				case "bottom" :
+					this.sidebarDrag.h = this.sidebarSize.bottom;
+					break;
+				case "left" :
+					this.sidebarDrag.w = this.sidebarSize.left;
+					break;
+				case "right" :
+					this.sidebarDrag.w = this.sidebarSize.right;
+					break;
+			}
+		},
+		documentMouseOver: function(event) {
+			event.preventDefault();
+			if(this.sidebarDrag.what !== null) {
+				switch(this.sidebarDrag.what) {
+					case "top" :
+						this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y + event.screenY;
+						break;
+					case "bottom" :
+						this.sidebarSize.bottom = this.sidebarDrag.h + this.sidebarDrag.y - event.screenY;
+						break;
+					case "left" :
+						this.sidebarSize.left = this.sidebarDrag.w - this.sidebarDrag.x + event.screenX;
+						break;
+					case "right" :
+						this.sidebarSize.right = this.sidebarDrag.w + this.sidebarDrag.x - event.screenX;
+						break;
+				}
+			}
+		},
+		sidebarDragStop: function(event) {
+			event.preventDefault();
+			this.sidebarDrag.what = null;
+		},
 		selectPlaces: function(event) {
 			if(event.keyCode == 27) {
 				event.target.value = "";
@@ -585,27 +681,6 @@ export default {
 				this.currentIndex = this.getIndexById({parent: this.$store.state.places, id: this.currentId});
 			}
 			return sorted;
-		},
-		changeSidebarMode: (sidebar, mode, ceiling) => function(sidebar, mode, ceiling) {
-			let modeCurrent = this.sidebarMode[sidebar];
-			let modeToSet = null;
-			ceiling = ceiling ? ceiling : 3;
-			if(mode === "bigger") {
-				if(modeCurrent < ceiling) {
-					modeToSet = modeCurrent + 1;
-				} else {
-					modeToSet = ceiling;
-				}
-			} else if(mode === "smaller") {
-				if(modeCurrent > 0) {
-					modeToSet = modeCurrent - 1;
-				} else {
-					modeToSet = 0;
-				}
-			}
-			if(modeToSet === null) {modeToSet = mode;}
-			this.sidebarMode[sidebar] = modeToSet;
-			this.gridMode = this.crossSidebarGrid[this.sidebarMode.right - 1];
 		},
 		commonPlacesShowHide: () => function() {
 			this.commonPlacesShow = !this.commonPlacesShow;

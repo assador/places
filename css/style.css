@@ -68,8 +68,7 @@ table.table_decor > * > tr:hover, table.table_decor > * > tr:focus {
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	background-color: rgba(144, 98, 62, 0.2);
 }
-tr:hover, tr:focus,
-*[class*="sba-"]:hover {
+tr:hover, tr:focus {
 	background-color: rgba(144, 98, 62, 0.1);
 }
 body, body.iframe {
@@ -80,6 +79,12 @@ body, body.iframe {
 }
 .value_wrong:focus {
 	background-color: rgb(100, 44, 36) !important;
+}
+.sbs-top:hover, .sbs-bottom:hover {
+	background-image: linear-gradient(to right, rgba(144, 98, 62, 0), rgba(144, 98, 62, 0.13) 10%, rgba(144, 98, 62, 0.13) 90%, rgba(144, 98, 62, 0));
+}
+.sbs-right:hover, .sbs-left:hover {
+	background-image: linear-gradient(to bottom, rgba(144, 98, 62, 0), rgba(144, 98, 62, 0.13) 10%, rgba(144, 98, 62, 0.13) 90%, rgba(144, 98, 62, 0));
 }
 .un_color,
 .un_imp {
@@ -100,12 +105,12 @@ ul > li::before, .pseudo_button::before {
 .button-pressed {
 	color: rgb(153, 58, 0) !important;
 }
-*[class*="sba-"], *[class*="sba-"]:focus {
+*[class*="sbs-"], *[class*="sbs-"]:focus {
 	color: rgb(124, 80, 45);
 }
 a,
 .place-button,
-*[class*="sba-"]:hover {
+*[class*="sbs-"]:hover {
 	color: rgb(234, 177, 126);
 }
 a:hover, a:focus,
