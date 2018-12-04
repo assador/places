@@ -14,6 +14,16 @@ $lengths = array(
 	"description" => 5000,
 	"url"         => 2048
 );
+$images = array(
+	"big" => array(
+		"width"  => 1600,
+		"height" => 1600,
+	),
+	"small" => array(
+		"width"  => 220,
+		"height" => 220,
+	),
+);
 $host = "http://places.scrofa-tridens.ru";
 $from = "service@places.scrofa-tridens.ru";
 $basepath = "/var/www/places/";
