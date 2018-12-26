@@ -40,9 +40,17 @@ export default {
 	watch: {
 		latitude: function() {
 			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
+			this.$store.commit("changeCenter", {
+				latitude: this.$parent.currentPlace.latitude,
+				longitude: this.$parent.currentPlace.longitude,
+			});
 		},
 		longitude: function() {
 			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
+			this.$store.commit("changeCenter", {
+				latitude: this.$parent.currentPlace.latitude,
+				longitude: this.$parent.currentPlace.longitude,
+			});
 		},
 		centerLatitude: function() {
 			this.updateCenter();

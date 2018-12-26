@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div :class="'popup ' + $parent.popuped">
 		<img
 			class="popup-image border_1"
 			:src="$store.state.dirs.uploads.images.big + data.file"

@@ -351,15 +351,13 @@
 			>
 			</div>
 		</div>
-		<div :class="'popup ' + popuped">
-			<component
-				ref="popup"
-				:is="popupComponent"
-				:data="popupData"
-				:currentPlace="currentPlace"
-			>
-			</component>
-		</div>
+		<component
+			ref="popup"
+			:is="popupComponent"
+			:data="popupData"
+			:currentPlace="currentPlace"
+		>
+		</component>
 	</div>
 </template>
 
