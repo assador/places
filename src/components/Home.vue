@@ -11,10 +11,44 @@
 		>
 			<div
 				id="top-left"
-				class="app-cell fieldwidth_100 fontsize_n"
+				class="app-cell fieldwidth_100"
 				:style="'width: ' + sidebarSize.left + 'px;' + (sidebarSize.top < 80 || sidebarSize.left < 120 ? ' display: none;' : '')"
 			>
-				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100" @keyup="selectPlaces" />
+				<div class="control-buttons">
+					<button
+						id="actions-append"
+						class="actions-button"
+						title="Добавить место в центре карты"
+						@click="let newPlace = $refs.ym.appendPlace(); toDB(); $store.commit('changePlace', {place: newPlace, change: {added: false}});"
+					>
+						+
+					</button>
+					<button
+						id="actions-delete"
+						class="actions-button"
+						title="Удалить текущее место"
+						@click="if(currentPlace.userid == $store.state.user.id) {deletePlace(currentPlace);}"
+					>
+						×
+					</button>
+					<button
+						id="actions-append-folder"
+						class="actions-button"
+						title="Добавить папку"
+						@click="showPopup({show: true, type: 'folder'}, $event);"
+					>
+						П+
+					</button>
+					<button
+						id="actions-edit-folders"
+						class="actions-button"
+						title="Редактировать папки"
+						@click="foldersEditMode = !foldersEditMode; if($event.target.classList.contains('button-pressed')) {$event.target.classList.remove('button-pressed');} else {$event.target.classList.add('button-pressed');}"
+					>
+						ПР
+					</button>
+				</div>
+				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100 fontsize_n" @keyup="selectPlaces" />
 			</div>
 			<div
 				id="top-basic"
@@ -35,77 +69,55 @@
 				class="app-cell"
 				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.top < 80 || sidebarSize.right < 120 ? ' display: none;' : '')"
 			>
-				<button
-					id="actions-append"
-					class="actions-button"
-					title="Добавить место в центре карты"
-					@click="$refs.ym.appendPlace(); toDB(); makeUpdateCurrent(false);"
-				>
-					+
-				</button>
-				<button
-					id="actions-delete"
-					class="actions-button"
-					title="Удалить текущее место"
-					@click="if(currentPlace.userid == $store.state.user.id) {deletePlace(currentIndex); toDB(); makeUpdateCurrent(false);}"
-				>
-					×
-				</button>
-				<input
-					id="inputImportFromFile"
-					ref="inputImportFromFile"
-					name="jsonFile"
-					type="file"
-					@change="importFromFile();"
-				/>
-				<button
-					id="actions-import"
-					class="actions-button"
-					title="Импортировать геометки из JSON-файла"
-					onclick="document.getElementById('inputImportFromFile').click();"
-				>
-					↲
-				</button>
-				<button
-					id="actions-export"
-					class="actions-button"
-					title="Экспортировать свои геометки в JSON-файл"
-					@click="exportToFile();"
-				>
-					↱
-				</button>
-				<button
-					id="actions-save"
-					class="actions-button"
-					title="Сохранить в БД"
-					@click="if($store.state.user.testaccount) {$store.commit('setMessage', 'Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных');} else {toDB(); makeUpdateCurrent(false);}"
-				>
-					↯
-				</button>
-				<button
-					id="actions-about"
-					class="actions-button"
-					title="О «Местах», справка"
-					@click="showAbout($event);"
-				>
-					?
-				</button>
-				<button
-					id="actions-refresh"
-					class="actions-button"
-					title="Вернуться к версии в БД"
-					onclick="document.location.reload(true);"
-				>
-					↺
-				</button>
-				<button
-					id="actions-exit"
-					class="actions-button"
-					title="Выйти"
-					@click="toDB(); makeUpdateCurrent(false); exit();"
-				>
-					↪
-				</button>
+				<div class="control-buttons">
+					<input
+						id="inputImportFromFile"
+						ref="inputImportFromFile"
+						name="jsonFile"
+						type="file"
+						@change="importFromFile();"
+					/>
+					<button
+						id="actions-import"
+						class="actions-button"
+						title="Импортировать геометки из JSON-файла"
+						onclick="document.getElementById('inputImportFromFile').click();"
+					>
+						↲
+					</button>
+					<button
+						id="actions-export"
+						class="actions-button"
+						title="Экспортировать свои геометки в JSON-файл"
+						@click="exportToFile();"
+					>
+						↱
+					</button>
+					<button
+						id="actions-save"
+						class="actions-button"
+						title="Сохранить в БД"
+						@click="if($store.state.user.testaccount) {$store.commit('setMessage', 'Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных');} else {toDB(); toDB('folders', JSON.stringify($store.state.folders));}"
+					>
+						↯
+					</button>
+					<button
+						id="actions-about"
+						class="actions-button"
+						title="О «Местах», справка"
+						@click="showAbout($event);"
+					>
+						?
+					</button>
+					<button
+						id="actions-exit"
+						class="actions-button"
+						title="Выйти"
+						@click="toDB(); toDB('folders', JSON.stringify($store.state.folders)); exit();"
+					>
+						↪
+					</button>
+				</div>
 			</div>
 		</div>
 		<div class="app-row" id="basic">
@@ -115,21 +127,127 @@
 				:style="'width: ' + sidebarSize.left + 'px;' + (sidebarSize.left < 120 ? ' display: none;' : '')"
 			>
 				<div id="basic-left__places" class="scrollable">
-					<div v-if="$store.state.places.length > 0">
-						<h2 class="basiccolor">Мои места</h2>
-						<div
-							v-for="place in sortObjects($store.state.places, 'srt')"
-							v-if="!place.deleted && place.show"
-							:id="place.id"
-							:key="place.id"
-							:class="'place-button block_01 draggable' + (place.id == currentId ? ' active' : '')"
-							draggable="true"
-							@click="setCurrentPlace($store.state.places.indexOf(place));"
-							@dragstart="handleDragStart"
-							@dragenter="handleDragEnter"
-						>
-							<h3 class="fontsize_01 margin_bottom_0">{{ place.name }}</h3>
-						</div>
+					<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu" class="hidden">
+						<ul>
+							<li class="places-menu-folder places-menu-folder_opened places-menu-folder_root">
+								<h2
+									id="places-menu-folder-link-root"
+									class="folder-button basiccolor"
+									onclick="if(this.parentNode.classList.contains('places-menu-folder_closed')) {this.parentNode.classList.remove('places-menu-folder_closed'); this.parentNode.classList.add('places-menu-folder_opened');} else {this.parentNode.classList.remove('places-menu-folder_opened'); this.parentNode.classList.add('places-menu-folder_closed');}"
+								>
+									Мои места
+								</h2>
+								<ul id="folders-list-root" class="margin_bottom_0">
+									<li
+										v-for="folder in $store.state.folders"
+										:key="folder.id"
+										:id="'places-menu-folder-' + folder.id"
+										:title="folder.description"
+										class="places-menu-folder places-menu-folder_closed"
+									>
+										<a
+											v-if="!foldersEditMode"
+											:id="'places-menu-folder-link-' + folder.id"
+											href="javascript: void(0);"
+											class="folder-button"
+											:title="folder.description"
+											draggable="true"
+											onclick="if(this.parentNode.classList.contains('places-menu-folder_closed')) {this.parentNode.classList.remove('places-menu-folder_closed'); this.parentNode.classList.add('places-menu-folder_opened');} else {this.parentNode.classList.remove('places-menu-folder_opened'); this.parentNode.classList.add('places-menu-folder_closed');}"
+											@dragstart="handleDragStart"
+										>
+											{{ folder.name }}
+											<div
+												class="folder-button__dragenter-area folder-button__dragenter-area_top"
+												@dragenter="handleDragEnter"
+											>
+											</div>
+											<div
+												class="folder-button__dragenter-area folder-button__dragenter-area_bottom"
+												@dragenter="handleDragEnter"
+											>
+											</div>
+										</a>
+										<span
+											v-if="foldersEditMode"
+											:id="'places-menu-folder-link-' + folder.id"
+											class="folder-button"
+											onclick="if(this.parentNode.classList.contains('places-menu-folder_closed')) {this.parentNode.classList.remove('places-menu-folder_closed'); this.parentNode.classList.add('places-menu-folder_opened');} else {this.parentNode.classList.remove('places-menu-folder_opened'); this.parentNode.classList.add('places-menu-folder_closed');}"
+										>
+											<input
+												v-model="folder.name"
+												placeholder="Название"
+												class="folder-button__name fieldwidth_100"
+												@change="$store.commit('changeFolder', {folder: folder, change: {updated: true}}); toDB('folders', JSON.stringify([folder])); $store.commit('changeFolder', {folder: folder, change: {updated: false}});"
+												onclick="event.stopPropagation();"
+											/>
+											<a
+												class="folder-button__delete"
+												title="Удалить папку"
+												@click="$event.stopPropagation(); showPopup({show: true, type: 'folderDelete', data: folder}, $event);"
+											>
+												×
+											</a>
+											<textarea
+												v-model="folder.description"
+												rows="2"
+												placeholder="Описание"
+												class="folder-button__description fieldwidth_100"
+												@change="$store.commit('changeFolder', {folder: folder, change: {updated: true}}); toDB('folders', JSON.stringify([folder])); $store.commit('changeFolder', {folder: folder, change: {updated: false}});"
+												onclick="event.stopPropagation();"
+											></textarea>
+										</span>
+										<div :id="folder.id" class="places-menu-item">
+											<div
+												v-for="place in $store.state.places"
+												v-if="place.folderid === folder.id && place.show"
+												:key="place.id"
+												:id="place.id"
+												:class="'place-button block_01 draggable' + (place === currentPlace ? ' active' : '')"
+												draggable="true"
+												@click="setCurrentPlace(place);"
+												@dragstart="handleDragStart"
+											>
+												{{ place.name }}
+												<div
+													class="place-button__dragenter-area place-button__dragenter-area_top"
+													@dragenter="handleDragEnter"
+												>
+												</div>
+												<div
+													class="place-button__dragenter-area place-button__dragenter-area_bottom"
+													@dragenter="handleDragEnter"
+												>
+												</div>
+											</div>
+										</div>
+									</li>
+								</ul>
+								<div id="places-menu-item-root" class="places-menu-item">
+									<div
+										v-for="place in $store.state.places"
+										v-if="place.folderid === null && place.show"
+										:key="place.id"
+										:id="place.id"
+										:class="'place-button block_01 draggable' + (place === currentPlace ? ' active' : '')"
+										draggable="true"
+										@click="setCurrentPlace(place);"
+										@dragstart="handleDragStart"
+									>
+										{{ place.name }}
+										<div
+											class="place-button__dragenter-area place-button__dragenter-area_top"
+											@dragenter="handleDragEnter"
+										>
+										</div>
+										<div
+											class="place-button__dragenter-area place-button__dragenter-area_bottom"
+											@dragenter="handleDragEnter"
+										>
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
 					</div>
 					<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
 						<h2 class="basiccolor">Другие места</h2>
@@ -137,10 +255,10 @@
 							v-for="commonPlace in sortObjects($store.state.commonPlaces, 'srt')"
 							:id="commonPlace.id"
 							:key="commonPlace.id"
-							:class="'place-button block_01' + (commonPlace.id == currentId ? ' active' : '')"
-							@click="setCurrentPlace($store.state.commonPlaces.indexOf(commonPlace), true);"
+							:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
+							@click="setCurrentPlace(commonPlace, true);"
 						>
-							<h3 class="fontsize_01 margin_bottom_0">{{ commonPlace.name }}</h3>
+							{{ commonPlace.name }}
 						</div>
 					</div>
 				</div>
@@ -179,40 +297,40 @@
 				<div class="scrollable">
 					<dl class="place-detailed margin_bottom_0">
 						<template v-for="field in Object.keys(currentPlace)" v-if="!currentPlace.deleted" :key="field">
-							<dt v-if="!(field == 'images' && currentImages.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
+							<dt v-if="!(field == 'images' && currentImages.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
 								{{ $store.state.placeFields[field] }}:
 							</dt>
-							<dd v-if="field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
+							<dd v-if="field != 'show' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
 								<input
 									type="text"
 									:id="'detailed-' + field"
 									:disabled="currentPlaceCommon"
 									v-model.number.trim="currentPlace[field]"
-									@click="validatable();"
-									@change="makeUpdateCurrent(true);"
-									@blur="if(updateCurrent) {toDB(); makeUpdateCurrent(false);}"
+									@focus="validatable();"
+									@keyup="if(field === 'srt') {sortPlaceElementInMenu(currentPlace);}"
+									@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}}); toDB(); $store.commit('changePlace', {place: currentPlace, change: {updated: false}});"
 									class="fieldwidth_100"
 								/>
 							</dd>
-							<dd v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'">
+							<dd v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'">
 								<label>
 									<input
 										type="checkbox"
 										:id="'detailed-' + field"
 										:disabled="currentPlaceCommon"
 										v-model="currentPlace[field]"
-										@change="toDB(); makeUpdateCurrent(false);"
+										@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}}); toDB(); $store.commit('changePlace', {place: currentPlace, change: {updated: false}});"
 									/>
 									Место видимо другим
 								</label>
 							</dd>
-							<dd v-else-if="field == 'images' && currentImages.length > 0 && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
+							<dd v-else-if="field == 'images' && currentImages.length > 0 && field != 'show' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
 								<div class="dd-images row_01">
 									<div
 										v-for="image in sortObjects(currentImages, 'srt')"
 										:id="image.id"
 										:key="image.id"
-										:class="'col-' + gridMode + (currentPlaceCommon ? '' : ' draggable')"
+										:class="'place-image col-' + gridMode + (currentPlaceCommon ? '' : ' draggable')"
 										:draggable="currentPlaceCommon ? false : true"
 										@click="showPopup({show: true, type: 'image', data: image}, $event);"
 										@dragstart="handleDragStart"
@@ -239,20 +357,19 @@
 									</div>
 								</div>
 							</dd>
-							<dd v-else-if="field != 'common' && field != 'images' && field != 'show' && field != 'id' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
+							<dd v-else-if="field != 'common' && field != 'images' && field != 'show' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
 								<textarea
 									:id="'detailed-' + field"
 									:disabled="currentPlaceCommon"
 									v-model.trim="currentPlace[field]"
-									@change="makeUpdateCurrent(true);"
-									@blur="if(updateCurrent) {toDB(); makeUpdateCurrent(false);}"
+									@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}}); toDB(); $store.commit('changePlace', {place: currentPlace, change: {updated: false}});"
 									class="fieldwidth_100"
 								>
 									{{ currentPlace[field] }}
 								</textarea>
 							</dd>
 						</template>
-						<div v-if="!currentPlace.deleted && !currentPlaceCommon && currentId" class="images-add">
+						<div v-if="!currentPlace.deleted && !currentPlaceCommon" class="images-add">
 							<div class="images-add__div button">Добавить фотографии</div>
 							<input
 								type="file"
@@ -351,13 +468,15 @@
 			>
 			</div>
 		</div>
-		<component
-			ref="popup"
-			:is="popupComponent"
-			:data="popupData"
-			:currentPlace="currentPlace"
-		>
-		</component>
+		<div :class="'popup ' + popuped">
+			<component
+				ref="popup"
+				:is="popupComponent"
+				:data="popupData"
+				:currentPlace="currentPlace"
+			>
+			</component>
+		</div>
 	</div>
 </template>
 
@@ -367,6 +486,8 @@ import {bus} from "../shared/bus.js"
 import mapyandex from "./MapYandex.vue"
 import popupimage from "./PopupImage.vue"
 import popuptext from "./PopupText.vue"
+import popupfolder from "./PopupFolder.vue"
+import popupfolderdelete from "./PopupFolderDelete.vue"
 import axios from "axios"
 import {mapGetters} from "vuex"
 export default {
@@ -374,21 +495,24 @@ export default {
 		mapyandex,
 		popupimage,
 		popuptext,
+		popupfolder,
+		popupfolderdelete,
 	},
 	data: function() {return {
+		state: this.$store.state,
+		placesFilled: false,
 		firstValidatable: false,
-		places: this.$store.state,
-		currentId: null,
-		currentIndex: 0,
 		currentPlace: {},
 		currentImages: {},
 		commonPlacesShow: false,
 		currentPlaceCommon: false,
-		updateCurrent: false,
+		needToUpdate: false,
+		needToUpdateFolders: false,
 		popuped: "disappear",
 		popupComponent: "popuptext",
 		popupData: {},
 		draggingElement: null,
+		foldersEditMode: false,
 		sidebarSize: {
 			top: constants.sidebars.top,
 			right: constants.sidebars.right,
@@ -409,13 +533,22 @@ export default {
 			document.addEventListener("dragover", this.handleDragOver, false);
 			document.addEventListener("drop", this.handleDrop, false);
 			document.addEventListener("keyup", this.keyup, false);
-			this.$store.commit("modifyPlaces", this.sortObjects(this.$store.state.places, "srt"));
-			this.$store.commit("modifyCommonPlaces", this.sortObjects(this.$store.state.commonPlaces, "srt"));
+			this.placesFilled = true;
 		});
 		if(this.$store.state.user.testaccount) {
 			setTimeout(function() {
 				this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможны сохранение изменений в базу данных и загрузка файлов, в том числе фотографий");
 			}.bind(this), 5000);
+		}
+	},
+	updated: function() {
+		if(
+			this.placesFilled
+			&& document.getElementById("places-menu")
+			&& document.getElementById("places-menu").classList.contains("hidden")
+		) {
+			this.buildMenu(this.$store.state.folders);
+			document.getElementById("places-menu").classList.remove("hidden");
 		}
 	},
 	beforeDestroy: function() {
@@ -431,19 +564,23 @@ export default {
 				this.firstValidatable = true;
 			}
 		},
+		validate_field: function(value, type) {
+			return validate_field(value, type);
+		},
 		keyup: function(event) {
 			if(event.altKey && event.shiftKey) {
 				switch(constants.shortcuts[event.keyCode]) {
 					case "add" :
-						this.$refs.ym.appendPlace();
+						let newPlace = this.$refs.ym.appendPlace();
 						this.toDB();
-						this.makeUpdateCurrent(false);
+						this.$store.commit("changePlace", {
+							place: newPlace,
+							change: {added: false},
+						});
 						break;
 					case "delete" :
-						if(this.currentPlace.userid == this.$store.state.user.id) {
-							this.deletePlace(this.currentIndex);
-							this.toDB();
-							this.makeUpdateCurrent(false);
+						if(this.currentPlace.userid === this.$store.state.user.id) {
+							this.deletePlace(this.currentPlace);
 						}
 						break;
 					case "import" :
@@ -457,7 +594,7 @@ export default {
 							this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных");
 						} else {
 							this.toDB();
-							this.makeUpdateCurrent(false);
+							this.toDB("folders", JSON.stringify(this.$store.state.folders));
 						}
 						break;
 					case "help" :
@@ -468,7 +605,7 @@ export default {
 						break;
 					case "quit" :
 						this.toDB();
-						this.makeUpdateCurrent(false);
+						this.toDB("folders", JSON.stringify(this.$store.state.folders));
 						this.exit();
 						break;
 					case "other" :
@@ -485,7 +622,7 @@ export default {
 						break;
 				}
 			}
-			if(this.popuped == "appear") {
+			if(this.popuped === "appear") {
 				switch(constants.shortcuts[event.keyCode]) {
 					case "close" :
 						this.showPopup({show: false}, event);
@@ -506,28 +643,159 @@ export default {
 		handleDragStart: function(event) {
 			event.dataTransfer.setData("text/plain", null);
 			this.draggingElement = event.target;
+			if(this.draggingElement.classList.contains("place-button")) {
+				this.draggingPlaceIndex = this.getIndexById({
+					parent: this.$store.state.places,
+					id: this.draggingElement.id,
+				});
+				this.draggingFolderId = this.$store.state.places[this.draggingPlaceIndex].folderid;
+			}
+			if(this.draggingElement.classList.contains("folder-button")) {
+				this.draggingFolderIndex = this.getIndexById({
+					parent: this.$store.state.folders,
+					id: this.draggingElement.id.substr(24),
+				});
+				this.draggingFolderId = this.$store.state.folders[this.draggingFolderIndex].parent;
+			}
 		},
 		handleDragEnter: function(event) {
 			event.preventDefault();
-			if(event.target.draggable && this.draggingElement != event.target) {
-				this.makeUpdateCurrent(true);
-				let parent;
-				switch(this.draggingElement.parentNode.parentNode.id) {
-					case "basic-left__places" :
-						parent = this.$store.state.places;
-						break;
-					case "place-images" :
-						parent = this.currentImages;
-						break;
+			event.stopPropagation();
+			if(this.draggingElement !== null && this.draggingElement !== event.target) {
+				if(this.draggingElement.classList.contains("place-button")) {
+					if(event.target.parentNode.classList.contains("place-button") && this.draggingElement != event.target.parentNode) {
+						let targetIndex = this.getIndexById({
+							parent: this.$store.state.places,
+							id: event.target.parentNode.id,
+						});
+						let targetPrevIndex = event.target.parentNode.previousElementSibling
+							? this.getIndexById({
+								parent: this.$store.state.places,
+								id: event.target.parentNode.previousElementSibling.id,
+							})
+							: null;
+						let targetNextIndex = event.target.parentNode.nextElementSibling
+							? this.getIndexById({
+								parent: this.$store.state.places,
+								id: event.target.parentNode.nextElementSibling.id,
+							})
+							: null;
+						let srt;
+						if(event.target.classList.contains("place-button__dragenter-area_top")) {
+							if(targetPrevIndex === null) {
+								srt = this.$store.state.places[targetIndex].srt / 2;
+							} else {
+								srt = (this.$store.state.places[targetIndex].srt - this.$store.state.places[targetPrevIndex].srt) / 2 + this.$store.state.places[targetPrevIndex].srt;
+							}
+							document.getElementById(
+								this.$store.state.places[targetIndex].folderid === null
+									? "places-menu-item-root"
+									: this.$store.state.places[targetIndex].folderid
+							).insertBefore(this.draggingElement, event.target.parentNode);
+						}
+						if(event.target.classList.contains("place-button__dragenter-area_bottom")) {
+							if(targetNextIndex === null) {
+								srt = this.$store.state.places[targetIndex].srt + 1;
+								document.getElementById(
+									this.$store.state.places[targetIndex].folderid === null
+										? "places-menu-item-root"
+										: this.$store.state.places[targetIndex].folderid
+								).appendChild(this.draggingElement);
+							} else {
+								srt = (this.$store.state.places[targetNextIndex].srt - this.$store.state.places[targetIndex].srt) / 2 + this.$store.state.places[targetIndex].srt;
+								document.getElementById(
+									this.$store.state.places[targetIndex].folderid === null
+										? "places-menu-item-root"
+										: this.$store.state.places[targetIndex].folderid
+								).insertBefore(this.draggingElement, event.target.parentNode.nextElementSibling);
+							}
+						}
+						this.$store.commit("changePlace", {
+							place: this.$store.state.places[
+								this.getIndexById({
+									parent: this.$store.state.places,
+									id: this.draggingElement.id,
+								})
+							],
+							change: {
+								folderid: this.$store.state.places[targetIndex].folderid,
+								srt: srt,
+							},
+						});
+						this.needToUpdate = true;
+					}
 				}
-				this.$store.commit("swapValues", {
-					parent: parent,
-					indexes: [
-						this.getIndexById({parent: parent, id: this.draggingElement.id}),
-						this.getIndexById({parent: parent, id: event.target.id}),
-					],
-					values: ["srt"],
-				});
+				if(
+					this.draggingElement.classList.contains("folder-button")
+					&& event.target.classList.contains("folder-button__dragenter-area")
+					&& this.draggingElement != event.target.parentNode
+					&& !(
+						event.target.classList.contains("folder-button__dragenter-area_bottom")
+						&& event.target.parentNode.parentNode.classList.contains("places-menu-folder_opened")
+					)
+				) {
+					let targetIndex = this.getIndexById({
+						parent: this.$store.state.folders,
+						id: event.target.parentNode.id.substr(24),
+					});
+					let targetPrevIndex = event.target.parentNode.parentNode.previousElementSibling
+						? this.getIndexById({
+							parent: this.$store.state.folders,
+							id: event.target.parentNode.parentNode.previousElementSibling.id.substr(19),
+						})
+						: null;
+					let targetNextIndex = event.target.parentNode.parentNode.nextElementSibling
+						? this.getIndexById({
+							parent: this.$store.state.folders,
+							id: event.target.parentNode.parentNode.nextElementSibling.id.substr(19),
+						})
+						: null;
+					let srt;
+					if(event.target.classList.contains("folder-button__dragenter-area_top")) {
+						if(targetPrevIndex === null) {
+							srt = this.$store.state.folders[targetIndex].srt / 2;
+						} else {
+							srt = (this.$store.state.folders[targetIndex].srt - this.$store.state.folders[targetPrevIndex].srt) / 2 + this.$store.state.folders[targetPrevIndex].srt;
+						}
+						event.target.parentNode.parentNode.parentNode.insertBefore(this.draggingElement.parentNode, event.target.parentNode.parentNode);
+					}
+					if(event.target.classList.contains("folder-button__dragenter-area_bottom")) {
+						if(targetNextIndex === null) {
+							srt = this.$store.state.folders[targetIndex].srt + 1;
+							event.target.parentNode.parentNode.parentNode.appendChild(this.draggingElement.parentNode);
+						} else {
+							srt = (this.$store.state.folders[targetNextIndex].srt - this.$store.state.folders[targetIndex].srt) / 2 + this.$store.state.folders[targetIndex].srt;
+							event.target.parentNode.parentNode.parentNode.insertBefore(this.draggingElement.parentNode, event.target.parentNode.parentNode.nextElementSibling);
+						}
+					}
+					let
+						parentId = event.target.parentNode.parentNode.parentNode.id.substr(13),
+						folder = this.$store.state.folders[
+							this.getIndexById({
+								parent: this.$store.state.folders,
+								id: this.draggingElement.id.substr(24),
+							})
+						];
+					this.$store.commit("changeFolder", {
+						folder: folder,
+						change: {
+							parent: parentId === "root" ? null : parentId,
+							srt: srt,
+						},
+					});
+					this.needToUpdateFolders = true;
+				}
+				if(this.draggingElement.classList.contains("place-image")) {
+					this.$store.commit("swapValues", {
+						parent: this.currentImages,
+						indexes: [
+							this.getIndexById({parent: this.currentImages, id: this.draggingElement.id}),
+							this.getIndexById({parent: this.currentImages, id: event.target.id}),
+						],
+						values: ["srt"],
+					});
+					this.needToUpdate = true;
+				}
 			}
 		},
 		handleDragOver: function(event) {
@@ -535,8 +803,72 @@ export default {
 		},
 		handleDrop: function(event) {
 			event.preventDefault();
-			if(this.updateCurrent) {
-				this.toDB(); this.makeUpdateCurrent(false);
+			if(
+				this.draggingElement !== null
+				&& this.draggingElement.classList.contains("place-button")
+				&& event.target.parentNode.classList.contains("places-menu-folder")
+			) {
+				let container, containers = event.target.parentNode.querySelectorAll(".places-menu-item");
+				containers.forEach(function(c) {
+					if(c.parentNode === event.target.parentNode) {
+						container = c;
+						return;
+					}
+				});
+				let srt;
+				if(container.children.length > 0) {
+					srt = this.$store.state.places[this.getIndexById({
+						parent: this.$store.state.places,
+						id: container.children[container.children.length - 1].id,
+					})].srt + 1;
+				} else {
+					srt = 1;
+				}
+				this.$store.commit("changePlace", {
+					place: this.$store.state.places[
+						this.getIndexById({
+							parent: this.$store.state.places,
+							id: this.draggingElement.id,
+						})
+					],
+					change: {
+						folderid: container.id === "places-menu-item-root" ? null : container.id,
+						srt: srt,
+					},
+				});
+				container.appendChild(this.draggingElement);
+				this.needToUpdate = true;
+			}
+			if(
+				this.draggingElement.id.substr(0, 24) === "places-menu-folder-link-"
+				&& event.target.id.substr(0, 24) === "places-menu-folder-link-"
+				&& this.draggingElement != event.target
+			) {
+				let
+					targetId = event.target.id.substr(24),
+					newUl = event.target.parentNode.querySelector("ul");
+				if(!newUl) {
+					newUl = event.target.parentNode.insertBefore(document.createElement("ul"), event.target.parentNode.firstChild.nextElementSibling);
+					newUl.className = "margin_bottom_0";
+				}
+				newUl.appendChild(this.draggingElement.parentNode);
+				this.$store.state.folders.forEach(function(folder) {
+					if(folder.id === this.draggingElement.id.substr(24)) {
+						this.$store.commit("changeFolder", {
+							folder: folder,
+							change: {parent: targetId === "root" ? null : targetId},
+						});
+						this.toDB("folders", JSON.stringify([folder]));
+					}
+				}.bind(this));
+			}
+			if(this.needToUpdate) {
+				this.toDB();
+				this.needToUpdate = false;
+			}
+			if(this.needToUpdateFolders) {
+				this.toDB("folders", JSON.stringify(this.$store.state.folders));
+				this.needToUpdateFolders = false;
 			}
 		},
 		sidebarDragStart: function(what, event) {
@@ -585,32 +917,60 @@ export default {
 		selectPlaces: function(event) {
 			if(event.keyCode == 27) {
 				event.target.value = "";
-				for(let i = 0; i < this.$store.state.places.length; i++) {
-					this.$store.commit("show", i);
-				}
 			} else {
 				for(let i = 0; i < this.$store.state.places.length; i++) {
-					let regexp = new RegExp(event.target.value, "i");
-					if(!regexp.test(this.$store.state.places[i].name)) {
-						this.$store.commit("hide", i);
-					} else {
-						this.$store.commit("show", i);
+					let regexp = new RegExp("^" + event.target.value + "$", "i");
+					if(regexp.test(this.$store.state.places[i].name)) {
+						this.setCurrentPlace(this.$store.state.places[i]);
 					}
+				}
+			}
+		},
+		buildMenu: function(plain) {
+			let tree = document.getElementById("folders-list-root"), parentLi, parentUl, treeLength = 0;
+			plain.forEach(function(item) {
+				if(item.parent !== null) {
+					parentLi = document.getElementById("places-menu-folder-" + item.parent);
+					if(parentLi !== null) {
+						if(!document.getElementById("folders-list-" + item.parent)) {
+							let parentUl = document.createElement("ul");
+							parentUl.id = "folders-list-" + item.parent;
+							parentUl.className = "margin_bottom_0";
+							parentLi.insertBefore(parentUl, document.getElementById(item.parent));
+						}
+						document.getElementById("folders-list-" + item.parent).appendChild(
+							document.getElementById("places-menu-folder-" + item.id)
+						);
+						treeLength++;
+					}
+				}
+			});
+		},
+		sortPlaceElementInMenu: function(place) {
+			let
+				placeElement = document.getElementById(place.id),
+				folder = place.folderid === null
+					? document.getElementById("places-menu-item-root")
+					: document.getElementById(place.folderid)
+			;
+			for(var i = 0; i < folder.children.length; i++) {
+				let itemSrt = this.$store.state.places[this.getIndexById({
+					parent: this.$store.state.places,
+					id: folder.children[i].id,
+				})].srt;
+				if(place.srt < itemSrt) {
+					folder.insertBefore(placeElement, folder.children[i]);
+					return;
+				}
+				if(i == folder.children.length - 1) {
+					folder.appendChild(placeElement);
+					return;
 				}
 			}
 		},
 	},
 	computed: {
-		...mapGetters(["getPlace", "getImages", "getLogin", "getMessage", "getImagesCount", "getIndexById"]),
-		makeUpdateCurrent: (update) => function(update) {
-			if(this.currentIndex && this.currentIndex >= 0) {
-				this.$store.commit("changePlace", {
-					index: this.currentIndex,
-					change: {updated: update},
-				});
-			}
-			this.updateCurrent = update;
-		},
+		...mapGetters(["getImages", "getLogin", "getMessage", "getImagesCount", "getIndexById"]),
 		exit: () => function() {
 			this.$store.dispatch("unload");
 			bus.$emit("loggedChange", "auth");
@@ -618,66 +978,63 @@ export default {
 		account: () => function() {
 			bus.$emit("loggedChange", "account");
 		},
-		setCurrentPlace: (index, common = false) => function(index, common = false) {
-			this.currentPlaceCommon = common ? true : false;
-			if(document.getElementById(this.currentId)) {
-				document.getElementById(this.currentId).classList.remove("active");
-			}
-			if(!common && !this.$store.state.places[index]) {
-				index--;
-				if(!this.$store.state.places[index]) {
-					return;
-				}
-			}
-			if(this.currentId) {
-				if(this.$store.state.places[this.currentIndex]) {
-					this.$refs.ym.mrks[this.currentId].options.set("iconColor", this.$refs.ym.privatePlacemarksColor);
+		setCurrentPlace: (place, common = false) => function(place, common = false) {
+			if(Object.keys(this.currentPlace).length > 0) {
+				if(!this.currentPlaceCommon) {
+					this.$refs.ym.mrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.privatePlacemarksColor);
 				} else {
-					this.$refs.ym.commonMrks[this.currentId].options.set("iconColor", this.$refs.ym.commonPlacemarksColor);
+					this.$refs.ym.commonMrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.commonPlacemarksColor);
 				}
 			}
-			this.currentId = !common
-				? this.$store.state.places[index].id
-				: this.$store.state.commonPlaces[index].id
-			;
-			if(common) {
-				this.$refs.ym.commonMrks[this.currentId].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
+			this.currentPlace = place;
+			this.currentPlaceCommon = common ? true : false;
+			if(!this.currentPlaceCommon) {
+				this.$refs.ym.mrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
 			} else {
-				this.$refs.ym.mrks[this.currentId].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
+				this.$refs.ym.commonMrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
 			}
-			this.currentIndex = index;
-			this.currentPlace = this.getPlace(this.currentIndex, common);
-			this.currentImages = this.getImages(this.currentIndex, common);
+			let folder, folderid = place.folderid;
+			while(folderid !== null) {
+				folder = document.getElementById("places-menu-folder-" + folderid);
+				folder.classList.remove('places-menu-folder_closed');
+				folder.classList.add('places-menu-folder_opened');
+				folderid = this.$store.state.folders.find(f => f.id === folderid).parent;
+			}
+			this.currentImages = this.getImages(this.currentPlace, common);
 			this.$store.commit("changeCenter", {
 				latitude: this.currentPlace.latitude,
 				longitude: this.currentPlace.longitude,
 			});
 		},
-		deletePlace: index => function(index) {
-			this.$store.commit("removePlace", index);
-			this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[this.$store.state.places[index].id]);
-			for(var i = this.currentIndex + 1; i < this.$store.state.places.length; i++) {
-				if(!this.$store.state.places[i].deleted) {
-					this.setCurrentPlace(i);
-					return;
+		deletePlace: place => function(place) {
+			this.$store.commit("removePlace", place);
+			this.toDB();
+			this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[place.id]);
+			if(place === this.currentPlace) {
+				if(document.getElementById(place.id).nextElementSibling) {
+					this.setCurrentPlace(
+						this.$store.state.places.find(
+							p => p.id === document.getElementById(place.id).nextElementSibling.id
+						)
+					);
+				} else if(document.getElementById(place.id).previousElementSibling) {
+					this.setCurrentPlace(
+						this.$store.state.places.find(
+							p => p.id === document.getElementById(place.id).previousElementSibling.id
+						)
+					);
+				} else {
+					this.setCurrentPlace(
+						this.$store.state.places.find(p => p.folderid === null)
+					);
 				}
 			}
-			for(var i = this.currentIndex - 1; i >= 0; i--) {
-				if(!this.$store.state.places[i].deleted) {
-					this.setCurrentPlace(i);
-					return;
-				}
-			}
+			this.$store.commit("deletePlace", place);
 		},
 		sortObjects: (array, field) => function(array, field) {
 			let sorted = array.slice().sort(function(a, b) {
 				return a[field] - b[field];
 			});
-			if(this.currentId == null) {
-				this.currentIndex = 0;
-			} else {
-				this.currentIndex = this.getIndexById({parent: this.$store.state.places, id: this.currentId});
-			}
 			return sorted;
 		},
 		commonPlacesShowHide: () => function() {
@@ -701,39 +1058,48 @@ export default {
 		showPopup: (opts, event) => function(opts, event) {
 			event.stopPropagation();
 			switch(opts.type) {
-				case "image" :
-					this.popupComponent = "popupimage";
+				case "text" :
 					this.popupData = opts.data;
-					break;
-				default :
 					this.popupComponent = "popuptext";
+					break;
+				case "image" :
 					this.popupData = opts.data;
+					this.popupComponent = "popupimage";
+					break;
+				case "folder" :
+					this.popupData = opts.data;
+					this.popupComponent = "popupfolder";
+					break;
+				case "folderDelete" :
+					this.popupData = opts.data;
+					this.popupComponent = "popupfolderdelete";
+					break;
 			}
 			this.popuped = opts["show"] ? "appear" : "disappear";
 		},
 		showAbout: (event) => function(event) {
-				let aboutRequest = new XMLHttpRequest();
-				aboutRequest.open("GET", "/about.htm", true);
-				aboutRequest.onreadystatechange = function(event) {
-					if(aboutRequest.readyState == 4) {
-						if(aboutRequest.status == 200) {
-							this.showPopup({
-								show: true,
-								type: "text",
-								data:
-									JSON.stringify(aboutRequest.responseText)
-										.replace(/^\s*\"/, "")
-										.replace(/\"\s*$/, "")
-										.replace(/(?:\\(?=")|\\(?=\/)|\\t|\\n)/gi, "")
-								,
-							}, event);
-						} else {
-							this.$store.commit("setMessage", "Не могу найти справку");
-						}
+			let aboutRequest = new XMLHttpRequest();
+			aboutRequest.open("GET", "/about.htm", true);
+			aboutRequest.onreadystatechange = function(event) {
+				if(aboutRequest.readyState == 4) {
+					if(aboutRequest.status == 200) {
+						this.showPopup({
+							show: true,
+							type: "text",
+							data:
+								JSON.stringify(aboutRequest.responseText)
+									.replace(/^\s*\"/, "")
+									.replace(/\"\s*$/, "")
+									.replace(/(?:\\(?=")|\\(?=\/)|\\t|\\n)/gi, "")
+							,
+						}, event);
+					} else {
+						this.$store.commit("setMessage", "Не могу найти справку");
 					}
-				}.bind(this);
-				aboutRequest.setRequestHeader("Content-type", "application/json");
-				aboutRequest.send();
+				}
+			}.bind(this);
+			aboutRequest.setRequestHeader("Content-type", "application/json");
+			aboutRequest.send();
 		},
 		importFromFile: () => function() {
 			let reader = new FileReader();
@@ -755,7 +1121,7 @@ export default {
 			e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
 			a.dispatchEvent(e);
 		},
-		toDB: (todo, data) => function(todo = "places", data = JSON.stringify(this.$store.state.places)) {
+		toDB: (todo, data) => function(todo, data) {
 			if(!this.$store.state.user.testaccount) {
 				return new Promise((resolve, reject) => {
 					if(!document.querySelector(".value_wrong")) {
@@ -773,10 +1139,9 @@ export default {
 							}
 						}.bind(this);
 						placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-						placesRequest.send("id=" + localStorage.getItem("places-userid") + "&todo=" + todo + (data != "undefined" ? ("&data=" + data) : ""));
+						placesRequest.send("id=" + localStorage.getItem("places-userid") + "&todo=" + (typeof(todo) !== "undefined" ? todo : "places") + "&data=" + (typeof(data) !== "undefined" ? data : JSON.stringify(this.$store.state.places)));
 					} else {
 						this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
-						reject(new Error("Некоторые поля заполнены некорректно"));
 					}
 				});
 			}
@@ -811,7 +1176,7 @@ export default {
 								type: files[i].type,
 								lastmodified: files[i].lastModified,
 								srt: ++srt,
-								placeid: this.currentId,
+								placeid: this.currentPlace.id,
 							});
 						}
 						let images = this.currentImages
@@ -820,7 +1185,7 @@ export default {
 						;
 						this.currentImages = images;
 						this.$store.commit("changePlace", {
-							index: this.currentIndex,
+							place: this.currentPlace,
 							change: {images: images},
 						});
 						this.$store.commit("setMessage", "Файлы успешно загружены");
@@ -849,7 +1214,7 @@ export default {
 				axios.post("/backend/delete.php", data)
 					.then(response => {
 						this.$store.commit("changePlace", {
-							index: this.currentIndex,
+							place: this.currentPlace,
 							change: {images: inarray},
 						});
 						this.toDB("images_delete", JSON.stringify(files));

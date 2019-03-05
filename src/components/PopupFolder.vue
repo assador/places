@@ -1,0 +1,86 @@
+<template>
+	<div>
+		<div class="folder-new centered">
+			<div class="brand">
+				<h1 class="margin_bottom_0">Новая папка</h1>
+			</div>
+			<form class="folder-new__form" @submit.prevent="appendFolder(folderName, folderDescription);">
+				<table class="table_form">
+					<tbody>
+						<tr>
+							<th>Название:</th>
+							<td>
+								<input class="fieldwidth_100" required id="folderName" v-model="folderName" type="text" @click="validatable();" />
+							</td>
+						</tr>
+						<tr>
+							<th>Описание:</th>
+							<td>
+								<textarea class="fieldwidth_100" id="folderDescription" v-model="folderDescription" @click="validatable();"></textarea>
+							</td>
+						</tr>
+						<tr class="back_0">
+							<th></th>
+							<td style="padding-top: 18px; vertical-align: top;">
+								<button type="submit">Создать папку</button>
+							</td>
+						</tr>
+						<tr class="back_0">
+							<th></th>
+							<td style="padding-top: 18px;" v-html="message"></td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+			<a href="javascript:void(0);" class="close" @click="$parent.showPopup({show: false}, $event);">×</a>
+		</div>
+	</div>
+</template>
+
+<script>
+export default {
+	props: ["data"],
+	data: function() {return {
+		firstValidatable: false,
+		folderName: null,
+		folderDescription: null,
+		message: "",
+	}},
+	methods: {
+		validatable: function() {
+			if(!this.firstValidatable) {
+				make_fields_validatable();
+				this.firstValidatable = true;
+			}
+		},
+	},
+	computed: {
+		appendFolder: (folderName, folderDescription) => function(folderName, folderDescription) {
+			let newFolder = {
+				userid: localStorage.getItem("places-userid"),
+				name: folderName,
+				description: folderDescription,
+				id: generateRandomString(32),
+				srt: this.$store.state.folders.length > 0
+					? Math.ceil(Math.max(
+						...this.$store.state.folders.map(function(folder) {
+							return folder.srt;
+						})
+					)) + 1
+					: 1,
+				added: true,
+				deleted: false,
+				updated: false,
+			};
+			this.$store.commit("addFolder", newFolder);
+			this.$parent.toDB("folders", JSON.stringify(this.$store.state.folders));
+			this.$store.commit("changeFolder", {
+				folder: newFolder,
+				change: {added: false},
+			});
+			this.$parent.buildMenu(this.$store.state.folders);
+			this.message = "Папка создана";
+		},
+	},
+}
+</script>

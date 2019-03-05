@@ -20,8 +20,8 @@
 -->
 	<script src="https://api-maps.yandex.ru/2.1/?lang=ru-RU"></script>
 	<script src="/vendor/scripts/css-element-queries/src/ResizeSensor.js"></script>
+	<script src="/scripts/common.js"></script>
 	<script src="/scripts/fields_validate.js"></script>
-	<script src="/scripts/randomstring.js"></script>
 	<script src="/scripts/account.js"></script>
 <!--
 	<script src="/vendor/scripts/css-element-queries/src/ElementQueries.js"></script>

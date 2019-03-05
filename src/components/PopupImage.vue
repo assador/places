@@ -1,5 +1,5 @@
 <template>
-	<div :class="'popup ' + $parent.popuped">
+	<div>
 		<img
 			class="popup-image border_1"
 			:src="$store.state.dirs.uploads.images.big + data.file"
@@ -18,7 +18,7 @@ export default {
 	computed: {
 		showImage: (step, event) => function(step, event) {
 			event.stopPropagation();
-			let currentIndex = this.currentPlace.images.indexOf(this.data)
+			let currentIndex = this.currentPlace.images.indexOf(this.data);
 			let ImagesLength = this.currentPlace.images.length;
 			currentIndex = (currentIndex + step) % ImagesLength + (currentIndex + step < 0 ? ImagesLength : 0);
 			this.data = this.currentPlace.images[currentIndex];

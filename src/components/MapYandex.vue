@@ -101,7 +101,12 @@ export default {
 				this.$store.state.commonPlaces.forEach(function(commonPlace) {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				}.bind(this));
-				this.$parent.setCurrentPlace(this.$parent.currentIndex);
+				let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
+				if(typeof(firstPlaceInRoot) === "undefined") {
+					this.$parent.setCurrentPlace(this.$store.state.places[0]);
+				} else {
+					this.$parent.setCurrentPlace(firstPlaceInRoot);
+				}
 			};
 		},
 		appendPlacemark: (marks, place, type) => function(marks, place, type) {
@@ -122,43 +127,33 @@ export default {
 			marks[place.id].events.add("dragend", function() {
 				let coordinates = marks[place.id].geometry.getCoordinates();
 				this.$store.commit("changePlace", {
-					index: this.$store.state.places.indexOf(place),
+					place: place,
 					change: {
 						latitude: coordinates[0].toFixed(7),
 						longitude: coordinates[1].toFixed(7),
 					},
 				});
-				this.$parent.toDB(); this.$parent.makeUpdateCurrent(false);
-				this.setCurrentPlaceByPlacemark(type, place);
+				this.$parent.toDB();
+				this.$parent.setCurrentPlace(place, type === "common" ? true : false);
 			}.bind(this));
 			marks[place.id].events.add("mouseup", function() {
-				this.setCurrentPlaceByPlacemark(type, place);
+				this.$parent.setCurrentPlace(place, type === "common" ? true : false);
 			}.bind(this));
 			this.map.geoObjects.add(marks[place.id]);
 		},
-		setCurrentPlaceByPlacemark: (type, place) => function(type, place) {
-			switch(type) {
-				case "private" :
-					this.$parent.setCurrentPlace(this.$store.state.places.findIndex(x => x.id === place.id));
-					break;
-				case "common" :
-					this.$parent.setCurrentPlace(this.$store.state.commonPlaces.findIndex(x => x.id === place.id), true);
-					break;
+		updatePlacemark: (marks) => function(marks) {
+			if(typeof(marks[this.id]) !== "undefined") {
+				marks[this.id].geometry.setCoordinates([this.latitude, this.longitude]);
+				marks[this.id].properties.set({hintContent: this.name, balloonContent: this.description});
 			}
 		},
-		updatePlacemark: (marks) => function(marks) {
-			marks[this.id].geometry.setCoordinates([this.latitude, this.longitude]);
-			marks[this.id].properties.set({hintContent: this.name, balloonContent: this.description});
-		},
-		updateCenterPlacemark: () => function() {
-			this.map.setCenter([this.latitude, this.longitude]);
-			this.mrk.geometry.setCoordinates([this.latitude, this.longitude]);
-		},
 		updateCenter: () => function() {
-			this.map.setCenter([this.centerLatitude, this.centerLongitude]);
+			if(this.map !== null) {
+				this.map.setCenter([this.centerLatitude, this.centerLongitude]);
+			}
 		},
 		fitMap: () => function() {
-			if(this.map) {
+			if(this.map !== null) {
 				document.getElementById("mapblock").style.right = "100%";
 				this.map.container.fitToViewport();
 				document.getElementById("mapblock").style.right = "24px";
@@ -175,6 +170,7 @@ export default {
 				latitude: this.map.getCenter()[0].toFixed(7),
 				longitude: this.map.getCenter()[1].toFixed(7),
 				id: generateRandomString(32),
+				folderid: null,
 				srt: this.$store.state.places.length > 0
 					? Math.ceil(Math.max(
 						...this.$store.state.places.map(function(place) {
@@ -191,7 +187,8 @@ export default {
 			};
 			this.$store.commit("addPlace", newPlace);
 			this.appendPlacemark(this.mrks, newPlace, "private");
-			this.$parent.setCurrentPlace(this.$store.state.places.length - 1);
+			this.$parent.setCurrentPlace(this.$store.state.places[this.$store.state.places.length - 1]);
+			return newPlace;
 		},
 		placemarksShowHide: () => function() {
 			for(let key in this.mrks) {

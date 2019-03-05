@@ -3,6 +3,7 @@ export const store = new Vuex.Store({
 	state: {
 		user: {},
 		places: [],
+		folders: [],
 		commonPlaces: [],
 		center: {},
 		ready: false,
@@ -65,9 +66,8 @@ export const store = new Vuex.Store({
 		},
 		placesReady(state, payload) {
 			Vue.set(state, "places", payload.places);
-			if("commonPlaces" in payload) {
-				Vue.set(state, "commonPlaces", payload.commonPlaces);
-			}
+			Vue.set(state, "commonPlaces", payload.commonPlaces);
+			Vue.set(state, "folders", payload.folders);
 			Vue.set(state, "ready", true);
 			let added = false, deleted = false, updated = false;
 			switch(payload.what) {
@@ -87,6 +87,17 @@ export const store = new Vuex.Store({
 				Vue.set(place, "updated", updated);
 				Vue.set(place, "show", true);
 			}
+			function setFoldersStates(folders) {
+				for(let folder of folders) {
+					Vue.set(folder, "added", added);
+					Vue.set(folder, "deleted", deleted);
+					Vue.set(folder, "updated", updated);
+					if(folder.hasOwnProperty("children")) {
+						setFoldersStates(folder.children);
+					}
+				}
+			}
+			setFoldersStates(payload.folders);
 		},
 		show(state, index) {
 			Vue.set(state.places[index], "show", true);
@@ -97,25 +108,70 @@ export const store = new Vuex.Store({
 		modifyPlaces(state, places) {
 			Vue.set(state, "places", places);
 		},
+		modifyFolders(state, folders) {
+			Vue.set(state, "folders", folders);
+		},
 		modifyCommonPlaces(state, commonPlaces) {
 			Vue.set(state, "commonPlaces", commonPlaces);
 		},
 		addPlace(state, place) {
 			Vue.set(state, "places", state.places.concat(place));
 		},
-		removePlace(state, index) {
-			Vue.set(state.places[index], "added", false);
-			Vue.set(state.places[index], "deleted", true);
-			Vue.set(state.places[index], "updated", false);
+		removePlace(state, place) {
+			Vue.set(place, "added", false);
+			Vue.set(place, "deleted", true);
+			Vue.set(place, "updated", false);
+		},
+		deletePlace(state, place) {
+			state.places.splice(state.places.indexOf(place), 1);
+			Vue.set(state, "places", state.places);
+		},
+		deletePlacesMarkedAsDeleted(state) {
+			for(var i = 0; i < state.places.length; i++) {
+				if(state.places[i].deleted) {
+					state.places.splice(state.places.indexOf(state.places[i]), 1);
+					i--;
+				}
+			}
 		},
 		changePlace(state, changes) {
-			let place = state.places[changes.index];
-			let keys = Object.keys(changes.change);
+			let keys = Object.keys(changes.change), toUpdated = true;
 			for(var i = 0; i < keys.length; i++) {
-				Vue.set(place, keys[i], changes.change[keys[i]]);
+				Vue.set(changes.place, keys[i], changes.change[keys[i]]);
+				if(keys[i] === "updated") {
+					toUpdated = false;
+				}
 			}
-			Vue.set(state.places, changes.index, place);
-			Vue.set(state.places[changes.index], "updated", true);
+			if(toUpdated) {
+				Vue.set(changes.place, "updated", true);
+			}
+		},
+		addFolder(state, folder) {
+			Vue.set(state, "folders", state.folders.concat(folder));
+		},
+		deleteFolder(state, folder) {
+			state.folders.splice(state.folders.indexOf(folder), 1);
+			Vue.set(state, "folders", state.folders);
+		},
+		deleteFoldersMarkedAsDeleted(state) {
+			for(var i = 0; i < state.folders.length; i++) {
+				if(state.folders[i].deleted) {
+					state.folders.splice(state.folders.indexOf(state.folders[i]), 1);
+					i--;
+				}
+			}
+		},
+		changeFolder(state, changes) {
+			let keys = Object.keys(changes.change), toUpdated = true;
+			for(var i = 0; i < keys.length; i++) {
+				Vue.set(changes.folder, keys[i], changes.change[keys[i]]);
+				if(keys[i] === "updated") {
+					toUpdated = false;
+				}
+			}
+			if(toUpdated) {
+				Vue.set(changes.folder, "updated", true);
+			}
 		},
 		swapValues(state, changes) {
 			let p1 = changes.parent[changes.indexes[0]];
@@ -175,12 +231,15 @@ export const store = new Vuex.Store({
 					if(placesRequest.readyState == 4) {
 						if(placesRequest.status == 200) {
 							let all_places = JSON.parse(placesRequest.responseText);
-							let places = all_places[0], commonPlaces = all_places[1];
-							commit("placesReady", {places: places, commonPlaces: commonPlaces});
+							let places = all_places[0], commonPlaces = all_places[1], folders = all_places[2];
+							sortTree(places);
+							sortTree(commonPlaces);
+							sortTree(folders);
+							commit("placesReady", {places: places, commonPlaces: commonPlaces, folders: folders});
 							bus.$emit("placesFilled");
 						} else {
 							commit("setMessage", "Не могу получить данные из БД");
-							commit("placesReady", {places: [], commonPlaces: []});
+							commit("placesReady", {places: [], commonPlaces: [], folders: []});
 						}
 					}
 				};
@@ -189,11 +248,11 @@ export const store = new Vuex.Store({
 				commit("modifyPlaces", JSON.parse(json));
 				dispatch("ipdateIds")
 					.then(response => {
-						commit("placesReady", {places: state.places, what: "added"});
+						commit("placesReady", {places: state.places, commonPlaces: state.commonPlaces, folders: state.folders, what: "added"});
 						bus.$emit("placesFilled");
 					})
 					.catch(error => {
-						commit("placesReady", {places: []});
+						commit("placesReady", {places: [], commonPlaces: [], folders: []});
 					});
 			}
 		},
@@ -211,17 +270,8 @@ export const store = new Vuex.Store({
 		getAccountChangeMessage: (state, getters) => {
 			return state.message;
 		},
-		getPlace: (state, getters) => (index, common = false) => {
-			return !common
-				? state.places[index]
-				: state.commonPlaces[index]
-			;
-		},
-		getImages: (state, getters) => (index, common = false) => {
-			return !common
-				? state.places[index].images
-				: state.commonPlaces[index].images
-			;
+		getImages: (state, getters) => (place, common = false) => {
+			return place.images;
 		},
 		getIndexById: (state, getters) => (args) => {
 			return args.parent.indexOf(args.parent.find(p => p.id == args.id));

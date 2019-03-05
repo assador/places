@@ -7,3 +7,12 @@ function generateRandomString(length = 32) {
 	}
 	return string;
 }
+function sortTree(tree) {
+	tree.sort(function(a, b) {
+		if(a.srt > b.srt) {
+			return 1;
+		} else {
+			return -1;
+		}
+	});
+}

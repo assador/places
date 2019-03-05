@@ -62,6 +62,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		$append = $conn->prepare("
 			INSERT INTO `places` (
 				`id`          ,
+				`folderid`    ,
 				`name`        ,
 				`description` ,
 				`latitude`    ,
@@ -71,6 +72,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`userid`
 			) VALUES (
 				:id           ,
+				:folderid     ,
 				:name         ,
 				:description  ,
 				:latitude     ,
@@ -83,6 +85,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		$update = $conn->prepare("
 			UPDATE `places` SET
 				`id`          = :id          ,
+				`folderid`    = :folderid    ,
 				`name`        = :name        ,
 				`description` = :description ,
 				`latitude`    = :latitude    ,
@@ -108,8 +111,9 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$delete->bindParam( ":id"          , $row[ "id"          ]);
 				$delete->bindParam( ":userid"      , $_POST["id"]);
 				try{$delete->execute();} catch(Exception $e) {}
-			} else if($row["added"] == true) {
+			} elseif($row["added"] == true) {
 				$append->bindParam( ":id"          , $row[ "id"          ]);
+				$append->bindParam( ":folderid"    , $row[ "folderid"    ]);
 				$append->bindParam( ":name"        , $row[ "name"        ]);
 				$append->bindParam( ":description" , $row[ "description" ]);
 				$append->bindParam( ":latitude"    , $row[ "latitude"    ]);
@@ -121,6 +125,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			}
 			if($row["updated"] == true) {
 				$update->bindParam( ":id"          , $row[ "id"          ]);
+				$update->bindParam( ":folderid"    , $row[ "folderid"    ]);
 				$update->bindParam( ":name"        , $row[ "name"        ]);
 				$update->bindParam( ":description" , $row[ "description" ]);
 				$update->bindParam( ":latitude"    , $row[ "latitude"    ]);
@@ -139,6 +144,59 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$updateimage->bindParam( ":srt"          , $image["srt"          ]);
 				$updateimage->bindParam( ":placeid"      , $image["placeid"      ]);
 				try{$updateimage->execute();} catch(Exception $e) {}
+			}
+		}
+	} elseif($_POST["todo"] == "folders") {
+		$delete = $conn->prepare("DELETE FROM `folders` WHERE `id` = :id AND `userid` = :userid");
+		$append = $conn->prepare("
+			INSERT INTO `folders` (
+				`id`          ,
+				`parent`      ,
+				`name`        ,
+				`description` ,
+				`srt`         ,
+				`userid`
+			) VALUES (
+				:id           ,
+				:parent       ,
+				:name         ,
+				:description  ,
+				:srt          ,
+				:userid
+			)
+		");
+		$update = $conn->prepare("
+			UPDATE `folders` SET
+				`id`          = :id          ,
+				`parent`      = :parent      ,
+				`name`        = :name        ,
+				`description` = :description ,
+				`srt`         = :srt         ,
+				`userid`      = :userid
+			WHERE `id` = :id
+		");
+		foreach($data as $row) {
+			if($row["deleted"] == true) {
+				$delete->bindParam( ":id"          , $row[ "id"          ]);
+				$delete->bindParam( ":userid"      , $_POST["id"]);
+				try{$delete->execute();} catch(Exception $e) {}
+			} elseif($row["added"] == true) {
+				$append->bindParam( ":id"          , $row[ "id"          ]);
+				$append->bindParam( ":parent"      , $row[ "parent"      ]);
+				$append->bindParam( ":name"        , $row[ "name"        ]);
+				$append->bindParam( ":description" , $row[ "description" ]);
+				$append->bindParam( ":srt"         , $row[ "srt"         ]);
+				$append->bindParam( ":userid"      , $_POST["id"]);
+				try{$append->execute();} catch(Exception $e) {}
+			}
+			if($row["updated"] == true) {
+				$update->bindParam( ":id"          , $row[ "id"          ]);
+				$update->bindParam( ":parent"      , $row[ "parent"      ]);
+				$update->bindParam( ":name"        , $row[ "name"        ]);
+				$update->bindParam( ":description" , $row[ "description" ]);
+				$update->bindParam( ":srt"         , $row[ "srt"         ]);
+				$update->bindParam( ":userid"      , $_POST["id"]);
+				try{$update->execute();} catch(Exception $e) {}
 			}
 		}
 	} elseif($_POST["todo"] == "images_upload") {

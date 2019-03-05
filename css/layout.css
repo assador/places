@@ -20,7 +20,7 @@ body {
 .auth_forms, .auth__login, .auth__registration, .auth__registration__fields__left, .auth__registration__fields__right {
 	width: 50%;
 }
-.auth .brand, .account .brand  {
+.auth .brand, .account .brand, .folder-new .brand  {
 	top: -100px;
 	text-align: center;
 }
@@ -115,8 +115,11 @@ body {
 	top: 12px; right: 12px; bottom: 12px; left: 12px;
 	overflow: auto;
 }
+.control-buttons {
+	margin: -4px;
+}
 .find-places-input {
-	margin-top: 34px;
+	margin-top: 12px;
 }
 .sbs-top, .sbs-right, .sbs-bottom, .sbs-left {
 	position: absolute;
@@ -168,13 +171,6 @@ body {
 	#basic-left .scrollable, #basic-right .scrollable {
 		position: relative;
 		top: auto; right: auto; bottom: auto; left: auto;
-	}
-	.place-button {
-		margin-bottom: 12px;
-		padding: 6px 8px;
-	}
-	.place-button > *:first-child {
-		font-size: 100%;
 	}
 }
 @media screen and (max-width: 650px) {
