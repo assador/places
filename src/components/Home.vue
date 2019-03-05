@@ -523,7 +523,14 @@ export default {
 		gridMode: 6,
 	}},
 	mounted: function() {
-		bus.$on("placesFilled", () => {
+		bus.$on("placesFilled", (happens) => {
+			if(happens === "importing") {
+				this.$nextTick(function() {
+					this.buildMenu(this.$store.state.folders);
+					this.toDB();
+					this.toDB("folders", JSON.stringify(this.$store.state.folders));
+				});
+			}
 			if(this.$refs.ym && this.$refs.ym.map) {
 				this.$refs.ym.map.destroy();
 			}
@@ -1105,13 +1112,18 @@ export default {
 			let reader = new FileReader();
 			reader.onload = function(event) {
 				this.$store.commit("reset");
-				this.$store.dispatch("setPlaces", reader.result);
-				document.getElementById("inputImportFromFile").value = "";
+				this.$nextTick(function() {
+					this.$store.dispatch("setPlaces", reader.result);
+					document.getElementById("inputImportFromFile").value = "";
+				});
 			}.bind(this);
 			reader.readAsText(this.$refs.inputImportFromFile.files[0]);
 		},
 		exportToFile: () => function() {
-			const data = JSON.stringify(this.$store.state.places);
+			const data = JSON.stringify({
+				places: this.$store.state.places,
+				folders: this.$store.state.folders,
+			});
 			const blob = new Blob([data], {type: "text/plain"});
 			const e = document.createEvent("MouseEvents"),
 			a = document.createElement("a");

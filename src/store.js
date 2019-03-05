@@ -34,8 +34,8 @@ export const store = new Vuex.Store({
 	},
 	mutations: {
 		reset(state) {
-			Vue.set(state, "user", {});
 			Vue.set(state, "places", []);
+			Vue.set(state, "folders", []);
 			Vue.set(state, "center", {});
 			Vue.set(state, "ready", false);
 			Vue.set(state, "message", "");
@@ -196,11 +196,14 @@ export const store = new Vuex.Store({
 			return new Promise((resolve, reject) => {
 				for(let place of state.places) {
 					place.userid = localStorage.getItem("places-userid");
-					place.id = generateRandomString(32);
 					place.images = [];
 				}
+				for(let folder of state.folders) {
+					folder.userid = localStorage.getItem("places-userid");
+				}
 				commit("modifyPlaces", state.places);
-				resolve(state.places);
+				commit("modifyFolders", state.folders);
+				resolve(state);
 			});
 		},
 		setUser({state, commit}) {
@@ -245,11 +248,13 @@ export const store = new Vuex.Store({
 				};
 				placesRequest.send(null);
 			} else {
-				commit("modifyPlaces", JSON.parse(json));
+				let parsedJSON = JSON.parse(json);
+				commit("modifyPlaces", parsedJSON.places);
+				commit("modifyFolders", parsedJSON.folders);
 				dispatch("ipdateIds")
 					.then(response => {
 						commit("placesReady", {places: state.places, commonPlaces: state.commonPlaces, folders: state.folders, what: "added"});
-						bus.$emit("placesFilled");
+						bus.$emit("placesFilled", "importing");
 					})
 					.catch(error => {
 						commit("placesReady", {places: [], commonPlaces: [], folders: []});
