@@ -340,7 +340,7 @@
 											class="block_02"
 										>
 											<img
-												class="border_1"
+												class="image-thumbnail border_1"
 												draggable="false"
 												:src="$store.state.dirs.uploads.images.small + image.file"
 												:alt="currentPlace.name"
