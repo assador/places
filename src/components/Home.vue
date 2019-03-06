@@ -1017,7 +1017,7 @@ export default {
 			this.$store.commit("removePlace", place);
 			this.toDB();
 			this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[place.id]);
-			if(place === this.currentPlace) {
+			if(place.id === this.currentPlace.id) {
 				if(document.getElementById(place.id).nextElementSibling) {
 					this.setCurrentPlace(
 						this.$store.state.places.find(
@@ -1111,7 +1111,6 @@ export default {
 		importFromFile: () => function() {
 			let reader = new FileReader();
 			reader.onload = function(event) {
-				this.$store.commit("reset");
 				this.$nextTick(function() {
 					this.$store.dispatch("setPlaces", reader.result);
 					document.getElementById("inputImportFromFile").value = "";

@@ -73,7 +73,7 @@ export default {
 			this.$parent.toDB("folders", JSON.stringify(this.$store.state.folders));
 			this.$store.commit("deletePlacesMarkedAsDeleted");
 			this.$store.commit("deleteFoldersMarkedAsDeleted");
-			if(this.toSetCurrentPlace) {
+			if(this.toSetCurrentPlace && this.$store.state.places.length > 0) {
 				let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
 				if(typeof(firstPlaceInRoot) === "undefined") {
 					this.$parent.setCurrentPlace(this.$store.state.places[0]);
@@ -90,6 +90,7 @@ export default {
 						place: place,
 						change: {deleted: true},
 					});
+					this.$parent.$refs.ym.map.geoObjects.remove(this.$parent.$refs.ym.mrks[place.id]);
 					if(place.id === this.$parent.currentPlace.id) {
 						this.toSetCurrentPlace = true;
 					}

@@ -103,7 +103,9 @@ export default {
 				}.bind(this));
 				let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
 				if(typeof(firstPlaceInRoot) === "undefined") {
-					this.$parent.setCurrentPlace(this.$store.state.places[0]);
+					if(this.$store.state.places.length > 0) {
+						this.$parent.setCurrentPlace(this.$store.state.places[0]);
+					}
 				} else {
 					this.$parent.setCurrentPlace(firstPlaceInRoot);
 				}

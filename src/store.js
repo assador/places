@@ -149,6 +149,32 @@ export const store = new Vuex.Store({
 		addFolder(state, folder) {
 			Vue.set(state, "folders", state.folders.concat(folder));
 		},
+		addImporting(state, payload) {
+			for(let folder of payload.folders) {
+				if(typeof(state.folders.find(f => f.id == folder.id)) === "undefined") {
+					let folderNewId = generateRandomString(32);
+					for(let nestedFolder of payload.folders) {
+						if(nestedFolder.parent === folder.id) {
+							Vue.set(nestedFolder, "parent", folderNewId);
+						}
+					}
+					for(let nestedPlace of payload.places) {
+						if(nestedPlace.folderid === folder.id) {
+							Vue.set(nestedPlace, "folderid", folderNewId);
+						}
+					}
+					Vue.set(folder, "id", folderNewId);
+					Vue.set(state, "folders", state.folders.concat(folder));
+				}
+			}
+			for(let place of payload.places) {
+				if(typeof(state.places.find(p => p.id == place.id)) === "undefined") {
+					let placeNewId = generateRandomString(32);
+					Vue.set(place, "id", placeNewId);
+					Vue.set(state, "places", state.places.concat(place));
+				}
+			}
+		},
 		deleteFolder(state, folder) {
 			state.folders.splice(state.folders.indexOf(folder), 1);
 			Vue.set(state, "folders", state.folders);
@@ -249,8 +275,7 @@ export const store = new Vuex.Store({
 				placesRequest.send(null);
 			} else {
 				let parsedJSON = JSON.parse(json);
-				commit("modifyPlaces", parsedJSON.places);
-				commit("modifyFolders", parsedJSON.folders);
+				commit("addImporting", {places: parsedJSON.places, folders: parsedJSON.folders});
 				dispatch("ipdateIds")
 					.then(response => {
 						commit("placesReady", {places: state.places, commonPlaces: state.commonPlaces, folders: state.folders, what: "added"});
