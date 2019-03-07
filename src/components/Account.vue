@@ -1,56 +1,58 @@
 <template>
 	<div class="account centered">
-		<div class="brand">
-			<h1 class="margin_bottom_0">Места</h1>
-			<p>Страница пользователя</p>
-		</div>
-		<form class="account__form" @submit.prevent="accountSubmit">
-			<table class="table_form">
-				<tbody>
-					<tr>
-						<th>Логин:</th>
-						<td colspan="2"><input class="fieldwidth_100" required id="accountLogin" v-model="accountLogin" type="text" placeholder="Логин *" @click="validatable();" /></td>
-					</tr>
-					<tr>
-						<th>Новый пароль:</th>
-						<td colspan="2"><input class="fieldwidth_100" id="accountNewPassword" v-model="accountNewPassword" type="password" placeholder="если нужно сменить пароль" @click="validatable();" /></td>
-					</tr>
-					<tr>
-						<th>Повторите новый пароль:</th>
-						<td colspan="2"><input class="fieldwidth_100" id="accountNewPasswordRepeat" v-model="accountNewPasswordRepeat" type="password" placeholder="если нужно сменить пароль" @click="validatable();" /></td>
-					</tr>
-					<tr>
-						<th>Обращение (имя):</th>
-						<td colspan="2"><input class="fieldwidth_100" id="accountName" v-model="accountName" type="text" placeholder="Обращение (имя)" @click="validatable();" /></td>
-					</tr>
-					<tr>
-						<th>e-mail:</th>
-						<td colspan="2"><input class="fieldwidth_100" required id="accountEmail" v-model="accountEmail" type="text" placeholder="e-mail *" @click="validatable();" /></td>
-					</tr>
-					<tr>
-						<th>Телефон:</th>
-						<td colspan="2"><input class="fieldwidth_100" id="accountPhone" v-model="accountPhone" type="text" placeholder="Телефон" @click="validatable();" /></td>
-					</tr>
-					<tr class="back_0">
-						<th></th>
-						<td style="padding-top: 18px; vertical-align: top;">
-							<button type="submit">Сохранить</button>
-							<button type="button" @click="back();">Назад</button>
-						</td>
-						<td style="padding-top: 18px; vertical-align: top; text-align: right;"><button type="button" @click="showDelete($event);">Удалить аккаунт</button></td>
-					</tr>
-					<tr class="back_0">
-						<th></th>
-						<td colspan="2" style="padding-top: 18px;" v-html="getAccountChangeMessage"></td>
-					</tr>
-				</tbody>
-			</table>
-		</form>
-		<div :class="'popup ' + popuped">
-			<component
-				:is="popupComponent"
-			>
-			</component>
+		<div class="half-width">
+			<div class="brand">
+				<h1 class="margin_bottom_0">Места</h1>
+				<p>Страница пользователя</p>
+			</div>
+			<form class="account__form" @submit.prevent="accountSubmit">
+				<table class="table_form">
+					<tbody>
+						<tr>
+							<th>Логин:</th>
+							<td colspan="2"><input class="fieldwidth_100" required id="accountLogin" v-model="accountLogin" type="text" placeholder="Логин *" @click="validatable();" /></td>
+						</tr>
+						<tr>
+							<th>Новый пароль:</th>
+							<td colspan="2"><input class="fieldwidth_100" id="accountNewPassword" v-model="accountNewPassword" type="password" placeholder="если нужно сменить пароль" @click="validatable();" /></td>
+						</tr>
+						<tr>
+							<th>Повторите новый пароль:</th>
+							<td colspan="2"><input class="fieldwidth_100" id="accountNewPasswordRepeat" v-model="accountNewPasswordRepeat" type="password" placeholder="если нужно сменить пароль" @click="validatable();" /></td>
+						</tr>
+						<tr>
+							<th>Обращение (имя):</th>
+							<td colspan="2"><input class="fieldwidth_100" id="accountName" v-model="accountName" type="text" placeholder="Обращение (имя)" @click="validatable();" /></td>
+						</tr>
+						<tr>
+							<th>e-mail:</th>
+							<td colspan="2"><input class="fieldwidth_100" required id="accountEmail" v-model="accountEmail" type="text" placeholder="e-mail *" @click="validatable();" /></td>
+						</tr>
+						<tr>
+							<th>Телефон:</th>
+							<td colspan="2"><input class="fieldwidth_100" id="accountPhone" v-model="accountPhone" type="text" placeholder="Телефон" @click="validatable();" /></td>
+						</tr>
+						<tr class="back_0">
+							<th></th>
+							<td style="padding-top: 18px; vertical-align: top;">
+								<button type="submit">Сохранить</button>
+								<button type="button" @click="back();">Назад</button>
+							</td>
+							<td style="padding-top: 18px; vertical-align: top; text-align: right;"><button type="button" @click="showDelete($event);">Удалить аккаунт</button></td>
+						</tr>
+						<tr class="back_0">
+							<th></th>
+							<td colspan="2" style="padding-top: 18px;" v-html="getAccountChangeMessage"></td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+			<div :class="'popup ' + popuped">
+				<component
+					:is="popupComponent"
+				>
+				</component>
+			</div>
 		</div>
 	</div>
 </template>

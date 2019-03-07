@@ -17,7 +17,7 @@ body {
 .auth_forms, .auth__registration__fields, .account__form {
 	display: flex;
 }
-.auth_forms, .auth__login, .auth__registration, .auth__registration__fields__left, .auth__registration__fields__right {
+.half-width, .auth_forms, .auth__login, .auth__registration, .auth__registration__fields__left, .auth__registration__fields__right {
 	width: 50%;
 }
 .auth .brand, .account .brand, .folder-new .brand  {
@@ -165,7 +165,7 @@ body {
 }
 
 @media screen and (max-width: 1000px) {
-	.auth_forms, .account__form {
+	.half-width, .auth_forms, .account__form {
 		width: 90%;
 	}
 	#basic-left .scrollable, #basic-right .scrollable {

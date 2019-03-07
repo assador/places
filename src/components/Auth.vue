@@ -5,29 +5,52 @@
 			<p>Сервис просмотра и редактирования библиотек геометок</p>
 		</div>
 		<div class="auth_forms">
-			<form class="auth__login" @submit.prevent="authLoginSubmit">
-				<h2>Авторизация</h2>
-				<input
-					class="fieldwidth_100 margin_bottom"
-					required
-					id="authLogin"
-					v-model.trim="authLogin"
-					type="text"
-					placeholder="Логин *"
-					@click="validatable();"
-				/>
-				<input
-					class="fieldwidth_100 margin_bottom"
-					required
-					id="authPassword"
-					v-model.trim="authPassword"
-					type="password"
-					placeholder="Пароль *"
-					@click="validatable();"
-				/>
-				<button type="submit" class="margin_bottom">Войти</button>
-				<div v-html="loginMessage"></div>
-			</form>
+			<div class="auth__login">
+				<form @submit.prevent="authLoginSubmit">
+					<h2>Авторизация</h2>
+					<input
+						class="fieldwidth_100 margin_bottom"
+						required
+						id="authLogin"
+						v-model.trim="authLogin"
+						type="text"
+						placeholder="Логин *"
+						@click="validatable();"
+					/>
+					<input
+						class="fieldwidth_100 margin_bottom"
+						required
+						id="authPassword"
+						v-model.trim="authPassword"
+						type="password"
+						placeholder="Пароль *"
+						@click="validatable();"
+					/>
+					<div><button type="submit" class="margin_bottom">Войти</button></div>
+					<div v-html="loginMessage" v-if="loginMessage != ''" class="margin_bottom"></div>
+					<button
+						type="button"
+						onclick="let f = document.getElementById('authForgot'); if(f.classList.contains('hidden')) {f.classList.remove('hidden');} else {f.classList.add('hidden');}"
+					>
+						Не помню логин / пароль
+					</button>
+				</form>
+				<form id="authForgot" class="hidden" @submit.prevent="authForgot">
+					<hr />
+					<p>Введите e-mail, указанный вами при регистрации. На него будут высланы ваши логин и новый пароль.</p>
+					<input
+						class="fieldwidth_100 margin_bottom"
+						required
+						id="forgotEmail"
+						v-model.trim="forgotEmail"
+						type="text"
+						placeholder="e-mail *"
+						@click="validatable();"
+					/>
+					<button type="submit" class="margin_bottom">Прислать</button>
+					<div v-html="forgotMessage"></div>
+				</form>
+			</div>
 			<form class="auth__registration" @submit.prevent="authRegSubmit">
 				<h2>Регистрация</h2>
 				<div class="auth__registration__fields">
@@ -99,11 +122,13 @@
 import {bus} from "../shared/bus.js"
 import {loginRoutine} from "../shared/auth.js"
 import {regRoutine} from "../shared/reg.js"
+import {forgotRoutine} from "../shared/forgot.js"
 export default {
 	data: function() {return {
 		firstValidatable: false,
 		loginMessage: "",
 		regMessage: "",
+		forgotMessage: "",
 		authLogin: "test",
 		authPassword: "test",
 	}},
@@ -139,6 +164,17 @@ export default {
 				}
 			} else {
 				this.regMessage = "Некоторые поля заполнены некорректно";
+			}
+		},
+		authForgot: function() {
+			const {forgotEmail} = this;
+			if(!document.getElementById("forgotEmail").classList.contains("value_wrong")) {
+				forgotRoutine({forgotEmail})
+					.then(response => {
+						this.forgotMessage = response.message;
+					});
+			} else {
+				this.forgotMessage = "Некорректный e-mail";
 			}
 		},
 	},

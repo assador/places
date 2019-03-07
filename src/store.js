@@ -150,25 +150,34 @@ export const store = new Vuex.Store({
 			Vue.set(state, "folders", state.folders.concat(folder));
 		},
 		addImporting(state, payload) {
+			let folderNewId, foundExistingFolder;
 			for(let folder of payload.folders) {
-				if(typeof(state.folders.find(f => f.id == folder.id)) === "undefined") {
-					let folderNewId = generateRandomString(32);
+				foundExistingFolder = state.folders.find(f => f.name === folder.name);
+				if(typeof(foundExistingFolder) === "undefined") {
+					folderNewId = generateRandomString(32);
 					for(let nestedFolder of payload.folders) {
 						if(nestedFolder.parent === folder.id) {
 							Vue.set(nestedFolder, "parent", folderNewId);
 						}
 					}
-					for(let nestedPlace of payload.places) {
-						if(nestedPlace.folderid === folder.id) {
-							Vue.set(nestedPlace, "folderid", folderNewId);
-						}
-					}
-					Vue.set(folder, "id", folderNewId);
 					Vue.set(state, "folders", state.folders.concat(folder));
+				} else {
+					folderNewId = foundExistingFolder.id;
 				}
+				for(let nestedPlace of payload.places) {
+					if(nestedPlace.folderid === folder.id) {
+						Vue.set(nestedPlace, "folderid", folderNewId);
+					}
+				}
+				Vue.set(folder, "id", folderNewId);
 			}
 			for(let place of payload.places) {
-				if(typeof(state.places.find(p => p.id == place.id)) === "undefined") {
+				if(
+					typeof(state.places.find(p =>
+						p.latitude == place.latitude
+						&& p.longitude == place.longitude
+					)) === "undefined"
+				) {
 					let placeNewId = generateRandomString(32);
 					Vue.set(place, "id", placeNewId);
 					Vue.set(state, "places", state.places.concat(place));
@@ -218,7 +227,7 @@ export const store = new Vuex.Store({
 			localStorage.removeItem("places-session");
 			localStorage.removeItem("places-userid");
 		},
-		ipdateIds({state, commit}) {
+		adaptImporting({state, commit}) {
 			return new Promise((resolve, reject) => {
 				for(let place of state.places) {
 					place.userid = localStorage.getItem("places-userid");
@@ -276,7 +285,7 @@ export const store = new Vuex.Store({
 			} else {
 				let parsedJSON = JSON.parse(json);
 				commit("addImporting", {places: parsedJSON.places, folders: parsedJSON.folders});
-				dispatch("ipdateIds")
+				dispatch("adaptImporting")
 					.then(response => {
 						commit("placesReady", {places: state.places, commonPlaces: state.commonPlaces, folders: state.folders, what: "added"});
 						bus.$emit("placesFilled", "importing");

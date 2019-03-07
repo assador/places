@@ -19,6 +19,7 @@ function validate_field(value, type) {
 function make_fields_validatable() {
 	var fields = {
 		"authLogin"                : ["login",       "Не более 24 символов"],
+		"forgotEmail"              : ["e-mail",      "Пример: my.Name@хост.рф"],
 		"regLogin"                 : ["login",       "Не более 24 символов"],
 		"accountLogin"             : ["login",       "Не более 24 символов"],
 		"authPassword"             : ["password",    "Не более 255 символов"],
