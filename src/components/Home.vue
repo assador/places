@@ -27,7 +27,7 @@
 						id="actions-delete"
 						class="actions-button"
 						title="Удалить текущее место"
-						@click="if(currentPlace.userid == $store.state.user.id) {deletePlace(currentPlace);}"
+						@click="deletePlace(currentPlace);"
 					>
 						×
 					</button>
@@ -586,9 +586,7 @@ export default {
 						});
 						break;
 					case "delete" :
-						if(this.currentPlace.userid === this.$store.state.user.id) {
-							this.deletePlace(this.currentPlace);
-						}
+						this.deletePlace(this.currentPlace);
 						break;
 					case "import" :
 						document.getElementById("inputImportFromFile").click();
@@ -1000,12 +998,14 @@ export default {
 			} else {
 				this.$refs.ym.commonMrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
 			}
-			let folder, folderid = place.folderid;
-			while(folderid !== null) {
-				folder = document.getElementById("places-menu-folder-" + folderid);
-				folder.classList.remove('places-menu-folder_closed');
-				folder.classList.add('places-menu-folder_opened');
-				folderid = this.$store.state.folders.find(f => f.id === folderid).parent;
+			if(!common) {
+				let folder, folderid = place.folderid;
+				while(folderid !== null) {
+					folder = document.getElementById("places-menu-folder-" + folderid);
+					folder.classList.remove('places-menu-folder_closed');
+					folder.classList.add('places-menu-folder_opened');
+					folderid = this.$store.state.folders.find(f => f.id === folderid).parent;
+				}
 			}
 			this.currentImages = this.getImages(this.currentPlace, common);
 			this.$store.commit("changeCenter", {
@@ -1014,6 +1014,14 @@ export default {
 			});
 		},
 		deletePlace: place => function(place) {
+			if(this.currentPlace.userid !== this.$store.state.user.id) {
+				this.$store.commit("setMessage", "Чужое же место! Нехорошо пытаться удалять чужие места…");
+				return;
+			}
+			if(this.$store.state.user.testaccount) {
+				this.$store.commit("setMessage", "Тестовый аккаунт не позволяет удаление мест");
+				return;
+			}
 			this.$store.commit("removePlace", place);
 			this.toDB();
 			this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[place.id]);
