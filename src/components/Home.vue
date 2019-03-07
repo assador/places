@@ -27,6 +27,7 @@
 						id="actions-delete"
 						class="actions-button"
 						title="Удалить текущее место"
+						:disabled="currentPlaceCommon"
 						@click="deletePlace(currentPlace);"
 					>
 						×
@@ -97,7 +98,7 @@
 						id="actions-save"
 						class="actions-button"
 						title="Сохранить в БД"
-						@click="if($store.state.user.testaccount) {$store.commit('setMessage', 'Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных');} else {toDB(); toDB('folders', JSON.stringify($store.state.folders));}"
+						@click="toDB(); toDB('folders', JSON.stringify($store.state.folders));"
 					>
 						↯
 					</button>
@@ -349,6 +350,7 @@
 											<div
 												class="dd-images__delete button"
 												draggable="false"
+												v-if="!currentPlaceCommon"
 												@click="currentPlaceCommon ? $event.stopPropagation() : deleteFiles(Array.from(currentImages), [image], $event);"
 											>
 												×
@@ -586,7 +588,9 @@ export default {
 						});
 						break;
 					case "delete" :
-						this.deletePlace(this.currentPlace);
+						if(this.currentPlace.userid === this.$store.state.user.id) {
+							this.deletePlace(this.currentPlace);
+						}
 						break;
 					case "import" :
 						document.getElementById("inputImportFromFile").click();
@@ -595,12 +599,8 @@ export default {
 						this.exportToFile();
 						break;
 					case "save" :
-						if(this.$store.state.user.testaccount) {
-							this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможно сохранение изменений в базу данных");
-						} else {
-							this.toDB();
-							this.toDB("folders", JSON.stringify(this.$store.state.folders));
-						}
+						this.toDB();
+						this.toDB("folders", JSON.stringify(this.$store.state.folders));
 						break;
 					case "help" :
 						this.showAbout();
@@ -1014,14 +1014,6 @@ export default {
 			});
 		},
 		deletePlace: place => function(place) {
-			if(this.currentPlace.userid !== this.$store.state.user.id) {
-				this.$store.commit("setMessage", "Чужое же место! Нехорошо пытаться удалять чужие места…");
-				return;
-			}
-			if(this.$store.state.user.testaccount) {
-				this.$store.commit("setMessage", "Тестовый аккаунт не позволяет удаление мест");
-				return;
-			}
 			this.$store.commit("removePlace", place);
 			this.toDB();
 			this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[place.id]);
@@ -1220,16 +1212,14 @@ export default {
 		},
 		deleteFiles: (inarray, files, event) => function(inarray, files, event) {
 			event.stopPropagation();
-			if(this.$store.state.user.testaccount) {
-				this.$store.commit("setMessage", "Тестовый аккаунт не позволяет удаление файлов");
-			} else {
-				let data = new FormData();
-				for(var i = 0; i < files.length; i++) {
-					data.append("file_" + i, files[i].file);
-					inarray.splice(inarray.indexOf(files[i]), 1);
-					this.currentImages = inarray;
-				}
-				data.append("userid", this.$store.state.user.id);
+			let data = new FormData();
+			for(var i = 0; i < files.length; i++) {
+				data.append("file_" + i, files[i].file);
+				inarray.splice(inarray.indexOf(files[i]), 1);
+				this.currentImages = inarray;
+			}
+			data.append("userid", this.$store.state.user.id);
+			if(!this.$store.state.user.testaccount) {
 				axios.post("/backend/delete.php", data)
 					.then(response => {
 						this.$store.commit("changePlace", {

@@ -42,7 +42,7 @@
 						</tr>
 						<tr class="back_0">
 							<th></th>
-							<td colspan="2" style="padding-top: 18px;" v-html="getAccountChangeMessage"></td>
+							<td colspan="2" style="padding-top: 18px;" v-html="accountChangeMessage"></td>
 						</tr>
 					</tbody>
 				</table>
@@ -62,7 +62,6 @@ import {constants} from "../shared/constants.js"
 import {bus} from "../shared/bus.js"
 import popupdelete from "./AccountDelete.vue"
 import {accountSaveRoutine} from "../shared/account.js"
-import {mapGetters} from "vuex"
 export default {
 	components: {
 		popupdelete,
@@ -75,6 +74,7 @@ export default {
 		accountPhone: this.$store.state.user.phone,
 		popuped: "disappear",
 		popupComponent: "",
+		accountChangeMessage: "",
 	}},
 	mounted: function() {
 		document.addEventListener("keyup", this.keyup, false);
@@ -96,7 +96,7 @@ export default {
 		},
 		accountSubmit: function() {
 			if(this.$store.state.user.testaccount) {
-				this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом, который изменить нельзя");
+				this.accountChangeMessage = "Вы авторизовались под тестовым аккаунтом, который изменить нельзя";
 			} else {
 				if(!document.querySelector(".value_wrong")) {
 					const {accountLogin, accountNewPassword, accountNewPasswordRepeat, accountName, accountEmail, accountPhone} = this;
@@ -107,20 +107,19 @@ export default {
 								if(response.data === 0) {
 									bus.$emit("loggedChange", "home");
 								} else {
-									this.$store.commit("setMessage", response.message);
+									this.accountChangeMessage = response.message;
 								}
 							});
 					} else {
-						this.accountMessage = "Введёные пароли не совпадают";
+						this.accountChangeMessage = "Введёные пароли не совпадают";
 					}
 				} else {
-					this.accountMessage = "Некоторые поля заполнены некорректно";
+					this.accountChangeMessage = "Некоторые поля заполнены некорректно";
 				}
 			}
 		},
 	},
 	computed: {
-		...mapGetters(["getAccountChangeMessage"]),
 		back: () => function() {
 			bus.$emit("loggedChange", "home");
 		},

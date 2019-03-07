@@ -65,7 +65,7 @@ body {
 #top-left h3 {
 	margin: -8px 0 4px 0;
 }
-#top-right, #bottom-left {
+#top-right, #bottom-left, .control-buttons {
 	text-align: center;
 }
 #top-basic {
@@ -156,17 +156,33 @@ body {
 	padding: 11px 16px;
 	z-index: 0;
 }
-.centered {
+.popup, .centered {
 	display: flex;
-	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	min-height: 100%;
+	position: fixed;
+	top: 0; right: 0; bottom: 0; left: 0;
+	padding: 50px;
+}
+.popup {
+	background-color: rgba(0, 0, 0, 0.85);
+	z-index: 1000;
+}
+.popup > div {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: fixed;
+	top: 0; right: 0; bottom: 0; left: 0;
+	padding: 50px;
+}
+.centered {
+	flex-direction: column;
 }
 
 @media screen and (max-width: 1000px) {
 	.half-width, .auth_forms, .account__form {
-		width: 90%;
+		width: 100%;
 	}
 	#basic-left .scrollable, #basic-right .scrollable {
 		position: relative;
@@ -210,7 +226,7 @@ body {
 	.find-places-input {
 		margin-top: 0;
 	}
-	#bottom-basic, #bottom-right, #basic-left__places > *:first-child > *:first-child, .sbs-top, .sbs-right, .sbs-bottom, .sbs-left {
+	#bottom-basic, #bottom-right, .sbs-top, .sbs-right, .sbs-bottom, .sbs-left {
 		display: none;
 	}
 }
