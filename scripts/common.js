@@ -7,6 +7,12 @@ function generateRandomString(length = 32) {
 	}
 	return string;
 }
+function sortObjects(array, field) {
+	let sorted = array.slice().sort(function(a, b) {
+		return a[field] - b[field];
+	});
+	return sorted;
+}
 function sortTree(tree) {
 	tree.sort(function(a, b) {
 		if(a.srt > b.srt) {

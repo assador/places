@@ -310,6 +310,7 @@ export const store = new Vuex.Store({
 			return state.message;
 		},
 		getImages: (state, getters) => (place, common = false) => {
+			sortTree(place.images);
 			return place.images;
 		},
 		getIndexById: (state, getters) => (args) => {

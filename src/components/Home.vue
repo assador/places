@@ -151,7 +151,6 @@
 											:id="'places-menu-folder-link-' + folder.id"
 											href="javascript: void(0);"
 											class="folder-button"
-											:title="folder.description"
 											draggable="true"
 											onclick="if(this.parentNode.classList.contains('places-menu-folder_closed')) {this.parentNode.classList.remove('places-menu-folder_closed'); this.parentNode.classList.add('places-menu-folder_opened');} else {this.parentNode.classList.remove('places-menu-folder_opened'); this.parentNode.classList.add('places-menu-folder_closed');}"
 											@dragstart="handleDragStart"
@@ -199,10 +198,13 @@
 										</span>
 										<div :id="folder.id" class="places-menu-item">
 											<div
-												v-for="place in $store.state.places"
+												v-for="(place, index) in $store.state.places"
 												v-if="place.folderid === folder.id && place.show"
 												:key="place.id"
 												:id="place.id"
+												:index="index"
+												:srt="place.srt"
+												:title="place.description"
 												:class="'place-button block_01 draggable' + (place === currentPlace ? ' active' : '')"
 												draggable="true"
 												@click="setCurrentPlace(place);"
@@ -225,10 +227,13 @@
 								</ul>
 								<div id="places-menu-item-root" class="places-menu-item">
 									<div
-										v-for="place in $store.state.places"
+										v-for="(place, index) in $store.state.places"
 										v-if="place.folderid === null && place.show"
 										:key="place.id"
 										:id="place.id"
+										:index="index"
+										:srt="place.srt"
+										:title="place.description"
 										:class="'place-button block_01 draggable' + (place === currentPlace ? ' active' : '')"
 										draggable="true"
 										@click="setCurrentPlace(place);"
@@ -253,7 +258,7 @@
 					<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
 						<h2 class="basiccolor">Другие места</h2>
 						<div
-							v-for="commonPlace in sortObjects($store.state.commonPlaces, 'srt')"
+							v-for="commonPlace in $store.state.commonPlaces"
 							:id="commonPlace.id"
 							:key="commonPlace.id"
 							:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
@@ -328,8 +333,9 @@
 							<dd v-else-if="field == 'images' && currentImages.length > 0 && field != 'show' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
 								<div class="dd-images row_01">
 									<div
-										v-for="image in sortObjects(currentImages, 'srt')"
+										v-for="(image, index) in currentImages"
 										:id="image.id"
+										:index="index"
 										:key="image.id"
 										:class="'place-image col-' + gridMode + (currentPlaceCommon ? '' : ' draggable')"
 										:draggable="currentPlaceCommon ? false : true"
@@ -470,7 +476,7 @@
 			>
 			</div>
 		</div>
-		<div :class="'popup ' + popuped">
+		<div :class="'popup ' + popuped" @click="showPopup({show: false}, $event);">
 			<component
 				ref="popup"
 				:is="popupComponent"
@@ -648,85 +654,51 @@ export default {
 		handleDragStart: function(event) {
 			event.dataTransfer.setData("text/plain", null);
 			this.draggingElement = event.target;
-			if(this.draggingElement.classList.contains("place-button")) {
-				this.draggingPlaceIndex = this.getIndexById({
-					parent: this.$store.state.places,
-					id: this.draggingElement.id,
-				});
-				this.draggingFolderId = this.$store.state.places[this.draggingPlaceIndex].folderid;
-			}
-			if(this.draggingElement.classList.contains("folder-button")) {
-				this.draggingFolderIndex = this.getIndexById({
-					parent: this.$store.state.folders,
-					id: this.draggingElement.id.substr(24),
-				});
-				this.draggingFolderId = this.$store.state.folders[this.draggingFolderIndex].parent;
-			}
 		},
 		handleDragEnter: function(event) {
 			event.preventDefault();
 			event.stopPropagation();
 			if(this.draggingElement !== null && this.draggingElement !== event.target) {
-				if(this.draggingElement.classList.contains("place-button")) {
-					if(event.target.parentNode.classList.contains("place-button") && this.draggingElement != event.target.parentNode) {
-						let targetIndex = this.getIndexById({
-							parent: this.$store.state.places,
-							id: event.target.parentNode.id,
-						});
-						let targetPrevIndex = event.target.parentNode.previousElementSibling
-							? this.getIndexById({
-								parent: this.$store.state.places,
-								id: event.target.parentNode.previousElementSibling.id,
-							})
-							: null;
-						let targetNextIndex = event.target.parentNode.nextElementSibling
-							? this.getIndexById({
-								parent: this.$store.state.places,
-								id: event.target.parentNode.nextElementSibling.id,
-							})
-							: null;
-						let srt;
-						if(event.target.classList.contains("place-button__dragenter-area_top")) {
-							if(targetPrevIndex === null) {
-								srt = this.$store.state.places[targetIndex].srt / 2;
-							} else {
-								srt = (this.$store.state.places[targetIndex].srt - this.$store.state.places[targetPrevIndex].srt) / 2 + this.$store.state.places[targetPrevIndex].srt;
-							}
-							document.getElementById(
-								this.$store.state.places[targetIndex].folderid === null
-									? "places-menu-item-root"
-									: this.$store.state.places[targetIndex].folderid
-							).insertBefore(this.draggingElement, event.target.parentNode);
+				let
+					srt = null,
+					draggingIndex = this.getIndexById({
+						parent: this.$store.state.places,
+						id: this.draggingElement.id,
+					}),
+					targetPrev = event.target.parentNode.previousElementSibling,
+					targetNext = event.target.parentNode.nextElementSibling,
+					targetSrt = Number(event.target.parentNode.getAttribute("srt"))
+				;
+				if(
+					this.draggingElement.classList.contains("place-button")
+					&& event.target.parentNode.classList.contains("place-button")
+					&& this.draggingElement != event.target.parentNode
+				) {
+					if(event.target.classList.contains("place-button__dragenter-area_top")) {
+						if(!targetPrev) {
+							srt = targetSrt / 2;
+						} else if(targetPrev.id !== this.draggingElement.id) {
+							let targetPrevSrt = Number(targetPrev.getAttribute("srt"));
+							srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
 						}
-						if(event.target.classList.contains("place-button__dragenter-area_bottom")) {
-							if(targetNextIndex === null) {
-								srt = this.$store.state.places[targetIndex].srt + 1;
-								document.getElementById(
-									this.$store.state.places[targetIndex].folderid === null
-										? "places-menu-item-root"
-										: this.$store.state.places[targetIndex].folderid
-								).appendChild(this.draggingElement);
-							} else {
-								srt = (this.$store.state.places[targetNextIndex].srt - this.$store.state.places[targetIndex].srt) / 2 + this.$store.state.places[targetIndex].srt;
-								document.getElementById(
-									this.$store.state.places[targetIndex].folderid === null
-										? "places-menu-item-root"
-										: this.$store.state.places[targetIndex].folderid
-								).insertBefore(this.draggingElement, event.target.parentNode.nextElementSibling);
-							}
+					}
+					if(event.target.classList.contains("place-button__dragenter-area_bottom")) {
+						if(!targetNext) {
+							srt = targetSrt + 1;
+						} else if(targetNext.id !== this.draggingElement.id) {
+							let targetNextSrt = Number(targetNext.getAttribute("srt"));
+							srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
 						}
+					}
+					if(srt !== null) {
 						this.$store.commit("changePlace", {
-							place: this.$store.state.places[
-								this.getIndexById({
-									parent: this.$store.state.places,
-									id: this.draggingElement.id,
-								})
-							],
+							place: this.$store.state.places[draggingIndex],
 							change: {
-								folderid: this.$store.state.places[targetIndex].folderid,
+								folderid: this.$store.state.places[event.target.parentNode.getAttribute("index")].folderid,
 								srt: srt,
 							},
 						});
+						this.sortPlaceElementInMenu(this.$store.state.places[draggingIndex]);
 						this.needToUpdate = true;
 					}
 				}
@@ -755,7 +727,6 @@ export default {
 							id: event.target.parentNode.parentNode.nextElementSibling.id.substr(19),
 						})
 						: null;
-					let srt;
 					if(event.target.classList.contains("folder-button__dragenter-area_top")) {
 						if(targetPrevIndex === null) {
 							srt = this.$store.state.folders[targetIndex].srt / 2;
@@ -790,15 +761,21 @@ export default {
 					});
 					this.needToUpdateFolders = true;
 				}
-				if(this.draggingElement.classList.contains("place-image")) {
+				if(
+					this.draggingElement.classList
+					&& this.draggingElement.classList.contains("place-image")
+					&& event.target.classList
+					&& event.target.classList.contains("place-image")
+				) {
 					this.$store.commit("swapValues", {
 						parent: this.currentImages,
 						indexes: [
-							this.getIndexById({parent: this.currentImages, id: this.draggingElement.id}),
-							this.getIndexById({parent: this.currentImages, id: event.target.id}),
+							this.draggingElement.getAttribute("index"),
+							event.target.getAttribute("index"),
 						],
 						values: ["srt"],
 					});
+					sortTree(this.currentImages);
 					this.needToUpdate = true;
 				}
 			}
@@ -808,65 +785,68 @@ export default {
 		},
 		handleDrop: function(event) {
 			event.preventDefault();
-			if(
-				this.draggingElement !== null
-				&& this.draggingElement.classList.contains("place-button")
-				&& event.target.parentNode.classList.contains("places-menu-folder")
-			) {
+			if(this.draggingElement !== null) {
 				let container, containers = event.target.parentNode.querySelectorAll(".places-menu-item");
-				containers.forEach(function(c) {
-					if(c.parentNode === event.target.parentNode) {
-						container = c;
-						return;
-					}
-				});
-				let srt;
-				if(container.children.length > 0) {
-					srt = this.$store.state.places[this.getIndexById({
-						parent: this.$store.state.places,
-						id: container.children[container.children.length - 1].id,
-					})].srt + 1;
-				} else {
-					srt = 1;
-				}
-				this.$store.commit("changePlace", {
-					place: this.$store.state.places[
-						this.getIndexById({
+				if(
+					this.draggingElement.classList.contains("place-button")
+					&& event.target.parentNode.classList.contains("places-menu-folder")
+				) {
+					let container, containers = event.target.parentNode.querySelectorAll(".places-menu-item");
+					containers.forEach(function(c) {
+						if(c.parentNode === event.target.parentNode) {
+							container = c;
+							return;
+						}
+					});
+					let srt;
+					if(container.children.length > 0) {
+						srt = this.$store.state.places[this.getIndexById({
 							parent: this.$store.state.places,
-							id: this.draggingElement.id,
-						})
-					],
-					change: {
-						folderid: container.id === "places-menu-item-root" ? null : container.id,
-						srt: srt,
-					},
-				});
-				container.appendChild(this.draggingElement);
-				this.needToUpdate = true;
-			}
-			if(
-				this.draggingElement.id.substr(0, 24) === "places-menu-folder-link-"
-				&& event.target.id.substr(0, 24) === "places-menu-folder-link-"
-				&& this.draggingElement != event.target
-			) {
-				let
-					targetId = event.target.id.substr(24),
-					newUl = event.target.parentNode.querySelector("ul");
-				if(!newUl) {
-					newUl = event.target.parentNode.insertBefore(document.createElement("ul"), event.target.parentNode.firstChild.nextElementSibling);
-					newUl.className = "margin_bottom_0";
-				}
-				newUl.appendChild(this.draggingElement.parentNode);
-				this.$store.state.folders.forEach(function(folder) {
-					if(folder.id === this.draggingElement.id.substr(24)) {
-						this.$store.commit("changeFolder", {
-							folder: folder,
-							change: {parent: targetId === "root" ? null : targetId},
-						});
-						this.toDB("folders", JSON.stringify([folder]));
+							id: container.children[container.children.length - 1].id,
+						})].srt + 1;
+					} else {
+						srt = 1;
 					}
-				}.bind(this));
+					this.$store.commit("changePlace", {
+						place: this.$store.state.places[
+							this.getIndexById({
+								parent: this.$store.state.places,
+								id: this.draggingElement.id,
+							})
+						],
+						change: {
+							folderid: container.id === "places-menu-item-root" ? null : container.id,
+							srt: srt,
+						},
+					});
+					container.appendChild(this.draggingElement);
+					this.needToUpdate = true;
+				}
+				if(
+					this.draggingElement.id.substr(0, 24) === "places-menu-folder-link-"
+					&& event.target.id.substr(0, 24) === "places-menu-folder-link-"
+					&& this.draggingElement != event.target
+				) {
+					let
+						targetId = event.target.id.substr(24),
+						newUl = event.target.parentNode.querySelector("ul");
+					if(!newUl) {
+						newUl = event.target.parentNode.insertBefore(document.createElement("ul"), event.target.parentNode.firstChild.nextElementSibling);
+						newUl.className = "margin_bottom_0";
+					}
+					newUl.appendChild(this.draggingElement.parentNode);
+					this.$store.state.folders.forEach(function(folder) {
+						if(folder.id === this.draggingElement.id.substr(24)) {
+							this.$store.commit("changeFolder", {
+								folder: folder,
+								change: {parent: targetId === "root" ? null : targetId},
+							});
+							this.toDB("folders", JSON.stringify([folder]));
+						}
+					}.bind(this));
+				}
 			}
+			this.draggingElement = null;
 			if(this.needToUpdate) {
 				this.toDB();
 				this.needToUpdate = false;
@@ -952,26 +932,25 @@ export default {
 			});
 		},
 		sortPlaceElementInMenu: function(place) {
-			let
-				placeElement = document.getElementById(place.id),
-				folder = place.folderid === null
-					? document.getElementById("places-menu-item-root")
-					: document.getElementById(place.folderid)
-			;
-			for(var i = 0; i < folder.children.length; i++) {
-				let itemSrt = this.$store.state.places[this.getIndexById({
-					parent: this.$store.state.places,
-					id: folder.children[i].id,
-				})].srt;
-				if(place.srt < itemSrt) {
-					folder.insertBefore(placeElement, folder.children[i]);
-					return;
-				}
-				if(i == folder.children.length - 1) {
-					folder.appendChild(placeElement);
+			for(var i = 0; i < this.$store.state.places.length; i++) {
+				if(
+					this.$store.state.places[i].folderid === place.folderid
+					&& this.$store.state.places[i].srt > place.srt
+				) {
+					this.$store.state.places.splice(
+						(i < 1 ? 0 : i - 1), 0,
+						this.$store.state.places.splice(
+							this.$store.state.places.indexOf(place), 1
+						)[0]
+					);
 					return;
 				}
 			}
+			this.$store.state.places.push(
+				this.$store.state.places.splice(
+					this.$store.state.places.indexOf(place), 1
+				)[0]
+			);
 		},
 	},
 	computed: {
@@ -1037,12 +1016,6 @@ export default {
 				}
 			}
 			this.$store.commit("deletePlace", place);
-		},
-		sortObjects: (array, field) => function(array, field) {
-			let sorted = array.slice().sort(function(a, b) {
-				return a[field] - b[field];
-			});
-			return sorted;
 		},
 		commonPlacesShowHide: () => function() {
 			this.commonPlacesShow = !this.commonPlacesShow;
@@ -1175,7 +1148,7 @@ export default {
 						let filesArray = [], srt;
 						if(Object.keys(this.currentImages).length > 0) {
 							let storeImages = this.currentImages;
-							srt = this.sortObjects(storeImages, "srt").pop().srt;
+							srt = sortObjects(storeImages, "srt").pop().srt;
 						} else {
 							srt = 0;
 						}
