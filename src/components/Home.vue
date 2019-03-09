@@ -283,9 +283,21 @@
 				>
 				</mapyandex>
 				<div
+					class="sbs-top"
+					:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+					@mousedown="sidebarDragStart('top', $event);"
+				>
+				</div>
+				<div
 					class="sbs-right"
 					:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
 					@mousedown="sidebarDragStart('right', $event);"
+				>
+				</div>
+				<div
+					class="sbs-bottom"
+					:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+					@mousedown="sidebarDragStart('bottom', $event);"
 				>
 				</div>
 				<div
@@ -390,16 +402,6 @@
 						</div>
 					</dl>
 				</div>
-			</div>
-			<div
-				class="sbs-top"
-				@mousedown="sidebarDragStart('top', $event);"
-			>
-			</div>
-			<div
-				class="sbs-bottom"
-				@mousedown="sidebarDragStart('bottom', $event);"
-			>
 			</div>
 		</div>
 		<div
@@ -775,7 +777,7 @@ export default {
 						],
 						values: ["srt"],
 					});
-					sortTree(this.currentImages);
+					this.currentImages = sortObjects(this.currentImages, "srt");
 					this.needToUpdate = true;
 				}
 			}
@@ -877,7 +879,6 @@ export default {
 			}
 		},
 		documentMouseOver: function(event) {
-			event.preventDefault();
 			if(this.sidebarDrag.what !== null) {
 				switch(this.sidebarDrag.what) {
 					case "top" :

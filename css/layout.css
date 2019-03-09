@@ -127,7 +127,6 @@ body {
 	transition: all 0.5s;
 }
 .sbs-top, .sbs-bottom {
-	right: 0; left: 0;
 	height: 20px;
 	cursor: row-resize;
 }

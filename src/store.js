@@ -270,9 +270,9 @@ export const store = new Vuex.Store({
 						if(placesRequest.status == 200) {
 							let all_places = JSON.parse(placesRequest.responseText);
 							let places = all_places[0], commonPlaces = all_places[1], folders = all_places[2];
-							sortTree(places);
-							sortTree(commonPlaces);
-							sortTree(folders);
+							places = sortObjects(places, "srt");
+							sortObjectsByProximity(commonPlaces);
+							folders = sortObjects(folders, "srt");
 							commit("placesReady", {places: places, commonPlaces: commonPlaces, folders: folders});
 							bus.$emit("placesFilled");
 						} else {
@@ -310,7 +310,7 @@ export const store = new Vuex.Store({
 			return state.message;
 		},
 		getImages: (state, getters) => (place, common = false) => {
-			sortTree(place.images);
+			place.images = sortObjects(place.images, "srt");
 			return place.images;
 		},
 		getIndexById: (state, getters) => (args) => {
