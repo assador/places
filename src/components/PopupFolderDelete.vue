@@ -5,7 +5,11 @@
 				<h1 class="margin_bottom_0">Удаление папки</h1>
 				<p>Укажите, что делать с содержимым удаляемой папки</p>
 			</div>
-			<form class="folder-delete__form" @submit.prevent="deleteFolder">
+			<form
+				class="folder-delete__form margin_bottom_0"
+				onclick="event.stopPropagation();"
+				@submit.prevent="deleteFolder"
+			>
 				<fieldset class="margin_bottom">
 					<label>
 						<input name="content" type="radio" v-model="keepContent" value="keep" />

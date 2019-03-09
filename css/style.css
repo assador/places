@@ -181,7 +181,6 @@ blockquote {
 	font-style: italic;
 }
 img {
-	width: auto; height: auto;
 	max-width: 100%;
 	vertical-align: middle;
 }

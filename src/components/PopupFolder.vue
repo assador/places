@@ -4,7 +4,11 @@
 			<div class="brand">
 				<h1 class="margin_bottom_0">Новая папка</h1>
 			</div>
-			<form class="folder-new__form" @submit.prevent="appendFolder(folderName, folderDescription);">
+			<form
+				class="folder-new__form margin_bottom_0"
+				onclick="event.stopPropagation();"
+				@submit.prevent="appendFolder(folderName, folderDescription);"
+			>
 				<table class="table_form">
 					<tbody>
 						<tr>
@@ -31,6 +35,7 @@
 						</tr>
 					</tbody>
 				</table>
+				<div v-html="accountDeleteMessage" style="text-align: center;"></div>
 			</form>
 			<a href="javascript:void(0);" class="close" @click="$parent.showPopup({show: false}, $event);">×</a>
 		</div>
