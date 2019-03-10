@@ -494,6 +494,7 @@ table.table_wopadd th, table.table_wopadd td {
 	padding: 30px 21px;
 }
 .about {
+	max-width: 1000px;
 	text-align: center;
 }
 *[class*="col-"] > *[class*="block_"] {
