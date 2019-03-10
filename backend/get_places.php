@@ -3,7 +3,7 @@ include "config.php";
 include "newpdo.php";
 
 $places = []; $common_places = []; $folders = [];
-$query = $conn->query("SELECT `p`.`id`, `p`.`folderid`, `p`.`name`, `p`.`description`, `p`.`latitude`, `p`.`longitude`, `p`.`srt`, `p`.`common`, `p`.`userid` FROM `places` `p` WHERE `p`.`userid` = '" . $_GET["id"] . "' OR `p`.`common` = 1 ORDER BY `common`, `srt`");
+$query = $conn->query("SELECT `p`.`id`, `p`.`folderid`, `p`.`name`, `p`.`description`, `p`.`latitude`, `p`.`longitude`, `p`.`srt`, `p`.`common`, `p`.`userid` FROM `places` `p` WHERE `p`.`userid` = '" . $_GET["id"] . "' OR `p`.`common` = 1");
 $all_places = $query->fetchAll(PDO::FETCH_ASSOC);
 foreach($all_places as $all_places_value) {
 	if($all_places_value["userid"] == $_GET["id"]) {

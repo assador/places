@@ -28,7 +28,7 @@
 						class="actions-button"
 						title="Удалить текущее место"
 						:disabled="currentPlaceCommon"
-						@click="deletePlace(currentPlace);"
+						@click="showPopup({show: true, type: 'placeDelete', data: currentPlace}, $event);"
 					>
 						×
 					</button>
@@ -129,7 +129,7 @@
 			>
 				<div id="basic-left__places" class="scrollable">
 					<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu" class="hidden">
-						<ul>
+						<ul class="margin_bottom_0">
 							<li class="places-menu-folder places-menu-folder_opened places-menu-folder_root">
 								<h2
 									id="places-menu-folder-link-root"
@@ -138,7 +138,7 @@
 								>
 									Мои места
 								</h2>
-								<ul id="folders-list-root" class="margin_bottom_0">
+								<ul id="folders-list-root">
 									<li
 										v-for="folder in $store.state.folders"
 										:key="folder.id"
@@ -498,6 +498,7 @@ import popupimage from "./PopupImage.vue"
 import popuptext from "./PopupText.vue"
 import popupfolder from "./PopupFolder.vue"
 import popupfolderdelete from "./PopupFolderDelete.vue"
+import popupplacedelete from "./PopupPlaceDelete.vue"
 import axios from "axios"
 import {mapGetters} from "vuex"
 export default {
@@ -507,6 +508,7 @@ export default {
 		popuptext,
 		popupfolder,
 		popupfolderdelete,
+		popupplacedelete,
 	},
 	data: function() {return {
 		state: this.$store.state,
@@ -597,7 +599,11 @@ export default {
 						break;
 					case "delete" :
 						if(this.currentPlace.userid === this.$store.state.user.id) {
-							this.deletePlace(this.currentPlace);
+							this.showPopup({
+								show: true,
+								type: "placeDelete",
+								data: this.currentPlace,
+							}, event);
 						}
 						break;
 					case "import" :
@@ -994,29 +1000,39 @@ export default {
 			});
 		},
 		deletePlace: place => function(place) {
-			this.$store.commit("removePlace", place);
-			this.toDB();
-			this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[place.id]);
-			if(place.id === this.currentPlace.id) {
-				if(document.getElementById(place.id).nextElementSibling) {
-					this.setCurrentPlace(
-						this.$store.state.places.find(
-							p => p.id === document.getElementById(place.id).nextElementSibling.id
-						)
-					);
-				} else if(document.getElementById(place.id).previousElementSibling) {
-					this.setCurrentPlace(
-						this.$store.state.places.find(
-							p => p.id === document.getElementById(place.id).previousElementSibling.id
-						)
-					);
-				} else {
-					this.setCurrentPlace(
-						this.$store.state.places.find(p => p.folderid === null)
-					);
+			let finallyDeletePlace = place => {
+				this.$store.commit("removePlace", place);
+				this.toDB();
+				this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[place.id]);
+				if(place.id === this.currentPlace.id) {
+					if(document.getElementById(place.id).nextElementSibling) {
+						this.setCurrentPlace(
+							this.$store.state.places.find(
+								p => p.id === document.getElementById(place.id).nextElementSibling.id
+							)
+						);
+					} else if(document.getElementById(place.id).previousElementSibling) {
+						this.setCurrentPlace(
+							this.$store.state.places.find(
+								p => p.id === document.getElementById(place.id).previousElementSibling.id
+							)
+						);
+					} else {
+						this.setCurrentPlace(
+							this.$store.state.places.find(p => p.folderid === null)
+						);
+					}
 				}
+				this.$store.commit("deletePlace", place);
 			}
-			this.$store.commit("deletePlace", place);
+			if(place.images.length > 0) {
+				this.deleteFiles(Array.from(place.images), place.images)
+					.then(response => {
+						finallyDeletePlace(place);
+					});
+			} else {
+				finallyDeletePlace(place);
+			}
 		},
 		commonPlacesShowHide: () => function() {
 			this.commonPlacesShow = !this.commonPlacesShow;
@@ -1054,6 +1070,10 @@ export default {
 				case "folderDelete" :
 					this.popupData = opts.data;
 					this.popupComponent = "popupfolderdelete";
+					break;
+				case "placeDelete" :
+					this.popupData = opts.data;
+					this.popupComponent = "popupplacedelete";
 					break;
 			}
 			this.popuped = opts["show"] ? "appear" : "disappear";
@@ -1185,24 +1205,31 @@ export default {
 			}
 		},
 		deleteFiles: (inarray, files, event) => function(inarray, files, event) {
-			event.stopPropagation();
-			let data = new FormData();
-			for(var i = 0; i < files.length; i++) {
-				data.append("file_" + i, files[i].file);
-				inarray.splice(inarray.indexOf(files[i]), 1);
-				this.currentImages = inarray;
-			}
-			data.append("userid", this.$store.state.user.id);
-			if(!this.$store.state.user.testaccount) {
-				axios.post("/backend/delete.php", data)
-					.then(response => {
-						this.$store.commit("changePlace", {
-							place: this.currentPlace,
-							change: {images: inarray},
+			return new Promise((resolve, reject) => {
+				if(event) {
+					event.stopPropagation();
+				}
+				let data = new FormData();
+				for(var i = 0; i < files.length; i++) {
+					data.append("file_" + i, files[i].file);
+					inarray.splice(inarray.indexOf(files[i]), 1);
+					this.currentImages = inarray;
+				}
+				data.append("userid", this.$store.state.user.id);
+				if(!this.$store.state.user.testaccount) {
+					axios.post("/backend/delete.php", data)
+						.then(response => {
+							this.$store.commit("changePlace", {
+								place: this.currentPlace,
+								change: {images: inarray},
+							});
+							this.toDB("images_delete", JSON.stringify(files))
+								.then(response => {
+									resolve("Картинки успешно удалены");
+								});
 						});
-						this.toDB("images_delete", JSON.stringify(files));
-					});
-			}
+				}
+			});
 		},
 	},
 }

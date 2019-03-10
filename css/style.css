@@ -747,12 +747,12 @@ span.folder-button {
 #detailed-description {
 	height: 80px;
 }
-.account__form fieldset, .folder-delete__form fieldset {
+.account__form fieldset, .folder-delete__form fieldset, .place-delete__form fieldset {
 	margin: 1em;
 }
-.account__form label, .folder-delete__form label {
+.account__form label, .folder-delete__form label, .place-delete__form label {
 	display: flex;
 }
-.account__form label input[type="radio"], .account__form label input[type="checkbox"], .folder-delete__form label input[type="radio"], .folder-delete__form label input[type="checkbox"] {
+.account__form label input[type="radio"], .account__form label input[type="checkbox"], .folder-delete__form label input[type="radio"], .folder-delete__form label input[type="checkbox"], .place-delete__form label input[type="radio"], .place-delete__form label input[type="checkbox"] {
 	margin: 0.3em 0.5em 0 0;
 }
