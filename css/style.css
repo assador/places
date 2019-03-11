@@ -505,10 +505,16 @@ table.table_wopadd th, table.table_wopadd td {
 	display: none;
 }
 .folder-button {
+	position: relative;
 	display: block;
 	margin-left: -1.5em;
 	padding-left: 1.5em;
+	outline: 1px solid rgba(255, 223, 170, 0);
 	cursor: pointer;
+	z-index: 0;
+}
+.folder-button_parent {
+	outline: 1px solid rgba(255, 223, 170, 0.3);
 }
 .folder-button::before {
 	float: left;
@@ -575,10 +581,6 @@ span.folder-button {
 	cursor: pointer;
 	transition: all 0.3s;
 }
-.folder-button {
-	position: relative;
-	z-index: 0;
-}
 .place-button[class*="block_"] {
 	margin: 7px 0 10px 0;
 	padding: 4px 8px;
@@ -598,10 +600,10 @@ span.folder-button {
 	top: 50%; bottom: 0;
 }
 .folder-button__dragenter-area_top {
-	top: 0; bottom: 75%;
+	top: 0; bottom: 80%;
 }
 .folder-button__dragenter-area_bottom {
-	top: 75%; bottom: 0;
+	top: 80%; bottom: 0;
 }
 .folder-button.over {
 	text-shadow: 0 0 3px rgb(255, 255, 255);

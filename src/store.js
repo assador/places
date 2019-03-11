@@ -297,9 +297,6 @@ export const store = new Vuex.Store({
 		},
 	},
 	getters: {
-		getLogin: (state, getters) => {
-			return state.user.login;
-		},
 		getMessage: (state, getters) => {
 			return state.message;
 		},

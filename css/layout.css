@@ -21,7 +21,7 @@ body {
 	width: 50%;
 }
 .auth .brand, .account .brand, .folder-new .brand  {
-	top: -100px;
+	top: -50px;
 	text-align: center;
 }
 .auth__login {
@@ -112,7 +112,8 @@ body {
 }
 .scrollable {
 	position: absolute;
-	top: 12px; right: 12px; bottom: 12px; left: 12px;
+	top: 0; right: 0; bottom: 0; left: 0;
+	padding: 12px;
 	overflow: auto;
 }
 .control-buttons {
@@ -232,5 +233,8 @@ body {
 @media screen and (max-width: 500px) {
 	#top-basic .brand > *:first-child + * {
 		display: none;
+	}
+	.popup, .popup > div, .centered {
+		padding: 10px;
 	}
 }
