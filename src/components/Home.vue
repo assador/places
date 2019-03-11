@@ -851,15 +851,21 @@ export default {
 					let srt;
 					if(container.children.length > 0) {
 						srt =
-							this.$store.state.places[
-								container.children[container.children.length - 1].getAttribute("index")
-							].srt + 1
+							this.$store.state.places[this.getIndexById({
+								parent: this.$store.state.places,
+								id: container.children[container.children.length - 1].id,
+							})]
 						;
 					} else {
 						srt = 1;
 					}
 					this.$store.commit("changePlace", {
-						place: this.$store.state.places[this.draggingElement.getAttribute("index")],
+						place:
+							this.$store.state.places[this.getIndexById({
+								parent: this.$store.state.places,
+								id: this.draggingElement.id,
+							})]
+						,
 						change: {
 							folderid: container.id === "places-menu-item-root" ? null : container.id,
 							srt: srt,
