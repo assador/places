@@ -854,7 +854,7 @@ export default {
 							this.$store.state.places[this.getIndexById({
 								parent: this.$store.state.places,
 								id: container.children[container.children.length - 1].id,
-							})]
+							})].srt + 1
 						;
 					} else {
 						srt = 1;
