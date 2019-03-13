@@ -509,12 +509,16 @@ table.table_wopadd th, table.table_wopadd td {
 	display: block;
 	margin-left: -1.5em;
 	padding-left: 1.5em;
-	outline: 1px solid rgba(255, 223, 170, 0);
 	cursor: pointer;
 	z-index: 0;
+	outline: 1px solid transparent;
+	transition: all 0.5s;
 }
 .folder-button_parent {
-	outline: 1px solid rgba(255, 223, 170, 0.3);
+	outline-color: rgba(255, 223, 170, 0.3);
+	background-color: rgba(218, 166, 126, 0.2);
+	box-shadow: 0 0 8px rgba(255, 243, 201, 0.4);
+	transition: all 0.5s;
 }
 .folder-button::before {
 	float: left;

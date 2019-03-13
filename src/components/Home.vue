@@ -135,6 +135,9 @@
 									id="places-menu-folder-link-root"
 									class="folder-button basiccolor"
 									onclick="if(this.parentNode.classList.contains('places-menu-folder_closed')) {this.parentNode.classList.remove('places-menu-folder_closed'); this.parentNode.classList.add('places-menu-folder_opened');} else {this.parentNode.classList.remove('places-menu-folder_opened'); this.parentNode.classList.add('places-menu-folder_closed');}"
+									@dragstart="handleDragStart"
+									@dragenter="handleDragEnter"
+									@dragleave="handleDragLeave"
 								>
 									Мои места
 								</h2>
@@ -796,8 +799,10 @@ export default {
 					this.needToUpdateFolders = true;
 				}
 				if(
-					this.draggingElement.classList.contains("folder-button")
-					|| this.draggingElement.classList.contains("place-button")
+					(
+						this.draggingElement.classList.contains("folder-button")
+						|| this.draggingElement.classList.contains("place-button")
+					)
 					&& event.target.classList.contains("folder-button")
 					&& this.draggingElement != event.target
 				) {
@@ -827,8 +832,10 @@ export default {
 			event.stopPropagation();
 			if(this.draggingElement !== null && this.draggingElement !== event.target) {
 				if(
-					this.draggingElement.classList.contains("folder-button")
-					|| this.draggingElement.classList.contains("place-button")
+					(
+						this.draggingElement.classList.contains("folder-button")
+						|| this.draggingElement.classList.contains("place-button")
+					)
 					&& event.target.classList.contains("folder-button")
 					&& this.draggingElement != event.target
 				) {
@@ -847,41 +854,51 @@ export default {
 					this.draggingElement.classList.contains("place-button")
 					&& event.target.parentNode.classList.contains("places-menu-folder")
 				) {
-					let container = event.target.parentNode.querySelector(".places-menu-item");
-					let srt;
-					if(container.children.length > 0) {
-						srt =
-							this.$store.state.places[this.getIndexById({
-								parent: this.$store.state.places,
-								id: container.children[container.children.length - 1].id,
-							})].srt + 1
-						;
-					} else {
-						srt = 1;
-					}
-					this.$store.commit("changePlace", {
-						place:
+					let container;
+					event.target.parentNode.querySelectorAll(".places-menu-item").forEach(function(c) {
+						if(c.parentNode === event.target.parentNode) {
+							container = c;
+							return;
+						}
+					});
+					if(container) {
+						let srt;
+						if(container.children.length > 0) {
+							srt =
+								this.$store.state.places[this.getIndexById({
+									parent: this.$store.state.places,
+									id: container.children[container.children.length - 1].id,
+								})].srt + 1
+							;
+						} else {
+							srt = 1;
+						}
+						this.$store.commit("changePlace", {
+							place:
+								this.$store.state.places[this.getIndexById({
+									parent: this.$store.state.places,
+									id: this.draggingElement.id,
+								})]
+							,
+							change: {
+								folderid: container.id === "places-menu-item-root" ? null : container.id,
+								srt: srt,
+							},
+						});
+						this.sortPlaceElementInMenu(
 							this.$store.state.places[this.getIndexById({
 								parent: this.$store.state.places,
 								id: this.draggingElement.id,
 							})]
-						,
-						change: {
-							folderid: container.id === "places-menu-item-root" ? null : container.id,
-							srt: srt,
-						},
-					});
-					this.sortPlaceElementInMenu(
-						this.$store.state.places[this.getIndexById({
-							parent: this.$store.state.places,
-							id: this.draggingElement.id,
-						})]
-					);
-					this.needToUpdate = true;
+						);
+						this.needToUpdate = true;
+					}
 				}
 				if(
-					this.draggingElement.classList.contains("folder-button")
-					|| this.draggingElement.classList.contains("place-button")
+					(
+						this.draggingElement.classList.contains("folder-button")
+						|| this.draggingElement.classList.contains("place-button")
+					)
 					&& event.target.classList.contains("folder-button")
 					&& this.draggingElement != event.target
 				) {
@@ -971,8 +988,8 @@ export default {
 				event.target.value = "";
 			} else {
 				for(let i = 0; i < this.$store.state.places.length; i++) {
-					let regexp = new RegExp("^" + event.target.value + "$", "i");
-					if(regexp.test(this.$store.state.places[i].name)) {
+					let regexp = new RegExp(event.target.value, "i");
+					if(event.target.value.length > 1 && regexp.test(this.$store.state.places[i].name)) {
 						this.setCurrentPlace(this.$store.state.places[i]);
 					}
 				}
@@ -1046,7 +1063,7 @@ export default {
 			}
 			if(!common) {
 				let folder, folderid = place.folderid;
-				while(folderid !== null) {
+				while(folderid) {
 					folder = document.getElementById("places-menu-folder-" + folderid);
 					folder.classList.remove('places-menu-folder_closed');
 					folder.classList.add('places-menu-folder_opened');

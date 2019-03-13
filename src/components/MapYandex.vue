@@ -102,12 +102,12 @@ export default {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				}.bind(this));
 				let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
-				if(typeof(firstPlaceInRoot) === "undefined") {
-					if(this.$store.state.places.length > 0) {
+				if(this.$store.state.places.length > 0) {
+					if(typeof(firstPlaceInRoot) === "undefined") {
 						this.$parent.setCurrentPlace(this.$store.state.places[0]);
+					} else {
+						this.$parent.setCurrentPlace(firstPlaceInRoot);
 					}
-				} else {
-					this.$parent.setCurrentPlace(firstPlaceInRoot);
 				}
 			};
 		},

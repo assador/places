@@ -202,16 +202,15 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 	} elseif($_POST["todo"] == "images_upload") {
 		updateImages($conn, $stmt, $data);
 	} elseif($_POST["todo"] == "images_delete") {
-		$stmt = $conn->prepare("
-			DELETE FROM `images` WHERE `id` IN (:ids)
-		");
-		$stmt->bindParam(":ids" , $ids);
 		$ids = "";
 		foreach($data as $row) {
-			$ids .= $row["id"] . ",";
+			$ids .= "'" . $row["id"] . "',";
 		}
 		$ids = rtrim($ids, ",");
-		$stmt->execute();
+		$stmt = $conn->prepare("
+			DELETE FROM `images` WHERE `id` IN (" . $ids . ")
+		");
+		try{$stmt->execute();} catch(Exception $e) {}
 	}
 	echo 1; exit;
 }

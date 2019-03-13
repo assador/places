@@ -1,3 +1,4 @@
+import {constants} from "./shared/constants.js"
 import {bus} from "./shared/bus.js"
 export const store = new Vuex.Store({
 	state: {
@@ -5,7 +6,10 @@ export const store = new Vuex.Store({
 		places: [],
 		folders: [],
 		commonPlaces: [],
-		center: {},
+		center: {
+			latitude: constants.map.initial.latitude,
+			longitude: constants.map.initial.longitude,
+		},
 		ready: false,
 		message: "",
 		placeFields: {

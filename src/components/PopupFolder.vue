@@ -14,7 +14,7 @@
 						<tr>
 							<th>Название:</th>
 							<td>
-								<input class="fieldwidth_100" required id="folderName" v-model="folderName" type="text" @click="validatable();" />
+								<input class="fieldwidth_100" required id="folderName" v-model="folderName" type="text" @click="validatable();" autofocus />
 							</td>
 						</tr>
 						<tr>

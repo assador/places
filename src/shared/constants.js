@@ -20,8 +20,8 @@ export const constants = {
 	},
 	map: {
 		initial: {
-			latitude  : 55.7512848,
-			longitude : 37.6190706,
+			latitude  : 51.4778883,
+			longitude : -0.0014822,
 		},
 	},
 	sidebars: {

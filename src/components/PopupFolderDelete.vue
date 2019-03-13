@@ -88,18 +88,35 @@ export default {
 			this.$parent.showPopup({show: false}, event);
 		},
 		deleteNestedPlaces: (folderId) => function(folderId) {
+			let placesToDelete = [], imagesToDelete = [];
+			let finallyDeletePlace = () => {
+				this.$parent.toDB("images_delete", JSON.stringify(imagesToDelete));
+				this.$parent.toDB();
+				placesToDelete.forEach(function(place) {
+					this.$store.commit("deletePlace", place);
+				}.bind(this));
+			}
 			this.$store.state.places.forEach(function(place) {
 				if(place.folderid === folderId) {
-					this.$store.commit("changePlace", {
-						place: place,
-						change: {deleted: true},
-					});
+					this.$store.commit("removePlace", place);
 					this.$parent.$refs.ym.map.geoObjects.remove(this.$parent.$refs.ym.mrks[place.id]);
+					placesToDelete.push(place);
+					if(place.images.length > 0) {
+						imagesToDelete = imagesToDelete.concat(place.images);
+					}
 					if(place.id === this.$parent.currentPlace.id) {
 						this.toSetCurrentPlace = true;
 					}
 				}
 			}.bind(this));
+			if(imagesToDelete.length > 0) {
+				this.$parent.deleteFiles(Array.from(imagesToDelete), imagesToDelete)
+					.then(response => {
+						finallyDeletePlace();
+					});
+			} else {
+				finallyDeletePlace();
+			}
 		},
 		deleteNestedFolders: (folderId) => function(folderId) {
 			this.deleteNestedPlaces(folderId);
