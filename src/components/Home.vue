@@ -60,9 +60,13 @@
 						<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user.login"></span></h1>
 						<div>Сервис просмотра и редактирования библиотек геометок</div>
 					</div>
-					<div class="message">
-						<span v-html="getMessage"></span>
-					</div>
+				</div>
+				<div
+					id="message-main"
+					class="message invisible"
+					@click="$store.dispatch('clearMessage', true);"
+				>
+					<span v-html="getMessage"></span>
 				</div>
 			</div>
 			<div
@@ -129,21 +133,21 @@
 			>
 				<div id="basic-left__places" class="scrollable">
 					<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu" class="hidden">
-						<ul class="margin_bottom_0">
+						<ul>
 							<li class="places-menu-folder places-menu-folder_opened places-menu-folder_root">
 								<h2
 									id="places-menu-folder-link-root"
 									class="folder-button basiccolor"
-									onclick="if(this.parentNode.classList.contains('places-menu-folder_closed')) {this.parentNode.classList.remove('places-menu-folder_closed'); this.parentNode.classList.add('places-menu-folder_opened');} else {this.parentNode.classList.remove('places-menu-folder_opened'); this.parentNode.classList.add('places-menu-folder_closed');}"
+									onclick="if(this.parentNode.classList.contains('places-menu-folder_closed')) {this.parentNode.classList.remove('places-menu-folder_closed'); this.parentNode.classList.add('places-menu-folder_opened'); this.parentNode.parentNode.classList.remove('margin_bottom_0');} else {this.parentNode.classList.remove('places-menu-folder_opened'); this.parentNode.classList.add('places-menu-folder_closed'); this.parentNode.parentNode.classList.add('margin_bottom_0');}"
 									@dragstart="handleDragStart"
 									@dragenter="handleDragEnter"
 									@dragleave="handleDragLeave"
 								>
 									Мои места
 								</h2>
-								<ul id="folders-list-root">
+								<ul id="folders-list-root" class="margin_bottom_0">
 									<li
-										v-for="folder in $store.state.folders"
+										v-for="(folder, index) in $store.state.folders"
 										:key="folder.id"
 										:id="'places-menu-folder-' + folder.id"
 										:title="folder.description"
@@ -152,6 +156,8 @@
 										<a
 											v-if="!foldersEditMode"
 											:id="'places-menu-folder-link-' + folder.id"
+											:index="index"
+											:srt="folder.srt"
 											href="javascript: void(0);"
 											class="folder-button"
 											draggable="true"
@@ -561,8 +567,8 @@ export default {
 		});
 		if(this.$store.state.user.testaccount) {
 			setTimeout(function() {
-				this.$store.commit("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможны сохранение изменений в базу данных и загрузка файлов, в том числе фотографий");
-			}.bind(this), 5000);
+				this.$store.dispatch("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможны сохранение изменений в базу данных и загрузка файлов, в том числе фотографий");
+			}.bind(this), 3000);
 		}
 	},
 	updated: function() {
@@ -609,6 +615,24 @@ export default {
 								type: "placeDelete",
 								data: this.currentPlace,
 							}, event);
+						}
+						break;
+					case "add folder" :
+						this.showPopup({show: true, type: "folder"}, event);
+						break;
+					case "edit mode" :
+						this.foldersEditMode = !this.foldersEditMode;
+						if(
+							document.getElementById("actions-edit-folders")
+								.classList.contains("button-pressed")
+						) {
+							document.getElementById("actions-edit-folders")
+								.classList.remove("button-pressed")
+							;
+						} else {
+							document.getElementById("actions-edit-folders")
+								.classList.add("button-pressed")
+							;
 						}
 						break;
 					case "import" :
@@ -671,22 +695,27 @@ export default {
 		handleDragEnter: function(event) {
 			event.preventDefault();
 			event.stopPropagation();
-			if(this.draggingElement !== null && this.draggingElement !== event.target) {
+			if(
+				this.draggingElement !== event.target
+				&& event.target.classList
+			) {
 				let
 					srt = null,
-					draggingIndex = this.getIndexById({
-						parent: this.$store.state.places,
-						id: this.draggingElement.id,
-					}),
-					targetPrev = event.target.parentNode.previousElementSibling,
-					targetNext = event.target.parentNode.nextElementSibling,
 					targetSrt = Number(event.target.parentNode.getAttribute("srt"))
 				;
 				if(
-					this.draggingElement.classList.contains("place-button")
-					&& event.target.parentNode.classList.contains("place-button")
-					&& this.draggingElement != event.target.parentNode
+					this.draggingElement.id !== event.target.parentNode.id
+					&& this.draggingElement.classList.contains("place-button")
+					&& event.target.classList.contains("place-button__dragenter-area")
 				) {
+					let
+						draggingIndex = this.getIndexById({
+							parent: this.$store.state.places,
+							id: this.draggingElement.id,
+						}),
+						targetPrev = event.target.parentNode.previousElementSibling,
+						targetNext = event.target.parentNode.nextElementSibling
+					;
 					if(event.target.classList.contains("place-button__dragenter-area_top")) {
 						if(!targetPrev) {
 							srt = targetSrt / 2;
@@ -720,41 +749,33 @@ export default {
 					}
 				}
 				if(
-					this.draggingElement.classList.contains("folder-button")
+					this.draggingElement.id !== event.target.parentNode.id
+					&& this.draggingElement.classList.contains("folder-button")
 					&& event.target.classList.contains("folder-button__dragenter-area")
-					&& this.draggingElement != event.target.parentNode
+					&& !this.draggingElement.parentNode.contains(event.target.parentNode.parentNode)
 					&& !(
 						event.target.classList.contains("folder-button__dragenter-area_bottom")
 						&& event.target.parentNode.parentNode.classList.contains("places-menu-folder_opened")
 					)
 				) {
-					let targetIndex = this.getIndexById({
-						parent: this.$store.state.folders,
-						id: event.target.parentNode.id.substr(24),
-					});
-					let targetPrevIndex = event.target.parentNode.parentNode.previousElementSibling
-						? this.getIndexById({
+					let
+						draggingIndex = this.getIndexById({
 							parent: this.$store.state.folders,
-							id: event.target.parentNode.parentNode.previousElementSibling.id.substr(19),
-						})
-						: null;
-					let targetNextIndex = event.target.parentNode.parentNode.nextElementSibling
-						? this.getIndexById({
-							parent: this.$store.state.folders,
-							id: event.target.parentNode.parentNode.nextElementSibling.id.substr(19),
-						})
-						: null;
+							id: this.draggingElement.id.substr(24),
+						}),
+						targetPrev = event.target.parentNode.parentNode.previousElementSibling,
+						targetNext = event.target.parentNode.parentNode.nextElementSibling
+					;
+					let folderLinks = document.getElementsByClassName("folder-button_parent");
+					for(var i = 0; i < folderLinks.length; i++) {
+						folderLinks[i].classList.remove("folder-button_parent");
+					}
 					if(event.target.classList.contains("folder-button__dragenter-area_top")) {
-						if(targetPrevIndex === null) {
-							srt = this.$store.state.folders[targetIndex].srt / 2;
-						} else {
-							srt =
-								(
-									this.$store.state.folders[targetIndex].srt -
-									this.$store.state.folders[targetPrevIndex].srt
-								) / 2
-								+ this.$store.state.folders[targetPrevIndex].srt
-							;
+						if(!targetPrev) {
+							srt = targetSrt / 2;
+						} else if(targetPrev.id !== this.draggingElement.parentNode.id) {
+							let targetPrevSrt = Number(targetPrev.children[0].getAttribute("srt"));
+							srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
 						}
 						event.target.parentNode.parentNode.parentNode.insertBefore(
 							this.draggingElement.parentNode,
@@ -762,19 +783,14 @@ export default {
 						);
 					}
 					if(event.target.classList.contains("folder-button__dragenter-area_bottom")) {
-						if(targetNextIndex === null) {
-							srt = this.$store.state.folders[targetIndex].srt + 1;
+						if(!targetNext) {
+							srt = targetSrt + 1;
 							event.target.parentNode.parentNode.parentNode.appendChild(
 								this.draggingElement.parentNode
 							);
-						} else {
-							srt =
-								(
-									this.$store.state.folders[targetNextIndex].srt -
-									this.$store.state.folders[targetIndex].srt
-								) / 2
-								+ this.$store.state.folders[targetIndex].srt
-							;
+						} else if(targetNext.id !== this.draggingElement.parentNode.id) {
+							let targetNextSrt = Number(targetNext.children[0].getAttribute("srt"));
+							srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
 							event.target.parentNode.parentNode.parentNode.insertBefore(
 								this.draggingElement.parentNode,
 								event.target.parentNode.parentNode.nextElementSibling
@@ -804,14 +820,11 @@ export default {
 						|| this.draggingElement.classList.contains("place-button")
 					)
 					&& event.target.classList.contains("folder-button")
-					&& this.draggingElement != event.target
 				) {
 					event.target.classList.add("folder-button_parent");
 				}
 				if(
-					this.draggingElement.classList
-					&& this.draggingElement.classList.contains("place-image")
-					&& event.target.classList
+					this.draggingElement.classList.contains("place-image")
 					&& event.target.classList.contains("place-image")
 				) {
 					this.$store.commit("swapValues", {
@@ -830,17 +843,12 @@ export default {
 		handleDragLeave: function(event) {
 			event.preventDefault();
 			event.stopPropagation();
-			if(this.draggingElement !== null && this.draggingElement !== event.target) {
-				if(
-					(
-						this.draggingElement.classList.contains("folder-button")
-						|| this.draggingElement.classList.contains("place-button")
-					)
-					&& event.target.classList.contains("folder-button")
-					&& this.draggingElement != event.target
-				) {
-					event.target.classList.remove("folder-button_parent");
-				}
+			if(
+				this.draggingElement !== event.target
+				&& event.target.classList
+				&& event.target.classList.contains("folder-button")
+			) {
+				event.target.classList.remove("folder-button_parent");
 			}
 		},
 		handleDragOver: function(event) {
@@ -849,7 +857,10 @@ export default {
 		handleDrop: function(event) {
 			event.preventDefault();
 			event.stopPropagation();
-			if(this.draggingElement !== null && this.draggingElement !== event.target) {
+			if(
+				this.draggingElement !== event.target
+				&& event.target.classList
+			) {
 				if(
 					this.draggingElement.classList.contains("place-button")
 					&& event.target.parentNode.classList.contains("places-menu-folder")
@@ -907,7 +918,6 @@ export default {
 				if(
 					this.draggingElement.classList.contains("folder-button")
 					&& event.target.classList.contains("folder-button")
-					&& this.draggingElement != event.target
 				) {
 					let
 						targetId = event.target.id.substr(24),
@@ -924,7 +934,14 @@ export default {
 						if(folder.id === this.draggingElement.id.substr(24)) {
 							this.$store.commit("changeFolder", {
 								folder: folder,
-								change: {parent: targetId === "root" ? null : targetId},
+								change: {
+									parent: targetId === "root" ? null : targetId,
+									srt:
+										this.draggingElement.parentNode.previousElementSibling
+											? Number(this.draggingElement.parentNode.previousElementSibling.children[0].getAttribute("srt")) + 1
+											: 1
+									,
+								},
 							});
 							this.toDB("folders", JSON.stringify([folder]));
 						}
@@ -1081,26 +1098,31 @@ export default {
 				this.$store.commit("removePlace", place);
 				this.toDB();
 				this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[place.id]);
-				if(place.id === this.currentPlace.id) {
-					if(document.getElementById(place.id).nextElementSibling) {
-						this.setCurrentPlace(
-							this.$store.state.places.find(
-								p => p.id === document.getElementById(place.id).nextElementSibling.id
-							)
-						);
-					} else if(document.getElementById(place.id).previousElementSibling) {
-						this.setCurrentPlace(
-							this.$store.state.places.find(
-								p => p.id === document.getElementById(place.id).previousElementSibling.id
-							)
-						);
-					} else {
-						this.setCurrentPlace(
-							this.$store.state.places.find(p => p.folderid === null)
-						);
-					}
-				}
 				this.$store.commit("deletePlace", place);
+				if(this.$store.state.places.length > 0) {
+					if(place.id === this.currentPlace.id) {
+						let firstRootPlace = this.$store.state.places.find(p => p.folderid === null);
+						if(document.getElementById(place.id).nextElementSibling) {
+							this.setCurrentPlace(
+								this.$store.state.places.find(
+									p => p.id === document.getElementById(place.id).nextElementSibling.id
+								)
+							);
+						} else if(document.getElementById(place.id).previousElementSibling) {
+							this.setCurrentPlace(
+								this.$store.state.places.find(
+									p => p.id === document.getElementById(place.id).previousElementSibling.id
+								)
+							);
+						} else if(firstRootPlace) {
+							this.setCurrentPlace(firstRootPlace);
+						} else {
+							this.setCurrentPlace(this.$store.state.places[0]);
+						}
+					}
+				} else {
+					this.currentPlace = null;
+				}
 			}
 			if(place.images.length > 0) {
 				this.deleteFiles(Array.from(place.images), place.images)
@@ -1172,7 +1194,7 @@ export default {
 							,
 						}, event);
 					} else {
-						this.$store.commit("setMessage", "Не могу найти справку");
+						this.$store.dispatch("setMessage", "Не могу найти справку");
 					}
 				}
 			}.bind(this);
@@ -1212,10 +1234,10 @@ export default {
 						placesRequest.onreadystatechange = function(event) {
 							if(placesRequest.readyState == 4) {
 								if(placesRequest.status == 200) {
-									this.$store.commit("setMessage", "Изменения сохранены в базе данных");
+									this.$store.dispatch("setMessage", "Изменения сохранены в базе данных");
 									resolve("Изменения сохранены в базе данных");
 								} else {
-									this.$store.commit("setMessage", "Не могу внести данные в БД");
+									this.$store.dispatch("setMessage", "Не могу внести данные в БД");
 									reject(new Error("Не могу внести данные в БД"));
 								}
 							}
@@ -1223,7 +1245,7 @@ export default {
 						placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 						placesRequest.send("id=" + localStorage.getItem("places-userid") + "&todo=" + (typeof(todo) !== "undefined" ? todo : "places") + "&data=" + (typeof(data) !== "undefined" ? data : JSON.stringify(this.$store.state.places)));
 					} else {
-						this.$store.commit("setMessage", "Некоторые поля заполнены некорректно");
+						this.$store.dispatch("setMessage", "Некоторые поля заполнены некорректно");
 					}
 				});
 			}
@@ -1231,7 +1253,7 @@ export default {
 		uploadFiles: (event) => function(event) {
 			event.preventDefault();
 			if(this.$store.state.user.testaccount) {
-				this.$store.commit("setMessage", "Тестовый аккаунт не позволяет загрузку файлов");
+				this.$store.dispatch("setMessage", "Тестовый аккаунт не позволяет загрузку файлов");
 			} else {
 				let data = new FormData(), files = this.$refs.inputUploadFiles.files, rndname, ext;
 				for(var i = 0; i < files.length; i++) {
@@ -1270,14 +1292,14 @@ export default {
 							place: this.currentPlace,
 							change: {images: images},
 						});
-						this.$store.commit("setMessage", "Файлы успешно загружены");
+						this.$store.dispatch("setMessage", "Файлы успешно загружены");
 						this.toDB()
 							.then(response => {
 								this.toDB("images_upload", JSON.stringify(filesArray))
 							});
 					})
 					.catch(error => {
-						this.$store.commit("setMessage", "При загрузке файлов произошла ошибка");
+						this.$store.dispatch("setMessage", "При загрузке файлов произошла ошибка");
 					});
 			}
 		},

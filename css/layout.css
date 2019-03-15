@@ -68,9 +68,6 @@ body {
 #top-right, #bottom-left, .control-buttons {
 	text-align: center;
 }
-#top-basic {
-	overflow: hidden;
-}
 #top-basic > *:first-child {
 	display: flex;
 	align-items: flex-start;
@@ -78,22 +75,21 @@ body {
 .brand {
 	min-width: 38.2%;
 }
-.message {
-	flex: auto;
-	padding-left: 20px;
+#message-main {
+	box-sizing: border-box;
+	position: absolute;
+	top: 0; right: 0;
+	max-width: 100%;
+	margin: 11px;
+	padding: 10px 20px 12px 20px;
+	border-radius: 7px;
+	background-color: rgba(0, 0, 0, 0.85);
+	box-shadow: 0 4px 23px rgba(0, 0, 0, 0.7);
 	text-align: right;
+	cursor: default;
 }
-.message > * {
-	flex: auto;
-}
-#bottom, #top-basic, #bottom-basic {
+#top-basic {
 	z-index: 10;
-}
-#top, #basic-left, #basic-right {
-	z-index: 20;
-}
-#basic, #basic-basic {
-	z-index: 30;
 }
 #basic {
 	height: 100%;

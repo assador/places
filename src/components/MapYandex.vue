@@ -101,9 +101,9 @@ export default {
 				this.$store.state.commonPlaces.forEach(function(commonPlace) {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				}.bind(this));
-				let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
 				if(this.$store.state.places.length > 0) {
-					if(typeof(firstPlaceInRoot) === "undefined") {
+					let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
+					if(!firstPlaceInRoot) {
 						this.$parent.setCurrentPlace(this.$store.state.places[0]);
 					} else {
 						this.$parent.setCurrentPlace(firstPlaceInRoot);

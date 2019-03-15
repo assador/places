@@ -4,6 +4,8 @@ export const constants = {
 	shortcuts: {
 		65  : "add",
 		68  : "delete",
+		70  : "add folder",
+		77  : "edit mode",
 		73  : "import",
 		69  : "export",
 		83  : "save",
@@ -25,7 +27,7 @@ export const constants = {
 		},
 	},
 	sidebars: {
-		top    : 100,
+		top    : 90,
 		right  : 200,
 		bottom : 60,
 		left   : 200,

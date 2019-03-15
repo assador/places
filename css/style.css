@@ -355,6 +355,9 @@ input[type="hidden"] {
 .appear, .disappear {transition: transform 0.5s, opacity 0.5s;}
 .appear {transform: scale(1, 1); opacity: 1;}
 .disappear {transform: scale(0, 0); opacity: 0;}
+.visible, .invisible {transition: opacity 0.5s;}
+.visible {opacity: 1;}
+.invisible {opacity: 0;}
 a[target*="_blank"]::after {content: "\219d"; display: inline-block; margin: -0.15em 0.2em 0 0.2em; vertical-align: text-top; font-size: 90%;}
 .pseudo_button {
 	display: inline-block;

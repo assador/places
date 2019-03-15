@@ -47,27 +47,6 @@ export const store = new Vuex.Store({
 		setUser(state, user) {
 			Vue.set(state, "user", user);
 		},
-		setMessage(state, message) {
-			let last = state.message.match(/([^<>]+)$/);
-			if(last != null && last[1] == message) {
-				Vue.set(state, "message", state.message.replace(/[^<>]+$/, ""));
-				document.messageTimeout = setTimeout(function() {
-					Vue.set(state, "message", state.message += message);
-					document.messageTimeout = undefined;
-				}.bind(message), 200);
-			} else {
-				Vue.set(state, "message", state.message += (state.message != "" ? "<br />" : "") + message);
-			}
-			if(typeof document.messageInterval === "undefined") {
-				document.messageInterval = setInterval(function() {
-					Vue.set(state, "message", state.message.replace(/^.*?(<br\ \/>|$)/, ""));
-					if(state.message == "") {
-						clearInterval(document.messageInterval);
-						document.messageInterval = undefined;
-					}
-				}, 10000);
-			}
-		},
 		placesReady(state, payload) {
 			Vue.set(state, "places", payload.places);
 			Vue.set(state, "commonPlaces", payload.commonPlaces);
@@ -256,7 +235,7 @@ export const store = new Vuex.Store({
 							commit("setUser", user);
 							resolve("Данные аккаунта успешно получены");
 						} else {
-							commit("setMessage", "Не могу получить данные");
+							dispatch("setMessage", "Не могу получить данные");
 							commit("setUser", {});
 							reject(new Error("Не могу получить данные"));
 						}
@@ -280,7 +259,7 @@ export const store = new Vuex.Store({
 							commit("placesReady", {places: places, commonPlaces: commonPlaces, folders: folders});
 							bus.$emit("placesFilled");
 						} else {
-							commit("setMessage", "Не могу получить данные из БД");
+							dispatch("setMessage", "Не могу получить данные из БД");
 							commit("placesReady", {places: [], commonPlaces: [], folders: []});
 						}
 					}
@@ -298,6 +277,36 @@ export const store = new Vuex.Store({
 						commit("placesReady", {places: [], commonPlaces: [], folders: []});
 					});
 			}
+		},
+		clearMessage({state}, hide) {
+			let message;
+			if(hide || (message = state.message.replace(/^.*?(<br\s*\/>|$)/, "")) === "") {
+				let me = document.getElementById("message-main");
+				if(me) {
+					me.classList.add("invisible");
+					me.classList.remove("visible");
+				}
+				setTimeout(function() {
+					Vue.set(state, "message", "");
+				}, 500);
+			} else {
+				Vue.set(state, "message", message);
+			}
+		},
+		setMessage({state, dispatch}, message) {
+			Vue.set(state, "message", state.message += (state.message !== "" ? "<br />" : "") + message);
+			let me = document.getElementById("message-main");
+			if(me) {
+				me.classList.add("visible");
+				me.classList.remove("invisible");
+			}
+			clearTimeout(document.messageTimer);
+			document.messageTimer = setTimeout(function messageTimeout() {
+				dispatch("clearMessage");
+				if(state.message !== "") {
+					document.messageTimer = setTimeout(messageTimeout, 3000);
+				}
+			}, 3000);
 		},
 	},
 	getters: {
