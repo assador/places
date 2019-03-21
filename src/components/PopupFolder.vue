@@ -14,19 +14,38 @@
 						<tr>
 							<th>Название:</th>
 							<td>
-								<input class="fieldwidth_100" required id="folderName" v-model="folderName" type="text" @click="validatable();" autofocus />
+								<input
+									id="folderName"
+									class="fieldwidth_100"
+									required
+									autofocus
+									type="text"
+									v-model="folderName"
+									@click="validatable();"
+								/>
 							</td>
 						</tr>
 						<tr>
 							<th>Описание:</th>
 							<td>
-								<textarea class="fieldwidth_100" id="folderDescription" v-model="folderDescription" @click="validatable();"></textarea>
+								<textarea
+									id="folderDescription"
+									class="fieldwidth_100"
+									v-model="folderDescription"
+									@click="validatable();"
+								>
+								</textarea>
 							</td>
 						</tr>
 						<tr class="back_0">
 							<th></th>
 							<td style="padding-top: 18px; vertical-align: top;">
 								<button type="submit">Создать папку</button>
+								<input
+									type="button"
+									value="Закрыть"
+									@click="close($event);"
+								/>
 							</td>
 						</tr>
 						<tr class="back_0">
@@ -37,7 +56,13 @@
 				</table>
 				<div v-html="accountDeleteMessage" style="text-align: center;"></div>
 			</form>
-			<a href="javascript:void(0);" class="close" @click="$parent.showPopup({show: false}, $event);">×</a>
+			<a
+				href="javascript:void(0);"
+				class="close"
+				@click="close($event);"
+			>
+				×
+			</a>
 		</div>
 	</div>
 </template>
@@ -85,6 +110,17 @@ export default {
 			});
 			this.$parent.buildMenu(this.$store.state.folders);
 			this.message = "Папка создана";
+			this.folderName = "";
+			this.folderDescription = "";
+			document.getElementById("folderName").focus();
+		},
+		close: (event) => function(event) {
+			event.stopPropagation();
+			this.$parent.showPopup({show: false}, event);
+			this.message = "";
+			this.folderName = "";
+			this.folderDescription = "";
+			document.getElementById("folderName").focus();
 		},
 	},
 }

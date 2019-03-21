@@ -40,17 +40,21 @@ export default {
 	watch: {
 		latitude: function() {
 			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
-			this.$store.commit("changeCenter", {
-				latitude: this.$parent.currentPlace.latitude,
-				longitude: this.$parent.currentPlace.longitude,
-			});
+			if(Object.keys(this.$parent.currentPlace).length > 0) {
+				this.$store.commit("changeCenter", {
+					latitude: this.$parent.currentPlace.latitude,
+					longitude: this.$parent.currentPlace.longitude,
+				});
+			}
 		},
 		longitude: function() {
 			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
-			this.$store.commit("changeCenter", {
-				latitude: this.$parent.currentPlace.latitude,
-				longitude: this.$parent.currentPlace.longitude,
-			});
+			if(Object.keys(this.$parent.currentPlace).length > 0) {
+				this.$store.commit("changeCenter", {
+					latitude: this.$parent.currentPlace.latitude,
+					longitude: this.$parent.currentPlace.longitude,
+				});
+			}
 		},
 		centerLatitude: function() {
 			this.updateCenter();
@@ -163,23 +167,27 @@ export default {
 			}
 		},
 		appendPlace: () => function() {
-			let newName = "Новое место";
-			let newDescription = newName + ", добавленное в «Местах».";
 			let newPlace = {
 				userid: localStorage.getItem("places-userid"),
-				name: newName,
-				description: newDescription,
+				name: "",
+				description: "",
 				latitude: this.map.getCenter()[0].toFixed(7),
 				longitude: this.map.getCenter()[1].toFixed(7),
 				id: generateRandomString(32),
-				folderid: null,
-				srt: this.$store.state.places.length > 0
-					? Math.ceil(Math.max(
-						...this.$store.state.places.map(function(place) {
-							return place.srt;
-						})
-					)) + 1
-					: 1,
+				folderid:
+					Object.keys(this.$parent.currentPlace).length > 0
+						? this.$parent.currentPlace.folderid
+						: null
+				,
+				srt:
+					this.$store.state.places.length > 0
+						? Math.ceil(Math.max(
+							...this.$store.state.places.map(function(place) {
+								return place.srt;
+							})
+						)) + 1
+						: 1
+				,
 				common: false,
 				images: [],
 				added: true,

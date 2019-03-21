@@ -12,8 +12,16 @@ $db = array(
 $lengths = array(
 	"name"        => 500,
 	"description" => 5000,
-	"url"         => 2048
+	"url"         => 2048,
 );
+$mimes = array(
+	"image/gif"     => "gif",
+	"image/jpeg"    => "jpg",
+	"image/png"     => "png",
+	"image/svg+xml" => "svg",
+);
+$uploadsize = 12582912;
+$acceptsize = 4194304;
 $images = array(
 	"big" => array(
 		"width"  => 1600,

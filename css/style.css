@@ -309,7 +309,8 @@ input[type="submit"], input[type="reset"], input[type="submit"][disabled]:hover,
 	color: rgb(70, 41, 23);
 }
 .button:hover, .button:focus, button:hover, input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover,
-button:focus, input[type="button"]:focus, input[type="submit"]:focus, input[type="reset"]:focus {
+button:focus, input[type="button"]:focus, input[type="submit"]:focus, input[type="reset"]:focus,
+.button-pressed {
 	background-color: rgb(218, 166, 126);
 	border-color: rgb(175, 126, 89) rgb(232, 179, 139) rgb(247, 193, 152) rgb(189, 139, 101);
 	box-shadow: 0 0 8px rgba(255, 243, 201, 0.3);
@@ -358,6 +359,46 @@ input[type="hidden"] {
 .visible, .invisible {transition: opacity 0.5s;}
 .visible {opacity: 1;}
 .invisible {opacity: 0;}
+.highlight {animation: highlight 1s ease-in-out;}
+.waiting {
+	overflow: hidden;
+}
+.waiting > *, .waiting::before {
+	position: absolute;
+	top: 0; right: 0; bottom: 0; left: 0;
+}
+.waiting > * {
+	text-align: center;
+	z-index: 10;
+}
+.waiting::before {
+	content: "";
+	background: linear-gradient(to right, rgba(144, 98, 62, 0) 0%, rgba(144, 98, 62, 1) 50%, rgba(144, 98, 62, 0) 100%);
+	z-index: 0;
+	animation: waiting 2s ease-in-out infinite;
+}
+#message-main .highlight {animation: highlight-text 1s ease-in-out;}
+@keyframes highlight {
+	0% {box-shadow: 0 0 42px rgba(255, 252, 224, 0);}
+	50% {box-shadow: 0 0 42px rgba(255, 252, 224, 1);}
+	100% {box-shadow: 0 0 42px rgba(255, 252, 224, 0);}
+}
+@keyframes highlight-text {
+	0% {text-shadow: 0 0 11px rgba(255, 255, 255, 0);}
+	50% {text-shadow: 0 0 11px rgba(255, 255, 255, 1); color: rgb(255, 255, 255);}
+	100% {text-shadow: 0 0 11px rgba(255, 255, 255, 0);}
+}
+@keyframes waiting {
+	0% {
+		right: 50%; left: -50%;
+	}
+	50% {
+		right: -50%; left: 50%;
+	}
+	100% {
+		right: 50%; left: -50%;
+	}
+}
 a[target*="_blank"]::after {content: "\219d"; display: inline-block; margin: -0.15em 0.2em 0 0.2em; vertical-align: text-top; font-size: 90%;}
 .pseudo_button {
 	display: inline-block;

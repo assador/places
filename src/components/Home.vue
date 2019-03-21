@@ -27,7 +27,7 @@
 						id="actions-delete"
 						class="actions-button"
 						title="Удалить текущее место"
-						:disabled="currentPlaceCommon"
+						:disabled="!(currentPlace.userid === $store.state.user.id)"
 						@click="showPopup({show: true, type: 'placeDelete', data: currentPlace}, $event);"
 					>
 						×
@@ -64,9 +64,9 @@
 				<div
 					id="message-main"
 					class="message invisible"
+					v-html="getMessage"
 					@click="$store.dispatch('clearMessage', true);"
 				>
-					<span v-html="getMessage"></span>
 				</div>
 			</div>
 			<div
@@ -324,8 +324,8 @@
 				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.right < 120 ? ' display: none;' : '')"
 			>
 				<div class="scrollable">
-					<dl class="place-detailed margin_bottom_0">
-						<template v-for="field in Object.keys(currentPlace)" v-if="!currentPlace.deleted" :key="field">
+					<dl v-if="currentPlace.userid === $store.state.user.id" class="place-detailed margin_bottom_0">
+						<template v-for="field in Object.keys(currentPlace)" :key="field">
 							<dt v-if="!(field == 'images' && currentImages.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
 								{{ $store.state.placeFields[field] }}:
 							</dt>
@@ -392,6 +392,7 @@
 								<textarea
 									:id="'detailed-' + field"
 									:disabled="currentPlaceCommon"
+									:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
 									v-model.trim="currentPlace[field]"
 									@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}}); toDB(); $store.commit('changePlace', {place: currentPlace, change: {updated: false}});"
 									class="fieldwidth_100"
@@ -411,6 +412,7 @@
 								class="images-add__input"
 							/>
 						</div>
+						<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
 					</dl>
 				</div>
 			</div>
@@ -489,7 +491,7 @@
 			>
 			</div>
 		</div>
-		<div :class="'popup ' + popuped" @click="showPopup({show: false}, $event);">
+		<div :class="'popup ' + popuped" @click="if(popupComponent === 'popupfolder') {$refs.popup.close($event);} else {showPopup({show: false}, $event);}">
 			<component
 				ref="popup"
 				:is="popupComponent"
@@ -558,7 +560,10 @@ export default {
 				this.$refs.ym.map.destroy();
 			}
 			if(this.$refs.ym) {
-				this.$refs.ym.showMap(constants.map.initial.latitude, constants.map.initial.longitude);
+				this.$refs.ym.showMap(
+					constants.map.initial.latitude,
+					constants.map.initial.longitude
+				);
 			}
 			document.addEventListener("dragover", this.handleDragOver, false);
 			document.addEventListener("drop", this.handleDrop, false);
@@ -567,7 +572,11 @@ export default {
 		});
 		if(this.$store.state.user.testaccount) {
 			setTimeout(function() {
-				this.$store.dispatch("setMessage", "Вы авторизовались под тестовым аккаунтом; невозможны сохранение изменений в базу данных и загрузка файлов, в том числе фотографий");
+				this.$store.dispatch("setMessage",
+					"Вы авторизовались под тестовым аккаунтом; " +
+					"невозможны сохранение изменений в базу данных " +
+					"и загрузка файлов, в том числе фотографий"
+				);
 			}.bind(this), 3000);
 		}
 	},
@@ -673,7 +682,11 @@ export default {
 			if(this.popuped === "appear") {
 				switch(constants.shortcuts[event.keyCode]) {
 					case "close" :
-						this.showPopup({show: false}, event);
+						if(this.popupComponent === "popupfolder") {
+							this.$refs.popup.close(event);
+						} else {
+							this.showPopup({show: false}, event);
+						}
 						break;
 					case "left" :
 						if(this.popupComponent == "popupimage") {
@@ -866,12 +879,14 @@ export default {
 					&& event.target.parentNode.classList.contains("places-menu-folder")
 				) {
 					let container;
-					event.target.parentNode.querySelectorAll(".places-menu-item").forEach(function(c) {
-						if(c.parentNode === event.target.parentNode) {
-							container = c;
-							return;
+					event.target.parentNode.querySelectorAll(".places-menu-item")
+						.forEach(function(c) {
+							if(c.parentNode === event.target.parentNode) {
+								container = c;
+								return;
+							}
 						}
-					});
+					);
 					if(container) {
 						let srt;
 						if(container.children.length > 0) {
@@ -892,7 +907,11 @@ export default {
 								})]
 							,
 							change: {
-								folderid: container.id === "places-menu-item-root" ? null : container.id,
+								folderid:
+									container.id === "places-menu-item-root"
+										? null
+										: container.id
+								,
 								srt: srt,
 							},
 						});
@@ -918,6 +937,7 @@ export default {
 				if(
 					this.draggingElement.classList.contains("folder-button")
 					&& event.target.classList.contains("folder-button")
+					&& !this.draggingElement.parentNode.contains(event.target.parentNode.parentNode)
 				) {
 					let
 						targetId = event.target.id.substr(24),
@@ -1054,6 +1074,19 @@ export default {
 			);
 		},
 	},
+	watch: {
+		currentPlace: function() {
+			this.$nextTick(function() {
+				if(this.currentPlace.userid === this.$store.state.user.id && !this.currentPlace.name) {
+					document.getElementById("detailed-name").classList.add("highlight");
+					document.getElementById("detailed-name").focus();
+					setTimeout(function() {
+						document.getElementById("detailed-name").classList.remove("highlight");
+					}, 500);
+				}
+			});
+		},
+	},
 	computed: {
 		...mapGetters(["getImages", "getMessage", "getImagesCount", "getIndexById"]),
 		exit: () => function() {
@@ -1066,17 +1099,25 @@ export default {
 		setCurrentPlace: (place, common = false) => function(place, common = false) {
 			if(Object.keys(this.currentPlace).length > 0) {
 				if(!this.currentPlaceCommon) {
-					this.$refs.ym.mrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.privatePlacemarksColor);
+					this.$refs.ym.mrks[this.currentPlace.id].options.set(
+						"iconColor", this.$refs.ym.privatePlacemarksColor
+					);
 				} else {
-					this.$refs.ym.commonMrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.commonPlacemarksColor);
+					this.$refs.ym.commonMrks[this.currentPlace.id].options.set(
+						"iconColor", this.$refs.ym.commonPlacemarksColor
+					);
 				}
 			}
 			this.currentPlace = place;
 			this.currentPlaceCommon = common ? true : false;
 			if(!this.currentPlaceCommon) {
-				this.$refs.ym.mrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
+				this.$refs.ym.mrks[this.currentPlace.id].options.set(
+					"iconColor", this.$refs.ym.activePlacemarksColor
+				);
 			} else {
-				this.$refs.ym.commonMrks[this.currentPlace.id].options.set("iconColor", this.$refs.ym.activePlacemarksColor);
+				this.$refs.ym.commonMrks[this.currentPlace.id].options.set(
+					"iconColor", this.$refs.ym.activePlacemarksColor
+				);
 			}
 			if(!common) {
 				let folder, folderid = place.folderid;
@@ -1121,7 +1162,7 @@ export default {
 						}
 					}
 				} else {
-					this.currentPlace = null;
+					this.currentPlace = {};
 				}
 			}
 			if(place.images.length > 0) {
@@ -1234,18 +1275,30 @@ export default {
 						placesRequest.onreadystatechange = function(event) {
 							if(placesRequest.readyState == 4) {
 								if(placesRequest.status == 200) {
-									this.$store.dispatch("setMessage", "Изменения сохранены в базе данных");
+									this.$store.dispatch("setMessage",
+										"Изменения сохранены в базе данных"
+									);
 									resolve("Изменения сохранены в базе данных");
 								} else {
-									this.$store.dispatch("setMessage", "Не могу внести данные в БД");
+									this.$store.dispatch("setMessage",
+										"Не могу внести данные в БД"
+									);
 									reject(new Error("Не могу внести данные в БД"));
 								}
 							}
 						}.bind(this);
-						placesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-						placesRequest.send("id=" + localStorage.getItem("places-userid") + "&todo=" + (typeof(todo) !== "undefined" ? todo : "places") + "&data=" + (typeof(data) !== "undefined" ? data : JSON.stringify(this.$store.state.places)));
+						placesRequest.setRequestHeader(
+							"Content-type", "application/x-www-form-urlencoded"
+						);
+						placesRequest.send(
+							"id=" + localStorage.getItem("places-userid") +
+							"&todo=" + (typeof(todo) !== "undefined" ? todo : "places") +
+							"&data=" + (typeof(data) !== "undefined" ? data : JSON.stringify(this.$store.state.places))
+						);
 					} else {
-						this.$store.dispatch("setMessage", "Некоторые поля заполнены некорректно");
+						this.$store.dispatch("setMessage",
+							"Некоторые поля заполнены некорректно"
+						);
 					}
 				});
 			}
@@ -1253,54 +1306,112 @@ export default {
 		uploadFiles: (event) => function(event) {
 			event.preventDefault();
 			if(this.$store.state.user.testaccount) {
-				this.$store.dispatch("setMessage", "Тестовый аккаунт не позволяет загрузку файлов");
+				this.$store.dispatch("setMessage",
+					"Тестовый аккаунт не позволяет загрузку файлов"
+				);
 			} else {
-				let data = new FormData(), files = this.$refs.inputUploadFiles.files, rndname, ext;
-				for(var i = 0; i < files.length; i++) {
-					files[i].rndname = generateRandomString(32);
-					ext = files[i].name.match(/\.([^.]+)$/);
-					files[i].ext = ext == null ? "" : ext[1];
-					data.append(files[i].rndname + "_" + files[i].ext, files[i]);
+				let
+					data = new FormData(),
+					files = this.$refs.inputUploadFiles.files,
+					filesArray = [],
+					rndname,
+					srt
+				;
+				if(Object.keys(this.currentImages).length > 0) {
+					let storeImages = this.currentImages;
+					srt = sortObjects(storeImages, "srt").pop().srt;
+				} else {
+					srt = 0;
 				}
-				data.append("userid", this.$store.state.user.id);
-				axios.post("/backend/upload.php", data)
-					.then(response => {
-						let filesArray = [], srt;
-						if(Object.keys(this.currentImages).length > 0) {
-							let storeImages = this.currentImages;
-							srt = sortObjects(storeImages, "srt").pop().srt;
-						} else {
-							srt = 0;
-						}
-						for(var i = 0; i < files.length; i++) {
-							filesArray.push({
-								id: generateRandomString(32),
-								file: files[i].rndname + (files[i].ext == "" ? "" : "." + files[i].ext),
-								size: files[i].size,
-								type: files[i].type,
-								lastmodified: files[i].lastModified,
-								srt: ++srt,
-								placeid: this.currentPlace.id,
-							});
-						}
-						let images = this.currentImages
-							? this.currentImages.concat(filesArray)
-							: filesArray
-						;
-						this.currentImages = images;
-						this.$store.commit("changePlace", {
-							place: this.currentPlace,
-							change: {images: images},
+				for(var i = 0; i < files.length; i++) {
+					if(!constants.mimes[files[i].type]) {
+						this.$store.dispatch("setMessage",
+							"Файл " +
+							files[i].name +
+							" не является картинкой и загружен не будет"
+						);
+					} else if(files[i].size > constants.uploadsize) {
+						this.$store.dispatch("setMessage",
+							"Файл " +
+							files[i].name +
+							" слишком большого размера и загружен не будет"
+						);
+					} else {
+						files[i].rndname = generateRandomString(32);
+						data.append(files[i].rndname, files[i]);
+						filesArray.push({
+							id: files[i].rndname,
+							file:
+								files[i].rndname +
+								"." +
+								constants.mimes[files[i].type]
+							,
+							size: files[i].size,
+							type: files[i].type,
+							lastmodified: files[i].lastModified,
+							srt: ++srt,
+							placeid: this.currentPlace.id,
 						});
-						this.$store.dispatch("setMessage", "Файлы успешно загружены");
-						this.toDB()
-							.then(response => {
-								this.toDB("images_upload", JSON.stringify(filesArray))
+					}
+				}
+				if(filesArray.length > 0) {
+					document.getElementById("images-uploading").classList.remove("hidden");
+					data.append("userid", this.$store.state.user.id);
+					axios.post("/backend/upload.php", data)
+						.then(response => {
+							document.getElementById("images-uploading").classList.add("hidden");
+							for(let i = 0; i < filesArray.length; i++) {
+								if(!response.data[1].find(f => f.id === filesArray[i].id)) {
+									filesArray.splice(i, 1);
+									i--;
+								}
+							}
+							let images = this.currentImages
+								? this.currentImages.concat(filesArray)
+								: filesArray
+							;
+							this.currentImages = images;
+							this.$store.commit("changePlace", {
+								place: this.currentPlace,
+								change: {images: images},
 							});
-					})
-					.catch(error => {
-						this.$store.dispatch("setMessage", "При загрузке файлов произошла ошибка");
-					});
+							/**
+							 * Проверка накопленных кодов ошибок и замечаний
+							 * в процессе выполнения /backend/upload.php
+							 */
+							response.data[0].forEach(function(code) {
+								switch(code) {
+									case 2 :
+										this.$store.dispatch("setMessage",
+											"Тестовый аккаунт не позволяет загрузку файлов"
+										);
+										break;
+									case 3 :
+										this.$store.dispatch("setMessage",
+											"Некоторые файлы не являются картинками и загружены не были"
+										);
+										break;
+									case 4 :
+										this.$store.dispatch("setMessage",
+											"Некоторые файлы слишком большого размеры и загружены не были"
+										);
+										break;
+								}
+							}.bind(this));
+							if(response.data[1].length > 0) {
+								this.$store.dispatch("setMessage", "Файлы успешно загружены");
+								this.toDB()
+									.then(response => {
+										this.toDB("images_upload", JSON.stringify(filesArray))
+									});
+							}
+						})
+						.catch(error => {
+							this.$store.dispatch("setMessage",
+								"При загрузке файлов произошла ошибка"
+							);
+						});
+				}
 			}
 		},
 		deleteFiles: (inarray, files, event) => function(inarray, files, event) {

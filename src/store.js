@@ -40,7 +40,10 @@ export const store = new Vuex.Store({
 		reset(state) {
 			Vue.set(state, "places", []);
 			Vue.set(state, "folders", []);
-			Vue.set(state, "center", {});
+			Vue.set(state, "center", {
+				latitude: constants.map.initial.latitude,
+				longitude: constants.map.initial.longitude,
+			});
 			Vue.set(state, "ready", false);
 			Vue.set(state, "message", "");
 		},
@@ -112,7 +115,7 @@ export const store = new Vuex.Store({
 		deletePlacesMarkedAsDeleted(state) {
 			for(var i = 0; i < state.places.length; i++) {
 				if(state.places[i].deleted) {
-					state.places.splice(state.places.indexOf(state.places[i]), 1);
+					state.places.splice(i, 1);
 					i--;
 				}
 			}
@@ -280,7 +283,7 @@ export const store = new Vuex.Store({
 		},
 		clearMessage({state}, hide) {
 			let message;
-			if(hide || (message = state.message.replace(/^.*?(<br\s*\/>|$)/, "")) === "") {
+			if(hide || (message = state.message.replace(/^<div>[^<>]+<\/div>\s*/, "")) === "") {
 				let me = document.getElementById("message-main");
 				if(me) {
 					me.classList.add("invisible");
@@ -294,7 +297,17 @@ export const store = new Vuex.Store({
 			}
 		},
 		setMessage({state, dispatch}, message) {
-			Vue.set(state, "message", state.message += (state.message !== "" ? "<br />" : "") + message);
+			let last = state.message.match(/<div>([^<>]+)<\/div>\s*$/);
+			if(last && last[1] === message) {
+				document.getElementById("message-main").lastElementChild.classList.add("highlight");
+				setTimeout(function() {
+					if(document.getElementById("message-main").lastElementChild) {
+						document.getElementById("message-main").lastElementChild.classList.remove("highlight");
+					}
+				}, 500);
+			} else {
+				Vue.set(state, "message", state.message += "<div>" + message + "</div>");
+			}
 			let me = document.getElementById("message-main");
 			if(me) {
 				me.classList.add("visible");

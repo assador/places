@@ -20,6 +20,14 @@ export const constants = {
 		37  : "left",
 		39  : "right",
 	},
+	mimes: {
+		"image/gif"     : "gif",
+		"image/jpeg"    : "jpg",
+		"image/png"     : "png",
+		"image/svg+xml" : "svg",
+	},
+	uploadsize: 12582912,
+	acceptsize: 4194304,
 	map: {
 		initial: {
 			latitude  : 51.4778883,
