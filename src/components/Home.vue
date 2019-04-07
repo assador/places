@@ -324,7 +324,7 @@
 				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.right < 120 ? ' display: none;' : '')"
 			>
 				<div class="scrollable">
-					<dl v-if="currentPlace.userid === $store.state.user.id" class="place-detailed margin_bottom_0">
+					<dl class="place-detailed margin_bottom_0">
 						<template v-for="field in Object.keys(currentPlace)" :key="field">
 							<dt v-if="!(field == 'images' && currentImages.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
 								{{ $store.state.placeFields[field] }}:
