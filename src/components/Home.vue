@@ -268,14 +268,27 @@
 					</div>
 					<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
 						<h2 class="basiccolor">Другие места</h2>
-						<div
-							v-for="commonPlace in $store.state.commonPlaces"
-							:id="commonPlace.id"
-							:key="commonPlace.id"
-							:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
-							@click="setCurrentPlace(commonPlace, true);"
-						>
-							{{ commonPlace.name }}
+						<div class="margin_bottom">
+							<div
+								v-for="commonPlace in $store.state.commonPlaces"
+								v-if="$store.state.commonPlaces.indexOf(commonPlace) >= commonPlacesOnPageCount * (commonPlacesPage - 1) && $store.state.commonPlaces.indexOf(commonPlace) < commonPlacesOnPageCount * commonPlacesPage"
+								:id="commonPlace.id"
+								:key="commonPlace.id"
+								:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
+								@click="setCurrentPlace(commonPlace, true);"
+							>
+								{{ commonPlace.name }}
+							</div>
+						</div>
+						<div class="margin_bottom">
+							<a
+								v-for="(page, index) in commonPlacesPagesCount"
+								href="javascript:void(0);"
+								:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
+								@click="commonPlacesPage = index + 1;"
+							>
+								{{ index + 1 }}
+							</a>
 						</div>
 					</div>
 				</div>
@@ -529,6 +542,9 @@ export default {
 		firstValidatable: false,
 		currentPlace: {},
 		currentImages: {},
+		commonPlacesPage: 1,
+		commonPlacesPagesCount: 0,
+		commonPlacesOnPageCount: constants.commonplacesonpagecount,
 		commonPlacesShow: false,
 		currentPlaceCommon: false,
 		needToUpdate: false,
@@ -565,6 +581,9 @@ export default {
 					constants.map.initial.longitude
 				);
 			}
+			this.commonPlacesPagesCount = Math.ceil(
+				this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
+			);
 			document.addEventListener("dragover", this.handleDragOver, false);
 			document.addEventListener("drop", this.handleDrop, false);
 			document.addEventListener("keyup", this.keyup, false);

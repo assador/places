@@ -402,7 +402,7 @@ input[type="hidden"] {
 a[target*="_blank"]::after {content: "\219d"; display: inline-block; margin: -0.15em 0.2em 0 0.2em; vertical-align: text-top; font-size: 90%;}
 .pseudo_button {
 	display: inline-block;
-	margin-left: 1.5em;
+	margin-left: 1.8em;
 	vertical-align: text-top;
 	text-align: left;
 }

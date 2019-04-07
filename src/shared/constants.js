@@ -28,6 +28,7 @@ export const constants = {
 	},
 	uploadsize: 12582912,
 	acceptsize: 4194304,
+	commonplacesonpagecount: 5,
 	map: {
 		initial: {
 			latitude  : 51.4778883,
