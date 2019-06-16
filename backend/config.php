@@ -41,6 +41,8 @@ $dirs = array(
 		"images" => array(
 			"big" => $basepath . "uploads/images/big/",
 			"small" => $basepath . "uploads/images/small/",
+			"orphaned_big" => $basepath . "uploads/images/big/orphaned/",
+			"orphaned_small" => $basepath . "uploads/images/small/orphaned/",
 		),
 	),
 );

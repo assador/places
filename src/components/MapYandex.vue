@@ -1,5 +1,5 @@
 <template>
-	<div id="mapblock" class="margin_bottom"></div>
+	<div id="mapblock"></div>
 </template>
 
 <script>
@@ -40,19 +40,19 @@ export default {
 	watch: {
 		latitude: function() {
 			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
-			if(Object.keys(this.$parent.currentPlace).length > 0) {
+			if(Object.keys(this.$store.state.currentPlace).length > 0) {
 				this.$store.commit("changeCenter", {
-					latitude: this.$parent.currentPlace.latitude,
-					longitude: this.$parent.currentPlace.longitude,
+					latitude: this.$store.state.currentPlace.latitude,
+					longitude: this.$store.state.currentPlace.longitude,
 				});
 			}
 		},
 		longitude: function() {
 			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
-			if(Object.keys(this.$parent.currentPlace).length > 0) {
+			if(Object.keys(this.$store.state.currentPlace).length > 0) {
 				this.$store.commit("changeCenter", {
-					latitude: this.$parent.currentPlace.latitude,
-					longitude: this.$parent.currentPlace.longitude,
+					latitude: this.$store.state.currentPlace.latitude,
+					longitude: this.$store.state.currentPlace.longitude,
 				});
 			}
 		},
@@ -81,30 +81,30 @@ export default {
 					.add(new ymaps.control.RouteButton())
 					.add(new ymaps.control.RulerControl());
 				this.map.behaviors.enable("scrollZoom");
-				this.map.events.add("actionend", function() {
+				this.map.events.add("actionend", () => {
 					let coordinates = this.map.getCenter();
 					this.$store.commit("changeCenter", {
 						latitude: coordinates[0].toFixed(7),
 						longitude: coordinates[1].toFixed(7),
 					});
 					this.mrk.geometry.setCoordinates(coordinates);
-				}.bind(this));
+				});
 				this.mrk = new ymaps.Placemark(
 					[lat, lng],
 					{hintContent: "Метка центра карты", balloonContent: "Метка текущих координат центра карты. Новое место будет создано здесь."},
 					this.centerPlacemarkOptions,
 				);
 				this.mrk.options.set("visible", false);
-				this.mrk.events.add("dragend", function() {
+				this.mrk.events.add("dragend", () => {
 					this.map.setCenter(this.mrk.geometry.getCoordinates());
-				}.bind(this));
+				});
 				this.map.geoObjects.add(this.mrk);
-				this.$store.state.places.forEach(function(place) {
+				this.$store.state.places.forEach((place) => {
 					this.appendPlacemark(this.mrks, place, "private");
-				}.bind(this));
-				this.$store.state.commonPlaces.forEach(function(commonPlace) {
+				});
+				this.$store.state.commonPlaces.forEach((commonPlace) => {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
-				}.bind(this));
+				});
 				if(this.$store.state.places.length > 0) {
 					let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
 					if(!firstPlaceInRoot) {
@@ -112,6 +112,7 @@ export default {
 					} else {
 						this.$parent.setCurrentPlace(firstPlaceInRoot);
 					}
+					this.$store.commit("backupState");
 				}
 			};
 		},
@@ -130,21 +131,21 @@ export default {
 				{hintContent: place.name, balloonContent: place.description},
 				options,
 			);
-			marks[place.id].events.add("dragend", function() {
+			marks[place.id].events.add("dragend", () => {
 				let coordinates = marks[place.id].geometry.getCoordinates();
 				this.$store.commit("changePlace", {
 					place: place,
 					change: {
 						latitude: coordinates[0].toFixed(7),
 						longitude: coordinates[1].toFixed(7),
+						updated: true,
 					},
 				});
-				this.$parent.toDB();
 				this.$parent.setCurrentPlace(place, type === "common" ? true : false);
-			}.bind(this));
-			marks[place.id].events.add("mouseup", function() {
+			});
+			marks[place.id].events.add("mouseup", () => {
 				this.$parent.setCurrentPlace(place, type === "common" ? true : false);
-			}.bind(this));
+			});
 			this.map.geoObjects.add(marks[place.id]);
 		},
 		updatePlacemark: (marks) => function(marks) {
@@ -162,12 +163,13 @@ export default {
 			if(this.map !== null) {
 				document.getElementById("mapblock").style.right = "100%";
 				this.map.container.fitToViewport();
-				document.getElementById("mapblock").style.right = "24px";
+				document.getElementById("mapblock").style.right = "12px";
 				this.map.container.fitToViewport();
 			}
 		},
 		appendPlace: () => function() {
 			let newPlace = {
+				type: "place",
 				userid: localStorage.getItem("places-userid"),
 				name: "",
 				description: "",
@@ -175,8 +177,8 @@ export default {
 				longitude: this.map.getCenter()[1].toFixed(7),
 				id: generateRandomString(32),
 				folderid:
-					Object.keys(this.$parent.currentPlace).length > 0
-						? this.$parent.currentPlace.folderid
+					Object.keys(this.$store.state.currentPlace).length > 0
+						? this.$store.state.currentPlace.folderid
 						: null
 				,
 				srt:
@@ -242,9 +244,9 @@ export default {
 		},
 	},
 	mounted: function() {
-		new ResizeSensor(document.getElementById("basic-basic"), function() {
+		new ResizeSensor(document.getElementById("basic-basic"), () => {
 			this.fitMap();
-		}.bind(this));
+		});
 	},
 }
 </script>

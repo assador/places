@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div v-html="data"></div>
-		<a href="javascript:void(0);" class="close" @click="$parent.showPopup({show: false}, $event);">×</a>
+		<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
 	</div>
 </template>
 

@@ -19,6 +19,8 @@ export const constants = {
 		27  : "close",
 		37  : "left",
 		39  : "right",
+		90  : "undo",
+		89  : "redo",
 	},
 	mimes: {
 		"image/gif"     : "gif",
@@ -26,6 +28,18 @@ export const constants = {
 		"image/png"     : "png",
 		"image/svg+xml" : "svg",
 	},
+	dirs: {
+		common: "/var/www/places/",
+		uploads: {
+			images: {
+				big: "/uploads/images/big/",
+				small: "/uploads/images/small/",
+				orphanedbig: "/uploads/images/big/orphaned/",
+				orphanedsmall: "/uploads/images/small/orphaned/",
+			},
+		},
+	},
+	backupscount: 10,
 	uploadsize: 12582912,
 	acceptsize: 4194304,
 	commonplacesonpagecount: 5,

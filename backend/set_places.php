@@ -3,18 +3,6 @@ include "config.php";
 include "newpdo.php";
 include "common.php";
 
-$data = json_decode($_POST["data"], true);
-
-$images = array();
-if($_POST["todo"] == "places") {
-	foreach($data as $dval) {
-		$pimg = $dval["images"];
-		foreach($pimg as $ival) {
-			$images[] = $ival;
-		}
-	}
-}
-
 function updateImages(&$conn, &$stmt, $images) {
 	$stmt = $conn->prepare("
 		INSERT INTO `images` (
@@ -53,10 +41,19 @@ function updateImages(&$conn, &$stmt, $images) {
 		$stmt->execute();
 	}
 }
-
 if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 	echo 2; exit;
 } else {
+	$data = json_decode($_POST["data"], true);
+	$images = array();
+	if($_POST["todo"] == "places") {
+		foreach($data as $dval) {
+			$pimg = $dval["images"];
+			foreach($pimg as $ival) {
+				$images[] = $ival;
+			}
+		}
+	}
 	if($_POST["todo"] == "places") {
 		$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id AND `userid` = :userid");
 		$append = $conn->prepare("
@@ -110,7 +107,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			if($row["deleted"] == true) {
 				$delete->bindParam( ":id"          , $row[ "id"          ]);
 				$delete->bindParam( ":userid"      , $_POST["id"]);
-				try{$delete->execute();} catch(Exception $e) {}
+				try {$delete->execute();} catch(Exception $e) {}
 			} elseif($row["added"] == true) {
 				$append->bindParam( ":id"          , $row[ "id"          ]);
 				$append->bindParam( ":folderid"    , $row[ "folderid"    ]);
@@ -121,7 +118,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$append->bindParam( ":srt"         , $row[ "srt"         ]);
 				$append->bindParam( ":common"      , $row[ "common"      ]);
 				$append->bindParam( ":userid"      , $_POST["id"]);
-				try{$append->execute();} catch(Exception $e) {}
+				try {$append->execute();} catch(Exception $e) {}
 			}
 			if($row["updated"] == true) {
 				$update->bindParam( ":id"          , $row[ "id"          ]);
@@ -133,7 +130,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$update->bindParam( ":srt"         , $row[ "srt"         ]);
 				$update->bindParam( ":common"      , $row[ "common"      ]);
 				$update->bindParam( ":userid"      , $_POST["id"]);
-				try{$update->execute();} catch(Exception $e) {}
+				try {$update->execute();} catch(Exception $e) {}
 			}
 			foreach($row["images"] as $image) {
 				$updateimage->bindParam( ":id"           , $image["id"           ]);
@@ -143,7 +140,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$updateimage->bindParam( ":lastmodified" , $image["lastmodified" ]);
 				$updateimage->bindParam( ":srt"          , $image["srt"          ]);
 				$updateimage->bindParam( ":placeid"      , $image["placeid"      ]);
-				try{$updateimage->execute();} catch(Exception $e) {}
+				try {$updateimage->execute();} catch(Exception $e) {}
 			}
 		}
 	} elseif($_POST["todo"] == "folders") {
@@ -179,7 +176,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			if($row["deleted"] == true) {
 				$delete->bindParam( ":id"          , $row[ "id"          ]);
 				$delete->bindParam( ":userid"      , $_POST["id"]);
-				try{$delete->execute();} catch(Exception $e) {}
+				try {$delete->execute();} catch(Exception $e) {}
 			} elseif($row["added"] == true) {
 				$append->bindParam( ":id"          , $row[ "id"          ]);
 				$append->bindParam( ":parent"      , $row[ "parent"      ]);
@@ -187,7 +184,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$append->bindParam( ":description" , $row[ "description" ]);
 				$append->bindParam( ":srt"         , $row[ "srt"         ]);
 				$append->bindParam( ":userid"      , $_POST["id"]);
-				try{$append->execute();} catch(Exception $e) {}
+				try {$append->execute();} catch(Exception $e) {}
 			}
 			if($row["updated"] == true) {
 				$update->bindParam( ":id"          , $row[ "id"          ]);
@@ -196,7 +193,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$update->bindParam( ":description" , $row[ "description" ]);
 				$update->bindParam( ":srt"         , $row[ "srt"         ]);
 				$update->bindParam( ":userid"      , $_POST["id"]);
-				try{$update->execute();} catch(Exception $e) {}
+				try {$update->execute();} catch(Exception $e) {}
 			}
 		}
 	} elseif($_POST["todo"] == "images_upload") {
@@ -210,7 +207,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		$stmt = $conn->prepare("
 			DELETE FROM `images` WHERE `id` IN (" . $ids . ")
 		");
-		try{$stmt->execute();} catch(Exception $e) {}
+		try {$stmt->execute();} catch(Exception $e) {}
 	}
 	echo 1; exit;
 }

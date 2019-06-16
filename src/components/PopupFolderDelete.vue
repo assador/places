@@ -23,113 +23,105 @@
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">Удалить папку</button>
-						<button type="button" @click="$parent.showPopup({show: false}, $event);">Отмена</button>
+						<button type="button" @click="$root.showPopup({show: false}, $event);">Отмена</button>
 					</fieldset>
 				</div>
 			</form>
-			<a href="javascript:void(0);" class="close" @click="$parent.showPopup({show: false}, $event);">×</a>
+			<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
 		</div>
 	</div>
 </template>
 
 <script>
+import {bus} from "../shared/bus.js"
 export default {
 	props: ["data"],
 	data: function() {return {
 		keepContent: "keep",
-		toSetCurrentPlace: false,
 	}},
 	computed: {
 		deleteFolder: (event) => function(event) {
-			this.toSetCurrentPlace = false;
 			this.$store.commit("changeFolder", {
-				folder: this.data,
+				folder: this.data.folder,
 				change: {deleted: true},
+				backup: false,
 			});
 			if(this.keepContent === "delete") {
-				this.deleteNestedFolders(this.data.id);
-				this.$store.state.folders.forEach(function(folder) {
-					if(folder.parent === null) {
-						document.getElementById("folders-list-root").appendChild(document.getElementById("places-menu-folder-" + folder.id));
-					}
-				}.bind(this));
+				this.markNestedAsDeleted(this.data.folder);
 			}
 			if(this.keepContent === "keep") {
-				this.$store.state.places.forEach(function(place) {
-					if(place.folderid === this.data.id) {
+				// Delete places in the currently deleted folder
+				this.$store.state.places.forEach((place) => {
+					if(place.folderid === this.data.folder.id) {
 						this.$store.commit("changePlace", {
 							place: place,
-							change: {folderid: null, updated: true},
+							change: {folderid: "root", updated: true},
+							backup: false,
 						});
 					}
-				}.bind(this));
-				this.$store.state.folders.forEach(function(folder) {
-					if(folder.parent === this.data.id) {
-						this.$store.commit("changeFolder", {
-							folder: folder,
-							change: {parent: null, updated: true},
+				});
+				if(Array.isArray(this.data.folder.children)) {
+					while(this.data.folder.children.length > 0) {
+						this.$store.dispatch("moveFolder", {
+							folder: this.data.folder.children[0],
+							targetId: "root",
+							backup: false,
 						});
-						document.getElementById("folders-list-root").appendChild(document.getElementById("places-menu-folder-" + folder.id));
-					}
-				}.bind(this));
-			}
-			this.$parent.toDB();
-			this.$parent.toDB("folders", JSON.stringify(this.$store.state.folders));
-			this.$store.commit("deletePlacesMarkedAsDeleted");
-			this.$store.commit("deleteFoldersMarkedAsDeleted");
-			if(this.toSetCurrentPlace && this.$store.state.places.length > 0) {
-				let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
-				if(typeof(firstPlaceInRoot) === "undefined") {
-					this.$parent.setCurrentPlace(this.$store.state.places[0]);
-				} else {
-					this.$parent.setCurrentPlace(firstPlaceInRoot);
-				}
-			}
-			this.$parent.showPopup({show: false}, event);
-		},
-		deleteNestedPlaces: (folderId) => function(folderId) {
-			let placesToDelete = [], imagesToDelete = [];
-			let finallyDeletePlace = () => {
-				this.$parent.toDB("images_delete", JSON.stringify(imagesToDelete));
-				this.$parent.toDB();
-				placesToDelete.forEach(function(place) {
-					this.$store.commit("deletePlace", place);
-				}.bind(this));
-			}
-			this.$store.state.places.forEach(function(place) {
-				if(place.folderid === folderId) {
-					this.$store.commit("removePlace", place);
-					this.$parent.$refs.ym.map.geoObjects.remove(this.$parent.$refs.ym.mrks[place.id]);
-					placesToDelete.push(place);
-					if(place.images.length > 0) {
-						imagesToDelete = imagesToDelete.concat(place.images);
-					}
-					if(place.id === this.$parent.currentPlace.id) {
-						this.toSetCurrentPlace = true;
 					}
 				}
-			}.bind(this));
-			if(imagesToDelete.length > 0) {
-				this.$parent.deleteFiles(Array.from(imagesToDelete), imagesToDelete)
-					.then(response => {
-						finallyDeletePlace();
-					});
+			}
+			if(!this.$store.state.inUndoRedo) {
+				bus.$emit("toDB", "places");
+				bus.$emit("toDB", "folders");
 			} else {
-				finallyDeletePlace();
+				bus.$emit("toDBCompletely");
+				this.$store.commit("outUndoRedo");
 			}
-		},
-		deleteNestedFolders: (folderId) => function(folderId) {
-			this.deleteNestedPlaces(folderId);
-			this.$store.state.folders.forEach(function(folder) {
-				if(folder.parent === folderId) {
+			this.$store.state.places.forEach((place) => {
+				if(place.updated) {
+					this.$store.commit("changePlace", {
+						place: place,
+						change: {updated: false},
+						backup: false,
+					});
+				}
+			});
+			this.$store.state.folders.forEach((folder) => {
+				if(folder.updated) {
 					this.$store.commit("changeFolder", {
 						folder: folder,
-						change: {deleted: true, parent: null},
+						change: {updated: false},
+						backup: false,
 					});
-					document.getElementById("folders-list-root").appendChild(document.getElementById("places-menu-folder-" + folder.id));
-					this.deleteNestedFolders(folder.id);
 				}
-			}.bind(this));
+			});
+			this.$store.commit("deletePlacesMarkedAsDeleted");
+			this.$store.commit("deleteFoldersMarkedAsDeleted");
+			this.$store.commit("backupState");
+			bus.$emit("homeRefresh");
+			this.$root.showPopup({show: false}, event);
+		},
+		markNestedAsDeleted: (folder, result) => function(folder, result) {
+			// Delete places in the currently deleted folder
+			this.$store.state.places.forEach((place) => {
+				if(place.folderid === folder.id) {
+					this.$store.commit("changePlace", {
+						place: place,
+						change: {deleted: true},
+						backup: false,
+					});
+				}
+			});
+			if(Array.isArray(folder.children)) {
+				for(let i = 0; i < folder.children.length; i++) {
+					this.$store.commit("changeFolder", {
+						folder: folder.children[i],
+						change: {deleted: true},
+						backup: false,
+					});
+					result = this.markNestedAsDeleted(folder.children[i], result);
+				}
+			}
 		},
 	},
 }

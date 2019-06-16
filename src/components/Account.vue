@@ -47,9 +47,9 @@
 					</tbody>
 				</table>
 			</form>
-			<div :class="'popup ' + popuped">
+			<div :class="'popup ' + $root.popuped">
 				<component
-					:is="popupComponent"
+					:is="$root.popupComponent"
 				>
 				</component>
 			</div>
@@ -72,8 +72,6 @@ export default {
 		accountName: this.$store.state.user.name,
 		accountEmail: this.$store.state.user.email,
 		accountPhone: this.$store.state.user.phone,
-		popuped: "disappear",
-		popupComponent: "",
 		accountChangeMessage: "",
 	}},
 	mounted: function() {
@@ -90,8 +88,8 @@ export default {
 			}
 		},
 		keyup: function(event) {
-			if(this.popuped == "appear" && constants.shortcuts[event.keyCode] == "close") {
-				this.showPopup({show: false}, event);
+			if(this.$root.popuped == "appear" && constants.shortcuts[event.keyCode] == "close") {
+				this.$root.showPopup({show: false}, event);
 			}
 		},
 		accountSubmit: function() {
@@ -123,17 +121,8 @@ export default {
 		back: () => function() {
 			bus.$emit("loggedChange", "home");
 		},
-		showPopup: (opts, event) => function(opts, event) {
-			event.stopPropagation();
-			switch(opts.type) {
-				case "delete" :
-					this.popupComponent = "popupdelete";
-					break;
-			}
-			this.popuped = opts["show"] ? "appear" : "disappear";
-		},
 		showDelete: (event) => function(event) {
-			this.showPopup({
+			this.$root.showPopup({
 				show: true,
 				type: "delete",
 			}, event);

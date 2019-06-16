@@ -87,6 +87,7 @@ export default {
 	computed: {
 		appendFolder: (folderName, folderDescription) => function(folderName, folderDescription) {
 			let newFolder = {
+				type: "folder",
 				userid: localStorage.getItem("places-userid"),
 				name: folderName,
 				description: folderDescription,
@@ -98,17 +99,14 @@ export default {
 						})
 					)) + 1
 					: 1,
+				parent: this.$store.state.currentPlace.folderid
+					? this.$store.state.currentPlace.folderid
+					: null,
 				added: true,
 				deleted: false,
 				updated: false,
 			};
 			this.$store.commit("addFolder", newFolder);
-			this.$parent.toDB("folders", JSON.stringify(this.$store.state.folders));
-			this.$store.commit("changeFolder", {
-				folder: newFolder,
-				change: {added: false},
-			});
-			this.$parent.buildMenu(this.$store.state.folders);
 			this.message = "Папка создана";
 			this.folderName = "";
 			this.folderDescription = "";
@@ -116,7 +114,7 @@ export default {
 		},
 		close: (event) => function(event) {
 			event.stopPropagation();
-			this.$parent.showPopup({show: false}, event);
+			this.$root.showPopup({show: false}, event);
 			this.message = "";
 			this.folderName = "";
 			this.folderDescription = "";

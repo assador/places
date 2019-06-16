@@ -1,5 +1,5 @@
 function validate_field(value, type) {
-	var re = {
+	let re = {
 		"integer"     : /^-?\d+$/,
 		"integerm"    : /^\d+$/,
 		"decimal"     : /^-?\d+(?:\.\d+)?$/,
@@ -17,7 +17,7 @@ function validate_field(value, type) {
 	return re[type].test(value);
 }
 function make_fields_validatable() {
-	var fields = {
+	let fields = {
 		"authLogin"                : ["login",       "Не более 24 символов"],
 		"forgotEmail"              : ["e-mail",      "Пример: my.Name@хост.рф"],
 		"regLogin"                 : ["login",       "Не более 24 символов"],
@@ -42,7 +42,7 @@ function make_fields_validatable() {
 		"detailed-id"              : ["integerm",    "Пример: 238"],
 		"detailed-srt"             : ["decimal",     "Пример: 3.752"],
 	}
-	for(var id in fields) {
+	for(let id in fields) {
 		if(document.getElementById(id)) {
 			document.getElementById(id).classList.add("value_validatable");
 			document.getElementById(id).title = fields[id][1];

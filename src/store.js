@@ -1,8 +1,79 @@
 import {constants} from "./shared/constants.js"
 import {bus} from "./shared/bus.js"
+const tracking = store => {
+	const trackingMutations = [
+		"addFolder",
+		"addImporting",
+		"addPlace",
+		"changeFolder",
+		"changePlace",
+		"deleteFolder",
+		"deletePlace",
+		"modifyFolders",
+		"modifyPlaces",
+		"removePlace",
+		"swapValues",
+	];
+	store.subscribe((mutation, state) => {
+		if(trackingMutations.includes(mutation.type) && mutation.payload) {
+			store.commit("setSaved", false);
+			if(
+				(
+					!mutation.payload.hasOwnProperty("backup")
+					|| mutation.payload.backup
+				) && (
+					mutation.payload.hasOwnProperty("type")
+					|| mutation.payload.hasOwnProperty("change")
+				)
+			) {
+				if(
+					mutation.payload.added
+					|| mutation.payload.deleted
+					|| mutation.payload.updated
+					|| mutation.payload.change
+						&& (
+							mutation.payload.change.added
+							|| mutation.payload.change.deleted
+							|| mutation.payload.change.updated
+						)
+				) {
+					if(!state.inUndoRedo) {
+						if(mutation.payload.hasOwnProperty("type")) {
+							bus.$emit("toDB", mutation.payload.type + "s");
+							store.commit("savedToDB", mutation.payload);
+						}
+						if(mutation.payload.hasOwnProperty("change")) {
+							if(mutation.payload.hasOwnProperty("place")) {
+								bus.$emit("toDB", "places");
+								store.commit("savedToDB", mutation.payload.place);
+							}
+							if(mutation.payload.hasOwnProperty("folder")) {
+								bus.$emit("toDB", "folders");
+								store.commit("savedToDB", mutation.payload.folder);
+							}
+						}
+					} else {
+						bus.$emit("toDBCompletely");
+						store.commit("outUndoRedo");
+					}
+				}
+				if(mutation.type !== "removePlace") {
+					store.commit("backupState");
+				}
+			}
+		}
+	});
+};
 export const store = new Vuex.Store({
+	plugins: [tracking],
 	state: {
+		saved: true,
+		stateBackups: [],
+		stateBackupsIndex: -1,
+		inUndoRedo: false,
 		user: {},
+		currentPlace: {},
+		currentPlaceIndex: -1,
 		places: [],
 		folders: [],
 		commonPlaces: [],
@@ -26,17 +97,48 @@ export const store = new Vuex.Store({
 			description : 5000,
 			url         : 2048,
 		},
-		dirs: {
-			common: "/var/www/places/",
-			uploads: {
-				images: {
-					big: "/uploads/images/big/",
-					small: "/uploads/images/small/",
-				},
-			},
-		},
 	},
 	mutations: {
+		setSaved(state, saved) {
+			Vue.set(state, "saved", saved);
+		},
+		foldersToTree(state) {
+			Vue.set(state, "folders", plainToTree(state.folders));
+		},
+		backupState(state) {
+			state.stateBackups.splice(++state.stateBackupsIndex, Infinity, {
+				places: JSON.parse(JSON.stringify(state.places)),
+				folders: JSON.parse(JSON.stringify(state.folders)),
+				currentPlaceIndex: state.currentPlaceIndex,
+			});
+			Vue.set(state, "stateBackupsIndex", state.stateBackups.length - 1);
+			if(state.stateBackups.length > constants.backupscount) {
+				state.stateBackups.shift();
+				state.stateBackupsIndex--;
+			}
+		},
+		restoreState(state, index) {
+			Vue.set(state, "places",
+				JSON.parse(JSON.stringify(state.stateBackups[index].places))
+			);
+			Vue.set(state, "folders",
+				JSON.parse(JSON.stringify(state.stateBackups[index].folders))
+			);
+			bus.$emit("setCurrentPlace", {
+				place: state.stateBackups[index].currentPlaceIndex < 0
+					? {}
+					: state.places[state.stateBackups[index].currentPlaceIndex]
+			});
+		},
+		stateBackupsIndexChange(state, delta) {
+			Vue.set(state, "stateBackupsIndex", state.stateBackupsIndex + delta);
+		},
+		inUndoRedo(state) {
+			Vue.set(state, "inUndoRedo", true);
+		},
+		outUndoRedo(state) {
+			Vue.set(state, "inUndoRedo", false);
+		},
 		reset(state) {
 			Vue.set(state, "places", []);
 			Vue.set(state, "folders", []);
@@ -47,8 +149,17 @@ export const store = new Vuex.Store({
 			Vue.set(state, "ready", false);
 			Vue.set(state, "message", "");
 		},
+		savedToDB(state, object) {
+			Vue.set(object, "added", false);
+			Vue.set(object, "deleted", false);
+			Vue.set(object, "updated", false);
+		},
 		setUser(state, user) {
 			Vue.set(state, "user", user);
+		},
+		setCurrentPlace(state, place) {
+			Vue.set(state, "currentPlace", place);
+			Vue.set(state, "currentPlaceIndex", state.places.indexOf(state.currentPlace));
 		},
 		placesReady(state, payload) {
 			Vue.set(state, "places", payload.places);
@@ -68,22 +179,19 @@ export const store = new Vuex.Store({
 					break;
 			}
 			for(let place of payload.places) {
+				Vue.set(place, "type", "place");
 				Vue.set(place, "added", added);
 				Vue.set(place, "deleted", deleted);
 				Vue.set(place, "updated", updated);
 				Vue.set(place, "show", true);
 			}
-			function setFoldersStates(folders) {
-				for(let folder of folders) {
-					Vue.set(folder, "added", added);
-					Vue.set(folder, "deleted", deleted);
-					Vue.set(folder, "updated", updated);
-					if(folder.hasOwnProperty("children")) {
-						setFoldersStates(folder.children);
-					}
-				}
+			for(let folder of payload.folders) {
+				Vue.set(folder, "type", "folder");
+				Vue.set(folder, "added", added);
+				Vue.set(folder, "deleted", deleted);
+				Vue.set(folder, "updated", updated);
+				Vue.set(folder, "opened", false);
 			}
-			setFoldersStates(payload.folders);
 		},
 		show(state, index) {
 			Vue.set(state.places[index], "show", true);
@@ -102,18 +210,22 @@ export const store = new Vuex.Store({
 		},
 		addPlace(state, place) {
 			Vue.set(state, "places", state.places.concat(place));
+			Vue.set(state, "currentPlaceIndex", state.places.length - 1);
 		},
-		removePlace(state, place) {
-			Vue.set(place, "added", false);
-			Vue.set(place, "deleted", true);
-			Vue.set(place, "updated", false);
+		removePlace(state, payload) {
+			Vue.set(payload.place, "added", false);
+			Vue.set(payload.place, "deleted", true);
+			Vue.set(payload.place, "updated", false);
 		},
 		deletePlace(state, place) {
 			state.places.splice(state.places.indexOf(place), 1);
 			Vue.set(state, "places", state.places);
+			Vue.set(state, "currentPlaceIndex",
+				state.places.indexOf(state.currentPlace)
+			);
 		},
-		deletePlacesMarkedAsDeleted(state) {
-			for(var i = 0; i < state.places.length; i++) {
+		deletePlacesMarkedAsDeleted(state, payload) {
+			for(let i = 0; i < state.places.length; i++) {
 				if(state.places[i].deleted) {
 					state.places.splice(i, 1);
 					i--;
@@ -122,7 +234,7 @@ export const store = new Vuex.Store({
 		},
 		changePlace(state, changes) {
 			let keys = Object.keys(changes.change), toUpdated = true;
-			for(var i = 0; i < keys.length; i++) {
+			for(let i = 0; i < keys.length; i++) {
 				Vue.set(changes.place, keys[i], changes.change[keys[i]]);
 				if(keys[i] === "updated") {
 					toUpdated = false;
@@ -133,58 +245,51 @@ export const store = new Vuex.Store({
 			}
 		},
 		addFolder(state, folder) {
-			Vue.set(state, "folders", state.folders.concat(folder));
+			let parent = findInTree(
+				{id: "root", children: state.folders},
+				"children",
+				"id",
+				folder.parent
+			);
+			if(!parent.children) {
+				Vue.set(parent, "children", []);
+			}
+			parent.children.push(folder);
 		},
 		addImporting(state, payload) {
-			let folderNewId, foundExistingFolder;
-			for(let folder of payload.folders) {
-				foundExistingFolder = state.folders.find(f => f.name === folder.name);
-				if(typeof(foundExistingFolder) === "undefined") {
-					folderNewId = generateRandomString(32);
-					for(let nestedFolder of payload.folders) {
-						if(nestedFolder.parent === folder.id) {
-							Vue.set(nestedFolder, "parent", folderNewId);
-						}
-					}
-					Vue.set(state, "folders", state.folders.concat(folder));
-				} else {
-					folderNewId = foundExistingFolder.id;
-				}
-				for(let nestedPlace of payload.places) {
-					if(nestedPlace.folderid === folder.id) {
-						Vue.set(nestedPlace, "folderid", folderNewId);
-					}
-				}
-				Vue.set(folder, "id", folderNewId);
-			}
-			for(let place of payload.places) {
+			treeNewIds(
+				{id: "root", children: payload.folders},
+				"children",
+				"parent",
+				payload.places,
+				"folderid"
+			);
+			Vue.set(state, "folders", state.folders.concat(payload.folders));
+			for(let i = 0; i < payload.places.length; i++) {
 				if(
 					typeof(state.places.find(p =>
-						p.latitude == place.latitude
-						&& p.longitude == place.longitude
-					)) === "undefined"
+						p.latitude == payload.places[i].latitude
+						&& p.longitude == payload.places[i].longitude
+					)) !== "undefined"
 				) {
-					let placeNewId = generateRandomString(32);
-					Vue.set(place, "id", placeNewId);
-					Vue.set(state, "places", state.places.concat(place));
+					payload.places.splice(i, 1);
 				}
 			}
+			Vue.set(state, "places", payload.places);
 		},
-		deleteFolder(state, folder) {
-			state.folders.splice(state.folders.indexOf(folder), 1);
+		deleteFolder(state, payload) {
+			payload.parent.children.splice(
+				payload.parent.children.indexOf(payload.folder),
+				1
+			);
 			Vue.set(state, "folders", state.folders);
 		},
-		deleteFoldersMarkedAsDeleted(state) {
-			for(var i = 0; i < state.folders.length; i++) {
-				if(state.folders[i].deleted) {
-					state.folders.splice(state.folders.indexOf(state.folders[i]), 1);
-					i--;
-				}
-			}
+		deleteFoldersMarkedAsDeleted(state, payload) {
+			changeByKeyValue({children: state.folders}, "children", "deleted", true, "delete");
 		},
 		changeFolder(state, changes) {
 			let keys = Object.keys(changes.change), toUpdated = true;
-			for(var i = 0; i < keys.length; i++) {
+			for(let i = 0; i < keys.length; i++) {
 				Vue.set(changes.folder, keys[i], changes.change[keys[i]]);
 				if(keys[i] === "updated") {
 					toUpdated = false;
@@ -193,6 +298,9 @@ export const store = new Vuex.Store({
 			if(toUpdated) {
 				Vue.set(changes.folder, "updated", true);
 			}
+		},
+		folderOpenClose(state, payload) {
+			Vue.set(payload.folder, "opened", payload.opened);
 		},
 		swapValues(state, changes) {
 			let p1 = changes.parent[changes.indexes[0]];
@@ -208,6 +316,28 @@ export const store = new Vuex.Store({
 		},
 	},
 	actions: {
+		undo({state, commit, dispatch}) {
+			if(state.stateBackupsIndex > 0) {
+				commit("stateBackupsIndexChange", -1);
+				dispatch("applyUndoRedo");
+				store.commit("inUndoRedo");
+				store.commit("setSaved", false);
+			}
+		},
+		redo({state, commit, dispatch}) {
+			if(state.stateBackupsIndex < state.stateBackups.length - 1) {
+				commit("stateBackupsIndexChange", 1);
+				dispatch("applyUndoRedo");
+				if(state.stateBackupsIndex === state.stateBackups.length - 1) {
+					store.commit("outUndoRedo");
+					store.commit("setSaved", true);
+				}
+			}
+		},
+		applyUndoRedo({state, commit}) {
+			commit("restoreState", state.stateBackupsIndex);
+			bus.$emit("homeRefresh");
+		},
 		unload({state, commit}) {
 			commit("reset");
 			localStorage.removeItem("places-session");
@@ -255,11 +385,9 @@ export const store = new Vuex.Store({
 					if(placesRequest.readyState == 4) {
 						if(placesRequest.status == 200) {
 							let all_places = JSON.parse(placesRequest.responseText);
-							let places = all_places[0], commonPlaces = all_places[1], folders = all_places[2];
-							places = sortObjects(places, "srt");
-							sortObjectsByProximity(commonPlaces);
-							folders = sortObjects(folders, "srt");
-							commit("placesReady", {places: places, commonPlaces: commonPlaces, folders: folders});
+							sortObjectsByProximity(all_places[1]);
+							commit("placesReady", {places: all_places[0], commonPlaces: all_places[1], folders: all_places[2]});
+							commit("foldersToTree");
 							bus.$emit("placesFilled");
 						} else {
 							dispatch("setMessage", "Не могу получить данные из БД");
@@ -280,6 +408,56 @@ export const store = new Vuex.Store({
 						commit("placesReady", {places: [], commonPlaces: [], folders: []});
 					});
 			}
+		},
+		moveFolder({state, commit}, payload) {
+			let folder, source, target;
+			folder = payload.hasOwnProperty("folder")
+				? payload.folder
+				: findInTree(
+					{id: "root", children: state.folders},
+					"children",
+					"id",
+					payload.folderId
+				)
+			;
+			if(folder.parent === null) {
+				source = state.folders;
+			} else {
+				source = findInTree(
+					{id: "root", children: state.folders},
+					"children",
+					"id",
+					folder.parent
+				).children;
+			}
+			if(
+				!payload.targetId
+				|| payload.targetId === null
+				|| payload.targetId === "root"
+			) {
+				target = state.folders;
+			} else {
+				target = findInTree(
+					{id: "root", children: state.folders},
+					"children",
+					"id",
+					payload.targetId
+				);
+				if(!target.children) {
+					Vue.set(target, "children", new Array());
+				}
+				target = target.children;
+			}
+			target.push(source.splice(source.indexOf(folder), 1)[0]);
+			commit("changeFolder", {
+				folder: folder,
+				change: {
+					parent: payload.targetId === "root" ? null : payload.targetId,
+					srt: payload.srt,
+					updated: true,
+				},
+				backup: !payload.hasOwnProperty("backup") || payload.backup ? true : false,
+			});
 		},
 		clearMessage({state}, hide) {
 			let message;
@@ -323,6 +501,9 @@ export const store = new Vuex.Store({
 		},
 	},
 	getters: {
+		getCurrentPlace: (state, getters) => {
+			return state.currentPlace;
+		},
 		getMessage: (state, getters) => {
 			return state.message;
 		},
@@ -331,10 +512,6 @@ export const store = new Vuex.Store({
 		},
 		getAccountChangeMessage: (state, getters) => {
 			return state.message;
-		},
-		getImages: (state, getters) => (place, common = false) => {
-			place.images = sortObjects(place.images, "srt");
-			return place.images;
 		},
 		getIndexById: (state, getters) => (args) => {
 			return args.parent.indexOf(args.parent.find(p => p.id == args.id));

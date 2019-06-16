@@ -37,14 +37,14 @@
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">Удалить аккаунт</button>
-						<button type="button" @click="$parent.showPopup({show: false}, $event);">Отмена</button>
+						<button type="button" @click="$root.showPopup({show: false}, $event);">Отмена</button>
 					</fieldset>
 				</div>
 			</form>
 			<div style="text-align: center;">
 				<span v-html="accountDeleteMessage"></span>
 			</div>
-			<a href="javascript:void(0);" class="close" @click="$parent.showPopup({show: false}, $event);">×</a>
+			<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
 		</div>
 	</div>
 </template>
