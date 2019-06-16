@@ -116,6 +116,13 @@ export default {
 				}
 			};
 		},
+		clickPlacemark: (place, type) => function(place, type) {
+			for(let i = 0; i < this.mrks.length; i++) {
+				this.mrks[i].options.set("draggable", false);
+			}
+			this.mrks[place.id].options.set("draggable", true);
+			this.$parent.setCurrentPlace(place, type === "common" ? true : false);
+		},
 		appendPlacemark: (marks, place, type) => function(marks, place, type) {
 			let options;
 			switch(type) {
@@ -131,20 +138,30 @@ export default {
 				{hintContent: place.name, balloonContent: place.description},
 				options,
 			);
+			marks[place.id].events.add("dragstart", () => {
+				if(place !== this.$store.state.currentPlace) {
+					marks[place.id].options.set("draggable", false);
+					this.$store.dispatch("setMessage", "Для перетаскивания точку сначала нужно выделить");
+				}
+			});
 			marks[place.id].events.add("dragend", () => {
-				let coordinates = marks[place.id].geometry.getCoordinates();
-				this.$store.commit("changePlace", {
-					place: place,
-					change: {
-						latitude: coordinates[0].toFixed(7),
-						longitude: coordinates[1].toFixed(7),
-						updated: true,
-					},
-				});
-				this.$parent.setCurrentPlace(place, type === "common" ? true : false);
+				if(place === this.$store.state.currentPlace) {
+					let coordinates = marks[place.id].geometry.getCoordinates();
+					this.$store.commit("changePlace", {
+						place: place,
+						change: {
+							latitude: coordinates[0].toFixed(7),
+							longitude: coordinates[1].toFixed(7),
+							updated: true,
+						},
+					});
+					this.$parent.setCurrentPlace(place, type === "common" ? true : false);
+				} else {
+					this.clickPlacemark(place, type);
+				}
 			});
 			marks[place.id].events.add("mouseup", () => {
-				this.$parent.setCurrentPlace(place, type === "common" ? true : false);
+				this.clickPlacemark(place, type);
 			});
 			this.map.geoObjects.add(marks[place.id]);
 		},
