@@ -486,11 +486,11 @@ export default {
 			this.$store.state.places.forEach((place) => {
 				this.$refs.ym.appendPlacemark(this.$refs.ym.mrks, place, "private");
 			});
-			if(!this.currentPlaceCommon) {
+			if(!this.currentPlaceCommon && this.$refs.ym.mrks[this.$store.state.currentPlace.id]) {
 				this.$refs.ym.mrks[this.$store.state.currentPlace.id].options.set(
 					"iconColor", this.$refs.ym.activePlacemarksColor
 				);
-			} else {
+			} else if(this.$refs.ym.commonMrks[this.$store.state.currentPlace.id]) {
 				this.$refs.ym.commonMrks[this.$store.state.currentPlace.id].options.set(
 					"iconColor", this.$refs.ym.activePlacemarksColor
 				);

@@ -101,7 +101,7 @@ body, input, select, textarea {
 	color: rgb(200, 177, 160);
 }
 ::placeholder {
-	color: rgba(200, 177, 160, 0.5);
+	color: rgba(200, 177, 160, 0.6);
 }
 .color, .imp, .imp_01, .imp_02,
 h1, h2, h3, h4, h5, h6, b, strong, caption, legend, dt, th,

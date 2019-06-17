@@ -97,6 +97,14 @@ export default {
 			});
 			this.$store.commit("deletePlacesMarkedAsDeleted");
 			this.$store.commit("deleteFoldersMarkedAsDeleted");
+			if(this.$store.state.places.length > 0) {
+				let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
+				if(!firstPlaceInRoot) {
+					this.$parent.setCurrentPlace(this.$store.state.places[0]);
+				} else {
+					this.$parent.setCurrentPlace(firstPlaceInRoot);
+				}
+			}
 			this.$store.commit("backupState");
 			bus.$emit("homeRefresh");
 			this.$root.showPopup({show: false}, event);
