@@ -73,6 +73,7 @@ export const store = new Vuex.Store({
 		inUndoRedo: false,
 		user: {},
 		currentPlace: {},
+		homePlace: {},
 		currentPlaceIndex: -1,
 		places: [],
 		folders: [],
@@ -160,6 +161,10 @@ export const store = new Vuex.Store({
 		setCurrentPlace(state, place) {
 			Vue.set(state, "currentPlace", place);
 			Vue.set(state, "currentPlaceIndex", state.places.indexOf(state.currentPlace));
+		},
+		setHomePlace(state, id) {
+			let place = state.places.find(p => p.id === id);
+			Vue.set(state, "homePlace", (place ? place : {}));
 		},
 		placesReady(state, payload) {
 			Vue.set(state, "places", payload.places);
@@ -387,6 +392,7 @@ export const store = new Vuex.Store({
 							let all_places = JSON.parse(placesRequest.responseText);
 							sortObjectsByProximity(all_places[1]);
 							commit("placesReady", {places: all_places[0], commonPlaces: all_places[1], folders: all_places[2]});
+							commit("setHomePlace", state.user.homeplace);
 							commit("foldersToTree");
 							bus.$emit("placesFilled");
 						} else {
@@ -402,6 +408,7 @@ export const store = new Vuex.Store({
 				dispatch("adaptImporting")
 					.then(response => {
 						commit("placesReady", {places: state.places, commonPlaces: state.commonPlaces, folders: state.folders, what: "added"});
+						commit("setHomePlace", state.user.homeplace);
 						bus.$emit("placesFilled", "importing");
 					})
 					.catch(error => {

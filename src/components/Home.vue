@@ -236,7 +236,7 @@
 				<div class="scrollable">
 					<dl class="place-detailed margin_bottom_0">
 						<template v-for="field in Object.keys($store.state.currentPlace)" :key="field">
-							<dt v-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
+							<dt v-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
 								{{ $store.state.placeFields[field] }}:
 							</dt>
 							<dd v-if="field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
@@ -259,7 +259,7 @@
 										v-model="$store.state.currentPlace[field]"
 										@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
 									/>
-									Место видимо другим
+									Место видно другим
 								</label>
 							</dd>
 							<dd v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0 && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
@@ -310,6 +310,17 @@
 								</textarea>
 							</dd>
 						</template>
+						<div>
+							<label>
+								<input
+									type="checkbox"
+									id="checkbox-homeplace"
+									:checked="$store.state.currentPlace === $store.state.homePlace ? true : false"
+									@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
+								/>
+								Домашнее место
+							</label>
+						</div>
 						<div v-if="!$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add">
 							<div class="images-add__div button">
 								<span>Добавить фотографии</span>
@@ -797,6 +808,8 @@ export default {
 							p => p.id === document.getElementById(place.id).previousElementSibling.id
 						)
 					);
+				} else if(Object.keys(this.$store.state.homePlace).length > 0) {
+					this.setCurrentPlace(this.$store.state.homePlace);
 				} else if(firstRootPlace) {
 					this.setCurrentPlace(firstRootPlace);
 				} else {
@@ -920,6 +933,37 @@ export default {
 							"Некоторые поля заполнены некорректно"
 						);
 					}
+				});
+			}
+		},
+		homeToDB: (place) => function(place) {
+			if(!this.$store.state.user.testaccount) {
+				return new Promise((resolve, reject) => {
+					let homeRequest = new XMLHttpRequest();
+					homeRequest.open("POST", "/backend/set_home.php", true);
+					homeRequest.onreadystatechange = (event) => {
+						if(homeRequest.readyState == 4) {
+							if(homeRequest.status == 200) {
+								this.$store.commit("setSaved", true);
+								this.$store.dispatch("setMessage",
+									"Изменения сохранены в базе данных"
+								);
+								resolve("Изменения сохранены в базе данных");
+							} else {
+								this.$store.dispatch("setMessage",
+									"Не могу внести данные в БД"
+								);
+								reject(new Error("Не могу внести данные в БД"));
+							}
+						}
+					};
+					homeRequest.setRequestHeader(
+						"Content-type", "application/x-www-form-urlencoded"
+					);
+					homeRequest.send(
+						"id=" + localStorage.getItem("places-userid") +
+						"&data=" + place.id
+					);
 				});
 			}
 		},

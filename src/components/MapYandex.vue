@@ -106,11 +106,15 @@ export default {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				});
 				if(this.$store.state.places.length > 0) {
-					let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
-					if(!firstPlaceInRoot) {
-						this.$parent.setCurrentPlace(this.$store.state.places[0]);
+					if(Object.keys(this.$store.state.homePlace).length > 0) {
+						this.$parent.setCurrentPlace(this.$store.state.homePlace);
 					} else {
-						this.$parent.setCurrentPlace(firstPlaceInRoot);
+						let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
+						if(!firstPlaceInRoot) {
+							this.$parent.setCurrentPlace(this.$store.state.places[0]);
+						} else {
+							this.$parent.setCurrentPlace(firstPlaceInRoot);
+						}
 					}
 					this.$store.commit("backupState");
 				}

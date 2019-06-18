@@ -698,7 +698,7 @@ span.folder-button {
 .place-detailed dd {
 	padding-left: 0;
 }
-.place-detailed textarea, .place-detailed input[type="text"], .place-detailed label {
+.place-detailed textarea, .place-detailed input[type="text"] {
 	display: inline-block;
 	margin: 3px 0 8px 0;
 }

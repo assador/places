@@ -201,7 +201,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 	} elseif($_POST["todo"] == "images_delete") {
 		$ids = "";
 		foreach($data as $row) {
-			$ids .= "'" . $row["id"] . "',";
+			$ids .= "'{$row["id"]}',";
 		}
 		$ids = rtrim($ids, ",");
 		$stmt = $conn->prepare("
