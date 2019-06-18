@@ -11,7 +11,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		UPDATE `users`
 		SET
 			`homeplace` = " .
-				($_POST["data"] == "null" ? "NULL" : "'{$_POST["data"]}'")
+				($_POST["data"] == "undefined" ? "NULL" : "'{$_POST["data"]}'")
 			. "
 		WHERE
 			`id` = '" . $_POST["id"] . "'
