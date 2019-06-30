@@ -249,7 +249,7 @@
 									class="fieldwidth_100"
 								/>
 							</dd>
-							<dd v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'">
+							<dd v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'" class="margin_bottom">
 								<label>
 									<input
 										type="checkbox"
@@ -309,18 +309,7 @@
 								</textarea>
 							</dd>
 						</template>
-						<div v-if="Object.keys($store.state.currentPlace).length > 0">
-							<label>
-								<input
-									type="checkbox"
-									id="checkbox-homeplace"
-									:checked="$store.state.currentPlace === $store.state.homePlace ? true : false"
-									@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
-								/>
-								Домашнее место
-							</label>
-						</div>
-						<div v-if="Object.keys($store.state.currentPlace).length > 0 && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add">
+						<div v-if="Object.keys($store.state.currentPlace).length > 0 && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add margin_bottom">
 							<div class="images-add__div button">
 								<span>Добавить фотографии</span>
 								<input
@@ -335,6 +324,17 @@
 							</div>
 						</div>
 						<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
+						<div v-if="Object.keys($store.state.currentPlace).length > 0">
+							<label>
+								<input
+									type="checkbox"
+									id="checkbox-homeplace"
+									:checked="$store.state.currentPlace === $store.state.homePlace ? true : false"
+									@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
+								/>
+								Домашнее место
+							</label>
+						</div>
 					</dl>
 				</div>
 			</div>
