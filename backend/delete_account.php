@@ -7,8 +7,6 @@ $_POST = json_decode(file_get_contents("php://input"), true);
 if(testAccountCheck($conn, $testaccountid, $_POST["userId"])) {
 	echo 2; exit;
 } else {
-	$query = $conn->query("SELECT * FROM `places` WHERE `userid` = '" . $_POST["userId"] . "'");
-	$result_places = $query->fetchAll(PDO::FETCH_ASSOC);
 	// Delete, if neccessary, images as entries in DB and files.
 	if(!($_POST["leavePlaces"] == "all" && $_POST["leaveImages"] == "all")) {
 		$sqlpart = "
@@ -32,19 +30,22 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userId"])) {
 		}
 		$query = $conn->query("DELETE `i` " . $sqlpart);
 	}
-	// Delete places or mark them as visible for another users and delete the user or mark him as unconfirmed.
+	// Delete places or mark them as visible for another users.
 	switch($_POST["leavePlaces"]) {
 		case "none" :
 			$result = $conn->exec("DELETE FROM `places` WHERE `userid` = '" . $_POST["userId"] . "'");
-			$result = $conn->exec("DELETE FROM `users` WHERE `id` = '" . $_POST["userId"] . "'");
 			break;
 		case "common" :
 			$result = $conn->exec("DELETE FROM `places` WHERE `userid` = '" . $_POST["userId"] . "' AND `common` = 0");
+			break;
 		case "all" :
-			$result = $conn->exec("UPDATE `users` SET `confirmed` = 0 WHERE `id` = '" . $_POST["userId"] . "'");
+			$result = $conn->exec("UPDATE `places` SET `common` = 1 WHERE `userid` = '" . $_POST["userId"] . "'");
 			break;
 		default :
 			echo 0; exit;
 	}
+	$result = $conn->exec("DELETE FROM `folders` WHERE `userid` = '" . $_POST["userId"] . "'");
+	$result = $conn->exec("DELETE FROM `usergroup` WHERE `user` = '" . $_POST["userId"] . "'");
+	$result = $conn->exec("DELETE FROM `users` WHERE `id` = '" . $_POST["userId"] . "'");
 	echo 1; exit;
 }

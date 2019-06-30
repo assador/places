@@ -160,8 +160,7 @@
 			>
 				<div id="basic-left__places" class="scrollable">
 					<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu">
-						<tree :data="{id: 'root', name: 'Мои места', children: $store.state.folders, opened: true}"
-						></tree>
+						<tree :data="folderRoot"></tree>
 					</div>
 					<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
 						<h2 class="basiccolor">Другие места</h2>
@@ -310,7 +309,7 @@
 								</textarea>
 							</dd>
 						</template>
-						<div>
+						<div v-if="Object.keys($store.state.currentPlace).length > 0">
 							<label>
 								<input
 									type="checkbox"
@@ -321,7 +320,7 @@
 								Домашнее место
 							</label>
 						</div>
-						<div v-if="!$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add">
+						<div v-if="Object.keys($store.state.currentPlace).length > 0 && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add">
 							<div class="images-add__div button">
 								<span>Добавить фотографии</span>
 								<input
@@ -466,9 +465,16 @@ export default {
 		},
 		sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
 		gridMode: 6,
+		folderRoot: {},
 	}},
 	mounted: function() {
 		bus.$on("placesFilled", (happens) => {
+			this.folderRoot = {
+				id: "root",
+				name: "Мои места",
+				children: this.$store.state.folders,
+				opened: false,
+			};
 			if(happens === "importing") {
 				this.$nextTick(function() {
 					this.toDBCompletely();
@@ -517,7 +523,7 @@ export default {
 					break;
 				case "folders" :
 					let plain = [];
-					treeToPlain({children: this.$store.state.folders}, "children", plain);
+					treeToPlain(this.folderRoot, "children", plain);
 					this.toDB("folders", JSON.stringify(plain));
 					break;
 			}
@@ -777,13 +783,13 @@ export default {
 				let folder, folderid = place.folderid;
 				while(folderid) {
 					folder = findInTree(
-						{children: this.$store.state.folders},
+						this.folderRoot,
 						"children",
 						"id",
 						folderid
 					);
 					this.$store.commit("folderOpenClose", {folder: folder, opened: true});
-					folderid = folder.parent;
+					folderid = (folder.parent === null ? "root" : folder.parent);
 				}
 			}
 			this.$store.commit("changeCenter", {
@@ -992,7 +998,11 @@ export default {
 						"Content-type", "application/x-www-form-urlencoded"
 					);
 					let plainFolders = [];
-					treeToPlain({children: this.$store.state.folders}, "children", plainFolders);
+					treeToPlain(
+						this.folderRoot,
+						"children",
+						plainFolders
+					);
 					placesRequest.send(
 						"id=" + localStorage.getItem("places-userid") +
 						"&data=" + (JSON.stringify({

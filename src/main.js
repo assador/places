@@ -159,6 +159,7 @@ let app = new Vue({
 		},
 		handleDrop: function(event) {
 			event.preventDefault();
+			event.stopPropagation();
 			if(
 				this.draggingElement !== event.target
 				&& event.target.classList

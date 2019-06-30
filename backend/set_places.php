@@ -54,6 +54,32 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			}
 		}
 	}
+	$query = $conn->query("
+		SELECT COUNT(*)
+		AS `count`
+		FROM `places`
+		WHERE `userid` = '" . $_POST["id"] . "'"
+	);
+	$placescount = $query->fetch(PDO::FETCH_ASSOC);
+	$query = $conn->query("
+		SELECT COUNT(*)
+		AS `count`
+		FROM `folders`
+		WHERE `userid` = '" . $_POST["id"] . "'"
+	);
+	$folderscount = $query->fetch(PDO::FETCH_ASSOC);
+	$query = $conn->query("
+		SELECT `id`
+		FROM `groups`
+		WHERE `id`
+		IN (
+			SELECT `group`
+			FROM `usergroup`
+			WHERE `user` = '" . $_POST["id"] . "'
+		)
+		AND `parent` = 'visiting'
+	");
+	$visiting = $query->fetch(PDO::FETCH_ASSOC);
 	if($_POST["todo"] == "places") {
 		$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id AND `userid` = :userid");
 		$append = $conn->prepare("
@@ -109,16 +135,21 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$delete->bindParam( ":userid"      , $_POST["id"]);
 				try {$delete->execute();} catch(Exception $e) {}
 			} elseif($row["added"] == true) {
-				$append->bindParam( ":id"          , $row[ "id"          ]);
-				$append->bindParam( ":folderid"    , $row[ "folderid"    ]);
-				$append->bindParam( ":name"        , $row[ "name"        ]);
-				$append->bindParam( ":description" , $row[ "description" ]);
-				$append->bindParam( ":latitude"    , $row[ "latitude"    ]);
-				$append->bindParam( ":longitude"   , $row[ "longitude"   ]);
-				$append->bindParam( ":srt"         , $row[ "srt"         ]);
-				$append->bindParam( ":common"      , $row[ "common"      ]);
-				$append->bindParam( ":userid"      , $_POST["id"]);
-				try {$append->execute();} catch(Exception $e) {}
+				if(
+					$placescount["count"] < $rights["placescounts"][$visiting["id"]]
+					|| $rights["placescounts"][$visiting["id"]] < 0
+				) {
+					$append->bindParam( ":id"          , $row[ "id"          ]);
+					$append->bindParam( ":folderid"    , $row[ "folderid"    ]);
+					$append->bindParam( ":name"        , $row[ "name"        ]);
+					$append->bindParam( ":description" , $row[ "description" ]);
+					$append->bindParam( ":latitude"    , $row[ "latitude"    ]);
+					$append->bindParam( ":longitude"   , $row[ "longitude"   ]);
+					$append->bindParam( ":srt"         , $row[ "srt"         ]);
+					$append->bindParam( ":common"      , $row[ "common"      ]);
+					$append->bindParam( ":userid"      , $_POST["id"]);
+					try {$append->execute();} catch(Exception $e) {}
+				}
 			}
 			if($row["updated"] == true) {
 				$update->bindParam( ":id"          , $row[ "id"          ]);
@@ -178,13 +209,18 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$delete->bindParam( ":userid"      , $_POST["id"]);
 				try {$delete->execute();} catch(Exception $e) {}
 			} elseif($row["added"] == true) {
-				$append->bindParam( ":id"          , $row[ "id"          ]);
-				$append->bindParam( ":parent"      , $row[ "parent"      ]);
-				$append->bindParam( ":name"        , $row[ "name"        ]);
-				$append->bindParam( ":description" , $row[ "description" ]);
-				$append->bindParam( ":srt"         , $row[ "srt"         ]);
-				$append->bindParam( ":userid"      , $_POST["id"]);
-				try {$append->execute();} catch(Exception $e) {}
+				if(
+					$folderscount["count"] < $rights["folderscounts"][$visiting["id"]]
+					|| $rights["folderscounts"][$visiting["id"]] < 0
+				) {
+					$append->bindParam( ":id"          , $row[ "id"          ]);
+					$append->bindParam( ":parent"      , $row[ "parent"      ]);
+					$append->bindParam( ":name"        , $row[ "name"        ]);
+					$append->bindParam( ":description" , $row[ "description" ]);
+					$append->bindParam( ":srt"         , $row[ "srt"         ]);
+					$append->bindParam( ":userid"      , $_POST["id"]);
+					try {$append->execute();} catch(Exception $e) {}
+				}
 			}
 			if($row["updated"] == true) {
 				$update->bindParam( ":id"          , $row[ "id"          ]);

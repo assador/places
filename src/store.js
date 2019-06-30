@@ -256,10 +256,14 @@ export const store = new Vuex.Store({
 				"id",
 				folder.parent
 			);
-			if(!parent.children) {
-				Vue.set(parent, "children", []);
+			if(!parent) {
+				state.folders.push(folder);
+			} else {
+				if(!parent.children) {
+					Vue.set(parent, "children", []);
+				}
+				parent.children.push(folder);
 			}
-			parent.children.push(folder);
 		},
 		addImporting(state, payload) {
 			treeNewIds(
@@ -455,12 +459,17 @@ export const store = new Vuex.Store({
 				}
 				target = target.children;
 			}
+			let srt = (
+				payload.hasOwnProperty("srt") ? payload.srt : (
+					target.length > 0 ? target[target.length - 1].srt + 1 : 1
+				)
+			);
 			target.push(source.splice(source.indexOf(folder), 1)[0]);
 			commit("changeFolder", {
 				folder: folder,
 				change: {
 					parent: payload.targetId === "root" ? null : payload.targetId,
-					srt: payload.srt,
+					srt: srt,
 					updated: true,
 				},
 				backup: !payload.hasOwnProperty("backup") || payload.backup ? true : false,

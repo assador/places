@@ -30,7 +30,7 @@ CREATE TABLE `groups` (
 	`parent` VARCHAR (32),
 	`name` VARCHAR (500) NOT NULL,
 	`description` VARCHAR (2044),
-	`owner` VARCHAR (32) NOT NULL,
+	`owner` VARCHAR (32),
 	`system` BOOLEAN NOT NULL DEFAULT 0,
 	`haschildren` BOOLEAN NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`),
@@ -81,3 +81,16 @@ ALTER TABLE `groups` ADD FOREIGN KEY (`owner`) REFERENCES `users`(`id`) ON DELET
 ALTER TABLE `places` ADD FOREIGN KEY (`userid`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 ALTER TABLE `places` ADD FOREIGN KEY (`folderid`) REFERENCES `folders`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 ALTER TABLE `images` ADD FOREIGN KEY (`placeid`) REFERENCES `places`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+INSERT INTO `groups`
+	(`id`, `parent`, `name`, `description`, `owner`, `system`, `haschildren`)
+VALUES
+	('admins', 'management', 'Админы', NULL, NULL, 1, 0),
+	('beginners', 'visiting', 'Начинающие', NULL, NULL, 1, 0),
+	('management', NULL, 'Управление', NULL, NULL, 1, 1),
+	('managers', 'management', 'Управляющие', NULL, NULL, 1, 0),
+	('ordinary', 'visiting', 'Обыкновенные', NULL, NULL, 1, 0),
+	('publishers', 'management', 'Издатели', NULL, NULL, 1, 0),
+	('superusers', 'visiting', 'Суперпользователи', NULL, NULL, 1, 0),
+	('trusted', 'visiting', 'Доверенные', NULL, NULL, 1, 0),
+	('visiting', NULL, 'Посещение', NULL, NULL, 1, 1);

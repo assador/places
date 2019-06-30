@@ -47,6 +47,14 @@ function sortObjectsByProximity(array) {
 		array.splice(lastIndex++ + 1, 0, array.splice(indexNearest, 1)[0]);
 	}
 }
+function childrenCount(tree, childrenKey, result = 0) {
+	if(Array.isArray(tree[childrenKey])) {
+		for(let i = 0; i < tree[childrenKey].length; i++) {
+			result = childrenCount(tree[childrenKey][i], childrenKey, ++result);
+		}
+	}
+	return result;
+}
 function findInTree(tree, childrenKey, key, value, result) {
 	if(tree[key] === value) {
 		return tree;

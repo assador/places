@@ -12,10 +12,11 @@ $query = $conn->query("SELECT `login` FROM `users` WHERE `login` = '" . $_POST["
 $result = $query->fetchAll(PDO::FETCH_ASSOC);
 if(count($result) > 0) {echo 1; exit;}
 
+$id = generateRandomString(32);
 $token = generateRandomString(32);
 $query = $conn->prepare(
 	"INSERT INTO `users` (`id`, `login`, `password`, `name`, `email`, `phone`, `confirmed`, `confirmbefore`, `token`) VALUES ('" .
-	generateRandomString(32) .
+	$id .
 	"', '" .
 	$_POST["regLogin"] .
 	"', '" .
@@ -31,6 +32,11 @@ $query = $conn->prepare(
 	"', '" .
 	$token .
 	"')"
+);
+$result = $query->execute();
+
+$query = $conn->prepare(
+	"INSERT INTO `usergroup` (`user`, `group`, `enabled`) VALUES ('" . $id . "', 'beginners', 1)"
 );
 $result = $query->execute();
 

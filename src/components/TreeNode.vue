@@ -12,7 +12,7 @@
 			href="javascript: void(0);"
 			class="folder-button"
 			draggable="true"
-			@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
+			@click="$store.commit('folderOpenClose', {folder: (folderData.id === 'root' ? $parent.data : folder), opened: folderData.opened ? false : true});"
 			@dragstart="$root.handleDragStart"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
@@ -49,7 +49,7 @@
 			></textarea>
 		</span>
 		<ul v-if="folderData.children && folderData.children.length" class="margin_bottom_0">
-			<folder v-for="child in orderedChildren" :folder="child" :parent="folder"></folder>
+			<folder v-for="child in orderedChildren" :folder="child" :parent="folderData"></folder>
 		</ul>
 		<div :id="folderData.id" class="places-menu-item">
 			<div

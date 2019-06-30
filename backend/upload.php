@@ -4,7 +4,6 @@ include "newpdo.php";
 include "common.php";
 
 if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
-	echo json_encode([[2], []]);
 	exit;
 } else {
 	$files = [];
@@ -19,6 +18,35 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 			"type"         => $mime,
 		);
 	}
+	$query = $conn->query("
+		SELECT `id`
+		FROM `groups`
+		WHERE `id`
+		IN (
+			SELECT `group`
+			FROM `usergroup`
+			WHERE `user` = '" . $_POST["userid"] . "'
+		)
+		AND `system` = 1
+	");
+	$result = $query->fetchAll(PDO::FETCH_ASSOC);
+	foreach($result as $row) {
+		switch($row["id"]) {
+			case "beginners" :
+			case "ordinary" :
+			case "trusted" :
+			case "superusers" :
+				$acceptsize = $rights["photosizes"][$row["id"]];
+				$found = true;
+				break;
+			default :
+				continue;
+		}
+		if($found) {
+			break;
+		}
+	}
+	unset($row);
 	foreach($_FILES as $key => $file) {
 		if($file["error"] == UPLOAD_ERR_OK) {
 			$size = filesize($file["tmp_name"]);
@@ -32,7 +60,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 				continue;
 			}
 			if($mime == "image/svg+xml") {
-				if($size > $acceptsize) {
+				if($acceptsize >= 0 && $size > $acceptsize) {
 					if(!in_array(4, $fault)) {$fault[] = 4;}
 					continue;
 				} else {
@@ -61,7 +89,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 						Imagick::FILTER_LANCZOS, 1, true
 					);
 					$size = strlen($imagick->getImageBlob());
-					if($size > $acceptsize) {
+					if($acceptsize >= 0 && $size > $acceptsize) {
 						if(!in_array(4, $fault)) {$fault[] = 4;}
 						continue;
 					} else {
@@ -87,7 +115,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 			$fault[] = 1;
 		}
 	}
+	unset($file);
 	finfo_close($finfo);
-	echo json_encode([$fault, $files]);
+	echo json_encode([$fault, $files], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
 	exit;
 }

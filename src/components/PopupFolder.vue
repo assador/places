@@ -68,6 +68,8 @@
 </template>
 
 <script>
+import {constants} from "../shared/constants.js"
+import axios from "axios"
 export default {
 	props: ["data"],
 	data: function() {return {
@@ -86,31 +88,56 @@ export default {
 	},
 	computed: {
 		appendFolder: (folderName, folderDescription) => function(folderName, folderDescription) {
-			let newFolder = {
-				type: "folder",
-				userid: localStorage.getItem("places-userid"),
-				name: folderName,
-				description: folderDescription,
-				id: generateRandomString(32),
-				srt: this.$store.state.folders.length > 0
-					? Math.ceil(Math.max(
-						...this.$store.state.folders.map(function(folder) {
-							return folder.srt;
-						})
-					)) + 1
-					: 1,
-				parent: this.$store.state.currentPlace.folderid
-					? this.$store.state.currentPlace.folderid
-					: null,
-				added: true,
-				deleted: false,
-				updated: false,
-			};
-			this.$store.commit("addFolder", newFolder);
-			this.message = "Папка создана";
-			this.folderName = "";
-			this.folderDescription = "";
-			document.getElementById("folderName").focus();
+			let foldersCount = childrenCount(
+				this.$parent.folderRoot,
+				"children"
+			);
+			let data = new FormData();
+			data.append("userid", this.$store.state.user.id);
+			data.append("need", "visiting");
+			axios.post("/backend/get_groups.php", data)
+				.then(response => {
+					if(
+						constants.rights.folderscounts[response.data] < 0
+						|| constants.rights.folderscounts[response.data] > foldersCount
+					) {
+						let newFolder = {
+							type: "folder",
+							userid: localStorage.getItem("places-userid"),
+							name: folderName,
+							description: folderDescription,
+							id: generateRandomString(32),
+							srt: this.$store.state.folders.length > 0
+								? Math.ceil(Math.max(
+									...this.$store.state.folders.map(function(folder) {
+										return folder.srt;
+									})
+								)) + 1
+								: 1,
+							parent: this.$store.state.currentPlace.folderid
+								? this.$store.state.currentPlace.folderid
+								: null,
+							opened: false,
+							added: true,
+							deleted: false,
+							updated: false,
+						};
+						this.$store.commit("addFolder", newFolder);
+						this.message = "Папка создана";
+						this.folderName = "";
+						this.folderDescription = "";
+						document.getElementById("folderName").focus();
+					} else {
+						this.message =
+							'Превышено максимально допустимое для вашей ' +
+							'текущей роли количство папок<br />Дождитесь ' +
+							'перехода в следующую роль, или обратитесь ' +
+							'к администрации сервиса по адресу<br />' +
+							'<a href="mailto:' + constants.from +
+							'">' + constants.from + '</a>'
+						;
+					}
+				});
 		},
 		close: (event) => function(event) {
 			event.stopPropagation();

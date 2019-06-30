@@ -12,6 +12,7 @@
 import folders from "./TreeNode.vue"
 import {bus} from "../shared/bus.js"
 export default {
+	name: "data",
 	components: {
 		folders,
 	},
@@ -28,10 +29,10 @@ export default {
 		data: {
 			deep: true,
 			immediate: true,
-			handler: function(folder) {
+			handler: function(data) {
 				this.folderData = {
-					...folder,
-					children: folder.children,
+					...data,
+					children: data.children,
 				};
 			},
 		},
