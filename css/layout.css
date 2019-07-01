@@ -204,6 +204,23 @@ body {
 	top: 0; right: 0; bottom: 0; left: 0;
 	padding: 50px;
 }
+#scroll-up, #scroll-down {
+	background-color: rgba(70, 41, 23, 0.7);
+	position: absolute;
+	right: 0; left: 0;
+	height: 0;
+	overflow: hidden;
+	text-align: center;
+	line-height: 40px;
+	font-size: 20px;
+	z-index: 50;
+}
+#scroll-up {
+	top: 0;
+}
+#scroll-down {
+	bottom: 0;
+}
 .centered {
 	flex-direction: column;
 }
@@ -222,6 +239,10 @@ body {
 	.table {
 		height: auto;
 		min-height: 100%;
+		padding: 40px 0;
+	}
+	#scroll-up, #scroll-down {
+		height: 40px;
 	}
 	.app-row, .app-cell {
 		display: block;
@@ -251,9 +272,6 @@ body {
 		display: flex;
 		align-items: flex-end;
 		padding-left: 20px;
-	}
-	.find-places-input {
-		margin-top: 0;
 	}
 	#bottom-basic, #bottom-right, .sbs-top, .sbs-right, .sbs-bottom, .sbs-left {
 		display: none;

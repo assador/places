@@ -1,6 +1,20 @@
 <template>
 	<div id="main">
 		<component v-bind:is="component" />
+		<a
+			id="scroll-up"
+			href="javascript:void(0);"
+			onclick="scrollWindow(-100);"
+		>
+			▲
+		</a>
+		<a
+			id="scroll-down"
+			href="javascript:void(0);"
+			onclick="scrollWindow(100);"
+		>
+			▼
+		</a>
 	<div>
 </template>
 
@@ -38,6 +52,12 @@ export default {
 					});
 			}
 		});
+		window.addEventListener("scroll", () => {
+			onWindowScroll({
+				top: [document.getElementById("scroll-up")],
+				bottom: [document.getElementById("scroll-down")],
+			});
+		}, false);
 	},
 }
 </script>
