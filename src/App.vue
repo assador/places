@@ -52,12 +52,6 @@ export default {
 					});
 			}
 		});
-		window.addEventListener("scroll", () => {
-			onWindowScroll({
-				top: [document.getElementById("scroll-up")],
-				bottom: [document.getElementById("scroll-down")],
-			});
-		}, false);
 	},
 }
 </script>

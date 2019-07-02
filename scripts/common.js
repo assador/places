@@ -183,7 +183,3 @@ function plainToTree(plain) {
 function scrollWindow(amount) {
 	window.scrollBy({top: amount, behavior: "smooth"});
 }
-function onWindowScroll(elements) {
-	elements.top.forEach(function(e) {e.style.top = window.scrollY + "px";});
-	elements.bottom.forEach(function(e) {e.style.bottom = -window.scrollY + "px";});
-}
