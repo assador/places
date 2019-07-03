@@ -1,354 +1,338 @@
 <template>
 	<div
-		class="table"
+		id="grid"
 		@mousemove="documentMouseOver($event);"
 		@mouseup="sidebarDragStop($event);"
+		:style="'grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;'"
 	>
 		<div
-			id="top"
-			class="app-row"
-			:style="'height: ' + sidebarSize.top + 'px;' + (sidebarSize.top < 80 ? ' display: none;' : '')"
+			id="top-left"
+			class="app-cell fieldwidth_100"
 		>
-			<div
-				id="top-left"
-				class="app-cell fieldwidth_100"
-				:style="'width: ' + sidebarSize.left + 'px;' + (sidebarSize.top < 80 || sidebarSize.left < 120 ? ' display: none;' : '')"
-			>
-				<div class="control-buttons">
-					<button
-						id="actions-append"
-						class="actions-button"
-						title="Добавить место в центре карты"
-						@click="let newPlace = $refs.ym.appendPlace();"
-					>
-						+
-					</button>
-					<button
-						id="actions-delete"
-						class="actions-button"
-						title="Удалить текущее место"
-						:disabled="!($store.state.currentPlace.userid === $store.state.user.id)"
-						@click="deletePlace($store.state.currentPlace);"
-					>
-						×
-					</button>
-					<button
-						id="actions-append-folder"
-						class="actions-button"
-						title="Добавить папку"
-						@click="$root.showPopup({show: true, type: 'folder'}, $event);"
-					>
-						П+
-					</button>
-					<button
-						id="actions-edit-folders"
-						class="actions-button"
-						title="Редактировать папки"
-						@click="$root.foldersEditMode = !$root.foldersEditMode; if($event.target.classList.contains('button-pressed')) {$event.target.classList.remove('button-pressed');} else {$event.target.classList.add('button-pressed');}"
-					>
-						ПР
-					</button>
+			<div class="control-buttons">
+				<button
+					id="actions-append"
+					class="actions-button"
+					title="Добавить место в центре карты"
+					@click="let newPlace = $refs.ym.appendPlace();"
+				>
+					+
+				</button>
+				<button
+					id="actions-delete"
+					class="actions-button"
+					title="Удалить текущее место"
+					:disabled="!($store.state.currentPlace.userid === $store.state.user.id)"
+					@click="deletePlace($store.state.currentPlace);"
+				>
+					×
+				</button>
+				<button
+					id="actions-append-folder"
+					class="actions-button"
+					title="Добавить папку"
+					@click="$root.showPopup({show: true, type: 'folder'}, $event);"
+				>
+					П+
+				</button>
+				<button
+					id="actions-edit-folders"
+					class="actions-button"
+					title="Редактировать папки"
+					@click="$root.foldersEditMode = !$root.foldersEditMode; if($event.target.classList.contains('button-pressed')) {$event.target.classList.remove('button-pressed');} else {$event.target.classList.add('button-pressed');}"
+				>
+					ПР
+				</button>
+			</div>
+			<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100 fontsize_n" @keyup="selectPlaces" />
+		</div>
+		<div
+			id="top-basic"
+			class="app-cell"
+		>
+			<div>
+				<div class="brand">
+					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user.login"></span></h1>
+					<div>Сервис просмотра и редактирования библиотек геометок</div>
 				</div>
-				<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100 fontsize_n" @keyup="selectPlaces" />
 			</div>
 			<div
-				id="top-basic"
-				class="app-cell"
+				id="message-main"
+				class="message invisible"
+				v-html="getMessage"
+				@click="$store.dispatch('clearMessage', true);"
 			>
-				<div>
-					<div class="brand">
-						<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user.login"></span></h1>
-						<div>Сервис просмотра и редактирования библиотек геометок</div>
-					</div>
-				</div>
-				<div
-					id="message-main"
-					class="message invisible"
-					v-html="getMessage"
-					@click="$store.dispatch('clearMessage', true);"
-				>
-				</div>
+			</div>
 <!--
-				<a
-					id="imp"
-					href="javascript:void(0);"
-					:class="$store.state.saved ? 'invisible' : 'visible'"
-					title="Изменения не сохранены в базе данных"
-					@click="$store.dispatch('setMessage', 'Изменения не сохранены в базе данных');"
-				>
-					★
-				</a>
--->
-			</div>
-			<div
-				id="top-right"
-				class="app-cell"
-				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.top < 80 || sidebarSize.right < 120 ? ' display: none;' : '')"
+			<a
+				id="imp"
+				href="javascript:void(0);"
+				:class="$store.state.saved ? 'invisible' : 'visible'"
+				title="Изменения не сохранены в базе данных"
+				@click="$store.dispatch('setMessage', 'Изменения не сохранены в базе данных');"
 			>
-				<div class="control-buttons">
-					<input
-						id="inputImportFromFile"
-						ref="inputImportFromFile"
-						name="jsonFile"
-						type="file"
-						@change="importFromFile();"
-					/>
-					<button
-						id="actions-undo"
-						class="actions-button"
-						title="Отменить"
-						@click="$store.dispatch('undo');"
-					>
-						↺
-					</button>
-					<button
-						id="actions-redo"
-						class="actions-button"
-						title="Вернуть"
-						@click="$store.dispatch('redo');"
-					>
-						↻
-					</button>
-					<button
-						id="actions-save"
-						:class="'actions-button' + (!$store.state.saved ? ' button-pressed highlight' : '')"
-						:title="(!$store.state.saved ? 'Не сохранено. ' : '') + 'Сохранить в БД'"
-						@click="toDBCompletely();"
-					>
-						↯
-					</button>
-					<button
-						id="actions-import"
-						class="actions-button"
-						title="Импортировать геометки из JSON-файла"
-						onclick="document.getElementById('inputImportFromFile').click();"
-					>
-						↲
-					</button>
-					<button
-						id="actions-export"
-						class="actions-button"
-						title="Экспортировать свои геометки в JSON-файл"
-						@click="exportToFile();"
-					>
-						↱
-					</button>
-					<button
-						id="actions-about"
-						class="actions-button"
-						title="О «Местах», справка"
-						@click="showAbout($event);"
-					>
-						?
-					</button>
-					<button
-						id="actions-exit"
-						class="actions-button"
-						title="Выйти"
-						@click="toDBCompletely(); exit();"
-					>
-						↪
-					</button>
+				★
+			</a>
+-->
+		</div>
+		<div
+			id="top-right"
+			class="app-cell"
+		>
+			<div class="control-buttons">
+				<input
+					id="inputImportFromFile"
+					ref="inputImportFromFile"
+					name="jsonFile"
+					type="file"
+					@change="importFromFile();"
+				/>
+				<button
+					id="actions-undo"
+					class="actions-button"
+					title="Отменить"
+					@click="$store.dispatch('undo');"
+				>
+					↺
+				</button>
+				<button
+					id="actions-redo"
+					class="actions-button"
+					title="Вернуть"
+					@click="$store.dispatch('redo');"
+				>
+					↻
+				</button>
+				<button
+					id="actions-save"
+					:class="'actions-button' + (!$store.state.saved ? ' button-pressed highlight' : '')"
+					:title="(!$store.state.saved ? 'Не сохранено. ' : '') + 'Сохранить в БД'"
+					@click="toDBCompletely();"
+				>
+					↯
+				</button>
+				<button
+					id="actions-import"
+					class="actions-button"
+					title="Импортировать геометки из JSON-файла"
+					onclick="document.getElementById('inputImportFromFile').click();"
+				>
+					↲
+				</button>
+				<button
+					id="actions-export"
+					class="actions-button"
+					title="Экспортировать свои геометки в JSON-файл"
+					@click="exportToFile();"
+				>
+					↱
+				</button>
+				<button
+					id="actions-about"
+					class="actions-button"
+					title="О «Местах», справка"
+					@click="showAbout($event);"
+				>
+					?
+				</button>
+				<button
+					id="actions-exit"
+					class="actions-button"
+					title="Выйти"
+					@click="toDBCompletely(); exit();"
+				>
+					↪
+				</button>
+			</div>
+		</div>
+		<div
+			id="basic-left"
+			class="app-cell"
+		>
+			<div id="basic-left__places" class="scrollable">
+				<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu">
+					<tree :data="folderRoot"></tree>
+				</div>
+				<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
+					<h2 class="basiccolor">Другие места</h2>
+					<div class="margin_bottom">
+						<div
+							v-for="commonPlace in $store.state.commonPlaces"
+							v-if="$store.state.commonPlaces.indexOf(commonPlace) >= commonPlacesOnPageCount * (commonPlacesPage - 1) && $store.state.commonPlaces.indexOf(commonPlace) < commonPlacesOnPageCount * commonPlacesPage"
+							:id="commonPlace.id"
+							:key="commonPlace.id"
+							:class="'place-button block_01' + (commonPlace === $store.state.currentPlace ? ' active' : '')"
+							@click="setCurrentPlace(commonPlace, true);"
+						>
+							{{ commonPlace.name }}
+						</div>
+					</div>
+					<div class="margin_bottom">
+						<a
+							v-for="(page, index) in commonPlacesPagesCount"
+							href="javascript:void(0);"
+							:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
+							@click="commonPlacesPage = index + 1;"
+						>
+							{{ index + 1 }}
+						</a>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="app-row" id="basic">
-			<div
-				id="basic-left"
-				class="app-cell"
-				:style="'width: ' + sidebarSize.left + 'px;' + (sidebarSize.left < 120 ? ' display: none;' : '')"
+		<div class="app-cell" id="basic-basic">
+			<mapyandex
+				ref="ym"
+				:id="$store.state.currentPlace.id"
+				:name="$store.state.currentPlace.name"
+				:description="$store.state.currentPlace.description"
+				:images="$store.state.currentPlace.images"
+				:latitude="$store.state.currentPlace.latitude"
+				:longitude="$store.state.currentPlace.longitude"
+				:centerLatitude="$store.state.center.latitude"
+				:centerLongitude="$store.state.center.longitude"
 			>
-				<div id="basic-left__places" class="scrollable">
-					<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu">
-						<tree :data="folderRoot"></tree>
-					</div>
-					<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
-						<h2 class="basiccolor">Другие места</h2>
-						<div class="margin_bottom">
-							<div
-								v-for="commonPlace in $store.state.commonPlaces"
-								v-if="$store.state.commonPlaces.indexOf(commonPlace) >= commonPlacesOnPageCount * (commonPlacesPage - 1) && $store.state.commonPlaces.indexOf(commonPlace) < commonPlacesOnPageCount * commonPlacesPage"
-								:id="commonPlace.id"
-								:key="commonPlace.id"
-								:class="'place-button block_01' + (commonPlace === $store.state.currentPlace ? ' active' : '')"
-								@click="setCurrentPlace(commonPlace, true);"
-							>
-								{{ commonPlace.name }}
-							</div>
-						</div>
-						<div class="margin_bottom">
-							<a
-								v-for="(page, index) in commonPlacesPagesCount"
-								href="javascript:void(0);"
-								:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
-								@click="commonPlacesPage = index + 1;"
-							>
-								{{ index + 1 }}
-							</a>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="app-cell" id="basic-basic">
-				<mapyandex
-					ref="ym"
-					:id="$store.state.currentPlace.id"
-					:name="$store.state.currentPlace.name"
-					:description="$store.state.currentPlace.description"
-					:images="$store.state.currentPlace.images"
-					:latitude="$store.state.currentPlace.latitude"
-					:longitude="$store.state.currentPlace.longitude"
-					:centerLatitude="$store.state.center.latitude"
-					:centerLongitude="$store.state.center.longitude"
-				>
-				</mapyandex>
-				<div
-					class="sbs-top"
-					:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-					@mousedown="sidebarDragStart('top', $event);"
-				>
-				</div>
-				<div
-					class="sbs-right"
-					:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-					@mousedown="sidebarDragStart('right', $event);"
-				>
-				</div>
-				<div
-					class="sbs-bottom"
-					:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-					@mousedown="sidebarDragStart('bottom', $event);"
-				>
-				</div>
-				<div
-					class="sbs-left"
-					:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-					@mousedown="sidebarDragStart('left', $event);"
-				>
-				</div>
+			</mapyandex>
+			<div
+				class="sbs-top"
+				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+				@mousedown="sidebarDragStart('top', $event);"
+			>
 			</div>
 			<div
-				id="basic-right"
-				class="app-cell"
-				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.right < 120 ? ' display: none;' : '')"
+				class="sbs-right"
+				:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+				@mousedown="sidebarDragStart('right', $event);"
 			>
-				<div class="scrollable">
-					<dl class="place-detailed margin_bottom_0">
-						<template v-for="field in Object.keys($store.state.currentPlace)" :key="field">
-							<dt v-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
-								{{ $store.state.placeFields[field] }}:
-							</dt>
-							<dd v-if="field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
-								<input
-									type="text"
-									:id="'detailed-' + field"
-									:disabled="currentPlaceCommon"
-									v-model.number.trim="$store.state.currentPlace[field]"
-									@focus="validatable();"
-									@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
-									class="fieldwidth_100"
-								/>
-							</dd>
-							<dd v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'" class="margin_bottom">
-								<label>
-									<input
-										type="checkbox"
-										:id="'detailed-' + field"
-										:disabled="currentPlaceCommon"
-										v-model="$store.state.currentPlace[field]"
-										@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
-									/>
-									Место видно другим
-								</label>
-							</dd>
-							<dd v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0 && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
-								<div class="dd-images row_01">
-									<div
-										v-for="image in orderedImages"
-										:id="image.id"
-										:key="image.id"
-										:class="'place-image col-' + gridMode + (currentPlaceCommon ? '' : ' draggable')"
-										:draggable="currentPlaceCommon ? false : true"
-										@click="$root.showPopup({show: true, type: 'image', data: image}, $event);"
-										@dragstart="$root.handleDragStart"
-										@dragenter="$root.handleDragEnter"
-									>
-										<div
-											class="block_02"
-										>
-											<img
-												class="image-thumbnail border_1"
-												draggable="false"
-												:src="constants.dirs.uploads.images.small + image.file"
-												:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedsmall + image.file + '\''"
-												:alt="$store.state.currentPlace.name"
-												:title="$store.state.currentPlace.name"
-											/>
-											<div
-												class="dd-images__delete button"
-												draggable="false"
-												v-if="!currentPlaceCommon"
-												@click="deleteFiles(Array.from($store.state.currentPlace.images), [image], $event);"
-											>
-												×
-											</div>
-										</div>
-									</div>
-								</div>
-							</dd>
-							<dd v-else-if="field != 'common' && field != 'images' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
-								<textarea
-									:id="'detailed-' + field"
-									:disabled="currentPlaceCommon"
-									:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
-									v-model.trim="$store.state.currentPlace[field]"
-									@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
-									class="fieldwidth_100"
-								>
-									{{ $store.state.currentPlace[field] }}
-								</textarea>
-							</dd>
-						</template>
-						<div v-if="Object.keys($store.state.currentPlace).length > 0 && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add margin_bottom">
-							<div class="images-add__div button">
-								<span>Добавить фотографии</span>
-								<input
-									id="images-add__input"
-									type="file"
-									name="files"
-									ref="inputUploadFiles"
-									multiple
-									@change="uploadFiles($event);"
-									class="images-add__input"
-								/>
-							</div>
-						</div>
-						<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
-						<div v-if="Object.keys($store.state.currentPlace).length > 0">
+			</div>
+			<div
+				class="sbs-bottom"
+				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+				@mousedown="sidebarDragStart('bottom', $event);"
+			>
+			</div>
+			<div
+				class="sbs-left"
+				:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+				@mousedown="sidebarDragStart('left', $event);"
+			>
+			</div>
+		</div>
+		<div
+			id="basic-right"
+			class="app-cell"
+		>
+			<div class="scrollable">
+				<dl class="place-detailed margin_bottom_0">
+					<template v-for="field in Object.keys($store.state.currentPlace)" :key="field">
+						<dt v-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
+							{{ $store.state.placeFields[field] }}:
+						</dt>
+						<dd v-if="field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
+							<input
+								type="text"
+								:id="'detailed-' + field"
+								:disabled="currentPlaceCommon"
+								v-model.number.trim="$store.state.currentPlace[field]"
+								@focus="validatable();"
+								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+								class="fieldwidth_100"
+							/>
+						</dd>
+						<dd v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'" class="margin_bottom">
 							<label>
 								<input
 									type="checkbox"
-									id="checkbox-homeplace"
-									:checked="$store.state.currentPlace === $store.state.homePlace ? true : false"
-									@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
+									:id="'detailed-' + field"
+									:disabled="currentPlaceCommon"
+									v-model="$store.state.currentPlace[field]"
+									@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
 								/>
-								Домашнее место
+								Место видно другим
 							</label>
+						</dd>
+						<dd v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0 && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
+							<div class="dd-images row_01">
+								<div
+									v-for="image in orderedImages"
+									:id="image.id"
+									:key="image.id"
+									:class="'place-image col-' + gridMode + (currentPlaceCommon ? '' : ' draggable')"
+									:draggable="currentPlaceCommon ? false : true"
+									@click="$root.showPopup({show: true, type: 'image', data: image}, $event);"
+									@dragstart="$root.handleDragStart"
+									@dragenter="$root.handleDragEnter"
+								>
+									<div
+										class="block_02"
+									>
+										<img
+											class="image-thumbnail border_1"
+											draggable="false"
+											:src="constants.dirs.uploads.images.small + image.file"
+											:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedsmall + image.file + '\''"
+											:alt="$store.state.currentPlace.name"
+											:title="$store.state.currentPlace.name"
+										/>
+										<div
+											class="dd-images__delete button"
+											draggable="false"
+											v-if="!currentPlaceCommon"
+											@click="deleteFiles(Array.from($store.state.currentPlace.images), [image], $event);"
+										>
+											×
+										</div>
+									</div>
+								</div>
+							</div>
+						</dd>
+						<dd v-else-if="field != 'common' && field != 'images' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
+							<textarea
+								:id="'detailed-' + field"
+								:disabled="currentPlaceCommon"
+								:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
+								v-model.trim="$store.state.currentPlace[field]"
+								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+								class="fieldwidth_100"
+							>
+								{{ $store.state.currentPlace[field] }}
+							</textarea>
+						</dd>
+					</template>
+					<div v-if="Object.keys($store.state.currentPlace).length > 0 && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add margin_bottom">
+						<div class="images-add__div button">
+							<span>Добавить фотографии</span>
+							<input
+								id="images-add__input"
+								type="file"
+								name="files"
+								ref="inputUploadFiles"
+								multiple
+								@change="uploadFiles($event);"
+								class="images-add__input"
+							/>
 						</div>
-					</dl>
-				</div>
+					</div>
+					<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
+					<div v-if="Object.keys($store.state.currentPlace).length > 0">
+						<label>
+							<input
+								type="checkbox"
+								id="checkbox-homeplace"
+								:checked="$store.state.currentPlace === $store.state.homePlace ? true : false"
+								@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
+							/>
+							Домашнее место
+						</label>
+					</div>
+				</dl>
 			</div>
 		</div>
 		<div
-			id="bottom"
-			class="app-row"
-			:style="'height: ' + sidebarSize.bottom + 'px;' + (sidebarSize.bottom < 60 ? ' display: none;' : '')"
+			id="bottom-left"
+			class="app-cell"
 		>
-			<div
-				id="bottom-left"
-				class="app-cell"
-				:style="'width: ' + sidebarSize.left + 'px;' + (sidebarSize.bottom < 60 || sidebarSize.left < 120 ? ' display: none;' : '')"
-			>
+			<div class="control-buttons">
 				<button
 					id="placemarksShowHideButton"
 					class="actions-button button-pressed"
@@ -382,46 +366,48 @@
 					◈
 				</button>
 			</div>
-			<div
-				id="bottom-basic"
-				class="app-cell"
-			>
-				<span class="imp">
-					Координаты центра карты
-				</span>
-				<span class="nobr" style="margin-left: 1em;">
-					Широта:
-					<input
-						v-model.number.trim="$store.state.center.latitude"
-						placeholder="latitude"
-						title="Широта"
-					/>
-				</span>
-				<span class="nobr" style="margin-left: 1em;">
-					Долгота:
-					<input
-						v-model.number.trim="$store.state.center.longitude"
-						placeholder="longitude"
-						title="Долгота"
-					/>
-				</span>
-			</div>
-			<div
-				id="bottom-right"
-				class="app-cell"
-				:style="'width: ' + sidebarSize.right + 'px;' + (sidebarSize.bottom < 60 || sidebarSize.right < 120 ? ' display: none;' : '')"
-			>
-			</div>
 		</div>
-		<div :class="'popup ' + $root.popuped" @click="if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}">
-			<component
-				ref="popup"
-				:is="$root.popupComponent"
-				:data="$root.popupData"
-				:currentPlace="$store.state.currentPlace"
-			>
-			</component>
+		<div
+			id="bottom-basic"
+			class="app-cell"
+		>
+			<span class="imp">
+				Центр
+			</span>
+			<span class="nobr" style="margin-left: 1em;">
+				Широта:
+				<input
+					v-model.number.trim="$store.state.center.latitude"
+					placeholder="latitude"
+					title="Широта"
+				/>
+			</span>
+			<span class="nobr" style="margin-left: 1em;">
+				Долгота:
+				<input
+					v-model.number.trim="$store.state.center.longitude"
+					placeholder="longitude"
+					title="Долгота"
+				/>
+			</span>
 		</div>
+<!--
+		<div
+			id="bottom-right"
+			class="app-cell"
+			:style="(sidebarSize.bottom < 60 || sidebarSize.right < 120 ? 'display: none;' : '')"
+		>
+		</div>
+-->
+	</div>
+	<div :class="'popup ' + $root.popuped" @click="if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}">
+		<component
+			ref="popup"
+			:is="$root.popupComponent"
+			:data="$root.popupData"
+			:currentPlace="$store.state.currentPlace"
+		>
+		</component>
 	</div>
 </template>
 
