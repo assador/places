@@ -12,6 +12,7 @@
 	<link rel="apple-touch-icon" href="/icon_apple_touch.png" />
 	<link href="/css/style.css" rel="stylesheet" type="text/css">
 	<link href="/css/layout.css" rel="stylesheet" type="text/css">
+	<link href="/css/grid.css" rel="stylesheet" type="text/css">
 
 	<script src="/vendor/scripts/vue.min.js"></script>
 	<script src="/vendor/scripts/vuex"></script>
