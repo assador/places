@@ -63,17 +63,6 @@
 				@click="$store.dispatch('clearMessage', true);"
 			>
 			</div>
-<!--
-			<a
-				id="imp"
-				href="javascript:void(0);"
-				:class="$store.state.saved ? 'invisible' : 'visible'"
-				title="Изменения не сохранены в базе данных"
-				@click="$store.dispatch('setMessage', 'Изменения не сохранены в базе данных');"
-			>
-				★
-			</a>
--->
 		</div>
 		<div
 			id="top-right"
@@ -252,12 +241,12 @@
 							</label>
 						</dd>
 						<dd v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0 && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
-							<div class="dd-images row_01">
+							<div class="dd-images">
 								<div
 									v-for="image in orderedImages"
 									:id="image.id"
 									:key="image.id"
-									:class="'place-image col-' + gridMode + (currentPlaceCommon ? '' : ' draggable')"
+									:class="'place-image' + (currentPlaceCommon ? '' : ' draggable')"
 									:draggable="currentPlaceCommon ? false : true"
 									@click="$root.showPopup({show: true, type: 'image', data: image}, $event);"
 									@dragstart="$root.handleDragStart"
@@ -391,23 +380,15 @@
 				/>
 			</span>
 		</div>
-<!--
-		<div
-			id="bottom-right"
-			class="app-cell"
-			:style="(sidebarSize.bottom < 60 || sidebarSize.right < 120 ? 'display: none;' : '')"
-		>
+		<div :class="'popup ' + $root.popuped" @click="if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}">
+			<component
+				ref="popup"
+				:is="$root.popupComponent"
+				:data="$root.popupData"
+				:currentPlace="$store.state.currentPlace"
+			>
+			</component>
 		</div>
--->
-	</div>
-	<div :class="'popup ' + $root.popuped" @click="if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}">
-		<component
-			ref="popup"
-			:is="$root.popupComponent"
-			:data="$root.popupData"
-			:currentPlace="$store.state.currentPlace"
-		>
-		</component>
 	</div>
 </template>
 
@@ -450,7 +431,6 @@ export default {
 			left: constants.sidebars.left,
 		},
 		sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
-		gridMode: 6,
 		folderRoot: {},
 	}},
 	mounted: function() {

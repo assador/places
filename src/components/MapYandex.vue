@@ -182,6 +182,14 @@ export default {
 				this.map.setCenter([this.centerLatitude, this.centerLongitude]);
 			}
 		},
+		fitMap: () => function() {
+			if(this.map !== null) {
+				document.getElementById("mapblock").style.right = "100%";
+				this.map.container.fitToViewport();
+				document.getElementById("mapblock").style.right = "12px";
+				this.map.container.fitToViewport();
+			}
+		},
 		appendPlace: () => function() {
 			if(!this.$store.state.user.testaccount) {
 				let data = new FormData();
@@ -285,6 +293,11 @@ export default {
 			}
 			this.centerPlacemarkShow = !this.centerPlacemarkShow;
 		},
+	},
+	mounted: function() {
+		new ResizeSensor(document.getElementById("basic-basic"), () => {
+			this.fitMap();
+		});
 	},
 }
 </script>
