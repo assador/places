@@ -155,29 +155,29 @@ body {
 .find-places-input {
 	margin-top: 12px;
 }
-.sbs-top, .sbs-right, .sbs-bottom, .sbs-left {
+#sbs-top, #sbs-right, #sbs-bottom, #sbs-left {
 	position: absolute;
 	z-index: 100;
 	transition: all 0.5s;
 }
-.sbs-top, .sbs-bottom {
+#sbs-top, #sbs-bottom {
 	height: 20px;
 	cursor: row-resize;
 }
-.sbs-right, .sbs-left {
+#sbs-right, #sbs-left {
 	width: 20px;
 	cursor: col-resize;
 }
-.sbs-top {
+#sbs-top {
 	top: -10px;
 }
-.sbs-right {
+#sbs-right {
 	right: -10px;
 }
-.sbs-bottom {
+#sbs-bottom {
 	bottom: -10px;
 }
-.sbs-left {
+#sbs-left {
 	left: -10px;
 }
 
@@ -249,8 +249,15 @@ body {
 			"basic-basic  basic-basic"
 			"bottom-left  bottom-basic"
 		;
+		grid-template-columns: 1fr 1fr;
+		grid-template-rows: auto auto 2fr 3fr auto;
+	}
+	.loading-grid {
 		grid-template-columns: 1fr 1fr !important;
 		grid-template-rows: auto auto 2fr 3fr auto !important;
+	}
+	#sbs-right {
+		display: none;
 	}
 	#mapblock {
 		top: 0; right: 0; bottom: 0; left: 0;
@@ -269,9 +276,6 @@ body {
 		display: flex;
 		align-items: flex-end;
 		padding-left: 20px;
-	}
-	.sbs-top, .sbs-right, .sbs-bottom, .sbs-left {
-		display: none;
 	}
 	#top-basic .brand > *:first-child + * {
 		display: none;

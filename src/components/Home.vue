@@ -2,8 +2,11 @@
 	<div
 		id="grid"
 		@mousemove="documentMouseOver($event);"
+		@touchmove="documentMouseOver($event);"
 		@mouseup="sidebarDragStop($event);"
-		:style="'grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;'"
+		@touchend="sidebarDragStop($event);"
+		class="loading-grid"
+		:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (this.sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px'  : ''))) +  ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
 	>
 		<div
 			id="top-left"
@@ -183,27 +186,31 @@
 			>
 			</mapyandex>
 			<div
-				class="sbs-top"
+				id="sbs-top"
 				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-				@mousedown="sidebarDragStart('top', $event);"
+				@mousedown="sidebarDragStart($event, 'top');"
+				@touchstart="sidebarDragStart($event, 'top');"
 			>
 			</div>
 			<div
-				class="sbs-right"
-				:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-				@mousedown="sidebarDragStart('right', $event);"
+				id="sbs-right"
+				:style="'top: -' + (sidebarSize.top + (compact ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+				@mousedown="sidebarDragStart($event, 'right');"
+				@touchstart="sidebarDragStart($event, 'right');"
 			>
 			</div>
 			<div
-				class="sbs-bottom"
+				id="sbs-bottom"
 				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-				@mousedown="sidebarDragStart('bottom', $event);"
+				@mousedown="sidebarDragStart($event, 'bottom');"
+				@touchstart="sidebarDragStart($event, 'bottom');"
 			>
 			</div>
 			<div
-				class="sbs-left"
-				:style="'top: -' + sidebarSize.top + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-				@mousedown="sidebarDragStart('left', $event);"
+				id="sbs-left"
+				:style="'top: -' + (sidebarSize.top + (compact > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+				@mousedown="sidebarDragStart($event, 'left');"
+				@touchstart="sidebarDragStart($event, 'left');"
 			>
 			</div>
 		</div>
@@ -431,6 +438,7 @@ export default {
 			left: constants.sidebars.left,
 		},
 		sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
+		compact: false,
 		folderRoot: {},
 	}},
 	mounted: function() {
@@ -461,6 +469,8 @@ export default {
 			document.addEventListener("dragover", this.$root.handleDragOver, false);
 			document.addEventListener("drop", this.$root.handleDrop, false);
 			document.addEventListener("keyup", this.keyup, false);
+			window.addEventListener("resize", this.windowResize, false);
+			this.windowResize();
 			this.placesFilled = true;
 		});
 		bus.$on("homeRefresh", () => {
@@ -616,11 +626,59 @@ export default {
 				}
 			}
 		},
-		sidebarDragStart: function(what, event) {
+		windowResize: function() {
+			if(window.innerWidth > constants.compactWidth) {
+				this.sidebarSize.top = constants.sidebars.top;
+				this.sidebarSize.right = constants.sidebars.right;
+				this.sidebarSize.bottom = constants.sidebars.bottom;
+				this.sidebarSize.left = constants.sidebars.left;
+				document.getElementById("sbs-left").style.marginLeft = 0;
+				document.getElementById("sbs-top").style.marginTop = 0;
+				document.getElementById("sbs-bottom").style.marginBottom = 0;
+				this.compact = false;
+			} else {
+				if(this.compact) {
+					this.sidebarSize.top = parseInt(window.getComputedStyle(
+						document.getElementById("top-left")
+					).height);
+				}
+				this.sidebarSize.right = parseInt(window.getComputedStyle(
+					document.getElementById("top-right")
+				).width);
+				this.sidebarSize.bottom = (this.compact
+					? parseInt(window.getComputedStyle(
+						document.getElementById("basic-basic")
+					).height)
+					: "1fr"
+				);
+				this.sidebarSize.left = parseInt(window.getComputedStyle(
+					document.getElementById("top-left")
+				).width);
+				document.getElementById("sbs-left").style.marginLeft =
+					this.sidebarSize.left + "px"
+				;
+				document.getElementById("sbs-top").style.marginTop =
+					-parseInt(window.getComputedStyle(
+						document.getElementById("basic-left")
+					).height) + "px"
+				;
+				document.getElementById("sbs-bottom").style.marginBottom =
+					this.sidebarSize.bottom + "px"
+				;
+				this.compact = true;
+			}
+			document.getElementById("grid").classList.remove("loading-grid");
+		},
+		sidebarDragStart: function(event, what) {
 			event.preventDefault();
 			this.sidebarDrag.what = what;
-			this.sidebarDrag.x = event.screenX;
-			this.sidebarDrag.y = event.screenY;
+			if(event.changedTouches) {
+				this.sidebarDrag.x = event.changedTouches[0].pageX;
+				this.sidebarDrag.y = event.changedTouches[0].pageY;
+			} else {
+				this.sidebarDrag.x = event.screenX;
+				this.sidebarDrag.y = event.screenY;
+			}
 			switch(this.sidebarDrag.what) {
 				case "top" :
 					this.sidebarDrag.h = this.sidebarSize.top;
@@ -640,16 +698,24 @@ export default {
 			if(this.sidebarDrag.what !== null) {
 				switch(this.sidebarDrag.what) {
 					case "top" :
-						this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y + event.screenY;
+						this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y +
+							(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
+						;
 						break;
 					case "bottom" :
-						this.sidebarSize.bottom = this.sidebarDrag.h + this.sidebarDrag.y - event.screenY;
+						this.sidebarSize.bottom = this.sidebarDrag.h + this.sidebarDrag.y -
+							(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
+						;
 						break;
 					case "left" :
-						this.sidebarSize.left = this.sidebarDrag.w - this.sidebarDrag.x + event.screenX;
+						this.sidebarSize.left = this.sidebarDrag.w - this.sidebarDrag.x +
+							(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
+						;
 						break;
 					case "right" :
-						this.sidebarSize.right = this.sidebarDrag.w + this.sidebarDrag.x - event.screenX;
+						this.sidebarSize.right = this.sidebarDrag.w + this.sidebarDrag.x -
+							(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
+						;
 						break;
 				}
 			}
@@ -657,6 +723,9 @@ export default {
 		sidebarDragStop: function(event) {
 			event.preventDefault();
 			this.sidebarDrag.what = null;
+			if(this.compact) {
+				this.windowResize();
+			}
 		},
 		// Search and select a place by name
 		selectPlaces: function(event) {

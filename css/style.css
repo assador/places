@@ -821,6 +821,7 @@ span.folder-button {
 	box-shadow: inset 0 -100px 20px -100px rgba(47, 20, 0, 0.2);
 }
 #bottom-basic {
+	text-align: right;
 	box-shadow: inset 0 100px 20px -100px rgba(47, 20, 0, 0.2);
 }
 #basic-left {
@@ -862,4 +863,13 @@ span.folder-button {
 }
 .account__form label input[type="radio"], .account__form label input[type="checkbox"], .folder-delete__form label input[type="radio"], .folder-delete__form label input[type="checkbox"], .place-delete__form label input[type="radio"], .place-delete__form label input[type="checkbox"] {
 	margin: 0.3em 0.5em 0 0;
+}
+
+@media screen and (max-width: 500px) {
+	#basic-left {
+		box-shadow: inset -100px -100px 20px -100px rgba(47, 20, 0, 0.6);
+	}
+	#basic-right {
+		box-shadow: inset 100px -100px 20px -100px rgba(47, 20, 0, 0.6);
+	}
 }

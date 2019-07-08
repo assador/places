@@ -54,6 +54,7 @@ export const constants = {
 		bottom : 54,
 		left   : 200,
 	},
+	compactWidth: 500,
 	rights: {
 		placescounts: {
 			publishers : -1,

@@ -186,7 +186,11 @@ export default {
 			if(this.map !== null) {
 				document.getElementById("mapblock").style.right = "100%";
 				this.map.container.fitToViewport();
-				document.getElementById("mapblock").style.right = "12px";
+				if(!this.$parent.compact) {
+					document.getElementById("mapblock").style.right = "12px";
+				} else {
+					document.getElementById("mapblock").style.right = "0";
+				}
 				this.map.container.fitToViewport();
 			}
 		},
