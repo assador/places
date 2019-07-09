@@ -7,8 +7,8 @@
 			title="Следующая"
 			@click="showImage(1, $event);"
 		/>
-		<a href="javascript:void(0);" class="prev" @click="showImage(-1, $event);">⏴</a>
-		<a href="javascript:void(0);" class="next" @click="showImage(1, $event);">⏵</a>
+		<a href="javascript:void(0);" class="prev" @click="showImage(-1, $event);">◀</a>
+		<a href="javascript:void(0);" class="next" @click="showImage(1, $event);">▶</a>
 		<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
 	</div>
 </template>

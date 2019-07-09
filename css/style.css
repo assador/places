@@ -572,16 +572,16 @@ table.table_wopadd th, table.table_wopadd td {
 .prev, .next, .close {
 	position: absolute;
 	line-height: 0;
-	font-size: 50px;
+	font-size: 30px;
 }
 .prev, .next {
 	top: 50%;
 }
 .prev {
-	left: 0;
+	left: 10px;
 }
 .next, .close {
-	right: 0;
+	right: 10px;
 }
 .close {
 	top: 0;
@@ -657,7 +657,8 @@ span.folder-button {
 	cursor: pointer;
 }
 .places-menu-folder_closed > .folder-button::before {
-	content: '\25ba';
+	content: '\25b6';
+	font-size: 93%;
 }
 .places-menu-folder_opened > .folder-button::before {
 	content: '\25bc';
