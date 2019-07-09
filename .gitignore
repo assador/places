@@ -8,3 +8,4 @@ uploads/
 !.gitkeep
 ./backend/config.php
 hoster_block.html
+robots.txt

@@ -721,7 +721,6 @@ export default {
 			}
 		},
 		sidebarDragStop: function(event) {
-			event.preventDefault();
 			this.sidebarDrag.what = null;
 			if(this.compact) {
 				this.windowResize();
