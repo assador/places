@@ -1,11 +1,10 @@
 .DS_Store
 node_modules/
-uploads/
+dist/uploads/
 *~
 *.geany
 *.log
 .gitignore
 !.gitkeep
-./backend/config.php
-hoster_block.html
-robots.txt
+dist/backend/config.php
+dist/hoster_block.html

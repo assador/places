@@ -17,7 +17,7 @@
 					id="actions-append"
 					class="actions-button"
 					title="Добавить место в центре карты"
-					@click="let newPlace = $refs.ym.appendPlace();"
+					@click="$refs.ym.appendPlace();"
 				>
 					+
 				</button>
@@ -55,7 +55,7 @@
 		>
 			<div>
 				<div class="brand">
-					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user.login"></span></h1>
+					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user.login"></a></h1>
 					<div>Сервис просмотра и редактирования библиотек геометок</div>
 				</div>
 			</div>
@@ -219,8 +219,8 @@
 			class="app-cell"
 		>
 			<div class="scrollable">
-				<dl class="place-detailed margin_bottom_0">
-					<template v-for="field in Object.keys($store.state.currentPlace)" :key="field">
+				<dt>
+					<dl v-for="field in Object.keys($store.state.currentPlace)" :key="field" class="place-detailed margin_bottom_0">
 						<dt v-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
 							{{ $store.state.placeFields[field] }}:
 						</dt>
@@ -294,34 +294,34 @@
 								{{ $store.state.currentPlace[field] }}
 							</textarea>
 						</dd>
-					</template>
-					<div v-if="Object.keys($store.state.currentPlace).length > 0 && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add margin_bottom">
-						<div class="images-add__div button">
-							<span>Добавить фотографии</span>
-							<input
-								id="images-add__input"
-								type="file"
-								name="files"
-								ref="inputUploadFiles"
-								multiple
-								@change="uploadFiles($event);"
-								class="images-add__input"
-							/>
-						</div>
+					</dl>
+				</dt>
+				<div v-if="Object.keys($store.state.currentPlace).length > 0 && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add margin_bottom">
+					<div class="images-add__div button">
+						<span>Добавить фотографии</span>
+						<input
+							id="images-add__input"
+							type="file"
+							name="files"
+							ref="inputUploadFiles"
+							multiple
+							@change="uploadFiles($event);"
+							class="images-add__input"
+						/>
 					</div>
-					<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
-					<div v-if="Object.keys($store.state.currentPlace).length > 0">
-						<label>
-							<input
-								type="checkbox"
-								id="checkbox-homeplace"
-								:checked="$store.state.currentPlace === $store.state.homePlace ? true : false"
-								@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
-							/>
-							Домашнее место
-						</label>
-					</div>
-				</dl>
+				</div>
+				<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
+				<div v-if="Object.keys($store.state.currentPlace).length > 0">
+					<label>
+						<input
+							type="checkbox"
+							id="checkbox-homeplace"
+							:checked="$store.state.currentPlace === $store.state.homePlace ? true : false"
+							@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
+						/>
+						Домашнее место
+					</label>
+				</div>
 			</div>
 		</div>
 		<div
@@ -387,7 +387,7 @@
 				/>
 			</span>
 		</div>
-		<div :class="'popup ' + $root.popuped" @click="if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}">
+		<div :class="'popup ' + $root.popuped" @click="() => {if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}">
 			<component
 				ref="popup"
 				:is="$root.popupComponent"
@@ -1121,7 +1121,7 @@ export default {
 							});
 							/**
 							 * Проверка накопленных кодов ошибок и замечаний
-							 * в процессе выполнения /backend/upload.php
+							 * в процессе выполнения /dist/backend/upload.php
 							 */
 							response.data[0].forEach((code) => {
 								switch(code) {

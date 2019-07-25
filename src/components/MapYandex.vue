@@ -195,67 +195,66 @@ export default {
 			}
 		},
 		appendPlace: () => function() {
-			if(!this.$store.state.user.testaccount) {
-				let data = new FormData();
-				data.append("userid", this.$store.state.user.id);
-				data.append("need", "visiting");
-				axios.post("/backend/get_groups.php", data)
-					.then(response => {
-						if(
-							constants.rights.placescounts[response.data] < 0
-							|| constants.rights.placescounts[response.data] > this.$store.state.places.length
-						) {
-							let newPlace = {
-								type: "place",
-								userid: localStorage.getItem("places-userid"),
-								name: "",
-								description: "",
-								latitude: this.map.getCenter()[0].toFixed(7),
-								longitude: this.map.getCenter()[1].toFixed(7),
-								id: generateRandomString(32),
-								folderid:
-									Object.keys(this.$store.state.currentPlace).length > 0
-										? this.$store.state.currentPlace.folderid
-										: "root"
-								,
-								srt:
-									this.$store.state.places.length > 0
-										? Math.ceil(Math.max(
-											...this.$store.state.places.map(
-												function(place) {
-													return place.srt;
-												}
-											)
-										)) + 1
-										: 1
-								,
-								common: false,
-								images: [],
-								added: true,
-								deleted: false,
-								updated: false,
-								show: true,
-							};
-							this.$store.commit("addPlace", newPlace);
-							this.appendPlacemark(this.mrks, newPlace, "private");
-							this.$parent.setCurrentPlace(
-								this.$store.state.places[
-									this.$store.state.places.length - 1
-								]
-							);
-							return newPlace;
-						} else {
-							this.$store.dispatch("setMessage",
-								'Превышено максимально допустимое для вашей ' +
-								'текущей роли количство мест<br />Дождитесь ' +
-								'перехода в следующую роль, или обратитесь ' +
-								'к администрации сервиса по адресу<br />' +
-								'<a href="mailto:' + constants.from +
-								'">' + constants.from + '</a>'
-							);
-						}
-					});
-			}
+			let data = new FormData();
+			data.append("userid", this.$store.state.user.id);
+			data.append("need", "visiting");
+			axios.post("/backend/get_groups.php", data)
+				.then(response => {
+					if(
+						constants.rights.placescounts[response.data] < 0
+						|| constants.rights.placescounts[response.data] > this.$store.state.places.length
+						|| this.$store.state.user.testaccount
+					) {
+						let newPlace = {
+							type: "place",
+							userid: localStorage.getItem("places-userid"),
+							name: "",
+							description: "",
+							latitude: this.map.getCenter()[0].toFixed(7),
+							longitude: this.map.getCenter()[1].toFixed(7),
+							id: generateRandomString(32),
+							folderid:
+								Object.keys(this.$store.state.currentPlace).length > 0
+									? this.$store.state.currentPlace.folderid
+									: "root"
+							,
+							srt:
+								this.$store.state.places.length > 0
+									? Math.ceil(Math.max(
+										...this.$store.state.places.map(
+											function(place) {
+												return place.srt;
+											}
+										)
+									)) + 1
+									: 1
+							,
+							common: false,
+							images: [],
+							added: true,
+							deleted: false,
+							updated: false,
+							show: true,
+						};
+						this.$store.commit("addPlace", newPlace);
+						this.appendPlacemark(this.mrks, newPlace, "private");
+						this.$parent.setCurrentPlace(
+							this.$store.state.places[
+								this.$store.state.places.length - 1
+							]
+						);
+						return newPlace;
+					} else {
+						this.$store.dispatch("setMessage",
+							'Превышено максимально допустимое для вашей ' +
+							'текущей роли количство мест<br />Дождитесь ' +
+							'перехода в следующую роль, или обратитесь ' +
+							'к администрации сервиса по адресу<br />' +
+							'<a href="mailto:' + constants.from +
+							'">' + constants.from + '</a>'
+						);
+					}
+				});
 		},
 		placemarksShowHide: () => function() {
 			for(let key in this.mrks) {

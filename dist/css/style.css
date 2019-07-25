@@ -873,4 +873,7 @@ span.folder-button {
 	#basic-right {
 		box-shadow: inset 100px -100px 20px -100px rgba(47, 20, 0, 0.6);
 	}
+	.folder-button {
+		margin-right: 0;
+	}
 }

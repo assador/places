@@ -29,13 +29,13 @@ export const constants = {
 		"image/svg+xml" : "svg",
 	},
 	dirs: {
-		common: "/var/www/places/",
+		common: "/var/www/places/dist/",
 		uploads: {
 			images: {
-				big: "/uploads/images/big/",
-				small: "/uploads/images/small/",
-				orphanedbig: "/uploads/images/big/orphaned/",
-				orphanedsmall: "/uploads/images/small/orphaned/",
+				big: "/var/www/places/dist/uploads/images/big/",
+				small: "/var/www/places/dist/uploads/images/small/",
+				orphanedbig: "/var/www/places/dist/uploads/images/big/orphaned/",
+				orphanedsmall: "/var/www/places/dist/uploads/images/small/orphaned/",
 			},
 		},
 	},

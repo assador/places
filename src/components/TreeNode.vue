@@ -7,7 +7,6 @@
 		<a
 			v-if="!$root.foldersEditMode || folderData.id === 'root'"
 			:id="'places-menu-folder-link-' + folderData.id"
-			:index="index"
 			:srt="folderData.srt"
 			href="javascript: void(0);"
 			class="folder-button"

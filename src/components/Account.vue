@@ -1,6 +1,6 @@
 <template>
 	<div class="account centered">
-		<div class="half-width">
+		<div class="narrower">
 			<div class="brand">
 				<h1 class="margin_bottom_0">Места</h1>
 				<p>Страница пользователя</p>

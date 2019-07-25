@@ -54,7 +54,6 @@
 						</tr>
 					</tbody>
 				</table>
-				<div v-html="accountDeleteMessage" style="text-align: center;"></div>
 			</form>
 			<a
 				href="javascript:void(0);"
@@ -100,6 +99,7 @@ export default {
 					if(
 						constants.rights.folderscounts[response.data] < 0
 						|| constants.rights.folderscounts[response.data] > foldersCount
+						|| this.$store.state.user.testaccount
 					) {
 						let newFolder = {
 							type: "folder",

@@ -113,7 +113,7 @@ export default {
 			bus.$emit("homeRefresh");
 			this.$root.showPopup({show: false}, event);
 		},
-		markNestedAsDeleted: (folder, result) => function(folder, result) {
+		markNestedAsDeleted: (folder) => function(folder) {
 			// Delete places in the currently deleted folder
 			this.$store.state.places.forEach((place) => {
 				if(place.folderid === folder.id) {
@@ -131,7 +131,7 @@ export default {
 						change: {deleted: true},
 						backup: false,
 					});
-					result = this.markNestedAsDeleted(folder.children[i], result);
+					this.markNestedAsDeleted(folder.children[i]);
 				}
 			}
 		},

@@ -13,13 +13,12 @@
 	<link rel="apple-touch-icon" href="/icon_apple_touch.png" />
 	<link href="/css/style.css" rel="stylesheet" type="text/css" />
 	<link href="/css/layout.css" rel="stylesheet" type="text/css" />
-
+<!--
 	<script src="/vendor/scripts/vue.min.js"></script>
 	<script src="/vendor/scripts/vuex"></script>
-<!--
-	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-	<script src="https://unpkg.com/vuex"></script>
 -->
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+	<script src="https://unpkg.com/vuex"></script>
 	<script src="https://api-maps.yandex.ru/2.1/?lang=ru-RU"></script>
 	<script src="/vendor/scripts/css-element-queries/src/ResizeSensor.js"></script>
 	<script src="/scripts/common.js"></script>
@@ -31,6 +30,7 @@
 </head>
 <body>
 	<div id="app"></div>
-	<script src="/dist/build.js"></script>
+	<script src="/scripts/build.js"></script>
 </body>
 </html>
+

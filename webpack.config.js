@@ -1,12 +1,14 @@
-var path = require('path');
-var webpack = require('webpack');
+const path = require('path');
+const webpack = require('webpack');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 module.exports = {
+	mode: process.env.NODE_ENV !== "production" ? "development" : "production",
 	entry: './src/main.js',
 	output: {
 		path: path.resolve(__dirname, './dist'),
-		publicPath: '/dist/',
-		filename: 'build.js',
+		publicPath: '/',
+		filename: './scripts/build.js',
 	},
 	module: {
 		rules: [
@@ -39,6 +41,9 @@ module.exports = {
 			},
 		],
 	},
+	plugins: [
+		new VueLoaderPlugin(),
+	],
 	resolve: {
 		alias: {
 			'vue$': 'vue/dist/vue.esm.js'
@@ -48,12 +53,27 @@ module.exports = {
 		],
 	},
 	devServer: {
-		historyApiFallback: true,
-		noInfo: true,
+		index: '',
+		host: 'places.localhost',
+		port: 8000,
+		proxy: {
+			'**': {
+				target: 'http://places.localhost',
+				changeOrigin: true,
+			},
+		},
+		clientLogLevel: "silent",
 		overlay: true,
+		noInfo: true,
+		progress: true,
+		inline: true,
+		hot: true,
 	},
 	performance: {
 		hints: false,
+	},
+	optimization: {
+		minimize: true,
 	},
 	devtool: '#eval-source-map',
 }
@@ -64,12 +84,6 @@ if(process.env.NODE_ENV === 'production') {
 		new webpack.DefinePlugin({
 			'process.env': {
 				NODE_ENV: '"production"',
-			},
-		}),
-		new webpack.optimize.UglifyJsPlugin({
-			sourceMap: true,
-			compress: {
-				warnings: false,
 			},
 		}),
 		new webpack.LoaderOptionsPlugin({

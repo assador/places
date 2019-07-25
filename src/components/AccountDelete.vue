@@ -1,6 +1,6 @@
 <template>
 	<div class="centered">
-		<div class="half-width">
+		<div class="narrower">
 			<div class="brand">
 				<h1 class="margin_bottom_0">Удаление аккаунта</h1>
 				<p>Укажите, что делать с вашим наследием на сервисе и подтвердите удаление аккаунта</p>

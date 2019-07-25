@@ -7,6 +7,8 @@ import {mapGetters} from "vuex"
 
 Vue.use(Vuex);
 
+//Vue.config.devtools = true;
+
 let app = new Vue({
 	data: {
 		popupComponent: "popuptext",

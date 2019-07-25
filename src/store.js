@@ -492,7 +492,7 @@ export const store = new Vuex.Store({
 		},
 		setMessage({state, dispatch}, message) {
 			let last = state.message.match(/<div>([^<>]+)<\/div>\s*$/);
-			if(last && last[1] === message) {
+			if(last !== null && last[1] === message) {
 				document.getElementById("message-main").lastElementChild.classList.add("highlight");
 				setTimeout(function() {
 					if(document.getElementById("message-main").lastElementChild) {

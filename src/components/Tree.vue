@@ -2,6 +2,7 @@
 	<ul>
 		<folders
 			:folder="folderData"
+			:parent="folderData"
 			class="places-menu-folder_root"
 		>
 		</folders>
@@ -12,7 +13,6 @@
 import folders from "./TreeNode.vue"
 import {bus} from "../shared/bus.js"
 export default {
-	name: "data",
 	components: {
 		folders,
 	},
