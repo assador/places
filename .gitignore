@@ -4,8 +4,7 @@ dist/uploads/
 *~
 *.geany
 *.log
-.gitignore
 !.gitkeep
-dist/index.php
+dist/.htaccess
+dist/robots.txt
 dist/backend/config.php
-dist/hoster_block.html
