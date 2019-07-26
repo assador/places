@@ -6,5 +6,6 @@ dist/uploads/
 *.log
 .gitignore
 !.gitkeep
+dist/index.php
 dist/backend/config.php
 dist/hoster_block.html
