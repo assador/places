@@ -65,7 +65,6 @@ module.exports = {
 		overlay: true,
 		clientLogLevel: "silent",
 		noInfo: true,
-		progress: true,
 		inline: true,
 		hot: true,
 	},

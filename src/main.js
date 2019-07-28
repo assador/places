@@ -26,6 +26,7 @@ let app = new Vue({
 		},
 		showPopup: (opts, event) => function(opts, event) {
 			event.stopPropagation();
+			this.$store.commit("setIdleTime", 0);
 			switch(opts.type) {
 				case "text" :
 					this.popupData = opts.data;
@@ -52,6 +53,7 @@ let app = new Vue({
 	},
 	methods: {
 		handleDragStart: function(event) {
+			this.$store.commit("setIdleTime", 0);
 			event.dataTransfer.setData("text/plain", null);
 			this.draggingElement = event.target;
 		},

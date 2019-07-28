@@ -29,7 +29,7 @@
 				placeholder="Название"
 				class="folder-button__name fieldwidth_100"
 				@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
-				onclick="event.stopPropagation();"
+				onclick="event.stopPropagation(); $store.commit('setIdleTime', 0);"
 			/>
 			<a
 				class="folder-button__delete"
@@ -44,7 +44,7 @@
 				placeholder="Описание"
 				class="folder-button__description fieldwidth_100"
 				@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
-				onclick="event.stopPropagation();"
+				onclick="event.stopPropagation(); $store.commit('setIdleTime', 0);"
 			></textarea>
 		</span>
 		<ul v-if="folderData.children && folderData.children.length" class="margin_bottom_0">

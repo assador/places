@@ -274,7 +274,7 @@
 											class="dd-images__delete button"
 											draggable="false"
 											v-if="!currentPlaceCommon"
-											@click="deleteFiles(Array.from($store.state.currentPlace.images), [image], $event);"
+											@click="event.stopPropagation(); $store.commit('setIdleTime', 0); deleteFiles(Array.from($store.state.currentPlace.images), [image], $event);"
 										>
 											×
 										</div>
@@ -507,6 +507,7 @@ export default {
 		bus.$on("toDBCompletely", () => {
 			this.toDBCompletely();
 		});
+		this.$store.commit("setIdleTime", 0);
 		if(this.$store.state.user.testaccount) {
 			setTimeout(() => {
 				this.$store.dispatch("setMessage",
@@ -766,7 +767,7 @@ export default {
 		},
 	},
 	computed: {
-		...mapGetters(["getCurrentPlace", "getMessage", "getImagesCount"]),
+		...mapGetters(["getCurrentPlace", "getMessage"]),
 		blur: () => function() {
 			let el = this.$el.querySelector(":focus"); if(el) {el.blur();}
 		},
@@ -964,7 +965,7 @@ export default {
 							"Content-type", "application/x-www-form-urlencoded"
 						);
 						placesRequest.send(
-							"id=" + localStorage.getItem("places-userid") +
+							"id=" + sessionStorage.getItem("places-userid") +
 							"&todo=" + (typeof(todo) !== "undefined" ? todo : "places") +
 							"&data=" + (typeof(data) !== "undefined" ? data : JSON.stringify(this.$store.state.places))
 						);
@@ -1001,7 +1002,7 @@ export default {
 						"Content-type", "application/x-www-form-urlencoded"
 					);
 					homeRequest.send(
-						"id=" + localStorage.getItem("places-userid") +
+						"id=" + sessionStorage.getItem("places-userid") +
 						"&data=" + place.id
 					);
 				});
@@ -1038,7 +1039,7 @@ export default {
 						plainFolders
 					);
 					placesRequest.send(
-						"id=" + localStorage.getItem("places-userid") +
+						"id=" + sessionStorage.getItem("places-userid") +
 						"&data=" + (JSON.stringify({
 							"places": this.$store.state.places,
 							"folders": plainFolders,
@@ -1160,9 +1161,6 @@ export default {
 		},
 		deleteFiles: (inarray, files, event) => function(inarray, files, event) {
 			return new Promise((resolve, reject) => {
-				if(event) {
-					event.stopPropagation();
-				}
 				let data = new FormData();
 				for(let i = 0; i < files.length; i++) {
 					data.append("file_" + i, files[i].file);

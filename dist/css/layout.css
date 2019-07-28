@@ -74,6 +74,7 @@ body {
 }
 #top-basic {
 	grid-area: top-basic;
+	overflow: visible;
 }
 #top-right {
 	grid-area: top-right;

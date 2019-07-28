@@ -6,7 +6,7 @@
 			</div>
 			<form
 				class="folder-new__form margin_bottom_0"
-				onclick="event.stopPropagation();"
+				onclick="event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				@submit.prevent="appendFolder(folderName, folderDescription);"
 			>
 				<table class="table_form">
@@ -103,7 +103,7 @@ export default {
 					) {
 						let newFolder = {
 							type: "folder",
-							userid: localStorage.getItem("places-userid"),
+							userid: sessionStorage.getItem("places-userid"),
 							name: folderName,
 							description: folderDescription,
 							id: generateRandomString(32),

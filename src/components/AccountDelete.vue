@@ -5,7 +5,7 @@
 				<h1 class="margin_bottom_0">Удаление аккаунта</h1>
 				<p>Укажите, что делать с вашим наследием на сервисе и подтвердите удаление аккаунта</p>
 			</div>
-			<form @submit.prevent="accountDeletionSubmit" @click="$event.stopPropagation();">
+			<form @submit.prevent="accountDeletionSubmit" @click="$event.stopPropagation(); $store.commit('setIdleTime', 0);">
 				<div class="account__form margin_bottom">
 					<fieldset>
 						<h2>Места</h2>
@@ -54,7 +54,7 @@ import {bus} from "../shared/bus.js"
 import {accountDeletionRoutine} from "../shared/account.js"
 export default {
 	data: function() {return {
-		userId: localStorage.getItem("places-userid"),
+		userId: sessionStorage.getItem("places-userid"),
 		leavePlaces: "none",
 		leaveImages: "none",
 		accountDeleteMessage: "",

@@ -38,6 +38,7 @@ export const constants = {
 			},
 		},
 	},
+	sessionlifetime: 3600,
 	backupscount: 10,
 	commonplacesonpagecount: 5,
 	uploadsize: 12582912,

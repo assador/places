@@ -99,7 +99,7 @@ export default {
 				if(!document.querySelector(".value_wrong")) {
 					const {accountLogin, accountNewPassword, accountNewPasswordRepeat, accountName, accountEmail, accountPhone} = this;
 					if(accountNewPassword === accountNewPasswordRepeat) {
-						const accountId = localStorage.getItem("places-userid");
+						const accountId = sessionStorage.getItem("places-userid");
 						accountSaveRoutine({accountId, accountLogin, accountNewPassword, accountName, accountEmail, accountPhone})
 							.then(response => {
 								if(response.data === 0) {

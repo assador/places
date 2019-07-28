@@ -149,8 +149,8 @@ export default {
 				.then(response => {
 					this.loginMessage = response.message;
 					if(typeof response.data === "object") {
-						localStorage.setItem("places-session", response.data.session);
-						localStorage.setItem("places-userid", response.data.id);
+						sessionStorage.setItem("places-session", response.data.session);
+						sessionStorage.setItem("places-userid", response.data.id);
 						bus.$emit("loggedChange", "home");
 					}
 				});

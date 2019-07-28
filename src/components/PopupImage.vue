@@ -22,6 +22,7 @@ export default {
 	}},
 	computed: {
 		showImage: (step, event) => function(step, event) {
+			this.$store.commit("setIdleTime", 0);
 			event.stopPropagation();
 			let currentIndex = this.currentPlace.images.indexOf(this.data);
 			let ImagesLength = this.currentPlace.images.length;

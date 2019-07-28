@@ -19,6 +19,7 @@
 </template>
 
 <script>
+import {constants} from "./shared/constants.js"
 import {bus} from "./shared/bus.js"
 import auth from "./components/Auth.vue"
 import home from "./components/Home.vue"
@@ -33,16 +34,6 @@ export default {
 		component: "auth",
 	}},
 	mounted: function() {
-		const session = localStorage.getItem("places-session");
-		if(session) {
-			this.component = "home";
-			this.$store.dispatch("setUser")
-				.then(response => {
-					this.$store.dispatch("setPlaces", false);
-				});
-		} else {
-			this.component = "auth";
-		}
 		bus.$on("loggedChange", (component) => {
 			this.component = component;
 			if(component == "home") {
@@ -52,6 +43,24 @@ export default {
 					});
 			}
 		});
+		window.idleTimeInterval = window.setInterval(() => {
+			if(
+				sessionStorage.getItem("places-session")
+				&& this.$store.state.idleTime < constants.sessionlifetime
+			) {
+				this.$store.commit("setIdleTime", this.$store.state.idleTime + 1);
+			} else {
+				sessionStorage.clear();
+				this.component = "auth";
+			}
+		}, 1000);
+		document.addEventListener("mousedown", () => {
+			this.$store.commit("setIdleTime", 0);
+		}, false);
+		document.addEventListener("keyup", () => {
+			this.$store.commit("setIdleTime", 0);
+		}, false);
+		this.component = "auth";
 	},
 }
 </script>

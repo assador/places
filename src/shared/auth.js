@@ -5,16 +5,14 @@ export const loginRoutine = user => new Promise((resolve, reject) => {
 		.then(response => {
 			switch(response.data) {
 				case 0 :
-					localStorage.removeItem("places-session");
-					localStorage.removeItem("places-userid");
+					sessionStorage.clear();
 					response.message = "Неверные логин или пароль";
 					break;
 			}
 			resolve(response);
 		})
 		.catch(error => {
-			localStorage.removeItem("places-session");
-			localStorage.removeItem("places-userid");
+			sessionStorage.clear();
 			reject(error);
 		})
 });

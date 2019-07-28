@@ -207,7 +207,7 @@ export default {
 					) {
 						let newPlace = {
 							type: "place",
-							userid: localStorage.getItem("places-userid"),
+							userid: sessionStorage.getItem("places-userid"),
 							name: "",
 							description: "",
 							latitude: this.map.getCenter()[0].toFixed(7),

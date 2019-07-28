@@ -68,6 +68,7 @@ export const store = new Vuex.Store({
 	plugins: [tracking],
 	state: {
 		saved: true,
+		idleTime: 0,
 		stateBackups: [],
 		stateBackupsIndex: -1,
 		inUndoRedo: false,
@@ -102,6 +103,9 @@ export const store = new Vuex.Store({
 	mutations: {
 		setSaved(state, saved) {
 			Vue.set(state, "saved", saved);
+		},
+		setIdleTime(state, time) {
+			Vue.set(state, "idleTime", time);
 		},
 		foldersToTree(state) {
 			Vue.set(state, "folders", plainToTree(state.folders));
@@ -349,17 +353,16 @@ export const store = new Vuex.Store({
 		},
 		unload({state, commit}) {
 			commit("reset");
-			localStorage.removeItem("places-session");
-			localStorage.removeItem("places-userid");
+			sessionStorage.clear();
 		},
 		adaptImporting({state, commit}) {
 			return new Promise((resolve, reject) => {
 				for(let place of state.places) {
-					place.userid = localStorage.getItem("places-userid");
+					place.userid = sessionStorage.getItem("places-userid");
 					place.images = [];
 				}
 				for(let folder of state.folders) {
-					folder.userid = localStorage.getItem("places-userid");
+					folder.userid = sessionStorage.getItem("places-userid");
 				}
 				commit("modifyPlaces", state.places);
 				commit("modifyFolders", state.folders);
@@ -369,7 +372,7 @@ export const store = new Vuex.Store({
 		setUser({state, commit}) {
 			return new Promise((resolve, reject) => {
 				let userRequest = new XMLHttpRequest();
-				userRequest.open("GET", "/backend/get_account.php?id=" + localStorage.getItem("places-userid"), true);
+				userRequest.open("GET", "/backend/get_account.php?id=" + sessionStorage.getItem("places-userid"), true);
 				userRequest.onreadystatechange = function(event) {
 					if(userRequest.readyState == 4) {
 						if(userRequest.status == 200) {
@@ -389,7 +392,7 @@ export const store = new Vuex.Store({
 		setPlaces({state, commit, dispatch}, json) {
 			if(!json) {
 				let placesRequest = new XMLHttpRequest();
-				placesRequest.open("GET", "/backend/get_places.php?id=" + localStorage.getItem("places-userid"), true);
+				placesRequest.open("GET", "/backend/get_places.php?id=" + sessionStorage.getItem("places-userid"), true);
 				placesRequest.onreadystatechange = function(event) {
 					if(placesRequest.readyState == 4) {
 						if(placesRequest.status == 200) {
