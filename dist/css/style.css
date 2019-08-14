@@ -63,7 +63,7 @@ table.borderv > * > tr > td, table.borderv > * > tr > th {
 	border-top: none; border-right: 1px solid rgba(200, 177, 160, 0.2); border-bottom: none; border-left: 1px solid rgba(200, 177, 160, 0.2);
 }
 img.border_1 {
-	border: none; outline: 1px solid rgba(255, 217, 164, 0.35); outline-offset: -1px;
+	border: none; outline: 1px solid rgba(200, 177, 160, 0.1); outline-offset: -1px;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 .back_0,
@@ -71,7 +71,8 @@ table.table_decor > * > tr:hover {
 	background: none !important;
 }
 .back_1,
-.block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
+.block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre,
+#sbs-top:hover, #sbs-bottom:hover, #sbs-right:hover, #sbs-left:hover {
 	background-color: rgba(144, 98, 62, 0.2);
 }
 tr:hover {
@@ -85,12 +86,6 @@ body, body.iframe {
 }
 .value_wrong:focus {
 	background-color: rgb(100, 44, 36) !important;
-}
-.sbs-top:hover, .sbs-bottom:hover {
-	background-image: linear-gradient(to right, rgba(144, 98, 62, 0), rgba(144, 98, 62, 0.13) 10%, rgba(144, 98, 62, 0.13) 90%, rgba(144, 98, 62, 0));
-}
-.sbs-right:hover, .sbs-left:hover {
-	background-image: linear-gradient(to bottom, rgba(144, 98, 62, 0), rgba(144, 98, 62, 0.13) 10%, rgba(144, 98, 62, 0.13) 90%, rgba(144, 98, 62, 0));
 }
 .un_color,
 .un_imp {
@@ -111,12 +106,8 @@ ul > li::before, .pseudo_button::before {
 .button-pressed {
 	color: rgb(153, 58, 0) !important;
 }
-*[class*="sbs-"], *[class*="sbs-"]:focus {
-	color: rgb(124, 80, 45);
-}
 a,
-.place-button,
-*[class*="sbs-"]:hover {
+.place-button {
 	color: rgb(234, 177, 126);
 }
 a:hover,
@@ -809,13 +800,13 @@ span.folder-button {
 #bottom-basic {
 	border-top: 1px solid rgba(47, 20, 0, 0.24);
 }
-#top, #bottom {
+#top-left, #top-right, #bottom-right, #bottom-left {
+	background-color: rgb(96, 61, 35);
+}
+#top-basic, #bottom-basic {
 	background-color: rgb(64, 36, 18);
 }
-#top-left, #basic-left, #bottom-left {
-	background-color: rgba(144, 98, 62, 0.4);
-}
-#top-right, #basic-right, #bottom-right {
+#basic-left, #basic-right {
 	background-color: rgba(144, 98, 62, 0.4);
 }
 #top-basic {
