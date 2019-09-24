@@ -274,7 +274,7 @@
 											class="dd-images__delete button"
 											draggable="false"
 											v-if="!currentPlaceCommon"
-											@click="event.stopPropagation(); $store.commit('setIdleTime', 0); deleteFiles(Array.from($store.state.currentPlace.images), [image], $event);"
+											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); deleteFiles(Array.from($store.state.currentPlace.images), [image], $event);"
 										>
 											×
 										</div>
@@ -387,7 +387,7 @@
 				/>
 			</span>
 		</div>
-		<div :class="'popup ' + $root.popuped" @click="() => {if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}">
+		<div :class="'popup ' + $root.popuped" @click="($event) => {if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}">
 			<component
 				ref="popup"
 				:is="$root.popupComponent"
