@@ -26,9 +26,7 @@ export default {
 			deep: true,
 			immediate: true,
 			handler: function(data) {
-				this.dataprop = {
-					...data,
-				};
+				this.dataprop = data;
 			},
 		},
 	},
