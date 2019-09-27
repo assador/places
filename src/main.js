@@ -50,6 +50,30 @@ let app = new Vue({
 			}
 			this.popuped = opts["show"] ? "appear" : "disappear";
 		},
+		showAbout: (event) => function(event) {
+			let aboutRequest = new XMLHttpRequest();
+			aboutRequest.open("GET", "/about.htm", true);
+			aboutRequest.onreadystatechange = (event) => {
+				if(aboutRequest.readyState == 4) {
+					if(aboutRequest.status == 200) {
+						this.showPopup({
+							show: true,
+							type: "text",
+							data:
+								JSON.stringify(aboutRequest.responseText)
+									.replace(/^\s*\"/, "")
+									.replace(/\"\s*$/, "")
+									.replace(/(?:\\(?=")|\\(?=\/)|\\t|\\n)/gi, "")
+							,
+						}, event);
+					} else {
+						this.$store.dispatch("setMessage", "Не могу найти справку");
+					}
+				}
+			};
+			aboutRequest.setRequestHeader("Content-type", "application/json");
+			aboutRequest.send();
+		},
 	},
 	methods: {
 		handleDragStart: function(event) {

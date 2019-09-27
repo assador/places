@@ -7,7 +7,7 @@
 			</div>
 			<form
 				class="folder-delete__form margin_bottom_0"
-				onclick="event.stopPropagation(); $store.commit('setIdleTime', 0);"
+				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				@submit.prevent="deleteFolder"
 			>
 				<fieldset class="margin_bottom">

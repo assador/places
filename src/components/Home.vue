@@ -106,7 +106,7 @@
 				<button
 					id="actions-import"
 					class="actions-button"
-					title="Импортировать геометки из JSON-файла"
+					title="Импортировать геометки"
 					onclick="document.getElementById('inputImportFromFile').click();"
 				>
 					↲
@@ -114,7 +114,7 @@
 				<button
 					id="actions-export"
 					class="actions-button"
-					title="Экспортировать свои геометки в JSON-файл"
+					title="Экспортировать свои геометки"
 					@click="exportToFile();"
 				>
 					↱
@@ -123,7 +123,7 @@
 					id="actions-about"
 					class="actions-button"
 					title="О «Местах», справка"
-					@click="showAbout($event);"
+					@click="$root.showAbout($event);"
 				>
 					?
 				</button>
@@ -576,7 +576,7 @@ export default {
 						this.toDBCompletely();
 						break;
 					case "help" :
-						this.showAbout();
+						this.$root.showAbout();
 						break;
 					case "revert" :
 						document.location.reload(true);
@@ -890,30 +890,6 @@ export default {
 				document.getElementById("commonPlacemarksShowHideButton").classList.add("button-pressed");
 				document.getElementById("commonPlacesShowHideButton").classList.add("button-pressed");
 			}
-		},
-		showAbout: (event) => function(event) {
-			let aboutRequest = new XMLHttpRequest();
-			aboutRequest.open("GET", "/about.htm", true);
-			aboutRequest.onreadystatechange = (event) => {
-				if(aboutRequest.readyState == 4) {
-					if(aboutRequest.status == 200) {
-						this.$root.showPopup({
-							show: true,
-							type: "text",
-							data:
-								JSON.stringify(aboutRequest.responseText)
-									.replace(/^\s*\"/, "")
-									.replace(/\"\s*$/, "")
-									.replace(/(?:\\(?=")|\\(?=\/)|\\t|\\n)/gi, "")
-							,
-						}, event);
-					} else {
-						this.$store.dispatch("setMessage", "Не могу найти справку");
-					}
-				}
-			};
-			aboutRequest.setRequestHeader("Content-type", "application/json");
-			aboutRequest.send();
 		},
 		importFromFile: () => function() {
 			let reader = new FileReader();

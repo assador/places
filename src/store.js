@@ -270,25 +270,51 @@ export const store = new Vuex.Store({
 			}
 		},
 		addImporting(state, payload) {
-			treeNewIds(
-				{id: "root", children: payload.folders},
-				"children",
-				"parent",
-				payload.places,
-				"folderid"
-			);
-			Vue.set(state, "folders", state.folders.concat(payload.folders));
-			for(let i = 0; i < payload.places.length; i++) {
-				if(
-					typeof(state.places.find(p =>
-						p.latitude == payload.places[i].latitude
-						&& p.longitude == payload.places[i].longitude
-					)) !== "undefined"
-				) {
-					payload.places.splice(i, 1);
+			let found, plainStateFolders = [], plainPayloadFolders = [];
+			treeToPlain({"children": state.folders}, "children", plainStateFolders);
+			treeToPlain({"children": payload.folders}, "children", plainPayloadFolders);
+			Vue.set(state, "folders", []);
+			for(let payloadFolder of plainPayloadFolders) {
+				payloadFolder.userid = sessionStorage.getItem("places-userid");
+				found = plainStateFolders.find(f =>
+					f.id == payloadFolder.id
+				);
+				if(typeof(found) !== "undefined") {
+					payloadFolder.updated = true;
+					for(let key in payloadFolder) {
+						if(
+							key != "id"
+							&& key != "added"
+							&& key != "deleted"
+						) {
+							found[key] = payloadFolder[key];
+						}
+					}
+				} else {
+					payloadFolder.added = true;
+					plainStateFolders.push(payloadFolder);
 				}
 			}
-			Vue.set(state, "places", payload.places);
+			for(let stateFolder of plainStateFolders) {
+				stateFolder.builded = false;
+			}
+			Vue.set(state, "folders", plainToTree(plainStateFolders));
+			for(let payloadPlace of payload.places) {
+				payloadPlace.userid = sessionStorage.getItem("places-userid");
+				found = state.places.find(p =>
+					p.id == payloadPlace.id
+				);
+				if(typeof(found) !== "undefined") {
+					found.updated = true;
+					for(let key in payloadPlace) {
+						Vue.set(found, key, payloadPlace[key]);
+					}
+				} else {
+					payloadPlace.images = [];
+					payloadPlace.added = true;
+					Vue.set(state, "places", state.places.concat([payloadPlace]));
+				}
+			}
 		},
 		deleteFolder(state, payload) {
 			payload.parent.children.splice(
@@ -355,20 +381,6 @@ export const store = new Vuex.Store({
 			commit("reset");
 			sessionStorage.clear();
 		},
-		adaptImporting({state, commit}) {
-			return new Promise((resolve, reject) => {
-				for(let place of state.places) {
-					place.userid = sessionStorage.getItem("places-userid");
-					place.images = [];
-				}
-				for(let folder of state.folders) {
-					folder.userid = sessionStorage.getItem("places-userid");
-				}
-				commit("modifyPlaces", state.places);
-				commit("modifyFolders", state.folders);
-				resolve(state);
-			});
-		},
 		setUser({state, commit}) {
 			return new Promise((resolve, reject) => {
 				let userRequest = new XMLHttpRequest();
@@ -412,15 +424,7 @@ export const store = new Vuex.Store({
 			} else {
 				let parsedJSON = JSON.parse(json);
 				commit("addImporting", {places: parsedJSON.places, folders: parsedJSON.folders});
-				dispatch("adaptImporting")
-					.then(response => {
-						commit("placesReady", {places: state.places, commonPlaces: state.commonPlaces, folders: state.folders, what: "added"});
-						commit("setHomePlace", state.user.homeplace);
-						bus.$emit("placesFilled", "importing");
-					})
-					.catch(error => {
-						commit("placesReady", {places: [], commonPlaces: [], folders: []});
-					});
+				bus.$emit("placesFilled", "importing");
 			}
 		},
 		moveFolder({state, commit}, payload) {

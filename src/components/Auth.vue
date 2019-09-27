@@ -5,7 +5,7 @@
 			<p>Сервис просмотра и редактирования библиотек геометок</p>
 		</div>
 		<div class="auth_forms">
-			<div class="auth__login">
+			<div class="auth__login margin_bottom">
 				<form class="margin_bottom" @submit.prevent="authLoginSubmit">
 					<h2>Авторизация</h2>
 					<div class="auth__login__fields margin_bottom">
@@ -112,6 +112,23 @@
 				<div v-html="regMessage"></div>
 			</form>
 		</div>
+		<div>
+			<button
+				title="О «Местах», справка"
+				@click="$root.showAbout($event);"
+			>
+				Что это такое? Описание, мануал
+			</button>
+		</div>
+		<div :class="'popup ' + $root.popuped" @click="($event) => {$root.showPopup({show: false}, $event);}">
+			<component
+				ref="popup"
+				:is="$root.popupComponent"
+				:data="$root.popupData"
+				:currentPlace="$store.state.currentPlace"
+			>
+			</component>
+		</div>
 	</div>
 </template>
 
@@ -120,7 +137,11 @@ import {bus} from "../shared/bus.js"
 import {loginRoutine} from "../shared/auth.js"
 import {regRoutine} from "../shared/reg.js"
 import {forgotRoutine} from "../shared/forgot.js"
+import popuptext from "./PopupText.vue"
 export default {
+	components: {
+		popuptext,
+	},
 	data: function() {return {
 		firstValidatable: false,
 		loginMessage: "",
