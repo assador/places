@@ -21,6 +21,17 @@ export default {
 		constants: constants,
 		dataprop: this.data,
 	}},
+	watch: {
+		data: {
+			deep: true,
+			immediate: true,
+			handler: function(data) {
+				this.dataprop = {
+					...data,
+				};
+			},
+		},
+	},
 	computed: {
 		showImage: (step, event) => function(step, event) {
 			this.$store.commit("setIdleTime", 0);
