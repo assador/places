@@ -75,6 +75,7 @@ export default {
 		accountChangeMessage: "",
 	}},
 	mounted: function() {
+		sessionStorage.setItem("places-app-child-component", "account");
 		document.addEventListener("keyup", this.keyup, false);
 	},
 	beforeDestroy: function() {

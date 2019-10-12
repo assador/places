@@ -2,6 +2,7 @@ import Vue from "vue"
 import Vuex from "vuex"
 import App from "./App.vue"
 import {store} from "./store.js"
+import {constants} from "./shared/constants.js"
 import {bus} from "./shared/bus.js"
 import {mapGetters} from "vuex"
 
@@ -11,6 +12,7 @@ Vue.use(Vuex);
 
 let app = new Vue({
 	data: {
+		refreshing: false,
 		popupComponent: "popuptext",
 		popuped: "disappear",
 		popupData: {},
@@ -48,9 +50,12 @@ let app = new Vue({
 					this.popupComponent = "popupdelete";
 					break;
 			}
+			if(!opts["show"]) {
+				this.popupComponent = "popuptext";
+			}
 			this.popuped = opts["show"] ? "appear" : "disappear";
 		},
-		showAbout: (event) => function(event) {
+		showAbout: event => function(event) {
 			let aboutRequest = new XMLHttpRequest();
 			aboutRequest.open("GET", "/about.htm", true);
 			aboutRequest.onreadystatechange = (event) => {

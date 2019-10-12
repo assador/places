@@ -111,10 +111,10 @@ a,
 	color: rgb(234, 177, 126);
 }
 a:hover,
-.place-button.active, .place-button:hover {
+.place-button.active, .place-button:hover, .place-button.activated-by-function {
 	color: rgb(255, 217, 164);
 }
-.place-button.active, .place-button:hover {
+.place-button.active, .place-button:hover, .place-button.activated-by-function {
 	background-color: rgba(218, 166, 126, 0.2);
 	border-color: rgba(175, 126, 89, 0.2) rgba(232, 179, 139, 0.2) rgba(247, 193, 152, 0.2) rgba(189, 139, 101, 0.2);
 	box-shadow: 0 0 8px rgba(255, 243, 201, 0.2);
@@ -735,7 +735,7 @@ span.folder-button {
 .place-detailed dd {
 	padding-left: 0;
 }
-.place-detailed textarea, .place-detailed input[type="text"] {
+.place-detailed textarea, .place-detailed input[type="text"], .place-detailed input[type="datetime-local"] {
 	display: inline-block;
 	margin: 3px 0 8px 0;
 }

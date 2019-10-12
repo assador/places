@@ -52,24 +52,28 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 	");
 	$appendplace = $conn->prepare("
 		INSERT INTO `places` (
-			`id`          ,
-			`folderid`    ,
-			`name`        ,
-			`description` ,
-			`latitude`    ,
-			`longitude`   ,
-			`srt`         ,
-			`common`      ,
+			`id`                 ,
+			`folderid`           ,
+			`name`               ,
+			`description`        ,
+			`latitude`           ,
+			`longitude`          ,
+			`altitudecapability` ,
+			`time`               ,
+			`srt`                ,
+			`common`             ,
 			`userid`
 		) VALUES (
-			:id           ,
-			:folderid     ,
-			:name         ,
-			:description  ,
-			:latitude     ,
-			:longitude    ,
-			:srt          ,
-			:common       ,
+			:id                 ,
+			:folderid           ,
+			:name               ,
+			:description        ,
+			:latitude           ,
+			:longitude          ,
+			:altitudecapability ,
+			:time               ,
+			:srt                ,
+			:common             ,
 			:userid
 		)
 	");
@@ -152,15 +156,17 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		try {$appendfolder->execute();} catch(Exception $e) {}
 	}
 	foreach($data["places"] as $row) {
-		$appendplace->bindParam( ":id"          , $row[ "id"          ]);
-		$appendplace->bindParam( ":folderid"    , $row[ "folderid"    ]);
-		$appendplace->bindParam( ":name"        , $row[ "name"        ]);
-		$appendplace->bindParam( ":description" , $row[ "description" ]);
-		$appendplace->bindParam( ":latitude"    , $row[ "latitude"    ]);
-		$appendplace->bindParam( ":longitude"   , $row[ "longitude"   ]);
-		$appendplace->bindParam( ":srt"         , $row[ "srt"         ]);
-		$appendplace->bindParam( ":common"      , $row[ "common"      ]);
-		$appendplace->bindParam( ":userid"      , $_POST["id"]);
+		$appendplace->bindParam( ":id"                 , $row[ "id"                 ]);
+		$appendplace->bindParam( ":folderid"           , $row[ "folderid"           ]);
+		$appendplace->bindParam( ":name"               , $row[ "name"               ]);
+		$appendplace->bindParam( ":description"        , $row[ "description"        ]);
+		$appendplace->bindParam( ":latitude"           , $row[ "latitude"           ]);
+		$appendplace->bindParam( ":longitude"          , $row[ "longitude"          ]);
+		$appendplace->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
+		$appendplace->bindParam( ":time"               , $row[ "time"               ]);
+		$appendplace->bindParam( ":srt"                , $row[ "srt"                ]);
+		$appendplace->bindParam( ":common"             , $row[ "common"             ]);
+		$appendplace->bindParam( ":userid"             , $_POST["id"]);
 		try {$appendplace->execute();} catch(Exception $e) {}
 	}
 	foreach($images as $row) {

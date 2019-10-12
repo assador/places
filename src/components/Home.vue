@@ -12,6 +12,7 @@
 			id="top-left"
 			class="app-cell fieldwidth_100"
 		>
+			// Control buttons for the places management
 			<div class="control-buttons">
 				<button
 					id="actions-append"
@@ -25,7 +26,7 @@
 					id="actions-delete"
 					class="actions-button"
 					title="Удалить текущее место"
-					:disabled="!($store.state.currentPlace.userid === $store.state.user.id)"
+					:disabled="!($store.state.currentPlace.userid == $store.state.user.id)"
 					@click="deletePlace($store.state.currentPlace);"
 				>
 					×
@@ -47,6 +48,7 @@
 					ПР
 				</button>
 			</div>
+			// Input field to search the places by name
 			<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100 fontsize_n" @keyup="selectPlaces" />
 		</div>
 		<div
@@ -77,6 +79,7 @@
 					ref="inputImportFromFile"
 					name="jsonFile"
 					type="file"
+					accept=".json, .gpx"
 					@change="importFromFile();"
 				/>
 				<button
@@ -141,9 +144,9 @@
 			id="basic-left"
 			class="app-cell"
 		>
-			<div id="basic-left__places" class="scrollable">
+			<div id="basic-left__places">
 				<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu">
-					<tree :data="folderRoot"></tree>
+					<tree id="placesMenu" :data="folderRoot"></tree>
 				</div>
 				<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">Другие места</h2>
@@ -181,6 +184,8 @@
 				:images="$store.state.currentPlace.images"
 				:latitude="$store.state.currentPlace.latitude"
 				:longitude="$store.state.currentPlace.longitude"
+				:altitudecapability="$store.state.currentPlace.altitudecapability"
+				:time="$store.state.currentPlace.time"
 				:centerLatitude="$store.state.center.latitude"
 				:centerLongitude="$store.state.center.longitude"
 			>
@@ -218,19 +223,29 @@
 			id="basic-right"
 			class="app-cell"
 		>
-			<div class="scrollable">
+			<div>
 				<dt>
 					<dl v-for="field in Object.keys($store.state.currentPlace)" :key="field" class="place-detailed margin_bottom_0">
 						<dt v-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
 							{{ $store.state.placeFields[field] }}:
 						</dt>
-						<dd v-if="field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude')">
+						<dd v-if="field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude' || field == 'altitudecapability')">
 							<input
 								type="text"
 								:id="'detailed-' + field"
 								:disabled="currentPlaceCommon"
 								v-model.number.trim="$store.state.currentPlace[field]"
 								@focus="validatable();"
+								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+								class="fieldwidth_100"
+							/>
+						</dd>
+						<dd v-else-if="field == 'time'">
+							<input
+								type="datetime-local"
+								:id="'detailed-' + field"
+								:disabled="currentPlaceCommon"
+								v-model="$store.state.currentPlace[field]"
 								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
 								class="fieldwidth_100"
 							/>
@@ -247,7 +262,7 @@
 								Место видно другим
 							</label>
 						</dd>
-						<dd v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0 && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'" id="place-images">
+						<dd v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0" id="place-images">
 							<div class="dd-images">
 								<div
 									v-for="image in orderedImages"
@@ -316,7 +331,7 @@
 						<input
 							type="checkbox"
 							id="checkbox-homeplace"
-							:checked="$store.state.currentPlace === $store.state.homePlace ? true : false"
+							v-model="$store.state.currentPlace.id == $store.state.homePlace.id"
 							@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
 						/>
 						Домашнее место
@@ -442,7 +457,7 @@ export default {
 		folderRoot: {},
 	}},
 	mounted: function() {
-		bus.$on("placesFilled", (happens) => {
+		bus.$on("placesFilled", happens => {
 			this.folderRoot = {
 				id: "root",
 				name: "Мои места",
@@ -507,6 +522,7 @@ export default {
 		bus.$on("toDBCompletely", () => {
 			this.toDBCompletely();
 		});
+		sessionStorage.setItem("places-app-child-component", "home");
 		this.$store.commit("setIdleTime", 0);
 		if(this.$store.state.user.testaccount) {
 			setTimeout(() => {
@@ -517,12 +533,19 @@ export default {
 				);
 			}, 3000);
 		}
+		if(this.$store.state.ready) {
+			bus.$emit("placesFilled");
+		}
 	},
 	beforeDestroy: function() {
 		document.removeEventListener("dragover", this.$root.handleDragOver, false);
 		document.removeEventListener("drop", this.$root.handleDrop, false);
 		document.removeEventListener("keyup", this.keyup, false);
 		bus.$off("placesFilled");
+		bus.$off("homeRefresh");
+		bus.$off("setCurrentPlace");
+		bus.$off("toDB");
+		bus.$off("toDBCompletely");
 	},
 	methods: {
 		validatable: function() {
@@ -544,7 +567,7 @@ export default {
 						let newPlace = this.$refs.ym.appendPlace();
 						break;
 					case "delete" :
-						if(this.$store.state.currentPlace.userid === this.$store.state.user.id) {
+						if(this.$store.state.currentPlace.userid == this.$store.state.user.id) {
 							this.deletePlace(this.$store.state.currentPlace);
 						}
 						break;
@@ -615,12 +638,12 @@ export default {
 						}
 						break;
 					case "left" :
-						if(this.$root.popupComponent == "popupimage") {
+						if(this.$root.popupComponent === "popupimage") {
 							this.$refs.popup.showImage(-1, event);
 						}
 						break;
 					case "right" :
-						if(this.$root.popupComponent == "popupimage") {
+						if(this.$root.popupComponent === "popupimage") {
 							this.$refs.popup.showImage(1, event);
 						}
 						break;
@@ -752,7 +775,7 @@ export default {
 				};
 				this.$nextTick(function() {
 					if(
-						place.userid === this.$store.state.user.id
+						place.userid == this.$store.state.user.id
 						&& !place.name
 						&& document.getElementById("detailed-name")
 					) {
@@ -892,14 +915,21 @@ export default {
 			}
 		},
 		importFromFile: () => function() {
+			let type = this.$refs.inputImportFromFile.files[0].type;
 			let reader = new FileReader();
 			reader.onload = (event) => {
-				this.$nextTick(function() {
-					this.$store.dispatch("setPlaces", reader.result);
+				this.$nextTick(() => {
+					this.$store.dispatch("setPlaces", {text: event.target.result, type: type});
 					document.getElementById("inputImportFromFile").value = "";
 				});
 			};
-			reader.readAsText(this.$refs.inputImportFromFile.files[0]);
+			if(type == "application/json" || type == "application/gpx+xml") {
+				reader.readAsText(this.$refs.inputImportFromFile.files[0]);
+			} else {
+				this.$store.dispatch("setMessage",
+					"Недопустимый тип импортируемого файла. Допускаются только JSON и GPX."
+				);
+			}
 		},
 		exportToFile: () => function() {
 			const data = JSON.stringify({
@@ -1096,7 +1126,7 @@ export default {
 								place: this.$store.state.currentPlace,
 								change: {images: images, updated: true},
 							});
-							/**
+							/*
 							 * Проверка накопленных кодов ошибок и замечаний
 							 * в процессе выполнения /dist/backend/upload.php
 							 */

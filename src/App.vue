@@ -36,21 +36,52 @@ export default {
 	mounted: function() {
 		bus.$on("loggedChange", (component) => {
 			this.component = component;
-			if(component == "home") {
+			if(component != "auth") {
 				this.$store.dispatch("setUser")
 					.then(response => {
 						this.$store.dispatch("setPlaces", false);
+						sessionStorage.setItem(
+							"places-store-state",
+							JSON.stringify(this.$store.state)
+						);
 					});
 			}
 		});
+		/*
+		 * If the App is mounted during the session (for example, when the page
+		 * is reloaded), the store state is restored from sessionStorage.
+		 * If the App is mounted outside the session, the store state,
+		 * in contrast, is written to sessionStorage for future use.
+		 */
+		if(sessionStorage.getItem("places-session")) {
+			this.$store.commit("setRefreshing", true);
+			this.$store.replaceState(
+				JSON.parse(sessionStorage.getItem("places-store-state"))
+			);
+			// Restore objects as links to each other
+			this.$store.commit("setHomePlace", this.$store.state.user.homeplace);
+			for(let i = 0; i < this.$store.state.places.length; i++) {
+				if(this.$store.state.places[i].id == this.$store.state.currentPlace.id) {
+					bus.$emit("setCurrentPlace", {place: this.$store.state.places[i]});
+				}
+			}
+			this.$store.commit("setRefreshing", false);
+		} else {
+			sessionStorage.setItem(
+				"places-store-state",
+				JSON.stringify(this.$store.state)
+			);
+		}
+		this.component = sessionStorage.getItem("places-app-child-component");
 		window.idleTimeInterval = window.setInterval(() => {
-			if(
-				sessionStorage.getItem("places-session")
-				&& this.$store.state.idleTime < constants.sessionlifetime
-			) {
+			if(this.$store.state.idleTime < constants.sessionlifetime) {
 				this.$store.commit("setIdleTime", this.$store.state.idleTime + 1);
 			} else {
-				sessionStorage.clear();
+				clearInterval(window.idleTimeInterval);
+				sessionStorage.removeItem("places-app-child-component");
+				sessionStorage.removeItem("places-userid");
+				sessionStorage.removeItem("places-session");
+				this.$store.commit("setIdleTime", 0);
 				this.component = "auth";
 			}
 		}, 1000);
@@ -60,7 +91,6 @@ export default {
 		document.addEventListener("keyup", () => {
 			this.$store.commit("setIdleTime", 0);
 		}, false);
-		this.component = "auth";
 	},
 }
 </script>

@@ -5,6 +5,7 @@
 <script>
 import axios from "axios"
 import {constants} from "../shared/constants.js"
+import {bus} from "../shared/bus.js"
 export default {
 	props: ["id", "name", "description", "images", "latitude", "longitude", "centerLatitude", "centerLongitude"],
 	data: function() {return {
@@ -39,6 +40,11 @@ export default {
 			iconColor: "rgb(127, 143, 0)",
 		},
 	}},
+	mounted: function() {
+		new ResizeSensor(document.getElementById("basic-basic"), () => {
+			this.fitMap();
+		});
+	},
 	watch: {
 		latitude: function() {
 			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
@@ -108,14 +114,28 @@ export default {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				});
 				if(this.$store.state.places.length > 0) {
-					if(Object.keys(this.$store.state.homePlace).length > 0) {
-						this.$parent.setCurrentPlace(this.$store.state.homePlace);
+					if(this.$store.state.currentPlaceIndex > -1) {
+						bus.$emit("setCurrentPlace", {
+							place: this.$store.state.currentPlace,
+							common: this.$parent.currentPlaceCommon,
+						});
+						// No matter how idiotic it looks
+					} else if(Object.keys(this.$store.state.homePlace)) {
+						bus.$emit("setCurrentPlace", {
+							place: this.$store.state.homePlace,
+						});
 					} else {
-						let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);
+						let firstPlaceInRoot = this.$store.state.places.find(
+							p => p.folderid === null
+						);
 						if(!firstPlaceInRoot) {
-							this.$parent.setCurrentPlace(this.$store.state.places[0]);
+							bus.$emit("setCurrentPlace", {
+								place: this.$store.state.places[0],
+							});
 						} else {
-							this.$parent.setCurrentPlace(firstPlaceInRoot);
+							bus.$emit("setCurrentPlace", {
+								place: firstPlaceInRoot,
+							});
 						}
 					}
 					this.$store.commit("backupState");
@@ -172,7 +192,7 @@ export default {
 			this.map.geoObjects.add(marks[place.id]);
 		},
 		updatePlacemark: (marks) => function(marks) {
-			if(typeof(marks[this.id]) !== "undefined") {
+			if(marks[this.id]) {
 				marks[this.id].geometry.setCoordinates([this.latitude, this.longitude]);
 				marks[this.id].properties.set({hintContent: this.name, balloonContent: this.description});
 			}
@@ -212,6 +232,8 @@ export default {
 							description: "",
 							latitude: this.map.getCenter()[0].toFixed(7),
 							longitude: this.map.getCenter()[1].toFixed(7),
+							altitudecapability: null,
+							time: new Date().toISOString().slice(0, -5),
 							id: generateRandomString(32),
 							folderid:
 								Object.keys(this.$store.state.currentPlace).length > 0
@@ -296,11 +318,6 @@ export default {
 			}
 			this.centerPlacemarkShow = !this.centerPlacemarkShow;
 		},
-	},
-	mounted: function() {
-		new ResizeSensor(document.getElementById("basic-basic"), () => {
-			this.fitMap();
-		});
 	},
 }
 </script>

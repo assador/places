@@ -84,38 +84,44 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id AND `userid` = :userid");
 		$append = $conn->prepare("
 			INSERT INTO `places` (
-				`id`          ,
-				`folderid`    ,
-				`name`        ,
-				`description` ,
-				`latitude`    ,
-				`longitude`   ,
-				`srt`         ,
-				`common`      ,
+				`id`                 ,
+				`folderid`           ,
+				`name`               ,
+				`description`        ,
+				`latitude`           ,
+				`longitude`          ,
+				`altitudecapability` ,
+				`time`               ,
+				`srt`                ,
+				`common`             ,
 				`userid`
 			) VALUES (
-				:id           ,
-				:folderid     ,
-				:name         ,
-				:description  ,
-				:latitude     ,
-				:longitude    ,
-				:srt          ,
-				:common       ,
+				:id                 ,
+				:folderid           ,
+				:name               ,
+				:description        ,
+				:latitude           ,
+				:longitude          ,
+				:altitudecapability ,
+				:time               ,
+				:srt                ,
+				:common             ,
 				:userid
 			)
 		");
 		$update = $conn->prepare("
 			UPDATE `places` SET
-				`id`          = :id          ,
-				`folderid`    = :folderid    ,
-				`name`        = :name        ,
-				`description` = :description ,
-				`latitude`    = :latitude    ,
-				`longitude`   = :longitude   ,
-				`srt`         = :srt         ,
-				`common`      = :common      ,
-				`userid`      = :userid
+				`id`                 = :id                 ,
+				`folderid`           = :folderid           ,
+				`name`               = :name               ,
+				`description`        = :description        ,
+				`latitude`           = :latitude           ,
+				`longitude`          = :longitude          ,
+				`altitudecapability` = :altitudecapability ,
+				`time`               = :time               ,
+				`srt`                = :srt                ,
+				`common`             = :common             ,
+				`userid`             = :userid
 			WHERE `id` = :id
 		");
 		$updateimage = $conn->prepare("
@@ -131,36 +137,40 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		");
 		foreach($data as $row) {
 			if($row["deleted"] == true) {
-				$delete->bindParam( ":id"          , $row[ "id"          ]);
-				$delete->bindParam( ":userid"      , $_POST["id"]);
+				$delete->bindParam( ":id"     , $row["id"]);
+				$delete->bindParam( ":userid" , $_POST["id"]);
 				try {$delete->execute();} catch(Exception $e) {}
 			} elseif($row["added"] == true) {
 				if(
 					$placescount["count"] < $rights["placescounts"][$visiting["id"]]
 					|| $rights["placescounts"][$visiting["id"]] < 0
 				) {
-					$append->bindParam( ":id"          , $row[ "id"          ]);
-					$append->bindParam( ":folderid"    , $row[ "folderid"    ]);
-					$append->bindParam( ":name"        , $row[ "name"        ]);
-					$append->bindParam( ":description" , $row[ "description" ]);
-					$append->bindParam( ":latitude"    , $row[ "latitude"    ]);
-					$append->bindParam( ":longitude"   , $row[ "longitude"   ]);
-					$append->bindParam( ":srt"         , $row[ "srt"         ]);
-					$append->bindParam( ":common"      , $row[ "common"      ]);
-					$append->bindParam( ":userid"      , $_POST["id"]);
+					$append->bindParam( ":id"                 , $row[ "id"                 ]);
+					$append->bindParam( ":folderid"           , $row[ "folderid"           ]);
+					$append->bindParam( ":name"               , $row[ "name"               ]);
+					$append->bindParam( ":description"        , $row[ "description"        ]);
+					$append->bindParam( ":latitude"           , $row[ "latitude"           ]);
+					$append->bindParam( ":longitude"          , $row[ "longitude"          ]);
+					$append->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
+					$append->bindParam( ":time"               , $row[ "time"               ]);
+					$append->bindParam( ":srt"                , $row[ "srt"                ]);
+					$append->bindParam( ":common"             , $row[ "common"             ]);
+					$append->bindParam( ":userid"             , $_POST["id"]);
 					try {$append->execute();} catch(Exception $e) {}
 				}
 			}
 			if($row["updated"] == true) {
-				$update->bindParam( ":id"          , $row[ "id"          ]);
-				$update->bindParam( ":folderid"    , $row[ "folderid"    ]);
-				$update->bindParam( ":name"        , $row[ "name"        ]);
-				$update->bindParam( ":description" , $row[ "description" ]);
-				$update->bindParam( ":latitude"    , $row[ "latitude"    ]);
-				$update->bindParam( ":longitude"   , $row[ "longitude"   ]);
-				$update->bindParam( ":srt"         , $row[ "srt"         ]);
-				$update->bindParam( ":common"      , $row[ "common"      ]);
-				$update->bindParam( ":userid"      , $_POST["id"]);
+				$update->bindParam( ":id"                 , $row[ "id"                 ]);
+				$update->bindParam( ":folderid"           , $row[ "folderid"           ]);
+				$update->bindParam( ":name"               , $row[ "name"               ]);
+				$update->bindParam( ":description"        , $row[ "description"        ]);
+				$update->bindParam( ":latitude"           , $row[ "latitude"           ]);
+				$update->bindParam( ":longitude"          , $row[ "longitude"          ]);
+				$update->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
+				$update->bindParam( ":time"               , $row[ "time"               ]);
+				$update->bindParam( ":srt"                , $row[ "srt"                ]);
+				$update->bindParam( ":common"             , $row[ "common"             ]);
+				$update->bindParam( ":userid"             , $_POST["id"]);
 				try {$update->execute();} catch(Exception $e) {}
 			}
 			foreach($row["images"] as $image) {

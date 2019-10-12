@@ -15,6 +15,13 @@ const tracking = store => {
 		"swapValues",
 	];
 	store.subscribe((mutation, state) => {
+		if(
+			mutation.type != "setIdleTime"
+			&& mutation.type != "setRefreshing"
+			&& !state.refreshing
+		) {
+			sessionStorage.setItem("places-store-state", JSON.stringify(state));
+		}
 		if(trackingMutations.includes(mutation.type) && mutation.payload) {
 			store.commit("setSaved", false);
 			if(
@@ -67,6 +74,7 @@ const tracking = store => {
 export const store = new Vuex.Store({
 	plugins: [tracking],
 	state: {
+		refreshing: false,
 		saved: true,
 		idleTime: 0,
 		stateBackups: [],
@@ -86,13 +94,15 @@ export const store = new Vuex.Store({
 		ready: false,
 		message: "",
 		placeFields: {
-			name        : "Название",
-			description : "Описание",
-			latitude    : "Широта",
-			longitude   : "Долгота",
-			srt         : "Сортировка",
-			common      : "Приватность",
-			images      : "Фотографии",
+			name               : "Название",
+			description        : "Описание",
+			latitude           : "Широта",
+			longitude          : "Долгота",
+			altitudecapability : "Высота над уровнем моря (м)",
+			time               : "Время создания геометки (UTC)",
+			srt                : "Сортировка",
+			common             : "Приватность",
+			images             : "Фотографии",
 		},
 		lengths: {
 			name        : 500,
@@ -101,6 +111,9 @@ export const store = new Vuex.Store({
 		},
 	},
 	mutations: {
+		setRefreshing(state, refreshing) {
+			Vue.set(state, "refreshing", refreshing);
+		},
 		setSaved(state, saved) {
 			Vue.set(state, "saved", saved);
 		},
@@ -145,14 +158,40 @@ export const store = new Vuex.Store({
 			Vue.set(state, "inUndoRedo", false);
 		},
 		reset(state) {
+			Vue.set(state, "saved", true);
+			Vue.set(state, "idleTime", 0);
+			Vue.set(state, "stateBackups", []);
+			Vue.set(state, "stateBackupsIndex", -1);
+			Vue.set(state, "inUndoRedo", false);
+			Vue.set(state, "user", {});
+			Vue.set(state, "currentPlace", {});
+			Vue.set(state, "homePlace", {});
+			Vue.set(state, "currentPlaceIndex", -1);
 			Vue.set(state, "places", []);
 			Vue.set(state, "folders", []);
+			Vue.set(state, "commonPlaces", []);
 			Vue.set(state, "center", {
 				latitude: constants.map.initial.latitude,
 				longitude: constants.map.initial.longitude,
 			});
 			Vue.set(state, "ready", false);
 			Vue.set(state, "message", "");
+			Vue.set(state, "placeFields", {
+				name               : "Название",
+				description        : "Описание",
+				latitude           : "Широта",
+				longitude          : "Долгота",
+				altitudecapability : "Высота над уровнем моря (м)",
+				time               : "Время создания геометки (UTC)",
+				srt                : "Сортировка",
+				common             : "Приватность",
+				images             : "Фотографии",
+			});
+			Vue.set(state, "lengths", {
+				name        : 500,
+				description : 5000,
+				url         : 2048,
+			});
 		},
 		savedToDB(state, object) {
 			Vue.set(object, "added", false);
@@ -164,7 +203,12 @@ export const store = new Vuex.Store({
 		},
 		setCurrentPlace(state, place) {
 			Vue.set(state, "currentPlace", place);
-			Vue.set(state, "currentPlaceIndex", state.places.indexOf(state.currentPlace));
+			for(let i = 0; i < state.places.length; i++) {
+				if(state.places[i].id == place.id) {
+					Vue.set(state, "currentPlaceIndex", i);
+					break;
+				}
+			}
 		},
 		setHomePlace(state, id) {
 			let place = state.places.find(p => p.id === id);
@@ -221,11 +265,13 @@ export const store = new Vuex.Store({
 			Vue.set(state, "places", state.places.concat(place));
 			Vue.set(state, "currentPlaceIndex", state.places.length - 1);
 		},
+		// Mark the place as to be deleted
 		removePlace(state, payload) {
 			Vue.set(payload.place, "added", false);
 			Vue.set(payload.place, "deleted", true);
 			Vue.set(payload.place, "updated", false);
 		},
+		// Delete from the store the place marked as to be deleted
 		deletePlace(state, place) {
 			state.places.splice(state.places.indexOf(place), 1);
 			Vue.set(state, "places", state.places);
@@ -276,10 +322,14 @@ export const store = new Vuex.Store({
 			Vue.set(state, "folders", []);
 			for(let payloadFolder of plainPayloadFolders) {
 				payloadFolder.userid = sessionStorage.getItem("places-userid");
+				/*
+				 * Checking if such a folder already exists in the tree.
+				 * If exists, updating; if not, addinng.
+				 */
 				found = plainStateFolders.find(f =>
 					f.id == payloadFolder.id
 				);
-				if(typeof(found) !== "undefined") {
+				if(found) {
 					payloadFolder.updated = true;
 					for(let key in payloadFolder) {
 						if(
@@ -301,10 +351,15 @@ export const store = new Vuex.Store({
 			Vue.set(state, "folders", plainToTree(plainStateFolders));
 			for(let payloadPlace of payload.places) {
 				payloadPlace.userid = sessionStorage.getItem("places-userid");
+				/*
+				 * Checking if such a place already exists.
+				 * If exists, updating; if not, addinng.
+				 */
 				found = state.places.find(p =>
 					p.id == payloadPlace.id
+					|| p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
 				);
-				if(typeof(found) !== "undefined") {
+				if(found) {
 					found.updated = true;
 					for(let key in payloadPlace) {
 						Vue.set(found, key, payloadPlace[key]);
@@ -379,7 +434,8 @@ export const store = new Vuex.Store({
 		},
 		unload({state, commit}) {
 			commit("reset");
-			sessionStorage.clear();
+			sessionStorage.removeItem("places-userid");
+			sessionStorage.removeItem("places-session");
 		},
 		setUser({state, commit}) {
 			return new Promise((resolve, reject) => {
@@ -401,8 +457,9 @@ export const store = new Vuex.Store({
 				userRequest.send(null);
 			});
 		},
-		setPlaces({state, commit, dispatch}, json) {
-			if(!json) {
+		setPlaces({state, commit, dispatch}, payload) {
+			// If reading from database, not importing
+			if(!payload) {
 				let placesRequest = new XMLHttpRequest();
 				placesRequest.open("GET", "/backend/get_places.php?id=" + sessionStorage.getItem("places-userid"), true);
 				placesRequest.onreadystatechange = function(event) {
@@ -421,10 +478,160 @@ export const store = new Vuex.Store({
 					}
 				};
 				placesRequest.send(null);
+			/*
+			 * If importing from file.
+			 * A payload parameter is present and is an object:
+			 * {text: <file’s content as a text>, type: <file’s MIME-type>}
+			 */
 			} else {
-				let parsedJSON = JSON.parse(json);
-				commit("addImporting", {places: parsedJSON.places, folders: parsedJSON.folders});
-				bus.$emit("placesFilled", "importing");
+				let parsed;
+				switch(payload.type) {
+					case "application/json" :
+						try {
+							parsed = JSON.parse(payload.text);
+							break;
+						} catch(e) {
+							dispatch("setMessage",
+								"Ошибка при разборе импортируемого файла."
+							);
+							return false;
+						}
+					case "application/gpx+xml" :
+						parsed = {places: [], folders: []};
+						for(let i of state.folders) {
+							if(i.id === "imported") {
+								parsed.folders[0] = i;
+								break;
+							}
+						}
+						let dom = null, importedPlaceFolder = {};
+						// Parsing XML text to a DOM tree
+						if(window.DOMParser) {
+							try {
+								dom = (new DOMParser()).parseFromString(
+									payload.text, "text/xml"
+								);
+							} catch(e) {
+								dispatch("setMessage",
+									"Ошибка при разборе импортируемого файла."
+								);
+								return false;
+							}
+						} else if(window.ActiveXObject) {
+							try {
+								dom = new ActiveXObject('Microsoft.XMLDOM');
+								dom.async = false;
+								if(!dom.loadXML(payload.text)) {
+									dispatch("setMessage",
+										dom.parseError.reason + dom.parseError.srcText
+									);
+								}
+							} catch(e) {
+								dispatch("setMessage",
+									"Ошибка при разборе импортируемого файла."
+								);
+								return false;
+							}
+						} else {
+							dispatch("setMessage",
+								"Ошибка при разборе импортируемого файла."
+							);
+							return false;
+						}
+						let description = "", time = "";
+						for(let wpt of dom.getElementsByTagName("wpt")) {
+							// Parsing a time node in a place node
+							if(wpt.getElementsByTagName("time").length > 0) {
+								time = new Date(
+									wpt.getElementsByTagName("time")[0].textContent.trim()
+								);
+								time = isNaN(time) ? "" : time.toISOString().slice(0, -5);
+							}
+							/*
+							 * Updating the tree branch of folders for imported places
+							 * and get an ID of a folder for the importing place
+							 */
+							importedPlaceFolder = formFolderForImported(
+								time,
+								parsed.folders[0]
+							);
+							parsed.folders[0] = importedPlaceFolder.imported;
+							// Parsing a description node in a place node
+							description = "";
+							if(wpt.getElementsByTagName("desc").length > 0) {
+								for(let desc of wpt.getElementsByTagName("desc")[0].childNodes) {
+									try {
+										switch(desc.nodeType) {
+											case 1 : case 3 :
+												description += desc.textContent.trim()
+													+ (desc.nextSibling ? "\n" : "");
+												break;
+											case 4 :
+												let reStr =
+													"desc_(?:user|test)" +
+													"\\s*\\:\\s*start\\s*--\\s*>\\s*" +
+													"(.*?)" +
+													"\\s*<\\s*\!\\s*--\\s*" +
+													"desc_(?:user|test)" +
+													"\\s*\\:\\s*end"
+												;
+												let descs = desc.textContent.match(
+													new RegExp(reStr, "gi")
+												);
+												for(let i = 0; i < descs.length; i++) {
+													description += descs[i].replace(
+														new RegExp(reStr, "i"), "$1"
+													) + (desc.nextSibling ? "\n" : "");
+												}
+												break;
+										}
+									} catch(e) {
+									}
+								}
+							}
+							// Forming an importing place as an object and pushing it in a structure
+							parsed.places.push({
+								id: generateRandomString(32),
+								folderid: importedPlaceFolder.folderid,
+								name: wpt.getElementsByTagName("name").length > 0
+									? wpt.getElementsByTagName("name")[0].textContent.trim()
+									: "",
+								description: description,
+								latitude: parseFloat(wpt.getAttribute("lat")),
+								longitude: parseFloat(wpt.getAttribute("lon")),
+								altitudecapability: wpt.getElementsByTagName("ele") > 0
+									? wpt.getElementsByTagName("ele")[0].textContent.trim()
+									: "",
+								time: time,
+								srt: (parsed.places.length > 0 ? parsed.places.length + 1 : 1),
+								common: 0,
+								userid: sessionStorage.getItem("places-userid"),
+								images: [],
+								type: "place",
+								added: true,
+								deleted: false,
+								updated: false,
+								show: true,
+							});
+						}
+						break;
+					default :
+						dispatch("setMessage",
+							"Недопустимый тип импортируемого файла." +
+							"Допускаются только JSON и GPX."
+						);
+						return false;
+				}
+				try {
+					commit("addImporting", {places: parsed.places, folders: parsed.folders});
+					bus.$emit("placesFilled", "importing");
+				} catch(e) {
+					dispatch("setMessage",
+						"Ошибка при попытке импорта."
+					);
+					return false;
+				}
+				return true;
 			}
 		},
 		moveFolder({state, commit}, payload) {
@@ -500,12 +707,12 @@ export const store = new Vuex.Store({
 		setMessage({state, dispatch}, message) {
 			let last = state.message.match(/<div>([^<>]+)<\/div>\s*$/);
 			if(last !== null && last[1] === message) {
-				document.getElementById("message-main").lastElementChild.classList.add("highlight");
-				setTimeout(function() {
-					if(document.getElementById("message-main").lastElementChild) {
-						document.getElementById("message-main").lastElementChild.classList.remove("highlight");
-					}
-				}, 500);
+				if(document.getElementById("message-main").lastElementChild) {
+					document.getElementById("message-main").lastElementChild.classList.add("highlight");
+					setTimeout(function() {
+							document.getElementById("message-main").lastElementChild.classList.remove("highlight");
+					}, 500);
+				}
 			} else {
 				Vue.set(state, "message", state.message += "<div>" + message + "</div>");
 			}

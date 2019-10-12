@@ -120,9 +120,10 @@
 				Что это такое? Описание, мануал
 			</button>
 		</div>
-		<div :class="'popup ' + $root.popuped" @click="($event) => {$root.showPopup({show: false}, $event);}">
+		<div :class="'popup ' + $root.popuped" @click="$event => {$root.showPopup({show: false}, $event);}">
 			<component
 				ref="popup"
+				name="popup"
 				:is="$root.popupComponent"
 				:data="$root.popupData"
 				:currentPlace="$store.state.currentPlace"
@@ -157,6 +158,11 @@ export default {
 		regPhone: "",
 		forgotEmail: "",
 	}},
+	mounted: function() {
+		if(!sessionStorage.getItem("places-session")) {
+			sessionStorage.setItem("places-app-child-component", "auth");
+		}
+	},
 	methods: {
 		validatable: function() {
 			if(!this.firstValidatable) {

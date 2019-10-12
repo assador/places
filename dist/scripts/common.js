@@ -180,6 +180,123 @@ function plainToTree(plain) {
 	}
 	return tree;
 }
+/**
+ * Creation of a folder for the imported places
+ * in the folder tree branch for imported places.
+ * Returns a string with ID of the created folder.
+ * formFolderForImported(
+ *     <time string YYYY-MM-DDTHH:MM:SS>,
+ *     [<object of a root folder for imported places>]
+ * )
+ */
+function formFolderForImported(time, imported) {
+	if(!imported || !imported.id) {
+		imported = {
+			type: "folder",
+			builded: false,
+			opened: false,
+			added: true,
+			deleted: false,
+			updated: false,
+			show: true,
+			id: "imported",
+			parent: null,
+			name: "Импортированное",
+			description: "Импортированные места",
+			srt: 99999,
+			children: [],
+		};
+	}
+	if(!time) {
+		return {imported: imported, folderid: "imported"};
+	} else {
+		let date = {
+			y: time.slice(0, 4),
+			m: time.slice(5, 7),
+			d: time.slice(8, 10),
+		};
+		let folders = {};
+		for(let y of imported.children) {
+			if(y.name === date.y) {
+				folders.y = y;
+				break;
+			}
+		}
+		if(!folders.y) {
+			folders.y = {
+				type: "folder",
+				builded: false,
+				opened: false,
+				added: true,
+				deleted: false,
+				updated: false,
+				show: true,
+				id: generateRandomString(32),
+				parent: imported.id,
+				name: date.y,
+				description: "",
+				srt: imported.children.length > 0
+					? imported.children[imported.children.length - 1].srt + 1
+					: 1,
+				children: [],
+			};
+			imported.children.push(folders.y);
+		}
+		for(let m of folders.y.children) {
+			if(m.name === date.m) {
+				folders.m = m;
+				break;
+			}
+		}
+		if(!folders.m) {
+			folders.m = {
+				type: "folder",
+				builded: false,
+				opened: false,
+				added: true,
+				deleted: false,
+				updated: false,
+				show: true,
+				id: generateRandomString(32),
+				parent: folders.y.id,
+				name: date.m,
+				description: "",
+				srt: folders.y.children.length > 0
+					? folders.y.children[folders.y.children.length - 1].srt + 1
+					: 1,
+				children: [],
+			};
+			folders.y.children.push(folders.m);
+		}
+		for(let d of folders.m.children) {
+			if(d.name === date.d) {
+				folders.d = d;
+				break;
+			}
+		}
+		if(!folders.d) {
+			folders.d = {
+				type: "folder",
+				builded: false,
+				opened: false,
+				added: true,
+				deleted: false,
+				updated: false,
+				show: true,
+				id: generateRandomString(32),
+				parent: folders.m.id,
+				name: date.d,
+				description: "",
+				srt: folders.m.children.length > 0
+					? folders.m.children[folders.m.children.length - 1].srt + 1
+					: 1,
+				children: [],
+			};
+			folders.m.children.push(folders.d);
+		}
+		return {imported: imported, folderid: folders.d.id};
+	}
+}
 function scrollWindow(amount) {
 	window.scrollBy({top: amount, behavior: "smooth"});
 }

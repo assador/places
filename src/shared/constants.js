@@ -50,9 +50,9 @@ export const constants = {
 	},
 	sidebars: {
 		top    : 90,
-		right  : 200,
+		right  : 250,
 		bottom : 54,
-		left   : 200,
+		left   : 250,
 	},
 	compactWidth: 500,
 	rights: {
