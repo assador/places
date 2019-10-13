@@ -60,15 +60,19 @@
 <script>
 import {constants} from "../shared/constants.js"
 import {bus} from "../shared/bus.js"
+import popuptext from "./PopupText.vue"
 import popupdelete from "./AccountDelete.vue"
 import {accountSaveRoutine} from "../shared/account.js"
 export default {
 	components: {
+		popuptext,
 		popupdelete,
 	},
 	data() {return {
 		firstValidatable: false,
 		accountLogin: this.$store.state.user.login,
+		accountNewPassword: null,
+		accountNewPasswordRepeat: null,
 		accountName: this.$store.state.user.name,
 		accountEmail: this.$store.state.user.email,
 		accountPhone: this.$store.state.user.phone,

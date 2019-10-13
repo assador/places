@@ -45,6 +45,11 @@ export default {
 			this.fitMap();
 		});
 	},
+	beforeDestroy: function() {
+		if(this.map) {
+			this.map.destroy();
+		}
+	},
 	watch: {
 		latitude: function() {
 			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
@@ -113,33 +118,6 @@ export default {
 				this.$store.state.commonPlaces.forEach((commonPlace) => {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				});
-				if(this.$store.state.places.length > 0) {
-					if(this.$store.state.currentPlaceIndex > -1) {
-						bus.$emit("setCurrentPlace", {
-							place: this.$store.state.currentPlace,
-							common: this.$parent.currentPlaceCommon,
-						});
-						// No matter how idiotic it looks
-					} else if(this.$store.state.homePlace) {
-						bus.$emit("setCurrentPlace", {
-							place: this.$store.state.homePlace,
-						});
-					} else {
-						let firstPlaceInRoot = this.$store.state.places.find(
-							p => p.folderid === null
-						);
-						if(!firstPlaceInRoot) {
-							bus.$emit("setCurrentPlace", {
-								place: this.$store.state.places[0],
-							});
-						} else {
-							bus.$emit("setCurrentPlace", {
-								place: firstPlaceInRoot,
-							});
-						}
-					}
-					this.$store.commit("backupState");
-				}
 			};
 		},
 		clickPlacemark: (place, type) => function(place, type) {

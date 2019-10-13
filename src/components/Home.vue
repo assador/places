@@ -464,6 +464,26 @@ export default {
 				children: this.$store.state.folders,
 				opened: false,
 			};
+			if(this.$store.state.places.length > 0) {
+				if(this.$store.state.currentPlaceIndex > -1) {
+					this.setCurrentPlace(
+						this.$store.state.currentPlace,
+						this.currentPlaceCommon
+					);
+					// No matter how idiotic it looks
+				} else if(this.$store.state.homePlace) {
+					this.setCurrentPlace(this.$store.state.homePlace);
+				} else {
+					let firstPlaceInRoot = this.$store.state.places.find(
+						p => p.folderid === null
+					);
+					if(!firstPlaceInRoot) {
+						this.setCurrentPlace(this.$store.state.places[0]);
+					} else {
+						this.setCurrentPlace(firstPlaceInRoot);
+					}
+				}
+			}
 			if(happens === "importing") {
 				this.$nextTick(function() {
 					this.toDBCompletely();

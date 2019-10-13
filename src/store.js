@@ -111,6 +111,9 @@ export const store = new Vuex.Store({
 		},
 	},
 	mutations: {
+		setMessage(state, message) {
+			Vue.set(state, "message", message);
+		},
 		setRefreshing(state, refreshing) {
 			Vue.set(state, "refreshing", refreshing);
 		},
@@ -690,7 +693,7 @@ export const store = new Vuex.Store({
 				backup: !payload.hasOwnProperty("backup") || payload.backup ? true : false,
 			});
 		},
-		clearMessage({state}, hide) {
+		clearMessage({state, commit}, hide) {
 			let message;
 			if(hide || (message = state.message.replace(/^<div>[^<>]+<\/div>\s*/, "")) === "") {
 				let me = document.getElementById("message-main");
@@ -699,33 +702,33 @@ export const store = new Vuex.Store({
 					me.classList.remove("visible");
 				}
 				setTimeout(function() {
-					Vue.set(state, "message", "");
+					commit("setMessage", "");
 				}, 500);
 			} else {
-				Vue.set(state, "message", message);
+				commit("setMessage", message);
 			}
 		},
-		setMessage({state, dispatch}, message) {
+		setMessage({state, commit, dispatch}, message) {
 			let last = state.message.match(/<div>([^<>]+)<\/div>\s*$/);
+			let me = document.getElementById("message-main");
 			if(last !== null && last[1] === message) {
-				if(document.getElementById("message-main").lastElementChild) {
-					document.getElementById("message-main").lastElementChild.classList.add("highlight");
+				if(me && me.lastElementChild) {
+					me.lastElementChild.classList.add("highlight");
 					setTimeout(function() {
-							document.getElementById("message-main").lastElementChild.classList.remove("highlight");
+						document.getElementById("message-main").lastElementChild.classList.remove("highlight");
 					}, 500);
 				}
 			} else {
-				Vue.set(state, "message", state.message += "<div>" + message + "</div>");
+				commit("setMessage", state.message += "<div>" + message + "</div>");
 			}
-			let me = document.getElementById("message-main");
-			if(me) {
+			if(me && state.message) {
 				me.classList.add("visible");
 				me.classList.remove("invisible");
 			}
 			clearTimeout(document.messageTimer);
 			document.messageTimer = setTimeout(function messageTimeout() {
 				dispatch("clearMessage");
-				if(state.message !== "") {
+				if(state.message) {
 					document.messageTimer = setTimeout(messageTimeout, 3000);
 				}
 			}, 3000);
