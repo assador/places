@@ -846,6 +846,22 @@ export default {
 		},
 		setCurrentPlace: (place, common = false) => function(place, common = false) {
 			this.currentPlaceCommon = common ? true : false;
+			if(this.$store.state.currentPlace) {
+				if(
+					!this.currentPlaceCommon
+					&& this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
+				) {
+					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
+						"iconColor", this.$refs.extmap.privatePlacemarksColor
+					);
+				} else if(
+					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]
+				) {
+					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
+						"iconColor", this.$refs.extmap.commonPlacemarksColor
+					);
+				}
+			}
 			if(place) {
 				this.$store.state.currentPlace = place;
 				for(let i = 0; i < this.$store.state.places.length; i++) {
