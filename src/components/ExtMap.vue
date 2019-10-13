@@ -118,6 +118,22 @@ export default {
 				this.$store.state.commonPlaces.forEach((commonPlace) => {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				});
+				if(this.$store.state.currentPlace) {
+					if(
+						!this.$parent.currentPlaceCommon
+						&& this.mrks[this.$store.state.currentPlace.id]
+					) {
+						this.mrks[this.$store.state.currentPlace.id].options.set(
+							"iconColor", this.activePlacemarksColor
+						);
+					} else if(
+						this.commonMrks[this.$store.state.currentPlace.id]
+					) {
+						this.commonMrks[this.$store.state.currentPlace.id].options.set(
+							"iconColor", this.activePlacemarksColor
+						);
+					}
+				}
 			};
 		},
 		clickPlacemark: (place, type) => function(place, type) {

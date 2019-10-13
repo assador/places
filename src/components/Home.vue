@@ -493,10 +493,17 @@ export default {
 				this.$refs.extmap.map.destroy();
 			}
 			if(this.$refs.extmap) {
-				this.$refs.extmap.showMap(
-					constants.map.initial.latitude,
-					constants.map.initial.longitude
-				);
+				if(this.$store.state.currentPlace) {
+					this.$refs.extmap.showMap(
+						this.$store.state.currentPlace.latitude,
+						this.$store.state.currentPlace.longitude
+					);
+				} else {
+					this.$refs.extmap.showMap(
+						constants.map.initial.latitude,
+						constants.map.initial.longitude
+					);
+				}
 			}
 			this.commonPlacesPagesCount = Math.ceil(
 				this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
