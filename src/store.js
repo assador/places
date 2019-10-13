@@ -80,9 +80,9 @@ export const store = new Vuex.Store({
 		stateBackups: [],
 		stateBackupsIndex: -1,
 		inUndoRedo: false,
-		user: {},
-		currentPlace: {},
-		homePlace: {},
+		user: null,
+		currentPlace: null,
+		homePlace: null,
 		currentPlaceIndex: -1,
 		places: [],
 		folders: [],
@@ -144,7 +144,7 @@ export const store = new Vuex.Store({
 			);
 			bus.$emit("setCurrentPlace", {
 				place: state.stateBackups[index].currentPlaceIndex < 0
-					? {}
+					? null
 					: state.places[state.stateBackups[index].currentPlaceIndex]
 			});
 		},
@@ -163,9 +163,9 @@ export const store = new Vuex.Store({
 			Vue.set(state, "stateBackups", []);
 			Vue.set(state, "stateBackupsIndex", -1);
 			Vue.set(state, "inUndoRedo", false);
-			Vue.set(state, "user", {});
-			Vue.set(state, "currentPlace", {});
-			Vue.set(state, "homePlace", {});
+			Vue.set(state, "user", null);
+			Vue.set(state, "currentPlace", null);
+			Vue.set(state, "homePlace", null);
 			Vue.set(state, "currentPlaceIndex", -1);
 			Vue.set(state, "places", []);
 			Vue.set(state, "folders", []);
@@ -201,18 +201,19 @@ export const store = new Vuex.Store({
 		setUser(state, user) {
 			Vue.set(state, "user", user);
 		},
-		setCurrentPlace(state, place) {
-			Vue.set(state, "currentPlace", place);
-			for(let i = 0; i < state.places.length; i++) {
-				if(state.places[i].id == place.id) {
-					Vue.set(state, "currentPlaceIndex", i);
-					break;
-				}
-			}
+		setCurrentPlaceIndex(state, index) {
+			Vue.set(state, "currentPlaceIndex", index);
 		},
 		setHomePlace(state, id) {
-			let place = state.places.find(p => p.id === id);
-			Vue.set(state, "homePlace", (place ? place : {}));
+			for(let i = 0; i < state.places.length; i++) {
+				if(state.places[i].id === id) {
+					state.homePlace = state.places[i];
+					state.user.homeplace = state.places[i];
+					return;
+				}
+			}
+			Vue.set(state, "homePlace", null);
+			Vue.set(state.user, "homeplace", null);
 		},
 		placesReady(state, payload) {
 			Vue.set(state, "places", payload.places);

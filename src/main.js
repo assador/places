@@ -137,7 +137,8 @@ let app = new Vue({
 				}
 				// Photo image passes over another photo image
 				if(
-					this.draggingElement.classList.contains("place-image")
+					this.$store.state.currentPlace
+					&& this.draggingElement.classList.contains("place-image")
 					&& event.target.classList.contains("place-image")
 				) {
 					this.$store.commit("swapValues", {

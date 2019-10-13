@@ -59,10 +59,18 @@ export default {
 				JSON.parse(sessionStorage.getItem("places-store-state"))
 			);
 			// Restore objects as links to each other
-			this.$store.commit("setHomePlace", this.$store.state.user.homeplace);
+			this.$store.commit(
+				"setHomePlace",
+				this.$store.state.user.homeplace.id
+					? this.$store.state.user.homeplace.id
+					: null
+			);
 			for(let i = 0; i < this.$store.state.places.length; i++) {
-				if(this.$store.state.places[i].id == this.$store.state.currentPlace.id) {
-					bus.$emit("setCurrentPlace", {place: this.$store.state.places[i]});
+				if(
+					this.$store.state.currentPlace
+					&& this.$store.state.places[i].id == this.$store.state.currentPlace.id
+				) {
+					this.$store.state.currentPlace = this.$store.state.places[i];
 				}
 			}
 			this.$store.commit("setRefreshing", false);

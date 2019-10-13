@@ -34,10 +34,12 @@ export default {
 		showImage: (step, event) => function(step, event) {
 			this.$store.commit("setIdleTime", 0);
 			event.stopPropagation();
-			let currentIndex = this.currentPlace.images.indexOf(this.dataprop);
-			let ImagesLength = this.currentPlace.images.length;
-			currentIndex = (currentIndex + step) % ImagesLength + (currentIndex + step < 0 ? ImagesLength : 0);
-			this.dataprop = this.currentPlace.images[currentIndex];
+			if(this.currentPlace.images) {
+				let currentIndex = this.currentPlace.images.indexOf(this.dataprop);
+				let ImagesLength = this.currentPlace.images.length;
+				currentIndex = (currentIndex + step) % ImagesLength + (currentIndex + step < 0 ? ImagesLength : 0);
+				this.dataprop = this.currentPlace.images[currentIndex];
+			}
 		},
 	},
 }

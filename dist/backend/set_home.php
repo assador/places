@@ -3,7 +3,6 @@ include "config.php";
 include "newpdo.php";
 include "common.php";
 
-file_put_contents("/var/www/places/uploads/1.txt", $_POST["data"]);
 if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 	echo 2; exit;
 } else {

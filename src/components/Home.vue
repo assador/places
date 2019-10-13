@@ -18,7 +18,7 @@
 					id="actions-append"
 					class="actions-button"
 					title="Добавить место в центре карты"
-					@click="$refs.ym.appendPlace();"
+					@click="appendPlace();"
 				>
 					+
 				</button>
@@ -26,7 +26,7 @@
 					id="actions-delete"
 					class="actions-button"
 					title="Удалить текущее место"
-					:disabled="!($store.state.currentPlace.userid == $store.state.user.id)"
+					:disabled="!($store.state.user && $store.state.currentPlace && $store.state.currentPlace.userid == $store.state.user.id)"
 					@click="deletePlace($store.state.currentPlace);"
 				>
 					×
@@ -57,7 +57,7 @@
 		>
 			<div>
 				<div class="brand">
-					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user.login"></a></h1>
+					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user ? $store.state.user.login : 'o_O'"></a></h1>
 					<div>Сервис просмотра и редактирования библиотек геометок</div>
 				</div>
 			</div>
@@ -146,7 +146,7 @@
 		>
 			<div id="basic-left__places">
 				<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu">
-					<tree id="placesMenu" :data="folderRoot"></tree>
+					<tree id="placesMenu" :data="folderRoot || {}"></tree>
 				</div>
 				<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">Другие места</h2>
@@ -176,20 +176,20 @@
 			</div>
 		</div>
 		<div class="app-cell" id="basic-basic">
-			<mapyandex
-				ref="ym"
-				:id="$store.state.currentPlace.id"
-				:name="$store.state.currentPlace.name"
-				:description="$store.state.currentPlace.description"
-				:images="$store.state.currentPlace.images"
-				:latitude="$store.state.currentPlace.latitude"
-				:longitude="$store.state.currentPlace.longitude"
-				:altitudecapability="$store.state.currentPlace.altitudecapability"
-				:time="$store.state.currentPlace.time"
-				:centerLatitude="$store.state.center.latitude"
-				:centerLongitude="$store.state.center.longitude"
+			<extmap
+				ref="extmap"
+				:id="$store.state.currentPlace ? $store.state.currentPlace.id : null"
+				:name="$store.state.currentPlace ? $store.state.currentPlace.name : ''"
+				:description="$store.state.currentPlace ? $store.state.currentPlace.description : ''"
+				:images="$store.state.currentPlace ? $store.state.currentPlace.images : []"
+				:latitude="$store.state.currentPlace ? $store.state.currentPlace.latitude : constants.map.initial.latitude"
+				:longitude="$store.state.currentPlace ? $store.state.currentPlace.longitude : constants.map.initial.longitude"
+				:altitudecapability="$store.state.currentPlace ? $store.state.currentPlace.altitudecapability : ''"
+				:time="$store.state.currentPlace ? $store.state.currentPlace.time : ''"
+				:centerLatitude="$store.state.center ? $store.state.center.latitude : constants.map.initial.latitude"
+				:centerLongitude="$store.state.center ? $store.state.center.longitude : constants.map.initial.longitude"
 			>
-			</mapyandex>
+			</extmap>
 			<div
 				id="sbs-top"
 				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
@@ -224,7 +224,7 @@
 			class="app-cell"
 		>
 			<div>
-				<dt>
+				<dt v-if="$store.state.currentPlace">
 					<dl v-for="field in Object.keys($store.state.currentPlace)" :key="field" class="place-detailed margin_bottom_0">
 						<dt v-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
 							{{ $store.state.placeFields[field] }}:
@@ -311,7 +311,7 @@
 						</dd>
 					</dl>
 				</dt>
-				<div v-if="Object.keys($store.state.currentPlace).length > 0 && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add margin_bottom">
+				<div v-if="$store.state.currentPlace && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add margin_bottom">
 					<div class="images-add__div button">
 						<span>Добавить фотографии</span>
 						<input
@@ -326,12 +326,12 @@
 					</div>
 				</div>
 				<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
-				<div v-if="Object.keys($store.state.currentPlace).length > 0">
+				<div v-if="$store.state.currentPlace">
 					<label>
 						<input
 							type="checkbox"
 							id="checkbox-homeplace"
-							v-model="$store.state.currentPlace.id == $store.state.homePlace.id"
+							:checked="$store.state.currentPlace === $store.state.homePlace ? 'checked' : ''"
 							@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
 						/>
 						Домашнее место
@@ -347,7 +347,7 @@
 				<button
 					id="placemarksShowHideButton"
 					class="actions-button button-pressed"
-					@click="$refs.ym.placemarksShowHide();"
+					@click="$refs.extmap.placemarksShowHide();"
 					title="Показать / скрыть все свои геометки"
 				>
 					◉
@@ -363,7 +363,7 @@
 				<button
 					id="commonPlacemarksShowHideButton"
 					class="actions-button"
-					@click="$refs.ym.commonPlacemarksShowHide();"
+					@click="$refs.extmap.commonPlacemarksShowHide();"
 					title="Показать / скрыть все другие геометки"
 				>
 					◎
@@ -371,7 +371,7 @@
 				<button
 					id="centerPlacemarkShowHideButton"
 					class="actions-button"
-					@click="$refs.ym.centerPlacemarkShowHide();"
+					@click="$refs.extmap.centerPlacemarkShowHide();"
 					title="Показать / скрыть метку центра карты"
 				>
 					◈
@@ -419,7 +419,7 @@ import _ from "lodash"
 import {constants} from "../shared/constants.js"
 import {bus} from "../shared/bus.js"
 import tree from "./Tree.vue"
-import mapyandex from "./MapYandex.vue"
+import extmap from "./ExtMap.vue"
 import popupimage from "./PopupImage.vue"
 import popuptext from "./PopupText.vue"
 import popupfolder from "./PopupFolder.vue"
@@ -429,7 +429,7 @@ import {mapGetters} from "vuex"
 export default {
 	components: {
 		tree,
-		mapyandex,
+		extmap,
 		popupimage,
 		popuptext,
 		popupfolder,
@@ -444,7 +444,7 @@ export default {
 		commonPlacesPagesCount: 0,
 		commonPlacesOnPageCount: constants.commonplacesonpagecount,
 		commonPlacesShow: false,
-		currentPlace: {},
+		currentPlace: null,
 		currentPlaceCommon: false,
 		sidebarSize: {
 			top: constants.sidebars.top,
@@ -454,7 +454,7 @@ export default {
 		},
 		sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
 		compact: false,
-		folderRoot: {},
+		folderRoot: null,
 	}},
 	mounted: function() {
 		bus.$on("placesFilled", happens => {
@@ -469,11 +469,11 @@ export default {
 					this.toDBCompletely();
 				});
 			}
-			if(this.$refs.ym && this.$refs.ym.map) {
-				this.$refs.ym.map.destroy();
+			if(this.$refs.extmap && this.$refs.extmap.map) {
+				this.$refs.extmap.map.destroy();
 			}
-			if(this.$refs.ym) {
-				this.$refs.ym.showMap(
+			if(this.$refs.extmap) {
+				this.$refs.extmap.showMap(
 					constants.map.initial.latitude,
 					constants.map.initial.longitude
 				);
@@ -485,23 +485,37 @@ export default {
 			document.addEventListener("drop", this.$root.handleDrop, false);
 			document.addEventListener("keyup", this.keyup, false);
 			window.addEventListener("resize", this.windowResize, false);
+			if(this.$store.state.user.testaccount) {
+				setTimeout(() => {
+					this.$store.dispatch("setMessage",
+						"Вы авторизовались под тестовым аккаунтом; " +
+						"невозможны сохранение изменений в базу данных " +
+						"и загрузка файлов, в том числе фотографий"
+					);
+				}, 3000);
+			}
 			this.windowResize();
 			this.placesFilled = true;
 		});
 		bus.$on("homeRefresh", () => {
-			this.$refs.ym.mrks = {};
-			this.$refs.ym.map.geoObjects.removeAll();
+			this.$refs.extmap.mrks = {};
+			this.$refs.extmap.map.geoObjects.removeAll();
 			this.$store.state.places.forEach((place) => {
-				this.$refs.ym.appendPlacemark(this.$refs.ym.mrks, place, "private");
+				this.$refs.extmap.appendPlacemark(this.$refs.extmap.mrks, place, "private");
 			});
-			if(!this.currentPlaceCommon && this.$refs.ym.mrks[this.$store.state.currentPlace.id]) {
-				this.$refs.ym.mrks[this.$store.state.currentPlace.id].options.set(
-					"iconColor", this.$refs.ym.activePlacemarksColor
-				);
-			} else if(this.$refs.ym.commonMrks[this.$store.state.currentPlace.id]) {
-				this.$refs.ym.commonMrks[this.$store.state.currentPlace.id].options.set(
-					"iconColor", this.$refs.ym.activePlacemarksColor
-				);
+			if(this.$store.state.currentPlace) {
+				if(
+					!this.currentPlaceCommon
+					&& this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
+				) {
+					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
+						"iconColor", this.$refs.extmap.activePlacemarksColor
+					);
+				} else if(this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]) {
+					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
+						"iconColor", this.$refs.extmap.activePlacemarksColor
+					);
+				}
 			}
 		});
 		bus.$on("setCurrentPlace", (payload) => {
@@ -524,15 +538,6 @@ export default {
 		});
 		sessionStorage.setItem("places-app-child-component", "home");
 		this.$store.commit("setIdleTime", 0);
-		if(this.$store.state.user.testaccount) {
-			setTimeout(() => {
-				this.$store.dispatch("setMessage",
-					"Вы авторизовались под тестовым аккаунтом; " +
-					"невозможны сохранение изменений в базу данных " +
-					"и загрузка файлов, в том числе фотографий"
-				);
-			}, 3000);
-		}
 		if(this.$store.state.ready) {
 			bus.$emit("placesFilled");
 		}
@@ -564,10 +569,14 @@ export default {
 				}
 				switch(constants.shortcuts[event.keyCode]) {
 					case "add" :
-						let newPlace = this.$refs.ym.appendPlace();
+						let newPlace = this.appendPlace();
 						break;
 					case "delete" :
-						if(this.$store.state.currentPlace.userid == this.$store.state.user.id) {
+						if(
+							this.$store.state.currentPlace
+							&& this.$store.state.currentPlace.userid ==
+								this.$store.state.user.id
+						) {
 							this.deletePlace(this.$store.state.currentPlace);
 						}
 						break;
@@ -612,13 +621,13 @@ export default {
 						this.commonPlacesShowHide();
 						break;
 					case "placemarks" :
-						this.$refs.ym.placemarksShowHide();
+						this.$refs.extmap.placemarksShowHide();
 						break;
 					case "other placemarks" :
-						this.$refs.ym.commonPlacemarksShowHide();
+						this.$refs.extmap.commonPlacemarksShowHide();
 						break;
 					case "center" :
-						this.$refs.ym.centerPlacemarkShowHide();
+						this.$refs.extmap.centerPlacemarkShowHide();
 						break;
 					case "undo" :
 						this.$store.dispatch("undo");
@@ -769,23 +778,27 @@ export default {
 			deep: true,
 			immediate: true,
 			handler: function(place) {
-				this.currentPlace = {
-					...place,
-					images: place.images,
-				};
-				this.$nextTick(function() {
-					if(
-						place.userid == this.$store.state.user.id
-						&& !place.name
-						&& document.getElementById("detailed-name")
-					) {
-						document.getElementById("detailed-name").classList.add("highlight");
-						document.getElementById("detailed-name").focus();
-						setTimeout(function() {
-							document.getElementById("detailed-name").classList.remove("highlight");
-						}, 500);
-					}
-				});
+				if(place) {
+					this.currentPlace = {
+						...place,
+						images: place.images,
+					};
+					this.$nextTick(function() {
+						if(
+							place.userid == this.$store.state.user.id
+							&& !place.name
+							&& document.getElementById("detailed-name")
+						) {
+							document.getElementById("detailed-name").classList.add("highlight");
+							document.getElementById("detailed-name").focus();
+							setTimeout(function() {
+								document.getElementById("detailed-name").classList.remove("highlight");
+							}, 500);
+						}
+					});
+				} else {
+					this.currentPlace = null;
+				}
 			},
 		},
 	},
@@ -802,58 +815,121 @@ export default {
 			bus.$emit("loggedChange", "account");
 		},
 		orderedImages: function() {
-			return _.orderBy(this.currentPlace.images, "srt");
+			return this.currentPlace ? _.orderBy(this.currentPlace.images, "srt") : [];
 		},
 		setCurrentPlace: (place, common = false) => function(place, common = false) {
-			if(Object.keys(this.$store.state.currentPlace).length > 0) {
+			this.currentPlaceCommon = common ? true : false;
+			if(place) {
+				this.$store.state.currentPlace = place;
+				for(let i = 0; i < this.$store.state.places.length; i++) {
+					if(this.$store.state.places[i].id == place.id) {
+						this.$store.commit("setCurrentPlaceIndex", i);
+						break;
+					}
+				}
 				if(
 					!this.currentPlaceCommon
-					&& this.$refs.ym.mrks[this.$store.state.currentPlace.id]
+					&& this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
-					this.$refs.ym.mrks[this.$store.state.currentPlace.id].options.set(
-						"iconColor", this.$refs.ym.privatePlacemarksColor
+					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
+						"iconColor", this.$refs.extmap.activePlacemarksColor
 					);
 				} else if(
-					this.$refs.ym.commonMrks[this.$store.state.currentPlace.id]
+					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]
 				) {
-					this.$refs.ym.commonMrks[this.$store.state.currentPlace.id].options.set(
-						"iconColor", this.$refs.ym.commonPlacemarksColor
+					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
+						"iconColor", this.$refs.extmap.activePlacemarksColor
 					);
 				}
-			}
-			this.$store.commit("setCurrentPlace", place);
-			this.currentPlaceCommon = common ? true : false;
-			if(
-				!this.currentPlaceCommon
-				&& this.$refs.ym.mrks[this.$store.state.currentPlace.id]
-			) {
-				this.$refs.ym.mrks[this.$store.state.currentPlace.id].options.set(
-					"iconColor", this.$refs.ym.activePlacemarksColor
-				);
-			} else if(
-				this.$refs.ym.commonMrks[this.$store.state.currentPlace.id]
-			) {
-				this.$refs.ym.commonMrks[this.$store.state.currentPlace.id].options.set(
-					"iconColor", this.$refs.ym.activePlacemarksColor
-				);
-			}
-			if(!common) {
-				let folder, folderid = place.folderid;
-				while(folderid) {
-					folder = findInTree(
-						this.folderRoot,
-						"children",
-						"id",
-						folderid
-					);
-					this.$store.commit("folderOpenClose", {folder: folder, opened: true});
-					folderid = (folder.parent === null ? "root" : folder.parent);
+				if(!this.currentPlaceCommon) {
+					let folder, folderid = place.folderid;
+					while(folderid) {
+						folder = findInTree(
+							this.folderRoot,
+							"children",
+							"id",
+							folderid
+						);
+						this.$store.commit("folderOpenClose", {folder: folder, opened: true});
+						folderid = (folder.parent === null ? "root" : folder.parent);
+					}
 				}
+				this.$store.commit("changeCenter", {
+					latitude: this.$store.state.currentPlace.latitude,
+					longitude: this.$store.state.currentPlace.longitude,
+				});
+			} else {
+				this.$store.state.currentPlace = null;
+				this.$store.commit("setCurrentPlaceIndex", -1);
 			}
-			this.$store.commit("changeCenter", {
-				latitude: this.$store.state.currentPlace.latitude,
-				longitude: this.$store.state.currentPlace.longitude,
-			});
+		},
+		appendPlace: () => function() {
+			let data = new FormData();
+			data.append("userid", this.$store.state.user.id);
+			data.append("need", "visiting");
+			axios.post("/backend/get_groups.php", data)
+				.then(response => {
+					if(
+						constants.rights.placescounts[response.data] < 0
+						|| constants.rights.placescounts[response.data] > this.$store.state.places.length
+						|| this.$store.state.user.testaccount
+					) {
+						let newPlace = {
+							type: "place",
+							userid: sessionStorage.getItem("places-userid"),
+							name: "",
+							description: "",
+							latitude: this.$refs.extmap.map.getCenter()[0].toFixed(7),
+							longitude: this.$refs.extmap.map.getCenter()[1].toFixed(7),
+							altitudecapability: null,
+							time: new Date().toISOString().slice(0, -5),
+							id: generateRandomString(32),
+							folderid:
+								this.$store.state.currentPlace
+									? this.$store.state.currentPlace.folderid
+									: "root"
+							,
+							srt:
+								this.$store.state.places.length > 0
+									? Math.ceil(Math.max(
+										...this.$store.state.places.map(
+											function(place) {
+												return place.srt;
+											}
+										)
+									)) + 1
+									: 1
+							,
+							common: false,
+							images: [],
+							added: true,
+							deleted: false,
+							updated: false,
+							show: true,
+						};
+						this.$store.commit("addPlace", newPlace);
+						this.$refs.extmap.appendPlacemark(
+							this.$refs.extmap.mrks,
+							newPlace,
+							"private"
+						);
+						this.setCurrentPlace(
+							this.$store.state.places[
+								this.$store.state.places.length - 1
+							]
+						);
+						return newPlace;
+					} else {
+						this.$store.dispatch("setMessage",
+							'Превышено максимально допустимое для вашей ' +
+							'текущей роли количство мест<br />Дождитесь ' +
+							'перехода в следующую роль, или обратитесь ' +
+							'к администрации сервиса по адресу<br />' +
+							'<a href="mailto:' + constants.from +
+							'">' + constants.from + '</a>'
+						);
+					}
+				});
 		},
 		deletePlace: (place, backup) => function(place, backup) {
 			let finallyDeletePlace = place => {
@@ -872,7 +948,7 @@ export default {
 							p => p.id === document.getElementById(place.id).previousElementSibling.id
 						)
 					);
-				} else if(Object.keys(this.$store.state.homePlace).length > 0) {
+				} else if(this.$store.state.homePlace) {
 					this.setCurrentPlace(this.$store.state.homePlace);
 				} else if(firstRootPlace) {
 					this.setCurrentPlace(firstRootPlace);
@@ -884,7 +960,7 @@ export default {
 					change: {deleted: true},
 					backup: (typeof(backup) === "undefined" || backup ? true : false),
 				});
-				this.$refs.ym.map.geoObjects.remove(this.$refs.ym.mrks[place.id]);
+				this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
 				this.$store.commit("deletePlace", place);
 			}
 			if(place.images.length > 0) {
@@ -898,12 +974,12 @@ export default {
 		},
 		commonPlacesShowHide: () => function() {
 			this.commonPlacesShow = !this.commonPlacesShow;
-			this.$refs.ym.commonPlacemarksShow = this.commonPlacesShow;
-			for(let key in this.$refs.ym.commonMrks) {
-				if(!this.$refs.ym.commonPlacemarksShow) {
-					this.$refs.ym.commonMrks[key].options.set("visible", false);
+			this.$refs.extmap.commonPlacemarksShow = this.commonPlacesShow;
+			for(let key in this.$refs.extmap.commonMrks) {
+				if(!this.$refs.extmap.commonPlacemarksShow) {
+					this.$refs.extmap.commonMrks[key].options.set("visible", false);
 				} else {
-					this.$refs.ym.commonMrks[key].options.set("visible", true);
+					this.$refs.extmap.commonMrks[key].options.set("visible", true);
 				}
 			}
 			if(!this.commonPlacesShow) {
@@ -1068,7 +1144,10 @@ export default {
 					rndname,
 					srt
 				;
-				if(Object.keys(this.$store.state.currentPlace.images).length > 0) {
+				if(
+					this.$store.state.currentPlace
+					&& this.$store.state.currentPlace.images.length > 0
+				) {
 					let storeImages = this.$store.state.currentPlace.images;
 					srt = sortObjects(storeImages, "srt").pop().srt;
 				} else {
@@ -1101,7 +1180,9 @@ export default {
 							type: files[i].type,
 							lastmodified: files[i].lastModified,
 							srt: ++srt,
-							placeid: this.$store.state.currentPlace.id,
+							placeid: this.$store.state.currentPlace.id
+								? this.$store.state.currentPlace.id
+								: null,
 						});
 					}
 				}

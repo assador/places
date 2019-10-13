@@ -8,7 +8,7 @@ CREATE TABLE `users` (
 	`confirmed` BOOLEAN NOT NULL DEFAULT 0,
 	`confirmbefore` DATETIME NOT NULL,
 	`token` VARCHAR (32) NOT NULL,
-	`homeplace` VARCHAR (32) NOT NULL DEFAULT '',
+	`homeplace` VARCHAR (32) DEFAULT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `U_users` UNIQUE (`id`, `login`, `email`, `token`)
 );

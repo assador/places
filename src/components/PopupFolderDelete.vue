@@ -98,7 +98,7 @@ export default {
 			this.$store.commit("deletePlacesMarkedAsDeleted");
 			this.$store.commit("deleteFoldersMarkedAsDeleted");
 			if(this.$store.state.places.length > 0) {
-				if(Object.keys(this.$store.state.homePlace).length > 0) {
+				if(this.$store.state.homePlace) {
 					this.$parent.setCurrentPlace(this.$store.state.homePlace);
 				} else {
 					let firstPlaceInRoot = this.$store.state.places.find(p => p.folderid === null);

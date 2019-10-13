@@ -64,7 +64,7 @@
 				:id="place.id"
 				:srt="place.srt"
 				:title="place.description"
-				:class="'place-button block_01 draggable' + (place.id == $store.state.currentPlace.id ? ' active' : '')"
+				:class="'place-button block_01 draggable' + ($store.state.currentPlace && place.id == $store.state.currentPlace.id ? ' active' : '')"
 				draggable="true"
 				@click="$root.setCurrentPlace(place);"
 				@dragstart="$root.handleDragStart"
