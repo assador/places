@@ -402,7 +402,7 @@
 				/>
 			</span>
 		</div>
-		<div :class="'popup ' + $root.popuped" @click="($event) => {if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}">
+		<div :class="'popup ' + $root.popuped" @click="$event => {if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}">
 			<component
 				ref="popup"
 				:is="$root.popupComponent"
