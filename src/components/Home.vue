@@ -311,7 +311,7 @@
 						</dd>
 					</dl>
 				</dt>
-				<div v-if="$store.state.currentPlace && !$store.state.currentPlace.deleted && !$store.state.currentPlaceCommon" class="images-add margin_bottom">
+				<div v-if="$store.state.currentPlace && !$store.state.currentPlace.deleted && !currentPlaceCommon" class="images-add margin_bottom">
 					<div class="images-add__div button">
 						<span>Добавить фотографии</span>
 						<input
@@ -326,7 +326,7 @@
 					</div>
 				</div>
 				<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
-				<div v-if="$store.state.currentPlace">
+				<div v-if="$store.state.currentPlace && !currentPlaceCommon">
 					<label>
 						<input
 							type="checkbox"
