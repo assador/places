@@ -88,6 +88,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`folderid`           ,
 				`name`               ,
 				`description`        ,
+				`link`               ,
 				`latitude`           ,
 				`longitude`          ,
 				`altitudecapability` ,
@@ -100,6 +101,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				:folderid           ,
 				:name               ,
 				:description        ,
+				:link               ,
 				:latitude           ,
 				:longitude          ,
 				:altitudecapability ,
@@ -115,6 +117,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`folderid`           = :folderid           ,
 				`name`               = :name               ,
 				`description`        = :description        ,
+				`link`               = :link               ,
 				`latitude`           = :latitude           ,
 				`longitude`          = :longitude          ,
 				`altitudecapability` = :altitudecapability ,
@@ -149,6 +152,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					$append->bindParam( ":folderid"           , $row[ "folderid"           ]);
 					$append->bindParam( ":name"               , $row[ "name"               ]);
 					$append->bindParam( ":description"        , $row[ "description"        ]);
+					$append->bindParam( ":link"               , $row[ "link"               ]);
 					$append->bindParam( ":latitude"           , $row[ "latitude"           ]);
 					$append->bindParam( ":longitude"          , $row[ "longitude"          ]);
 					$append->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
@@ -164,6 +168,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$update->bindParam( ":folderid"           , $row[ "folderid"           ]);
 				$update->bindParam( ":name"               , $row[ "name"               ]);
 				$update->bindParam( ":description"        , $row[ "description"        ]);
+				$update->bindParam( ":link"               , $row[ "link"               ]);
 				$update->bindParam( ":latitude"           , $row[ "latitude"           ]);
 				$update->bindParam( ":longitude"          , $row[ "longitude"          ]);
 				$update->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);

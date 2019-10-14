@@ -46,8 +46,9 @@ CREATE TABLE `usergroup` (
 CREATE TABLE `places` (
 	`id` VARCHAR (32) NOT NULL,
 	`folderid` VARCHAR (32) NOT NULL DEFAULT 'root',
-	`name` VARCHAR (500) NOT NULL DEFAULT 'Без названия',
-	`description` VARCHAR (2044) NOT NULL DEFAULT '',
+	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
+	`description` VARCHAR (2048) NOT NULL DEFAULT '',
+	`link` VARCHAR (512) NOT NULL DEFAULT '',
 	`latitude` DOUBLE NOT NULL,
 	`longitude` DOUBLE NOT NULL,
 	`altitudecapability` DOUBLE DEFAULT NULL,

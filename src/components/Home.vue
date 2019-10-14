@@ -181,6 +181,7 @@
 				:id="$store.state.currentPlace ? $store.state.currentPlace.id : null"
 				:name="$store.state.currentPlace ? $store.state.currentPlace.name : ''"
 				:description="$store.state.currentPlace ? $store.state.currentPlace.description : ''"
+				:link="$store.state.currentPlace ? $store.state.currentPlace.link : ''"
 				:images="$store.state.currentPlace ? $store.state.currentPlace.images : []"
 				:latitude="$store.state.currentPlace ? $store.state.currentPlace.latitude : constants.map.initial.latitude"
 				:longitude="$store.state.currentPlace ? $store.state.currentPlace.longitude : constants.map.initial.longitude"
@@ -226,10 +227,29 @@
 			<div>
 				<dt v-if="$store.state.currentPlace">
 					<dl v-for="field in Object.keys($store.state.currentPlace)" :key="field" class="place-detailed margin_bottom_0">
-						<dt v-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
+						<dt v-if="field == 'link'" class="place-detailed__link-dt">
+							<a
+								v-if="!linkEditing && $store.state.currentPlace[field].trim()"
+								:href="$store.state.currentPlace[field].trim()"
+								target="_blank"
+							>
+								{{ $store.state.placeFields[field] }}
+							</a>
+							<span v-else>
+								{{ $store.state.placeFields[field] }}:
+							</span>
+							<a
+								class="place-detailed__link-edit"
+								href="javascript:void(0);"
+								@click="linkEditing = !linkEditing;"
+							>
+								🖍
+							</a>
+						</dt>
+						<dt v-else-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'link' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
 							{{ $store.state.placeFields[field] }}:
 						</dt>
-						<dd v-if="field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && (field == 'srt' || field == 'latitude' || field == 'longitude' || field == 'altitudecapability')">
+						<dd v-if="field == 'srt' || field == 'link' && (linkEditing || !$store.state.currentPlace[field].trim()) || field == 'latitude' || field == 'longitude' || field == 'altitudecapability'">
 							<input
 								type="text"
 								:id="'detailed-' + field"
@@ -297,7 +317,7 @@
 								</div>
 							</div>
 						</dd>
-						<dd v-else-if="field != 'common' && field != 'images' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
+						<dd v-else-if="field != 'common' && field != 'link' && field != 'images' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
 							<textarea
 								:id="'detailed-' + field"
 								:disabled="currentPlaceCommon"
@@ -455,6 +475,7 @@ export default {
 		sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
 		compact: false,
 		folderRoot: null,
+		linkEditing: false,
 	}},
 	mounted: function() {
 		bus.$on("placesFilled", happens => {
@@ -927,6 +948,7 @@ export default {
 							userid: sessionStorage.getItem("places-userid"),
 							name: "",
 							description: "",
+							link: "",
 							latitude: this.$refs.extmap.map.getCenter()[0].toFixed(7),
 							longitude: this.$refs.extmap.map.getCenter()[1].toFixed(7),
 							altitudecapability: null,

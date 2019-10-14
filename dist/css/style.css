@@ -739,6 +739,15 @@ span.folder-button {
 	display: inline-block;
 	margin: 3px 0 8px 0;
 }
+.place-detailed__link-dt:last-child {
+	margin-bottom: 8px;
+}
+.place-detailed__link-dt * {
+	display: inline-block;
+}
+.place-detailed__link-edit {
+	float: right;
+}
 .dd-images {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));

@@ -56,6 +56,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			`folderid`           ,
 			`name`               ,
 			`description`        ,
+			`link`               ,
 			`latitude`           ,
 			`longitude`          ,
 			`altitudecapability` ,
@@ -68,6 +69,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			:folderid           ,
 			:name               ,
 			:description        ,
+			:link               ,
 			:latitude           ,
 			:longitude          ,
 			:altitudecapability ,
@@ -160,6 +162,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		$appendplace->bindParam( ":folderid"           , $row[ "folderid"           ]);
 		$appendplace->bindParam( ":name"               , $row[ "name"               ]);
 		$appendplace->bindParam( ":description"        , $row[ "description"        ]);
+		$appendplace->bindParam( ":link"               , $row[ "link"               ]);
 		$appendplace->bindParam( ":latitude"           , $row[ "latitude"           ]);
 		$appendplace->bindParam( ":longitude"          , $row[ "longitude"          ]);
 		$appendplace->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);

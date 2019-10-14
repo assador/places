@@ -96,6 +96,7 @@ export const store = new Vuex.Store({
 		placeFields: {
 			name               : "Название",
 			description        : "Описание",
+			link               : "Ссылка",
 			latitude           : "Широта",
 			longitude          : "Долгота",
 			altitudecapability : "Высота над уровнем моря (м)",
@@ -182,6 +183,7 @@ export const store = new Vuex.Store({
 			Vue.set(state, "placeFields", {
 				name               : "Название",
 				description        : "Описание",
+				link               : "Ссылка",
 				latitude           : "Широта",
 				longitude          : "Долгота",
 				altitudecapability : "Высота над уровнем моря (м)",
@@ -538,8 +540,15 @@ export const store = new Vuex.Store({
 							);
 							return false;
 						}
-						let description = "", time = "";
+						let description = "", link = "", time = "";
 						for(let wpt of dom.getElementsByTagName("wpt")) {
+							// Parsing a link node(s) in a place node
+							for(let l of wpt.getElementsByTagName("link")) {
+								if(/^[^./]/.test(l.textContent.trim())) {
+									link = l.textContent.trim();
+									break;
+								}
+							}
 							// Parsing a time node in a place node
 							if(wpt.getElementsByTagName("time").length > 0) {
 								time = new Date(
@@ -597,6 +606,7 @@ export const store = new Vuex.Store({
 									? wpt.getElementsByTagName("name")[0].textContent.trim()
 									: "",
 								description: description,
+								link: link,
 								latitude: parseFloat(wpt.getAttribute("lat")),
 								longitude: parseFloat(wpt.getAttribute("lon")),
 								altitudecapability: wpt.getElementsByTagName("ele") > 0
