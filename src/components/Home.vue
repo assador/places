@@ -867,7 +867,6 @@ export default {
 			return this.currentPlace ? _.orderBy(this.currentPlace.images, "srt") : [];
 		},
 		setCurrentPlace: (place, common = false) => function(place, common = false) {
-			this.currentPlaceCommon = common ? true : false;
 			if(this.$store.state.currentPlace) {
 				if(
 					!this.currentPlaceCommon
@@ -884,6 +883,7 @@ export default {
 					);
 				}
 			}
+			this.currentPlaceCommon = common ? true : false;
 			if(place) {
 				/*
 				 * Setting this.$store.state.currentPlace is not by commit

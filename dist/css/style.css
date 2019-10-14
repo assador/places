@@ -75,6 +75,10 @@ table.table_decor > * > tr:hover {
 #sbs-top:hover, #sbs-bottom:hover, #sbs-right:hover, #sbs-left:hover {
 	background-color: rgba(144, 98, 62, 0.2);
 }
+.back_2,
+.places-menu-folder_root .places-menu-folder_opened::before {
+	background-color: rgba(255, 252, 224, 0.12);
+}
 tr:hover {
 	background-color: rgba(144, 98, 62, 0.1);
 }
@@ -632,6 +636,18 @@ span.folder-button {
 }
 #places-menu-folder-link-root {
 	margin-left: 0;
+}
+.places-menu-folder_opened {
+	position: relative;
+}
+.places-menu-folder_root .places-menu-folder_opened::before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 1.5em; bottom: 2px; left: 0.5em;
+	width: 1px;
+	margin: 0;
+	float: none;
 }
 .places-menu-folder_closed > ul {
 	display: none;
