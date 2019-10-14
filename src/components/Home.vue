@@ -462,8 +462,9 @@ export default {
 				id: "root",
 				name: "Мои места",
 				children: this.$store.state.folders,
-				opened: false,
+				opened: true,
 			};
+			this.currentPlaceCommon = this.$parent.currentPlaceCommon;
 			if(this.$store.state.places.length > 0) {
 				if(this.$store.state.currentPlaceIndex > -1) {
 					this.setCurrentPlace(
@@ -1019,8 +1020,12 @@ export default {
 				finallyDeletePlace(place);
 			}
 		},
-		commonPlacesShowHide: () => function() {
-			this.commonPlacesShow = !this.commonPlacesShow;
+		commonPlacesShowHide: (show = null) => function(show = null) {
+			this.commonPlacesShow =
+				show === null
+					? !this.commonPlacesShow
+					: show
+			;
 			this.$refs.extmap.commonPlacemarksShow = this.commonPlacesShow;
 			for(let key in this.$refs.extmap.commonMrks) {
 				if(!this.$refs.extmap.commonPlacemarksShow) {

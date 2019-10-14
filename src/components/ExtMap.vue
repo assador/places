@@ -118,6 +118,7 @@ export default {
 				this.$store.state.commonPlaces.forEach((commonPlace) => {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				});
+				this.$parent.commonPlacesShowHide(this.$parent.currentPlaceCommon);
 				if(this.$store.state.currentPlace) {
 					if(
 						!this.$parent.currentPlaceCommon
@@ -209,7 +210,7 @@ export default {
 				this.map.container.fitToViewport();
 			}
 		},
-		placemarksShowHide: () => function() {
+		placemarksShowHide: (show = null) => function(show = null) {
 			for(let key in this.mrks) {
 				if(this.placemarksShow) {
 					this.mrks[key].options.set("visible", false);
@@ -217,14 +218,18 @@ export default {
 					this.mrks[key].options.set("visible", true);
 				}
 			}
-			this.placemarksShow = !this.placemarksShow;
+			this.placemarksShow =
+				show === null
+					? !this.placemarksShow
+					: show
+			;
 			if(!this.placemarksShow) {
 				document.getElementById("placemarksShowHideButton").classList.remove("button-pressed");
 			} else {
 				document.getElementById("placemarksShowHideButton").classList.add("button-pressed");
 			}
 		},
-		commonPlacemarksShowHide: () => function() {
+		commonPlacemarksShowHide: (show = null) => function(show = null) {
 			for(let key in this.commonMrks) {
 				if(this.commonPlacemarksShow) {
 					this.commonMrks[key].options.set("visible", false);
@@ -232,14 +237,18 @@ export default {
 					this.commonMrks[key].options.set("visible", true);
 				}
 			}
-			this.commonPlacemarksShow = !this.commonPlacemarksShow;
+			this.commonPlacemarksShow =
+				show === null
+					? !this.commonPlacemarksShow
+					: show
+			;
 			if(!this.commonPlacemarksShow) {
 				document.getElementById("commonPlacemarksShowHideButton").classList.remove("button-pressed");
 			} else {
 				document.getElementById("commonPlacemarksShowHideButton").classList.add("button-pressed");
 			}
 		},
-		centerPlacemarkShowHide: () => function() {
+		centerPlacemarkShowHide: (show = null) => function(show = null) {
 			if(this.centerPlacemarkShow) {
 				this.mrk.options.set("visible", false);
 				document.getElementById("centerPlacemarkShowHideButton").classList.remove("button-pressed");
@@ -247,7 +256,11 @@ export default {
 				this.mrk.options.set("visible", true);
 				document.getElementById("centerPlacemarkShowHideButton").classList.add("button-pressed");
 			}
-			this.centerPlacemarkShow = !this.centerPlacemarkShow;
+			this.centerPlacemarkShow =
+				show === null
+					? !this.centerPlacemarkShow
+					: show
+			;
 		},
 	},
 }

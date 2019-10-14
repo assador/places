@@ -32,6 +32,7 @@ export default {
 	},
 	data: function() {return {
 		component: "auth",
+		currentPlaceCommon: false,
 	}},
 	mounted: function() {
 		bus.$on("loggedChange", (component) => {
@@ -65,12 +66,20 @@ export default {
 					? this.$store.state.user.homeplace.id
 					: null
 			);
-			for(let i = 0; i < this.$store.state.places.length; i++) {
-				if(
-					this.$store.state.currentPlace
-					&& this.$store.state.places[i].id == this.$store.state.currentPlace.id
-				) {
-					this.$store.state.currentPlace = this.$store.state.places[i];
+			if(this.$store.state.currentPlace) {
+				for(let i = 0; i < this.$store.state.commonPlaces.length; i++) {
+					if(this.$store.state.commonPlaces[i].id == this.$store.state.currentPlace.id) {
+						this.$store.state.currentPlace = this.$store.state.commonPlaces[i];
+						this.currentPlaceCommon = true;
+						break;
+					}
+				}
+				if(!this.currentPlaceCommon) {
+					for(let i = 0; i < this.$store.state.places.length; i++) {
+						if(this.$store.state.places[i].id == this.$store.state.currentPlace.id) {
+							this.$store.state.currentPlace = this.$store.state.places[i];
+						}
+					}
 				}
 			}
 			this.$store.commit("setRefreshing", false);
