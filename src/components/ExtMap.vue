@@ -137,10 +137,11 @@ export default {
 			};
 		},
 		clickPlacemark: (place, type) => function(place, type) {
-			for(let i = 0; i < this.mrks.length; i++) {
-				this.mrks[i].options.set("draggable", false);
+			let marks = type === "common" ? this.commonMrks : this.mrks;
+			for(let i = 0; i < marks.length; i++) {
+				marks[i].options.set("draggable", false);
 			}
-			this.mrks[place.id].options.set("draggable", true);
+			marks[place.id].options.set("draggable", true);
 			this.$parent.setCurrentPlace(place, type === "common" ? true : false);
 		},
 		appendPlacemark: (marks, place, type) => function(marks, place, type) {

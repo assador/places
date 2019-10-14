@@ -64,7 +64,7 @@
 			<div
 				id="message-main"
 				class="message invisible"
-				v-html="getMessage"
+				v-html="$store.state.message"
 				@click="$store.dispatch('clearMessage', true);"
 			>
 			</div>
@@ -863,6 +863,10 @@ export default {
 				}
 			}
 			if(place) {
+				/*
+				 * Setting this.$store.state.currentPlace is not by commit
+				 * because it and the place variable are the only common object.
+				 */
 				this.$store.state.currentPlace = place;
 				for(let i = 0; i < this.$store.state.places.length; i++) {
 					if(this.$store.state.places[i].id == place.id) {
@@ -1066,78 +1070,9 @@ export default {
 		},
 		toDB: (todo, data) => function(todo, data) {
 			if(!this.$store.state.user.testaccount) {
-				return new Promise((resolve, reject) => {
-					if(!document.querySelector(".value_wrong")) {
-						let placesRequest = new XMLHttpRequest();
-						placesRequest.open("POST", "/backend/set_places.php", true);
-						placesRequest.onreadystatechange = (event) => {
-							if(placesRequest.readyState == 4) {
-								if(placesRequest.status == 200) {
-									this.$store.commit("setSaved", true);
-									this.$store.dispatch("setMessage",
-										"Изменения сохранены в базе данных"
-									);
-									resolve("Изменения сохранены в базе данных");
-								} else {
-									this.$store.dispatch("setMessage",
-										"Не могу внести данные в БД"
-									);
-									reject(new Error("Не могу внести данные в БД"));
-								}
-							}
-						};
-						placesRequest.setRequestHeader(
-							"Content-type", "application/x-www-form-urlencoded"
-						);
-						placesRequest.send(
-							"id=" + sessionStorage.getItem("places-userid") +
-							"&todo=" + (typeof(todo) !== "undefined" ? todo : "places") +
-							"&data=" + (typeof(data) !== "undefined" ? data : JSON.stringify(this.$store.state.places))
-						);
-					} else {
-						this.$store.dispatch("setMessage",
-							"Некоторые поля заполнены некорректно"
-						);
-					}
-				});
-			}
-		},
-		homeToDB: (place) => function(place) {
-			if(!this.$store.state.user.testaccount) {
-				return new Promise((resolve, reject) => {
-					let homeRequest = new XMLHttpRequest();
-					homeRequest.open("POST", "/backend/set_home.php", true);
-					homeRequest.onreadystatechange = (event) => {
-						if(homeRequest.readyState == 4) {
-							if(homeRequest.status == 200) {
-								this.$store.commit("setSaved", true);
-								this.$store.dispatch("setMessage",
-									"Изменения сохранены в базе данных"
-								);
-								resolve("Изменения сохранены в базе данных");
-							} else {
-								this.$store.dispatch("setMessage",
-									"Не могу внести данные в БД"
-								);
-								reject(new Error("Не могу внести данные в БД"));
-							}
-						}
-					};
-					homeRequest.setRequestHeader(
-						"Content-type", "application/x-www-form-urlencoded"
-					);
-					homeRequest.send(
-						"id=" + sessionStorage.getItem("places-userid") +
-						"&data=" + place.id
-					);
-				});
-			}
-		},
-		toDBCompletely: () => function() {
-			if(!this.$store.state.user.testaccount) {
-				return new Promise((resolve, reject) => {
+				if(!document.querySelector(".value_wrong")) {
 					let placesRequest = new XMLHttpRequest();
-					placesRequest.open("POST", "/backend/set_completely.php", true);
+					placesRequest.open("POST", "/backend/set_places.php", true);
 					placesRequest.onreadystatechange = (event) => {
 						if(placesRequest.readyState == 4) {
 							if(placesRequest.status == 200) {
@@ -1145,32 +1080,95 @@ export default {
 								this.$store.dispatch("setMessage",
 									"Изменения сохранены в базе данных"
 								);
-								resolve("Изменения сохранены в базе данных");
 							} else {
 								this.$store.dispatch("setMessage",
 									"Не могу внести данные в БД"
 								);
-								reject(new Error("Не могу внести данные в БД"));
 							}
 						}
 					};
 					placesRequest.setRequestHeader(
 						"Content-type", "application/x-www-form-urlencoded"
 					);
-					let plainFolders = [];
-					treeToPlain(
-						this.folderRoot,
-						"children",
-						plainFolders
-					);
 					placesRequest.send(
 						"id=" + sessionStorage.getItem("places-userid") +
-						"&data=" + (JSON.stringify({
-							"places": this.$store.state.places,
-							"folders": plainFolders,
-						}))
+						"&todo=" + (typeof(todo) !== "undefined"
+							? todo
+							: "places"
+						) +
+						"&data=" + (typeof(data) !== "undefined"
+							? data
+							: JSON.stringify(this.$store.state.places)
+						)
 					);
-				});
+				} else {
+					this.$store.dispatch("setMessage",
+						"Некоторые поля заполнены некорректно"
+					);
+				}
+			}
+		},
+		homeToDB: (place) => function(place) {
+			if(!this.$store.state.user.testaccount) {
+				let homeRequest = new XMLHttpRequest();
+				homeRequest.open("POST", "/backend/set_home.php", true);
+				homeRequest.onreadystatechange = (event) => {
+					if(homeRequest.readyState == 4) {
+						if(homeRequest.status == 200) {
+							this.$store.commit("setSaved", true);
+							this.$store.dispatch("setMessage",
+								"Изменения сохранены в базе данных"
+							);
+						} else {
+							this.$store.dispatch("setMessage",
+								"Не могу внести данные в БД"
+							);
+						}
+					}
+				};
+				homeRequest.setRequestHeader(
+					"Content-type", "application/x-www-form-urlencoded"
+				);
+				homeRequest.send(
+					"id=" + sessionStorage.getItem("places-userid") +
+					"&data=" + place.id
+				);
+			}
+		},
+		toDBCompletely: () => function() {
+			if(!this.$store.state.user.testaccount) {
+				let placesRequest = new XMLHttpRequest();
+				placesRequest.open("POST", "/backend/set_completely.php", true);
+				placesRequest.onreadystatechange = (event) => {
+					if(placesRequest.readyState == 4) {
+						if(placesRequest.status == 200) {
+							this.$store.commit("setSaved", true);
+							this.$store.dispatch("setMessage",
+								"Изменения сохранены в базе данных"
+							);
+						} else {
+							this.$store.dispatch("setMessage",
+								"Не могу внести данные в БД"
+							);
+						}
+					}
+				};
+				placesRequest.setRequestHeader(
+					"Content-type", "application/x-www-form-urlencoded"
+				);
+				let plainFolders = [];
+				treeToPlain(
+					this.folderRoot,
+					"children",
+					plainFolders
+				);
+				placesRequest.send(
+					"id=" + sessionStorage.getItem("places-userid") +
+					"&data=" + (JSON.stringify({
+						"places": this.$store.state.places,
+						"folders": plainFolders,
+					}))
+				);
 			}
 		},
 		uploadFiles: (event) => function(event) {
@@ -1290,27 +1288,22 @@ export default {
 			}
 		},
 		deleteFiles: (inarray, files, event) => function(inarray, files, event) {
-			return new Promise((resolve, reject) => {
-				let data = new FormData();
-				for(let i = 0; i < files.length; i++) {
-					data.append("file_" + i, files[i].file);
-					inarray.splice(inarray.indexOf(files[i]), 1);
-				}
-				data.append("userid", this.$store.state.user.id);
-				if(!this.$store.state.user.testaccount) {
-					axios.post("/backend/delete.php", data)
-						.then(response => {
-							this.$store.commit("changePlace", {
-								place: this.$store.state.currentPlace,
-								change: {images: inarray, updated: true},
-							});
-							this.toDB("images_delete", JSON.stringify(files))
-								.then(response => {
-									resolve("Картинки успешно удалены");
-								});
+			let data = new FormData();
+			for(let i = 0; i < files.length; i++) {
+				data.append("file_" + i, files[i].file);
+				inarray.splice(inarray.indexOf(files[i]), 1);
+			}
+			data.append("userid", this.$store.state.user.id);
+			if(!this.$store.state.user.testaccount) {
+				axios.post("/backend/delete.php", data)
+					.then(() => {
+						this.$store.commit("changePlace", {
+							place: this.$store.state.currentPlace,
+							change: {images: inarray, updated: true},
 						});
-				}
-			});
+						this.toDB("images_delete", JSON.stringify(files));
+					});
+			}
 		},
 	},
 }

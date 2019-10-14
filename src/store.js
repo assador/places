@@ -442,24 +442,20 @@ export const store = new Vuex.Store({
 			sessionStorage.removeItem("places-session");
 		},
 		setUser({state, commit}) {
-			return new Promise((resolve, reject) => {
-				let userRequest = new XMLHttpRequest();
-				userRequest.open("GET", "/backend/get_account.php?id=" + sessionStorage.getItem("places-userid"), true);
-				userRequest.onreadystatechange = function(event) {
-					if(userRequest.readyState == 4) {
-						if(userRequest.status == 200) {
-							let user = JSON.parse(userRequest.responseText);
-							commit("setUser", user);
-							resolve("Данные аккаунта успешно получены");
-						} else {
-							dispatch("setMessage", "Не могу получить данные");
-							commit("setUser", {});
-							reject(new Error("Не могу получить данные"));
-						}
+			let userRequest = new XMLHttpRequest();
+			userRequest.open("GET", "/backend/get_account.php?id=" + sessionStorage.getItem("places-userid"), true);
+			userRequest.onreadystatechange = function(event) {
+				if(userRequest.readyState == 4) {
+					if(userRequest.status == 200) {
+						let user = JSON.parse(userRequest.responseText);
+						commit("setUser", user);
+					} else {
+						dispatch("setMessage", "Не могу получить данные");
+						commit("setUser", null);
 					}
-				};
-				userRequest.send(null);
-			});
+				}
+			};
+			userRequest.send(null);
 		},
 		setPlaces({state, commit, dispatch}, payload) {
 			// If reading from database, not importing
