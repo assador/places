@@ -544,8 +544,12 @@ export const store = new Vuex.Store({
 						for(let wpt of dom.getElementsByTagName("wpt")) {
 							// Parsing a link node(s) in a place node
 							for(let l of wpt.getElementsByTagName("link")) {
-								if(/^[^./]/.test(l.textContent.trim())) {
-									link = l.textContent.trim();
+								if(/^\w/.test(l.getAttribute("href").trim())) {
+									link =
+										/^http/.test(l.getAttribute("href").trim())
+											? "" : "http://"
+										+ l.getAttribute("href").trim()
+									;
 									break;
 								}
 							}
