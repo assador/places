@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div class="folder-new centered">
+		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">Новая папка</h1>
 			</div>

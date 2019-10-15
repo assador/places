@@ -20,7 +20,7 @@ body {
 .narrower, .auth_forms, .auth__login, .auth__registration {
 	width: 50%;
 }
-.auth .brand, .account .brand, .folder-new .brand  {
+.auth .brand, .account .brand, .popup-content .brand  {
 	top: -50px;
 	text-align: center;
 }

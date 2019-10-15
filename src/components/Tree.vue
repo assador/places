@@ -1,6 +1,7 @@
 <template>
 	<ul>
 		<folders
+			:instanceid="instanceid"
 			:folder="folderData"
 			:parent="folderData"
 			class="places-menu-folder_root"
@@ -16,12 +17,7 @@ export default {
 	components: {
 		folders,
 	},
-	props: {
-		data: {
-			type: Object,
-			required: true,
-		},
-	},
+	props: ["instanceid", "data"],
 	data: function() {return {
 		folderData: {},
 	}},

@@ -555,7 +555,7 @@ table.table_wopadd th, table.table_wopadd td {
 .auth__login {
 	border-width: 0 1px 0 0;
 }
-.popup-image, .popup-text, .popup-folder {
+.popup-image, .popup-text, .popup-folder, .popup-export {
 	max-width: 100%; max-height: 100%;
 }
 .popup-image, .image-thumbnail {
@@ -689,6 +689,9 @@ span.folder-button {
 	text-align: left;
 	cursor: pointer;
 	transition: all 0.3s;
+}
+#popup-export__folders .place-button {
+	cursor: auto;
 }
 .place-button[class*="block_"] {
 	margin: 7px 0 10px 0;
@@ -872,13 +875,13 @@ span.folder-button {
 #detailed-description {
 	height: 115px;
 }
-.account__form fieldset, .folder-delete__form fieldset, .place-delete__form fieldset {
+.account__form fieldset, .folder-delete__form fieldset, .popup-export__form fieldset, .place-delete__form fieldset {
 	margin: 1em;
 }
-.account__form label, .folder-delete__form label, .place-delete__form label {
+.account__form label, .folder-delete__form label, .popup-export__form label, .place-delete__form label {
 	display: flex;
 }
-.account__form label input[type="radio"], .account__form label input[type="checkbox"], .folder-delete__form label input[type="radio"], .folder-delete__form label input[type="checkbox"], .place-delete__form label input[type="radio"], .place-delete__form label input[type="checkbox"] {
+.account__form label input[type="radio"], .account__form label input[type="checkbox"], .folder-delete__form label input[type="radio"], .folder-delete__form label input[type="checkbox"], .popup-export__form label input[type="radio"], .popup-export__form label input[type="checkbox"], .place-delete__form label input[type="radio"], .place-delete__form label input[type="checkbox"] {
 	margin: 0.3em 0.5em 0 0;
 }
 

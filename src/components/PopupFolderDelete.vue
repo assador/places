@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div class="folder-new centered">
+		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">Удаление папки</h1>
 				<p>Укажите, что делать с содержимым удаляемой папки</p>

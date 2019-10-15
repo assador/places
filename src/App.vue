@@ -78,6 +78,7 @@ export default {
 					for(let i = 0; i < this.$store.state.places.length; i++) {
 						if(this.$store.state.places[i].id == this.$store.state.currentPlace.id) {
 							this.$store.state.currentPlace = this.$store.state.places[i];
+							break;
 						}
 					}
 				}

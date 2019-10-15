@@ -20,6 +20,7 @@ let app = new Vue({
 		needToUpdateFolders: false,
 		draggingElement: null,
 		foldersEditMode: false,
+		selectedToExport: [],
 	},
 	computed: {
 		...mapGetters(["getIndexById"]),
@@ -45,6 +46,10 @@ let app = new Vue({
 				case "folderDelete" :
 					this.popupData = opts.data;
 					this.popupComponent = "popupfolderdelete";
+					break;
+				case "export" :
+					this.popupData = opts.data;
+					this.popupComponent = "popupexport";
 					break;
 				case "delete" :
 					this.popupComponent = "popupdelete";
@@ -78,6 +83,20 @@ let app = new Vue({
 			};
 			aboutRequest.setRequestHeader("Content-type", "application/json");
 			aboutRequest.send();
+		},
+		exportSelected: function() {
+			const data = JSON.stringify({
+				places: this.$store.state.places,
+				folders: this.$store.state.folders,
+			});
+			const blob = new Blob([data], {type: "text/plain"});
+			const e = document.createEvent("MouseEvents"),
+			a = document.createElement("a");
+			a.download = "places.json";
+			a.href = window.URL.createObjectURL(blob);
+			a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
+			e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+			a.dispatchEvent(e);
 		},
 	},
 	methods: {

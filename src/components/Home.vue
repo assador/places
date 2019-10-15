@@ -118,7 +118,7 @@
 					id="actions-export"
 					class="actions-button"
 					title="Экспортировать свои геометки"
-					@click="exportToFile();"
+					@click="$root.showPopup({show: true, type: 'export'}, $event);"
 				>
 					↱
 				</button>
@@ -146,7 +146,7 @@
 		>
 			<div id="basic-left__places">
 				<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu">
-					<tree id="placesMenu" :data="folderRoot || {}"></tree>
+					<tree instanceid="placestree" :data="folderRoot || {}"></tree>
 				</div>
 				<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">Другие места</h2>
@@ -444,6 +444,7 @@ import popupimage from "./PopupImage.vue"
 import popuptext from "./PopupText.vue"
 import popupfolder from "./PopupFolder.vue"
 import popupfolderdelete from "./PopupFolderDelete.vue"
+import popupexport from "./PopupExport.vue"
 import axios from "axios"
 import {mapGetters} from "vuex"
 export default {
@@ -454,6 +455,7 @@ export default {
 		popuptext,
 		popupfolder,
 		popupfolderdelete,
+		popupexport,
 	},
 	data: function() {return {
 		state: this.$store.state,
@@ -651,7 +653,7 @@ export default {
 						document.getElementById("inputImportFromFile").click();
 						break;
 					case "export" :
-						this.exportToFile();
+						this.$root.showPopup({show: true, type: "export"}, event);
 						break;
 					case "save" :
 						this.toDBCompletely();
@@ -1080,20 +1082,6 @@ export default {
 					"Недопустимый тип импортируемого файла. Допускаются только JSON и GPX."
 				);
 			}
-		},
-		exportToFile: () => function() {
-			const data = JSON.stringify({
-				places: this.$store.state.places,
-				folders: this.$store.state.folders,
-			});
-			const blob = new Blob([data], {type: "text/plain"});
-			const e = document.createEvent("MouseEvents"),
-			a = document.createElement("a");
-			a.download = "places.json";
-			a.href = window.URL.createObjectURL(blob);
-			a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
-			e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-			a.dispatchEvent(e);
 		},
 		toDB: (todo, data) => function(todo, data) {
 			if(!this.$store.state.user.testaccount) {

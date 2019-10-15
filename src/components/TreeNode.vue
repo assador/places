@@ -51,38 +51,46 @@
 			<folder
 				v-for="(child, index) in orderedChildren"
 				:key="folderData.id + index"
+				:instanceid="instanceid"
 				:folder="child"
 				:parent="folderData"
 			>
 			</folder>
 		</ul>
 		<div :id="folderData.id" class="places-menu-item">
-			<div
+			<label
 				v-for="place in orderedPlaces"
 				v-if="place.folderid === folderData.id && place.show"
 				:key="place.id"
-				:id="place.id"
+				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + place.id"
 				:srt="place.srt"
 				:title="place.description"
 				:class="'place-button block_01 draggable' + ($store.state.currentPlace && place.id == $store.state.currentPlace.id ? ' active' : '')"
 				draggable="true"
-				@click="$root.setCurrentPlace(place);"
+				@click="instanceid !== 'popupexporttree' ? $root.setCurrentPlace(place) : '';"
 				@dragstart="$root.handleDragStart"
 			>
+				<input
+					v-if="instanceid === 'popupexporttree'"
+					name="placeCheckbox"
+					type="checkbox"
+					:value="place.id"
+					@change="selectUnselect(place, $event.checked);"
+				/>
 				{{ place.name }}
-				<div
+				<span
 					class="place-button__dragenter-area place-button__dragenter-area_top"
 					@dragenter="$root.handleDragEnter"
 					@dragleave="$root.handleDragLeave"
 				>
-				</div>
-				<div
+				</span>
+				<span
 					class="place-button__dragenter-area place-button__dragenter-area_bottom"
 					@dragenter="$root.handleDragEnter"
 					@dragleave="$root.handleDragLeave"
 				>
-				</div>
-			</div>
+				</span>
+			</label>
 		</div>
 		<div
 			v-if="folderData.id !== 'root'"
@@ -108,16 +116,7 @@ import _ from "lodash"
 import {bus} from "../shared/bus.js"
 export default {
 	name: "folder",
-	props: {
-		folder: {
-			type: Object,
-			required: true,
-		},
-		parent: {
-			type: Object,
-			required: true,
-		},
-	},
+	props: ["instanceid", "folder", "parent"],
 	data: function() {return {
 		folderData: {},
 	}},
@@ -134,6 +133,12 @@ export default {
 		},
 	},
 	computed: {
+		selectUnselect: (place, checked) => function(place, checked) {
+			if(checked) {
+				this.$root.selectedToExport.push(place);
+			}
+			console.dir(this.$root.selectedToExport);
+		},
 		orderedChildren: function() {
 			return _.orderBy(this.folderData.children, "srt");
 		},
