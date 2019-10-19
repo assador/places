@@ -41,9 +41,9 @@
 				</button>
 				<button
 					id="actions-edit-folders"
-					class="actions-button"
+					:class="'actions-button' + ($root.foldersEditMode ? ' button-pressed' : '')"
 					title="Редактировать папки"
-					@click="$root.foldersEditMode = !$root.foldersEditMode; if($event.target.classList.contains('button-pressed')) {$event.target.classList.remove('button-pressed');} else {$event.target.classList.add('button-pressed');}"
+					@click="$root.foldersEditMode = !$root.foldersEditMode;"
 				>
 					ПР
 				</button>
@@ -102,7 +102,7 @@
 					id="actions-save"
 					:class="'actions-button' + (!$store.state.saved ? ' button-pressed highlight' : '')"
 					:title="(!$store.state.saved ? 'Не сохранено. ' : '') + 'Сохранить в БД'"
-					@click="toDBCompletely();"
+					@click="$root.toDBCompletely();"
 				>
 					↯
 				</button>
@@ -118,7 +118,7 @@
 					id="actions-export"
 					class="actions-button"
 					title="Экспортировать свои геометки"
-					@click="$root.showPopup({show: true, type: 'export'}, $event);"
+					@click="$root.showPopup({show: true, type: 'export', data: {mime: 'application/gpx+xml'}}, $event);"
 				>
 					↱
 				</button>
@@ -134,7 +134,7 @@
 					id="actions-exit"
 					class="actions-button"
 					title="Выйти"
-					@click="toDBCompletely(); exit();"
+					@click="$root.toDBCompletely(); exit();"
 				>
 					↪
 				</button>
@@ -146,7 +146,7 @@
 		>
 			<div id="basic-left__places">
 				<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu">
-					<tree instanceid="placestree" :data="folderRoot || {}"></tree>
+					<tree instanceid="placestree" :data="$root.folderRoot || {}"></tree>
 				</div>
 				<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">Другие места</h2>
@@ -309,7 +309,7 @@
 											class="dd-images__delete button"
 											draggable="false"
 											v-if="!currentPlaceCommon"
-											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); deleteFiles(Array.from($store.state.currentPlace.images), [image], $event);"
+											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteFiles(Array.from($store.state.currentPlace.images), [image]);"
 										>
 											×
 										</div>
@@ -352,7 +352,7 @@
 							type="checkbox"
 							id="checkbox-homeplace"
 							:checked="$store.state.currentPlace === $store.state.homePlace ? 'checked' : ''"
-							@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); homeToDB($event.target.checked ? $store.state.currentPlace : {});"
+							@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); $root.homeToDB($event.target.checked ? $store.state.currentPlace : {});"
 						/>
 						Домашнее место
 					</label>
@@ -374,7 +374,7 @@
 				</button>
 				<button
 					id="commonPlacesShowHideButton"
-					class="actions-button"
+					:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
 					@click="commonPlacesShowHide();"
 					title="Показать / скрыть все другие места и их геометки"
 				>
@@ -382,7 +382,7 @@
 				</button>
 				<button
 					id="commonPlacemarksShowHideButton"
-					class="actions-button"
+					:class="'actions-button' + ($refs.extmap && $refs.extmap.commonPlacemarksShow ? ' button-pressed' : '')"
 					@click="$refs.extmap.commonPlacemarksShowHide();"
 					title="Показать / скрыть все другие геометки"
 				>
@@ -390,7 +390,7 @@
 				</button>
 				<button
 					id="centerPlacemarkShowHideButton"
-					class="actions-button"
+					:class="'actions-button' + ($refs.extmap && $refs.extmap.centerPlacemarkShow ? ' button-pressed' : '')"
 					@click="$refs.extmap.centerPlacemarkShowHide();"
 					title="Показать / скрыть метку центра карты"
 				>
@@ -476,12 +476,11 @@ export default {
 		},
 		sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
 		compact: false,
-		folderRoot: null,
 		linkEditing: false,
 	}},
 	mounted: function() {
 		bus.$on("placesFilled", happens => {
-			this.folderRoot = {
+			this.$root.folderRoot = {
 				id: "root",
 				name: "Мои места",
 				children: this.$store.state.folders,
@@ -510,7 +509,7 @@ export default {
 			}
 			if(happens === "importing") {
 				this.$nextTick(function() {
-					this.toDBCompletely();
+					bus.$emit('toDBCompletely');
 				});
 			}
 			if(this.$refs.extmap && this.$refs.extmap.map) {
@@ -572,21 +571,6 @@ export default {
 		bus.$on("setCurrentPlace", (payload) => {
 			this.setCurrentPlace(payload.place, payload.common);
 		});
-		bus.$on("toDB", (what) => {
-			switch(what) {
-				case "places" :
-					this.toDB("places", JSON.stringify(this.$store.state.places));
-					break;
-				case "folders" :
-					let plain = [];
-					treeToPlain(this.folderRoot, "children", plain);
-					this.toDB("folders", JSON.stringify(plain));
-					break;
-			}
-		});
-		bus.$on("toDBCompletely", () => {
-			this.toDBCompletely();
-		});
 		sessionStorage.setItem("places-app-child-component", "home");
 		this.$store.commit("setIdleTime", 0);
 		if(this.$store.state.ready) {
@@ -600,8 +584,6 @@ export default {
 		bus.$off("placesFilled");
 		bus.$off("homeRefresh");
 		bus.$off("setCurrentPlace");
-		bus.$off("toDB");
-		bus.$off("toDBCompletely");
 	},
 	methods: {
 		validatable: function() {
@@ -656,7 +638,7 @@ export default {
 						this.$root.showPopup({show: true, type: "export"}, event);
 						break;
 					case "save" :
-						this.toDBCompletely();
+						bus.$emit("toDBCompletely");
 						break;
 					case "help" :
 						this.$root.showAbout();
@@ -665,7 +647,7 @@ export default {
 						document.location.reload(true);
 						break;
 					case "quit" :
-						this.toDBCompletely();
+						bus.$emit("toDBCompletely");
 						this.exit();
 						break;
 					case "other" :
@@ -916,11 +898,14 @@ export default {
 					let folder, folderid = place.folderid;
 					while(folderid) {
 						folder = findInTree(
-							this.folderRoot,
+							this.$root.folderRoot,
 							"children",
 							"id",
 							folderid
 						);
+						if(!folder) {
+							break;
+						}
 						this.$store.commit("folderOpenClose", {folder: folder, opened: true});
 						folderid = (folder.parent === null ? "root" : folder.parent);
 					}
@@ -1004,45 +989,36 @@ export default {
 				});
 		},
 		deletePlace: (place, backup) => function(place, backup) {
-			let finallyDeletePlace = place => {
-				let firstRootPlace = this.$store.state.places.find(p => p.folderid === null);
-				if(this.$store.state.places.length === 1) {
-					this.$store.commit("setCurrentPlace", {});
-				} else if(document.getElementById(place.id).nextElementSibling) {
-					this.setCurrentPlace(
-						this.$store.state.places.find(
-							p => p.id === document.getElementById(place.id).nextElementSibling.id
-						)
-					);
-				} else if(document.getElementById(place.id).previousElementSibling) {
-					this.setCurrentPlace(
-						this.$store.state.places.find(
-							p => p.id === document.getElementById(place.id).previousElementSibling.id
-						)
-					);
-				} else if(this.$store.state.homePlace) {
-					this.setCurrentPlace(this.$store.state.homePlace);
-				} else if(firstRootPlace) {
-					this.setCurrentPlace(firstRootPlace);
-				} else {
-					this.setCurrentPlace(this.$store.state.places[0]);
-				}
-				this.$store.commit("removePlace", {
-					place: place,
-					change: {deleted: true},
-					backup: (typeof(backup) === "undefined" || backup ? true : false),
-				});
-				this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
-				this.$store.commit("deletePlace", place);
-			}
-			if(place.images.length > 0) {
-				this.deleteFiles(Array.from(place.images), place.images)
-					.then(response => {
-						finallyDeletePlace(place);
-					});
+			this.$root.deleteFiles(place.images);
+			let firstRootPlace = this.$store.state.places.find(p => p.folderid === null);
+			if(this.$store.state.places.length === 1) {
+				this.$store.commit("setCurrentPlace", null);
+			} else if(document.getElementById(place.id).nextElementSibling) {
+				this.setCurrentPlace(
+					this.$store.state.places.find(
+						p => p.id === document.getElementById(place.id).nextElementSibling.id
+					)
+				);
+			} else if(document.getElementById(place.id).previousElementSibling) {
+				this.setCurrentPlace(
+					this.$store.state.places.find(
+						p => p.id === document.getElementById(place.id).previousElementSibling.id
+					)
+				);
+			} else if(this.$store.state.homePlace && this.$store.state.homePlace !== place) {
+				this.setCurrentPlace(this.$store.state.homePlace);
+			} else if(firstRootPlace) {
+				this.setCurrentPlace(firstRootPlace);
 			} else {
-				finallyDeletePlace(place);
+				this.setCurrentPlace(this.$store.state.places[0]);
 			}
+			this.$store.commit("removePlace", {
+				place: place,
+				change: {deleted: true},
+				backup: (typeof(backup) === "undefined" || backup ? true : false),
+			});
+			this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
+			this.$store.commit("deletePlace", place);
 		},
 		commonPlacesShowHide: (show = null) => function(show = null) {
 			this.commonPlacesShow =
@@ -1058,131 +1034,21 @@ export default {
 					this.$refs.extmap.commonMrks[key].options.set("visible", true);
 				}
 			}
-			if(!this.commonPlacesShow) {
-				document.getElementById("commonPlacesShowHideButton").classList.remove("button-pressed");
-				document.getElementById("commonPlacemarksShowHideButton").classList.remove("button-pressed");
-			} else {
-				document.getElementById("commonPlacemarksShowHideButton").classList.add("button-pressed");
-				document.getElementById("commonPlacesShowHideButton").classList.add("button-pressed");
-			}
 		},
 		importFromFile: () => function() {
-			let type = this.$refs.inputImportFromFile.files[0].type;
+			let mime = this.$refs.inputImportFromFile.files[0].type;
 			let reader = new FileReader();
 			reader.onload = (event) => {
 				this.$nextTick(() => {
-					this.$store.dispatch("setPlaces", {text: event.target.result, type: type});
+					this.$store.dispatch("setPlaces", {text: event.target.result, mime: mime});
 					document.getElementById("inputImportFromFile").value = "";
 				});
 			};
-			if(type == "application/json" || type == "application/gpx+xml") {
+			if(mime == "application/json" || mime == "application/gpx+xml") {
 				reader.readAsText(this.$refs.inputImportFromFile.files[0]);
 			} else {
 				this.$store.dispatch("setMessage",
 					"Недопустимый тип импортируемого файла. Допускаются только JSON и GPX."
-				);
-			}
-		},
-		toDB: (todo, data) => function(todo, data) {
-			if(!this.$store.state.user.testaccount) {
-				if(!document.querySelector(".value_wrong")) {
-					let placesRequest = new XMLHttpRequest();
-					placesRequest.open("POST", "/backend/set_places.php", true);
-					placesRequest.onreadystatechange = (event) => {
-						if(placesRequest.readyState == 4) {
-							if(placesRequest.status == 200) {
-								this.$store.commit("setSaved", true);
-								this.$store.dispatch("setMessage",
-									"Изменения сохранены в базе данных"
-								);
-							} else {
-								this.$store.dispatch("setMessage",
-									"Не могу внести данные в БД"
-								);
-							}
-						}
-					};
-					placesRequest.setRequestHeader(
-						"Content-type", "application/x-www-form-urlencoded"
-					);
-					placesRequest.send(
-						"id=" + sessionStorage.getItem("places-userid") +
-						"&todo=" + (typeof(todo) !== "undefined"
-							? todo
-							: "places"
-						) +
-						"&data=" + (typeof(data) !== "undefined"
-							? data
-							: JSON.stringify(this.$store.state.places)
-						)
-					);
-				} else {
-					this.$store.dispatch("setMessage",
-						"Некоторые поля заполнены некорректно"
-					);
-				}
-			}
-		},
-		homeToDB: (place) => function(place) {
-			if(!this.$store.state.user.testaccount) {
-				let homeRequest = new XMLHttpRequest();
-				homeRequest.open("POST", "/backend/set_home.php", true);
-				homeRequest.onreadystatechange = (event) => {
-					if(homeRequest.readyState == 4) {
-						if(homeRequest.status == 200) {
-							this.$store.commit("setSaved", true);
-							this.$store.dispatch("setMessage",
-								"Изменения сохранены в базе данных"
-							);
-						} else {
-							this.$store.dispatch("setMessage",
-								"Не могу внести данные в БД"
-							);
-						}
-					}
-				};
-				homeRequest.setRequestHeader(
-					"Content-type", "application/x-www-form-urlencoded"
-				);
-				homeRequest.send(
-					"id=" + sessionStorage.getItem("places-userid") +
-					"&data=" + place.id
-				);
-			}
-		},
-		toDBCompletely: () => function() {
-			if(!this.$store.state.user.testaccount) {
-				let placesRequest = new XMLHttpRequest();
-				placesRequest.open("POST", "/backend/set_completely.php", true);
-				placesRequest.onreadystatechange = (event) => {
-					if(placesRequest.readyState == 4) {
-						if(placesRequest.status == 200) {
-							this.$store.commit("setSaved", true);
-							this.$store.dispatch("setMessage",
-								"Изменения сохранены в базе данных"
-							);
-						} else {
-							this.$store.dispatch("setMessage",
-								"Не могу внести данные в БД"
-							);
-						}
-					}
-				};
-				placesRequest.setRequestHeader(
-					"Content-type", "application/x-www-form-urlencoded"
-				);
-				let plainFolders = [];
-				treeToPlain(
-					this.folderRoot,
-					"children",
-					plainFolders
-				);
-				placesRequest.send(
-					"id=" + sessionStorage.getItem("places-userid") +
-					"&data=" + (JSON.stringify({
-						"places": this.$store.state.places,
-						"folders": plainFolders,
-					}))
 				);
 			}
 		},
@@ -1288,10 +1154,11 @@ export default {
 							});
 							if(response.data[1].length > 0) {
 								this.$store.dispatch("setMessage", "Файлы успешно загружены");
-								this.toDB()
-									.then(response => {
-										this.toDB("images_upload", JSON.stringify(filesArray))
-									});
+								bus.$emit("toDB", {what: "places"});
+								bus.$emit("toDB", {
+									what: "images_upload",
+									data: JSON.stringify(filesArray),
+								});
 							}
 						})
 						.catch(error => {
@@ -1300,24 +1167,6 @@ export default {
 							);
 						});
 				}
-			}
-		},
-		deleteFiles: (inarray, files, event) => function(inarray, files, event) {
-			let data = new FormData();
-			for(let i = 0; i < files.length; i++) {
-				data.append("file_" + i, files[i].file);
-				inarray.splice(inarray.indexOf(files[i]), 1);
-			}
-			data.append("userid", this.$store.state.user.id);
-			if(!this.$store.state.user.testaccount) {
-				axios.post("/backend/delete.php", data)
-					.then(() => {
-						this.$store.commit("changePlace", {
-							place: this.$store.state.currentPlace,
-							change: {images: inarray, updated: true},
-						});
-						this.toDB("images_delete", JSON.stringify(files));
-					});
 			}
 		},
 	},

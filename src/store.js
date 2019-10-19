@@ -46,16 +46,16 @@ const tracking = store => {
 				) {
 					if(!state.inUndoRedo) {
 						if(mutation.payload.hasOwnProperty("type")) {
-							bus.$emit("toDB", mutation.payload.type + "s");
+							bus.$emit("toDB", {what: mutation.payload.type + "s"});
 							store.commit("savedToDB", mutation.payload);
 						}
 						if(mutation.payload.hasOwnProperty("change")) {
 							if(mutation.payload.hasOwnProperty("place")) {
-								bus.$emit("toDB", "places");
+								bus.$emit("toDB", {what: "places"});
 								store.commit("savedToDB", mutation.payload.place);
 							}
 							if(mutation.payload.hasOwnProperty("folder")) {
-								bus.$emit("toDB", "folders");
+								bus.$emit("toDB", {what: "folders"});
 								store.commit("savedToDB", mutation.payload.folder);
 							}
 						}
@@ -277,22 +277,6 @@ export const store = new Vuex.Store({
 			Vue.set(payload.place, "deleted", true);
 			Vue.set(payload.place, "updated", false);
 		},
-		// Delete from the store the place marked as to be deleted
-		deletePlace(state, place) {
-			state.places.splice(state.places.indexOf(place), 1);
-			Vue.set(state, "places", state.places);
-			Vue.set(state, "currentPlaceIndex",
-				state.places.indexOf(state.currentPlace)
-			);
-		},
-		deletePlacesMarkedAsDeleted(state, payload) {
-			for(let i = 0; i < state.places.length; i++) {
-				if(state.places[i].deleted) {
-					state.places.splice(i, 1);
-					i--;
-				}
-			}
-		},
 		changePlace(state, changes) {
 			let keys = Object.keys(changes.change), toUpdated = true;
 			for(let i = 0; i < keys.length; i++) {
@@ -377,6 +361,17 @@ export const store = new Vuex.Store({
 				}
 			}
 		},
+		deletePlace(state, place) {
+			for(let i = 0; i < state.places.length; i++) {
+				if(state.places[i] === place) {
+					state.places.splice(i, 1);
+					Vue.set(state, "currentPlaceIndex",
+						state.places.indexOf(state.currentPlace)
+					);
+					break;
+				}
+			}
+		},
 		deleteFolder(state, payload) {
 			payload.parent.children.splice(
 				payload.parent.children.indexOf(payload.folder),
@@ -384,8 +379,25 @@ export const store = new Vuex.Store({
 			);
 			Vue.set(state, "folders", state.folders);
 		},
+		deletePlacesMarkedAsDeleted(state, payload) {
+			for(let i = 0; i < state.places.length; i++) {
+				if(state.places[i].deleted) {
+					state.places.splice(i, 1);
+					i--;
+				}
+			}
+			Vue.set(state, "currentPlaceIndex",
+				state.places.indexOf(state.currentPlace)
+			);
+		},
 		deleteFoldersMarkedAsDeleted(state, payload) {
-			changeByKeyValue({children: state.folders}, "children", "deleted", true, "delete");
+			changeByKeyValue(
+				{children: state.folders},
+				"children",
+				"deleted",
+				true,
+				"delete"
+			);
 		},
 		changeFolder(state, changes) {
 			let keys = Object.keys(changes.change), toUpdated = true;
@@ -400,7 +412,28 @@ export const store = new Vuex.Store({
 			}
 		},
 		folderOpenClose(state, payload) {
-			Vue.set(payload.folder, "opened", payload.opened);
+			if(payload.folder) {
+				Vue.set(
+					payload.folder,
+					"opened",
+					payload.hasOwnProperty("opened")
+						? payload.opened
+						: !payload.folder.opened
+				);
+			}
+			if(payload.target) {
+				if(payload.opened) {
+					payload.target.classList.add("places-menu-folder_opened");
+				} else {
+					if(payload.target.classList.contains("places-menu-folder_opened")) {
+						payload.target.classList.add("places-menu-folder_closed");
+						payload.target.classList.remove("places-menu-folder_opened");
+					} else {
+						payload.target.classList.add("places-menu-folder_opened");
+						payload.target.classList.remove("places-menu-folder_closed");
+					}
+				}
+			}
 		},
 		swapValues(state, changes) {
 			let p1 = changes.parent[changes.indexes[0]];
@@ -487,7 +520,7 @@ export const store = new Vuex.Store({
 			 */
 			} else {
 				let parsed;
-				switch(payload.type) {
+				switch(payload.mime) {
 					case "application/json" :
 						try {
 							parsed = JSON.parse(payload.text);
@@ -659,7 +692,7 @@ export const store = new Vuex.Store({
 					payload.folderId
 				)
 			;
-			if(folder.parent === null) {
+			if(!folder.parent) {
 				source = state.folders;
 			} else {
 				source = findInTree(
@@ -725,7 +758,9 @@ export const store = new Vuex.Store({
 				if(me && me.lastElementChild) {
 					me.lastElementChild.classList.add("highlight");
 					setTimeout(function() {
-						document.getElementById("message-main").lastElementChild.classList.remove("highlight");
+						if(document.getElementById("message-main").lastElementChild) {
+							document.getElementById("message-main").lastElementChild.classList.remove("highlight");
+						}
 					}, 500);
 				}
 			} else {

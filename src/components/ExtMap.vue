@@ -242,19 +242,12 @@ export default {
 					? !this.commonPlacemarksShow
 					: show
 			;
-			if(!this.commonPlacemarksShow) {
-				document.getElementById("commonPlacemarksShowHideButton").classList.remove("button-pressed");
-			} else {
-				document.getElementById("commonPlacemarksShowHideButton").classList.add("button-pressed");
-			}
 		},
 		centerPlacemarkShowHide: (show = null) => function(show = null) {
 			if(this.centerPlacemarkShow) {
 				this.mrk.options.set("visible", false);
-				document.getElementById("centerPlacemarkShowHideButton").classList.remove("button-pressed");
 			} else {
 				this.mrk.options.set("visible", true);
-				document.getElementById("centerPlacemarkShowHideButton").classList.add("button-pressed");
 			}
 			this.centerPlacemarkShow =
 				show === null

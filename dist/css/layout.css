@@ -117,11 +117,6 @@ body {
 	max-width: 100%;
 	margin: 12px;
 	padding: 10px 20px 12px 20px;
-	border-radius: 7px;
-	background-color: rgba(0, 0, 0, 0.85);
-	box-shadow: 0 4px 23px rgba(0, 0, 0, 0.7);
-	text-align: right;
-	cursor: default;
 	z-index: 10;
 }
 #imp {
@@ -191,7 +186,7 @@ body {
 	padding: 11px 16px;
 	z-index: 0;
 }
-.popup, .centered {
+.popup, .popup > div, .centered {
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -200,19 +195,9 @@ body {
 	padding: 50px;
 }
 .popup {
-	background-color: rgba(0, 0, 0, 0.85);
 	z-index: 1000;
 }
-.popup > div {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	position: fixed;
-	top: 0; right: 0; bottom: 0; left: 0;
-	padding: 50px;
-}
 #scroll-up, #scroll-down {
-	background-color: rgba(70, 41, 23, 0.7);
 	position: fixed;
 	right: 0; left: 0;
 	height: 0;

@@ -5,6 +5,7 @@ import {store} from "./store.js"
 import {constants} from "./shared/constants.js"
 import {bus} from "./shared/bus.js"
 import {mapGetters} from "vuex"
+import axios from "axios"
 
 Vue.use(Vuex);
 
@@ -19,8 +20,36 @@ let app = new Vue({
 		needToUpdate: false,
 		needToUpdateFolders: false,
 		draggingElement: null,
+		folderRoot: null,
 		foldersEditMode: false,
 		selectedToExport: [],
+	},
+	mounted: function() {
+		bus.$on("toDB", payload => {
+			let plain = [];
+			switch(payload.what) {
+				case "places" :
+					this.toDB("places", JSON.stringify(this.$store.state.places));
+					break;
+				case "folders" :
+					treeToPlain(this.folderRoot, "children", plain);
+					this.toDB("folders", JSON.stringify(plain));
+					break;
+				case undefined :
+					this.toDB("places", JSON.stringify(this.$store.state.places));
+					treeToPlain(this.folderRoot, "children", plain);
+					this.toDB("folders", JSON.stringify(plain));
+					break;
+				default :
+					this.toDB(payload.what, payload.data);
+			}
+		});
+		bus.$on("homeToDB", place => {
+			this.homeToDB(place);
+		});
+		bus.$on("toDBCompletely", () => {
+			this.toDBCompletely();
+		});
 	},
 	computed: {
 		...mapGetters(["getIndexById"]),
@@ -54,9 +83,11 @@ let app = new Vue({
 				case "delete" :
 					this.popupComponent = "popupdelete";
 					break;
+				default :
+					this.popupComponent = null;
 			}
 			if(!opts["show"]) {
-				this.popupComponent = "popuptext";
+				this.popupComponent = null;
 			}
 			this.popuped = opts["show"] ? "appear" : "disappear";
 		},
@@ -84,17 +115,166 @@ let app = new Vue({
 			aboutRequest.setRequestHeader("Content-type", "application/json");
 			aboutRequest.send();
 		},
-		exportSelected: function() {
-			const data = JSON.stringify({
-				places: this.$store.state.places,
-				folders: this.$store.state.folders,
+		toDB: (todo, data) => function(todo, data) {
+			if(!this.$store.state.user.testaccount) {
+				if(!document.querySelector(".value_wrong")) {
+					let placesRequest = new XMLHttpRequest();
+					placesRequest.open("POST", "/backend/set_places.php", true);
+					placesRequest.onreadystatechange = (event) => {
+						if(placesRequest.readyState == 4) {
+							if(placesRequest.status == 200) {
+								this.$store.commit("setSaved", true);
+								this.$store.dispatch("setMessage",
+									"Изменения сохранены в базе данных"
+								);
+							} else {
+								this.$store.dispatch("setMessage",
+									"Не могу внести данные в БД"
+								);
+							}
+						}
+					};
+					placesRequest.setRequestHeader(
+						"Content-type", "application/x-www-form-urlencoded"
+					);
+					placesRequest.send(
+						"id=" + sessionStorage.getItem("places-userid") +
+						"&todo=" + (typeof(todo) !== "undefined"
+							? todo
+							: "places"
+						) +
+						"&data=" + (typeof(data) !== "undefined"
+							? data
+							: JSON.stringify(this.$store.state.places)
+						)
+					);
+				} else {
+					this.$store.dispatch("setMessage",
+						"Некоторые поля заполнены некорректно"
+					);
+				}
+			}
+		},
+		homeToDB: (place) => function(place) {
+			if(!this.$store.state.user.testaccount) {
+				let homeRequest = new XMLHttpRequest();
+				homeRequest.open("POST", "/backend/set_home.php", true);
+				homeRequest.onreadystatechange = (event) => {
+					if(homeRequest.readyState == 4) {
+						if(homeRequest.status == 200) {
+							this.$store.commit("setSaved", true);
+							this.$store.dispatch("setMessage",
+								"Изменения сохранены в базе данных"
+							);
+						} else {
+							this.$store.dispatch("setMessage",
+								"Не могу внести данные в БД"
+							);
+						}
+					}
+				};
+				homeRequest.setRequestHeader(
+					"Content-type", "application/x-www-form-urlencoded"
+				);
+				homeRequest.send(
+					"id=" + sessionStorage.getItem("places-userid") +
+					"&data=" + place.id
+				);
+			}
+		},
+		toDBCompletely: () => function() {
+			if(!this.$store.state.user.testaccount) {
+				let placesRequest = new XMLHttpRequest();
+				placesRequest.open("POST", "/backend/set_completely.php", true);
+				placesRequest.onreadystatechange = (event) => {
+					if(placesRequest.readyState == 4) {
+						if(placesRequest.status == 200) {
+							this.$store.commit("setSaved", true);
+							this.$store.dispatch("setMessage",
+								"Изменения сохранены в базе данных"
+							);
+						} else {
+							this.$store.dispatch("setMessage",
+								"Не могу внести данные в БД"
+							);
+						}
+					}
+				};
+				placesRequest.setRequestHeader(
+					"Content-type", "application/x-www-form-urlencoded"
+				);
+				let plainFolders = [];
+				treeToPlain(
+					this.folderRoot,
+					"children",
+					plainFolders
+				);
+				placesRequest.send(
+					"id=" + sessionStorage.getItem("places-userid") +
+					"&data=" + (JSON.stringify({
+						"places": this.$store.state.places,
+						"folders": plainFolders,
+					}))
+				);
+			}
+		},
+		deleteFiles: (inarray, files) => function(inarray, files) {
+			let data = new FormData();
+			if(!files) {
+				files = Array.from(inarray);
+			}
+			for(let i = 0; i < files.length; i++) {
+				data.append("file_" + i, files[i].file);
+				inarray.splice(inarray.indexOf(files[i]), 1);
+			}
+			data.append("userid", this.$store.state.user.id);
+			this.$store.commit("changePlace", {
+				place: this.$store.state.currentPlace,
+				change: {images: inarray, updated: true},
 			});
-			const blob = new Blob([data], {type: "text/plain"});
-			const e = document.createEvent("MouseEvents"),
-			a = document.createElement("a");
-			a.download = "places.json";
-			a.href = window.URL.createObjectURL(blob);
-			a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
+			if(!this.$store.state.user.testaccount) {
+				axios.post("/backend/delete.php", data)
+					.then(response => {
+						this.toDB("images_delete", JSON.stringify(files));
+					});
+			}
+		},
+		exportPlaces: (places, mime) => function(places, mime) {
+			let content, a = document.createElement("a");
+			switch(mime) {
+				case "application/gpx+xml" :
+					a.download = "places.gpx";
+					a.dataset.downloadurl = ["application/gpx+xml", a.download, a.href].join(":");
+					content =
+						'<?xml version="1.0" encoding="utf-8" standalone="yes"?>'
+						+ '<gpx'
+						+ ' version="1.1"'
+						+ ' xmlns="http://www.topografix.com/GPX/1/1"'
+						+ ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+						+ ' xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
+					;
+					for(let p of places) {
+						content += '<wpt lat="' + p.latitude + '" lon="' + p.longitude + '">';
+						content += p.name ? ('<name>' + p.name + '</name>') : '';
+						content += p.description ? ('<description>' + p.description + '</description>') : '';
+						content += p.link ? ('<link href="' + p.link + '"></link>') : '';
+						content += p.altitudecapability ? ('<ele>' + p.altitudecapability + '</ele>') : '';
+						content += p.time ? ('<time>' + p.time + '</time>') : '';
+						content += '</wpt>';
+					}
+					content += '</gpx>';
+					break;
+				default :
+					mime = "application/json";
+					a.download = "places.json";
+					a.dataset.downloadurl = ["application/json", a.download, a.href].join(":");
+					content = JSON.stringify({
+						places: this.$store.state.places,
+						folders: this.$store.state.folders,
+					});
+			}
+			a.href = window.URL.createObjectURL(new Blob([content], {type: "text/plain"}));
+			let e = document.createEvent("MouseEvents");
 			e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
 			a.dispatchEvent(e);
 		},
@@ -135,17 +315,8 @@ let app = new Vue({
 				}
 				// Folder link passes over sorting areas of another folder link
 				if(
-					this.draggingElement !== event.target.parentNode.firstElementChild
-					&& this.draggingElement.classList.contains("folder-button")
+					this.draggingElement.classList.contains("folder-button")
 					&& event.target.classList.contains("places-menu-folder__dragenter-area")
-					&& !(
-						this.draggingElement.parentNode.nextElementSibling === event.target.parentNode
-						&& event.target.classList.contains("places-menu-folder__dragenter-area_top")
-					)
-					&& !(
-						this.draggingElement.parentNode.previousElementSibling === event.target.parentNode
-						&& event.target.classList.contains("places-menu-folder__dragenter-area_bottom")
-					)
 				) {
 					if(event.target.classList.contains("places-menu-folder__dragenter-area_top")) {
 						event.target.classList.add("dragenter-area_top_border");
@@ -219,17 +390,20 @@ let app = new Vue({
 			) {
 				let
 					srt = null,
-					targetSrt = Number(event.target.parentNode.getAttribute("srt"))
+					targetSrt = Number(
+						event.target.parentNode.getAttribute("srt")
+						|| event.target.parentNode.parentNode.getAttribute("srt")
+					)
 				;
 				// Place button dropped on folder list item
 				if(
 					this.draggingElement.classList.contains("place-button")
-					&& event.target.parentNode.classList.contains("places-menu-folder")
+					&& event.target.parentNode.parentNode.classList.contains("places-menu-folder")
 				) {
 					let container;
-					event.target.parentNode.querySelectorAll(".places-menu-item")
+					event.target.parentNode.parentNode.querySelectorAll(".places-menu-item")
 						.forEach(function(c) {
-							if(c.parentNode === event.target.parentNode) {
+							if(c.parentNode === event.target.parentNode.parentNode) {
 								container = c;
 								return;
 							}
@@ -273,11 +447,11 @@ let app = new Vue({
 					&& this.draggingElement.classList.contains("place-button")
 					&& event.target.classList.contains("place-button__dragenter-area")
 					&& !(
-						this.draggingElement.nextElementSibling === event.target.parentNode
+						this.draggingElement.parentNode.parentNode.nextElementSibling === event.target.parentNode
 						&& event.target.classList.contains("place-button__dragenter-area_top")
 					)
 					&& !(
-						this.draggingElement.previousElementSibling === event.target.parentNode
+						this.draggingElement.parentNode.parentNode.previousElementSibling === event.target.parentNode
 						&& event.target.classList.contains("place-button__dragenter-area_bottom")
 					)
 				) {
@@ -337,7 +511,7 @@ let app = new Vue({
 				}
 				// Folder link dropped on sorting areas of another folder link
 				if(
-					this.draggingElement !== event.target.parentNode.firstElementChild
+					this.draggingElement.parentNode.parentNode !== event.target.parentNode
 					&& this.draggingElement.classList.contains("folder-button")
 					&& event.target.classList.contains("places-menu-folder__dragenter-area")
 					&& !isParentInTree(
@@ -349,23 +523,23 @@ let app = new Vue({
 				) {
 					let
 						srt = null,
-						targetSrt = Number(event.target.parentNode.firstElementChild.getAttribute("srt")),
+						targetSrt = Number(event.target.parentNode.firstElementChild.firstElementChild.getAttribute("srt")),
 						targetPrev = event.target.parentNode.previousElementSibling,
 						targetNext = event.target.parentNode.nextElementSibling
 					;
 					if(event.target.classList.contains("places-menu-folder__dragenter-area_top")) {
 						if(!targetPrev) {
 							srt = targetSrt / 2;
-						} else if(targetPrev !== this.draggingElement.parentNode) {
-							let targetPrevSrt = Number(targetPrev.firstElementChild.getAttribute("srt"));
+						} else if(targetPrev !== this.draggingElement.parentNode.parentNode) {
+							let targetPrevSrt = Number(targetPrev.firstElementChild.firstElementChild.getAttribute("srt"));
 							srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
 						}
 					}
 					if(event.target.classList.contains("places-menu-folder__dragenter-area_bottom")) {
 						if(!targetNext) {
 							srt = targetSrt + 1;
-						} else if(targetNext !== this.draggingElement.parentNode) {
-							let targetNextSrt = Number(targetNext.firstElementChild.getAttribute("srt"));
+						} else if(targetNext !== this.draggingElement.parentNode.parentNode) {
+							let targetNextSrt = Number(targetNext.firstElementChild.firstElementChild.getAttribute("srt"));
 							srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
 						}
 					}
@@ -383,7 +557,7 @@ let app = new Vue({
 				if(
 					this.draggingElement.classList.contains("folder-button")
 					&& event.target.classList.contains("folder-button")
-					&& !this.draggingElement.parentNode.contains(event.target.parentNode.parentNode)
+					&& !this.draggingElement.parentNode.parentNode.contains(event.target.parentNode.parentNode.parentNode)
 					&& !isParentInTree(
 						{children: this.$store.state.folders},
 						"children",

@@ -79,11 +79,18 @@ table.table_decor > * > tr:hover {
 .places-menu-folder_root .places-menu-folder_opened::before {
 	background-color: rgba(255, 252, 224, 0.12);
 }
+.back_3,
+#message-main, .popup {
+	background-color: rgba(0, 0, 0, 0.85);
+}
 tr:hover {
 	background-color: rgba(144, 98, 62, 0.1);
 }
 body, body.iframe {
 	background-color: rgb(70, 41, 23);
+}
+#scroll-up, #scroll-down {
+	background-color: rgba(70, 41, 23, 0.7);
 }
 .value_correct:focus {
 	background-color: rgb(78, 85, 24) !important;
@@ -593,15 +600,19 @@ table.table_wopadd th, table.table_wopadd td {
 .places-menu-folder::before {
 	display: none;
 }
-.folder-button {
+.folder-button, .folder-checkbox {
 	position: relative;
-	display: block;
+	display: inline-block;
 	margin: -1px -1px -1px -1.5em;
 	padding-left: 1.5em;
 	cursor: pointer;
 	z-index: 0;
 	border: 1px solid transparent;
 	transition: all 0.5s;
+}
+.folder-checkbox + .folder-button {
+	margin-left: 0.7em;
+	vertical-align: middle;
 }
 .folder-button_parent {
 	border-color: rgba(255, 223, 170, 0.3);
@@ -663,11 +674,11 @@ span.folder-button {
 .places-menu-folder_opened > a::before {
 	cursor: pointer;
 }
-.places-menu-folder_closed > .folder-button::before {
+.places-menu-folder_closed > * > .folder-button::before {
 	content: '\25b6';
 	font-size: 93%;
 }
-.places-menu-folder_opened > .folder-button::before {
+.places-menu-folder_opened > * > .folder-button::before {
 	content: '\25bc';
 }
 .places-menu-folder_closed > .places-menu-item {
@@ -690,7 +701,11 @@ span.folder-button {
 	cursor: pointer;
 	transition: all 0.3s;
 }
-#popup-export__folders .place-button {
+.to-export-place-checkbox {
+	margin-right: 0.5em;
+	vertical-align: middle;
+}
+.folder-checkbox, #popup-export__tree .place-button, #popup-export__tree .place-button * {
 	cursor: auto;
 }
 .place-button[class*="block_"] {
@@ -862,6 +877,12 @@ span.folder-button {
 #bottom-left {
 	box-shadow: inset -100px 85px 20px -100px rgba(47, 20, 0, 0.6);
 }
+#message-main {
+	border-radius: 7px;
+	box-shadow: 0 4px 23px rgba(0, 0, 0, 0.7);
+	text-align: right;
+	cursor: default;
+}
 #placemarksShowHideButton, #commonPlacesShowHideButton, #commonPlacemarksShowHideButton, #centerPlacemarkShowHideButton {
 	padding: 0;
 	font-size: 13px;
@@ -881,8 +902,22 @@ span.folder-button {
 .account__form label, .folder-delete__form label, .popup-export__form label, .place-delete__form label {
 	display: flex;
 }
-.account__form label input[type="radio"], .account__form label input[type="checkbox"], .folder-delete__form label input[type="radio"], .folder-delete__form label input[type="checkbox"], .popup-export__form label input[type="radio"], .popup-export__form label input[type="checkbox"], .place-delete__form label input[type="radio"], .place-delete__form label input[type="checkbox"] {
+.account__form label input[type="radio"], .account__form label input[type="checkbox"], .folder-delete__form label input[type="radio"], .folder-delete__form label input[type="checkbox"], .popup-export__form label input[type="checkbox"], .place-delete__form label input[type="radio"], .place-delete__form label input[type="checkbox"] {
 	margin: 0.3em 0.5em 0 0;
+}
+.popup-export__form {
+	max-width: 600px;
+	text-align: center;
+}
+.popup-export__form label {
+	display: block;
+}
+#popup-export__tree {
+	display: inline-table;
+	text-align: left;
+}
+#to-export-places-menu-folder-link-root {
+	white-space: nowrap;
 }
 
 @media screen and (max-width: 500px) {

@@ -3,8 +3,9 @@
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">Удаление папки</h1>
-				<p>Укажите, что делать с содержимым удаляемой папки</p>
+				<p class="margin_bottom_0">«{{ data.folder.name }}»</p>
 			</div>
+			<p class="margin_bottom_0">Укажите, что делать с содержимым удаляемой папки:</p>
 			<form
 				class="folder-delete__form margin_bottom_0"
 				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
@@ -17,7 +18,7 @@
 					</label>
 					<label>
 						<input name="content" type="radio" v-model="keepContent" value="delete" />
-						<span>Удалить содержимое</span>
+						<span>Удалить содержимое (без возможности отмены)</span>
 					</label>
 				</fieldset>
 				<div style="text-align: center;">
@@ -71,8 +72,8 @@ export default {
 				}
 			}
 			if(!this.$store.state.inUndoRedo) {
-				bus.$emit("toDB", "places");
-				bus.$emit("toDB", "folders");
+				bus.$emit("toDB", {what: "places"});
+				bus.$emit("toDB", {what: "folders"});
 			} else {
 				bus.$emit("toDBCompletely");
 				this.$store.commit("outUndoRedo");
@@ -95,6 +96,11 @@ export default {
 					});
 				}
 			});
+			this.$store.state.places.forEach((place) => {
+				if(place.deleted) {
+					this.$root.deleteFiles(place.images);
+				}
+			});
 			this.$store.commit("deletePlacesMarkedAsDeleted");
 			this.$store.commit("deleteFoldersMarkedAsDeleted");
 			if(this.$store.state.places.length > 0) {
@@ -109,7 +115,9 @@ export default {
 					}
 				}
 			}
-			this.$store.commit("backupState");
+			if(this.keepContent !== "delete") {
+				this.$store.commit("backupState");
+			}
 			bus.$emit("homeRefresh");
 			this.$root.showPopup({show: false}, event);
 		},

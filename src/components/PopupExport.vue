@@ -8,47 +8,59 @@
 			<form
 				class="popup-export__form"
 				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
-				@submit.prevent="$root.exportSelected"
+				@submit.prevent="$root.exportPlaces($root.selectedToExport, $event.target.elements['mime'].value)"
 			>
 				<fieldset class="margin_bottom">
 					<label>
 						<input
-							name="format"
+							name="mime"
 							type="radio"
-							:checked="type == 'application/json'"
-							value="application/json"
-						/>
-						<span>JSON</span>
-					</label>
-					<label>
-						<input
-							name="format"
-							type="radio"
-							:checked="type == 'application/gpx+xml'"
+							:checked="data.mime == 'application/gpx+xml'"
 							value="application/gpx+xml"
 						/>
 						<span>GPX</span>
 					</label>
+					<p>
+						Стандартный XML-формат хранения и обмена данными GPS.
+						Понимается большинством программ-навигаторов
+						(например, Locus Map, Navitel и т.д.). Экспортируются
+						только сами места. Дерево папок не сохраняется.
+					</p>
+					<label>
+						<input
+							name="mime"
+							type="radio"
+							:checked="data.mime == 'application/json'"
+							value="application/json"
+						/>
+						<span>JSON</span>
+					</label>
+					<p>
+						Формат хранения и обмена произвольными данными,
+						основанный на JavaScript. Идеально подходит для обмена
+						данными пользователей этого сервиса. Экспортируются
+						как сами места, так и деревья папок или их части.
+					</p>
 				</fieldset>
+				<p>Выберите места для экспорта:</p>
+				<div
+					v-if="$store.state.places.length > 0 || $store.state.folders.length > 0"
+					id="popup-export__tree"
+					@click="$event.stopPropagation();"
+				>
+					<tree
+						instanceid="popupexporttree"
+						:data="$root.folderRoot || {}"
+					>
+					</tree>
+				</div>
 				<div style="text-align: center;">
 					<fieldset>
-						<button type="submit">Удалить папку</button>
+						<button type="submit">Экспортировать</button>
 						<button type="button" @click="$root.showPopup({show: false}, $event);">Отмена</button>
 					</fieldset>
 				</div>
 			</form>
-			<p>Выберите места для экспорта:</p>
-			<div
-				v-if="$store.state.places.length > 0 || $store.state.folders.length > 0"
-				id="popup-export__tree"
-				@click="$event.stopPropagation();"
-			>
-				<tree
-					instanceid="popupexporttree"
-					:data="$parent.folderRoot || {}"
-				>
-				</tree>
-			</div>
 			<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
 		</div>
 	</div>
@@ -61,9 +73,15 @@ export default {
 		tree,
 	},
 	props: ["data"],
-	data: function() {return {
-		type: "application/json",
-		dataprop: this.data,
-	}},
+	mounted: function() {
+		this.$root.selectedToExport = [];
+		for(let f of document.getElementById("popup-export__tree").getElementsByClassName("places-menu-folder")) {
+			f.classList.add("places-menu-folder_closed");
+			f.classList.remove("places-menu-folder_opened");
+		}
+	},
+	beforeDestroy: function() {
+		this.$root.selectedToExport = [];
+	},
 }
 </script>

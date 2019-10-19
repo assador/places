@@ -70,6 +70,7 @@ function findInTree(tree, childrenKey, key, value, result) {
 			}
 		}
 	}
+	return null;
 }
 function changeByKeyValue(tree, childrenKey, key, value, what) {
 	if(Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
@@ -134,8 +135,8 @@ function treeNewIds(tree, childrenKey, parentKey, items, itemParentKey) {
 	}
 }
 function isParentInTree(tree, childrenKey, parentId, childId, parent) {
-	if(typeof(parent) === "undefined") {
-		parent = findInTree(tree, childrenKey, "id", parentId);
+	if(!parent) {
+		parent = findInTree(tree, childrenKey, "id", parentId) || tree;
 	}
 	if(Array.isArray(parent[childrenKey]) && parent[childrenKey].length > 0) {
 		for(let i = 0; i < parent[childrenKey].length; i++) {

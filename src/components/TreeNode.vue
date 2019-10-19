@@ -1,52 +1,64 @@
 <template>
 	<li
-		:id="'places-menu-folder-' + folderData.id"
+		:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-' + folderData.id"
 		:title="folderData.description"
-		:class="'places-menu-folder ' + (folderData.opened ? 'places-menu-folder_opened' : 'places-menu-folder_closed')"
+		:class="'places-menu-folder ' + (instanceid !== 'popupexporttree' ? (folderData.opened ? 'places-menu-folder_opened' : 'places-menu-folder_closed') : '')"
 	>
-		<a
-			v-if="!$root.foldersEditMode || folderData.id === 'root'"
-			:id="'places-menu-folder-link-' + folderData.id"
-			:srt="folderData.srt"
-			href="javascript: void(0);"
-			class="folder-button"
-			draggable="true"
-			@click="$store.commit('folderOpenClose', {folder: (folderData.id === 'root' ? $parent.data : folder), opened: folderData.opened ? false : true});"
-			@dragstart="$root.handleDragStart"
-			@dragenter="$root.handleDragEnter"
-			@dragleave="$root.handleDragLeave"
-		>
-			{{ folderData.name }}
-		</a>
-		<span
-			v-if="$root.foldersEditMode && folderData.id !== 'root'"
-			:id="'places-menu-folder-link-' + folderData.id"
-			class="folder-button"
-			@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
-		>
+		<div>
 			<input
-				v-model="folderData.name"
-				placeholder="Название"
-				class="folder-button__name fieldwidth_100"
-				@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
-				@onclick="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+				v-if="instanceid === 'popupexporttree'"
+				:id="'to-export-places-menu-folder-checkbox-' + folder.id"
+				name="folderCheckbox"
+				
+				type="checkbox"
+				class="folder-checkbox"
+				@change="selectUnselectFolder(folderData.id, $event.target.checked);"
 			/>
 			<a
-				class="folder-button__delete"
-				title="Удалить папку"
-				@click="$event.stopPropagation(); $root.showPopup({show: true, type: 'folderDelete', data: {folder: folder, parent: parent}}, $event);"
+				v-if="!$root.foldersEditMode || folderData.id === 'root'"
+				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folderData.id"
+				:srt="folderData.srt"
+				href="javascript: void(0);"
+				class="folder-button"
+				draggable="true"
+				@click="$store.commit('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folderData.id === 'root' ? $parent.data : folder, opened: folderData.opened ? false : true});"
+				@dragstart="$root.handleDragStart"
+				@dragenter="$root.handleDragEnter"
+				@dragleave="$root.handleDragLeave"
+				@drop="$root.handleDrop"
 			>
-				×
+				{{ folderData.name }}
 			</a>
-			<textarea
-				v-model="folderData.description"
-				rows="2"
-				placeholder="Описание"
-				class="folder-button__description fieldwidth_100"
-				@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
-				@onclick="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
-			></textarea>
-		</span>
+			<span
+				v-if="$root.foldersEditMode && folderData.id !== 'root'"
+				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folderData.id"
+				class="folder-button"
+				@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
+			>
+				<input
+					v-model="folderData.name"
+					placeholder="Название"
+					class="folder-button__name fieldwidth_100"
+					@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
+					@onclick="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+				/>
+				<a
+					class="folder-button__delete"
+					title="Удалить папку"
+					@click="$event.stopPropagation(); $root.showPopup({show: true, type: 'folderDelete', data: {folder: folder, parent: parent}}, $event);"
+				>
+					×
+				</a>
+				<textarea
+					v-model="folderData.description"
+					rows="2"
+					placeholder="Описание"
+					class="folder-button__description fieldwidth_100"
+					@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
+					@onclick="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+				></textarea>
+			</span>
+		</div>
 		<ul v-if="folderData.children && folderData.children.length" class="margin_bottom_0">
 			<folder
 				v-for="(child, index) in orderedChildren"
@@ -57,12 +69,12 @@
 			>
 			</folder>
 		</ul>
-		<div :id="folderData.id" class="places-menu-item">
+		<div :id="(instanceid === 'popupexporttree' ? 'to-export-folder-' : '') + folderData.id" class="places-menu-item">
 			<label
 				v-for="place in orderedPlaces"
 				v-if="place.folderid === folderData.id && place.show"
 				:key="place.id"
-				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + place.id"
+				:id="(instanceid === 'popupexporttree' ? 'to-export-place-' : '') + place.id"
 				:srt="place.srt"
 				:title="place.description"
 				:class="'place-button block_01 draggable' + ($store.state.currentPlace && place.id == $store.state.currentPlace.id ? ' active' : '')"
@@ -73,9 +85,10 @@
 				<input
 					v-if="instanceid === 'popupexporttree'"
 					name="placeCheckbox"
+					:id="'to-export-place-checkbox-' + place.id"
 					type="checkbox"
-					:value="place.id"
-					@change="selectUnselect(place, $event.checked);"
+					class="to-export-place-checkbox"
+					@change="selectUnselect(place, $event.target.checked);"
 				/>
 				{{ place.name }}
 				<span
@@ -136,8 +149,26 @@ export default {
 		selectUnselect: (place, checked) => function(place, checked) {
 			if(checked) {
 				this.$root.selectedToExport.push(place);
+			} else {
+				for(let i = 0; i < this.$root.selectedToExport.length; i++) {
+					if(this.$root.selectedToExport[i] === place) {
+						this.$root.selectedToExport.splice(i, 1);
+						break;
+					}
+				}
 			}
-			console.dir(this.$root.selectedToExport);
+		},
+		selectUnselectFolder: (folderid, checked) => function(folderid, checked) {
+			for(let placeButton of document.getElementById("to-export-places-menu-folder-" + folderid).getElementsByClassName("place-button")) {
+				if(checked != placeButton.getElementsByClassName("to-export-place-checkbox")[0].checked) {
+					placeButton.click();
+				}
+				
+			}
+			for(let folderCheckbox of document.getElementById("to-export-places-menu-folder-" + folderid).getElementsByClassName("folder-checkbox")) {
+				folderCheckbox.checked = checked ? true : false;
+				
+			}
 		},
 		orderedChildren: function() {
 			return _.orderBy(this.folderData.children, "srt");

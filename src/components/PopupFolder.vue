@@ -6,7 +6,7 @@
 			</div>
 			<form
 				class="folder-new__form margin_bottom_0"
-				onclick="event.stopPropagation(); $store.commit('setIdleTime', 0);"
+				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				@submit.prevent="appendFolder(folderName, folderDescription);"
 			>
 				<table class="table_form">
@@ -88,7 +88,7 @@ export default {
 	computed: {
 		appendFolder: (folderName, folderDescription) => function(folderName, folderDescription) {
 			let foldersCount = childrenCount(
-				this.$parent.folderRoot,
+				this.$root.folderRoot,
 				"children"
 			);
 			let data = new FormData();
