@@ -992,7 +992,6 @@ export default {
 			if(!this.$store.state.stateBackups.length) {
 				this.$store.commit("backupState");
 			}
-			this.$root.deleteFiles(place.images);
 			if(this.$store.state.homePlace === place) {
 				this.$store.commit("setHomePlace", null);
 			}
@@ -1001,6 +1000,7 @@ export default {
 				change: {deleted: true},
 				backup: false,
 			});
+			this.$root.deleteFiles(place.images);
 			if(this.$store.state.places.length > 0) {
 				let firstRootPlace;
 				if(document.getElementById(place.id).nextElementSibling) {
