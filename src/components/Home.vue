@@ -999,7 +999,7 @@ export default {
 			this.$store.commit("removePlace", {
 				place: place,
 				change: {deleted: true},
-				backup: (typeof(backup) === "undefined" || backup ? true : false),
+				backup: false,
 			});
 			if(this.$store.state.places.length > 0) {
 				let firstRootPlace;
@@ -1024,7 +1024,14 @@ export default {
 				) {
 					this.setCurrentPlace(firstRootPlace);
 				} else {
-					this.setCurrentPlace(this.$store.state.places[0]);
+					let firstPlaceInState;
+					this.setCurrentPlace(
+						!(firstPlaceInState =
+							this.$store.state.places.find(
+								p => !p.deleted
+							)
+						) ? null : firstPlaceInState
+					);
 				}
 			} else {
 				this.setCurrentPlace(null);
