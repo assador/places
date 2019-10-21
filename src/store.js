@@ -210,6 +210,11 @@ export const store = new Vuex.Store({
 			Vue.set(state, "currentPlaceIndex", index);
 		},
 		setHomePlace(state, id) {
+			if(!id) {
+				Vue.set(state, "homePlace", null);
+				Vue.set(state.user, "homeplace", null);
+				return;
+			}
 			for(let i = 0; i < state.places.length; i++) {
 				if(state.places[i].id === id) {
 					state.homePlace = state.places[i];
@@ -372,16 +377,10 @@ export const store = new Vuex.Store({
 				}
 			}
 		},
-		deleteFolder(state, payload) {
-			payload.parent.children.splice(
-				payload.parent.children.indexOf(payload.folder),
-				1
-			);
-			Vue.set(state, "folders", state.folders);
-		},
 		deletePlacesMarkedAsDeleted(state, payload) {
 			for(let i = 0; i < state.places.length; i++) {
 				if(state.places[i].deleted) {
+					state.places[i] = null;
 					state.places.splice(i, 1);
 					i--;
 				}

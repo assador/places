@@ -989,34 +989,46 @@ export default {
 				});
 		},
 		deletePlace: (place, backup) => function(place, backup) {
+			if(!this.$store.state.stateBackups.length) {
+				this.$store.commit("backupState");
+			}
 			this.$root.deleteFiles(place.images);
-			let firstRootPlace = this.$store.state.places.find(p => p.folderid === null);
-			if(this.$store.state.places.length === 1) {
-				this.$store.commit("setCurrentPlace", null);
-			} else if(document.getElementById(place.id).nextElementSibling) {
-				this.setCurrentPlace(
-					this.$store.state.places.find(
-						p => p.id === document.getElementById(place.id).nextElementSibling.id
-					)
-				);
-			} else if(document.getElementById(place.id).previousElementSibling) {
-				this.setCurrentPlace(
-					this.$store.state.places.find(
-						p => p.id === document.getElementById(place.id).previousElementSibling.id
-					)
-				);
-			} else if(this.$store.state.homePlace && this.$store.state.homePlace !== place) {
-				this.setCurrentPlace(this.$store.state.homePlace);
-			} else if(firstRootPlace) {
-				this.setCurrentPlace(firstRootPlace);
-			} else {
-				this.setCurrentPlace(this.$store.state.places[0]);
+			if(this.$store.state.homePlace === place) {
+				this.$store.commit("setHomePlace", null);
 			}
 			this.$store.commit("removePlace", {
 				place: place,
 				change: {deleted: true},
 				backup: (typeof(backup) === "undefined" || backup ? true : false),
 			});
+			if(this.$store.state.places.length > 0) {
+				let firstRootPlace;
+				if(document.getElementById(place.id).nextElementSibling) {
+					this.setCurrentPlace(
+						this.$store.state.places.find(
+							p => p.id === document.getElementById(place.id).nextElementSibling.id
+						)
+					);
+				} else if(document.getElementById(place.id).previousElementSibling) {
+					this.setCurrentPlace(
+						this.$store.state.places.find(
+							p => p.id === document.getElementById(place.id).previousElementSibling.id
+						)
+					);
+				} else if(this.$store.state.homePlace) {
+					this.setCurrentPlace(this.$store.state.homePlace);
+				} else if(
+					!!(firstRootPlace = this.$store.state.places.find(
+						p => p.folderid === "root"
+					))
+				) {
+					this.setCurrentPlace(firstRootPlace);
+				} else {
+					this.setCurrentPlace(this.$store.state.places[0]);
+				}
+			} else {
+				this.setCurrentPlace(null);
+			}
 			this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
 			this.$store.commit("deletePlace", place);
 		},

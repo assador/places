@@ -1,9 +1,13 @@
 const path = require('path');
 const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+
+const production = process.env.NODE_ENV === 'production';
 
 module.exports = {
-	mode: process.env.NODE_ENV !== "production" ? "development" : "production",
+	mode: production ? "production" : "development",
 	entry: './src/main.js',
 	output: {
 		path: path.resolve(__dirname, './dist'),
@@ -15,17 +19,19 @@ module.exports = {
 			{
 				test: /\.css$/,
 				use: [
-					'vue-style-loader',
+//					'vue-style-loader',
+					{
+						loader: MiniCssExtractPlugin.loader,
+						options: {
+							hot: !production,
+						},
+					},
 					'css-loader',
 				],
 			},
 			{
 				test: /\.vue$/,
 				loader: 'vue-loader',
-				options: {
-					loaders: {
-					},
-				},
 			},
 			{
 				test: /\.js$/,
@@ -43,6 +49,24 @@ module.exports = {
 	},
 	plugins: [
 		new VueLoaderPlugin(),
+		new MiniCssExtractPlugin({
+			filename: './css/styles.css',
+		}),
+		new OptimizeCSSAssetsPlugin({
+			assetNameRegExp: /\.css$/g,
+			cssProcessor: require('cssnano'),
+			cssProcessorPluginOptions: {
+				preset: [
+					'default',
+					{
+						discardComments: {
+							removeAll: true,
+						},
+					},
+				],
+			},
+			canPrint: true,
+		}),
 	],
 	resolve: {
 		alias: {
@@ -77,7 +101,7 @@ module.exports = {
 	devtool: '#eval-source-map',
 }
 
-if(process.env.NODE_ENV === 'production') {
+if(production) {
 	module.exports.devtool = '#source-map';
 	module.exports.plugins = (module.exports.plugins || []).concat([
 		new webpack.DefinePlugin({

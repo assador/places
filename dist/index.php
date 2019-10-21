@@ -12,8 +12,7 @@
 	<meta name="description" content="Сервис позволяет добавлять и редактировать геометки, их названия, описания, значения широты / долготы, добавлять им фотоальбомы; организовывать всё это в библиотеки, упорядочивая в дереве папок, экспортировать эти библиотеки в файлы различных форматов, импортировать их из таких файлов, искать места по названию и многое другое. Картографическая часть использует API Яндекс.Карт, всё остальное от сторонних сервисов независимо." />
 	<link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
 	<link rel="apple-touch-icon" href="/icon_apple_touch.png" />
-	<link href="/css/style.css" rel="stylesheet" type="text/css" />
-	<link href="/css/layout.css" rel="stylesheet" type="text/css" />
+	<link href="/css/styles.css" rel="stylesheet" type="text/css" />
 
 	<script src="/vendor/scripts/vue.min.js"></script>
 	<script src="/vendor/scripts/vuex.js"></script>

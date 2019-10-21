@@ -6,6 +6,8 @@ import {constants} from "./shared/constants.js"
 import {bus} from "./shared/bus.js"
 import {mapGetters} from "vuex"
 import axios from "axios"
+import './css/style.css'
+import './css/layout.css'
 
 Vue.use(Vuex);
 
@@ -220,23 +222,41 @@ let app = new Vue({
 		},
 		deleteFiles: (inarray, files) => function(inarray, files) {
 			let data = new FormData();
+			let place = {};
+			let indexOfImage = -1;
 			if(!files) {
-				files = Array.from(inarray);
+				files = inarray;
 			}
 			for(let i = 0; i < files.length; i++) {
 				data.append("file_" + i, files[i].file);
-				inarray.splice(inarray.indexOf(files[i]), 1);
+				if(files[i].placeid) {
+					if(files[i].placeid != place.id) {
+						for(let y = 0; y < this.$store.state.places.length; y++) {
+							place = this.$store.state.places[y];
+							indexOfImage = place.images.indexOf(files[i]);
+							break;
+						}
+					}
+					if(indexOfImage > -1) {
+						this.$store.commit("changePlace", {
+							place: place,
+							change: {
+								images: place.images.splice(indexOfImage, 1),
+								updated: true,
+							},
+							backup: !place.deleted,
+						});
+					}
+					indexOfImage = -1;
+				}
 			}
 			data.append("userid", this.$store.state.user.id);
-			this.$store.commit("changePlace", {
-				place: this.$store.state.currentPlace,
-				change: {images: inarray, updated: true},
-			});
 			if(!this.$store.state.user.testaccount) {
 				axios.post("/backend/delete.php", data)
 					.then(response => {
 						this.toDB("images_delete", JSON.stringify(files));
-					});
+					}
+				);
 			}
 		},
 		exportPlaces: (places, mime) => function(places, mime) {
