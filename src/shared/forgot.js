@@ -1,5 +1,5 @@
-import {constants} from "./constants.js"
-import {bus} from "./bus.js"
+import { constants } from "./constants.js"
+import { bus } from "./bus.js"
 import axios from "axios"
 export const forgotRoutine = forgot => new Promise((resolve, reject) => {
 	axios.post("/backend/forgot.php", forgot)

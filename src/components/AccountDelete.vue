@@ -37,39 +37,62 @@
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">Удалить аккаунт</button>
-						<button type="button" @click="$root.showPopup({show: false}, $event);">Отмена</button>
+						<button
+							type="button"
+							@click="$root.showPopup({show: false}, $event);"
+						>
+							Отмена
+						</button>
 					</fieldset>
 				</div>
 			</form>
 			<div style="text-align: center;">
 				<span v-html="accountDeleteMessage"></span>
 			</div>
-			<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
+			<a
+				href="javascript:void(0);"
+				class="close"
+				@click="$root.showPopup({show: false}, $event);"
+			>
+				×
+			</a>
 		</div>
 	</div>
 </template>
 
 <script>
-import {bus} from "../shared/bus.js"
-import {accountDeletionRoutine} from "../shared/account.js"
+import { bus } from "../shared/bus.js"
+import { accountDeletionRoutine } from "../shared/account.js"
 export default {
-	data: function() {return {
-		userId: sessionStorage.getItem("places-userid"),
-		leavePlaces: "none",
-		leaveImages: "none",
-		accountDeleteMessage: "",
-	}},
+	data() {
+		return {
+			userId: sessionStorage.getItem("places-userid"),
+			leavePlaces: "none",
+			leaveImages: "none",
+			accountDeleteMessage: "",
+		}
+	},
 	methods: {
-		accountDeletionSubmit: function() {
+		accountDeletionSubmit() {
 			if(this.$store.state.user.testaccount) {
-				this.accountDeleteMessage = "Вы авторизовались под тестовым аккаунтом, который удалить нельзя";
+				this.accountDeleteMessage = `
+					Вы авторизовались под тестовым аккаунтом,
+					который удалить нельзя
+				`;
 			} else {
-				const {userId, leavePlaces, leaveImages} = this;
-				accountDeletionRoutine({userId, leavePlaces, leaveImages})
-					.then(response => {
-						this.accountDeleteMessage = response.message;
-						bus.$emit("loggedChange", "auth");
-					});
+				const {
+					userId,
+					leavePlaces,
+					leaveImages,
+				} = this;
+				accountDeletionRoutine({
+					userId,
+					leavePlaces,
+					leaveImages,
+				}).then(response => {
+					this.accountDeleteMessage = response.message;
+					bus.$emit("loggedChange", "auth");
+				});
 			}
 		},
 	},

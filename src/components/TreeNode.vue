@@ -1,8 +1,9 @@
 <template>
 	<li
+		:srt="folderData.srt"
 		:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-' + folderData.id"
 		:title="folderData.description"
-		:class="'places-menu-folder ' + (instanceid !== 'popupexporttree' ? (folderData.opened ? 'places-menu-folder_opened' : 'places-menu-folder_closed') : '')"
+		:class="'folder ' + (instanceid !== 'popupexporttree' ? (folderData.opened ? 'folder_opened' : 'folder_closed') : '')"
 	>
 		<div>
 			<input
@@ -16,8 +17,8 @@
 			/>
 			<a
 				v-if="!$root.foldersEditMode || folderData.id === 'root'"
+				data-folder-button
 				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folderData.id"
-				:srt="folderData.srt"
 				href="javascript: void(0);"
 				class="folder-button"
 				draggable="true"
@@ -27,7 +28,7 @@
 				@dragleave="$root.handleDragLeave"
 				@drop="$root.handleDrop"
 			>
-				{{ folderData.name }}
+				<span>{{ folderData.name }}</span>
 			</a>
 			<span
 				v-if="$root.foldersEditMode && folderData.id !== 'root'"
@@ -40,7 +41,7 @@
 					placeholder="Название"
 					class="folder-button__name fieldwidth_100"
 					@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
-					@onclick="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				/>
 				<a
 					class="folder-button__delete"
@@ -55,24 +56,27 @@
 					placeholder="Описание"
 					class="folder-button__description fieldwidth_100"
 					@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
-					@onclick="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				></textarea>
 			</span>
 		</div>
-		<ul v-if="folderData.children && folderData.children.length" class="margin_bottom_0">
-			<folder
-				v-for="(child, index) in orderedChildren"
-				:key="folderData.id + index"
-				:instanceid="instanceid"
-				:folder="child"
-				:parent="folderData"
-			>
-			</folder>
-		</ul>
-		<div :id="(instanceid === 'popupexporttree' ? 'to-export-folder-' : '') + folderData.id" class="places-menu-item">
+		<div class="folder-subfolders">
+			<ul v-if="folderData.children && folderData.children.length" class="margin_bottom_0">
+				<folder
+					v-for="(child, index) in orderedChildren"
+					:key="folderData.id + index"
+					:instanceid="instanceid"
+					:folder="child"
+					:parent="folderData"
+				>
+				</folder>
+			</ul>
+		</div>
+		<div :id="(instanceid === 'popupexporttree' ? 'to-export-folder-' : '') + folderData.id" class="folder-places">
 			<label
 				v-for="place in orderedPlaces"
 				v-if="place.folderid === folderData.id && place.show"
+				data-place-button
 				:key="place.id"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-place-' : '') + place.id"
 				:srt="place.srt"
@@ -92,13 +96,15 @@
 				/>
 				{{ place.name }}
 				<span
-					class="place-button__dragenter-area place-button__dragenter-area_top"
+					data-place-button-dragenter-area-top
+					class="dragenter-area dragenter-area_top"
 					@dragenter="$root.handleDragEnter"
 					@dragleave="$root.handleDragLeave"
 				>
 				</span>
 				<span
-					class="place-button__dragenter-area place-button__dragenter-area_bottom"
+					data-place-button-dragenter-area-bottom
+					class="dragenter-area dragenter-area_bottom"
 					@dragenter="$root.handleDragEnter"
 					@dragleave="$root.handleDragLeave"
 				>
@@ -107,7 +113,8 @@
 		</div>
 		<div
 			v-if="folderData.id !== 'root'"
-			class="places-menu-folder__dragenter-area places-menu-folder__dragenter-area_top"
+			data-folder-dragenter-area-top
+			class="dragenter-area dragenter-area_top"
 			@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
@@ -115,7 +122,8 @@
 		</div>
 		<div
 			v-if="folderData.id !== 'root'"
-			class="places-menu-folder__dragenter-area places-menu-folder__dragenter-area_bottom"
+			data-folder-dragenter-area-bottom
+			class="dragenter-area dragenter-area_bottom"
 			@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
@@ -126,18 +134,20 @@
 
 <script>
 import _ from "lodash"
-import {bus} from "../shared/bus.js"
+import { bus } from "../shared/bus.js"
 export default {
 	name: "folder",
 	props: ["instanceid", "folder", "parent"],
-	data: function() {return {
-		folderData: {},
-	}},
+	data() {
+		return {
+			folderData: {},
+		}
+	},
 	watch: {
 		folder: {
 			deep: true,
 			immediate: true,
-			handler: function(folder) {
+			handler(folder) {
 				this.folderData = {
 					...folder,
 					children: folder.children,
@@ -159,21 +169,33 @@ export default {
 			}
 		},
 		selectUnselectFolder: (folderid, checked) => function(folderid, checked) {
-			for(let placeButton of document.getElementById("to-export-places-menu-folder-" + folderid).getElementsByClassName("place-button")) {
-				if(checked != placeButton.getElementsByClassName("to-export-place-checkbox")[0].checked) {
+			for(let placeButton of
+				document
+				.getElementById("to-export-places-menu-folder-" + folderid)
+				.getElementsByClassName("place-button")
+			) {
+				if(checked !=
+					placeButton
+					.getElementsByClassName("to-export-place-checkbox")[0]
+					.checked
+				) {
 					placeButton.click();
 				}
 				
 			}
-			for(let folderCheckbox of document.getElementById("to-export-places-menu-folder-" + folderid).getElementsByClassName("folder-checkbox")) {
+			for(let folderCheckbox of
+				document
+				.getElementById("to-export-places-menu-folder-" + folderid)
+				.getElementsByClassName("folder-checkbox")
+			) {
 				folderCheckbox.checked = checked ? true : false;
 				
 			}
 		},
-		orderedChildren: function() {
+		orderedChildren() {
 			return _.orderBy(this.folderData.children, "srt");
 		},
-		orderedPlaces: function() {
+		orderedPlaces() {
 			return _.orderBy(this.$store.state.places, "srt");
 		},
 	},

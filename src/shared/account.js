@@ -1,8 +1,8 @@
-import {constants} from "./constants.js"
-import {bus} from "./bus.js"
+import { constants } from "./constants.js"
+import { bus } from "./bus.js"
 import axios from "axios"
 export const accountSaveRoutine = account => new Promise((resolve, reject) => {
-	if(account.accountNewPassword == undefined) {account.accountNewPassword = "";}
+	if(account.accountNewPassword == undefined) account.accountNewPassword = "";
 	axios.post("/backend/set_account.php", account)
 		.then(response => {
 			switch(response.data) {

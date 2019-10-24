@@ -76,7 +76,7 @@ table.table_decor > * > tr:hover {
 	background-color: rgba(144, 98, 62, 0.2);
 }
 .back_2,
-.places-menu-folder_root .places-menu-folder_opened::before {
+.folder_root .folder_opened::before {
 	background-color: rgba(255, 252, 224, 0.12);
 }
 .back_3,
@@ -597,7 +597,7 @@ table.table_wopadd th, table.table_wopadd td {
 	display: flex !important;
 	align-items: center;
 }
-.places-menu-folder::before {
+.folder::before {
 	display: none;
 }
 .folder-button, .folder-checkbox {
@@ -619,12 +619,6 @@ table.table_wopadd th, table.table_wopadd td {
 .folder-checkbox + .folder-button {
 	display: inline-block;
 	margin-left: 0.7em;
-}
-.folder-button_parent {
-	border-color: rgba(255, 223, 170, 0.3);
-	background-color: rgba(218, 166, 126, 0.2);
-	box-shadow: 0 0 8px rgba(255, 243, 201, 0.4);
-	transition: all 0.5s;
 }
 .folder-button::before {
 	float: left;
@@ -654,10 +648,10 @@ span.folder-button {
 #places-menu-folder-link-root {
 	margin-left: 0;
 }
-.places-menu-folder_opened {
+.folder_opened {
 	position: relative;
 }
-.places-menu-folder_root .places-menu-folder_opened::before {
+.folder_root .folder_opened::before {
 	content: "";
 	display: block;
 	position: absolute;
@@ -666,37 +660,37 @@ span.folder-button {
 	margin: 0;
 	float: none;
 }
-.places-menu-folder_closed > ul {
+.folder_closed > .folder-subfolders {
 	display: none;
 }
-.places-menu-folder_opened > ul {
-	display: table;
+.folder_opened > .folder-subfolders {
+	display: block;
 }
-.places-menu-folder_closed > h2,
-.places-menu-folder_opened > h2,
-.places-menu-folder_closed > h2::before,
-.places-menu-folder_opened > h2::before,
-.places-menu-folder_closed > a::before,
-.places-menu-folder_opened > a::before {
+.folder_closed > h2,
+.folder_opened > h2,
+.folder_closed > h2::before,
+.folder_opened > h2::before,
+.folder_closed > a::before,
+.folder_opened > a::before {
 	cursor: pointer;
 }
-.places-menu-folder_closed > * > .folder-button::before {
+.folder_closed > * > .folder-button::before {
 	content: '\25b6';
 	font-size: 93%;
 }
-.places-menu-folder_opened > * > .folder-button::before {
+.folder_opened > * > .folder-button::before {
 	content: '\25bc';
 }
-.places-menu-folder_closed > .places-menu-item {
+.folder_closed > .folder-places {
 	display: none;
 }
-.places-menu-folder_opened > .places-menu-item {
+.folder_opened > .folder-places {
 	display: block;
 }
-.places-menu-folder_root {
+.folder_root {
 	padding-left: 0;
 }
-.places-menu-folder_root > h2 {
+.folder_root > h2 {
 	margin-left: 0;
 }
 .places-table tbody tr {
@@ -721,42 +715,42 @@ span.folder-button {
 .place-button > *:first-child {
 	font-size: 100%;
 }
-.places-menu-folder {
+.folder {
 	display: flex;
 	flex-direction: column;
 	position: relative;
 }
-.place-button__dragenter-area, .places-menu-folder__dragenter-area {
+.menu .dragenter-area {
 	position: absolute;
 	right: 0; left: 0;
 	z-index: 10;
 	cursor: pointer;
 }
-.place-button__dragenter-area_top {
+.place-button .dragenter-area_top {
 	top: 0; bottom: 50%;
 }
-.place-button__dragenter-area_bottom {
+.place-button .dragenter-area_bottom {
 	top: 50%; bottom: 0;
 }
-.places-menu-folder__dragenter-area_top {
+.folder > .dragenter-area_top {
 	top: 0; height: 4px;
 }
-.places-menu-folder__dragenter-area_bottom {
+.folder > .dragenter-area_bottom {
 	height: 4px; bottom: -1px;
 }
 .folder-button.over {
 	text-shadow: 0 0 3px rgb(255, 255, 255);
 }
-.place-button[class*="block_"] .place-button__dragenter-area_top {
+.place-button[class*="block_"] .dragenter-area_top {
 	top: -6px;
 }
-.place-button[class*="block_"] .place-button__dragenter-area_bottom {
+.place-button[class*="block_"] .dragenter-area_bottom {
 	bottom: -7px;
 }
-.draggable * {
+.draggable *, .folder-button * {
 	pointer-events: none;
 }
-.draggable .dd-images__delete, .place-button__dragenter-area, .places-menu-folder__dragenter-area {
+.draggable .dd-images__delete, .menu .dragenter-area, span.folder-button * {
 	pointer-events: all;
 }
 #top-left, #top-right, #bottom-left {
@@ -882,6 +876,12 @@ span.folder-button {
 }
 #bottom-left {
 	box-shadow: inset -100px 85px 20px -100px rgba(47, 20, 0, 0.6);
+}
+.highlighted {
+	border-color: rgba(255, 223, 170, 0.3);
+	background-color: rgba(218, 166, 126, 0.2);
+	box-shadow: 0 0 8px rgba(255, 243, 201, 0.4);
+	transition: all 0.5s;
 }
 #message-main {
 	border-radius: 7px;

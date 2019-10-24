@@ -2,7 +2,7 @@
 	<div class="auth centered">
 		<div class="brand">
 			<h1 class="margin_bottom_0">Места</h1>
-			<p>Сервис просмотра и редактирования библиотек геометок</p>
+			<p>Сервис просмотра и редактирования библиотек мест</p>
 		</div>
 		<div class="auth_forms">
 			<div class="auth__login margin_bottom">
@@ -120,7 +120,10 @@
 				Что это такое? Описание, мануал
 			</button>
 		</div>
-		<div :class="'popup ' + $root.popuped" @click="$event => {$root.showPopup({show: false}, $event);}">
+		<div
+			:class="'popup ' + $root.popuped"
+			@click="$event => {$root.showPopup({show: false}, $event);}"
+		>
 			<component
 				ref="popup"
 				name="popup"
@@ -134,62 +137,81 @@
 </template>
 
 <script>
-import {bus} from "../shared/bus.js"
-import {loginRoutine} from "../shared/auth.js"
-import {regRoutine} from "../shared/reg.js"
-import {forgotRoutine} from "../shared/forgot.js"
+import { bus } from "../shared/bus.js"
+import { loginRoutine } from "../shared/auth.js"
+import { regRoutine } from "../shared/reg.js"
+import { forgotRoutine } from "../shared/forgot.js"
 import popuptext from "./PopupText.vue"
 export default {
 	components: {
 		popuptext,
 	},
-	data: function() {return {
-		firstValidatable: false,
-		loginMessage: "",
-		regMessage: "",
-		forgotMessage: "",
-		authLogin: "test",
-		authPassword: "test",
-		regLogin: "",
-		regName: "",
-		regPassword: "",
-		regPasswordRepeat: "",
-		regEmail: "",
-		regPhone: "",
-		forgotEmail: "",
-	}},
-	mounted: function() {
+	data() {
+		return {
+			firstValidatable: false,
+			loginMessage: "",
+			regMessage: "",
+			forgotMessage: "",
+			authLogin: "test",
+			authPassword: "test",
+			regLogin: "",
+			regName: "",
+			regPassword: "",
+			regPasswordRepeat: "",
+			regEmail: "",
+			regPhone: "",
+			forgotEmail: "",
+		}
+	},
+	mounted() {
 		if(!sessionStorage.getItem("places-session")) {
 			sessionStorage.setItem("places-app-child-component", "auth");
 		}
 	},
 	methods: {
-		validatable: function() {
+		validatable() {
 			if(!this.firstValidatable) {
 				make_fields_validatable();
 				this.firstValidatable = true;
 			}
 		},
-		authLoginSubmit: function() {
-			const {authLogin, authPassword} = this;
-			loginRoutine({authLogin, authPassword})
-				.then(response => {
-					this.loginMessage = response.message;
-					if(typeof response.data === "object") {
-						sessionStorage.setItem("places-session", response.data.session);
-						sessionStorage.setItem("places-userid", response.data.id);
-						bus.$emit("loggedChange", "home");
-					}
-				});
+		authLoginSubmit() {
+			const {
+				authLogin,
+				authPassword,
+			} = this;
+			loginRoutine({
+				authLogin,
+				authPassword
+			}).then(response => {
+				this.loginMessage = response.message;
+				if(typeof response.data === "object") {
+					sessionStorage.setItem("places-session", response.data.session);
+					sessionStorage.setItem("places-userid", response.data.id);
+					bus.$emit("loggedChange", "home");
+				}
+			});
 		},
-		authRegSubmit: function() {
+		authRegSubmit() {
 			if(!document.querySelector(".value_wrong")) {
-				const {regLogin, regPassword, regPasswordRepeat, regName, regEmail, regPhone} = this;
+				const {
+					regLogin,
+					regPassword,
+					regPasswordRepeat,
+					regName,
+					regEmail,
+					regPhone,
+				} = this;
 				if(regPassword === regPasswordRepeat) {
-					regRoutine({regLogin, regPassword, regName, regEmail, regPhone})
-						.then(response => {
-							this.regMessage = response.message;
-						});
+					regRoutine({
+						regLogin,
+						regPassword,
+						regName,
+						regEmail,
+						regPhone
+					}).then(response => {
+						this.regMessage = response.message;
+					});
 				} else {
 					this.regMessage = "Введёные пароли не совпадают";
 				}
@@ -197,13 +219,14 @@ export default {
 				this.regMessage = "Некоторые поля заполнены некорректно";
 			}
 		},
-		authForgot: function() {
+		authForgot() {
 			const {forgotEmail} = this;
 			if(!document.getElementById("forgotEmail").classList.contains("value_wrong")) {
-				forgotRoutine({forgotEmail})
-					.then(response => {
-						this.forgotMessage = response.message;
-					});
+				forgotRoutine({
+					forgotEmail
+				}).then(response => {
+					this.forgotMessage = response.message;
+				});
 			} else {
 				this.forgotMessage = "Некорректный e-mail";
 			}

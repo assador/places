@@ -1,10 +1,10 @@
 import Vue from "vue"
 import Vuex from "vuex"
 import App from "./App.vue"
-import {store} from "./store.js"
-import {constants} from "./shared/constants.js"
-import {bus} from "./shared/bus.js"
-import {mapGetters} from "vuex"
+import { store } from "./store.js"
+import { constants } from "./shared/constants.js"
+import { bus } from "./shared/bus.js"
+import { mapGetters } from "vuex"
 import axios from "axios"
 import './css/style.css'
 import './css/layout.css'
@@ -26,7 +26,7 @@ let app = new Vue({
 		foldersEditMode: false,
 		selectedToExport: [],
 	},
-	mounted: function() {
+	mounted() {
 		bus.$on("toDB", payload => {
 			let plain = [];
 			switch(payload.what) {
@@ -54,7 +54,6 @@ let app = new Vue({
 		});
 	},
 	computed: {
-		...mapGetters(["getIndexById"]),
 		setCurrentPlace: (place, common = false) => function(place, common = false) {
 			bus.$emit("setCurrentPlace", {place, common});
 		},
@@ -293,76 +292,86 @@ let app = new Vue({
 						folders: this.$store.state.folders,
 					});
 			}
-			a.href = window.URL.createObjectURL(new Blob([content], {type: "text/plain"}));
+			a.href = window.URL.createObjectURL(
+				new Blob([content], {type: "text/plain"})
+			);
 			let e = document.createEvent("MouseEvents");
 			e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
 			a.dispatchEvent(e);
 		},
 	},
 	methods: {
-		handleDragStart: function(event) {
+		handleDragStart(event) {
 			this.$store.commit("setIdleTime", 0);
 			event.dataTransfer.setData("text/plain", null);
 			this.draggingElement = event.target;
 		},
-		handleDragEnter: function(event) {
+		handleDragEnter(event) {
 			event.preventDefault();
 			event.stopPropagation();
-			if(
-				this.draggingElement !== event.target
-				&& event.target.classList
-			) {
-				// Place button passes over sorting areas of another place button
+			if(event.target.nodeType === 1 && this.draggingElement !== event.target) {
+				let draggingElementPP = this.draggingElement.parentNode.parentNode;
 				if(
-					this.draggingElement !== event.target.parentNode
-					&& this.draggingElement.classList.contains("place-button")
-					&& event.target.classList.contains("place-button__dragenter-area")
-					&& !(
-						this.draggingElement.nextElementSibling === event.target.parentNode
-						&& event.target.classList.contains("place-button__dragenter-area_top")
-					)
-					&& !(
-						this.draggingElement.previousElementSibling === event.target.parentNode
-						&& event.target.classList.contains("place-button__dragenter-area_bottom")
+					event.target.dataset.folderButton !== undefined &&
+					(
+						this.draggingElement.dataset.folderButton !== undefined ||
+						this.draggingElement.dataset.placeButton !== undefined
 					)
 				) {
-					if(event.target.classList.contains("place-button__dragenter-area_top")) {
-						event.target.classList.add("dragenter-area_top_border");
-					}
-					if(event.target.classList.contains("place-button__dragenter-area_bottom")) {
-						event.target.classList.add("dragenter-area_bottom_border");
-					}
+					event.target.classList.add("highlighted");
 				}
-				// Folder link passes over sorting areas of another folder link
 				if(
-					this.draggingElement.classList.contains("folder-button")
-					&& event.target.classList.contains("places-menu-folder__dragenter-area")
+					this.draggingElement.dataset.placeButton !== undefined &&
+					event.target.dataset.placeButtonDragenterAreaTop !== undefined &&
+					event.target.parentNode !== this.draggingElement &&
+					event.target.parentNode !== this.draggingElement.nextElementSibling
 				) {
-					if(event.target.classList.contains("places-menu-folder__dragenter-area_top")) {
-						event.target.classList.add("dragenter-area_top_border");
-					}
-					if(event.target.classList.contains("places-menu-folder__dragenter-area_bottom")) {
-						event.target.classList.add("dragenter-area_bottom_border");
-					}
-				}
-				// Photo image passes over another photo image
-				if(
-					this.$store.state.currentPlace
-					&& this.draggingElement.classList.contains("place-image")
-					&& event.target.classList.contains("place-image")
+					event.target.classList.add("dragenter-area_top_border");
+				} else if(
+					this.draggingElement.dataset.placeButton !== undefined &&
+					event.target.dataset.placeButtonDragenterAreaBottom !== undefined &&
+					event.target.parentNode !== this.draggingElement &&
+					event.target.parentNode !== this.draggingElement.previousElementSibling
 				) {
+					event.target.classList.add("dragenter-area_bottom_border");
+				} else if(
+					this.draggingElement.dataset.folderButton !== undefined &&
+					event.target.dataset.folderDragenterAreaTop !== undefined &&
+					event.target.parentNode !== draggingElementPP &&
+					event.target.parentNode !== draggingElementPP.nextElementSibling
+				) {
+					event.target.classList.add("dragenter-area_top_border");
+				} else if(
+					this.draggingElement.dataset.folderButton !== undefined &&
+					event.target.dataset.folderDragenterAreaBottom !== undefined &&
+					event.target.parentNode !== draggingElementPP &&
+					event.target.parentNode !== draggingElementPP.previousElementSibling
+				) {
+					event.target.classList.add("dragenter-area_bottom_border");
+				} else if(
+					this.$store.state.currentPlace &&
+					this.draggingElement.dataset.image !== undefined &&
+					event.target.dataset.image !== undefined
+				) {
+					let indexes = [];
+					for(let i = 0; i < this.$store.state.currentPlace.images.length; i++) {
+						if(
+							this.$store.state.currentPlace.images[i].id ===
+								this.draggingElement.id
+						) {
+							indexes.push(i);
+						}
+						if(
+							this.$store.state.currentPlace.images[i].id ===
+								event.target.id
+						) {
+							indexes.push(i);
+						}
+						if(indexes.length === 2) break;
+					}
 					this.$store.commit("swapValues", {
 						parent: this.$store.state.currentPlace.images,
-						indexes: [
-							this.getIndexById({
-								parent: this.$store.state.currentPlace.images,
-								id: this.draggingElement.id,
-							}),
-							this.getIndexById({
-								parent: this.$store.state.currentPlace.images,
-								id: event.target.id,
-							}),
-						],
+						indexes: indexes,
 						values: ["srt"],
 						backup: false,
 					});
@@ -370,241 +379,231 @@ let app = new Vue({
 				}
 			}
 		},
-		handleDragLeave: function(event) {
-			event.preventDefault();
-			if(event.target.classList) {
-				// Place button leaves sorting areas of another place button
-				if(event.target.classList.contains("place-button__dragenter-area")) {
-					event.target.classList.remove("dragenter-area_top_border");
-					event.target.classList.remove("dragenter-area_bottom_border");
-				}
-				// Folder link leaves sorting areas of another folder link
-				if(event.target.classList.contains("places-menu-folder__dragenter-area")) {
-					event.target.classList.remove("dragenter-area_top_border");
-					event.target.classList.remove("dragenter-area_bottom_border");
-				}
+		handleDragLeave(event) {
+			if(event.target.nodeType === 1) {
+				event.preventDefault();
+				event.target.classList.remove("highlighted");
+				event.target.classList.remove("dragenter-area_top_border");
+				event.target.classList.remove("dragenter-area_bottom_border");
+				event.target.classList.remove("dragenter-area_top_border");
+				event.target.classList.remove("dragenter-area_bottom_border");
 			}
 		},
-		handleDragOver: function(event) {
+		handleDragOver(event) {
 			event.preventDefault();
-			// Folder link or place button pass over a folder link
-			for(let f of document.getElementsByClassName("folder-button")) {
-				f.classList.remove("folder-button_parent");
-			}
-			if(
-				(
-					this.draggingElement.classList.contains("folder-button")
-					|| this.draggingElement.classList.contains("place-button")
-				)
-				&& event.target.classList.contains("folder-button")
-			) {
-				event.target.classList.add("folder-button_parent");
-			}
 		},
-		handleDrop: function(event) {
+		handleDrop(event, element) {
 			event.preventDefault();
 			event.stopPropagation();
-			if(
-				this.draggingElement !== event.target
-				&& event.target.classList
-			) {
+			if(event.target.nodeType === 1 && this.draggingElement !== event.target) {
 				let
-					srt = null,
+					newPlaceButtonContainer,
 					targetSrt = Number(
-						event.target.parentNode.getAttribute("srt")
-						|| event.target.parentNode.parentNode.getAttribute("srt")
-					)
+						event.target.parentNode.getAttribute("srt") ||
+						event.target.parentNode.parentNode.getAttribute("srt")
+					),
+					changes = {folder: {}, place: {}}
 				;
-				// Place button dropped on folder list item
-				if(
-					this.draggingElement.classList.contains("place-button")
-					&& event.target.parentNode.parentNode.classList.contains("places-menu-folder")
-				) {
-					let container;
-					event.target.parentNode.parentNode.querySelectorAll(".places-menu-item")
-						.forEach(function(c) {
-							if(c.parentNode === event.target.parentNode.parentNode) {
-								container = c;
-								return;
-							}
-						}
-					);
-					if(container) {
-						let srt;
-						if(container.children.length > 0) {
-							srt =
-								this.$store.state.places[this.getIndexById({
-									parent: this.$store.state.places,
-									id: container.children[container.children.length - 1].id,
-								})].srt + 1
-							;
-						} else {
-							srt = 1;
-						}
+				let change = () => {
+					if(Object.keys(changes.place).length > 0) {
 						this.$store.commit("changePlace", {
-							place:
-								this.$store.state.places[this.getIndexById({
-									parent: this.$store.state.places,
-									id: this.draggingElement.id,
-								})]
-							,
-							change: {
-								folderid:
-									container.id === "places-menu-item-root"
-										? null
-										: container.id
-								,
-								srt: srt,
-							},
+							place: this.$store.state.places.find(
+								p => p.id === this.draggingElement.id
+							),
+							change: changes.place,
 							backup: false,
 						});
 						this.needToUpdate = true;
 					}
-				}
-				// Place button dropped on sorting areas of another place button
-				if(
-					this.draggingElement !== event.target.parentNode
-					&& this.draggingElement.classList.contains("place-button")
-					&& event.target.classList.contains("place-button__dragenter-area")
-					&& !(
-						this.draggingElement.parentNode.parentNode.nextElementSibling === event.target.parentNode
-						&& event.target.classList.contains("place-button__dragenter-area_top")
-					)
-					&& !(
-						this.draggingElement.parentNode.parentNode.previousElementSibling === event.target.parentNode
-						&& event.target.classList.contains("place-button__dragenter-area_bottom")
-					)
-				) {
-					for(let e of document.getElementsByClassName("place-button__dragenter-area")) {
-						e.classList.remove("dragenter-area_top_border");
-						e.classList.remove("dragenter-area_bottom_border");
-					}
-					let
-						targetPrev = event.target.parentNode.previousElementSibling,
-						targetNext = event.target.parentNode.nextElementSibling
-					;
-					if(event.target.classList.contains("place-button__dragenter-area_top")) {
-						if(!targetPrev) {
-							srt = targetSrt / 2;
-						} else if(targetPrev !== this.draggingElement) {
-							let targetPrevSrt = Number(targetPrev.getAttribute("srt"));
-							srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
-						}
-					}
-					if(event.target.classList.contains("place-button__dragenter-area_bottom")) {
-						if(!targetNext) {
-							srt = targetSrt + 1;
-						} else if(targetNext !== this.draggingElement) {
-							let targetNextSrt = Number(targetNext.getAttribute("srt"));
-							srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
-						}
-					}
-					if(srt !== null) {
-						this.$store.commit("changePlace", {
-							place: this.$store.state.places[this.getIndexById({
-								parent: this.$store.state.places,
-								id: this.draggingElement.id,
-							})],
-							change: {
-								folderid: this.$store.state.places[this.getIndexById({
-									parent: this.$store.state.places,
-									id: event.target.parentNode.id,
-								})].folderid,
-								srt: srt,
-							},
-							backup: false,
-						});
-						this.needToUpdate = true;
-					}
-				}
-				// Folder link dropped on a folder link
-				if(event.target.classList.contains("folder-button")) {
-					for(let e of document.getElementsByClassName("folder-button_parent")) {
-						e.classList.remove("folder-button_parent");
-					}
-				}
-				if(event.target.classList.contains("places-menu-folder__dragenter-area")) {
-					for(let e of document.getElementsByClassName("places-menu-folder__dragenter-area")) {
-						e.classList.remove("dragenter-area_top_border");
-						e.classList.remove("dragenter-area_bottom_border");
-					}
-				}
-				// Folder link dropped on sorting areas of another folder link
-				if(
-					this.draggingElement.parentNode.parentNode !== event.target.parentNode
-					&& this.draggingElement.classList.contains("folder-button")
-					&& event.target.classList.contains("places-menu-folder__dragenter-area")
-					&& !isParentInTree(
-						{children: this.$store.state.folders},
-						"children",
-						this.draggingElement.id.substr(24),
-						event.target.parentNode.id.substr(19)
-					)
-				) {
-					let
-						srt = null,
-						targetSrt = Number(event.target.parentNode.firstElementChild.firstElementChild.getAttribute("srt")),
-						targetPrev = event.target.parentNode.previousElementSibling,
-						targetNext = event.target.parentNode.nextElementSibling
-					;
-					if(event.target.classList.contains("places-menu-folder__dragenter-area_top")) {
-						if(!targetPrev) {
-							srt = targetSrt / 2;
-						} else if(targetPrev !== this.draggingElement.parentNode.parentNode) {
-							let targetPrevSrt = Number(targetPrev.firstElementChild.firstElementChild.getAttribute("srt"));
-							srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
-						}
-					}
-					if(event.target.classList.contains("places-menu-folder__dragenter-area_bottom")) {
-						if(!targetNext) {
-							srt = targetSrt + 1;
-						} else if(targetNext !== this.draggingElement.parentNode.parentNode) {
-							let targetNextSrt = Number(targetNext.firstElementChild.firstElementChild.getAttribute("srt"));
-							srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
-						}
-					}
-					if(srt !== null) {
+					if(Object.keys(changes.folder).length > 0) {
 						this.$store.dispatch("moveFolder", {
-							folderId: this.draggingElement.id.substr(24),
-							targetId: event.target.parentNode.parentNode.parentNode.id.substr(19),
-							srt: srt,
+							folderId: changes.folder.id,
+							targetId: changes.folder.parent,
+							srt: changes.folder.srt,
 							backup: false,
 						});
 						this.needToUpdateFolders = true;
 					}
+				};
+				let update = () => {
+					if(this.needToUpdate || this.needToUpdateFolders) {
+						this.$store.commit("backupState");
+						if(this.$store.state.inUndoRedo) {
+							bus.$emit("toDBCompletely");
+						} else if(this.needToUpdate) {
+							bus.$emit("toDB", "places");
+							this.needToUpdate = false;
+						} else if(this.needToUpdateFolders) {
+							bus.$emit("toDB", "folders");
+							this.needToUpdateFolders = false;
+						}
+					}
+				};
+				let cleanup = () => {
+					event.target.dispatchEvent(new Event("dragleave"));
+					this.draggingElement = null;
+				};
+				// Place button was dropped on the folder link
+				if(
+					this.draggingElement.dataset.placeButton !== undefined &&
+					event.target.dataset.folderButton !== undefined &&
+					event.target.id.replace(/^.*-([^-]*)/, "$1") !==
+						this.$store.state.places.find(
+							p => p.id === this.draggingElement.id
+						).folderid
+				) {
+					newPlaceButtonContainer =
+						event.target.parentNode.nextElementSibling.nextElementSibling;
+					if(newPlaceButtonContainer.lastElementChild) {
+						changes.place.srt = this.$store.state.places.find(
+							p => p.id === newPlaceButtonContainer.lastElementChild.id
+						).srt + 1;
+					} else {
+						changes.place.srt = 1;
+					}
+					changes.place.folderid =
+						newPlaceButtonContainer.id.replace(/^.*-([^-]*)/, "$1");
+					change();
+					update();
+					cleanup();
+					return;
+				}
+				/*
+				 * Place button was dropped
+				 * on the top sorting area of another place button
+				 */
+				if(
+					this.draggingElement.dataset.placeButton !== undefined &&
+					event.target.dataset.placeButtonDragenterAreaTop !== undefined &&
+					event.target.parentNode !== this.draggingElement.nextElementSibling
+				) {
+					if(!event.target.parentNode.previousElementSibling) {
+						changes.place.srt = targetSrt / 2;
+					} else {
+						let targetPrevSrt = Number(
+							event.target.parentNode.previousElementSibling
+							.getAttribute("srt")
+						);
+						changes.place.srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
+					}
+					if(this.draggingElement.parentNode !== event.target.parentNode.parentNode) {
+						changes.place.folderid = event.target.parentNode.parentNode.id;
+					}
+					event.target.classList.remove("dragenter-area_top_border");
+					change();
+					update();
+					cleanup();
+					return;
+				}
+				/*
+				 * Place button was dropped
+				 * on the bottom sorting area of another place button
+				 */
+				if(
+					this.draggingElement.dataset.placeButton !== undefined &&
+					event.target.dataset.placeButtonDragenterAreaBottom !== undefined &&
+					event.target.parentNode !== this.draggingElement.previousElementSibling
+				) {
+					if(!event.target.parentNode.nextElementSibling) {
+						changes.place.srt = targetSrt + 1;
+					} else {
+						let targetNextSrt = Number(
+							event.target.parentNode.nextElementSibling
+							.getAttribute("srt")
+						);
+						changes.place.srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
+					}
+					if(this.draggingElement.parentNode !== event.target.parentNode.parentNode) {
+						changes.place.folderid = event.target.parentNode.parentNode.id;
+					}
+					event.target.classList.remove("dragenter-area_bottom_border");
+					change();
+					update();
+					cleanup();
+					return;
+				}
+				// Folder link was dropped on the sorting area of another folder link
+				if(
+					this.draggingElement.dataset.folderButton !== undefined &&
+					(
+						event.target.dataset.folderDragenterAreaTop !== undefined ||
+						event.target.dataset.folderDragenterAreaBottom !== undefined
+					) &&
+					!!(changes.folder.id =
+						this.draggingElement.id.replace(/^.*-([^-]*)/, "$1")
+					) &&
+					!!(changes.folder.parent =
+						event.target.parentNode.parentNode.parentNode.parentNode
+						.id.replace(/^.*-([^-]*)/, "$1")
+					) &&
+					changes.folder.id !== changes.folder.parent &&
+					!isParentInTree(
+						{children: this.$store.state.folders},
+						"children",
+						changes.folder.id,
+						changes.folder.parent
+					)
+				) {
+					if(
+						event.target.dataset.folderDragenterAreaTop !== undefined &&
+						this.draggingElement.parentNode.parentNode !==
+							event.target.parentNode.previousElementSibling
+					) {
+						if(!event.target.parentNode.previousElementSibling) {
+							changes.folder.srt = targetSrt / 2;
+						} else {
+							let targetPrevSrt = Number(
+								event.target.parentNode.previousElementSibling
+								.getAttribute("srt")
+							);
+							changes.folder.srt =
+								(targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
+						}
+					} else if(
+						event.target.dataset.folderDragenterAreaBottom !== undefined &&
+						this.draggingElement.parentNode.parentNode !==
+							event.target.parentNode.nextElementSibling
+					) {
+						if(!event.target.parentNode.nextElementSibling) {
+							changes.folder.srt = targetSrt + 1;
+						} else {
+							let targetNextSrt = Number(
+								event.target.parentNode.nextElementSibling
+								.getAttribute("srt")
+							);
+							changes.folder.srt =
+								(targetNextSrt - targetSrt) / 2 + targetSrt;
+						}
+					}
+					change();
+					update();
+					cleanup();
+					return;
 				}
 				// Folder link dropped on another folder link
 				if(
-					this.draggingElement.classList.contains("folder-button")
-					&& event.target.classList.contains("folder-button")
-					&& !this.draggingElement.parentNode.parentNode.contains(event.target.parentNode.parentNode.parentNode)
-					&& !isParentInTree(
+					this.draggingElement.dataset.folderButton !== undefined &&
+					event.target.dataset.folderButton !== undefined &&
+					!!(changes.folder.id =
+						this.draggingElement.id.replace(/^.*-([^-]*)/, "$1")
+					) &&
+					!!(changes.folder.parent =
+						event.target.id.replace(/^.*-([^-]*)/, "$1")
+					) &&
+					changes.folder.id !== changes.folder.parent &&
+					!isParentInTree(
 						{children: this.$store.state.folders},
 						"children",
-						this.draggingElement.id.substr(24),
-						event.target.id.substr(24)
+						changes.folder.id,
+						changes.folder.parent
 					)
 				) {
-					this.$store.dispatch("moveFolder", {
-						folderId: this.draggingElement.id.substr(24),
-						targetId: event.target.id.substr(24),
-						backup: false,
-					});
-					this.needToUpdateFolders = true;
+					change();
+					update();
+					cleanup();
+					return;
 				}
-			}
-			this.draggingElement = null;
-			if(this.needToUpdate || this.needToUpdateFolders) {
-				this.$store.commit("backupState");
-				if(this.$store.state.inUndoRedo) {
-					bus.$emit("toDBCompletely");
-				} else if(this.needToUpdate) {
-					bus.$emit("toDB", "places");
-					this.needToUpdate = false;
-				} else if(this.needToUpdateFolders) {
-					bus.$emit("toDB", "folders");
-					this.needToUpdateFolders = false;
-				}
+				cleanup();
 			}
 		},
 	},

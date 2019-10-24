@@ -4,55 +4,70 @@
 
 <script>
 import axios from "axios"
-import {constants} from "../shared/constants.js"
-import {bus} from "../shared/bus.js"
+import { constants } from "../shared/constants.js"
+import { bus } from "../shared/bus.js"
 export default {
-	props: ["id", "name", "description", "images", "latitude", "longitude", "centerLatitude", "centerLongitude"],
-	data: function() {return {
-		map: null,
-		mrk: null,
-		mrks: {},
-		commonMrks: {},
-		placemarksShow: true,
-		commonPlacemarksShow: false,
-		centerPlacemarkShow: false,
-		privatePlacemarksColor: "rgb(100, 44, 36)",
-		commonPlacemarksColor: "rgba(144, 98, 62, 0.6)",
-		activePlacemarksColor: "rgb(217, 82, 0)",
-		placemarksOptions: {
-			private: {
+	props: [
+		"id",
+		"name",
+		"description",
+		"images",
+		"latitude",
+		"longitude",
+		"centerLatitude",
+		"centerLongitude",
+	],
+	data() {
+		return {
+			map: null,
+			mrk: null,
+			mrks: {},
+			commonMrks: {},
+			placemarksShow: true,
+			commonPlacemarksShow: false,
+			centerPlacemarkShow: false,
+			privatePlacemarksColor: "rgb(100, 44, 36)",
+			commonPlacemarksColor: "rgba(144, 98, 62, 0.6)",
+			activePlacemarksColor: "rgb(217, 82, 0)",
+			placemarksOptions: {
+				private: {
+					visible: true,
+					draggable: true,
+					preset: "islands#icon",
+					iconColor: "rgb(100, 44, 36)",
+				},
+				common: {
+					visible: false,
+					draggable: false,
+					preset: "islands#icon",
+					iconColor: "rgba(144, 98, 62, 0.6)",
+				},
+			},
+			centerPlacemarkOptions: {
 				visible: true,
 				draggable: true,
 				preset: "islands#icon",
-				iconColor: "rgb(100, 44, 36)",
+				iconColor: "rgb(127, 143, 0)",
 			},
-			common: {
-				visible: false,
-				draggable: false,
-				preset: "islands#icon",
-				iconColor: "rgba(144, 98, 62, 0.6)",
-			},
-		},
-		centerPlacemarkOptions: {
-			visible: true,
-			draggable: true,
-			preset: "islands#icon",
-			iconColor: "rgb(127, 143, 0)",
-		},
-	}},
-	mounted: function() {
+		}
+	},
+	mounted() {
 		new ResizeSensor(document.getElementById("basic-basic"), () => {
 			this.fitMap();
 		});
 	},
-	beforeDestroy: function() {
+	beforeDestroy() {
 		if(this.map) {
 			this.map.destroy();
 		}
 	},
 	watch: {
-		latitude: function() {
-			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
+		latitude() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
 			if(this.$store.state.currentPlace) {
 				this.$store.commit("changeCenter", {
 					latitude: this.$store.state.currentPlace.latitude,
@@ -60,8 +75,12 @@ export default {
 				});
 			}
 		},
-		longitude: function() {
-			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
+		longitude() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
 			if(this.$store.state.currentPlace) {
 				this.$store.commit("changeCenter", {
 					latitude: this.$store.state.currentPlace.latitude,
@@ -69,17 +88,25 @@ export default {
 				});
 			}
 		},
-		centerLatitude: function() {
+		centerLatitude() {
 			this.updateCenter();
 		},
-		centerLongitude: function() {
+		centerLongitude() {
 			this.updateCenter();
 		},
-		name: function() {
-			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
+		name() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
 		},
-		description: function() {
-			this.updatePlacemark(this.$parent.currentPlaceCommon ? this.commonMrks : this.mrks);
+		description() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
 		},
 	},
 	computed: {
@@ -104,7 +131,13 @@ export default {
 				});
 				this.mrk = new ymaps.Placemark(
 					[lat, lng],
-					{hintContent: "Метка центра карты", balloonContent: "Метка текущих координат центра карты. Новое место будет создано здесь."},
+					{
+						hintContent: "Метка центра карты",
+						balloonContent: `
+							Метка текущих координат центра карты.
+							Новое место будет создано здесь.
+						`,
+					},
 					this.centerPlacemarkOptions,
 				);
 				this.mrk.options.set("visible", false);
@@ -121,8 +154,8 @@ export default {
 				this.$parent.commonPlacesShowHide(this.$parent.currentPlaceCommon);
 				if(this.$store.state.currentPlace) {
 					if(
-						!this.$parent.currentPlaceCommon
-						&& this.mrks[this.$store.state.currentPlace.id]
+						!this.$parent.currentPlaceCommon &&
+						this.mrks[this.$store.state.currentPlace.id]
 					) {
 						this.mrks[this.$store.state.currentPlace.id].options.set(
 							"iconColor", this.activePlacemarksColor
@@ -157,13 +190,18 @@ export default {
 			}
 			marks[place.id] = new ymaps.Placemark(
 				[place.latitude, place.longitude],
-				{hintContent: place.name, balloonContent: place.description},
+				{
+					hintContent: place.name,
+					balloonContent: place.description,
+				},
 				options,
 			);
 			marks[place.id].events.add("dragstart", () => {
 				if(place !== this.$store.state.currentPlace) {
 					marks[place.id].options.set("draggable", false);
-					this.$store.dispatch("setMessage", "Для перетаскивания точку сначала нужно выделить");
+					this.$store.dispatch("setMessage",
+						"Для перетаскивания точку сначала нужно выделить"
+					);
 				}
 			});
 			marks[place.id].events.add("dragend", () => {
@@ -189,13 +227,22 @@ export default {
 		},
 		updatePlacemark: (marks) => function(marks) {
 			if(marks[this.id]) {
-				marks[this.id].geometry.setCoordinates([this.latitude, this.longitude]);
-				marks[this.id].properties.set({hintContent: this.name, balloonContent: this.description});
+				marks[this.id].geometry.setCoordinates([
+					this.latitude,
+					this.longitude,
+				]);
+				marks[this.id].properties.set({
+					hintContent: this.name,
+					balloonContent: this.description,
+				});
 			}
 		},
 		updateCenter: () => function() {
 			if(this.map !== null) {
-				this.map.setCenter([this.centerLatitude, this.centerLongitude]);
+				this.map.setCenter([
+					this.centerLatitude,
+					this.centerLongitude,
+				]);
 			}
 		},
 		fitMap: () => function() {

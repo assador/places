@@ -58,7 +58,7 @@
 			<div>
 				<div class="brand">
 					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user ? $store.state.user.login : 'o_O'"></a></h1>
-					<div>Сервис просмотра и редактирования библиотек геометок</div>
+					<div>Сервис просмотра и редактирования библиотек мест</div>
 				</div>
 			</div>
 			<div
@@ -109,7 +109,7 @@
 				<button
 					id="actions-import"
 					class="actions-button"
-					title="Импортировать геометки"
+					title="Импортировать места"
 					onclick="document.getElementById('inputImportFromFile').click();"
 				>
 					↲
@@ -117,7 +117,7 @@
 				<button
 					id="actions-export"
 					class="actions-button"
-					title="Экспортировать свои геометки"
+					title="Экспортировать свои места"
 					@click="$root.showPopup({show: true, type: 'export', data: {mime: 'application/gpx+xml'}}, $event);"
 				>
 					↱
@@ -145,7 +145,11 @@
 			class="app-cell"
 		>
 			<div id="basic-left__places">
-				<div v-if="$store.state.places.length > 0 || $store.state.folders.length > 0" id="places-menu">
+				<div
+					v-if="$store.state.places.length > 0 || $store.state.folders.length > 0"
+					id="places-menu"
+					class="menu"
+				>
 					<tree instanceid="placestree" :data="$root.folderRoot || {}"></tree>
 				</div>
 				<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
@@ -286,6 +290,7 @@
 							<div class="dd-images">
 								<div
 									v-for="image in orderedImages"
+									data-image
 									:id="image.id"
 									:key="image.id"
 									:class="'place-image' + (currentPlaceCommon ? '' : ' draggable')"
@@ -436,8 +441,10 @@
 
 <script>
 import _ from "lodash"
-import {constants} from "../shared/constants.js"
-import {bus} from "../shared/bus.js"
+import { constants } from "../shared/constants.js"
+import { bus } from "../shared/bus.js"
+import { mapGetters } from "vuex"
+import axios from "axios"
 import tree from "./Tree.vue"
 import extmap from "./ExtMap.vue"
 import popupimage from "./PopupImage.vue"
@@ -445,8 +452,6 @@ import popuptext from "./PopupText.vue"
 import popupfolder from "./PopupFolder.vue"
 import popupfolderdelete from "./PopupFolderDelete.vue"
 import popupexport from "./PopupExport.vue"
-import axios from "axios"
-import {mapGetters} from "vuex"
 export default {
 	components: {
 		tree,
@@ -457,28 +462,30 @@ export default {
 		popupfolderdelete,
 		popupexport,
 	},
-	data: function() {return {
-		state: this.$store.state,
-		constants: constants,
-		placesFilled: false,
-		firstValidatable: false,
-		commonPlacesPage: 1,
-		commonPlacesPagesCount: 0,
-		commonPlacesOnPageCount: constants.commonplacesonpagecount,
-		commonPlacesShow: false,
-		currentPlace: null,
-		currentPlaceCommon: false,
-		sidebarSize: {
-			top: constants.sidebars.top,
-			right: constants.sidebars.right,
-			bottom: constants.sidebars.bottom,
-			left: constants.sidebars.left,
-		},
-		sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
-		compact: false,
-		linkEditing: false,
-	}},
-	mounted: function() {
+	data() {
+		return {
+			state: this.$store.state,
+			constants: constants,
+			placesFilled: false,
+			firstValidatable: false,
+			commonPlacesPage: 1,
+			commonPlacesPagesCount: 0,
+			commonPlacesOnPageCount: constants.commonplacesonpagecount,
+			commonPlacesShow: false,
+			currentPlace: null,
+			currentPlaceCommon: false,
+			sidebarSize: {
+				top: constants.sidebars.top,
+				right: constants.sidebars.right,
+				bottom: constants.sidebars.bottom,
+				left: constants.sidebars.left,
+			},
+			sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
+			compact: false,
+			linkEditing: false,
+		}
+	},
+	mounted() {
 		bus.$on("placesFilled", happens => {
 			this.$root.folderRoot = {
 				id: "root",
@@ -537,11 +544,11 @@ export default {
 			window.addEventListener("resize", this.windowResize, false);
 			if(this.$store.state.user.testaccount) {
 				setTimeout(() => {
-					this.$store.dispatch("setMessage",
-						"Вы авторизовались под тестовым аккаунтом; " +
-						"невозможны сохранение изменений в базу данных " +
-						"и загрузка файлов, в том числе фотографий"
-					);
+					this.$store.dispatch("setMessage", `
+						Вы авторизовались под тестовым аккаунтом;
+						невозможны сохранение изменений в базу данных
+						и загрузка файлов, в том числе фотографий
+					`);
 				}, 3000);
 			}
 			this.windowResize();
@@ -555,8 +562,8 @@ export default {
 			});
 			if(this.$store.state.currentPlace) {
 				if(
-					!this.currentPlaceCommon
-					&& this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
+					!this.currentPlaceCommon &&
+					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
 						"iconColor", this.$refs.extmap.activePlacemarksColor
@@ -577,7 +584,7 @@ export default {
 			bus.$emit("placesFilled");
 		}
 	},
-	beforeDestroy: function() {
+	beforeDestroy() {
 		document.removeEventListener("dragover", this.$root.handleDragOver, false);
 		document.removeEventListener("drop", this.$root.handleDrop, false);
 		document.removeEventListener("keyup", this.keyup, false);
@@ -586,16 +593,16 @@ export default {
 		bus.$off("setCurrentPlace");
 	},
 	methods: {
-		validatable: function() {
+		validatable() {
 			if(!this.firstValidatable) {
 				make_fields_validatable();
 				this.firstValidatable = true;
 			}
 		},
-		validate_field: function(value, type) {
+		validate_field(value, type) {
 			return validate_field(value, type);
 		},
-		keyup: function(event) {
+		keyup(event) {
 			if(event.altKey && event.shiftKey) {
 				if(constants.shortcuts[event.keyCode]) {
 					this.blur();
@@ -606,8 +613,8 @@ export default {
 						break;
 					case "delete" :
 						if(
-							this.$store.state.currentPlace
-							&& this.$store.state.currentPlace.userid ==
+							this.$store.state.currentPlace &&
+							this.$store.state.currentPlace.userid ==
 								this.$store.state.user.id
 						) {
 							this.deletePlace(this.$store.state.currentPlace);
@@ -692,7 +699,7 @@ export default {
 				}
 			}
 		},
-		windowResize: function() {
+		windowResize() {
 			if(window.innerWidth > constants.compactWidth) {
 				this.sidebarSize.top = constants.sidebars.top;
 				this.sidebarSize.right = constants.sidebars.right;
@@ -735,7 +742,7 @@ export default {
 			}
 			document.getElementById("grid").classList.remove("loading-grid");
 		},
-		sidebarDragStart: function(event, what) {
+		sidebarDragStart(event, what) {
 			event.preventDefault();
 			this.sidebarDrag.what = what;
 			if(event.changedTouches) {
@@ -760,7 +767,7 @@ export default {
 					break;
 			}
 		},
-		documentMouseOver: function(event) {
+		documentMouseOver(event) {
 			if(this.sidebarDrag.what !== null) {
 				switch(this.sidebarDrag.what) {
 					case "top" :
@@ -786,14 +793,14 @@ export default {
 				}
 			}
 		},
-		sidebarDragStop: function(event) {
+		sidebarDragStop(event) {
 			this.sidebarDrag.what = null;
 			if(this.compact) {
 				this.windowResize();
 			}
 		},
 		// Search and select a place by name
-		selectPlaces: function(event) {
+		selectPlaces(event) {
 			if(event.keyCode == 27) {
 				event.target.value = "";
 			} else {
@@ -810,7 +817,7 @@ export default {
 		getCurrentPlace: {
 			deep: true,
 			immediate: true,
-			handler: function(place) {
+			handler(place) {
 				if(place) {
 					this.currentPlace = {
 						...place,
@@ -818,9 +825,9 @@ export default {
 					};
 					this.$nextTick(function() {
 						if(
-							place.userid == this.$store.state.user.id
-							&& !place.name
-							&& document.getElementById("detailed-name")
+							place.userid == this.$store.state.user.id &&
+							!place.name &&
+							document.getElementById("detailed-name")
 						) {
 							document.getElementById("detailed-name").classList.add("highlight");
 							document.getElementById("detailed-name").focus();
@@ -838,7 +845,8 @@ export default {
 	computed: {
 		...mapGetters(["getCurrentPlace", "getMessage"]),
 		blur: () => function() {
-			let el = this.$el.querySelector(":focus"); if(el) {el.blur();}
+			let el = this.$el.querySelector(":focus");
+			if(el) el.blur();
 		},
 		exit: () => function() {
 			this.$store.dispatch("unload");
@@ -847,14 +855,14 @@ export default {
 		account: () => function() {
 			bus.$emit("loggedChange", "account");
 		},
-		orderedImages: function() {
+		orderedImages() {
 			return this.currentPlace ? _.orderBy(this.currentPlace.images, "srt") : [];
 		},
 		setCurrentPlace: (place, common = false) => function(place, common = false) {
 			if(this.$store.state.currentPlace) {
 				if(
-					!this.currentPlaceCommon
-					&& this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
+					!this.currentPlaceCommon &&
+					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
 						"iconColor", this.$refs.extmap.privatePlacemarksColor
@@ -881,8 +889,8 @@ export default {
 					}
 				}
 				if(
-					!this.currentPlaceCommon
-					&& this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
+					!this.currentPlaceCommon &&
+					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
 						"iconColor", this.$refs.extmap.activePlacemarksColor
@@ -906,7 +914,10 @@ export default {
 						if(!folder) {
 							break;
 						}
-						this.$store.commit("folderOpenClose", {folder: folder, opened: true});
+						this.$store.commit("folderOpenClose", {
+							folder: folder,
+							opened: true,
+						});
 						folderid = (folder.parent === null ? "root" : folder.parent);
 					}
 				}
@@ -926,9 +937,9 @@ export default {
 			axios.post("/backend/get_groups.php", data)
 				.then(response => {
 					if(
-						constants.rights.placescounts[response.data] < 0
-						|| constants.rights.placescounts[response.data] > this.$store.state.places.length
-						|| this.$store.state.user.testaccount
+						constants.rights.placescounts[response.data] < 0 ||
+						constants.rights.placescounts[response.data] > this.$store.state.places.length ||
+						this.$store.state.user.testaccount
 					) {
 						let newPlace = {
 							type: "place",
@@ -1059,7 +1070,10 @@ export default {
 			let reader = new FileReader();
 			reader.onload = (event) => {
 				this.$nextTick(() => {
-					this.$store.dispatch("setPlaces", {text: event.target.result, mime: mime});
+					this.$store.dispatch("setPlaces", {
+						text: event.target.result,
+						mime: mime,
+					});
 					document.getElementById("inputImportFromFile").value = "";
 				});
 			};
@@ -1086,8 +1100,8 @@ export default {
 					srt
 				;
 				if(
-					this.$store.state.currentPlace
-					&& this.$store.state.currentPlace.images.length > 0
+					this.$store.state.currentPlace &&
+					this.$store.state.currentPlace.images.length > 0
 				) {
 					let storeImages = this.$store.state.currentPlace.images;
 					srt = sortObjects(storeImages, "srt").pop().srt;

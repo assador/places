@@ -1,5 +1,5 @@
-import {constants} from "./shared/constants.js"
-import {bus} from "./shared/bus.js"
+import { constants } from "./shared/constants.js"
+import { bus } from "./shared/bus.js"
 const tracking = store => {
 	const trackingMutations = [
 		"addFolder",
@@ -16,9 +16,9 @@ const tracking = store => {
 	];
 	store.subscribe((mutation, state) => {
 		if(
-			mutation.type != "setIdleTime"
-			&& mutation.type != "setRefreshing"
-			&& !state.refreshing
+			mutation.type != "setIdleTime" &&
+			mutation.type != "setRefreshing" &&
+			!state.refreshing
 		) {
 			sessionStorage.setItem("places-store-state", JSON.stringify(state));
 		}
@@ -26,22 +26,22 @@ const tracking = store => {
 			store.commit("setSaved", false);
 			if(
 				(
-					!mutation.payload.hasOwnProperty("backup")
-					|| mutation.payload.backup
+					!mutation.payload.hasOwnProperty("backup") ||
+					mutation.payload.backup
 				) && (
-					mutation.payload.hasOwnProperty("type")
-					|| mutation.payload.hasOwnProperty("change")
+					mutation.payload.hasOwnProperty("type") ||
+					mutation.payload.hasOwnProperty("change")
 				)
 			) {
 				if(
-					mutation.payload.added
-					|| mutation.payload.deleted
-					|| mutation.payload.updated
-					|| mutation.payload.change
-						&& (
-							mutation.payload.change.added
-							|| mutation.payload.change.deleted
-							|| mutation.payload.change.updated
+					mutation.payload.added ||
+					mutation.payload.deleted ||
+					mutation.payload.updated ||
+					mutation.payload.change &&
+						(
+							mutation.payload.change.added ||
+							mutation.payload.change.deleted ||
+							mutation.payload.change.updated
 						)
 				) {
 					if(!state.inUndoRedo) {
@@ -328,9 +328,9 @@ export const store = new Vuex.Store({
 					payloadFolder.updated = true;
 					for(let key in payloadFolder) {
 						if(
-							key != "id"
-							&& key != "added"
-							&& key != "deleted"
+							key != "id" &&
+							key != "added" &&
+							key != "deleted"
 						) {
 							found[key] = payloadFolder[key];
 						}
@@ -351,8 +351,8 @@ export const store = new Vuex.Store({
 				 * If exists, updating; if not, addinng.
 				 */
 				found = state.places.find(p =>
-					p.id == payloadPlace.id
-					|| p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
+					p.id == payloadPlace.id ||
+					p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
 				);
 				if(found) {
 					found.updated = true;
@@ -422,14 +422,14 @@ export const store = new Vuex.Store({
 			}
 			if(payload.target) {
 				if(payload.opened) {
-					payload.target.classList.add("places-menu-folder_opened");
+					payload.target.classList.add("folder_opened");
 				} else {
-					if(payload.target.classList.contains("places-menu-folder_opened")) {
-						payload.target.classList.add("places-menu-folder_closed");
-						payload.target.classList.remove("places-menu-folder_opened");
+					if(payload.target.classList.contains("folder_opened")) {
+						payload.target.classList.add("folder_closed");
+						payload.target.classList.remove("folder_opened");
 					} else {
-						payload.target.classList.add("places-menu-folder_opened");
-						payload.target.classList.remove("places-menu-folder_closed");
+						payload.target.classList.add("folder_opened");
+						payload.target.classList.remove("folder_closed");
 					}
 				}
 			}
@@ -495,19 +495,32 @@ export const store = new Vuex.Store({
 			// If reading from database, not importing
 			if(!payload) {
 				let placesRequest = new XMLHttpRequest();
-				placesRequest.open("GET", "/backend/get_places.php?id=" + sessionStorage.getItem("places-userid"), true);
+				placesRequest.open(
+					"GET",
+					"/backend/get_places.php?id=" +
+						sessionStorage.getItem("places-userid"),
+					true
+				);
 				placesRequest.onreadystatechange = function(event) {
 					if(placesRequest.readyState == 4) {
 						if(placesRequest.status == 200) {
 							let all_places = JSON.parse(placesRequest.responseText);
 							sortObjectsByProximity(all_places[1]);
-							commit("placesReady", {places: all_places[0], commonPlaces: all_places[1], folders: all_places[2]});
+							commit("placesReady", {
+								places: all_places[0],
+								commonPlaces: all_places[1],
+								folders: all_places[2],
+							});
 							commit("setHomePlace", state.user.homeplace);
 							commit("foldersToTree");
 							bus.$emit("placesFilled");
 						} else {
 							dispatch("setMessage", "Не могу получить данные из БД");
-							commit("placesReady", {places: [], commonPlaces: [], folders: []});
+							commit("placesReady", {
+								places: [],
+								commonPlaces: [],
+								folders: [],
+							});
 						}
 					}
 				};
@@ -669,7 +682,10 @@ export const store = new Vuex.Store({
 						return false;
 				}
 				try {
-					commit("addImporting", {places: parsed.places, folders: parsed.folders});
+					commit("addImporting", {
+						places: parsed.places,
+						folders: parsed.folders,
+					});
 					bus.$emit("placesFilled", "importing");
 				} catch(e) {
 					dispatch("setMessage",
@@ -702,9 +718,9 @@ export const store = new Vuex.Store({
 				).children;
 			}
 			if(
-				!payload.targetId
-				|| payload.targetId === null
-				|| payload.targetId === "root"
+				!payload.targetId ||
+				payload.targetId === null ||
+				payload.targetId === "root"
 			) {
 				target = state.folders;
 			} else {
@@ -790,9 +806,6 @@ export const store = new Vuex.Store({
 		},
 		getAccountChangeMessage: (state, getters) => {
 			return state.message;
-		},
-		getIndexById: (state, getters) => (args) => {
-			return args.parent.indexOf(args.parent.find(p => p.id == args.id));
 		},
 	},
 });

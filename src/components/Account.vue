@@ -58,61 +58,76 @@
 </template>
 
 <script>
-import {constants} from "../shared/constants.js"
-import {bus} from "../shared/bus.js"
+import { constants } from "../shared/constants.js"
+import { bus } from "../shared/bus.js"
 import popuptext from "./PopupText.vue"
 import popupdelete from "./AccountDelete.vue"
-import {accountSaveRoutine} from "../shared/account.js"
+import { accountSaveRoutine } from "../shared/account.js"
 export default {
 	components: {
 		popuptext,
 		popupdelete,
 	},
-	data() {return {
-		firstValidatable: false,
-		accountLogin: this.$store.state.user.login,
-		accountNewPassword: null,
-		accountNewPasswordRepeat: null,
-		accountName: this.$store.state.user.name,
-		accountEmail: this.$store.state.user.email,
-		accountPhone: this.$store.state.user.phone,
-		accountChangeMessage: "",
-	}},
-	mounted: function() {
+	data() {
+		return {
+			firstValidatable: false,
+			accountLogin: this.$store.state.user.login,
+			accountNewPassword: null,
+			accountNewPasswordRepeat: null,
+			accountName: this.$store.state.user.name,
+			accountEmail: this.$store.state.user.email,
+			accountPhone: this.$store.state.user.phone,
+			accountChangeMessage: "",
+		}
+	},
+	mounted() {
 		sessionStorage.setItem("places-app-child-component", "account");
 		document.addEventListener("keyup", this.keyup, false);
 	},
-	beforeDestroy: function() {
+	beforeDestroy() {
 		document.removeEventListener("keyup", this.keyup, false);
 	},
 	methods: {
-		validatable: function() {
+		validatable() {
 			if(!this.firstValidatable) {
 				make_fields_validatable();
 				this.firstValidatable = true;
 			}
 		},
-		keyup: function(event) {
+		keyup(event) {
 			if(this.$root.popuped == "appear" && constants.shortcuts[event.keyCode] == "close") {
 				this.$root.showPopup({show: false}, event);
 			}
 		},
-		accountSubmit: function() {
+		accountSubmit() {
 			if(this.$store.state.user.testaccount) {
 				this.accountChangeMessage = "Вы авторизовались под тестовым аккаунтом, который изменить нельзя";
 			} else {
 				if(!document.querySelector(".value_wrong")) {
-					const {accountLogin, accountNewPassword, accountNewPasswordRepeat, accountName, accountEmail, accountPhone} = this;
+					const {
+						accountLogin,
+						accountNewPassword,
+						accountNewPasswordRepeat,
+						accountName,
+						accountEmail,
+						accountPhone,
+					} = this;
 					if(accountNewPassword === accountNewPasswordRepeat) {
 						const accountId = sessionStorage.getItem("places-userid");
-						accountSaveRoutine({accountId, accountLogin, accountNewPassword, accountName, accountEmail, accountPhone})
-							.then(response => {
-								if(response.data === 0) {
-									bus.$emit("loggedChange", "home");
-								} else {
-									this.accountChangeMessage = response.message;
-								}
-							});
+						accountSaveRoutine({
+							accountId,
+							accountLogin,
+							accountNewPassword,
+							accountName,
+							accountEmail,
+							accountPhone,
+						}).then(response => {
+							if(response.data === 0) {
+								bus.$emit("loggedChange", "home");
+							} else {
+								this.accountChangeMessage = response.message;
+							}
+						});
 					} else {
 						this.accountChangeMessage = "Введёные пароли не совпадают";
 					}

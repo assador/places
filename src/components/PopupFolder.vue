@@ -67,18 +67,20 @@
 </template>
 
 <script>
-import {constants} from "../shared/constants.js"
+import { constants } from "../shared/constants.js"
 import axios from "axios"
 export default {
 	props: ["data"],
-	data: function() {return {
-		firstValidatable: false,
-		folderName: null,
-		folderDescription: null,
-		message: "",
-	}},
+	data() {
+		return {
+			firstValidatable: false,
+			folderName: null,
+			folderDescription: null,
+			message: "",
+		}
+	},
 	methods: {
-		validatable: function() {
+		validatable() {
 			if(!this.firstValidatable) {
 				make_fields_validatable();
 				this.firstValidatable = true;
@@ -97,9 +99,9 @@ export default {
 			axios.post("/backend/get_groups.php", data)
 				.then(response => {
 					if(
-						constants.rights.folderscounts[response.data] < 0
-						|| constants.rights.folderscounts[response.data] > foldersCount
-						|| this.$store.state.user.testaccount
+						constants.rights.folderscounts[response.data] < 0 ||
+						constants.rights.folderscounts[response.data] > foldersCount ||
+						this.$store.state.user.testaccount
 					) {
 						let newFolder = {
 							type: "folder",
@@ -128,14 +130,17 @@ export default {
 						this.folderDescription = "";
 						document.getElementById("folderName").focus();
 					} else {
-						this.message =
-							'Превышено максимально допустимое для вашей ' +
-							'текущей роли количство папок<br />Дождитесь ' +
-							'перехода в следующую роль, или обратитесь ' +
-							'к администрации сервиса по адресу<br />' +
-							'<a href="mailto:' + constants.from +
-							'">' + constants.from + '</a>'
-						;
+						this.message = `
+							Превышено максимально допустимое для вашей
+							текущей роли количство папок<br />Дождитесь
+							перехода в следующую роль, или обратитесь
+							к администрации сервиса по адресу<br />
+							<a href="mailto:
+							` + constants.from + `
+							">
+							` + constants.from + `
+							</a>'
+						`;
 					}
 				});
 		},

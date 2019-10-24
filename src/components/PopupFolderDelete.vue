@@ -24,22 +24,35 @@
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">Удалить папку</button>
-						<button type="button" @click="$root.showPopup({show: false}, $event);">Отмена</button>
+						<button
+							type="button"
+							@click="$root.showPopup({show: false}, $event);"
+						>
+							Отмена
+						</button>
 					</fieldset>
 				</div>
 			</form>
-			<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
+			<a
+				href="javascript:void(0);"
+				class="close"
+				@click="$root.showPopup({show: false}, $event);"
+			>
+				×
+			</a>
 		</div>
 	</div>
 </template>
 
 <script>
-import {bus} from "../shared/bus.js"
+import { bus } from "../shared/bus.js"
 export default {
 	props: ["data"],
-	data: function() {return {
-		keepContent: "keep",
-	}},
+	data() {
+		return {
+			keepContent: "keep",
+		}
+	},
 	computed: {
 		deleteFolder: event => function(event) {
 			if(this.keepContent !== "delete") {
@@ -58,8 +71,8 @@ export default {
 				});
 				this.$root.deleteFiles(filesToDelete);
 				if(
-					this.$store.state.currentPlace
-					&& this.$store.state.currentPlace.deleted
+					this.$store.state.currentPlace &&
+					this.$store.state.currentPlace.deleted
 				) {
 					if(this.$store.state.places.length > 0) {
 						let firstRootPlace;

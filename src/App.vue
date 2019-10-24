@@ -19,8 +19,8 @@
 </template>
 
 <script>
-import {constants} from "./shared/constants.js"
-import {bus} from "./shared/bus.js"
+import { constants } from "./shared/constants.js"
+import { bus } from "./shared/bus.js"
 import auth from "./components/Auth.vue"
 import home from "./components/Home.vue"
 import account from "./components/Account.vue"
@@ -30,11 +30,13 @@ export default {
 		home,
 		account,
 	},
-	data: function() {return {
-		component: "auth",
-		currentPlaceCommon: false,
-	}},
-	mounted: function() {
+	data() {
+		return {
+			component: "auth",
+			currentPlaceCommon: false,
+		}
+	},
+	mounted() {
 		bus.$on("loggedChange", (component) => {
 			this.component = component;
 			if(component != "auth") {

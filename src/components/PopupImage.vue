@@ -14,18 +14,20 @@
 </template>
 
 <script>
-import {constants} from "../shared/constants.js"
+import { constants } from "../shared/constants.js"
 export default {
 	props: ["data", "currentPlace"],
-	data: function() {return {
-		constants: constants,
-		dataprop: this.data,
-	}},
+	data() {
+		return {
+			constants: constants,
+			dataprop: this.data,
+		}
+	},
 	watch: {
 		data: {
 			deep: true,
 			immediate: true,
-			handler: function(data) {
+			handler(data) {
 				this.dataprop = data;
 			},
 		},

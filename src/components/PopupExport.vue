@@ -46,6 +46,7 @@
 				<div
 					v-if="$store.state.places.length > 0 || $store.state.folders.length > 0"
 					id="popup-export__tree"
+					class="menu"
 					@click="$event.stopPropagation();"
 				>
 					<tree
@@ -57,11 +58,22 @@
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">Экспортировать</button>
-						<button type="button" @click="$root.showPopup({show: false}, $event);">Отмена</button>
+						<button
+							type="button"
+							@click="$root.showPopup({show: false}, $event);"
+						>
+							Отмена
+						</button>
 					</fieldset>
 				</div>
 			</form>
-			<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
+			<a
+				href="javascript:void(0);"
+				class="close"
+				@click="$root.showPopup({show: false}, $event);"
+			>
+				×
+			</a>
 		</div>
 	</div>
 </template>
@@ -73,14 +85,14 @@ export default {
 		tree,
 	},
 	props: ["data"],
-	mounted: function() {
+	mounted() {
 		this.$root.selectedToExport = [];
-		for(let f of document.getElementById("popup-export__tree").getElementsByClassName("places-menu-folder")) {
-			f.classList.add("places-menu-folder_closed");
-			f.classList.remove("places-menu-folder_opened");
+		for(let f of document.getElementById("popup-export__tree").getElementsByClassName("folder")) {
+			f.classList.add("folder_closed");
+			f.classList.remove("folder_opened");
 		}
 	},
-	beforeDestroy: function() {
+	beforeDestroy() {
 		this.$root.selectedToExport = [];
 	},
 }

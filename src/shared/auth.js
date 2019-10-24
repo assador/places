@@ -1,4 +1,4 @@
-import {bus} from "./bus.js"
+import { bus } from "./bus.js"
 import axios from "axios"
 export const loginRoutine = user => new Promise((resolve, reject) => {
 	axios.post("/backend/auth.php", user)
