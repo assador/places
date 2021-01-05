@@ -12,7 +12,7 @@
 	},
 	"dependencies": {
 		"apache-webpack-plugin": "^0.2.0",
-		"axios": "^0.19.0",
+		"axios": "^0.21.1",
 		"interactjs": "^1.5.3",
 		"vuex": "^3.1.1"
 	},
