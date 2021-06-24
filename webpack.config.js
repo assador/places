@@ -98,11 +98,11 @@ module.exports = {
 	optimization: {
 		minimize: true,
 	},
-	devtool: '#eval-source-map',
+	devtool: 'eval-source-map',
 }
 
 if(production) {
-	module.exports.devtool = '#source-map';
+	module.exports.devtool = 'source-map';
 	module.exports.plugins = (module.exports.plugins || []).concat([
 		new webpack.DefinePlugin({
 			'process.env': {

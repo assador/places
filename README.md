@@ -1,6 +1,6 @@
 # places
 
-v2.14.3  
+v2.15.0  
 A Vue.js project  
 “The Places” — yet another geo placemarks viewer and editor service  
 Testing address: http://places.scrofa-tridens.ru/

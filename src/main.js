@@ -309,74 +309,76 @@ let app = new Vue({
 		handleDragEnter(event) {
 			event.preventDefault();
 			event.stopPropagation();
-			if(event.target.nodeType === 1 && this.draggingElement !== event.target) {
-				let draggingElementPP = this.draggingElement.parentNode.parentNode;
-				if(
-					event.target.dataset.folderButton !== undefined &&
-					(
-						this.draggingElement.dataset.folderButton !== undefined ||
-						this.draggingElement.dataset.placeButton !== undefined
-					)
-				) {
-					event.target.classList.add("highlighted");
-				}
-				if(
-					this.draggingElement.dataset.placeButton !== undefined &&
-					event.target.dataset.placeButtonDragenterAreaTop !== undefined &&
-					event.target.parentNode !== this.draggingElement &&
-					event.target.parentNode !== this.draggingElement.nextElementSibling
-				) {
-					event.target.classList.add("dragenter-area_top_border");
-				} else if(
-					this.draggingElement.dataset.placeButton !== undefined &&
-					event.target.dataset.placeButtonDragenterAreaBottom !== undefined &&
-					event.target.parentNode !== this.draggingElement &&
-					event.target.parentNode !== this.draggingElement.previousElementSibling
-				) {
-					event.target.classList.add("dragenter-area_bottom_border");
-				} else if(
-					this.draggingElement.dataset.folderButton !== undefined &&
-					event.target.dataset.folderDragenterAreaTop !== undefined &&
-					event.target.parentNode !== draggingElementPP &&
-					event.target.parentNode !== draggingElementPP.nextElementSibling
-				) {
-					event.target.classList.add("dragenter-area_top_border");
-				} else if(
-					this.draggingElement.dataset.folderButton !== undefined &&
-					event.target.dataset.folderDragenterAreaBottom !== undefined &&
-					event.target.parentNode !== draggingElementPP &&
-					event.target.parentNode !== draggingElementPP.previousElementSibling
-				) {
-					event.target.classList.add("dragenter-area_bottom_border");
-				} else if(
-					this.$store.state.currentPlace &&
-					this.draggingElement.dataset.image !== undefined &&
-					event.target.dataset.image !== undefined
-				) {
-					let indexes = [];
-					for(let i = 0; i < this.$store.state.currentPlace.images.length; i++) {
-						if(
-							this.$store.state.currentPlace.images[i].id ===
-								this.draggingElement.id
-						) {
-							indexes.push(i);
-						}
-						if(
-							this.$store.state.currentPlace.images[i].id ===
-								event.target.id
-						) {
-							indexes.push(i);
-						}
-						if(indexes.length === 2) break;
+			if(
+				event.target.nodeType !== 1 ||
+				this.draggingElement === event.target
+			) return;
+			let draggingElementPP = this.draggingElement.parentNode.parentNode;
+			if(
+				event.target.dataset.folderButton !== undefined &&
+				(
+					this.draggingElement.dataset.folderButton !== undefined ||
+					this.draggingElement.dataset.placeButton !== undefined
+				)
+			) {
+				event.target.classList.add("highlighted");
+			}
+			if(
+				this.draggingElement.dataset.placeButton !== undefined &&
+				event.target.dataset.placeButtonDragenterAreaTop !== undefined &&
+				event.target.parentNode !== this.draggingElement &&
+				event.target.parentNode !== this.draggingElement.nextElementSibling
+			) {
+				event.target.classList.add("dragenter-area_top_border");
+			} else if(
+				this.draggingElement.dataset.placeButton !== undefined &&
+				event.target.dataset.placeButtonDragenterAreaBottom !== undefined &&
+				event.target.parentNode !== this.draggingElement &&
+				event.target.parentNode !== this.draggingElement.previousElementSibling
+			) {
+				event.target.classList.add("dragenter-area_bottom_border");
+			} else if(
+				this.draggingElement.dataset.folderButton !== undefined &&
+				event.target.dataset.folderDragenterAreaTop !== undefined &&
+				event.target.parentNode !== draggingElementPP &&
+				event.target.parentNode !== draggingElementPP.nextElementSibling
+			) {
+				event.target.classList.add("dragenter-area_top_border");
+			} else if(
+				this.draggingElement.dataset.folderButton !== undefined &&
+				event.target.dataset.folderDragenterAreaBottom !== undefined &&
+				event.target.parentNode !== draggingElementPP &&
+				event.target.parentNode !== draggingElementPP.previousElementSibling
+			) {
+				event.target.classList.add("dragenter-area_bottom_border");
+			} else if(
+				this.$store.state.currentPlace &&
+				this.draggingElement.dataset.image !== undefined &&
+				event.target.dataset.image !== undefined
+			) {
+				let indexes = [];
+				for(let i = 0; i < this.$store.state.currentPlace.images.length; i++) {
+					if(
+						this.$store.state.currentPlace.images[i].id ===
+							this.draggingElement.id
+					) {
+						indexes.push(i);
 					}
-					this.$store.commit("swapValues", {
-						parent: this.$store.state.currentPlace.images,
-						indexes: indexes,
-						values: ["srt"],
-						backup: false,
-					});
-					this.needToUpdate = true;
+					if(
+						this.$store.state.currentPlace.images[i].id ===
+							event.target.id
+					) {
+						indexes.push(i);
+					}
+					if(indexes.length === 2) break;
 				}
+				this.$store.commit("swapValues", {
+					parent: this.$store.state.currentPlace.images,
+					indexes: indexes,
+					values: ["srt"],
+					backup: false,
+				});
+				this.needToUpdate = true;
 			}
 		},
 		handleDragLeave(event) {
@@ -395,216 +397,218 @@ let app = new Vue({
 		handleDrop(event, element) {
 			event.preventDefault();
 			event.stopPropagation();
-			if(event.target.nodeType === 1 && this.draggingElement !== event.target) {
-				let
-					newPlaceButtonContainer,
-					targetSrt = Number(
-						event.target.parentNode.getAttribute("srt") ||
-						event.target.parentNode.parentNode.getAttribute("srt")
-					),
-					changes = {folder: {}, place: {}}
-				;
-				let change = () => {
-					if(Object.keys(changes.place).length > 0) {
-						this.$store.commit("changePlace", {
-							place: this.$store.state.places.find(
-								p => p.id === this.draggingElement.id
-							),
-							change: changes.place,
-							backup: false,
-						});
-						this.needToUpdate = true;
-					}
-					if(Object.keys(changes.folder).length > 0) {
-						this.$store.dispatch("moveFolder", {
-							folderId: changes.folder.id,
-							targetId: changes.folder.parent,
-							srt: changes.folder.srt,
-							backup: false,
-						});
-						this.needToUpdateFolders = true;
-					}
-				};
-				let update = () => {
-					if(this.needToUpdate || this.needToUpdateFolders) {
-						this.$store.commit("backupState");
-						if(this.$store.state.inUndoRedo) {
-							bus.$emit("toDBCompletely");
-						} else if(this.needToUpdate) {
-							bus.$emit("toDB", "places");
-							this.needToUpdate = false;
-						} else if(this.needToUpdateFolders) {
-							bus.$emit("toDB", "folders");
-							this.needToUpdateFolders = false;
-						}
-					}
-				};
-				let cleanup = () => {
-					event.target.dispatchEvent(new Event("dragleave"));
-					this.draggingElement = null;
-				};
-				// Place button was dropped on the folder link
-				if(
-					this.draggingElement.dataset.placeButton !== undefined &&
-					event.target.dataset.folderButton !== undefined &&
-					event.target.id.replace(/^.*-([^-]*)/, "$1") !==
-						this.$store.state.places.find(
+			if(
+				event.target.nodeType !== 1 ||
+				this.draggingElement === event.target
+			) return;
+			let
+				newPlaceButtonContainer,
+				targetSrt = Number(
+					event.target.parentNode.getAttribute("srt") ||
+					event.target.parentNode.parentNode.getAttribute("srt")
+				),
+				changes = {folder: {}, place: {}}
+			;
+			let change = () => {
+				if(Object.keys(changes.place).length > 0) {
+					this.$store.commit("changePlace", {
+						place: this.$store.state.places.find(
 							p => p.id === this.draggingElement.id
-						).folderid
-				) {
-					newPlaceButtonContainer =
-						event.target.parentNode.nextElementSibling.nextElementSibling;
-					if(newPlaceButtonContainer.lastElementChild) {
-						changes.place.srt = this.$store.state.places.find(
-							p => p.id === newPlaceButtonContainer.lastElementChild.id
-						).srt + 1;
-					} else {
-						changes.place.srt = 1;
-					}
-					changes.place.folderid =
-						newPlaceButtonContainer.id.replace(/^.*-([^-]*)/, "$1");
-					change();
-					update();
-					cleanup();
-					return;
+						),
+						change: changes.place,
+						backup: false,
+					});
+					this.needToUpdate = true;
 				}
-				/*
-				 * Place button was dropped
-				 * on the top sorting area of another place button
-				 */
+				if(Object.keys(changes.folder).length > 0) {
+					this.$store.dispatch("moveFolder", {
+						folderId: changes.folder.id,
+						targetId: changes.folder.parent,
+						srt: changes.folder.srt,
+						backup: false,
+					});
+					this.needToUpdateFolders = true;
+				}
+			};
+			let update = () => {
+				if(this.needToUpdate || this.needToUpdateFolders) {
+					this.$store.commit("backupState");
+					if(this.$store.state.inUndoRedo) {
+						bus.$emit("toDBCompletely");
+					} else if(this.needToUpdate) {
+						bus.$emit("toDB", "places");
+						this.needToUpdate = false;
+					} else if(this.needToUpdateFolders) {
+						bus.$emit("toDB", "folders");
+						this.needToUpdateFolders = false;
+					}
+				}
+			};
+			let cleanup = () => {
+				event.target.dispatchEvent(new Event("dragleave"));
+				this.draggingElement = null;
+			};
+			// Place button was dropped on the folder link
+			if(
+				this.draggingElement.dataset.placeButton !== undefined &&
+				event.target.dataset.folderButton !== undefined &&
+				event.target.id.replace(/^.*-([^-]*)/, "$1") !==
+					this.$store.state.places.find(
+						p => p.id === this.draggingElement.id
+					).folderid
+			) {
+				newPlaceButtonContainer =
+					event.target.parentNode.nextElementSibling.nextElementSibling;
+				if(newPlaceButtonContainer.lastElementChild) {
+					changes.place.srt = this.$store.state.places.find(
+						p => p.id === newPlaceButtonContainer.lastElementChild.id
+					).srt + 1;
+				} else {
+					changes.place.srt = 1;
+				}
+				changes.place.folderid =
+					newPlaceButtonContainer.id.replace(/^.*-([^-]*)/, "$1");
+				change();
+				update();
+				cleanup();
+				return;
+			}
+			/*
+			 * Place button was dropped
+			 * on the top sorting area of another place button
+			 */
+			if(
+				this.draggingElement.dataset.placeButton !== undefined &&
+				event.target.dataset.placeButtonDragenterAreaTop !== undefined &&
+				event.target.parentNode !== this.draggingElement.nextElementSibling
+			) {
+				if(!event.target.parentNode.previousElementSibling) {
+					changes.place.srt = targetSrt / 2;
+				} else {
+					let targetPrevSrt = Number(
+						event.target.parentNode.previousElementSibling
+						.getAttribute("srt")
+					);
+					changes.place.srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
+				}
+				if(this.draggingElement.parentNode !== event.target.parentNode.parentNode) {
+					changes.place.folderid = event.target.parentNode.parentNode.id;
+				}
+				event.target.classList.remove("dragenter-area_top_border");
+				change();
+				update();
+				cleanup();
+				return;
+			}
+			/*
+			 * Place button was dropped
+			 * on the bottom sorting area of another place button
+			 */
+			if(
+				this.draggingElement.dataset.placeButton !== undefined &&
+				event.target.dataset.placeButtonDragenterAreaBottom !== undefined &&
+				event.target.parentNode !== this.draggingElement.previousElementSibling
+			) {
+				if(!event.target.parentNode.nextElementSibling) {
+					changes.place.srt = targetSrt + 1;
+				} else {
+					let targetNextSrt = Number(
+						event.target.parentNode.nextElementSibling
+						.getAttribute("srt")
+					);
+					changes.place.srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
+				}
+				if(this.draggingElement.parentNode !== event.target.parentNode.parentNode) {
+					changes.place.folderid = event.target.parentNode.parentNode.id;
+				}
+				event.target.classList.remove("dragenter-area_bottom_border");
+				change();
+				update();
+				cleanup();
+				return;
+			}
+			// Folder link was dropped on the sorting area of another folder link
+			if(
+				this.draggingElement.dataset.folderButton !== undefined &&
+				(
+					event.target.dataset.folderDragenterAreaTop !== undefined ||
+					event.target.dataset.folderDragenterAreaBottom !== undefined
+				) &&
+				!!(changes.folder.id =
+					this.draggingElement.id.replace(/^.*-([^-]*)/, "$1")
+				) &&
+				!!(changes.folder.parent =
+					event.target.parentNode.parentNode.parentNode.parentNode
+					.id.replace(/^.*-([^-]*)/, "$1")
+				) &&
+				changes.folder.id !== changes.folder.parent &&
+				!isParentInTree(
+					{children: this.$store.state.folders},
+					"children",
+					changes.folder.id,
+					changes.folder.parent
+				)
+			) {
 				if(
-					this.draggingElement.dataset.placeButton !== undefined &&
-					event.target.dataset.placeButtonDragenterAreaTop !== undefined &&
-					event.target.parentNode !== this.draggingElement.nextElementSibling
+					event.target.dataset.folderDragenterAreaTop !== undefined &&
+					this.draggingElement.parentNode.parentNode !==
+						event.target.parentNode.previousElementSibling
 				) {
 					if(!event.target.parentNode.previousElementSibling) {
-						changes.place.srt = targetSrt / 2;
+						changes.folder.srt = targetSrt / 2;
 					} else {
 						let targetPrevSrt = Number(
 							event.target.parentNode.previousElementSibling
 							.getAttribute("srt")
 						);
-						changes.place.srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
+						changes.folder.srt =
+							(targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
 					}
-					if(this.draggingElement.parentNode !== event.target.parentNode.parentNode) {
-						changes.place.folderid = event.target.parentNode.parentNode.id;
-					}
-					event.target.classList.remove("dragenter-area_top_border");
-					change();
-					update();
-					cleanup();
-					return;
-				}
-				/*
-				 * Place button was dropped
-				 * on the bottom sorting area of another place button
-				 */
-				if(
-					this.draggingElement.dataset.placeButton !== undefined &&
-					event.target.dataset.placeButtonDragenterAreaBottom !== undefined &&
-					event.target.parentNode !== this.draggingElement.previousElementSibling
+				} else if(
+					event.target.dataset.folderDragenterAreaBottom !== undefined &&
+					this.draggingElement.parentNode.parentNode !==
+						event.target.parentNode.nextElementSibling
 				) {
 					if(!event.target.parentNode.nextElementSibling) {
-						changes.place.srt = targetSrt + 1;
+						changes.folder.srt = targetSrt + 1;
 					} else {
 						let targetNextSrt = Number(
 							event.target.parentNode.nextElementSibling
 							.getAttribute("srt")
 						);
-						changes.place.srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
+						changes.folder.srt =
+							(targetNextSrt - targetSrt) / 2 + targetSrt;
 					}
-					if(this.draggingElement.parentNode !== event.target.parentNode.parentNode) {
-						changes.place.folderid = event.target.parentNode.parentNode.id;
-					}
-					event.target.classList.remove("dragenter-area_bottom_border");
-					change();
-					update();
-					cleanup();
-					return;
 				}
-				// Folder link was dropped on the sorting area of another folder link
-				if(
-					this.draggingElement.dataset.folderButton !== undefined &&
-					(
-						event.target.dataset.folderDragenterAreaTop !== undefined ||
-						event.target.dataset.folderDragenterAreaBottom !== undefined
-					) &&
-					!!(changes.folder.id =
-						this.draggingElement.id.replace(/^.*-([^-]*)/, "$1")
-					) &&
-					!!(changes.folder.parent =
-						event.target.parentNode.parentNode.parentNode.parentNode
-						.id.replace(/^.*-([^-]*)/, "$1")
-					) &&
-					changes.folder.id !== changes.folder.parent &&
-					!isParentInTree(
-						{children: this.$store.state.folders},
-						"children",
-						changes.folder.id,
-						changes.folder.parent
-					)
-				) {
-					if(
-						event.target.dataset.folderDragenterAreaTop !== undefined &&
-						this.draggingElement.parentNode.parentNode !==
-							event.target.parentNode.previousElementSibling
-					) {
-						if(!event.target.parentNode.previousElementSibling) {
-							changes.folder.srt = targetSrt / 2;
-						} else {
-							let targetPrevSrt = Number(
-								event.target.parentNode.previousElementSibling
-								.getAttribute("srt")
-							);
-							changes.folder.srt =
-								(targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
-						}
-					} else if(
-						event.target.dataset.folderDragenterAreaBottom !== undefined &&
-						this.draggingElement.parentNode.parentNode !==
-							event.target.parentNode.nextElementSibling
-					) {
-						if(!event.target.parentNode.nextElementSibling) {
-							changes.folder.srt = targetSrt + 1;
-						} else {
-							let targetNextSrt = Number(
-								event.target.parentNode.nextElementSibling
-								.getAttribute("srt")
-							);
-							changes.folder.srt =
-								(targetNextSrt - targetSrt) / 2 + targetSrt;
-						}
-					}
-					change();
-					update();
-					cleanup();
-					return;
-				}
-				// Folder link dropped on another folder link
-				if(
-					this.draggingElement.dataset.folderButton !== undefined &&
-					event.target.dataset.folderButton !== undefined &&
-					!!(changes.folder.id =
-						this.draggingElement.id.replace(/^.*-([^-]*)/, "$1")
-					) &&
-					!!(changes.folder.parent =
-						event.target.id.replace(/^.*-([^-]*)/, "$1")
-					) &&
-					changes.folder.id !== changes.folder.parent &&
-					!isParentInTree(
-						{children: this.$store.state.folders},
-						"children",
-						changes.folder.id,
-						changes.folder.parent
-					)
-				) {
-					change();
-					update();
-					cleanup();
-					return;
-				}
+				change();
+				update();
 				cleanup();
+				return;
 			}
+			// Folder link dropped on another folder link
+			if(
+				this.draggingElement.dataset.folderButton !== undefined &&
+				event.target.dataset.folderButton !== undefined &&
+				!!(changes.folder.id =
+					this.draggingElement.id.replace(/^.*-([^-]*)/, "$1")
+				) &&
+				!!(changes.folder.parent =
+					event.target.id.replace(/^.*-([^-]*)/, "$1")
+				) &&
+				changes.folder.id !== changes.folder.parent &&
+				!isParentInTree(
+					{children: this.$store.state.folders},
+					"children",
+					changes.folder.id,
+					changes.folder.parent
+				)
+			) {
+				change();
+				update();
+				cleanup();
+				return;
+			}
+			cleanup();
 		},
 	},
 	store,
