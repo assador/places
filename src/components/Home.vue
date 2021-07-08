@@ -1,12 +1,12 @@
 <template>
 	<div
 		id="grid"
+		class="loading-grid"
+		:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
 		@mousemove="documentMouseOver($event);"
 		@touchmove="documentMouseOver($event);"
 		@mouseup="sidebarDragStop($event);"
 		@touchend="sidebarDragStop($event);"
-		class="loading-grid"
-		:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (this.sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px'  : ''))) +  ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
 	>
 		<div
 			id="top-left"
@@ -49,7 +49,12 @@
 				</button>
 			</div>
 			// Input field to search the places by name
-			<input placeholder="Поиск по названию мест" title="Поиск по названию мест" class="find-places-input fieldwidth_100 fontsize_n" @keyup="selectPlaces" />
+			<input
+				placeholder="Поиск по названию мест"
+				title="Поиск по названию мест"
+				class="find-places-input fieldwidth_100 fontsize_n"
+				@keyup="selectPlaces"
+			>
 		</div>
 		<div
 			id="top-basic"
@@ -57,17 +62,22 @@
 		>
 			<div>
 				<div class="brand">
-					<h1 class="basiccolor margin_bottom_0">Места — <a href="javascript:void(0);" @click="account();" v-html="$store.state.user ? $store.state.user.login : 'o_O'"></a></h1>
+					<h1 class="basiccolor margin_bottom_0">
+						Места — <a
+							href="javascript:void(0);"
+							@click="account();"
+							v-html="$store.state.user ? $store.state.user.login : 'o_O'"
+						/>
+					</h1>
 					<div>Сервис просмотра и редактирования библиотек мест</div>
 				</div>
 			</div>
 			<div
 				id="message-main"
 				class="message invisible"
-				v-html="$store.state.message"
 				@click="$store.dispatch('clearMessage', true);"
-			>
-			</div>
+				v-html="$store.state.message"
+			/>
 		</div>
 		<div
 			id="top-right"
@@ -81,7 +91,7 @@
 					type="file"
 					accept=".json, .gpx"
 					@change="importFromFile();"
-				/>
+				>
 				<button
 					id="actions-undo"
 					class="actions-button"
@@ -150,10 +160,15 @@
 					id="places-menu"
 					class="menu"
 				>
-					<tree instanceid="placestree" :data="$root.folderRoot || {}"></tree>
+					<tree
+						instanceid="placestree"
+						:data="$root.folderRoot || {}"
+					/>
 				</div>
 				<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
-					<h2 class="basiccolor">Другие места</h2>
+					<h2 class="basiccolor">
+						Другие места
+					</h2>
 					<div class="margin_bottom">
 						<div
 							v-for="commonPlace in $store.state.commonPlaces"
@@ -179,10 +194,13 @@
 				</div>
 			</div>
 		</div>
-		<div class="app-cell" id="basic-basic">
+		<div
+			id="basic-basic"
+			class="app-cell"
+		>
 			<extmap
-				ref="extmap"
 				:id="$store.state.currentPlace ? $store.state.currentPlace.id : null"
+				ref="extmap"
 				:name="$store.state.currentPlace ? $store.state.currentPlace.name : ''"
 				:description="$store.state.currentPlace ? $store.state.currentPlace.description : ''"
 				:link="$store.state.currentPlace ? $store.state.currentPlace.link : ''"
@@ -191,38 +209,33 @@
 				:longitude="$store.state.currentPlace ? $store.state.currentPlace.longitude : constants.map.initial.longitude"
 				:altitudecapability="$store.state.currentPlace ? $store.state.currentPlace.altitudecapability : ''"
 				:time="$store.state.currentPlace ? $store.state.currentPlace.time : ''"
-				:centerLatitude="$store.state.center ? $store.state.center.latitude : constants.map.initial.latitude"
-				:centerLongitude="$store.state.center ? $store.state.center.longitude : constants.map.initial.longitude"
-			>
-			</extmap>
+				:center-latitude="$store.state.center ? $store.state.center.latitude : constants.map.initial.latitude"
+				:center-longitude="$store.state.center ? $store.state.center.longitude : constants.map.initial.longitude"
+			/>
 			<div
 				id="sbs-top"
 				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
 				@mousedown="sidebarDragStart($event, 'top');"
 				@touchstart="sidebarDragStart($event, 'top');"
-			>
-			</div>
+			/>
 			<div
 				id="sbs-right"
 				:style="'top: -' + (sidebarSize.top + (compact ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
 				@mousedown="sidebarDragStart($event, 'right');"
 				@touchstart="sidebarDragStart($event, 'right');"
-			>
-			</div>
+			/>
 			<div
 				id="sbs-bottom"
 				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
 				@mousedown="sidebarDragStart($event, 'bottom');"
 				@touchstart="sidebarDragStart($event, 'bottom');"
-			>
-			</div>
+			/>
 			<div
 				id="sbs-left"
 				:style="'top: -' + (sidebarSize.top + (compact > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
 				@mousedown="sidebarDragStart($event, 'left');"
 				@touchstart="sidebarDragStart($event, 'left');"
-			>
-			</div>
+			/>
 		</div>
 		<div
 			id="basic-right"
@@ -230,8 +243,15 @@
 		>
 			<div>
 				<dt v-if="$store.state.currentPlace">
-					<dl v-for="field in Object.keys($store.state.currentPlace)" :key="field" class="place-detailed margin_bottom_0">
-						<dt v-if="field == 'link'" class="place-detailed__link-dt">
+					<dl
+						v-for="field in Object.keys($store.state.currentPlace)"
+						:key="field"
+						class="place-detailed margin_bottom_0"
+					>
+						<dt
+							v-if="field == 'link'"
+							class="place-detailed__link-dt"
+						>
 							<a
 								v-if="!linkEditing && $store.state.currentPlace[field].trim()"
 								:href="$store.state.currentPlace[field].trim()"
@@ -255,44 +275,49 @@
 						</dt>
 						<dd v-if="field == 'srt' || field == 'link' && (linkEditing || !$store.state.currentPlace[field].trim()) || field == 'latitude' || field == 'longitude' || field == 'altitudecapability'">
 							<input
-								type="text"
 								:id="'detailed-' + field"
-								:disabled="currentPlaceCommon"
 								v-model.number.trim="$store.state.currentPlace[field]"
-								@focus="validatable();"
-								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+								type="text"
+								:disabled="currentPlaceCommon"
 								class="fieldwidth_100"
-							/>
+								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+							>
 						</dd>
 						<dd v-else-if="field == 'time'">
 							<input
-								type="datetime-local"
 								:id="'detailed-' + field"
-								:disabled="currentPlaceCommon"
 								v-model="$store.state.currentPlace[field]"
-								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+								type="datetime-local"
+								:disabled="currentPlaceCommon"
 								class="fieldwidth_100"
-							/>
+								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+							>
 						</dd>
-						<dd v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'" class="margin_bottom">
+						<dd
+							v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'"
+							class="margin_bottom"
+						>
 							<label>
 								<input
-									type="checkbox"
 									:id="'detailed-' + field"
-									:disabled="currentPlaceCommon"
 									v-model="$store.state.currentPlace[field]"
+									type="checkbox"
+									:disabled="currentPlaceCommon"
 									@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
-								/>
+								>
 								Место видно другим
 							</label>
 						</dd>
-						<dd v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0" id="place-images">
+						<dd
+							v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0"
+							id="place-images"
+						>
 							<div class="dd-images">
 								<div
 									v-for="image in orderedImages"
-									data-image
 									:id="image.id"
 									:key="image.id"
+									data-image
 									:class="'place-image' + (currentPlaceCommon ? '' : ' draggable')"
 									:draggable="currentPlaceCommon ? false : true"
 									@click="$root.showPopup({show: true, type: 'image', data: image}, $event);"
@@ -309,12 +334,12 @@
 											:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedsmall + image.file + '\''"
 											:alt="$store.state.currentPlace.name"
 											:title="$store.state.currentPlace.name"
-										/>
+										>
 										<div
+											v-if="!currentPlaceCommon"
 											class="dd-images__delete button"
 											draggable="false"
-											v-if="!currentPlaceCommon"
-											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteFiles(Array.from($store.state.currentPlace.images), [image]);"
+											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteImages([image]);"
 										>
 											×
 										</div>
@@ -325,40 +350,48 @@
 						<dd v-else-if="field != 'common' && field != 'link' && field != 'images' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated'">
 							<textarea
 								:id="'detailed-' + field"
+								v-model.trim="$store.state.currentPlace[field]"
 								:disabled="currentPlaceCommon"
 								:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
-								v-model.trim="$store.state.currentPlace[field]"
-								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
 								class="fieldwidth_100"
+								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
 							>
 								{{ $store.state.currentPlace[field] }}
 							</textarea>
 						</dd>
 					</dl>
 				</dt>
-				<div v-if="$store.state.currentPlace && !$store.state.currentPlace.deleted && !currentPlaceCommon" class="images-add margin_bottom">
+				<div
+					v-if="$store.state.currentPlace && !$store.state.currentPlace.deleted && !currentPlaceCommon"
+					class="images-add margin_bottom"
+				>
 					<div class="images-add__div button">
 						<span>Добавить фотографии</span>
 						<input
 							id="images-add__input"
+							ref="inputUploadFiles"
 							type="file"
 							name="files"
-							ref="inputUploadFiles"
 							multiple
-							@change="uploadFiles($event);"
 							class="images-add__input"
-						/>
+							@change="uploadFiles($event);"
+						>
 					</div>
 				</div>
-				<div id="images-uploading" class="block_02 waiting hidden"><span>… загрузка …</span></div>
+				<div
+					id="images-uploading"
+					class="block_02 waiting hidden"
+				>
+					<span>… загрузка …</span>
+				</div>
 				<div v-if="$store.state.currentPlace && !currentPlaceCommon">
 					<label>
 						<input
-							type="checkbox"
 							id="checkbox-homeplace"
+							type="checkbox"
 							:checked="$store.state.currentPlace === $store.state.homePlace ? 'checked' : ''"
 							@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); $root.homeToDB($event.target.checked ? $store.state.currentPlace : {});"
-						/>
+						>
 						Домашнее место
 					</label>
 				</div>
@@ -372,32 +405,32 @@
 				<button
 					id="placemarksShowHideButton"
 					class="actions-button button-pressed"
-					@click="$refs.extmap.placemarksShowHide();"
 					title="Показать / скрыть все свои геометки"
+					@click="$refs.extmap.placemarksShowHide();"
 				>
 					◉
 				</button>
 				<button
 					id="commonPlacesShowHideButton"
 					:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
-					@click="commonPlacesShowHide();"
 					title="Показать / скрыть все другие места и их геометки"
+					@click="commonPlacesShowHide();"
 				>
 					◪
 				</button>
 				<button
 					id="commonPlacemarksShowHideButton"
 					:class="'actions-button' + ($refs.extmap && $refs.extmap.commonPlacemarksShow ? ' button-pressed' : '')"
-					@click="$refs.extmap.commonPlacemarksShowHide();"
 					title="Показать / скрыть все другие геометки"
+					@click="$refs.extmap.commonPlacemarksShowHide();"
 				>
 					◎
 				</button>
 				<button
 					id="centerPlacemarkShowHideButton"
 					:class="'actions-button' + ($refs.extmap && $refs.extmap.centerPlacemarkShow ? ' button-pressed' : '')"
-					@click="$refs.extmap.centerPlacemarkShowHide();"
 					title="Показать / скрыть метку центра карты"
+					@click="$refs.extmap.centerPlacemarkShowHide();"
 				>
 					◈
 				</button>
@@ -410,48 +443,58 @@
 			<span class="imp">
 				Центр
 			</span>
-			<span class="nobr" style="margin-left: 1em;">
+			<span
+				class="nobr"
+				style="margin-left: 1em;"
+			>
 				Широта:
 				<input
 					v-model.number.trim="$store.state.center.latitude"
 					placeholder="latitude"
 					title="Широта"
-				/>
+				>
 			</span>
-			<span class="nobr" style="margin-left: 1em;">
+			<span
+				class="nobr"
+				style="margin-left: 1em;"
+			>
 				Долгота:
 				<input
 					v-model.number.trim="$store.state.center.longitude"
 					placeholder="longitude"
 					title="Долгота"
-				/>
+				>
 			</span>
 		</div>
-		<div :class="'popup ' + $root.popuped" @click="$event => {if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}">
+		<div
+			:class="'popup ' + $root.popuped"
+			@click="$event => {if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}"
+		>
 			<component
-				ref="popup"
 				:is="$root.popupComponent"
+				ref="popup"
 				:data="$root.popupData"
-				:currentPlace="$store.state.currentPlace"
-			>
-			</component>
+				:current-place="$store.state.currentPlace"
+			/>
 		</div>
 	</div>
 </template>
 
 <script>
-import _ from "lodash"
-import { constants } from "../shared/constants.js"
-import { bus } from "../shared/bus.js"
-import { mapGetters } from "vuex"
-import axios from "axios"
-import tree from "./Tree.vue"
-import extmap from "./ExtMap.vue"
-import popupimage from "./PopupImage.vue"
-import popuptext from "./PopupText.vue"
-import popupfolder from "./PopupFolder.vue"
-import popupfolderdelete from "./PopupFolderDelete.vue"
-import popupexport from "./PopupExport.vue"
+import _ from 'lodash'
+import { constants } from '../shared/constants'
+import commonFunctions from '../shared/common.ts'
+import { makeFieldsValidatable } from '../shared/fields_validate'
+import { bus } from '../shared/bus'
+import { mapGetters } from 'vuex'
+import axios from 'axios'
+import tree from './Tree.vue'
+import extmap from './ExtMap.vue'
+import popupimage from './PopupImage.vue'
+import popuptext from './PopupText.vue'
+import popupfolder from './PopupFolder.vue'
+import popupfolderdelete from './PopupFolderDelete.vue'
+import popupexport from './PopupExport.vue'
 export default {
 	components: {
 		tree,
@@ -467,7 +510,6 @@ export default {
 			state: this.$store.state,
 			constants: constants,
 			placesFilled: false,
-			firstValidatable: false,
 			commonPlacesPage: 1,
 			commonPlacesPagesCount: 0,
 			commonPlacesOnPageCount: constants.commonplacesonpagecount,
@@ -485,11 +527,38 @@ export default {
 			linkEditing: false,
 		}
 	},
+	watch: {
+		getCurrentPlace: {
+			deep: true,
+			immediate: true,
+			handler(place) {
+				if(place) {
+					this.currentPlace = {
+						...place,
+						images: place.images,
+					};
+					if(
+						place.userid == this.$store.state.user.id &&
+						!place.name &&
+						document.getElementById('detailed-name')
+					) {
+						document.getElementById('detailed-name').classList.add('highlight');
+						document.getElementById('detailed-name').focus();
+						setTimeout(function() {
+							document.getElementById('detailed-name').classList.remove('highlight');
+						}, 500);
+					}
+				} else {
+					this.currentPlace = null;
+				}
+			},
+		},
+	},
 	mounted() {
-		bus.$on("placesFilled", happens => {
+		bus.$on('placesFilled', happens => {
 			this.$root.folderRoot = {
-				id: "root",
-				name: "Мои места",
+				id: 'root',
+				name: 'Мои места',
 				children: this.$store.state.folders,
 				opened: true,
 			};
@@ -514,7 +583,7 @@ export default {
 					}
 				}
 			}
-			if(happens === "importing") {
+			if(happens === 'importing') {
 				this.$nextTick(function() {
 					bus.$emit('toDBCompletely');
 				});
@@ -538,10 +607,10 @@ export default {
 			this.commonPlacesPagesCount = Math.ceil(
 				this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
 			);
-			document.addEventListener("dragover", this.$root.handleDragOver, false);
-			document.addEventListener("drop", this.$root.handleDrop, false);
-			document.addEventListener("keyup", this.keyup, false);
-			window.addEventListener("resize", this.windowResize, false);
+			document.addEventListener('dragover', this.$root.handleDragOver, false);
+			document.addEventListener('drop', this.$root.handleDrop, false);
+			document.addEventListener('keyup', this.keyup, false);
+			window.addEventListener('resize', this.windowResize, false);
 			if(this.$store.state.user.testaccount) {
 				setTimeout(() => {
 					this.$store.dispatch("setMessage", `
@@ -554,11 +623,11 @@ export default {
 			this.windowResize();
 			this.placesFilled = true;
 		});
-		bus.$on("homeRefresh", () => {
+		bus.$on('homeRefresh', () => {
 			this.$refs.extmap.mrks = {};
 			this.$refs.extmap.map.geoObjects.removeAll();
 			this.$store.state.places.forEach((place) => {
-				this.$refs.extmap.appendPlacemark(this.$refs.extmap.mrks, place, "private");
+				this.$refs.extmap.appendPlacemark(this.$refs.extmap.mrks, place, 'private');
 			});
 			if(this.$store.state.currentPlace) {
 				if(
@@ -566,136 +635,130 @@ export default {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
-						"iconColor", this.$refs.extmap.activePlacemarksColor
+						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
 				} else if(this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]) {
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
-						"iconColor", this.$refs.extmap.activePlacemarksColor
+						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
 				}
 			}
 		});
-		bus.$on("setCurrentPlace", (payload) => {
+		bus.$on('setCurrentPlace', (payload) => {
 			this.setCurrentPlace(payload.place, payload.common);
 		});
-		sessionStorage.setItem("places-app-child-component", "home");
-		this.$store.commit("setIdleTime", 0);
-		if(this.$store.state.ready) {
-			bus.$emit("placesFilled");
+		if(sessionStorage.getItem('places-session')) {
+			sessionStorage.setItem('places-app-child-component', 'home');
 		}
+		this.$store.commit('setIdleTime', 0);
+		if(this.$store.state.ready) {
+			bus.$emit('placesFilled');
+		}
+		makeFieldsValidatable();
 	},
 	beforeDestroy() {
-		document.removeEventListener("dragover", this.$root.handleDragOver, false);
-		document.removeEventListener("drop", this.$root.handleDrop, false);
-		document.removeEventListener("keyup", this.keyup, false);
-		bus.$off("placesFilled");
-		bus.$off("homeRefresh");
-		bus.$off("setCurrentPlace");
+		document.removeEventListener('dragover', this.$root.handleDragOver, false);
+		document.removeEventListener('drop', this.$root.handleDrop, false);
+		document.removeEventListener('keyup', this.keyup, false);
+		bus.$off('placesFilled');
+		bus.$off('homeRefresh');
+		bus.$off('setCurrentPlace');
 	},
 	methods: {
-		validatable() {
-			if(!this.firstValidatable) {
-				make_fields_validatable();
-				this.firstValidatable = true;
-			}
-		},
-		validate_field(value, type) {
-			return validate_field(value, type);
-		},
 		keyup(event) {
 			if(event.altKey && event.shiftKey) {
 				if(constants.shortcuts[event.keyCode]) {
 					this.blur();
 				}
 				switch(constants.shortcuts[event.keyCode]) {
-					case "add" :
-						let newPlace = this.appendPlace();
-						break;
-					case "delete" :
-						if(
-							this.$store.state.currentPlace &&
+				case 'add' :
+					let newPlace = this.appendPlace();
+					break;
+				case 'delete' :
+					if(
+						this.$store.state.currentPlace &&
 							this.$store.state.currentPlace.userid ==
 								this.$store.state.user.id
-						) {
-							this.deletePlace(this.$store.state.currentPlace);
-						}
-						break;
-					case "add folder" :
-						this.$root.showPopup({show: true, type: "folder"}, event);
-						break;
-					case "edit mode" :
-						this.$root.foldersEditMode = !this.$root.foldersEditMode;
-						if(
-							document.getElementById("actions-edit-folders")
-								.classList.contains("button-pressed")
-						) {
-							document.getElementById("actions-edit-folders")
-								.classList.remove("button-pressed")
-							;
-						} else {
-							document.getElementById("actions-edit-folders")
-								.classList.add("button-pressed")
-							;
-						}
-						break;
-					case "import" :
-						document.getElementById("inputImportFromFile").click();
-						break;
-					case "export" :
-						this.$root.showPopup({show: true, type: "export"}, event);
-						break;
-					case "save" :
-						bus.$emit("toDBCompletely");
-						break;
-					case "help" :
-						this.$root.showAbout();
-						break;
-					case "revert" :
-						document.location.reload(true);
-						break;
-					case "quit" :
-						bus.$emit("toDBCompletely");
-						this.exit();
-						break;
-					case "other" :
-						this.commonPlacesShowHide();
-						break;
-					case "placemarks" :
-						this.$refs.extmap.placemarksShowHide();
-						break;
-					case "other placemarks" :
-						this.$refs.extmap.commonPlacemarksShowHide();
-						break;
-					case "center" :
-						this.$refs.extmap.centerPlacemarkShowHide();
-						break;
-					case "undo" :
-						this.$store.dispatch("undo");
-						break;
-					case "redo" :
-						this.$store.dispatch("redo");
-						break;
+					) {
+						this.deletePlace(this.$store.state.currentPlace);
+					}
+					break;
+				case 'add folder' :
+					this.$root.showPopup({show: true, type: 'folder'}, event);
+					break;
+				case 'edit mode' :
+					this.$root.foldersEditMode = !this.$root.foldersEditMode;
+					if(
+						document.getElementById('actions-edit-folders')
+							.classList.contains('button-pressed')
+					) {
+						document.getElementById('actions-edit-folders')
+							.classList.remove('button-pressed')
+						;
+					} else {
+						document.getElementById('actions-edit-folders')
+							.classList.add('button-pressed')
+						;
+					}
+					break;
+				case 'import' :
+					document.getElementById('inputImportFromFile').click();
+					break;
+				case 'export' :
+					this.$root.showPopup({show: true, type: 'export'}, event);
+					break;
+				case 'save' :
+					bus.$emit('toDBCompletely');
+					break;
+				case 'help' :
+					this.$root.showAbout();
+					break;
+				case 'revert' :
+					document.location.reload(true);
+					break;
+				case 'quit' :
+					bus.$emit('toDBCompletely');
+					this.exit();
+					break;
+				case 'other' :
+					this.commonPlacesShowHide();
+					break;
+				case 'placemarks' :
+					this.$refs.extmap.placemarksShowHide();
+					break;
+				case 'other placemarks' :
+					this.$refs.extmap.commonPlacemarksShowHide();
+					break;
+				case 'center' :
+					this.$refs.extmap.centerPlacemarkShowHide();
+					break;
+				case 'undo' :
+					this.$store.dispatch('undo');
+					break;
+				case 'redo' :
+					this.$store.dispatch('redo');
+					break;
 				}
 			}
-			if(this.$root.popuped === "appear") {
+			if(this.$root.popuped === 'appear') {
 				switch(constants.shortcuts[event.keyCode]) {
-					case "close" :
-						if(this.$root.popupComponent === "popupfolder") {
-							this.$refs.popup.close(event);
-						} else {
-							this.$root.showPopup({show: false}, event);
-						}
-						break;
-					case "left" :
-						if(this.$root.popupComponent === "popupimage") {
-							this.$refs.popup.showImage(-1, event);
-						}
-						break;
-					case "right" :
-						if(this.$root.popupComponent === "popupimage") {
-							this.$refs.popup.showImage(1, event);
-						}
-						break;
+				case 'close' :
+					if(this.$root.popupComponent === 'popupfolder') {
+						this.$refs.popup.close(event);
+					} else {
+						this.$root.showPopup({show: false}, event);
+					}
+					break;
+				case 'left' :
+					if(this.$root.popupComponent === 'popupimage') {
+						this.$refs.popup.showImage(-1, event);
+					}
+					break;
+				case 'right' :
+					if(this.$root.popupComponent === 'popupimage') {
+						this.$refs.popup.showImage(1, event);
+					}
+					break;
 				}
 			}
 		},
@@ -705,42 +768,42 @@ export default {
 				this.sidebarSize.right = constants.sidebars.right;
 				this.sidebarSize.bottom = constants.sidebars.bottom;
 				this.sidebarSize.left = constants.sidebars.left;
-				document.getElementById("sbs-left").style.marginLeft = 0;
-				document.getElementById("sbs-top").style.marginTop = 0;
-				document.getElementById("sbs-bottom").style.marginBottom = 0;
+				document.getElementById('sbs-left').style.marginLeft = 0;
+				document.getElementById('sbs-top').style.marginTop = 0;
+				document.getElementById('sbs-bottom').style.marginBottom = 0;
 				this.compact = false;
 			} else {
 				if(this.compact) {
 					this.sidebarSize.top = parseInt(window.getComputedStyle(
-						document.getElementById("top-left")
+						document.getElementById('top-left')
 					).height);
 				}
 				this.sidebarSize.right = parseInt(window.getComputedStyle(
-					document.getElementById("top-right")
+					document.getElementById('top-right')
 				).width);
 				this.sidebarSize.bottom = (this.compact
 					? parseInt(window.getComputedStyle(
-						document.getElementById("basic-basic")
+						document.getElementById('basic-basic')
 					).height)
-					: "1fr"
+					: '1fr'
 				);
 				this.sidebarSize.left = parseInt(window.getComputedStyle(
-					document.getElementById("top-left")
+					document.getElementById('top-left')
 				).width);
-				document.getElementById("sbs-left").style.marginLeft =
-					this.sidebarSize.left + "px"
+				document.getElementById('sbs-left').style.marginLeft =
+					this.sidebarSize.left + 'px'
 				;
-				document.getElementById("sbs-top").style.marginTop =
+				document.getElementById('sbs-top').style.marginTop =
 					-parseInt(window.getComputedStyle(
-						document.getElementById("basic-left")
-					).height) + "px"
+						document.getElementById('basic-left')
+					).height) + 'px'
 				;
-				document.getElementById("sbs-bottom").style.marginBottom =
-					this.sidebarSize.bottom + "px"
+				document.getElementById('sbs-bottom').style.marginBottom =
+					this.sidebarSize.bottom + 'px'
 				;
 				this.compact = true;
 			}
-			document.getElementById("grid").classList.remove("loading-grid");
+			document.getElementById('grid').classList.remove('loading-grid');
 		},
 		sidebarDragStart(event, what) {
 			event.preventDefault();
@@ -753,43 +816,43 @@ export default {
 				this.sidebarDrag.y = event.screenY;
 			}
 			switch(this.sidebarDrag.what) {
-				case "top" :
-					this.sidebarDrag.h = this.sidebarSize.top;
-					break;
-				case "bottom" :
-					this.sidebarDrag.h = this.sidebarSize.bottom;
-					break;
-				case "left" :
-					this.sidebarDrag.w = this.sidebarSize.left;
-					break;
-				case "right" :
-					this.sidebarDrag.w = this.sidebarSize.right;
-					break;
+			case 'top' :
+				this.sidebarDrag.h = this.sidebarSize.top;
+				break;
+			case 'bottom' :
+				this.sidebarDrag.h = this.sidebarSize.bottom;
+				break;
+			case 'left' :
+				this.sidebarDrag.w = this.sidebarSize.left;
+				break;
+			case 'right' :
+				this.sidebarDrag.w = this.sidebarSize.right;
+				break;
 			}
 		},
 		documentMouseOver(event) {
 			if(this.sidebarDrag.what !== null) {
 				switch(this.sidebarDrag.what) {
-					case "top" :
-						this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y +
+				case 'top' :
+					this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y +
 							(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
-						;
-						break;
-					case "bottom" :
-						this.sidebarSize.bottom = this.sidebarDrag.h + this.sidebarDrag.y -
+					;
+					break;
+				case 'bottom' :
+					this.sidebarSize.bottom = this.sidebarDrag.h + this.sidebarDrag.y -
 							(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
-						;
-						break;
-					case "left" :
-						this.sidebarSize.left = this.sidebarDrag.w - this.sidebarDrag.x +
+					;
+					break;
+				case 'left' :
+					this.sidebarSize.left = this.sidebarDrag.w - this.sidebarDrag.x +
 							(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
-						;
-						break;
-					case "right" :
-						this.sidebarSize.right = this.sidebarDrag.w + this.sidebarDrag.x -
+					;
+					break;
+				case 'right' :
+					this.sidebarSize.right = this.sidebarDrag.w + this.sidebarDrag.x -
 							(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
-						;
-						break;
+					;
+					break;
 				}
 			}
 		},
@@ -802,10 +865,10 @@ export default {
 		// Search and select a place by name
 		selectPlaces(event) {
 			if(event.keyCode == 27) {
-				event.target.value = "";
+				event.target.value = '';
 			} else {
 				for(let i = 0; i < this.$store.state.places.length; i++) {
-					let regexp = new RegExp(event.target.value, "i");
+					let regexp = new RegExp(event.target.value, 'i');
 					if(event.target.value.length > 1 && regexp.test(this.$store.state.places[i].name)) {
 						this.setCurrentPlace(this.$store.state.places[i]);
 					}
@@ -813,50 +876,21 @@ export default {
 			}
 		},
 	},
-	watch: {
-		getCurrentPlace: {
-			deep: true,
-			immediate: true,
-			handler(place) {
-				if(place) {
-					this.currentPlace = {
-						...place,
-						images: place.images,
-					};
-					this.$nextTick(function() {
-						if(
-							place.userid == this.$store.state.user.id &&
-							!place.name &&
-							document.getElementById("detailed-name")
-						) {
-							document.getElementById("detailed-name").classList.add("highlight");
-							document.getElementById("detailed-name").focus();
-							setTimeout(function() {
-								document.getElementById("detailed-name").classList.remove("highlight");
-							}, 500);
-						}
-					});
-				} else {
-					this.currentPlace = null;
-				}
-			},
-		},
-	},
 	computed: {
 		...mapGetters(["getCurrentPlace", "getMessage"]),
 		blur: () => function() {
-			let el = this.$el.querySelector(":focus");
+			let el = this.$el.querySelector(':focus');
 			if(el) el.blur();
 		},
 		exit: () => function() {
-			this.$store.dispatch("unload");
-			bus.$emit("loggedChange", "auth");
+			this.$store.dispatch('unload');
+			bus.$emit('loggedChange', 'auth');
 		},
 		account: () => function() {
-			bus.$emit("loggedChange", "account");
+			bus.$emit('loggedChange', 'account');
 		},
 		orderedImages() {
-			return this.currentPlace ? _.orderBy(this.currentPlace.images, "srt") : [];
+			return this.currentPlace ? _.orderBy(this.currentPlace.images, 'srt') : [];
 		},
 		setCurrentPlace: (place, common = false) => function(place, common = false) {
 			if(this.$store.state.currentPlace) {
@@ -865,13 +899,13 @@ export default {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
-						"iconColor", this.$refs.extmap.privatePlacemarksColor
+						'iconColor', this.$refs.extmap.privatePlacemarksColor
 					);
 				} else if(
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
-						"iconColor", this.$refs.extmap.commonPlacemarksColor
+						'iconColor', this.$refs.extmap.commonPlacemarksColor
 					);
 				}
 			}
@@ -884,7 +918,7 @@ export default {
 				this.$store.state.currentPlace = place;
 				for(let i = 0; i < this.$store.state.places.length; i++) {
 					if(this.$store.state.places[i].id == place.id) {
-						this.$store.commit("setCurrentPlaceIndex", i);
+						this.$store.commit('setCurrentPlaceIndex', i);
 						break;
 					}
 				}
@@ -893,48 +927,48 @@ export default {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
-						"iconColor", this.$refs.extmap.activePlacemarksColor
+						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
 				} else if(
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
-						"iconColor", this.$refs.extmap.activePlacemarksColor
+						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
 				}
 				if(!this.currentPlaceCommon) {
 					let folder, folderid = place.folderid;
 					while(folderid) {
-						folder = findInTree(
+						folder = commonFunctions.findInTree(
 							this.$root.folderRoot,
-							"children",
-							"id",
+							'children',
+							'id',
 							folderid
 						);
 						if(!folder) {
 							break;
 						}
-						this.$store.commit("folderOpenClose", {
+						this.$store.commit('folderOpenClose', {
 							folder: folder,
 							opened: true,
 						});
-						folderid = (folder.parent === null ? "root" : folder.parent);
+						folderid = (folder.parent === null ? 'root' : folder.parent);
 					}
 				}
-				this.$store.commit("changeCenter", {
+				this.$store.commit('changeCenter', {
 					latitude: this.$store.state.currentPlace.latitude,
 					longitude: this.$store.state.currentPlace.longitude,
 				});
 			} else {
 				this.$store.state.currentPlace = null;
-				this.$store.commit("setCurrentPlaceIndex", -1);
+				this.$store.commit('setCurrentPlaceIndex', -1);
 			}
 		},
 		appendPlace: () => function() {
 			let data = new FormData();
-			data.append("userid", this.$store.state.user.id);
-			data.append("need", "visiting");
-			axios.post("/backend/get_groups.php", data)
+			data.append('userid', this.$store.state.user.id);
+			data.append('need', 'visiting');
+			axios.post('/backend/get_groups.php', data)
 				.then(response => {
 					if(
 						constants.rights.placescounts[response.data] < 0 ||
@@ -942,20 +976,20 @@ export default {
 						this.$store.state.user.testaccount
 					) {
 						let newPlace = {
-							type: "place",
-							userid: sessionStorage.getItem("places-userid"),
-							name: "",
-							description: "",
-							link: "",
+							type: 'place',
+							userid: sessionStorage.getItem('places-userid'),
+							name: '',
+							description: '',
+							link: '',
 							latitude: this.$refs.extmap.map.getCenter()[0].toFixed(7),
 							longitude: this.$refs.extmap.map.getCenter()[1].toFixed(7),
 							altitudecapability: null,
 							time: new Date().toISOString().slice(0, -5),
-							id: generateRandomString(32),
+							id: commonFunctions.generateRandomString(32),
 							folderid:
 								this.$store.state.currentPlace
 									? this.$store.state.currentPlace.folderid
-									: "root"
+									: 'root'
 							,
 							srt:
 								this.$store.state.places.length > 0
@@ -975,11 +1009,11 @@ export default {
 							updated: false,
 							show: true,
 						};
-						this.$store.commit("addPlace", newPlace);
+						this.$store.commit('addPlace', newPlace);
 						this.$refs.extmap.appendPlacemark(
 							this.$refs.extmap.mrks,
 							newPlace,
-							"private"
+							'private'
 						);
 						this.setCurrentPlace(
 							this.$store.state.places[
@@ -988,7 +1022,7 @@ export default {
 						);
 						return newPlace;
 					} else {
-						this.$store.dispatch("setMessage",
+						this.$store.dispatch('setMessage',
 							'Превышено максимально допустимое для вашей ' +
 							'текущей роли количство мест<br />Дождитесь ' +
 							'перехода в следующую роль, или обратитесь ' +
@@ -1001,17 +1035,17 @@ export default {
 		},
 		deletePlace: (place, backup) => function(place, backup) {
 			if(!this.$store.state.stateBackups.length) {
-				this.$store.commit("backupState");
+				this.$store.commit('backupState');
 			}
 			if(this.$store.state.homePlace === place) {
-				this.$store.commit("setHomePlace", null);
+				this.$store.commit('setHomePlace', null);
 			}
-			this.$store.commit("removePlace", {
+			this.$store.commit('removePlace', {
 				place: place,
 				change: {deleted: true},
 				backup: false,
 			});
-			this.$root.deleteFiles(place.images);
+			this.$root.deleteImages(place.images, true);
 			if(this.$store.state.places.length > 0) {
 				let firstRootPlace;
 				if(document.getElementById(place.id).nextElementSibling) {
@@ -1030,7 +1064,7 @@ export default {
 					this.setCurrentPlace(this.$store.state.homePlace);
 				} else if(
 					!!(firstRootPlace = this.$store.state.places.find(
-						p => p.folderid === "root"
+						p => p.folderid === 'root'
 					))
 				) {
 					this.setCurrentPlace(firstRootPlace);
@@ -1048,7 +1082,7 @@ export default {
 				this.setCurrentPlace(null);
 			}
 			this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
-			this.$store.commit("deletePlace", place);
+			this.$store.commit('deletePlace', place);
 		},
 		commonPlacesShowHide: (show = null) => function(show = null) {
 			this.commonPlacesShow =
@@ -1059,9 +1093,9 @@ export default {
 			this.$refs.extmap.commonPlacemarksShow = this.commonPlacesShow;
 			for(let key in this.$refs.extmap.commonMrks) {
 				if(!this.$refs.extmap.commonPlacemarksShow) {
-					this.$refs.extmap.commonMrks[key].options.set("visible", false);
+					this.$refs.extmap.commonMrks[key].options.set('visible', false);
 				} else {
-					this.$refs.extmap.commonMrks[key].options.set("visible", true);
+					this.$refs.extmap.commonMrks[key].options.set('visible', true);
 				}
 			}
 		},
@@ -1070,26 +1104,26 @@ export default {
 			let reader = new FileReader();
 			reader.onload = (event) => {
 				this.$nextTick(() => {
-					this.$store.dispatch("setPlaces", {
+					this.$store.dispatch('setPlaces', {
 						text: event.target.result,
 						mime: mime,
 					});
-					document.getElementById("inputImportFromFile").value = "";
+					document.getElementById('inputImportFromFile').value = '';
 				});
 			};
-			if(mime == "application/json" || mime == "application/gpx+xml") {
+			if(mime == 'application/json' || mime == 'application/gpx+xml') {
 				reader.readAsText(this.$refs.inputImportFromFile.files[0]);
 			} else {
-				this.$store.dispatch("setMessage",
-					"Недопустимый тип импортируемого файла. Допускаются только JSON и GPX."
+				this.$store.dispatch('setMessage',
+					'Недопустимый тип импортируемого файла. Допускаются только JSON и GPX.'
 				);
 			}
 		},
 		uploadFiles: (event) => function(event) {
 			event.preventDefault();
 			if(this.$store.state.user.testaccount) {
-				this.$store.dispatch("setMessage",
-					"Тестовый аккаунт не позволяет загрузку файлов"
+				this.$store.dispatch('setMessage',
+					'Тестовый аккаунт не позволяет загрузку файлов'
 				);
 			} else {
 				let
@@ -1104,25 +1138,25 @@ export default {
 					this.$store.state.currentPlace.images.length > 0
 				) {
 					let storeImages = this.$store.state.currentPlace.images;
-					srt = sortObjects(storeImages, "srt").pop().srt;
+					srt = commonFunctions.sortObjects(storeImages, 'srt').pop().srt;
 				} else {
 					srt = 0;
 				}
 				for(let i = 0; i < files.length; i++) {
 					if(!constants.mimes[files[i].type]) {
-						this.$store.dispatch("setMessage",
-							"Файл " +
+						this.$store.dispatch('setMessage',
+							'Файл ' +
 							files[i].name +
-							" не является картинкой и загружен не будет"
+							' не является картинкой и загружен не будет'
 						);
 					} else if(files[i].size > constants.uploadsize) {
-						this.$store.dispatch("setMessage",
-							"Файл " +
+						this.$store.dispatch('setMessage',
+							'Файл ' +
 							files[i].name +
-							" слишком большого размера и загружен не будет"
+							' слишком большого размера и загружен не будет'
 						);
 					} else {
-						files[i].rndname = generateRandomString(32);
+						files[i].rndname = commonFunctions.generateRandomString(32);
 						data.append(files[i].rndname, files[i]);
 						filesArray.push({
 							id: files[i].rndname,
@@ -1142,12 +1176,12 @@ export default {
 					}
 				}
 				if(filesArray.length > 0) {
-					document.getElementById("images-uploading").classList.remove("hidden");
-					data.append("userid", this.$store.state.user.id);
-					axios.post("/backend/upload.php", data)
+					document.getElementById('images-uploading').classList.remove('hidden');
+					data.append('userid', this.$store.state.user.id);
+					axios.post('/backend/upload.php', data)
 						.then(response => {
-							document.getElementById("images-add__input").value = "";
-							document.getElementById("images-uploading").classList.add("hidden");
+							document.getElementById('images-add__input').value = '';
+							document.getElementById('images-uploading').classList.add('hidden');
 							for(let i = 0; i < filesArray.length; i++) {
 								if(!response.data[1].find(f => f.id === filesArray[i].id)) {
 									filesArray.splice(i, 1);
@@ -1158,7 +1192,7 @@ export default {
 								? this.$store.state.currentPlace.images.concat(filesArray)
 								: filesArray
 							;
-							this.$store.commit("changePlace", {
+							this.$store.commit('changePlace', {
 								place: this.$store.state.currentPlace,
 								change: {images: images, updated: true},
 							});
@@ -1168,35 +1202,35 @@ export default {
 							 */
 							response.data[0].forEach((code) => {
 								switch(code) {
-									case 2 :
-										this.$store.dispatch("setMessage",
-											"Тестовый аккаунт не позволяет загрузку файлов"
-										);
-										break;
-									case 3 :
-										this.$store.dispatch("setMessage",
-											"Некоторые файлы не являются картинками и загружены не были"
-										);
-										break;
-									case 4 :
-										this.$store.dispatch("setMessage",
-											"Некоторые файлы слишком большого размеры и загружены не были"
-										);
-										break;
+								case 2 :
+									this.$store.dispatch('setMessage',
+										'Тестовый аккаунт не позволяет загрузку файлов'
+									);
+									break;
+								case 3 :
+									this.$store.dispatch('setMessage',
+										'Некоторые файлы не являются картинками и загружены не были'
+									);
+									break;
+								case 4 :
+									this.$store.dispatch('setMessage',
+										'Некоторые файлы слишком большого размеры и загружены не были'
+									);
+									break;
 								}
 							});
 							if(response.data[1].length > 0) {
-								this.$store.dispatch("setMessage", "Файлы успешно загружены");
-								bus.$emit("toDB", {what: "places"});
-								bus.$emit("toDB", {
-									what: "images_upload",
+								this.$store.dispatch('setMessage', 'Файлы успешно загружены');
+								bus.$emit('toDB', {what: 'places'});
+								bus.$emit('toDB', {
+									what: 'images_upload',
 									data: JSON.stringify(filesArray),
 								});
 							}
 						})
 						.catch(error => {
-							this.$store.dispatch("setMessage",
-								"При загрузке файлов произошла ошибка"
+							this.$store.dispatch('setMessage',
+								'При загрузке файлов произошла ошибка'
 							);
 						});
 				}

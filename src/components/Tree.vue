@@ -5,14 +5,12 @@
 			:folder="folderData"
 			:parent="folderData"
 			class="folder_root"
-		>
-		</folders>
+		/>
 	</ul>
 </template>
 
 <script>
 import folders from "./TreeNode.vue"
-import { bus } from "../shared/bus.js"
 export default {
 	components: {
 		folders,

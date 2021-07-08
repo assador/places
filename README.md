@@ -1,6 +1,6 @@
 # places
 
-v2.15.0  
+v3.0.0  
 A Vue.js project  
 “The Places” — yet another geo placemarks viewer and editor service  
 Testing address: http://places.scrofa-tridens.ru/
@@ -12,21 +12,39 @@ The service allows to add and edit geo placemarks with names, descriptions, 
 1. Clone repository to working directory.
 2. Configure the web server. Specify /dist as the root directory.
 3. Create a database and import into it tables from the dump file /mezzanine/db_places.sql.
-4. Edit /src/shared/constants/js (if you’re going to rebuild the project) and /dist/backend/config.php files according to your preferencies.
-5. In the same /dist/backend/config.php specify the test account ID, if you need it.  
+4. Edit /src/shared/constants.js (if you’re going to rebuild the project) and /public/backend/config.php files according to your preferencies.
+5. In the same /public/backend/config.php specify the test account ID, if you need it.  
 If you don’t, just leave it as is, or specify the empty string.
 
-## Build Setup
-
-``` bash
-# install dependencies
+## Project setup
+```
 npm install
+```
 
-# serve with hot reload at localhost:8080
-npm run dev
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
 
-# build for production with minification
+### Compiles and minifies for production
+```
 npm run build
 ```
 
-For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
+### Run your unit tests
+```
+npm run test:unit
+```
+
+### Run your end-to-end tests
+```
+npm run test:e2e
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).

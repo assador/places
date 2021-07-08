@@ -2,9 +2,13 @@
 	<div>
 		<div class="popup-content centered">
 			<div class="brand">
-				<h1 class="margin_bottom_0">Экспортировать места</h1>
+				<h1 class="margin_bottom_0">
+					Экспортировать места
+				</h1>
 			</div>
-			<p class="margin_bottom_0">Укажите формат файла, в который будут экспортированы места:</p>
+			<p class="margin_bottom_0">
+				Укажите формат файла, в который будут экспортированы места:
+			</p>
 			<form
 				class="popup-export__form"
 				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
@@ -17,7 +21,8 @@
 							type="radio"
 							:checked="data.mime == 'application/gpx+xml'"
 							value="application/gpx+xml"
-						/>
+						>
+						&#160;
 						<span>GPX</span>
 					</label>
 					<p>
@@ -32,7 +37,8 @@
 							type="radio"
 							:checked="data.mime == 'application/json'"
 							value="application/json"
-						/>
+						>
+						&#160;
 						<span>JSON</span>
 					</label>
 					<p>
@@ -52,12 +58,14 @@
 					<tree
 						instanceid="popupexporttree"
 						:data="$root.folderRoot || {}"
-					>
-					</tree>
+					/>
 				</div>
 				<div style="text-align: center;">
 					<fieldset>
-						<button type="submit">Экспортировать</button>
+						<button type="submit">
+							Экспортировать
+						</button>
+						&#160;
 						<button
 							type="button"
 							@click="$root.showPopup({show: false}, $event);"

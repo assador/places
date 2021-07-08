@@ -2,7 +2,9 @@
 	<div>
 		<div class="popup-content centered">
 			<div class="brand">
-				<h1 class="margin_bottom_0">Новая папка</h1>
+				<h1 class="margin_bottom_0">
+					Новая папка
+				</h1>
 			</div>
 			<form
 				class="folder-new__form margin_bottom_0"
@@ -16,13 +18,12 @@
 							<td>
 								<input
 									id="folderName"
+									v-model="folderName"
 									class="fieldwidth_100"
 									required
 									autofocus
 									type="text"
-									v-model="folderName"
-									@click="validatable();"
-								/>
+								>
 							</td>
 						</tr>
 						<tr>
@@ -30,27 +31,29 @@
 							<td>
 								<textarea
 									id="folderDescription"
-									class="fieldwidth_100"
 									v-model="folderDescription"
-									@click="validatable();"
-								>
-								</textarea>
-							</td>
-						</tr>
-						<tr class="back_0">
-							<th></th>
-							<td style="padding-top: 18px; vertical-align: top;">
-								<button type="submit">Создать папку</button>
-								<input
-									type="button"
-									value="Закрыть"
-									@click="close($event);"
+									class="fieldwidth_100"
 								/>
 							</td>
 						</tr>
 						<tr class="back_0">
-							<th></th>
-							<td style="padding-top: 18px;" v-html="message"></td>
+							<th />
+							<td style="padding-top: 18px; vertical-align: top;">
+								<button type="submit">
+									Создать папку
+								</button>
+								&#160;
+								<button @click="close($event);">
+									Закрыть
+								</button>
+							</td>
+						</tr>
+						<tr class="back_0">
+							<th />
+							<td
+								style="padding-top: 18px;"
+								v-html="message"
+							/>
 						</tr>
 					</tbody>
 				</table>
@@ -67,29 +70,22 @@
 </template>
 
 <script>
-import { constants } from "../shared/constants.js"
+import { constants } from '../shared/constants'
+import commonFunctions from '../shared/common'
+import { makeFieldsValidatable } from '../shared/fields_validate'
 import axios from "axios"
 export default {
 	props: ["data"],
 	data() {
 		return {
-			firstValidatable: false,
 			folderName: null,
 			folderDescription: null,
 			message: "",
 		}
 	},
-	methods: {
-		validatable() {
-			if(!this.firstValidatable) {
-				make_fields_validatable();
-				this.firstValidatable = true;
-			}
-		},
-	},
 	computed: {
 		appendFolder: (folderName, folderDescription) => function(folderName, folderDescription) {
-			let foldersCount = childrenCount(
+			let foldersCount = commonFunctions.childrenCount(
 				this.$root.folderRoot,
 				"children"
 			);
@@ -108,7 +104,7 @@ export default {
 							userid: sessionStorage.getItem("places-userid"),
 							name: folderName,
 							description: folderDescription,
-							id: generateRandomString(32),
+							id: commonFunctions.generateRandomString(32),
 							srt: this.$store.state.folders.length > 0
 								? Math.ceil(Math.max(
 									...this.$store.state.folders.map(function(folder) {
@@ -152,6 +148,9 @@ export default {
 			this.folderDescription = "";
 			document.getElementById("folderName").focus();
 		},
+	},
+	mounted() {
+		makeFieldsValidatable();
 	},
 }
 </script>

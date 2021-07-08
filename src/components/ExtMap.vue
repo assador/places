@@ -1,11 +1,10 @@
 <template>
-	<div id="mapblock"></div>
+	<div id="mapblock" />
 </template>
 
 <script>
 import axios from "axios"
-import { constants } from "../shared/constants.js"
-import { bus } from "../shared/bus.js"
+import { constants } from "../shared/constants.ts"
 export default {
 	props: [
 		"id",
@@ -50,64 +49,6 @@ export default {
 				iconColor: "rgb(127, 143, 0)",
 			},
 		}
-	},
-	mounted() {
-		new ResizeSensor(document.getElementById("basic-basic"), () => {
-			this.fitMap();
-		});
-	},
-	beforeDestroy() {
-		if(this.map) {
-			this.map.destroy();
-		}
-	},
-	watch: {
-		latitude() {
-			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-			if(this.$store.state.currentPlace) {
-				this.$store.commit("changeCenter", {
-					latitude: this.$store.state.currentPlace.latitude,
-					longitude: this.$store.state.currentPlace.longitude,
-				});
-			}
-		},
-		longitude() {
-			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-			if(this.$store.state.currentPlace) {
-				this.$store.commit("changeCenter", {
-					latitude: this.$store.state.currentPlace.latitude,
-					longitude: this.$store.state.currentPlace.longitude,
-				});
-			}
-		},
-		centerLatitude() {
-			this.updateCenter();
-		},
-		centerLongitude() {
-			this.updateCenter();
-		},
-		name() {
-			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-		},
-		description() {
-			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-		},
 	},
 	computed: {
 		showMap: (lat, lng) => function(lat, lng) {
@@ -168,7 +109,7 @@ export default {
 						);
 					}
 				}
-			};
+			}
 		},
 		clickPlacemark: (place, type) => function(place, type) {
 			let marks = type === "common" ? this.commonMrks : this.mrks;
@@ -181,12 +122,12 @@ export default {
 		appendPlacemark: (marks, place, type) => function(marks, place, type) {
 			let options;
 			switch(type) {
-				case "private" :
-					options = this.placemarksOptions.private;
-					break;
-				case "common" :
-					options = this.placemarksOptions.common;
-					break;
+			case "private" :
+				options = this.placemarksOptions.private;
+				break;
+			case "common" :
+				options = this.placemarksOptions.common;
+				break;
 			}
 			marks[place.id] = new ymaps.Placemark(
 				[place.latitude, place.longitude],
@@ -302,6 +243,64 @@ export default {
 					: show
 			;
 		},
+	},
+	watch: {
+		latitude() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
+			if(this.$store.state.currentPlace) {
+				this.$store.commit("changeCenter", {
+					latitude: this.$store.state.currentPlace.latitude,
+					longitude: this.$store.state.currentPlace.longitude,
+				});
+			}
+		},
+		longitude() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
+			if(this.$store.state.currentPlace) {
+				this.$store.commit("changeCenter", {
+					latitude: this.$store.state.currentPlace.latitude,
+					longitude: this.$store.state.currentPlace.longitude,
+				});
+			}
+		},
+		centerLatitude() {
+			this.updateCenter();
+		},
+		centerLongitude() {
+			this.updateCenter();
+		},
+		name() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
+		},
+		description() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
+		},
+	},
+	mounted() {
+		new ResizeSensor(document.getElementById("basic-basic"), () => {
+			this.fitMap();
+		});
+	},
+	beforeDestroy() {
+		if(this.map) {
+			this.map.destroy();
+		}
 	},
 }
 </script>

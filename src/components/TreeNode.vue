@@ -1,7 +1,7 @@
 <template>
 	<li
-		:srt="folderData.srt"
 		:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-' + folderData.id"
+		:srt="folderData.srt"
 		:title="folderData.description"
 		:class="'folder ' + (instanceid !== 'popupexporttree' ? (folderData.opened ? 'folder_opened' : 'folder_closed') : '')"
 	>
@@ -14,11 +14,11 @@
 				type="checkbox"
 				class="folder-checkbox"
 				@change="selectUnselectFolder(folderData.id, $event.target.checked);"
-			/>
+			>
 			<a
 				v-if="!$root.foldersEditMode || folderData.id === 'root'"
-				data-folder-button
 				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folderData.id"
+				data-folder-button
 				href="javascript: void(0);"
 				class="folder-button"
 				draggable="true"
@@ -42,7 +42,7 @@
 					class="folder-button__name fieldwidth_100"
 					@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
 					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
-				/>
+				>
 				<a
 					class="folder-button__delete"
 					title="Удалить папку"
@@ -57,28 +57,33 @@
 					class="folder-button__description fieldwidth_100"
 					@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
 					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
-				></textarea>
+				/>
 			</span>
 		</div>
 		<div class="folder-subfolders">
-			<ul v-if="folderData.children && folderData.children.length" class="margin_bottom_0">
+			<ul
+				v-if="folderData.children && folderData.children.length"
+				class="margin_bottom_0"
+			>
 				<folder
 					v-for="(child, index) in orderedChildren"
 					:key="folderData.id + index"
 					:instanceid="instanceid"
 					:folder="child"
 					:parent="folderData"
-				>
-				</folder>
+				/>
 			</ul>
 		</div>
-		<div :id="(instanceid === 'popupexporttree' ? 'to-export-folder-' : '') + folderData.id" class="folder-places">
+		<div
+			:id="(instanceid === 'popupexporttree' ? 'to-export-folder-' : '') + folderData.id"
+			class="folder-places"
+		>
 			<label
 				v-for="place in orderedPlaces"
 				v-if="place.folderid === folderData.id && place.show"
-				data-place-button
-				:key="place.id"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-place-' : '') + place.id"
+				:key="place.id"
+				data-place-button
 				:srt="place.srt"
 				:title="place.description"
 				:class="'place-button block_01 draggable' + ($store.state.currentPlace && place.id == $store.state.currentPlace.id ? ' active' : '')"
@@ -88,27 +93,25 @@
 			>
 				<input
 					v-if="instanceid === 'popupexporttree'"
-					name="placeCheckbox"
 					:id="'to-export-place-checkbox-' + place.id"
+					name="placeCheckbox"
 					type="checkbox"
 					class="to-export-place-checkbox"
 					@change="selectUnselect(place, $event.target.checked);"
-				/>
+				>
 				{{ place.name }}
 				<span
 					data-place-button-dragenter-area-top
 					class="dragenter-area dragenter-area_top"
 					@dragenter="$root.handleDragEnter"
 					@dragleave="$root.handleDragLeave"
-				>
-				</span>
+				/>
 				<span
 					data-place-button-dragenter-area-bottom
 					class="dragenter-area dragenter-area_bottom"
 					@dragenter="$root.handleDragEnter"
 					@dragleave="$root.handleDragLeave"
-				>
-				</span>
+				/>
 			</label>
 		</div>
 		<div
@@ -118,8 +121,7 @@
 			@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
-		>
-		</div>
+		/>
 		<div
 			v-if="folderData.id !== 'root'"
 			data-folder-dragenter-area-bottom
@@ -127,33 +129,19 @@
 			@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
-		>
-		</div>
+		/>
 	</li>
 </template>
 
 <script>
 import _ from "lodash"
-import { bus } from "../shared/bus.js"
 export default {
-	name: "folder",
+	name: "Folder",
 	props: ["instanceid", "folder", "parent"],
 	data() {
 		return {
 			folderData: {},
 		}
-	},
-	watch: {
-		folder: {
-			deep: true,
-			immediate: true,
-			handler(folder) {
-				this.folderData = {
-					...folder,
-					children: folder.children,
-				};
-			},
-		},
 	},
 	computed: {
 		selectUnselect: (place, checked) => function(place, checked) {
@@ -171,13 +159,13 @@ export default {
 		selectUnselectFolder: (folderid, checked) => function(folderid, checked) {
 			for(let placeButton of
 				document
-				.getElementById("to-export-places-menu-folder-" + folderid)
-				.getElementsByClassName("place-button")
+					.getElementById("to-export-places-menu-folder-" + folderid)
+					.getElementsByClassName("place-button")
 			) {
 				if(checked !=
 					placeButton
-					.getElementsByClassName("to-export-place-checkbox")[0]
-					.checked
+						.getElementsByClassName("to-export-place-checkbox")[0]
+						.checked
 				) {
 					placeButton.click();
 				}
@@ -185,8 +173,8 @@ export default {
 			}
 			for(let folderCheckbox of
 				document
-				.getElementById("to-export-places-menu-folder-" + folderid)
-				.getElementsByClassName("folder-checkbox")
+					.getElementById("to-export-places-menu-folder-" + folderid)
+					.getElementsByClassName("folder-checkbox")
 			) {
 				folderCheckbox.checked = checked ? true : false;
 				
@@ -197,6 +185,18 @@ export default {
 		},
 		orderedPlaces() {
 			return _.orderBy(this.$store.state.places, "srt");
+		},
+	},
+	watch: {
+		folder: {
+			deep: true,
+			immediate: true,
+			handler(folder) {
+				this.folderData = {
+					...folder,
+					children: folder.children,
+				};
+			},
 		},
 	},
 }

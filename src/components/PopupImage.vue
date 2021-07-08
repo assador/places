@@ -6,15 +6,27 @@
 			:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedbig + dataprop.file + '\''"
 			title="Следующая"
 			@click="showImage(1, $event);"
-		/>
-		<a href="javascript:void(0);" class="prev" @click="showImage(-1, $event);">◀</a>
-		<a href="javascript:void(0);" class="next" @click="showImage(1, $event);">▶</a>
-		<a href="javascript:void(0);" class="close" @click="$root.showPopup({show: false}, $event);">×</a>
+		>
+		<a
+			href="javascript:void(0);"
+			class="prev"
+			@click="showImage(-1, $event);"
+		>◀</a>
+		<a
+			href="javascript:void(0);"
+			class="next"
+			@click="showImage(1, $event);"
+		>▶</a>
+		<a
+			href="javascript:void(0);"
+			class="close"
+			@click="$root.showPopup({show: false}, $event);"
+		>×</a>
 	</div>
 </template>
 
 <script>
-import { constants } from "../shared/constants.js"
+import { constants } from "../shared/constants.ts"
 export default {
 	props: ["data", "currentPlace"],
 	data() {
@@ -22,15 +34,6 @@ export default {
 			constants: constants,
 			dataprop: this.data,
 		}
-	},
-	watch: {
-		data: {
-			deep: true,
-			immediate: true,
-			handler(data) {
-				this.dataprop = data;
-			},
-		},
 	},
 	computed: {
 		showImage: (step, event) => function(step, event) {
@@ -46,6 +49,15 @@ export default {
 					this.dataprop = this.currentPlace.images[currentIndex];
 				}
 			}
+		},
+	},
+	watch: {
+		data: {
+			deep: true,
+			immediate: true,
+			handler(data) {
+				this.dataprop = data;
+			},
 		},
 	},
 }
