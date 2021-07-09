@@ -222,23 +222,21 @@ new Vue({
 		},
 		deleteImages(images, family?) {
 			const data = new FormData();
-			const place: any = {};
-			const indexOfImage = -1;
 			for (let i = 0; i < images.length; i++) {
 				data.append('file_' + i, images[i].file);
 			}
 			data.append('userid', this.$store.state.user.id);
 			if(!this.$store.state.user.testaccount) {
 				axios.post('/backend/delete.php', data)
-					.then(response => {
+					.then(() => {
 						this.toDB('images_delete', JSON.stringify(images));
-					}
-					);
+					});
 			}
 			this.$store.commit('deleteImages', {images: images, family: family});
 		},
 		exportPlaces(places, mime) {
-			let content, a = document.createElement('a');
+			const a = document.createElement('a');
+			let content: string;
 			switch(mime) {
 			case 'application/gpx+xml' :
 				a.download = 'places.gpx';
@@ -376,14 +374,14 @@ new Vue({
 				event.target.nodeType !== 1 ||
 				this.draggingElement === event.target
 			) return;
-			let
-				newPlaceButtonContainer,
+			const
 				targetSrt = Number(
 					event.target.parentNode.getAttribute('srt') ||
 					event.target.parentNode.parentNode.getAttribute('srt')
 				),
 				changes: any = {folder: {}, place: {}}
 			;
+			let newPlaceButtonContainer: any;
 			const change = () => {
 				if(Object.keys(changes.place).length > 0) {
 					this.$store.commit('changePlace', {

@@ -66,8 +66,9 @@
 						Места — <a
 							href="javascript:void(0);"
 							@click="account();"
-							v-html="$store.state.user ? $store.state.user.login : 'o_O'"
-						/>
+						>
+							{{ $store.state.user ? $store.state.user.login : 'o_O' }}
+						</a>
 					</h1>
 					<div>Сервис просмотра и редактирования библиотек мест</div>
 				</div>
@@ -76,8 +77,9 @@
 				id="message-main"
 				class="message invisible"
 				@click="$store.dispatch('clearMessage', true);"
-				v-html="$store.state.message"
-			/>
+			>
+				{{ $store.state.message }}
+			</div>
 		</div>
 		<div
 			id="top-right"
@@ -184,6 +186,7 @@
 					<div class="margin_bottom">
 						<a
 							v-for="(page, index) in commonPlacesPagesCount"
+							:key="index"
 							href="javascript:void(0);"
 							:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
 							@click="commonPlacesPage = index + 1;"
@@ -355,9 +358,7 @@
 								:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
 								class="fieldwidth_100"
 								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
-							>
-								{{ $store.state.currentPlace[field] }}
-							</textarea>
+							/>
 						</dd>
 					</dl>
 				</dt>

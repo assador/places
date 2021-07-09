@@ -567,153 +567,153 @@ const store = new Vuex.Store({
 			} else {
 				let parsed: any;
 				switch(payload.mime) {
-				case 'application/json' :
-					try {
-						parsed = JSON.parse(payload.text);
-						break;
-					} catch(e) {
-						dispatch('setMessage',
-							'Ошибка при разборе импортируемого файла.'
-						);
-						return false;
-					}
-				case 'application/gpx+xml' :
-					parsed = {places: [], folders: []};
-					for(const folder of state.folders) {
-						if(folder.id === 'imported') {
-							parsed.folders[0] = folder;
+					case 'application/json' :
+						try {
+							parsed = JSON.parse(payload.text);
 							break;
-						}
-					}
-					let dom: any = null, importedPlaceFolder: any = {};
-					// Parsing XML text to a DOM tree
-					if(window.DOMParser) {
-						try {
-							dom = (new DOMParser()).parseFromString(
-								payload.text, 'text/xml'
-							);
 						} catch(e) {
 							dispatch('setMessage',
 								'Ошибка при разборе импортируемого файла.'
 							);
 							return false;
 						}
-					} else if(window.ActiveXObject) {
-						try {
-							dom = new ActiveXObject('Microsoft.XMLDOM');
-							dom.async = false;
-							if(!dom.loadXML(payload.text)) {
-								dispatch('setMessage',
-									dom.parseError.reason + dom.parseError.srcText
-								);
-							}
-						} catch(e) {
-							dispatch('setMessage',
-								'Ошибка при разборе импортируемого файла.'
-							);
-							return false;
-						}
-					} else {
-						dispatch('setMessage',
-							'Ошибка при разборе импортируемого файла.'
-						);
-						return false;
-					}
-					let description: string, link: string, time: any;
-					for(const wpt of dom.getElementsByTagName('wpt')) {
-						// Parsing a link node(s) in a place node
-						for(const l of wpt.getElementsByTagName('link')) {
-							if(/^\w/.test(l.getAttribute('href').trim())) {
-								link =
-										/^http/.test(l.getAttribute('href').trim())
-											? '' : 'http://'
-										+ l.getAttribute('href').trim()
-								;
+					case 'application/gpx+xml' :
+						parsed = {places: [], folders: []};
+						for(const folder of state.folders) {
+							if(folder.id === 'imported') {
+								parsed.folders[0] = folder;
 								break;
 							}
 						}
-						// Parsing a time node in a place node
-						if(wpt.getElementsByTagName('time').length > 0) {
-							time = new Date(
-								wpt.getElementsByTagName('time')[0].textContent.trim()
+						let dom: any = null, importedPlaceFolder: any = {};
+						// Parsing XML text to a DOM tree
+						if(window.DOMParser) {
+							try {
+								dom = (new DOMParser()).parseFromString(
+									payload.text, 'text/xml'
+								);
+							} catch(e) {
+								dispatch('setMessage',
+									'Ошибка при разборе импортируемого файла.'
+								);
+								return false;
+							}
+						} else if(window.ActiveXObject) {
+							try {
+								dom = new ActiveXObject('Microsoft.XMLDOM');
+								dom.async = false;
+								if(!dom.loadXML(payload.text)) {
+									dispatch('setMessage',
+										dom.parseError.reason + dom.parseError.srcText
+									);
+								}
+							} catch(e) {
+								dispatch('setMessage',
+									'Ошибка при разборе импортируемого файла.'
+								);
+								return false;
+							}
+						} else {
+							dispatch('setMessage',
+								'Ошибка при разборе импортируемого файла.'
 							);
-							time = isNaN(time) ? '' : time.toISOString().slice(0, -5);
+							return false;
 						}
-						/*
-							 * Updating the tree branch of folders for imported places
-							 * and get an ID of a folder for the importing place
-							 */
-						importedPlaceFolder = commonFunctions.formFolderForImported(
-							time,
-							parsed.folders[0]
-						);
-						parsed.folders[0] = importedPlaceFolder.imported;
-						// Parsing a description node in a place node
-						description = '';
-						if(wpt.getElementsByTagName('desc').length > 0) {
-							for(const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
-								try {
-									switch(desc.nodeType) {
-									case 1 : case 3 :
-										description += desc.textContent.trim()
-													+ (desc.nextSibling ? '\n' : '');
-										break;
-									case 4 :
-										const reStr: string =
-													'desc_(?:user|test)' +
-													'\s*\:\s*start\s*--\s*>\s*' +
-													'(.*?)' +
-													'\s*<\s*\!\s*--\s*' +
-													'desc_(?:user|test)' +
-													'\s*\:\s*end'
-												;
-										const descs = desc.textContent.match(
-											new RegExp(reStr, 'gi')
-										);
-										for(let i = 0; i < descs.length; i++) {
-											description += descs[i].replace(
-												new RegExp(reStr, 'i'), "$1"
-											) + (desc.nextSibling ? '\n' : '');
-										}
-										break;
-									}
-								} catch(e) {
+						let description: string, link: string, time: any;
+						for(const wpt of dom.getElementsByTagName('wpt')) {
+							// Parsing a link node(s) in a place node
+							for(const l of wpt.getElementsByTagName('link')) {
+								if(/^\w/.test(l.getAttribute('href').trim())) {
+									link =
+											/^http/.test(l.getAttribute('href').trim())
+												? '' : 'http://'
+											+ l.getAttribute('href').trim()
+									;
+									break;
 								}
 							}
+							// Parsing a time node in a place node
+							if(wpt.getElementsByTagName('time').length > 0) {
+								time = new Date(
+									wpt.getElementsByTagName('time')[0].textContent.trim()
+								);
+								time = isNaN(time) ? '' : time.toISOString().slice(0, -5);
+							}
+							/*
+								 * Updating the tree branch of folders for imported places
+								 * and get an ID of a folder for the importing place
+								 */
+							importedPlaceFolder = commonFunctions.formFolderForImported(
+								time,
+								parsed.folders[0]
+							);
+							parsed.folders[0] = importedPlaceFolder.imported;
+							// Parsing a description node in a place node
+							description = '';
+							if(wpt.getElementsByTagName('desc').length > 0) {
+								for(const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
+									try {
+										switch(desc.nodeType) {
+										case 1 : case 3 :
+											description += desc.textContent.trim()
+														+ (desc.nextSibling ? '\n' : '');
+											break;
+										case 4 :
+											const reStr: string =
+														'desc_(?:user|test)' +
+														'\s*\:\s*start\s*--\s*>\s*' +
+														'(.*?)' +
+														'\s*<\s*\!\s*--\s*' +
+														'desc_(?:user|test)' +
+														'\s*\:\s*end'
+													;
+											const descs = desc.textContent.match(
+												new RegExp(reStr, 'gi')
+											);
+											for(let i = 0; i < descs.length; i++) {
+												description += descs[i].replace(
+													new RegExp(reStr, 'i'), "$1"
+												) + (desc.nextSibling ? '\n' : '');
+											}
+											break;
+										}
+									} catch(e) {
+									}
+								}
+							}
+							// Forming an importing place as an object and pushing it in a structure
+							parsed.places.push({
+								id: commonFunctions.generateRandomString(32),
+								folderid: importedPlaceFolder.folderid,
+								name: wpt.getElementsByTagName('name').length > 0
+									? wpt.getElementsByTagName('name')[0].textContent.trim()
+									: '',
+								description: description,
+								link: link,
+								latitude: parseFloat(wpt.getAttribute('lat')),
+								longitude: parseFloat(wpt.getAttribute('lon')),
+								altitudecapability: wpt.getElementsByTagName('ele') > 0
+									? wpt.getElementsByTagName('ele')[0].textContent.trim()
+									: '',
+								time: time,
+								srt: (parsed.places.length > 0 ? parsed.places.length + 1 : 1),
+								common: 0,
+								userid: sessionStorage.getItem('places-userid'),
+								images: [],
+								type: 'place',
+								added: true,
+								deleted: false,
+								updated: false,
+								show: true,
+							});
 						}
-						// Forming an importing place as an object and pushing it in a structure
-						parsed.places.push({
-							id: commonFunctions.generateRandomString(32),
-							folderid: importedPlaceFolder.folderid,
-							name: wpt.getElementsByTagName('name').length > 0
-								? wpt.getElementsByTagName('name')[0].textContent.trim()
-								: '',
-							description: description,
-							link: link,
-							latitude: parseFloat(wpt.getAttribute('lat')),
-							longitude: parseFloat(wpt.getAttribute('lon')),
-							altitudecapability: wpt.getElementsByTagName('ele') > 0
-								? wpt.getElementsByTagName('ele')[0].textContent.trim()
-								: '',
-							time: time,
-							srt: (parsed.places.length > 0 ? parsed.places.length + 1 : 1),
-							common: 0,
-							userid: sessionStorage.getItem('places-userid'),
-							images: [],
-							type: 'place',
-							added: true,
-							deleted: false,
-							updated: false,
-							show: true,
-						});
-					}
-					break;
-				default :
-					dispatch('setMessage',
-						'Недопустимый тип импортируемого файла.' +
-							'Допускаются только JSON и GPX.'
-					);
-					return false;
+						break;
+					default :
+						dispatch('setMessage',
+							'Недопустимый тип импортируемого файла.' +
+								'Допускаются только JSON и GPX.'
+						);
+						return false;
 				}
 				try {
 					commit('addImporting', {
@@ -787,7 +787,7 @@ const store = new Vuex.Store({
 		},
 		clearMessage({state, commit}, hide) {
 			let message: string;
-			if(hide || (message = state.message.replace(/^<div>[^<>]+<\/div>\s*/, '')) === '') {
+			if(hide || (message = state.message.replace(/^\n[^<>]+\s*/, '')) === '') {
 				const me = document.getElementById('message-main');
 				if(me) {
 					me.classList.add('invisible');
@@ -801,7 +801,7 @@ const store = new Vuex.Store({
 			}
 		},
 		setMessage({state, commit, dispatch}, message) {
-			const last = state.message.match(/<div>([^<>]+)<\/div>\s*$/);
+			const last = state.message.match(/\n([^<>]+)\s*$/);
 			const me = document.getElementById('message-main');
 			if(last !== null && last[1] === message) {
 				if(me && me.lastElementChild) {
@@ -813,7 +813,7 @@ const store = new Vuex.Store({
 					}, 500);
 				}
 			} else {
-				commit('setMessage', state.message += '<div>' + message + '</div>');
+				commit('setMessage', state.message += "\n" + message);
 			}
 			if(me && state.message) {
 				me.classList.add('visible');

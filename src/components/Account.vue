@@ -115,8 +115,9 @@
 							<td
 								colspan="2"
 								style="padding-top: 18px;"
-								v-html="acc.message"
-							/>
+							>
+								{{ acc.message }}
+							</td>
 						</tr>
 					</tbody>
 				</table>

@@ -13,6 +13,9 @@ module.exports = {
 		'indent': ['error', 'tab'],
 		'vue/html-indent': ['error', 'tab'],
 		'no-tabs': 0,
+		'indent': 'off',
+		'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+		'vue/no-use-v-if-with-v-for': 'off',
 	},
 	parserOptions: {
 		ecmaVersion: 2020,

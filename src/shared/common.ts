@@ -153,7 +153,8 @@ const commonFunctions = {
 		return false;
 	},
 	plainToTree(plain): any {
-		let tree = [], ready = false;
+		const tree = [];
+		let ready = false;
 		while(!ready && plain.length > 0) {
 			for(let i = 0; i < plain.length; i++) {
 				ready = true;
