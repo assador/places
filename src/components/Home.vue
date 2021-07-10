@@ -327,7 +327,6 @@
 											class="image-thumbnail border_1"
 											draggable="false"
 											:src="constants.dirs.uploads.images.small + image.file"
-											:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedsmall + image.file + '\''"
 											:alt="$store.state.currentPlace.name"
 											:title="$store.state.currentPlace.name"
 										>
