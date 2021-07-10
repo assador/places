@@ -265,18 +265,11 @@
 							<span v-else>
 								{{ $store.state.placeFields[field] }}:
 							</span>
-							<a
-								class="place-detailed__link-edit"
-								href="javascript:void(0);"
-								@click="linkEditing = !linkEditing;"
-							>
-								🖍
-							</a>
 						</dt>
 						<dt v-else-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'link' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
 							{{ $store.state.placeFields[field] }}:
 						</dt>
-						<dd v-if="field == 'srt' || field == 'link' && (linkEditing || !$store.state.currentPlace[field].trim()) || field == 'latitude' || field == 'longitude' || field == 'altitudecapability'">
+						<dd v-if="field == 'srt' || field == 'link' || field == 'latitude' || field == 'longitude' || field == 'altitudecapability'">
 							<input
 								:id="'detailed-' + field"
 								v-model.number.trim="$store.state.currentPlace[field]"

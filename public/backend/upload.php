@@ -51,7 +51,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 	foreach($_FILES as $key => $file) {
 		if($file["error"] == UPLOAD_ERR_OK) {
 			$size = filesize($file["tmp_name"]);
-			$mime = finfo_file($finfo, $file["tmp_name"]);
+			$mime = $file["type"];
 			if(!array_key_exists($mime, $mimes)) {
 				if(!in_array(3, $fault)) {$fault[] = 3;}
 				continue;

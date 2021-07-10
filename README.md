@@ -1,6 +1,6 @@
 # places
 
-v3.0.2  
+v3.0.3  
 A Vue.js project  
 “The Places” — yet another geo placemarks viewer and editor service  
 Testing address: http://places.scrofa-tridens.ru/
@@ -16,3 +16,5 @@ The service allows to add and edit geo placemarks with names, descriptions, 
 4. Edit /src/shared/constants.js and /public/backend/config.php files according to your preferencies.
 5. In the same /public/backend/config.php specify the test account ID, if you need it.
 6. Configure permissions of directories: /dist/uploads/images/big, /dist/uploads/images/big/orphaned, /dist/uploads/images/small, /dist/uploads/images/small/orphaned
+
+If you suddenly have a foolish desire to donate, disinterestedly or selfishly, you can do it here: https://www.paypal.me/niaouveas. Self-interest, if any, can be expressed by writing a letter to assador@gmail.com.

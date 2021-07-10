@@ -9,6 +9,7 @@ public/uploads/images/small/orphaned/*
 ~*
 *~
 .htaccess
+package-lock.json
 !.gitkeep
 
 /tests/e2e/logs/

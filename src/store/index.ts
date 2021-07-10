@@ -711,7 +711,7 @@ const store = new Vuex.Store({
 					default :
 						dispatch('setMessage',
 							'Недопустимый тип импортируемого файла.' +
-								'Допускаются только JSON и GPX.'
+							'Допускаются только JSON и GPX.'
 						);
 						return false;
 				}
