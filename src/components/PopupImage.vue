@@ -60,5 +60,30 @@ export default {
 			},
 		},
 	},
+	mounted() {
+		document.addEventListener('keyup', this.keyup, false);
+	},
+	beforeDestroy() {
+		document.removeEventListener('keyup', this.keyup, false);
+	},
+	methods: {
+		keyup(event) {
+			switch(constants.shortcuts[event.keyCode]) {
+				case 'close' :
+					this.$root.showPopup({show: false}, event);
+					break;
+				case 'left' :
+					if(this.$root.popupComponent === 'popupimage') {
+						this.showImage(-1, event);
+					}
+					break;
+				case 'right' :
+					if(this.$root.popupComponent === 'popupimage') {
+						this.showImage(1, event);
+					}
+					break;
+			}
+		},
+	},
 }
 </script>

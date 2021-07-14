@@ -36,21 +36,8 @@ export const accountDeletionRoutine = (userId, leavePlaces, leaveImages) =>
 			'/backend/delete_account.php',
 			{userId: userId, leavePlaces: leavePlaces, leaveImages: leaveImages}
 		).then(response => {
-			bus.$emit('loggedChange', 'auth');
 			resolve(response);
 		}).catch(error => {
 			reject(error);
 		})
 	});
-export const accountDeletionConditionsChange = (event) => {
-	switch(event.currentTarget.id) {
-	case 'placesLeaveNone' :
-		document.getElementById('imagesLeaveNone').click();
-		break;
-	case 'imagesLeaveAll' :
-		if((<HTMLInputElement>document.getElementById('placesLeaveNone')).checked) {
-			document.getElementById('placesLeaveCommon').click();
-		}
-		break;
-	}
-}

@@ -8,7 +8,7 @@
 				<p>Укажите, что делать с вашим наследием на сервисе и подтвердите удаление аккаунта</p>
 			</div>
 			<form
-				@submit.prevent="accountDeletionSubmit"
+				@submit.prevent="$root.showPopup({show: false}, $event); accountDeletionSubmit();"
 				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 			>
 				<div class="account__form margin_bottom">
@@ -21,7 +21,7 @@
 								name="places"
 								type="radio"
 								value="none"
-								onchange="accountDeletionConditionsChange(event);"
+								@change="accountDeletionConditionsChange($event);"
 							>
 							<span>Удалить все мои места</span>
 						</label>
@@ -32,7 +32,7 @@
 								name="places"
 								type="radio"
 								value="common"
-								onchange="accountDeletionConditionsChange(event);"
+								@change="accountDeletionConditionsChange($event);"
 							>
 							<span>Оставить только видимые всем места</span>
 						</label>
@@ -43,7 +43,7 @@
 								name="places"
 								type="radio"
 								value="all"
-								onchange="accountDeletionConditionsChange(event);"
+								@change="accountDeletionConditionsChange($event);"
 							>
 							<span>Оставить все мои места, сделав их видимыми всем</span>
 						</label>
@@ -57,7 +57,7 @@
 								name="images"
 								type="radio"
 								value="none"
-								onchange="accountDeletionConditionsChange(event);"
+								@change="accountDeletionConditionsChange($event);"
 							>
 							<span>Удалить мои фотографии</span>
 						</label>
@@ -68,7 +68,7 @@
 								name="images"
 								type="radio"
 								value="all"
-								onchange="accountDeletionConditionsChange(event);"
+								@change="accountDeletionConditionsChange($event);"
 							>
 							<span>Оставить мои фотографии</span>
 						</label>
@@ -79,6 +79,7 @@
 						<button type="submit">
 							Удалить аккаунт
 						</button>
+						&#160;
 						<button
 							type="button"
 							@click="$root.showPopup({show: false}, $event);"
@@ -122,16 +123,30 @@ export default {
 					который удалить нельзя
 				`;
 			} else {
+				this.$store.dispatch('unload');
+				bus.$emit('loggedChange', 'auth');
 				const {
 					userId,
 					leavePlaces,
 					leaveImages,
 				} = this;
-				accountDeletionRoutine({
+				accountDeletionRoutine(
 					userId,
 					leavePlaces,
 					leaveImages,
-				});
+				);
+			}
+		},
+		accountDeletionConditionsChange(event) {
+			switch(event.currentTarget.id) {
+				case 'placesLeaveNone' :
+					document.getElementById('imagesLeaveNone').click();
+					break;
+				case 'imagesLeaveAll' :
+					if(document.getElementById('placesLeaveNone').checked) {
+						document.getElementById('placesLeaveCommon').click();
+					}
+					break;
 			}
 		},
 	},

@@ -65,6 +65,7 @@
 
 <script>
 import { bus } from '../shared/bus'
+import { constants } from '../shared/constants'
 export default {
 	props: ['data'],
 	data() {
@@ -186,6 +187,21 @@ export default {
 					});
 					this.markNestedAsDeleted(folder.children[i]);
 				}
+			}
+		},
+	},
+	mounted() {
+		document.addEventListener('keyup', this.keyup, false);
+	},
+	beforeDestroy() {
+		document.removeEventListener('keyup', this.keyup, false);
+	},
+	methods: {
+		keyup(event) {
+			switch(constants.shortcuts[event.keyCode]) {
+				case 'close' :
+					this.$root.showPopup({show: false}, event);
+					break;
 			}
 		},
 	},

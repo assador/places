@@ -264,9 +264,41 @@ new Vue({
 				mime = 'application/json';
 				a.download = 'places.json';
 				a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
+				const foldersPlain = [];
+				let parent, folders = [];
+				commonFunctions.treeToPlain(
+					{'children': this.$store.state.folders}, 'children', foldersPlain
+				);
+				for(const p of places) {
+					for(const f of foldersPlain) {
+						if(f.id === p.folderid) {
+							if(!f.selected) {
+								do {
+									f.selected = true;
+									for(const parentFolder of foldersPlain) {
+										if(parentFolder.id === f.parent) {
+											parentFolder.selected = true;
+											parent = parentFolder;
+											break;
+										}
+									}
+								} while(parent.parent);
+							}
+							break;
+						}
+					}
+				}
+				for(const f of foldersPlain) {
+					if(f.selected) {
+						delete f.selected;
+						f.builded = false;
+						folders.push(f);
+					}
+				}
+				folders = commonFunctions.plainToTree(folders);
 				content = JSON.stringify({
-					places: this.$store.state.places,
-					folders: this.$store.state.folders,
+					places: places,
+					folders: folders,
 				});
 			}
 			a.href = URL.createObjectURL(

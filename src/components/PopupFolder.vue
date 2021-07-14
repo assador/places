@@ -151,6 +151,19 @@ export default {
 	},
 	mounted() {
 		makeFieldsValidatable();
+		document.addEventListener('keyup', this.keyup, false);
+	},
+	beforeDestroy() {
+		document.removeEventListener('keyup', this.keyup, false);
+	},
+	methods: {
+		keyup(event) {
+			switch(constants.shortcuts[event.keyCode]) {
+				case 'close' :
+					this.$root.showPopup({show: false}, event);
+					break;
+			}
+		},
 	},
 }
 </script>

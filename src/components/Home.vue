@@ -733,27 +733,6 @@ export default {
 					break;
 				}
 			}
-			if(this.$root.popuped === 'appear') {
-				switch(constants.shortcuts[event.keyCode]) {
-				case 'close' :
-					if(this.$root.popupComponent === 'popupfolder') {
-						this.$refs.popup.close(event);
-					} else {
-						this.$root.showPopup({show: false}, event);
-					}
-					break;
-				case 'left' :
-					if(this.$root.popupComponent === 'popupimage') {
-						this.$refs.popup.showImage(-1, event);
-					}
-					break;
-				case 'right' :
-					if(this.$root.popupComponent === 'popupimage') {
-						this.$refs.popup.showImage(1, event);
-					}
-					break;
-				}
-			}
 		},
 		windowResize() {
 			if(window.innerWidth > constants.compactWidth) {

@@ -88,20 +88,34 @@
 
 <script>
 import tree from "./Tree.vue"
+import { constants } from '../shared/constants'
 export default {
 	components: {
 		tree,
 	},
 	props: ["data"],
+	beforeDestroy() {
+		this.$root.selectedToExport = [];
+	},
 	mounted() {
 		this.$root.selectedToExport = [];
 		for(let f of document.getElementById("popup-export__tree").getElementsByClassName("folder")) {
 			f.classList.add("folder_closed");
 			f.classList.remove("folder_opened");
 		}
+		document.addEventListener('keyup', this.keyup, false);
 	},
 	beforeDestroy() {
-		this.$root.selectedToExport = [];
+		document.removeEventListener('keyup', this.keyup, false);
+	},
+	methods: {
+		keyup(event) {
+			switch(constants.shortcuts[event.keyCode]) {
+				case 'close' :
+					this.$root.showPopup({show: false}, event);
+					break;
+			}
+		},
 	},
 }
 </script>
