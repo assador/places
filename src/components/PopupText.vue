@@ -25,7 +25,7 @@ export default {
 	},
 	methods: {
 		keyup(event) {
-			switch(constants.shortcuts[event.keyCode]) {
+			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :
 					this.$root.showPopup({show: false}, event);
 					break;

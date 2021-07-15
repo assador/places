@@ -7,7 +7,7 @@ export const reg = Vue.observable({
 export const regRoutine = (data) => new Promise((resolve, reject) => {
 	axios.post('/backend/reg.php', data)
 		.then(response => {
-			switch(response.data) {
+			switch (response.data) {
 			case 0 :
 				reg.message = 'При регистрации произошла ошибка. Свяжитесь с <a href="mailto:' + constants.from + '">техподдержкой</a>.';
 				break;

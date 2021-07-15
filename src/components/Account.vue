@@ -175,15 +175,15 @@ export default {
 	},
 	methods: {
 		keyup(event) {
-			if(this.$root.popuped == 'appear' && constants.shortcuts[event.keyCode] == 'close') {
+			if (this.$root.popuped == 'appear' && constants.shortcuts[event.keyCode] == 'close') {
 				this.$root.showPopup({show: false}, event);
 			}
 		},
 		accountSubmit() {
-			if(this.$store.state.user.testaccount) {
+			if (this.$store.state.user.testaccount) {
 				acc.message = 'Вы авторизовались под тестовым аккаунтом, который изменить нельзя';
 			} else {
-				if(!document.querySelector('.value_wrong')) {
+				if (!document.querySelector('.value_wrong')) {
 					const {
 						accountLogin,
 						accountNewPassword,
@@ -192,7 +192,7 @@ export default {
 						accountEmail,
 						accountPhone,
 					} = this;
-					if(accountNewPassword === accountNewPasswordRepeat) {
+					if (accountNewPassword === accountNewPasswordRepeat) {
 						const accountId = sessionStorage.getItem('places-userid');
 						accountSaveRoutine({
 							accountId,

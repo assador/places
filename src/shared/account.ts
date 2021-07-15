@@ -6,10 +6,10 @@ export const acc = Vue.observable({
 	message: '',
 });
 export const accountSaveRoutine = (account) => new Promise((resolve, reject) => {
-	if(account.accountNewPassword == undefined) account.accountNewPassword = '';
+	if (account.accountNewPassword == undefined) account.accountNewPassword = '';
 	axios.post('/backend/set_account.php', account)
 		.then(response => {
-			switch(response.data) {
+			switch (response.data) {
 			case 0 :
 				acc.message = 'При сохранении данных произошла ошибка, свяжитесь с <a href="mailto:' + constants.from + '">техподдержкой</a>';
 				bus.$emit('loggedChange', 'home');

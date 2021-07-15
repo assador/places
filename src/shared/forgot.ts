@@ -7,7 +7,7 @@ export const forgot = Vue.observable({
 export const forgotRoutine = (data) => new Promise((resolve, reject) => {
 	axios.post('/backend/forgot.php', data)
 		.then(response => {
-			switch(response.data) {
+			switch (response.data) {
 			case 0 :
 				forgot.message = 'При отправке письма произошла ошибка. Свяжитесь с <a href="mailto:' + constants.from + '">техподдержкой</a>.';
 				break;

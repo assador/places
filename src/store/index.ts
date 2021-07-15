@@ -21,16 +21,16 @@ const tracking = (store) => {
 		'swapValues',
 	];
 	store.subscribe((mutation, state) => {
-		if(
+		if (
 			mutation.type != 'setIdleTime' &&
 			mutation.type != 'setRefreshing' &&
 			!state.refreshing
 		) {
 			sessionStorage.setItem('places-store-state', JSON.stringify(state));
 		}
-		if(trackingMutations.includes(mutation.type) && mutation.payload) {
+		if (trackingMutations.includes(mutation.type) && mutation.payload) {
 			store.commit('setSaved', false);
-			if(
+			if (
 				(
 					!mutation.payload.hasOwnProperty('backup') ||
 					mutation.payload.backup
@@ -39,7 +39,7 @@ const tracking = (store) => {
 					mutation.payload.hasOwnProperty('change')
 				)
 			) {
-				if(
+				if (
 					mutation.payload.added ||
 					mutation.payload.deleted ||
 					mutation.payload.updated ||
@@ -50,17 +50,17 @@ const tracking = (store) => {
 							mutation.payload.change.updated
 						)
 				) {
-					if(!state.inUndoRedo) {
-						if(mutation.payload.hasOwnProperty('type')) {
+					if (!state.inUndoRedo) {
+						if (mutation.payload.hasOwnProperty('type')) {
 							bus.$emit('toDB', {what: mutation.payload.type + 's'});
 							store.commit('savedToDB', mutation.payload);
 						}
-						if(mutation.payload.hasOwnProperty('change')) {
-							if(mutation.payload.hasOwnProperty('place')) {
+						if (mutation.payload.hasOwnProperty('change')) {
+							if (mutation.payload.hasOwnProperty('place')) {
 								bus.$emit('toDB', {what: 'places'});
 								store.commit('savedToDB', mutation.payload.place);
 							}
-							if(mutation.payload.hasOwnProperty('folder')) {
+							if (mutation.payload.hasOwnProperty('folder')) {
 								bus.$emit('toDB', {what: 'folders'});
 								store.commit('savedToDB', mutation.payload.folder);
 							}
@@ -70,7 +70,7 @@ const tracking = (store) => {
 						store.commit('outUndoRedo');
 					}
 				}
-				if(mutation.type !== 'removePlace') {
+				if (mutation.type !== 'removePlace') {
 					store.commit('backupState');
 				}
 			}
@@ -142,7 +142,7 @@ const store = new Vuex.Store({
 				currentPlaceIndex: state.currentPlaceIndex,
 			});
 			Vue.set(state, 'stateBackupsIndex', state.stateBackups.length - 1);
-			if(state.stateBackups.length > constants.backupscount) {
+			if (state.stateBackups.length > constants.backupscount) {
 				state.stateBackups.shift();
 				state.stateBackupsIndex--;
 			}
@@ -218,13 +218,13 @@ const store = new Vuex.Store({
 			Vue.set(state, 'currentPlaceIndex', index);
 		},
 		setHomePlace(state, id) {
-			if(!id) {
+			if (!id) {
 				Vue.set(state, 'homePlace', null);
 				Vue.set(state.user, 'homeplace', null);
 				return;
 			}
-			for(let i = 0; i < state.places.length; i++) {
-				if(state.places[i].id === id) {
+			for (let i = 0; i < state.places.length; i++) {
+				if (state.places[i].id === id) {
 					state.homePlace = state.places[i];
 					state.user.homeplace = state.places[i];
 					return;
@@ -239,7 +239,7 @@ const store = new Vuex.Store({
 			Vue.set(state, 'folders', payload.folders);
 			Vue.set(state, 'ready', true);
 			let added = false, deleted = false, updated = false;
-			switch(payload.what) {
+			switch (payload.what) {
 			case 'added' :
 				added = true;
 				break;
@@ -250,14 +250,14 @@ const store = new Vuex.Store({
 				updated = true;
 				break;
 			}
-			for(const place of payload.places) {
+			for (const place of payload.places) {
 				Vue.set(place, 'type', 'place');
 				Vue.set(place, 'added', added);
 				Vue.set(place, 'deleted', deleted);
 				Vue.set(place, 'updated', updated);
 				Vue.set(place, 'show', true);
 			}
-			for(const folder of payload.folders) {
+			for (const folder of payload.folders) {
 				Vue.set(folder, 'type', 'folder');
 				Vue.set(folder, 'added', added);
 				Vue.set(folder, 'deleted', deleted);
@@ -293,13 +293,13 @@ const store = new Vuex.Store({
 		changePlace(state, changes) {
 			const keys: string[] = Object.keys(changes.change)
 			let toUpdated = true;
-			for(let i = 0; i < keys.length; i++) {
+			for (let i = 0; i < keys.length; i++) {
 				Vue.set(changes.place, keys[i], changes.change[keys[i]]);
-				if(keys[i] === 'updated') {
+				if (keys[i] === 'updated') {
 					toUpdated = false;
 				}
 			}
-			if(toUpdated) {
+			if (toUpdated) {
 				Vue.set(changes.place, 'updated', true);
 			}
 		},
@@ -310,10 +310,10 @@ const store = new Vuex.Store({
 				'id',
 				folder.parent
 			);
-			if(!parent) {
+			if (!parent) {
 				state.folders.push(folder);
 			} else {
-				if(!parent.children) {
+				if (!parent.children) {
 					Vue.set(parent, 'children', []);
 				}
 				parent.children.push(folder);
@@ -325,7 +325,7 @@ const store = new Vuex.Store({
 			commonFunctions.treeToPlain({'children': state.folders}, 'children', plainStateFolders);
 			commonFunctions.treeToPlain({'children': payload.folders}, 'children', plainPayloadFolders);
 			Vue.set(state, 'folders', []);
-			for(const payloadFolder of plainPayloadFolders) {
+			for (const payloadFolder of plainPayloadFolders) {
 				payloadFolder.userid = sessionStorage.getItem('places-userid');
 				/*
 				 * Checking if such a folder already exists in the tree.
@@ -334,10 +334,10 @@ const store = new Vuex.Store({
 				found = plainStateFolders.find(f =>
 					f.id == payloadFolder.id
 				);
-				if(found) {
+				if (found) {
 					payloadFolder.updated = true;
-					for(const key in payloadFolder) {
-						if(
+					for (const key in payloadFolder) {
+						if (
 							key !== 'id' &&
 							key !== 'added' &&
 							key !== 'deleted'
@@ -350,11 +350,11 @@ const store = new Vuex.Store({
 					plainStateFolders.push(payloadFolder);
 				}
 			}
-			for(const stateFolder of plainStateFolders) {
+			for (const stateFolder of plainStateFolders) {
 				stateFolder.builded = false;
 			}
 			Vue.set(state, 'folders', commonFunctions.plainToTree(plainStateFolders));
-			for(const payloadPlace of payload.places) {
+			for (const payloadPlace of payload.places) {
 				payloadPlace.userid = sessionStorage.getItem('places-userid');
 				/*
 				 * Checking if such a place already exists.
@@ -364,9 +364,9 @@ const store = new Vuex.Store({
 					p.id == payloadPlace.id ||
 					p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
 				);
-				if(found) {
+				if (found) {
 					found.updated = true;
-					for(const key in payloadPlace) {
+					for (const key in payloadPlace) {
 						Vue.set(found, key, payloadPlace[key]);
 					}
 				} else {
@@ -377,8 +377,8 @@ const store = new Vuex.Store({
 			}
 		},
 		deletePlace(state, place) {
-			for(let i = 0; i < state.places.length; i++) {
-				if(state.places[i] === place) {
+			for (let i = 0; i < state.places.length; i++) {
+				if (state.places[i] === place) {
 					state.places.splice(i, 1);
 					Vue.set(state, 'currentPlaceIndex',
 						state.places.indexOf(state.currentPlace)
@@ -388,19 +388,19 @@ const store = new Vuex.Store({
 			}
 		},
 		deleteImages(state, payload) {
-			if(!payload.images || payload.images.length === 0) return;
-			if(payload.family) {
-				for(const place of state.places) {
-					if(place.id === payload.images[0].id) {
+			if (!payload.images || payload.images.length === 0) return;
+			if (payload.family) {
+				for (const place of state.places) {
+					if (place.id === payload.images[0].id) {
 						Vue.set(place, 'images', []);
 					}
 				}
 				return;
 			}
-			for(const toDelete of payload.images) {
-				for(const place of state.places) {
-					for(const image of place.images) {
-						if(image.id === toDelete.id) {
+			for (const toDelete of payload.images) {
+				for (const place of state.places) {
+					for (const image of place.images) {
+						if (image.id === toDelete.id) {
 							place.images.splice(place.images.indexOf(image), 1);
 						}
 					}
@@ -408,8 +408,8 @@ const store = new Vuex.Store({
 			}
 		},
 		deletePlacesMarkedAsDeleted(state, payload) {
-			for(let i = 0; i < state.places.length; i++) {
-				if(state.places[i].deleted) {
+			for (let i = 0; i < state.places.length; i++) {
+				if (state.places[i].deleted) {
 					state.places[i] = null;
 					state.places.splice(i, 1);
 					i--;
@@ -431,18 +431,18 @@ const store = new Vuex.Store({
 		changeFolder(state, changes) {
 			const keys = Object.keys(changes.change);
 			let toUpdated = true;
-			for(let i = 0; i < keys.length; i++) {
+			for (let i = 0; i < keys.length; i++) {
 				Vue.set(changes.folder, keys[i], changes.change[keys[i]]);
-				if(keys[i] === 'updated') {
+				if (keys[i] === 'updated') {
 					toUpdated = false;
 				}
 			}
-			if(toUpdated) {
+			if (toUpdated) {
 				Vue.set(changes.folder, 'updated', true);
 			}
 		},
 		folderOpenClose(state, payload) {
-			if(payload.folder) {
+			if (payload.folder) {
 				Vue.set(
 					payload.folder,
 					'opened',
@@ -451,11 +451,11 @@ const store = new Vuex.Store({
 						: !payload.folder.opened
 				);
 			}
-			if(payload.target) {
-				if(payload.opened) {
+			if (payload.target) {
+				if (payload.opened) {
 					payload.target.classList.add('folder_opened');
 				} else {
-					if(payload.target.classList.contains('folder_opened')) {
+					if (payload.target.classList.contains('folder_opened')) {
 						payload.target.classList.add('folder_closed');
 						payload.target.classList.remove('folder_opened');
 					} else {
@@ -483,7 +483,7 @@ const store = new Vuex.Store({
 	},
 	actions: {
 		undo({state, commit, dispatch}) {
-			if(state.stateBackupsIndex > 0) {
+			if (state.stateBackupsIndex > 0) {
 				commit('stateBackupsIndexChange', -1);
 				dispatch('applyUndoRedo');
 				store.commit('inUndoRedo');
@@ -491,10 +491,10 @@ const store = new Vuex.Store({
 			}
 		},
 		redo({state, commit, dispatch}) {
-			if(state.stateBackupsIndex < state.stateBackups.length - 1) {
+			if (state.stateBackupsIndex < state.stateBackups.length - 1) {
 				commit('stateBackupsIndexChange', 1);
 				dispatch('applyUndoRedo');
-				if(state.stateBackupsIndex === state.stateBackups.length - 1) {
+				if (state.stateBackupsIndex === state.stateBackups.length - 1) {
 					store.commit('outUndoRedo');
 					store.commit('setSaved', true);
 				}
@@ -513,8 +513,8 @@ const store = new Vuex.Store({
 			const userRequest = new XMLHttpRequest();
 			userRequest.open('GET', '/backend/get_account.php?id=' + sessionStorage.getItem('places-userid'), true);
 			userRequest.onreadystatechange = function() {
-				if(userRequest.readyState == 4) {
-					if(userRequest.status == 200) {
+				if (userRequest.readyState == 4) {
+					if (userRequest.status == 200) {
 						const user: any = JSON.parse(userRequest.responseText);
 						commit('setUser', user);
 					} else {
@@ -527,7 +527,7 @@ const store = new Vuex.Store({
 		},
 		setPlaces({state, commit, dispatch}, payload) {
 			// If reading from database, not importing
-			if(!payload) {
+			if (!payload) {
 				const placesRequest = new XMLHttpRequest();
 				placesRequest.open(
 					'GET',
@@ -536,8 +536,8 @@ const store = new Vuex.Store({
 					true
 				);
 				placesRequest.onreadystatechange = function() {
-					if(placesRequest.readyState == 4) {
-						if(placesRequest.status == 200) {
+					if (placesRequest.readyState == 4) {
+						if (placesRequest.status == 200) {
 							const all_places = JSON.parse(placesRequest.responseText);
 							commonFunctions.sortObjectsByProximity(all_places[1]);
 							commit('placesReady', {
@@ -566,12 +566,12 @@ const store = new Vuex.Store({
 			 */
 			} else {
 				let parsed: any;
-				switch(payload.mime) {
+				switch (payload.mime) {
 					case 'application/json' :
 						try {
 							parsed = JSON.parse(payload.text);
 							break;
-						} catch(e) {
+						} catch (e) {
 							dispatch('setMessage',
 								'Ошибка при разборе импортируемого файла.'
 							);
@@ -579,35 +579,35 @@ const store = new Vuex.Store({
 						}
 					case 'application/gpx+xml' :
 						parsed = {places: [], folders: []};
-						for(const folder of state.folders) {
-							if(folder.id === 'imported') {
+						for (const folder of state.folders) {
+							if (folder.id === 'imported') {
 								parsed.folders[0] = folder;
 								break;
 							}
 						}
 						let dom: any = null, importedPlaceFolder: any = {};
 						// Parsing XML text to a DOM tree
-						if(window.DOMParser) {
+						if (window.DOMParser) {
 							try {
 								dom = (new DOMParser()).parseFromString(
 									payload.text, 'text/xml'
 								);
-							} catch(e) {
+							} catch (e) {
 								dispatch('setMessage',
 									'Ошибка при разборе импортируемого файла.'
 								);
 								return false;
 							}
-						} else if(window.ActiveXObject) {
+						} else if (window.ActiveXObject) {
 							try {
 								dom = new ActiveXObject('Microsoft.XMLDOM');
 								dom.async = false;
-								if(!dom.loadXML(payload.text)) {
+								if (!dom.loadXML(payload.text)) {
 									dispatch('setMessage',
 										dom.parseError.reason + dom.parseError.srcText
 									);
 								}
-							} catch(e) {
+							} catch (e) {
 								dispatch('setMessage',
 									'Ошибка при разборе импортируемого файла.'
 								);
@@ -620,10 +620,10 @@ const store = new Vuex.Store({
 							return false;
 						}
 						let description: string, link: string, time: any;
-						for(const wpt of dom.getElementsByTagName('wpt')) {
+						for (const wpt of dom.getElementsByTagName('wpt')) {
 							// Parsing a link node(s) in a place node
-							for(const l of wpt.getElementsByTagName('link')) {
-								if(/^\w/.test(l.getAttribute('href').trim())) {
+							for (const l of wpt.getElementsByTagName('link')) {
+								if (/^\w/.test(l.getAttribute('href').trim())) {
 									link =
 											/^http/.test(l.getAttribute('href').trim())
 												? '' : 'http://'
@@ -633,7 +633,8 @@ const store = new Vuex.Store({
 								}
 							}
 							// Parsing a time node in a place node
-							if(wpt.getElementsByTagName('time').length > 0) {
+							time = '';
+							if (wpt.getElementsByTagName('time').length > 0) {
 								time = new Date(
 									wpt.getElementsByTagName('time')[0].textContent.trim()
 								);
@@ -650,10 +651,10 @@ const store = new Vuex.Store({
 							parsed.folders[0] = importedPlaceFolder.imported;
 							// Parsing a description node in a place node
 							description = '';
-							if(wpt.getElementsByTagName('desc').length > 0) {
-								for(const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
+							if (wpt.getElementsByTagName('desc').length > 0) {
+								for (const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
 									try {
-										switch(desc.nodeType) {
+										switch (desc.nodeType) {
 										case 1 : case 3 :
 											description += desc.textContent.trim()
 														+ (desc.nextSibling ? '\n' : '');
@@ -670,14 +671,14 @@ const store = new Vuex.Store({
 											const descs = desc.textContent.match(
 												new RegExp(reStr, 'gi')
 											);
-											for(let i = 0; i < descs.length; i++) {
+											for (let i = 0; i < descs.length; i++) {
 												description += descs[i].replace(
 													new RegExp(reStr, 'i'), "$1"
 												) + (desc.nextSibling ? '\n' : '');
 											}
 											break;
 										}
-									} catch(e) {
+									} catch (e) {
 									}
 								}
 							}
@@ -721,7 +722,7 @@ const store = new Vuex.Store({
 						folders: parsed.folders,
 					});
 					bus.$emit('placesFilled', 'importing');
-				} catch(e) {
+				} catch (e) {
 					dispatch('setMessage',
 						'Ошибка при попытке импорта.'
 					);
@@ -741,7 +742,7 @@ const store = new Vuex.Store({
 					payload.folderId
 				)
 			;
-			if(!folder.parent) {
+			if (!folder.parent) {
 				source = state.folders;
 			} else {
 				source = commonFunctions.findInTree(
@@ -751,7 +752,7 @@ const store = new Vuex.Store({
 					folder.parent
 				).children;
 			}
-			if(
+			if (
 				!payload.targetId ||
 				payload.targetId === null ||
 				payload.targetId === 'root'
@@ -764,7 +765,7 @@ const store = new Vuex.Store({
 					'id',
 					payload.targetId
 				);
-				if(!target.children) {
+				if (!target.children) {
 					Vue.set(target, 'children', []);
 				}
 				target = target.children;
@@ -787,9 +788,9 @@ const store = new Vuex.Store({
 		},
 		clearMessage({state, commit}, hide) {
 			let message: string;
-			if(hide || (message = state.message.replace(/^\n[^<>]+\s*/, '')) === '') {
+			if (hide || (message = state.message.replace(/^\n[^<>]+\s*/, '')) === '') {
 				const me = document.getElementById('message-main');
-				if(me) {
+				if (me) {
 					me.classList.add('invisible');
 					me.classList.remove('visible');
 				}
@@ -803,11 +804,11 @@ const store = new Vuex.Store({
 		setMessage({state, commit, dispatch}, message) {
 			const last = state.message.match(/\n([^<>]+)\s*$/);
 			const me = document.getElementById('message-main');
-			if(last !== null && last[1] === message) {
-				if(me && me.lastElementChild) {
+			if (last !== null && last[1] === message) {
+				if (me && me.lastElementChild) {
 					me.lastElementChild.classList.add('highlight');
 					setTimeout(function() {
-						if(document.getElementById('message-main').lastElementChild) {
+						if (document.getElementById('message-main').lastElementChild) {
 							document.getElementById('message-main').lastElementChild.classList.remove('highlight');
 						}
 					}, 500);
@@ -815,11 +816,11 @@ const store = new Vuex.Store({
 			} else {
 				commit('setMessage', state.message += "\n" + message);
 			}
-			if(me && state.message) {
+			if (me && state.message) {
 				me.classList.add('visible');
 				me.classList.remove('invisible');
 			}
-			if(state.messageTimer) {
+			if (state.messageTimer) {
 				clearTimeout(state.messageTimer);
 			}
 			commit(
@@ -827,7 +828,7 @@ const store = new Vuex.Store({
 				setTimeout(
 					function messageTimeout() {
 						dispatch('clearMessage');
-						if(state.message) {
+						if (state.message) {
 							commit('setMessageTimer', setTimeout(messageTimeout, 3000));
 						}
 					},

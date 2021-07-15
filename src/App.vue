@@ -27,7 +27,7 @@ import account from '@/components/Account.vue'
 	mounted() {
 		bus.$on('loggedChange', (currentComponent) => {
 			this.currentComponent = currentComponent;
-			if(currentComponent != 'auth') {
+			if (currentComponent != 'auth') {
 				this.$store.dispatch('setUser')
 					.then(response => {
 						this.$store.dispatch('setPlaces', false);
@@ -44,7 +44,7 @@ import account from '@/components/Account.vue'
 		 * If the App is mounted outside the session, the store state,
 		 * in contrast, is written to sessionStorage for future use.
 		 */
-		if(sessionStorage.getItem('places-session')) {
+		if (sessionStorage.getItem('places-session')) {
 			this.$store.commit('setRefreshing', true);
 			this.$store.replaceState(
 				JSON.parse(sessionStorage.getItem('places-store-state'))
@@ -56,17 +56,17 @@ import account from '@/components/Account.vue'
 					? this.$store.state.user.homeplace.id
 					: null
 			);
-			if(this.$store.state.currentPlace) {
-				for(let i = 0; i < this.$store.state.commonPlaces.length; i++) {
-					if(this.$store.state.commonPlaces[i].id == this.$store.state.currentPlace.id) {
+			if (this.$store.state.currentPlace) {
+				for (let i = 0; i < this.$store.state.commonPlaces.length; i++) {
+					if (this.$store.state.commonPlaces[i].id == this.$store.state.currentPlace.id) {
 						this.$store.state.currentPlace = this.$store.state.commonPlaces[i];
 						this.currentPlaceCommon = true;
 						break;
 					}
 				}
-				if(!this.currentPlaceCommon) {
-					for(let i = 0; i < this.$store.state.places.length; i++) {
-						if(this.$store.state.places[i].id == this.$store.state.currentPlace.id) {
+				if (!this.currentPlaceCommon) {
+					for (let i = 0; i < this.$store.state.places.length; i++) {
+						if (this.$store.state.places[i].id == this.$store.state.currentPlace.id) {
 							this.$store.state.currentPlace = this.$store.state.places[i];
 							break;
 						}
@@ -80,12 +80,12 @@ import account from '@/components/Account.vue'
 				JSON.stringify(this.$store.state)
 			);
 		}
-		if(!sessionStorage.getItem('places-session')) {
+		if (!sessionStorage.getItem('places-session')) {
 			sessionStorage.setItem('places-app-child-component', 'auth');
 		}
 		this.currentComponent = sessionStorage.getItem('places-app-child-component');
 		window.idleTimeInterval = window.setInterval(() => {
-			if(this.$store.state.idleTime < constants.sessionlifetime) {
+			if (this.$store.state.idleTime < constants.sessionlifetime) {
 				this.$store.commit('setIdleTime', this.$store.state.idleTime + 1);
 			} else {
 				clearInterval(window.idleTimeInterval);

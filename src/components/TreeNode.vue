@@ -145,11 +145,11 @@ export default {
 	},
 	computed: {
 		selectUnselect: (place, checked) => function(place, checked) {
-			if(checked) {
+			if (checked) {
 				this.$root.selectedToExport.push(place);
 			} else {
-				for(let i = 0; i < this.$root.selectedToExport.length; i++) {
-					if(this.$root.selectedToExport[i] === place) {
+				for (let i = 0; i < this.$root.selectedToExport.length; i++) {
+					if (this.$root.selectedToExport[i] === place) {
 						this.$root.selectedToExport.splice(i, 1);
 						break;
 					}
@@ -157,12 +157,12 @@ export default {
 			}
 		},
 		selectUnselectFolder: (folderid, checked) => function(folderid, checked) {
-			for(let placeButton of
+			for (let placeButton of
 				document
 					.getElementById("to-export-places-menu-folder-" + folderid)
 					.getElementsByClassName("place-button")
 			) {
-				if(checked !=
+				if (checked !=
 					placeButton
 						.getElementsByClassName("to-export-place-checkbox")[0]
 						.checked
@@ -171,7 +171,7 @@ export default {
 				}
 				
 			}
-			for(let folderCheckbox of
+			for (let folderCheckbox of
 				document
 					.getElementById("to-export-places-menu-folder-" + folderid)
 					.getElementsByClassName("folder-checkbox")

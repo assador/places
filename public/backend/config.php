@@ -1,12 +1,12 @@
 <?php
-$host = "http://places.localhost";
+$host = "http://places.scrofa-tridens.ru";
 $from = "service@places.scrofa-tridens.ru";
 $dirs = array(
 	"uploads" => array(
 		"images" => array(
-			"big" => "../uploads/images/big/",
-			"small" => "../uploads/images/small/",
-			"orphaned_big" => "../uploads/images/big/orphaned/",
+			"big" =>            "../uploads/images/big/",
+			"small" =>          "../uploads/images/small/",
+			"orphaned_big" =>   "../uploads/images/big/orphaned/",
 			"orphaned_small" => "../uploads/images/small/orphaned/",
 		),
 	),

@@ -461,7 +461,7 @@
 		</div>
 		<div
 			:class="'popup ' + $root.popuped"
-			@click="$event => {if($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}"
+			@click="$event => {if ($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}"
 		>
 			<component
 				:is="$root.popupComponent"
@@ -525,12 +525,12 @@ export default {
 			deep: true,
 			immediate: true,
 			handler(place) {
-				if(place) {
+				if (place) {
 					this.currentPlace = {
 						...place,
 						images: place.images,
 					};
-					if(
+					if (
 						place.userid == this.$store.state.user.id &&
 						!place.name &&
 						document.getElementById('detailed-name')
@@ -556,36 +556,36 @@ export default {
 				opened: true,
 			};
 			this.currentPlaceCommon = this.$parent.currentPlaceCommon;
-			if(this.$store.state.places.length > 0) {
-				if(this.$store.state.currentPlaceIndex > -1) {
+			if (this.$store.state.places.length > 0) {
+				if (this.$store.state.currentPlaceIndex > -1) {
 					this.setCurrentPlace(
 						this.$store.state.currentPlace,
 						this.currentPlaceCommon
 					);
 					// No matter how idiotic it looks
-				} else if(this.$store.state.homePlace) {
+				} else if (this.$store.state.homePlace) {
 					this.setCurrentPlace(this.$store.state.homePlace);
 				} else {
 					let firstPlaceInRoot = this.$store.state.places.find(
 						p => p.folderid === null
 					);
-					if(!firstPlaceInRoot) {
+					if (!firstPlaceInRoot) {
 						this.setCurrentPlace(this.$store.state.places[0]);
 					} else {
 						this.setCurrentPlace(firstPlaceInRoot);
 					}
 				}
 			}
-			if(happens === 'importing') {
+			if (happens === 'importing') {
 				this.$nextTick(function() {
 					bus.$emit('toDBCompletely');
 				});
 			}
-			if(this.$refs.extmap && this.$refs.extmap.map) {
+			if (this.$refs.extmap && this.$refs.extmap.map) {
 				this.$refs.extmap.map.destroy();
 			}
-			if(this.$refs.extmap) {
-				if(this.$store.state.currentPlace) {
+			if (this.$refs.extmap) {
+				if (this.$store.state.currentPlace) {
 					this.$refs.extmap.showMap(
 						this.$store.state.currentPlace.latitude,
 						this.$store.state.currentPlace.longitude
@@ -604,7 +604,7 @@ export default {
 			document.addEventListener('drop', this.$root.handleDrop, false);
 			document.addEventListener('keyup', this.keyup, false);
 			window.addEventListener('resize', this.windowResize, false);
-			if(this.$store.state.user.testaccount) {
+			if (this.$store.state.user.testaccount) {
 				setTimeout(() => {
 					this.$store.dispatch("setMessage", `
 						Вы авторизовались под тестовым аккаунтом;
@@ -622,15 +622,15 @@ export default {
 			this.$store.state.places.forEach((place) => {
 				this.$refs.extmap.appendPlacemark(this.$refs.extmap.mrks, place, 'private');
 			});
-			if(this.$store.state.currentPlace) {
-				if(
+			if (this.$store.state.currentPlace) {
+				if (
 					!this.currentPlaceCommon &&
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
-				} else if(this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]) {
+				} else if (this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]) {
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
@@ -640,11 +640,11 @@ export default {
 		bus.$on('setCurrentPlace', (payload) => {
 			this.setCurrentPlace(payload.place, payload.common);
 		});
-		if(sessionStorage.getItem('places-session')) {
+		if (sessionStorage.getItem('places-session')) {
 			sessionStorage.setItem('places-app-child-component', 'home');
 		}
 		this.$store.commit('setIdleTime', 0);
-		if(this.$store.state.ready) {
+		if (this.$store.state.ready) {
 			bus.$emit('placesFilled');
 		}
 		makeFieldsValidatable();
@@ -659,16 +659,16 @@ export default {
 	},
 	methods: {
 		keyup(event) {
-			if(event.altKey && event.shiftKey) {
-				if(constants.shortcuts[event.keyCode]) {
+			if (event.altKey && event.shiftKey) {
+				if (constants.shortcuts[event.keyCode]) {
 					this.blur();
 				}
-				switch(constants.shortcuts[event.keyCode]) {
+				switch (constants.shortcuts[event.keyCode]) {
 				case 'add' :
 					let newPlace = this.appendPlace();
 					break;
 				case 'delete' :
-					if(
+					if (
 						this.$store.state.currentPlace &&
 							this.$store.state.currentPlace.userid ==
 								this.$store.state.user.id
@@ -681,7 +681,7 @@ export default {
 					break;
 				case 'edit mode' :
 					this.$root.foldersEditMode = !this.$root.foldersEditMode;
-					if(
+					if (
 						document.getElementById('actions-edit-folders')
 							.classList.contains('button-pressed')
 					) {
@@ -735,7 +735,7 @@ export default {
 			}
 		},
 		windowResize() {
-			if(window.innerWidth > constants.compactWidth) {
+			if (window.innerWidth > constants.compactWidth) {
 				this.sidebarSize.top = constants.sidebars.top;
 				this.sidebarSize.right = constants.sidebars.right;
 				this.sidebarSize.bottom = constants.sidebars.bottom;
@@ -745,7 +745,7 @@ export default {
 				document.getElementById('sbs-bottom').style.marginBottom = 0;
 				this.compact = false;
 			} else {
-				if(this.compact) {
+				if (this.compact) {
 					this.sidebarSize.top = parseInt(window.getComputedStyle(
 						document.getElementById('top-left')
 					).height);
@@ -780,14 +780,14 @@ export default {
 		sidebarDragStart(event, what) {
 			event.preventDefault();
 			this.sidebarDrag.what = what;
-			if(event.changedTouches) {
+			if (event.changedTouches) {
 				this.sidebarDrag.x = event.changedTouches[0].pageX;
 				this.sidebarDrag.y = event.changedTouches[0].pageY;
 			} else {
 				this.sidebarDrag.x = event.screenX;
 				this.sidebarDrag.y = event.screenY;
 			}
-			switch(this.sidebarDrag.what) {
+			switch (this.sidebarDrag.what) {
 			case 'top' :
 				this.sidebarDrag.h = this.sidebarSize.top;
 				break;
@@ -803,8 +803,8 @@ export default {
 			}
 		},
 		documentMouseOver(event) {
-			if(this.sidebarDrag.what !== null) {
-				switch(this.sidebarDrag.what) {
+			if (this.sidebarDrag.what !== null) {
+				switch (this.sidebarDrag.what) {
 				case 'top' :
 					this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y +
 							(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
@@ -830,18 +830,18 @@ export default {
 		},
 		sidebarDragStop(event) {
 			this.sidebarDrag.what = null;
-			if(this.compact) {
+			if (this.compact) {
 				this.windowResize();
 			}
 		},
 		// Search and select a place by name
 		selectPlaces(event) {
-			if(event.keyCode == 27) {
+			if (event.keyCode == 27) {
 				event.target.value = '';
 			} else {
-				for(let i = 0; i < this.$store.state.places.length; i++) {
+				for (let i = 0; i < this.$store.state.places.length; i++) {
 					let regexp = new RegExp(event.target.value, 'i');
-					if(event.target.value.length > 1 && regexp.test(this.$store.state.places[i].name)) {
+					if (event.target.value.length > 1 && regexp.test(this.$store.state.places[i].name)) {
 						this.setCurrentPlace(this.$store.state.places[i]);
 					}
 				}
@@ -852,7 +852,7 @@ export default {
 		...mapGetters(["getCurrentPlace", "getMessage"]),
 		blur: () => function() {
 			let el = this.$el.querySelector(':focus');
-			if(el) el.blur();
+			if (el) el.blur();
 		},
 		exit: () => function() {
 			this.$store.dispatch('unload');
@@ -865,15 +865,15 @@ export default {
 			return this.currentPlace ? _.orderBy(this.currentPlace.images, 'srt') : [];
 		},
 		setCurrentPlace: (place, common = false) => function(place, common = false) {
-			if(this.$store.state.currentPlace) {
-				if(
+			if (this.$store.state.currentPlace) {
+				if (
 					!this.currentPlaceCommon &&
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.privatePlacemarksColor
 					);
-				} else if(
+				} else if (
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
@@ -882,42 +882,42 @@ export default {
 				}
 			}
 			this.currentPlaceCommon = common ? true : false;
-			if(place) {
+			if (place) {
 				/*
 				 * Setting this.$store.state.currentPlace is not by commit
 				 * because it and the place variable are the only common object.
 				 */
 				this.$store.state.currentPlace = place;
-				for(let i = 0; i < this.$store.state.places.length; i++) {
-					if(this.$store.state.places[i].id == place.id) {
+				for (let i = 0; i < this.$store.state.places.length; i++) {
+					if (this.$store.state.places[i].id == place.id) {
 						this.$store.commit('setCurrentPlaceIndex', i);
 						break;
 					}
 				}
-				if(
+				if (
 					!this.currentPlaceCommon &&
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
-				} else if(
+				} else if (
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]
 				) {
 					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
 				}
-				if(!this.currentPlaceCommon) {
+				if (!this.currentPlaceCommon) {
 					let folder, folderid = place.folderid;
-					while(folderid) {
+					while (folderid) {
 						folder = commonFunctions.findInTree(
 							this.$root.folderRoot,
 							'children',
 							'id',
 							folderid
 						);
-						if(!folder) {
+						if (!folder) {
 							break;
 						}
 						this.$store.commit('folderOpenClose', {
@@ -942,7 +942,7 @@ export default {
 			data.append('need', 'visiting');
 			axios.post('/backend/get_groups.php', data)
 				.then(response => {
-					if(
+					if (
 						constants.rights.placescounts[response.data] < 0 ||
 						constants.rights.placescounts[response.data] > this.$store.state.places.length ||
 						this.$store.state.user.testaccount
@@ -1006,10 +1006,10 @@ export default {
 				});
 		},
 		deletePlace: (place, backup) => function(place, backup) {
-			if(!this.$store.state.stateBackups.length) {
+			if (!this.$store.state.stateBackups.length) {
 				this.$store.commit('backupState');
 			}
-			if(this.$store.state.homePlace === place) {
+			if (this.$store.state.homePlace === place) {
 				this.$store.commit('setHomePlace', null);
 			}
 			this.$store.commit('removePlace', {
@@ -1018,23 +1018,23 @@ export default {
 				backup: false,
 			});
 			this.$root.deleteImages(place.images, true);
-			if(this.$store.state.places.length > 0) {
+			if (this.$store.state.places.length > 0) {
 				let firstRootPlace;
-				if(document.getElementById(place.id).nextElementSibling) {
+				if (document.getElementById(place.id).nextElementSibling) {
 					this.setCurrentPlace(
 						this.$store.state.places.find(
 							p => p.id === document.getElementById(place.id).nextElementSibling.id
 						)
 					);
-				} else if(document.getElementById(place.id).previousElementSibling) {
+				} else if (document.getElementById(place.id).previousElementSibling) {
 					this.setCurrentPlace(
 						this.$store.state.places.find(
 							p => p.id === document.getElementById(place.id).previousElementSibling.id
 						)
 					);
-				} else if(this.$store.state.homePlace) {
+				} else if (this.$store.state.homePlace) {
 					this.setCurrentPlace(this.$store.state.homePlace);
-				} else if(
+				} else if (
 					!!(firstRootPlace = this.$store.state.places.find(
 						p => p.folderid === 'root'
 					))
@@ -1063,8 +1063,8 @@ export default {
 					: show
 			;
 			this.$refs.extmap.commonPlacemarksShow = this.commonPlacesShow;
-			for(let key in this.$refs.extmap.commonMrks) {
-				if(!this.$refs.extmap.commonPlacemarksShow) {
+			for (let key in this.$refs.extmap.commonMrks) {
+				if (!this.$refs.extmap.commonPlacemarksShow) {
 					this.$refs.extmap.commonMrks[key].options.set('visible', false);
 				} else {
 					this.$refs.extmap.commonMrks[key].options.set('visible', true);
@@ -1083,7 +1083,7 @@ export default {
 					document.getElementById('inputImportFromFile').value = '';
 				});
 			};
-			if(mime == 'application/json' || mime == 'application/gpx+xml') {
+			if (mime == 'application/json' || mime == 'application/gpx+xml') {
 				reader.readAsText(this.$refs.inputImportFromFile.files[0]);
 			} else {
 				this.$store.dispatch('setMessage',
@@ -1093,7 +1093,7 @@ export default {
 		},
 		uploadFiles: (event) => function(event) {
 			event.preventDefault();
-			if(this.$store.state.user.testaccount) {
+			if (this.$store.state.user.testaccount) {
 				this.$store.dispatch('setMessage',
 					'Тестовый аккаунт не позволяет загрузку файлов'
 				);
@@ -1105,7 +1105,7 @@ export default {
 					rndname,
 					srt
 				;
-				if(
+				if (
 					this.$store.state.currentPlace &&
 					this.$store.state.currentPlace.images.length > 0
 				) {
@@ -1114,14 +1114,14 @@ export default {
 				} else {
 					srt = 0;
 				}
-				for(let i = 0; i < files.length; i++) {
-					if(!constants.mimes[files[i].type]) {
+				for (let i = 0; i < files.length; i++) {
+					if (!constants.mimes[files[i].type]) {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
 							files[i].name +
 							' не является картинкой и загружен не будет'
 						);
-					} else if(files[i].size > constants.uploadsize) {
+					} else if (files[i].size > constants.uploadsize) {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
 							files[i].name +
@@ -1147,15 +1147,15 @@ export default {
 						});
 					}
 				}
-				if(filesArray.length > 0) {
+				if (filesArray.length > 0) {
 					document.getElementById('images-uploading').classList.remove('hidden');
 					data.append('userid', this.$store.state.user.id);
 					axios.post('/backend/upload.php', data)
 						.then(response => {
 							document.getElementById('images-add__input').value = '';
 							document.getElementById('images-uploading').classList.add('hidden');
-							for(let i = 0; i < filesArray.length; i++) {
-								if(!response.data[1].find(f => f.id === filesArray[i].id)) {
+							for (let i = 0; i < filesArray.length; i++) {
+								if (!response.data[1].find(f => f.id === filesArray[i].id)) {
 									filesArray.splice(i, 1);
 									i--;
 								}
@@ -1173,7 +1173,7 @@ export default {
 							 * в процессе выполнения /dist/backend/upload.php
 							 */
 							response.data[0].forEach((code) => {
-								switch(code) {
+								switch (code) {
 								case 2 :
 									this.$store.dispatch('setMessage',
 										'Тестовый аккаунт не позволяет загрузку файлов'
@@ -1191,7 +1191,7 @@ export default {
 									break;
 								}
 							});
-							if(response.data[1].length > 0) {
+							if (response.data[1].length > 0) {
 								this.$store.dispatch('setMessage', 'Файлы успешно загружены');
 								bus.$emit('toDB', {what: 'places'});
 								bus.$emit('toDB', {

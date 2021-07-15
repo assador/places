@@ -42,7 +42,7 @@
 					/>
 					<button
 						type="button"
-						onclick="let f = document.querySelector('.auth__forgot'); if(f.classList.contains('hidden')) {f.classList.remove('hidden');} else {f.classList.add('hidden');}"
+						onclick="let f = document.querySelector('.auth__forgot'); if (f.classList.contains('hidden')) {f.classList.remove('hidden');} else {f.classList.add('hidden');}"
 					>
 						Не помню логин / пароль
 					</button>
@@ -182,7 +182,7 @@ export default {
 		}
 	},
 	mounted() {
-		if(!sessionStorage.getItem('places-session')) {
+		if (!sessionStorage.getItem('places-session')) {
 			sessionStorage.setItem('places-app-child-component', 'auth');
 		}
 		makeFieldsValidatable();
@@ -199,7 +199,7 @@ export default {
 			});
 		},
 		authRegSubmit() {
-			if(!document.querySelector('.value_wrong')) {
+			if (!document.querySelector('.value_wrong')) {
 				const {
 					regLogin,
 					regPassword,
@@ -208,7 +208,7 @@ export default {
 					regEmail,
 					regPhone,
 				} = this;
-				if(regPassword === regPasswordRepeat) {
+				if (regPassword === regPasswordRepeat) {
 					regRoutine({
 						regLogin,
 						regPassword,
@@ -225,7 +225,7 @@ export default {
 		},
 		authForgot() {
 			const {forgotEmail} = this;
-			if(!document.getElementById('forgotEmail').classList.contains('value_wrong')) {
+			if (!document.getElementById('forgotEmail').classList.contains('value_wrong')) {
 				forgotRoutine({forgotEmail});
 			} else {
 				forgot.message = 'Некорректный e-mail';

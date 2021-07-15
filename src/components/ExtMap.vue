@@ -93,15 +93,15 @@ export default {
 					this.appendPlacemark(this.commonMrks, commonPlace, "common");
 				});
 				this.$parent.commonPlacesShowHide(this.$parent.currentPlaceCommon);
-				if(this.$store.state.currentPlace) {
-					if(
+				if (this.$store.state.currentPlace) {
+					if (
 						!this.$parent.currentPlaceCommon &&
 						this.mrks[this.$store.state.currentPlace.id]
 					) {
 						this.mrks[this.$store.state.currentPlace.id].options.set(
 							"iconColor", this.activePlacemarksColor
 						);
-					} else if(
+					} else if (
 						this.commonMrks[this.$store.state.currentPlace.id]
 					) {
 						this.commonMrks[this.$store.state.currentPlace.id].options.set(
@@ -113,7 +113,7 @@ export default {
 		},
 		clickPlacemark: (place, type) => function(place, type) {
 			let marks = type === "common" ? this.commonMrks : this.mrks;
-			for(let i = 0; i < marks.length; i++) {
+			for (let i = 0; i < marks.length; i++) {
 				marks[i].options.set("draggable", false);
 			}
 			marks[place.id].options.set("draggable", true);
@@ -121,7 +121,7 @@ export default {
 		},
 		appendPlacemark: (marks, place, type) => function(marks, place, type) {
 			let options;
-			switch(type) {
+			switch (type) {
 			case "private" :
 				options = this.placemarksOptions.private;
 				break;
@@ -138,7 +138,7 @@ export default {
 				options,
 			);
 			marks[place.id].events.add("dragstart", () => {
-				if(place !== this.$store.state.currentPlace) {
+				if (place !== this.$store.state.currentPlace) {
 					marks[place.id].options.set("draggable", false);
 					this.$store.dispatch("setMessage",
 						"Для перетаскивания точку сначала нужно выделить"
@@ -146,7 +146,7 @@ export default {
 				}
 			});
 			marks[place.id].events.add("dragend", () => {
-				if(place === this.$store.state.currentPlace) {
+				if (place === this.$store.state.currentPlace) {
 					let coordinates = marks[place.id].geometry.getCoordinates();
 					this.$store.commit("changePlace", {
 						place: place,
@@ -167,7 +167,7 @@ export default {
 			this.map.geoObjects.add(marks[place.id]);
 		},
 		updatePlacemark: (marks) => function(marks) {
-			if(marks[this.id]) {
+			if (marks[this.id]) {
 				marks[this.id].geometry.setCoordinates([
 					this.latitude,
 					this.longitude,
@@ -179,7 +179,7 @@ export default {
 			}
 		},
 		updateCenter: () => function() {
-			if(this.map !== null) {
+			if (this.map !== null) {
 				this.map.setCenter([
 					this.centerLatitude,
 					this.centerLongitude,
@@ -187,10 +187,10 @@ export default {
 			}
 		},
 		fitMap: () => function() {
-			if(this.map !== null) {
+			if (this.map !== null) {
 				document.getElementById("mapblock").style.right = "100%";
 				this.map.container.fitToViewport();
-				if(!this.$parent.compact) {
+				if (!this.$parent.compact) {
 					document.getElementById("mapblock").style.right = "12px";
 				} else {
 					document.getElementById("mapblock").style.right = "0";
@@ -199,8 +199,8 @@ export default {
 			}
 		},
 		placemarksShowHide: (show = null) => function(show = null) {
-			for(let key in this.mrks) {
-				if(this.placemarksShow) {
+			for (let key in this.mrks) {
+				if (this.placemarksShow) {
 					this.mrks[key].options.set("visible", false);
 				} else {
 					this.mrks[key].options.set("visible", true);
@@ -211,15 +211,15 @@ export default {
 					? !this.placemarksShow
 					: show
 			;
-			if(!this.placemarksShow) {
+			if (!this.placemarksShow) {
 				document.getElementById("placemarksShowHideButton").classList.remove("button-pressed");
 			} else {
 				document.getElementById("placemarksShowHideButton").classList.add("button-pressed");
 			}
 		},
 		commonPlacemarksShowHide: (show = null) => function(show = null) {
-			for(let key in this.commonMrks) {
-				if(this.commonPlacemarksShow) {
+			for (let key in this.commonMrks) {
+				if (this.commonPlacemarksShow) {
 					this.commonMrks[key].options.set("visible", false);
 				} else {
 					this.commonMrks[key].options.set("visible", true);
@@ -232,7 +232,7 @@ export default {
 			;
 		},
 		centerPlacemarkShowHide: (show = null) => function(show = null) {
-			if(this.centerPlacemarkShow) {
+			if (this.centerPlacemarkShow) {
 				this.mrk.options.set("visible", false);
 			} else {
 				this.mrk.options.set("visible", true);
@@ -251,7 +251,7 @@ export default {
 					? this.commonMrks
 					: this.mrks
 			);
-			if(this.$store.state.currentPlace) {
+			if (this.$store.state.currentPlace) {
 				this.$store.commit("changeCenter", {
 					latitude: this.$store.state.currentPlace.latitude,
 					longitude: this.$store.state.currentPlace.longitude,
@@ -264,7 +264,7 @@ export default {
 					? this.commonMrks
 					: this.mrks
 			);
-			if(this.$store.state.currentPlace) {
+			if (this.$store.state.currentPlace) {
 				this.$store.commit("changeCenter", {
 					latitude: this.$store.state.currentPlace.latitude,
 					longitude: this.$store.state.currentPlace.longitude,
@@ -298,7 +298,7 @@ export default {
 		});
 	},
 	beforeDestroy() {
-		if(this.map) {
+		if (this.map) {
 			this.map.destroy();
 		}
 	},

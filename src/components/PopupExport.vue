@@ -99,7 +99,7 @@ export default {
 	},
 	mounted() {
 		this.$root.selectedToExport = [];
-		for(let f of document.getElementById("popup-export__tree").getElementsByClassName("folder")) {
+		for (let f of document.getElementById("popup-export__tree").getElementsByClassName("folder")) {
 			f.classList.add("folder_closed");
 			f.classList.remove("folder_opened");
 		}
@@ -110,7 +110,7 @@ export default {
 	},
 	methods: {
 		keyup(event) {
-			switch(constants.shortcuts[event.keyCode]) {
+			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :
 					this.$root.showPopup({show: false}, event);
 					break;

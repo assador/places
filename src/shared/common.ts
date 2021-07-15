@@ -4,17 +4,17 @@ const commonFunctions = {
 		const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		const numChars: number = chars.length;
 		let string = '';
-		for(let i = 0; i < length; i++) {
+		for (let i = 0; i < length; i++) {
 			string += chars.substr(Math.floor(Math.random() * numChars), 1);
 		}
 		return string;
 	},
 	sortObjects(array, field): any {
 		const sorted = array.slice().sort(function(a, b) {
-			if(a[field] > b[field]) {
+			if (a[field] > b[field]) {
 				return 1;
 			}
-			if(a[field] < b[field]) {
+			if (a[field] < b[field]) {
 				return -1;
 			}
 			return 0;
@@ -28,8 +28,8 @@ const commonFunctions = {
 			distMin = 10,
 			lastIndex = 0
 		;
-		while(array.length > lastIndex + 1) {
-			for(let i = lastIndex + 1; i < array.length; i++) {
+		while (array.length > lastIndex + 1) {
+			for (let i = lastIndex + 1; i < array.length; i++) {
 				const llt = array[lastIndex].latitude * Math.PI / 180;
 				const lln = array[lastIndex].longitude * Math.PI / 180;
 				const clt = array[i].latitude * Math.PI / 180;
@@ -40,7 +40,7 @@ const commonFunctions = {
 						Math.cos(llt) * Math.cos(clt) * Math.cos(cln - lln)
 					)
 				;
-				if(distCurrent < distMin) {
+				if (distCurrent < distMin) {
 					distMin = distCurrent;
 					indexNearest = i;
 				}
@@ -50,24 +50,24 @@ const commonFunctions = {
 		}
 	},
 	childrenCount(tree, childrenKey, result = 0): number {
-		if(Array.isArray(tree[childrenKey])) {
-			for(let i = 0; i < tree[childrenKey].length; i++) {
+		if (Array.isArray(tree[childrenKey])) {
+			for (let i = 0; i < tree[childrenKey].length; i++) {
 				result = commonFunctions.childrenCount(tree[childrenKey][i], childrenKey, ++result);
 			}
 		}
 		return result;
 	},
 	findInTree(tree, childrenKey, key, value): any {
-		if(tree[key] === value) {
+		if (tree[key] === value) {
 			return tree;
 		}
-		if(Array.isArray(tree[childrenKey])) {
-			for(let i = 0; i < tree[childrenKey].length; i++) {
-				if(tree[childrenKey][i][key] === value) {
+		if (Array.isArray(tree[childrenKey])) {
+			for (let i = 0; i < tree[childrenKey].length; i++) {
+				if (tree[childrenKey][i][key] === value) {
 					return tree[childrenKey][i];
 				}
 				resultForRecursive = commonFunctions.findInTree(tree[childrenKey][i], childrenKey, key, value);
-				if(resultForRecursive) {
+				if (resultForRecursive) {
 					return resultForRecursive;
 				}
 			}
@@ -75,11 +75,11 @@ const commonFunctions = {
 		return null;
 	},
 	changeByKeyValue(tree, childrenKey, key, value, what): void {
-		if(Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
-			for(let i = 0; i < tree[childrenKey].length; i++) {
-				switch(what) {
+		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
+			for (let i = 0; i < tree[childrenKey].length; i++) {
+				switch (what) {
 				case "delete" :
-					if(tree[childrenKey][i][key] === value) {
+					if (tree[childrenKey][i][key] === value) {
 						tree[childrenKey].splice(
 							tree[childrenKey].indexOf(tree[childrenKey][i]), 1
 						);
@@ -101,9 +101,9 @@ const commonFunctions = {
 		}
 	},
 	treeToPlain(tree, childrenKey, plain?): [] {
-		if(Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
+		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
 			let plained;
-			for(let i = 0; i < tree[childrenKey].length; i++) {
+			for (let i = 0; i < tree[childrenKey].length; i++) {
 				plained = JSON.parse(JSON.stringify(tree[childrenKey][i]));
 				delete plained[childrenKey];
 				plain.push(plained);
@@ -114,17 +114,17 @@ const commonFunctions = {
 	},
 	treeNewIds(tree, childrenKey, parentKey, items, itemParentKey): void {
 		const newId = tree.id === "root" ? null : commonFunctions.generateRandomString(32);
-		if(Array.isArray(items) && items.length > 0) {
-			for(let i = 0; i < items.length; i++) {
-				if(items[i][itemParentKey] === tree.id) {
+		if (Array.isArray(items) && items.length > 0) {
+			for (let i = 0; i < items.length; i++) {
+				if (items[i][itemParentKey] === tree.id) {
 					items[i].id = commonFunctions.generateRandomString(32);
 					items[i][itemParentKey] = newId;
 				}
 			}
 		}
 		tree.id = newId;
-		if(Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
-			for(let i = 0; i < tree[childrenKey].length; i++) {
+		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
+			for (let i = 0; i < tree[childrenKey].length; i++) {
 				tree[childrenKey][i][parentKey] = tree.id;
 				commonFunctions.treeNewIds(
 					tree[childrenKey][i],
@@ -137,15 +137,15 @@ const commonFunctions = {
 		}
 	},
 	isParentInTree(tree, childrenKey, parentId, childId, parent): boolean {
-		if(!parent) {
+		if (!parent) {
 			parent = commonFunctions.findInTree(tree, childrenKey, 'id', parentId) || tree;
 		}
-		if(Array.isArray(parent[childrenKey]) && parent[childrenKey].length > 0) {
-			for(let i = 0; i < parent[childrenKey].length; i++) {
-				if(parent[childrenKey][i].id === childId) {
+		if (Array.isArray(parent[childrenKey]) && parent[childrenKey].length > 0) {
+			for (let i = 0; i < parent[childrenKey].length; i++) {
+				if (parent[childrenKey][i].id === childId) {
 					return true;
 				}
-				if(commonFunctions.isParentInTree(tree, childrenKey, parentId, childId, parent[childrenKey][i])) {
+				if (commonFunctions.isParentInTree(tree, childrenKey, parentId, childId, parent[childrenKey][i])) {
 					return true;
 				}
 			}
@@ -155,19 +155,19 @@ const commonFunctions = {
 	plainToTree(plain): any {
 		const tree = [];
 		let ready = false;
-		while(!ready && plain.length > 0) {
-			for(let i = 0; i < plain.length; i++) {
+		while (!ready && plain.length > 0) {
+			for (let i = 0; i < plain.length; i++) {
 				ready = true;
-				if(!plain[i].builded) {
-					if(plain[i].parent === null) {
+				if (!plain[i].builded) {
+					if (plain[i].parent === null) {
 						tree.push(plain[i]);
 						plain[i].builded = true;
 						ready = false;
 						i--;
 					} else {
-						for(let y = 0; y < plain.length; y++) {
-							if(plain[y].id === plain[i].parent) {
-								if(!plain[y].children) {
+						for (let y = 0; y < plain.length; y++) {
+							if (plain[y].id === plain[i].parent) {
+								if (!plain[y].children) {
 									plain[y].children = [];
 								}
 								plain[y].children.push(plain[i]);
@@ -194,7 +194,7 @@ const commonFunctions = {
 	 * )
 	 */
 	formFolderForImported(time, imported): any {
-		if(!imported || !imported.id) {
+		if (!imported || !imported.id) {
 			imported = {
 				type: 'folder',
 				builded: false,
@@ -211,7 +211,7 @@ const commonFunctions = {
 				children: [],
 			};
 		}
-		if(!time) {
+		if (!time) {
 			return {imported: imported, folderid: 'imported'};
 		} else {
 			const date = {
@@ -220,13 +220,13 @@ const commonFunctions = {
 				d: time.slice(8, 10),
 			};
 			const folders: any = {};
-			for(const y of imported.children) {
-				if(y.name === date.y) {
+			for (const y of imported.children) {
+				if (y.name === date.y) {
 					folders.y = y;
 					break;
 				}
 			}
-			if(!folders.y) {
+			if (!folders.y) {
 				folders.y = {
 					type: 'folder',
 					builded: false,
@@ -246,13 +246,13 @@ const commonFunctions = {
 				};
 				imported.children.push(folders.y);
 			}
-			for(const m of folders.y.children) {
-				if(m.name === date.m) {
+			for (const m of folders.y.children) {
+				if (m.name === date.m) {
 					folders.m = m;
 					break;
 				}
 			}
-			if(!folders.m) {
+			if (!folders.m) {
 				folders.m = {
 					type: 'folder',
 					builded: false,
@@ -272,13 +272,13 @@ const commonFunctions = {
 				};
 				folders.y.children.push(folders.m);
 			}
-			for(const d of folders.m.children) {
-				if(d.name === date.d) {
+			for (const d of folders.m.children) {
+				if (d.name === date.d) {
 					folders.d = d;
 					break;
 				}
 			}
-			if(!folders.d) {
+			if (!folders.d) {
 				folders.d = {
 					type: 'folder',
 					builded: false,

@@ -117,7 +117,7 @@ export default {
 	},
 	methods: {
 		accountDeletionSubmit() {
-			if(this.$store.state.user.testaccount) {
+			if (this.$store.state.user.testaccount) {
 				acc.message = `
 					Вы авторизовались под тестовым аккаунтом,
 					который удалить нельзя
@@ -138,12 +138,12 @@ export default {
 			}
 		},
 		accountDeletionConditionsChange(event) {
-			switch(event.currentTarget.id) {
+			switch (event.currentTarget.id) {
 				case 'placesLeaveNone' :
 					document.getElementById('imagesLeaveNone').click();
 					break;
 				case 'imagesLeaveAll' :
-					if(document.getElementById('placesLeaveNone').checked) {
+					if (document.getElementById('placesLeaveNone').checked) {
 						document.getElementById('placesLeaveCommon').click();
 					}
 					break;

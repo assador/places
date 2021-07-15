@@ -94,7 +94,7 @@ export default {
 			data.append("need", "visiting");
 			axios.post("/backend/get_groups.php", data)
 				.then(response => {
-					if(
+					if (
 						constants.rights.folderscounts[response.data] < 0 ||
 						constants.rights.folderscounts[response.data] > foldersCount ||
 						this.$store.state.user.testaccount
@@ -158,7 +158,7 @@ export default {
 	},
 	methods: {
 		keyup(event) {
-			switch(constants.shortcuts[event.keyCode]) {
+			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :
 					this.$root.showPopup({show: false}, event);
 					break;

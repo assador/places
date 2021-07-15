@@ -13,7 +13,7 @@ export const validateField = (value, type) => {
 		'e-mail'      : /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i,
 		'phone'    : /^[+\d]*$/,
 	}
-	if(typeof value !== 'string' || typeof re[type] === 'undefined') {throw 'Illegal function attributes';}
+	if (typeof value !== 'string' || typeof re[type] === 'undefined') {throw 'Illegal function attributes';}
 	return re[type].test(value);
 }
 export const makeFieldsValidatable = () => {
@@ -42,13 +42,13 @@ export const makeFieldsValidatable = () => {
 		'detailed-id'              : ['integerm',    'Пример: 238'],
 		'detailed-srt'             : ['decimal',     'Пример: 3.752'],
 	}
-	for(const id in fields) {
-		if(document.getElementById(id)) {
+	for (const id in fields) {
+		if (document.getElementById(id)) {
 			document.getElementById(id).classList.add('value_validatable');
 			document.getElementById(id).title = fields[id][1];
 			document.getElementById(id).addEventListener('input', (event) => {
-				if((<HTMLInputElement>event.currentTarget).value !== '') {
-					if(validateField((<HTMLInputElement>event.currentTarget).value, fields[id][0])) {
+				if ((<HTMLInputElement>event.currentTarget).value !== '') {
+					if (validateField((<HTMLInputElement>event.currentTarget).value, fields[id][0])) {
 						(<HTMLElement>event.currentTarget).classList.remove('value_wrong');
 						(<HTMLElement>event.currentTarget).classList.add('value_correct');
 					} else {

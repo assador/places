@@ -39,9 +39,9 @@ export default {
 		showImage: (step, event) => function(step, event) {
 			this.$store.commit("setIdleTime", 0);
 			event.stopPropagation();
-			if(this.currentPlace && this.currentPlace.images.length > 0) {
+			if (this.currentPlace && this.currentPlace.images.length > 0) {
 				let currentIndex = this.currentPlace.images.indexOf(this.dataprop);
-				if(currentIndex > -1) {
+				if (currentIndex > -1) {
 					let ImagesLength = this.currentPlace.images.length;
 					currentIndex = (currentIndex + step) % ImagesLength + (
 						(currentIndex + step) % ImagesLength < 0 ? ImagesLength: 0
@@ -68,17 +68,17 @@ export default {
 	},
 	methods: {
 		keyup(event) {
-			switch(constants.shortcuts[event.keyCode]) {
+			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :
 					this.$root.showPopup({show: false}, event);
 					break;
 				case 'left' :
-					if(this.$root.popupComponent === 'popupimage') {
+					if (this.$root.popupComponent === 'popupimage') {
 						this.showImage(-1, event);
 					}
 					break;
 				case 'right' :
-					if(this.$root.popupComponent === 'popupimage') {
+					if (this.$root.popupComponent === 'popupimage') {
 						this.showImage(1, event);
 					}
 					break;
