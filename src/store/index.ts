@@ -20,7 +20,7 @@ const tracking = (store) => {
 		'removePlace',
 		'swapValues',
 	];
-	store.subscribe((mutation, state) => {
+	const unsubscribe = store.subscribe((mutation, state) => {
 		if (
 			mutation.type != 'setIdleTime' &&
 			mutation.type != 'setRefreshing' &&
@@ -29,7 +29,6 @@ const tracking = (store) => {
 			sessionStorage.setItem('places-store-state', JSON.stringify(state));
 		}
 		if (trackingMutations.includes(mutation.type) && mutation.payload) {
-			store.commit('setSaved', false);
 			if (
 				(
 					!mutation.payload.hasOwnProperty('backup') ||
@@ -52,17 +51,23 @@ const tracking = (store) => {
 				) {
 					if (!state.inUndoRedo) {
 						if (mutation.payload.hasOwnProperty('type')) {
-							bus.$emit('toDB', {what: mutation.payload.type + 's'});
-							store.commit('savedToDB', mutation.payload);
+							bus.$emit('toDB', {
+								what: mutation.payload.type + 's',
+								toCommitSaved: mutation.payload,
+							});
 						}
 						if (mutation.payload.hasOwnProperty('change')) {
 							if (mutation.payload.hasOwnProperty('place')) {
-								bus.$emit('toDB', {what: 'places'});
-								store.commit('savedToDB', mutation.payload.place);
+								bus.$emit('toDB', {
+									what: 'places',
+									toCommitSaved: mutation.payload.place,
+								});
 							}
 							if (mutation.payload.hasOwnProperty('folder')) {
-								bus.$emit('toDB', {what: 'folders'});
-								store.commit('savedToDB', mutation.payload.folder);
+								bus.$emit('toDB', {
+									what: 'folders',
+									toCommitSaved: mutation.payload.folder,
+								});
 							}
 						}
 					} else {
@@ -240,15 +245,15 @@ const store = new Vuex.Store({
 			Vue.set(state, 'ready', true);
 			let added = false, deleted = false, updated = false;
 			switch (payload.what) {
-			case 'added' :
-				added = true;
-				break;
-			case 'deleted' :
-				deleted = true;
-				break;
-			case 'updated' :
-				updated = true;
-				break;
+				case 'added' :
+					added = true;
+					break;
+				case 'deleted' :
+					deleted = true;
+					break;
+				case 'updated' :
+					updated = true;
+					break;
 			}
 			for (const place of payload.places) {
 				Vue.set(place, 'type', 'place');
@@ -698,7 +703,8 @@ const store = new Vuex.Store({
 									: '',
 								time: time,
 								srt: (parsed.places.length > 0 ? parsed.places.length + 1 : 1),
-								common: 0,
+								common: false,
+								geomark: true,
 								userid: sessionStorage.getItem('places-userid'),
 								images: [],
 								type: 'place',
@@ -742,7 +748,7 @@ const store = new Vuex.Store({
 					payload.folderId
 				)
 			;
-			if (!folder.parent) {
+			if (folder.parent === 'root') {
 				source = state.folders;
 			} else {
 				source = commonFunctions.findInTree(
@@ -779,7 +785,7 @@ const store = new Vuex.Store({
 			commit('changeFolder', {
 				folder: folder,
 				change: {
-					parent: payload.targetId === 'root' ? null : payload.targetId,
+					parent: payload.targetId,
 					srt: srt,
 					updated: true,
 				},

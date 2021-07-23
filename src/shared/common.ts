@@ -100,7 +100,7 @@ const commonFunctions = {
 			}
 		}
 	},
-	treeToPlain(tree, childrenKey, plain?): [] {
+	treeToPlain(tree, childrenKey, plain): [] {
 		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
 			let plained;
 			for (let i = 0; i < tree[childrenKey].length; i++) {
@@ -110,6 +110,14 @@ const commonFunctions = {
 				resultForRecursive = commonFunctions.treeToPlain(tree[childrenKey][i], childrenKey, plain);
 			}
 			return resultForRecursive;
+		}
+	},
+	treeToLivePlain(tree, childrenKey, plain): void {
+		plain[tree.id] = tree;
+		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
+			for (const child of tree[childrenKey]) {
+				commonFunctions.treeToLivePlain(child, childrenKey, plain);
+			}
 		}
 	},
 	treeNewIds(tree, childrenKey, parentKey, items, itemParentKey): void {
@@ -159,7 +167,7 @@ const commonFunctions = {
 			for (let i = 0; i < plain.length; i++) {
 				ready = true;
 				if (!plain[i].builded) {
-					if (plain[i].parent === null) {
+					if (plain[i].parent === 'root') {
 						tree.push(plain[i]);
 						plain[i].builded = true;
 						ready = false;
@@ -204,7 +212,7 @@ const commonFunctions = {
 				updated: false,
 				show: true,
 				id: 'imported',
-				parent: null,
+				parent: 'root',
 				name: 'Импортированное',
 				description: 'Импортированные места',
 				srt: 99999,
@@ -231,6 +239,7 @@ const commonFunctions = {
 					type: 'folder',
 					builded: false,
 					opened: false,
+					geomarks: 1,
 					added: true,
 					deleted: false,
 					updated: false,
@@ -257,6 +266,7 @@ const commonFunctions = {
 					type: 'folder',
 					builded: false,
 					opened: false,
+					geomarks: 1,
 					added: true,
 					deleted: false,
 					updated: false,
@@ -283,6 +293,7 @@ const commonFunctions = {
 					type: 'folder',
 					builded: false,
 					opened: false,
+					geomarks: 1,
 					added: true,
 					deleted: false,
 					updated: false,

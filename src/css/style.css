@@ -615,7 +615,7 @@ table.table_wopadd th, table.table_wopadd td {
 	transition: all 0.5s;
 }
 .folder-button {
-	display: block;
+	display: flex;
 }
 .folder-checkbox {
 	display: inline-block;
@@ -630,6 +630,7 @@ table.table_wopadd th, table.table_wopadd td {
 	margin-left: -1.5em;
 }
 span.folder-button {
+	display: block;
 	white-space: nowrap;
 }
 .folder-button__name {
@@ -701,9 +702,22 @@ span.folder-button {
 	cursor: pointer;
 }
 .place-button {
+	display: flex !important;
 	text-align: left;
 	cursor: pointer;
 	transition: all 0.3s;
+}
+.place-button:hover .place-button__geomark, .folder-button:hover .folder-button__geomarks {
+	opacity: 1;
+}
+.place-button__text, .folder-button__text {
+	flex-grow: 1;
+}
+.place-button__geomark, .folder-button__geomarks {
+	margin-left: 10px;
+	pointer-events: auto !important;
+	opacity: 0;
+	z-index: 20;
 }
 .to-export-place-checkbox {
 	margin-right: 0.5em;

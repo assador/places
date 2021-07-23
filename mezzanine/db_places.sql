@@ -54,17 +54,19 @@ CREATE TABLE `places` (
 	`altitudecapability` DOUBLE DEFAULT NULL,
 	`time` VARCHAR (24) NOT NULL DEFAULT '',
 	`srt` DOUBLE NOT NULL DEFAULT 0,
-	`common` DOUBLE NOT NULL DEFAULT 0,
+	`geomark` BOOLEAN NOT NULL DEFAULT 1,
+	`common` BOOLEAN NOT NULL DEFAULT 0,
 	`userid` VARCHAR (32) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `U_places` UNIQUE (`id`)
 );
 CREATE TABLE `folders` (
 	`id` VARCHAR (32) NOT NULL,
-	`parent` VARCHAR (32) DEFAULT NULL,
+	`parent` VARCHAR (32) NOT NULL DEFAULT 'root',
 	`name` VARCHAR (500) NOT NULL DEFAULT 'Без названия',
 	`description` VARCHAR (2044) NOT NULL DEFAULT '',
 	`srt` DOUBLE NOT NULL DEFAULT '0',
+	`geomarks` BOOLEAN NOT NULL DEFAULT 1,
 	`userid` VARCHAR (32) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `U_folders` UNIQUE (`id`)

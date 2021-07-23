@@ -15,6 +15,7 @@ export default {
 		"longitude",
 		"centerLatitude",
 		"centerLongitude",
+		"geomarksVisibility",
 	],
 	data() {
 		return {
@@ -50,8 +51,75 @@ export default {
 			},
 		}
 	},
-	computed: {
-		showMap: (lat, lng) => function(lat, lng) {
+	watch: {
+		latitude() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
+			if (this.$store.state.currentPlace) {
+				this.$store.commit("changeCenter", {
+					latitude: this.$store.state.currentPlace.latitude,
+					longitude: this.$store.state.currentPlace.longitude,
+				});
+			}
+		},
+		longitude() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
+			if (this.$store.state.currentPlace) {
+				this.$store.commit("changeCenter", {
+					latitude: this.$store.state.currentPlace.latitude,
+					longitude: this.$store.state.currentPlace.longitude,
+				});
+			}
+		},
+		centerLatitude() {
+			this.updateCenter();
+		},
+		centerLongitude() {
+			this.updateCenter();
+		},
+		name() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
+		},
+		description() {
+			this.updatePlacemark(
+				this.$parent.currentPlaceCommon
+					? this.commonMrks
+					: this.mrks
+			);
+		},
+		geomarksVisibility() {
+			for (let id in this.geomarksVisibility) {
+				if (this.mrks[id]) {
+					this.mrks[id].options.set(
+						"visible", this.geomarksVisibility[id]
+					);
+				}
+			}
+		},
+	},
+	mounted() {
+		new ResizeSensor(document.getElementById("basic-basic"), () => {
+			this.fitMap();
+		});
+	},
+	beforeDestroy() {
+		if (this.map) {
+			this.map.destroy();
+		}
+	},
+	methods: {
+		showMap(lat, lng) {
 			ymaps.ready(mapinit.bind(this));
 			function mapinit() {
 				this.map = new ymaps.Map("mapblock", {
@@ -111,7 +179,7 @@ export default {
 				}
 			}
 		},
-		clickPlacemark: (place, type) => function(place, type) {
+		clickPlacemark(place, type) {
 			let marks = type === "common" ? this.commonMrks : this.mrks;
 			for (let i = 0; i < marks.length; i++) {
 				marks[i].options.set("draggable", false);
@@ -119,7 +187,7 @@ export default {
 			marks[place.id].options.set("draggable", true);
 			this.$parent.setCurrentPlace(place, type === "common" ? true : false);
 		},
-		appendPlacemark: (marks, place, type) => function(marks, place, type) {
+		appendPlacemark(marks, place, type) {
 			let options;
 			switch (type) {
 			case "private" :
@@ -166,7 +234,7 @@ export default {
 			});
 			this.map.geoObjects.add(marks[place.id]);
 		},
-		updatePlacemark: (marks) => function(marks) {
+		updatePlacemark(marks) {
 			if (marks[this.id]) {
 				marks[this.id].geometry.setCoordinates([
 					this.latitude,
@@ -178,7 +246,7 @@ export default {
 				});
 			}
 		},
-		updateCenter: () => function() {
+		updateCenter() {
 			if (this.map !== null) {
 				this.map.setCenter([
 					this.centerLatitude,
@@ -186,7 +254,7 @@ export default {
 				]);
 			}
 		},
-		fitMap: () => function() {
+		fitMap() {
 			if (this.map !== null) {
 				document.getElementById("mapblock").style.right = "100%";
 				this.map.container.fitToViewport();
@@ -198,7 +266,7 @@ export default {
 				this.map.container.fitToViewport();
 			}
 		},
-		placemarksShowHide: (show = null) => function(show = null) {
+		placemarksShowHide(show = null) {
 			for (let key in this.mrks) {
 				if (this.placemarksShow) {
 					this.mrks[key].options.set("visible", false);
@@ -217,7 +285,7 @@ export default {
 				document.getElementById("placemarksShowHideButton").classList.add("button-pressed");
 			}
 		},
-		commonPlacemarksShowHide: (show = null) => function(show = null) {
+		commonPlacemarksShowHide(show = null) {
 			for (let key in this.commonMrks) {
 				if (this.commonPlacemarksShow) {
 					this.commonMrks[key].options.set("visible", false);
@@ -231,7 +299,7 @@ export default {
 					: show
 			;
 		},
-		centerPlacemarkShowHide: (show = null) => function(show = null) {
+		centerPlacemarkShowHide(show = null) {
 			if (this.centerPlacemarkShow) {
 				this.mrk.options.set("visible", false);
 			} else {
@@ -243,64 +311,6 @@ export default {
 					: show
 			;
 		},
-	},
-	watch: {
-		latitude() {
-			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-			if (this.$store.state.currentPlace) {
-				this.$store.commit("changeCenter", {
-					latitude: this.$store.state.currentPlace.latitude,
-					longitude: this.$store.state.currentPlace.longitude,
-				});
-			}
-		},
-		longitude() {
-			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-			if (this.$store.state.currentPlace) {
-				this.$store.commit("changeCenter", {
-					latitude: this.$store.state.currentPlace.latitude,
-					longitude: this.$store.state.currentPlace.longitude,
-				});
-			}
-		},
-		centerLatitude() {
-			this.updateCenter();
-		},
-		centerLongitude() {
-			this.updateCenter();
-		},
-		name() {
-			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-		},
-		description() {
-			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-		},
-	},
-	mounted() {
-		new ResizeSensor(document.getElementById("basic-basic"), () => {
-			this.fitMap();
-		});
-	},
-	beforeDestroy() {
-		if (this.map) {
-			this.map.destroy();
-		}
 	},
 }
 </script>

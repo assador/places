@@ -94,6 +94,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`altitudecapability` ,
 				`time`               ,
 				`srt`                ,
+				`geomark`            ,
 				`common`             ,
 				`userid`
 			) VALUES (
@@ -107,6 +108,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				:altitudecapability ,
 				:time               ,
 				:srt                ,
+				:geomark            ,
 				:common             ,
 				:userid
 			)
@@ -123,6 +125,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`altitudecapability` = :altitudecapability ,
 				`time`               = :time               ,
 				`srt`                = :srt                ,
+				`geomark`            = :geomark            ,
 				`common`             = :common             ,
 				`userid`             = :userid
 			WHERE `id` = :id
@@ -158,6 +161,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					$append->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
 					$append->bindParam( ":time"               , $row[ "time"               ]);
 					$append->bindParam( ":srt"                , $row[ "srt"                ]);
+					$append->bindParam( ":geomark"            , $row[ "geomark"            ]);
 					$append->bindParam( ":common"             , $row[ "common"             ]);
 					$append->bindParam( ":userid"             , $_POST["id"]);
 					try {$append->execute();} catch(Exception $e) {}
@@ -174,6 +178,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$update->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
 				$update->bindParam( ":time"               , $row[ "time"               ]);
 				$update->bindParam( ":srt"                , $row[ "srt"                ]);
+				$update->bindParam( ":geomark"            , $row[ "geomark"            ]);
 				$update->bindParam( ":common"             , $row[ "common"             ]);
 				$update->bindParam( ":userid"             , $_POST["id"]);
 				try {$update->execute();} catch(Exception $e) {}
@@ -198,6 +203,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`name`        ,
 				`description` ,
 				`srt`         ,
+				`geomarks`    ,
 				`userid`
 			) VALUES (
 				:id           ,
@@ -205,6 +211,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				:name         ,
 				:description  ,
 				:srt          ,
+				:geomarks     ,
 				:userid
 			)
 		");
@@ -215,6 +222,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`name`        = :name        ,
 				`description` = :description ,
 				`srt`         = :srt         ,
+				`geomarks`    = :geomarks    ,
 				`userid`      = :userid
 			WHERE `id` = :id
 		");
@@ -233,6 +241,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					$append->bindParam( ":name"        , $row[ "name"        ]);
 					$append->bindParam( ":description" , $row[ "description" ]);
 					$append->bindParam( ":srt"         , $row[ "srt"         ]);
+					$append->bindParam( ":geomarks"    , $row[ "geomarks"    ]);
 					$append->bindParam( ":userid"      , $_POST["id"]);
 					try {$append->execute();} catch(Exception $e) {}
 				}
@@ -243,6 +252,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$update->bindParam( ":name"        , $row[ "name"        ]);
 				$update->bindParam( ":description" , $row[ "description" ]);
 				$update->bindParam( ":srt"         , $row[ "srt"         ]);
+				$update->bindParam( ":geomarks"    , $row[ "geomarks"    ]);
 				$update->bindParam( ":userid"      , $_POST["id"]);
 				try {$update->execute();} catch(Exception $e) {}
 			}

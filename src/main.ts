@@ -22,29 +22,49 @@ new Vue({
 		needToUpdateFolders: false,
 		draggingElement: null,
 		folderRoot: null,
+		foldersPlain: {},
 		foldersEditMode: false,
 		selectedToExport: [],
 	},
-	computed: {
+	watch: {
+		folderRoot: function(folderRoot) {
+			commonFunctions.treeToLivePlain(folderRoot, 'children', this.foldersPlain);
+		},
 	},
 	mounted() {
 		bus.$on('toDB', payload => {
-			let plain = [];
+			const plainFolders = [];
 			switch (payload.what) {
-			case 'places' :
-				this.toDB('places', JSON.stringify(this.$store.state.places));
-				break;
-			case 'folders' :
-				plain = commonFunctions.treeToPlain(this.folderRoot, 'children', []);
-				this.toDB('folders', JSON.stringify(plain));
-				break;
-			case undefined :
-				this.toDB('places', JSON.stringify(this.$store.state.places));
-				plain = commonFunctions.treeToPlain(this.folderRoot, 'children', []);
-				this.toDB('folders', JSON.stringify(plain));
-				break;
-			default :
-				this.toDB(payload.what, payload.data);
+				case 'places' :
+					this.toDB({
+						what: payload.what,
+						data: JSON.stringify(this.$store.state.places),
+						toCommitSaved: payload.toCommitSaved,
+					});
+					break;
+				case 'folders' :
+					commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
+					this.toDB({
+						what: payload.what,
+						data: JSON.stringify(plainFolders),
+						toCommitSaved: payload.toCommitSaved,
+					});
+					break;
+				case undefined :
+					this.toDB({
+						what: 'places',
+						data: JSON.stringify(this.$store.state.places),
+						toCommitSaved: payload.toCommitSaved,
+					});
+					commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
+					this.toDB({
+						what: 'folders',
+						data: JSON.stringify(plainFolders),
+						toCommitSaved: payload.toCommitSaved,
+					});
+					break;
+				default :
+					this.toDB(payload);
 			}
 		});
 		bus.$on('homeToDB', place => {
@@ -117,7 +137,7 @@ new Vue({
 			aboutRequest.setRequestHeader('Content-type', 'application/json');
 			aboutRequest.send();
 		},
-		toDB(todo, data) {
+		toDB(payload) {
 			if (!this.$store.state.user.testaccount) {
 				if (!document.querySelector('.value_wrong')) {
 					const placesRequest = new XMLHttpRequest();
@@ -125,6 +145,12 @@ new Vue({
 					placesRequest.onreadystatechange = (event) => {
 						if (placesRequest.readyState == 4) {
 							if (placesRequest.status == 200) {
+								if (payload.data.toCommitSaved) {
+									this.$store.commit(
+										'savedToDB',
+										payload.data.toCommitSaved
+									);
+								}
 								this.$store.commit('setSaved', true);
 								this.$store.dispatch('setMessage',
 									'Изменения сохранены в базе данных'
@@ -141,14 +167,8 @@ new Vue({
 					);
 					placesRequest.send(
 						'id=' + sessionStorage.getItem('places-userid') +
-						'&todo=' + (typeof(todo) !== 'undefined'
-							? todo
-							: 'places'
-						) +
-						'&data=' + (typeof(data) !== 'undefined'
-							? data
-							: JSON.stringify(this.$store.state.places)
-						)
+						'&todo=' + payload.what +
+						'&data=' + payload.data
 					);
 				} else {
 					this.$store.dispatch('setMessage',
@@ -229,7 +249,10 @@ new Vue({
 			if (!this.$store.state.user.testaccount) {
 				axios.post('/backend/delete.php', data)
 					.then(() => {
-						this.toDB('images_delete', JSON.stringify(images));
+						this.toDB({
+							what: 'images_delete',
+							data: JSON.stringify(images),
+						});
 					});
 			}
 			this.$store.commit('deleteImages', {images: images, family: family});
@@ -288,7 +311,7 @@ new Vue({
 										break;
 									}
 								}
-							} while (parentFolder.parent && parentFound);
+							} while (parentFolder.parent !== 'root' && parentFound);
 							break;
 						}
 					}
@@ -439,10 +462,10 @@ new Vue({
 					if (this.$store.state.inUndoRedo) {
 						bus.$emit('toDBCompletely');
 					} else if (this.needToUpdate) {
-						bus.$emit('toDB', 'places');
+						bus.$emit('toDB', {what: 'places'});
 						this.needToUpdate = false;
 					} else if (this.needToUpdateFolders) {
-						bus.$emit('toDB', 'folders');
+						bus.$emit('toDB', {what: 'folders'});
 						this.needToUpdateFolders = false;
 					}
 				}

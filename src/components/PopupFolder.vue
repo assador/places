@@ -9,7 +9,7 @@
 			<form
 				class="folder-new__form margin_bottom_0"
 				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
-				@submit.prevent="appendFolder(folderName, folderDescription);"
+				@submit.prevent="appendFolder(folderName ? folderName : '', folderDescription ? folderDescription : '');"
 			>
 				<table class="table_form">
 					<tbody>
@@ -73,26 +73,33 @@
 import { constants } from '../shared/constants'
 import commonFunctions from '../shared/common'
 import { makeFieldsValidatable } from '../shared/fields_validate'
-import axios from "axios"
+import axios from 'axios'
 export default {
 	props: ["data"],
 	data() {
 		return {
 			folderName: null,
 			folderDescription: null,
-			message: "",
+			message: '',
 		}
 	},
-	computed: {
-		appendFolder: (folderName, folderDescription) => function(folderName, folderDescription) {
+	mounted() {
+		makeFieldsValidatable();
+		document.addEventListener('keyup', this.keyup, false);
+	},
+	beforeDestroy() {
+		document.removeEventListener('keyup', this.keyup, false);
+	},
+	methods: {
+		appendFolder(folderName, folderDescription) {
 			let foldersCount = commonFunctions.childrenCount(
 				this.$root.folderRoot,
-				"children"
+				'children'
 			);
 			let data = new FormData();
-			data.append("userid", this.$store.state.user.id);
-			data.append("need", "visiting");
-			axios.post("/backend/get_groups.php", data)
+			data.append('userid', this.$store.state.user.id);
+			data.append('need', 'visiting');
+			axios.post('/backend/get_groups.php', data)
 				.then(response => {
 					if (
 						constants.rights.folderscounts[response.data] < 0 ||
@@ -100,8 +107,8 @@ export default {
 						this.$store.state.user.testaccount
 					) {
 						let newFolder = {
-							type: "folder",
-							userid: sessionStorage.getItem("places-userid"),
+							type: 'folder',
+							userid: sessionStorage.getItem('places-userid'),
 							name: folderName,
 							description: folderDescription,
 							id: commonFunctions.generateRandomString(32),
@@ -114,15 +121,16 @@ export default {
 								: 1,
 							parent: this.$store.state.currentPlace.folderid
 								? this.$store.state.currentPlace.folderid
-								: null,
+								: 'root',
 							opened: false,
+							geomarks: 1,
 							added: true,
 							deleted: false,
 							updated: false,
 						};
-						this.$store.commit("addFolder", newFolder);
-						this.message = "Папка создана";
-						this.folderName = "";
+						this.$store.commit('addFolder', newFolder);
+						this.message = 'Папка создана';
+						this.folderName = '';
 						this.folderDescription = "";
 						document.getElementById("folderName").focus();
 					} else {
@@ -140,23 +148,14 @@ export default {
 					}
 				});
 		},
-		close: (event) => function(event) {
+		close(event) {
 			event.stopPropagation();
 			this.$root.showPopup({show: false}, event);
-			this.message = "";
-			this.folderName = "";
-			this.folderDescription = "";
-			document.getElementById("folderName").focus();
+			this.message = '';
+			this.folderName = '';
+			this.folderDescription = '';
+			document.getElementById('folderName').focus();
 		},
-	},
-	mounted() {
-		makeFieldsValidatable();
-		document.addEventListener('keyup', this.keyup, false);
-	},
-	beforeDestroy() {
-		document.removeEventListener('keyup', this.keyup, false);
-	},
-	methods: {
 		keyup(event) {
 			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :

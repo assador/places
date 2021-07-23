@@ -73,8 +73,14 @@ export default {
 			keepContent: 'keep',
 		}
 	},
-	computed: {
-		deleteFolder: (event) => function(event) {
+	mounted() {
+		document.addEventListener('keyup', this.keyup, false);
+	},
+	beforeDestroy() {
+		document.removeEventListener('keyup', this.keyup, false);
+	},
+	methods: {
+		deleteFolder(event) {
 			if (this.keepContent !== 'delete') {
 				this.$store.commit('backupState');
 			}
@@ -152,8 +158,6 @@ export default {
 				change: {deleted: true},
 				backup: false,
 			});
-			this.$store.commit('deletePlacesMarkedAsDeleted');
-			this.$store.commit('deleteFoldersMarkedAsDeleted');
 			if (!this.$store.state.inUndoRedo) {
 				bus.$emit('toDB', {what: 'places'});
 				bus.$emit('toDB', {what: 'folders'});
@@ -164,10 +168,12 @@ export default {
 			if (this.keepContent !== 'delete') {
 				this.$store.commit('backupState');
 			}
+			this.$store.commit('deletePlacesMarkedAsDeleted');
+			this.$store.commit('deleteFoldersMarkedAsDeleted');
 			bus.$emit('homeRefresh');
 			this.$root.showPopup({show: false}, event);
 		},
-		markNestedAsDeleted: (folder) => function(folder) {
+		markNestedAsDeleted(folder) {
 			// Mark places and folders in the currently deleted folder as deleted
 			this.$store.state.places.forEach((place) => {
 				if (place.folderid === folder.id) {
@@ -189,14 +195,6 @@ export default {
 				}
 			}
 		},
-	},
-	mounted() {
-		document.addEventListener('keyup', this.keyup, false);
-	},
-	beforeDestroy() {
-		document.removeEventListener('keyup', this.keyup, false);
-	},
-	methods: {
 		keyup(event) {
 			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :

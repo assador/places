@@ -10,7 +10,6 @@
 				v-if="instanceid === 'popupexporttree'"
 				:id="'to-export-places-menu-folder-checkbox-' + folder.id"
 				name="folderCheckbox"
-				
 				type="checkbox"
 				class="folder-checkbox"
 				@change="selectUnselectFolder(folderData.id, $event.target.checked);"
@@ -28,7 +27,18 @@
 				@dragleave="$root.handleDragLeave"
 				@drop="$root.handleDrop"
 			>
-				<span>{{ folderData.name }}</span>
+				<span
+					class="folder-button__text"
+				>
+					{{ folderData.name }}
+				</span>
+				<span
+					class="folder-button__geomarks"
+					:title="(folderData.geomarks === 1 ? 'Скрыть' : 'Показать') + ' геометки на карте'"
+					@click="$event.stopPropagation(); showHideGeomarks(folder, !folder.geomarks);"
+				>
+					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
+				</span>
 			</a>
 			<span
 				v-if="$root.foldersEditMode && folderData.id !== 'root'"
@@ -99,7 +109,18 @@
 					class="to-export-place-checkbox"
 					@change="selectUnselect(place, $event.target.checked);"
 				>
-				{{ place.name }}
+				<span
+					class="place-button__text"
+				>
+					{{ place.name }}
+				</span>
+				<a
+					class="place-button__geomark"
+					:title="(place.geomark === false ? 'Показать' : 'Скрыть') + ' геометку на карте'"
+					@click="$event.stopPropagation(); showHideGeomarks(place, !place.geomark);"
+				>
+					{{ !place.geomark ? '⚇' : '⚉' }}
+				</a>
 				<span
 					data-place-button-dragenter-area-top
 					class="dragenter-area dragenter-area_top"
@@ -144,7 +165,27 @@ export default {
 		}
 	},
 	computed: {
-		selectUnselect: (place, checked) => function(place, checked) {
+		orderedChildren() {
+			return _.orderBy(this.folderData.children, "srt");
+		},
+		orderedPlaces() {
+			return _.orderBy(this.$store.state.places, "srt");
+		},
+	},
+	watch: {
+		folder: {
+			deep: true,
+			immediate: true,
+			handler(folder) {
+				this.folderData = {
+					...folder,
+					children: folder.children,
+				};
+			},
+		},
+	},
+	methods: {
+		selectUnselect(place, checked) {
 			if (checked) {
 				this.$root.selectedToExport.push(place);
 			} else {
@@ -156,7 +197,7 @@ export default {
 				}
 			}
 		},
-		selectUnselectFolder: (folderid, checked) => function(folderid, checked) {
+		selectUnselectFolder(folderid, checked) {
 			for (let placeButton of
 				document
 					.getElementById("to-export-places-menu-folder-" + folderid)
@@ -180,23 +221,62 @@ export default {
 				
 			}
 		},
-		orderedChildren() {
-			return _.orderBy(this.folderData.children, "srt");
-		},
-		orderedPlaces() {
-			return _.orderBy(this.$store.state.places, "srt");
-		},
-	},
-	watch: {
-		folder: {
-			deep: true,
-			immediate: true,
-			handler(folder) {
-				this.folderData = {
-					...folder,
-					children: folder.children,
-				};
-			},
+		showHideGeomarks(object, show) {
+			let neibours, parentFolder, visibility;
+			let showHideSubGeomarks = (object, show) => {
+				if (object.type === 'place') {
+					object.geomark = !show ? false : true;
+					return;
+				}
+				object.geomarks = !show ? 0 : 1;
+				for (let place of this.$store.state.places) {
+					if (place.folderid === object.id) {
+						place.geomark = show;
+					}
+				}
+				if (Array.isArray(object.children) && object.children.length > 0) {
+					for (let child of object.children) {
+						showHideSubGeomarks(child, show);
+					}
+				}
+			}
+			let showHideParentsGeomarks = (object) => {
+				if (object.id === 'root') return;
+				const neibours = (object.type === 'place'
+					? this.$store.state.places.filter(neibour => {
+						return neibour.folderid === object.folderid;
+					})
+					: this.$root.foldersPlain[object.parent].children.concat(
+						this.$store.state.places.filter(neibour => {
+							return neibour.folderid === object.parent;
+						})
+					)
+				);
+				for (let i = 0; i < neibours.length; i++) {
+					if (i === 0) {
+						visibility = (neibours[i].type === 'place'
+							? neibours[i].geomark
+							: neibours[i].geomarks
+						);
+						continue;
+					}
+					if (visibility != (neibours[i].type === 'place'
+						? neibours[i].geomark
+						: neibours[i].geomarks
+					)) {
+						visibility = 2;
+						break;
+					}
+				}
+				this.$root.foldersPlain[
+					object.type === 'place' ? object.folderid : object.parent
+				].geomarks = visibility;
+				showHideParentsGeomarks(this.$root.foldersPlain[
+					object.type === 'place' ? object.folderid : object.parent
+				]);
+			}
+			showHideSubGeomarks(object, show);
+			showHideParentsGeomarks(object);
 		},
 	},
 }

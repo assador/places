@@ -15,8 +15,6 @@
 import { constants } from '../shared/constants'
 export default {
 	props: ["data"],
-	computed: {
-	},
 	mounted() {
 		document.addEventListener('keyup', this.keyup, false);
 	},

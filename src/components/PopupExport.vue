@@ -94,9 +94,6 @@ export default {
 		tree,
 	},
 	props: ["data"],
-	beforeDestroy() {
-		this.$root.selectedToExport = [];
-	},
 	mounted() {
 		this.$root.selectedToExport = [];
 		for (let f of document.getElementById("popup-export__tree").getElementsByClassName("folder")) {
@@ -106,6 +103,7 @@ export default {
 		document.addEventListener('keyup', this.keyup, false);
 	},
 	beforeDestroy() {
+		this.$root.selectedToExport = [];
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {

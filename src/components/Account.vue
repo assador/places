@@ -154,17 +154,6 @@ export default {
 			acc: acc,
 		}
 	},
-	computed: {
-		back: () => function() {
-			bus.$emit('loggedChange', 'home');
-		},
-		showDelete: (event) => function(event) {
-			this.$root.showPopup({
-				show: true,
-				type: 'delete',
-			}, event);
-		},
-	},
 	mounted() {
 		sessionStorage.setItem('places-app-child-component', 'account');
 		document.addEventListener('keyup', this.keyup, false);
@@ -174,6 +163,15 @@ export default {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
+		back() {
+			bus.$emit('loggedChange', 'home');
+		},
+		showDelete(event) {
+			this.$root.showPopup({
+				show: true,
+				type: 'delete',
+			}, event);
+		},
 		keyup(event) {
 			if (this.$root.popuped == 'appear' && constants.shortcuts[event.keyCode] == 'close') {
 				this.$root.showPopup({show: false}, event);

@@ -62,6 +62,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			`altitudecapability` ,
 			`time`               ,
 			`srt`                ,
+			`geomark`            ,
 			`common`             ,
 			`userid`
 		) VALUES (
@@ -75,6 +76,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			:altitudecapability ,
 			:time               ,
 			:srt                ,
+			:geomark            ,
 			:common             ,
 			:userid
 		)
@@ -86,6 +88,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			`name`        ,
 			`description` ,
 			`srt`         ,
+			`geomarks`    ,
 			`userid`
 		) VALUES (
 			:id           ,
@@ -93,6 +96,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			:name         ,
 			:description  ,
 			:srt          ,
+			:geomarks     ,
 			:userid
 		)
 	");
@@ -154,6 +158,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		$appendfolder->bindParam( ":name"        , $row[ "name"        ]);
 		$appendfolder->bindParam( ":description" , $row[ "description" ]);
 		$appendfolder->bindParam( ":srt"         , $row[ "srt"         ]);
+		$appendfolder->bindParam( ":geomarks"    , $row[ "geomarks"    ]);
 		$appendfolder->bindParam( ":userid"      , $_POST["id"]);
 		try {$appendfolder->execute();} catch(Exception $e) {}
 	}
@@ -168,6 +173,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		$appendplace->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
 		$appendplace->bindParam( ":time"               , $row[ "time"               ]);
 		$appendplace->bindParam( ":srt"                , $row[ "srt"                ]);
+		$appendplace->bindParam( ":geomark"            , $row[ "geomark"            ]);
 		$appendplace->bindParam( ":common"             , $row[ "common"             ]);
 		$appendplace->bindParam( ":userid"             , $_POST["id"]);
 		try {$appendplace->execute();} catch(Exception $e) {}
