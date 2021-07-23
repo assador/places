@@ -1021,13 +1021,6 @@ export default {
 				}
 			}
 		},
-		geomarksVisibility() {
-			let geomarksVisibility = {};
-			for (let p of this.$store.state.places) {
-				geomarksVisibility[p.id] = p.geomark;
-			}
-			return geomarksVisibility;
-		},
 		keyup(event) {
 			if (event.altKey && event.shiftKey) {
 				if (constants.shortcuts[event.keyCode]) {
@@ -1220,6 +1213,13 @@ export default {
 	},
 	computed: {
 		...mapGetters(["getCurrentPlace", "getMessage"]),
+		geomarksVisibility() {
+			let geomarksVisibility = {};
+			for (let p of this.$store.state.places) {
+				geomarksVisibility[p.id] = p.geomark;
+			}
+			return geomarksVisibility;
+		},
 	},
 }
 </script>

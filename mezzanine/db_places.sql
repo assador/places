@@ -66,7 +66,7 @@ CREATE TABLE `folders` (
 	`name` VARCHAR (500) NOT NULL DEFAULT 'Без названия',
 	`description` VARCHAR (2044) NOT NULL DEFAULT '',
 	`srt` DOUBLE NOT NULL DEFAULT '0',
-	`geomarks` BOOLEAN NOT NULL DEFAULT 1,
+	`geomarks` INT UNSIGNED NOT NULL DEFAULT 1,
 	`userid` VARCHAR (32) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `U_folders` UNIQUE (`id`)
