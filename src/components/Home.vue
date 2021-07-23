@@ -521,6 +521,19 @@ export default {
 			linkEditing: false,
 		}
 	},
+	computed: {
+		...mapGetters(["getCurrentPlace", "getMessage"]),
+		orderedImages() {
+			return this.currentPlace ? _.orderBy(this.currentPlace.images, 'srt') : [];
+		},
+		geomarksVisibility() {
+			let geomarksVisibility = {};
+			for (let p of this.$store.state.places) {
+				geomarksVisibility[p.id] = p.geomark;
+			}
+			return geomarksVisibility;
+		},
+	},
 	watch: {
 		getCurrentPlace: {
 			deep: true,
@@ -670,9 +683,6 @@ export default {
 		},
 		account() {
 			bus.$emit('loggedChange', 'account');
-		},
-		orderedImages() {
-			return this.currentPlace ? _.orderBy(this.currentPlace.images, 'srt') : [];
 		},
 		setCurrentPlace(place, common = false) {
 			if (this.$store.state.currentPlace) {
@@ -1209,16 +1219,6 @@ export default {
 					}
 				}
 			}
-		},
-	},
-	computed: {
-		...mapGetters(["getCurrentPlace", "getMessage"]),
-		geomarksVisibility() {
-			let geomarksVisibility = {};
-			for (let p of this.$store.state.places) {
-				geomarksVisibility[p.id] = p.geomark;
-			}
-			return geomarksVisibility;
 		},
 	},
 }
