@@ -35,7 +35,7 @@
 				<span
 					class="folder-button__geomarks"
 					:title="(folderData.geomarks === 1 ? 'Скрыть' : 'Показать') + ' геометки на карте'"
-					@click="$event.stopPropagation(); showHideGeomarks(folder, !folder.geomarks);"
+					@click="$event.stopPropagation(); showHideGeomarks((folder.id === 'root' ? $root.folderRoot : folder), !folder.geomarks);"
 				>
 					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
 				</span>
@@ -242,38 +242,29 @@ export default {
 			}
 			let showHideParentsGeomarks = (object) => {
 				if (object.id === 'root') return;
-				const neibours = (object.type === 'place'
-					? this.$store.state.places.filter(neibour => {
-						return neibour.folderid === object.folderid;
-					})
-					: this.$root.foldersPlain[object.parent].children.concat(
-						this.$store.state.places.filter(neibour => {
-							return neibour.folderid === object.parent;
-						})
-					)
-				);
+				const parentProperty = (object.type === 'place' ? 'folderid' : 'parent');
+				let geomarksProperty;
+				let neibours = this.$store.state.places.filter(neibour => {
+					return neibour.folderid === object[parentProperty];
+				});
+				if (this.$root.foldersPlain[object[parentProperty]].children) {
+					neibours = neibours.concat(
+						this.$root.foldersPlain[object[parentProperty]].children
+					);
+				}
 				for (let i = 0; i < neibours.length; i++) {
+					geomarksProperty = (neibours[i].type === 'place' ? 'geomark' : 'geomarks');
 					if (i === 0) {
-						visibility = (neibours[i].type === 'place'
-							? neibours[i].geomark
-							: neibours[i].geomarks
-						);
+						visibility = neibours[i][geomarksProperty]
 						continue;
 					}
-					if (visibility != (neibours[i].type === 'place'
-						? neibours[i].geomark
-						: neibours[i].geomarks
-					)) {
+					if (visibility != neibours[i][geomarksProperty]) {
 						visibility = 2;
 						break;
 					}
 				}
-				this.$root.foldersPlain[
-					object.type === 'place' ? object.folderid : object.parent
-				].geomarks = visibility;
-				showHideParentsGeomarks(this.$root.foldersPlain[
-					object.type === 'place' ? object.folderid : object.parent
-				]);
+				this.$root.foldersPlain[object[parentProperty]].geomarks = Number(visibility);
+				showHideParentsGeomarks(this.$root.foldersPlain[object[parentProperty]]);
 			}
 			showHideSubGeomarks(object, show);
 			showHideParentsGeomarks(object);

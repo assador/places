@@ -565,6 +565,7 @@ export default {
 		bus.$on('placesFilled', happens => {
 			this.$root.folderRoot = {
 				id: 'root',
+				type: 'folder',
 				name: 'Мои места',
 				children: this.$store.state.folders,
 				opened: true,
