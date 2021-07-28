@@ -21,10 +21,21 @@ new Vue({
 		needToUpdate: false,
 		needToUpdateFolders: false,
 		draggingElement: null,
-		folderRoot: null,
 		foldersPlain: {},
 		foldersEditMode: false,
 		selectedToExport: [],
+	},
+	computed: {
+		folderRoot() {
+			return {
+				id: 'root',
+				type: 'folder',
+				name: 'Мои места',
+				children: this.$store.state.folders,
+				opened: true,
+				geomarks: 1,
+			}
+		},
 	},
 	watch: {
 		folderRoot: function(folderRoot) {

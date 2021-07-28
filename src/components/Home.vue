@@ -563,14 +563,6 @@ export default {
 	},
 	mounted() {
 		bus.$on('placesFilled', happens => {
-			this.$root.folderRoot = {
-				id: 'root',
-				type: 'folder',
-				name: 'Мои места',
-				children: this.$store.state.folders,
-				opened: true,
-				geomarks: 1,
-			};
 			this.currentPlaceCommon = this.$parent.currentPlaceCommon;
 			if (this.$store.state.places.length > 0) {
 				if (this.$store.state.currentPlaceIndex > -1) {

@@ -1,9 +1,9 @@
 <template>
 	<li
-		:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-' + folderData.id"
-		:srt="folderData.srt"
-		:title="folderData.description"
-		:class="'folder ' + (instanceid !== 'popupexporttree' ? (folderData.opened ? 'folder_opened' : 'folder_closed') : '')"
+		:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-' + folder.id"
+		:srt="folder.srt"
+		:title="folder.description"
+		:class="'folder ' + (instanceid !== 'popupexporttree' ? (folder.opened ? 'folder_opened' : 'folder_closed') : '')"
 	>
 		<div>
 			<input
@@ -12,16 +12,16 @@
 				name="folderCheckbox"
 				type="checkbox"
 				class="folder-checkbox"
-				@change="selectUnselectFolder(folderData.id, $event.target.checked);"
+				@change="selectUnselectFolder(folder.id, $event.target.checked);"
 			>
 			<a
-				v-if="!$root.foldersEditMode || folderData.id === 'root'"
-				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folderData.id"
+				v-if="!$root.foldersEditMode || folder.id === 'root'"
+				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folder.id"
 				data-folder-button
 				href="javascript: void(0);"
 				class="folder-button"
 				draggable="true"
-				@click="$store.commit('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folderData.id === 'root' ? $parent.data : folder, opened: folderData.opened ? false : true});"
+				@click="$store.commit('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder.id === 'root' ? $parent.data : folder, opened: folder.opened ? false : true});"
 				@dragstart="$root.handleDragStart"
 				@dragenter="$root.handleDragEnter"
 				@dragleave="$root.handleDragLeave"
@@ -30,27 +30,27 @@
 				<span
 					class="folder-button__text"
 				>
-					{{ folderData.name }}
+					{{ folder.name }}
 				</span>
 				<span
 					class="folder-button__geomarks"
-					:title="(folderData.geomarks === 1 ? 'Скрыть' : 'Показать') + ' геометки на карте'"
+					:title="(folder.geomarks === 1 ? 'Скрыть' : 'Показать') + ' геометки на карте'"
 					@click="$event.stopPropagation(); showHideGeomarks((folder.id === 'root' ? $root.folderRoot : folder), !folder.geomarks);"
 				>
 					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
 				</span>
 			</a>
 			<span
-				v-if="$root.foldersEditMode && folderData.id !== 'root'"
-				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folderData.id"
+				v-if="$root.foldersEditMode && folder.id !== 'root'"
+				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folder.id"
 				class="folder-button"
-				@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
+				@click="$store.commit('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			>
 				<input
-					v-model="folderData.name"
+					v-model="folder.name"
 					placeholder="Название"
 					class="folder-button__name fieldwidth_100"
-					@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
+					@change="$store.commit('changeFolder', {folder: folder, change: {updated: true}});"
 					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				>
 				<a
@@ -61,36 +61,36 @@
 					×
 				</a>
 				<textarea
-					v-model="folderData.description"
+					v-model="folder.description"
 					rows="2"
 					placeholder="Описание"
 					class="folder-button__description fieldwidth_100"
-					@change="$store.commit('changeFolder', {folder: folderData, change: {updated: true}});"
+					@change="$store.commit('changeFolder', {folder: folder, change: {updated: true}});"
 					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				/>
 			</span>
 		</div>
 		<div class="folder-subfolders">
 			<ul
-				v-if="folderData.children && folderData.children.length"
+				v-if="folder.children && folder.children.length"
 				class="margin_bottom_0"
 			>
 				<folder
 					v-for="(child, index) in orderedChildren"
-					:key="folderData.id + index"
+					:key="folder.id + index"
 					:instanceid="instanceid"
 					:folder="child"
-					:parent="folderData"
+					:parent="folder"
 				/>
 			</ul>
 		</div>
 		<div
-			:id="(instanceid === 'popupexporttree' ? 'to-export-folder-' : '') + folderData.id"
+			:id="(instanceid === 'popupexporttree' ? 'to-export-folder-' : '') + folder.id"
 			class="folder-places"
 		>
 			<label
 				v-for="place in orderedPlaces"
-				v-if="place.folderid === folderData.id && place.show"
+				v-if="place.folderid === folder.id && place.show"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-place-' : '') + place.id"
 				:key="place.id"
 				data-place-button
@@ -136,18 +136,18 @@
 			</label>
 		</div>
 		<div
-			v-if="folderData.id !== 'root'"
+			v-if="folder.id !== 'root'"
 			data-folder-dragenter-area-top
 			class="dragenter-area dragenter-area_top"
-			@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
+			@click="$store.commit('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
 		/>
 		<div
-			v-if="folderData.id !== 'root'"
+			v-if="folder.id !== 'root'"
 			data-folder-dragenter-area-bottom
 			class="dragenter-area dragenter-area_bottom"
-			@click="$store.commit('folderOpenClose', {folder: folder, opened: folderData.opened ? false : true});"
+			@click="$store.commit('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
 		/>

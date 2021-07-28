@@ -574,6 +574,9 @@ table.table_wopadd th, table.table_wopadd td {
 .popup-image {
 	cursor: pointer;
 }
+.folder-new__form {
+	width: 80%;
+}
 .prev, .next, .close {
 	position: absolute;
 	line-height: 0;
@@ -606,7 +609,6 @@ table.table_wopadd th, table.table_wopadd td {
 }
 .folder-button, .folder-checkbox {
 	position: relative;
-	margin: -1px -1px -1px -1.5em;
 	padding-left: 1.5em;
 	vertical-align: middle;
 	cursor: pointer;
@@ -616,18 +618,18 @@ table.table_wopadd th, table.table_wopadd td {
 }
 .folder-button {
 	display: flex;
+	margin: -1px -1px -1px -1.5em;
 }
 .folder-checkbox {
-	display: inline-block;
+	margin: 2px 0 0 -1.5em;
 }
 .folder-checkbox + .folder-button {
-	display: inline-block;
 	margin-left: 0.7em;
 }
 .folder-button::before {
-	float: left;
-	width: 1.5em;
-	margin-left: -1.5em;
+	flex-shrink: 0;
+	width: 1.6em;
+	margin-left: -1.6em;
 }
 span.folder-button {
 	display: block;
@@ -660,7 +662,7 @@ span.folder-button {
 	content: "";
 	display: block;
 	position: absolute;
-	top: 1.5em; bottom: 2px; left: 0.5em;
+	top: 1.5em; bottom: 2px; left: 0.4em;
 	width: 1px;
 	margin: 0;
 	float: none;
@@ -737,6 +739,9 @@ span.folder-button {
 	display: flex;
 	flex-direction: column;
 	position: relative;
+}
+.folder > * {
+	display: flex;
 }
 .menu .dragenter-area {
 	position: absolute;
