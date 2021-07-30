@@ -73,6 +73,7 @@
 import { constants } from '../shared/constants'
 import commonFunctions from '../shared/common'
 import { makeFieldsValidatable } from '../shared/fields_validate'
+import { mapState } from 'vuex'
 import axios from 'axios'
 export default {
 	props: ["data"],
@@ -82,6 +83,9 @@ export default {
 			folderDescription: null,
 			message: '',
 		}
+	},
+	computed: {
+		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	mounted() {
 		makeFieldsValidatable();
@@ -119,8 +123,8 @@ export default {
 									})
 								)) + 1
 								: 1,
-							parent: this.$store.state.currentPlace.folderid
-								? this.$store.state.currentPlace.folderid
+							parent: this.currentPlace.folderid
+								? this.currentPlace.folderid
 								: 'root',
 							opened: false,
 							geomarks: 1,

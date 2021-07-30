@@ -26,8 +26,8 @@
 					id="actions-delete"
 					class="actions-button"
 					title="Удалить текущее место"
-					:disabled="!($store.state.user && $store.state.currentPlace && $store.state.currentPlace.userid == $store.state.user.id)"
-					@click="deletePlace($store.state.currentPlace);"
+					:disabled="!($store.state.user && currentPlace && currentPlace.userid == $store.state.user.id)"
+					@click="deletePlace(currentPlace);"
 				>
 					×
 				</button>
@@ -177,8 +177,8 @@
 							v-if="$store.state.commonPlaces.indexOf(commonPlace) >= commonPlacesOnPageCount * (commonPlacesPage - 1) && $store.state.commonPlaces.indexOf(commonPlace) < commonPlacesOnPageCount * commonPlacesPage"
 							:id="commonPlace.id"
 							:key="commonPlace.id"
-							:class="'place-button block_01' + (commonPlace === $store.state.currentPlace ? ' active' : '')"
-							@click="setCurrentPlace(commonPlace, true);"
+							:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
+							@click="setCurrentPlace(commonPlace);"
 						>
 							{{ commonPlace.name }}
 						</div>
@@ -202,16 +202,16 @@
 			class="app-cell"
 		>
 			<extmap
-				:id="$store.state.currentPlace ? $store.state.currentPlace.id : null"
+				:id="currentPlace ? currentPlace.id : null"
 				ref="extmap"
-				:name="$store.state.currentPlace ? $store.state.currentPlace.name : ''"
-				:description="$store.state.currentPlace ? $store.state.currentPlace.description : ''"
-				:link="$store.state.currentPlace ? $store.state.currentPlace.link : ''"
-				:images="$store.state.currentPlace ? $store.state.currentPlace.images : []"
-				:latitude="$store.state.currentPlace ? $store.state.currentPlace.latitude : constants.map.initial.latitude"
-				:longitude="$store.state.currentPlace ? $store.state.currentPlace.longitude : constants.map.initial.longitude"
-				:altitudecapability="$store.state.currentPlace ? $store.state.currentPlace.altitudecapability : ''"
-				:time="$store.state.currentPlace ? $store.state.currentPlace.time : ''"
+				:name="currentPlace ? currentPlace.name : ''"
+				:description="currentPlace ? currentPlace.description : ''"
+				:link="currentPlace ? currentPlace.link : ''"
+				:images="currentPlace ? currentPlace.images : []"
+				:latitude="currentPlace ? currentPlace.latitude : constants.map.initial.latitude"
+				:longitude="currentPlace ? currentPlace.longitude : constants.map.initial.longitude"
+				:altitudecapability="currentPlace ? currentPlace.altitudecapability : ''"
+				:time="currentPlace ? currentPlace.time : ''"
 				:center-latitude="$store.state.center ? $store.state.center.latitude : constants.map.initial.latitude"
 				:center-longitude="$store.state.center ? $store.state.center.longitude : constants.map.initial.longitude"
 				:geomarks-visibility="geomarksVisibility"
@@ -246,9 +246,9 @@
 			class="app-cell"
 		>
 			<div>
-				<dt v-if="$store.state.currentPlace">
+				<dt v-if="currentPlace">
 					<dl
-						v-for="field in Object.keys($store.state.currentPlace)"
+						v-for="field in Object.keys(currentPlace)"
 						:key="field"
 						class="place-detailed margin_bottom_0"
 					>
@@ -257,8 +257,8 @@
 							class="place-detailed__link-dt"
 						>
 							<a
-								v-if="!linkEditing && $store.state.currentPlace[field].trim()"
-								:href="$store.state.currentPlace[field].trim()"
+								v-if="!linkEditing && currentPlace[field].trim()"
+								:href="currentPlace[field].trim()"
 								target="_blank"
 							>
 								{{ $store.state.placeFields[field] }}
@@ -267,27 +267,27 @@
 								{{ $store.state.placeFields[field] }}:
 							</span>
 						</dt>
-						<dt v-else-if="!(field == 'images' && $store.state.currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'link' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
+						<dt v-else-if="!(field == 'images' && currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'link' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
 							{{ $store.state.placeFields[field] }}:
 						</dt>
 						<dd v-if="field == 'srt' || field == 'link' || field == 'latitude' || field == 'longitude' || field == 'altitudecapability'">
 							<input
 								:id="'detailed-' + field"
-								v-model.number.trim="$store.state.currentPlace[field]"
+								v-model.number.trim="currentPlace[field]"
 								type="text"
 								:disabled="currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
 							>
 						</dd>
 						<dd v-else-if="field == 'time'">
 							<input
 								:id="'detailed-' + field"
-								v-model="$store.state.currentPlace[field]"
+								v-model="currentPlace[field]"
 								type="datetime-local"
 								:disabled="currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
 							>
 						</dd>
 						<dd
@@ -297,16 +297,16 @@
 							<label>
 								<input
 									:id="'detailed-' + field"
-									v-model="$store.state.currentPlace[field]"
+									v-model="currentPlace[field]"
 									type="checkbox"
 									:disabled="currentPlaceCommon"
-									@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+									@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
 								>
 								Место видно другим
 							</label>
 						</dd>
 						<dd
-							v-else-if="field == 'images' && $store.state.currentPlace.images.length > 0"
+							v-else-if="field == 'images' && currentPlace.images.length > 0"
 							id="place-images"
 						>
 							<div class="dd-images">
@@ -328,8 +328,8 @@
 											class="image-thumbnail border_1"
 											draggable="false"
 											:src="constants.dirs.uploads.images.small + image.file"
-											:alt="$store.state.currentPlace.name"
-											:title="$store.state.currentPlace.name"
+											:alt="currentPlace.name"
+											:title="currentPlace.name"
 										>
 										<div
 											v-if="!currentPlaceCommon"
@@ -346,17 +346,17 @@
 						<dd v-else-if="field != 'common' && field != 'link' && field != 'images' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated'">
 							<textarea
 								:id="'detailed-' + field"
-								v-model.trim="$store.state.currentPlace[field]"
+								v-model.trim="currentPlace[field]"
 								:disabled="currentPlaceCommon"
 								:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
 								class="fieldwidth_100"
-								@change="$store.commit('changePlace', {place: $store.state.currentPlace, change: {updated: true}});"
+								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
 							/>
 						</dd>
 					</dl>
 				</dt>
 				<div
-					v-if="$store.state.currentPlace && !$store.state.currentPlace.deleted && !currentPlaceCommon"
+					v-if="currentPlace && !currentPlace.deleted && !currentPlaceCommon"
 					class="images-add margin_bottom"
 				>
 					<div class="images-add__div button">
@@ -378,13 +378,13 @@
 				>
 					<span>… загрузка …</span>
 				</div>
-				<div v-if="$store.state.currentPlace && !currentPlaceCommon">
+				<div v-if="currentPlace && !currentPlaceCommon">
 					<label>
 						<input
 							id="checkbox-homeplace"
 							type="checkbox"
-							:checked="$store.state.currentPlace === $store.state.homePlace ? 'checked' : ''"
-							@change="$store.commit('setHomePlace', ($event.target.checked ? $store.state.currentPlace.id : null)); $root.homeToDB($event.target.checked ? $store.state.currentPlace : {});"
+							:checked="currentPlace === $store.state.homePlace ? 'checked' : ''"
+							@change="$store.commit('setHomePlace', ($event.target.checked ? currentPlace.id : null)); $root.homeToDB($event.target.checked ? currentPlace : {});"
 						>
 						Домашнее место
 					</label>
@@ -468,7 +468,7 @@
 				:is="$root.popupComponent"
 				ref="popup"
 				:data="$root.popupData"
-				:current-place="$store.state.currentPlace"
+				:current-place="currentPlace"
 			/>
 		</div>
 	</div>
@@ -477,10 +477,10 @@
 <script>
 import _ from 'lodash'
 import { constants } from '../shared/constants'
+import { mapState } from 'vuex'
 import commonFunctions from '../shared/common.ts'
 import { makeFieldsValidatable } from '../shared/fields_validate'
 import { bus } from '../shared/bus'
-import { mapGetters } from 'vuex'
 import axios from 'axios'
 import tree from './Tree.vue'
 import extmap from './ExtMap.vue'
@@ -503,13 +503,10 @@ export default {
 		return {
 			state: this.$store.state,
 			constants: constants,
-			placesFilled: false,
 			commonPlacesPage: 1,
 			commonPlacesPagesCount: 0,
 			commonPlacesOnPageCount: constants.commonplacesonpagecount,
 			commonPlacesShow: false,
-			currentPlace: null,
-			currentPlaceCommon: false,
 			sidebarSize: {
 				top: constants.sidebars.top,
 				right: constants.sidebars.right,
@@ -522,7 +519,7 @@ export default {
 		}
 	},
 	computed: {
-		...mapGetters(["getCurrentPlace", "getMessage"]),
+		...mapState(['currentPlace', 'currentPlaceIndex']),
 		orderedImages() {
 			return this.currentPlace ? _.orderBy(this.currentPlace.images, 'srt') : [];
 		},
@@ -533,6 +530,12 @@ export default {
 			}
 			return geomarksVisibility;
 		},
+		stateReady() {
+			return this.$store.state.ready;
+		},
+		currentPlaceCommon() {
+			return this.$parent.currentPlaceCommon;
+		},
 	},
 	watch: {
 		getCurrentPlace: {
@@ -540,10 +543,10 @@ export default {
 			immediate: true,
 			handler(place) {
 				if (place) {
-					this.currentPlace = {
+					this.$store.commit('setCurrentPlace', {
 						...place,
 						images: place.images,
-					};
+					});
 					if (
 						place.userid == this.$store.state.user.id &&
 						!place.name &&
@@ -556,73 +559,16 @@ export default {
 						}, 500);
 					}
 				} else {
-					this.currentPlace = null;
+					this.$store.commit('setCurrentPlace', null);
 				}
 			},
 		},
+		stateReady() {
+			this.stateReadyChanged();
+		},
 	},
-	mounted() {
+	created() {
 		bus.$on('placesFilled', happens => {
-			this.currentPlaceCommon = this.$parent.currentPlaceCommon;
-			if (this.$store.state.places.length > 0) {
-				if (this.$store.state.currentPlaceIndex > -1) {
-					this.setCurrentPlace(
-						this.$store.state.currentPlace,
-						this.currentPlaceCommon
-					);
-					// No matter how idiotic it looks
-				} else if (this.$store.state.homePlace) {
-					this.setCurrentPlace(this.$store.state.homePlace);
-				} else {
-					let firstPlaceInRoot = this.$store.state.places.find(
-						p => p.folderid === null
-					);
-					if (!firstPlaceInRoot) {
-						this.setCurrentPlace(this.$store.state.places[0]);
-					} else {
-						this.setCurrentPlace(firstPlaceInRoot);
-					}
-				}
-			}
-			if (happens === 'importing') {
-				this.$nextTick(function() {
-					bus.$emit('toDBCompletely');
-				});
-			}
-			if (this.$refs.extmap && this.$refs.extmap.map) {
-				this.$refs.extmap.map.destroy();
-			}
-			if (this.$refs.extmap) {
-				if (this.$store.state.currentPlace) {
-					this.$refs.extmap.showMap(
-						this.$store.state.currentPlace.latitude,
-						this.$store.state.currentPlace.longitude
-					);
-				} else {
-					this.$refs.extmap.showMap(
-						constants.map.initial.latitude,
-						constants.map.initial.longitude
-					);
-				}
-			}
-			this.commonPlacesPagesCount = Math.ceil(
-				this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
-			);
-			document.addEventListener('dragover', this.$root.handleDragOver, false);
-			document.addEventListener('drop', this.$root.handleDrop, false);
-			document.addEventListener('keyup', this.keyup, false);
-			window.addEventListener('resize', this.windowResize, false);
-			if (this.$store.state.user.testaccount) {
-				setTimeout(() => {
-					this.$store.dispatch("setMessage", `
-						Вы авторизовались под тестовым аккаунтом;
-						невозможны сохранение изменений в базу данных
-						и загрузка файлов, в том числе фотографий
-					`);
-				}, 3000);
-			}
-			this.windowResize();
-			this.placesFilled = true;
 		});
 		bus.$on('homeRefresh', () => {
 			this.$refs.extmap.mrks = {};
@@ -630,16 +576,16 @@ export default {
 			this.$store.state.places.forEach((place) => {
 				this.$refs.extmap.appendPlacemark(this.$refs.extmap.mrks, place, 'private');
 			});
-			if (this.$store.state.currentPlace) {
+			if (this.currentPlace) {
 				if (
 					!this.currentPlaceCommon &&
-					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
+					this.$refs.extmap.mrks[this.currentPlace.id]
 				) {
-					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
+					this.$refs.extmap.mrks[this.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
-				} else if (this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]) {
-					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
+				} else if (this.$refs.extmap.commonMrks[this.currentPlace.id]) {
+					this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.activePlacemarksColor
 					);
 				}
@@ -648,20 +594,19 @@ export default {
 		bus.$on('setCurrentPlace', (payload) => {
 			this.setCurrentPlace(payload.place, payload.common);
 		});
+	},
+	mounted() {
 		if (sessionStorage.getItem('places-session')) {
 			sessionStorage.setItem('places-app-child-component', 'home');
 		}
+		this.stateReadyChanged();
 		this.$store.commit('setIdleTime', 0);
-		if (this.$store.state.ready) {
-			bus.$emit('placesFilled');
-		}
 		makeFieldsValidatable();
 	},
 	beforeDestroy() {
 		document.removeEventListener('dragover', this.$root.handleDragOver, false);
 		document.removeEventListener('drop', this.$root.handleDrop, false);
 		document.removeEventListener('keyup', this.keyup, false);
-		bus.$off('placesFilled');
 		bus.$off('homeRefresh');
 		bus.$off('setCurrentPlace');
 	},
@@ -677,77 +622,125 @@ export default {
 		account() {
 			bus.$emit('loggedChange', 'account');
 		},
-		setCurrentPlace(place, common = false) {
-			if (this.$store.state.currentPlace) {
+		stateReadyChanged() {
+			if (this.stateReady) {
+				if (this.$store.state.places.length > 0) {
+					if (this.currentPlaceIndex > -1) {
+						// No matter how idiotic it looks:
+						this.setCurrentPlace(this.$store.state.places[this.currentPlaceIndex]);
+					} else if (this.$store.state.homePlace) {
+						this.setCurrentPlace(this.$store.state.homePlace);
+					} else {
+						let firstPlaceInRoot = this.$store.state.places.find(
+							p => p.folderid === 'root'
+						);
+						if (!firstPlaceInRoot) {
+							this.setCurrentPlace(this.$store.state.places[0]);
+						} else {
+							this.setCurrentPlace(firstPlaceInRoot);
+						}
+					}
+				}
+				if (this.$refs.extmap && this.$refs.extmap.map) {
+					this.$refs.extmap.map.destroy();
+				}
+				if (this.$refs.extmap) {
+					if (this.currentPlace) {
+						this.$refs.extmap.showMap(
+							this.currentPlace.latitude,
+							this.currentPlace.longitude
+						);
+					} else {
+						this.$refs.extmap.showMap(
+							constants.map.initial.latitude,
+							constants.map.initial.longitude
+						);
+					}
+				}
+				this.commonPlacesPagesCount = Math.ceil(
+					this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
+				);
+				document.addEventListener('dragover', this.$root.handleDragOver, false);
+				document.addEventListener('drop', this.$root.handleDrop, false);
+				document.addEventListener('keyup', this.keyup, false);
+				window.addEventListener('resize', this.windowResize, false);
+				if (this.$store.state.user.testaccount) {
+					setTimeout(() => {
+						this.$store.dispatch("setMessage", `
+							Вы авторизовались под тестовым аккаунтом;
+							невозможны сохранение изменений в базу данных
+							и загрузка файлов, в том числе фотографий
+						`);
+					}, 3000);
+				}
+				this.windowResize();
+			}
+		},
+		setCurrentPlace(place) {
+			if (this.currentPlace) {
 				if (
 					!this.currentPlaceCommon &&
-					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
+					this.$refs.extmap.mrks[this.currentPlace.id]
 				) {
-					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
+					this.$refs.extmap.mrks[this.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.privatePlacemarksColor
 					);
 				} else if (
-					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]
+					this.$refs.extmap.commonMrks[this.currentPlace.id]
 				) {
-					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
+					this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
 						'iconColor', this.$refs.extmap.commonPlacemarksColor
 					);
 				}
 			}
-			this.currentPlaceCommon = common ? true : false;
-			if (place) {
-				/*
-				 * Setting this.$store.state.currentPlace is not by commit
-				 * because it and the place variable are the only common object.
-				 */
-				this.$store.state.currentPlace = place;
-				for (let i = 0; i < this.$store.state.places.length; i++) {
-					if (this.$store.state.places[i].id == place.id) {
-						this.$store.commit('setCurrentPlaceIndex', i);
+			if (!place) {
+				this.$store.commit('setCurrentPlace', null);
+				return;
+			}
+			this.$store.commit('setCurrentPlaceIndex', this.$store.state.places.indexOf(place));
+			this.$store.commit('setCurrentPlace', place);
+			this.$parent.currentPlaceCommon = (
+				this.currentPlace.userid !== this.$store.state.user.id
+					? true
+					: false
+			);
+			if (
+				!this.currentPlaceCommon &&
+				this.$refs.extmap.mrks[this.currentPlace.id]
+			) {
+				this.$refs.extmap.mrks[this.currentPlace.id].options.set(
+					'iconColor', this.$refs.extmap.activePlacemarksColor
+				);
+			} else if (
+				this.$refs.extmap.commonMrks[this.currentPlace.id]
+			) {
+				this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
+					'iconColor', this.$refs.extmap.activePlacemarksColor
+				);
+			}
+			if (!this.currentPlaceCommon) {
+				let folder, folderid = place.folderid;
+				while (folderid) {
+					folder = commonFunctions.findInTree(
+						this.$root.folderRoot,
+						'children',
+						'id',
+						folderid
+					);
+					if (!folder) {
 						break;
 					}
+					this.$store.commit('folderOpenClose', {
+						folder: folder,
+						opened: true,
+					});
+					folderid = folder.parent;
 				}
-				if (
-					!this.currentPlaceCommon &&
-					this.$refs.extmap.mrks[this.$store.state.currentPlace.id]
-				) {
-					this.$refs.extmap.mrks[this.$store.state.currentPlace.id].options.set(
-						'iconColor', this.$refs.extmap.activePlacemarksColor
-					);
-				} else if (
-					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id]
-				) {
-					this.$refs.extmap.commonMrks[this.$store.state.currentPlace.id].options.set(
-						'iconColor', this.$refs.extmap.activePlacemarksColor
-					);
-				}
-				if (!this.currentPlaceCommon) {
-					let folder, folderid = place.folderid;
-					while (folderid) {
-						folder = commonFunctions.findInTree(
-							this.$root.folderRoot,
-							'children',
-							'id',
-							folderid
-						);
-						if (!folder) {
-							break;
-						}
-						this.$store.commit('folderOpenClose', {
-							folder: folder,
-							opened: true,
-						});
-						folderid = folder.parent;
-					}
-				}
-				this.$store.commit('changeCenter', {
-					latitude: this.$store.state.currentPlace.latitude,
-					longitude: this.$store.state.currentPlace.longitude,
-				});
-			} else {
-				this.$store.state.currentPlace = null;
-				this.$store.commit('setCurrentPlaceIndex', -1);
 			}
+			this.$store.commit('changeCenter', {
+				latitude: this.currentPlace.latitude,
+				longitude: this.currentPlace.longitude,
+			});
 		},
 		appendPlace() {
 			let data = new FormData();
@@ -772,8 +765,8 @@ export default {
 							time: new Date().toISOString().slice(0, -5),
 							id: commonFunctions.generateRandomString(32),
 							folderid:
-								this.$store.state.currentPlace
-									? this.$store.state.currentPlace.folderid
+								this.currentPlace
+									? this.currentPlace.folderid
 									: 'root'
 							,
 							srt:
@@ -920,10 +913,10 @@ export default {
 					srt
 				;
 				if (
-					this.$store.state.currentPlace &&
-					this.$store.state.currentPlace.images.length > 0
+					this.currentPlace &&
+					this.currentPlace.images.length > 0
 				) {
-					let storeImages = this.$store.state.currentPlace.images;
+					let storeImages = this.currentPlace.images;
 					srt = commonFunctions.sortObjects(storeImages, 'srt').pop().srt;
 				} else {
 					srt = 0;
@@ -955,8 +948,8 @@ export default {
 							type: files[i].type,
 							lastmodified: files[i].lastModified,
 							srt: ++srt,
-							placeid: this.$store.state.currentPlace.id
-								? this.$store.state.currentPlace.id
+							placeid: this.currentPlace.id
+								? this.currentPlace.id
 								: null,
 						});
 					}
@@ -974,12 +967,12 @@ export default {
 									i--;
 								}
 							}
-							let images = this.$store.state.currentPlace.images
-								? this.$store.state.currentPlace.images.concat(filesArray)
+							let images = this.currentPlace.images
+								? this.currentPlace.images.concat(filesArray)
 								: filesArray
 							;
 							this.$store.commit('changePlace', {
-								place: this.$store.state.currentPlace,
+								place: this.currentPlace,
 								change: {images: images, updated: true},
 							});
 							/*
@@ -1035,11 +1028,11 @@ export default {
 					break;
 				case 'delete' :
 					if (
-						this.$store.state.currentPlace &&
-							this.$store.state.currentPlace.userid ==
+						this.currentPlace &&
+							this.currentPlace.userid ==
 								this.$store.state.user.id
 					) {
-						this.deletePlace(this.$store.state.currentPlace);
+						this.deletePlace(this.currentPlace);
 					}
 					break;
 				case 'add folder' :
@@ -1205,10 +1198,10 @@ export default {
 			if (event.keyCode == 27) {
 				event.target.value = '';
 			} else {
-				for (let i = 0; i < this.$store.state.places.length; i++) {
+				for (let place of this.$store.state.places) {
 					let regexp = new RegExp(event.target.value, 'i');
-					if (event.target.value.length > 1 && regexp.test(this.$store.state.places[i].name)) {
-						this.setCurrentPlace(this.$store.state.places[i]);
+					if (event.target.value.length > 1 && regexp.test(place.name)) {
+						this.setCurrentPlace(place);
 					}
 				}
 			}

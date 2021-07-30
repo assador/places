@@ -93,6 +93,7 @@ body {
 }
 #bottom-basic {
 	grid-area: bottom-basic;
+	z-index: 200;
 }
 #bottom-right {
 	grid-area: bottom-right;
@@ -154,7 +155,6 @@ body {
 }
 #sbs-top, #sbs-right, #sbs-bottom, #sbs-left {
 	position: absolute;
-	z-index: 100;
 	transition: all 0.5s;
 }
 #sbs-top, #sbs-bottom {
@@ -176,6 +176,12 @@ body {
 }
 #sbs-left {
 	left: -11px;
+}
+#sbs-top, #sbs-right {
+	z-index: 100;
+}
+#sbs-bottom, #sbs-left {
+	z-index: 300;
 }
 
 /* Разные стили */

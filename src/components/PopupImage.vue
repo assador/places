@@ -27,13 +27,17 @@
 
 <script>
 import { constants } from "../shared/constants.ts"
+import { mapState } from 'vuex'
 export default {
-	props: ["data", "currentPlace"],
+	props: ["data"],
 	data() {
 		return {
 			constants: constants,
 			dataprop: this.data,
 		}
+	},
+	computed: {
+		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	watch: {
 		data: {

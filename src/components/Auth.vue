@@ -148,7 +148,7 @@
 				ref="popup"
 				name="popup"
 				:data="$root.popupData"
-				:current-place="$store.state.currentPlace"
+				:current-place="currentPlace"
 			/>
 		</div>
 	</div>
@@ -156,6 +156,7 @@
 
 <script>
 import { bus } from '../shared/bus'
+import { mapState } from 'vuex'
 import { makeFieldsValidatable } from '../shared/fields_validate'
 import { loginRoutine, login } from '../shared/auth'
 import { regRoutine, reg } from '../shared/reg'
@@ -180,6 +181,9 @@ export default {
 			regPhone: '',
 			forgotEmail: '',
 		}
+	},
+	computed: {
+		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	mounted() {
 		if (!sessionStorage.getItem('places-session')) {

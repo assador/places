@@ -1,6 +1,7 @@
 import { constants } from '../shared/constants'
 import { bus } from '../shared/bus'
 import commonFunctions from '../shared/common'
+import axios from 'axios'
 import Vue from 'vue'
 import Vuex from 'vuex'
 
@@ -9,7 +10,6 @@ Vue.use(Vuex)
 const tracking = (store) => {
 	const trackingMutations: string[] = [
 		'addFolder',
-		'addImporting',
 		'addPlace',
 		'changeFolder',
 		'changePlace',
@@ -19,9 +19,14 @@ const tracking = (store) => {
 		'modifyPlaces',
 		'removePlace',
 		'swapValues',
+		'setHomePlace',
+		'setCurrentPlace',
+		'placesReady',
+		'stateReady',
 	];
-	const unsubscribe = store.subscribe((mutation, state) => {
+	store.subscribe((mutation, state) => {
 		if (
+			trackingMutations.includes(mutation.type) &&
 			mutation.type != 'setIdleTime' &&
 			mutation.type != 'setRefreshing' &&
 			!state.refreshing
@@ -137,9 +142,6 @@ const store = new Vuex.Store({
 		setIdleTime(state, time) {
 			Vue.set(state, 'idleTime', time);
 		},
-		foldersToTree(state) {
-			Vue.set(state, 'folders', commonFunctions.plainToTree(state.folders));
-		},
 		backupState(state) {
 			state.stateBackups.splice(++state.stateBackupsIndex, Infinity, {
 				places: JSON.parse(JSON.stringify(state.places)),
@@ -219,6 +221,9 @@ const store = new Vuex.Store({
 		setUser(state, user) {
 			Vue.set(state, 'user', user);
 		},
+		setCurrentPlace(state, place) {
+			Vue.set(state, 'currentPlace', place);
+		},
 		setCurrentPlaceIndex(state, index) {
 			Vue.set(state, 'currentPlaceIndex', index);
 		},
@@ -239,10 +244,15 @@ const store = new Vuex.Store({
 			Vue.set(state.user, 'homeplace', null);
 		},
 		placesReady(state, payload) {
-			Vue.set(state, 'places', payload.places);
-			Vue.set(state, 'commonPlaces', payload.commonPlaces);
-			Vue.set(state, 'folders', payload.folders);
-			Vue.set(state, 'ready', true);
+			if (payload.places) {
+				Vue.set(state, 'places', payload.places);
+			}
+			if (payload.commonPlaces) {
+				Vue.set(state, 'commonPlaces', payload.commonPlaces);
+			}
+			if (payload.folders) {
+				Vue.set(state, 'folders', payload.folders);
+			}
 			let added = false, deleted = false, updated = false;
 			switch (payload.what) {
 				case 'added' :
@@ -269,6 +279,9 @@ const store = new Vuex.Store({
 				Vue.set(folder, 'updated', updated);
 				Vue.set(folder, 'opened', false);
 			}
+		},
+		stateReady(state, ready) {
+			Vue.set(state, 'ready', ready);
 		},
 		show(state, index) {
 			Vue.set(state.places[index], 'show', true);
@@ -324,63 +337,6 @@ const store = new Vuex.Store({
 				parent.children.push(folder);
 			}
 		},
-		addImporting(state, payload) {
-			let found: any;
-			const plainStateFolders = [], plainPayloadFolders = [];
-			commonFunctions.treeToPlain({'children': state.folders}, 'children', plainStateFolders);
-			commonFunctions.treeToPlain({'children': payload.folders}, 'children', plainPayloadFolders);
-			Vue.set(state, 'folders', []);
-			for (const payloadFolder of plainPayloadFolders) {
-				payloadFolder.userid = sessionStorage.getItem('places-userid');
-				/*
-				 * Checking if such a folder already exists in the tree.
-				 * If exists, updating; if not, addinng.
-				 */
-				found = plainStateFolders.find(f =>
-					f.id == payloadFolder.id
-				);
-				if (found) {
-					payloadFolder.updated = true;
-					for (const key in payloadFolder) {
-						if (
-							key !== 'id' &&
-							key !== 'added' &&
-							key !== 'deleted'
-						) {
-							found[key] = payloadFolder[key];
-						}
-					}
-				} else {
-					payloadFolder.added = true;
-					plainStateFolders.push(payloadFolder);
-				}
-			}
-			for (const stateFolder of plainStateFolders) {
-				stateFolder.builded = false;
-			}
-			Vue.set(state, 'folders', commonFunctions.plainToTree(plainStateFolders));
-			for (const payloadPlace of payload.places) {
-				payloadPlace.userid = sessionStorage.getItem('places-userid');
-				/*
-				 * Checking if such a place already exists.
-				 * If exists, updating; if not, addinng.
-				 */
-				found = state.places.find(p =>
-					p.id == payloadPlace.id ||
-					p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
-				);
-				if (found) {
-					found.updated = true;
-					for (const key in payloadPlace) {
-						Vue.set(found, key, payloadPlace[key]);
-					}
-				} else {
-					payloadPlace.images = [];
-					payloadPlace.added = true;
-					Vue.set(state, 'places', state.places.concat([payloadPlace]));
-				}
-			}
-		},
 		deletePlace(state, place) {
 			for (let i = 0; i < state.places.length; i++) {
 				if (state.places[i] === place) {
@@ -412,7 +368,7 @@ const store = new Vuex.Store({
 				}
 			}
 		},
-		deletePlacesMarkedAsDeleted(state, payload) {
+		deletePlacesMarkedAsDeleted(state) {
 			for (let i = 0; i < state.places.length; i++) {
 				if (state.places[i].deleted) {
 					state.places[i] = null;
@@ -424,7 +380,7 @@ const store = new Vuex.Store({
 				state.places.indexOf(state.currentPlace)
 			);
 		},
-		deleteFoldersMarkedAsDeleted(state, payload) {
+		deleteFoldersMarkedAsDeleted(state) {
 			commonFunctions.changeByKeyValue(
 				{children: state.folders},
 				'children',
@@ -471,8 +427,8 @@ const store = new Vuex.Store({
 			}
 		},
 		swapValues(state, changes) {
-			const p1: any = changes.parent[changes.indexes[0]];
-			const p2: any = changes.parent[changes.indexes[1]];
+			const p1 = changes.parent[changes.indexes[0]];
+			const p2 = changes.parent[changes.indexes[1]];
 			changes.values.forEach(function(key) {
 				Vue.set(p1, key, [p2[key], Vue.set(p2, key, p1[key])][0]);
 			});
@@ -515,62 +471,55 @@ const store = new Vuex.Store({
 			sessionStorage.removeItem('places-session');
 		},
 		setUser({commit, dispatch}) {
-			const userRequest = new XMLHttpRequest();
-			userRequest.open('GET', '/backend/get_account.php?id=' + sessionStorage.getItem('places-userid'), true);
-			userRequest.onreadystatechange = function() {
-				if (userRequest.readyState == 4) {
-					if (userRequest.status == 200) {
-						const user: any = JSON.parse(userRequest.responseText);
-						commit('setUser', user);
-					} else {
-						dispatch('setMessage', 'Не могу получить данные');
-						commit('setUser', null);
-					}
-				}
-			};
-			userRequest.send(null);
+			axios
+				.get(
+					'/backend/get_account.php?id=' +
+					sessionStorage.getItem('places-userid')
+				)
+				.then(response => {
+					commit('setUser', response.data);
+				})
+				.catch(() => {
+					dispatch('setMessage', 'Не могу получить данные');
+					commit('setUser', null);
+				})
+			;
 		},
 		setPlaces({state, commit, dispatch}, payload) {
-			// If reading from database, not importing
 			if (!payload) {
-				const placesRequest = new XMLHttpRequest();
-				placesRequest.open(
-					'GET',
-					'/backend/get_places.php?id=' +
-						sessionStorage.getItem('places-userid'),
-					true
-				);
-				placesRequest.onreadystatechange = function() {
-					if (placesRequest.readyState == 4) {
-						if (placesRequest.status == 200) {
-							const all_places = JSON.parse(placesRequest.responseText);
-							commonFunctions.sortObjectsByProximity(all_places[1]);
-							commit('placesReady', {
-								places: all_places[0],
-								commonPlaces: all_places[1],
-								folders: all_places[2],
-							});
-							commit('setHomePlace', state.user.homeplace);
-							commit('foldersToTree');
-							bus.$emit('placesFilled');
-						} else {
-							dispatch('setMessage', 'Не могу получить данные из БД');
-							commit('placesReady', {
-								places: [],
-								commonPlaces: [],
-								folders: [],
-							});
-						}
-					}
-				};
-				placesRequest.send(null);
+			// If reading from database, not importing
+				axios
+					.get(
+						'/backend/get_places.php?id=' +
+						sessionStorage.getItem('places-userid')
+					)
+					.then(response => {
+						commonFunctions.sortObjectsByProximity(response.data[1]);
+						commit('placesReady', {
+							places: response.data[0],
+							commonPlaces: response.data[1],
+							folders: commonFunctions.plainToTree(response.data[2]),
+						});
+						commit('setHomePlace', state.user.homeplace);
+						commit('stateReady', true);
+					})
+					.catch(() => {
+						dispatch('setMessage', 'Не могу получить данные из БД');
+						commit('placesReady', {
+							places: [],
+							commonPlaces: [],
+							folders: [],
+						});
+						commit('stateReady', false);
+					})
+				;
+			} else {
 			/*
 			 * If importing from file.
 			 * A payload parameter is present and is an object:
 			 * {text: <file’s content as a text>, type: <file’s MIME-type>}
 			 */
-			} else {
-				let parsed: any;
+				let parsed;
 				switch (payload.mime) {
 					case 'application/json' :
 						try {
@@ -590,7 +539,7 @@ const store = new Vuex.Store({
 								break;
 							}
 						}
-						let dom: any = null, importedPlaceFolder: any = {};
+						let dom = null, importedPlaceFolder;
 						// Parsing XML text to a DOM tree
 						if (window.DOMParser) {
 							try {
@@ -624,7 +573,7 @@ const store = new Vuex.Store({
 							);
 							return false;
 						}
-						let description: string, link: string, time: any;
+						let description: string, link: string, time;
 						for (const wpt of dom.getElementsByTagName('wpt')) {
 							// Parsing a link node(s) in a place node
 							for (const l of wpt.getElementsByTagName('link')) {
@@ -723,11 +672,68 @@ const store = new Vuex.Store({
 						return false;
 				}
 				try {
-					commit('addImporting', {
-						places: parsed.places,
-						folders: parsed.folders,
+					let found;
+					const plainStateFolders = [], plainPayloadFolders = [];
+					commonFunctions.treeToPlain({'children': state.folders}, 'children', plainStateFolders);
+					commonFunctions.treeToPlain({'children': parsed.folders}, 'children', plainPayloadFolders);
+					Vue.set(state, 'folders', []);
+					for (const payloadFolder of plainPayloadFolders) {
+						payloadFolder.userid = sessionStorage.getItem('places-userid');
+						/*
+						 * Checking if such a folder already exists in the tree.
+						 * If exists, updating; if not, addinng.
+						 */
+						found = plainStateFolders.find(f =>
+							f.id == payloadFolder.id
+						);
+						if (found) {
+							payloadFolder.updated = true;
+							for (const key in payloadFolder) {
+								if (
+									key !== 'id' &&
+									key !== 'added' &&
+									key !== 'deleted'
+								) {
+									found[key] = payloadFolder[key];
+								}
+							}
+						} else {
+							payloadFolder.added = true;
+							plainStateFolders.push(payloadFolder);
+						}
+					}
+					for (const stateFolder of plainStateFolders) {
+						stateFolder.builded = false;
+					}
+					const placesNew = state.places.slice(0);
+					for (const payloadPlace of parsed.places) {
+						payloadPlace.userid = sessionStorage.getItem('places-userid');
+						/*
+						 * Checking if such a place already exists.
+						 * If exists, updating; if not, addinng.
+						 */
+						found = state.places.find(p =>
+							p.id == payloadPlace.id ||
+							p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
+						);
+						if (found) {
+							found.updated = true;
+							for (const key in payloadPlace) {
+								Vue.set(found, key, payloadPlace[key]);
+							}
+						} else {
+							payloadPlace.images = [];
+							payloadPlace.added = true;
+							placesNew.push(payloadPlace);
+						}
+					}
+					commit('placesReady', {
+						places: placesNew,
+						folders: commonFunctions.plainToTree(plainStateFolders),
 					});
-					bus.$emit('placesFilled', 'importing');
+					commit('setHomePlace', state.user.homeplace);
+					commit('stateReady', true);
+					bus.$emit('toDBCompletely');
 				} catch (e) {
 					dispatch('setMessage',
 						'Ошибка при попытке импорта.'
@@ -738,7 +744,7 @@ const store = new Vuex.Store({
 			}
 		},
 		moveFolder({state, commit}, payload) {
-			let source: any, target: any;
+			let source, target;
 			const folder = payload.hasOwnProperty('folder')
 				? payload.folder
 				: commonFunctions.findInTree(
@@ -844,18 +850,6 @@ const store = new Vuex.Store({
 		},
 	},
 	getters: {
-		getCurrentPlace: (state, getters) => {
-			return state.currentPlace;
-		},
-		getMessage: (state, getters) => {
-			return state.message;
-		},
-		getAccountDeleteMessage: (state, getters) => {
-			return state.message;
-		},
-		getAccountChangeMessage: (state, getters) => {
-			return state.message;
-		},
 	},
 })
 

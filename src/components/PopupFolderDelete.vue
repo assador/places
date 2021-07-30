@@ -66,12 +66,16 @@
 <script>
 import { bus } from '../shared/bus'
 import { constants } from '../shared/constants'
+import { mapState } from 'vuex'
 export default {
 	props: ['data'],
 	data() {
 		return {
 			keepContent: 'keep',
 		}
+	},
+	computed: {
+		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	mounted() {
 		document.addEventListener('keyup', this.keyup, false);
@@ -95,8 +99,8 @@ export default {
 					}
 				});
 				if (
-					this.$store.state.currentPlace &&
-					this.$store.state.currentPlace.deleted
+					this.currentPlace &&
+					this.currentPlace.deleted
 				) {
 					if (this.$store.state.places.length > 0) {
 						let firstRootPlace;

@@ -3,6 +3,7 @@ import App from './App.vue'
 import './registerServiceWorker'
 import router from './router'
 import store from './store'
+import { mapState } from 'vuex'
 import { bus } from './shared/bus'
 import commonFunctions from './shared/common'
 import axios from 'axios'
@@ -26,6 +27,7 @@ new Vue({
 		selectedToExport: [],
 	},
 	computed: {
+		...mapState(['currentPlace', 'currentPlaceIndex']),
 		folderRoot() {
 			return {
 				id: 'root',
@@ -389,20 +391,20 @@ new Vue({
 			) {
 				event.target.classList.add('dragenter-area_bottom_border');
 			} else if (
-				this.$store.state.currentPlace &&
+				this.currentPlace &&
 				this.draggingElement.dataset.image !== undefined &&
 				event.target.dataset.image !== undefined
 			) {
 				const indexes: number[] = [];
-				for (let i = 0; i < this.$store.state.currentPlace.images.length; i++) {
+				for (let i = 0; i < this.currentPlace.images.length; i++) {
 					if (
-						this.$store.state.currentPlace.images[i].id ===
+						this.currentPlace.images[i].id ===
 							this.draggingElement.id
 					) {
 						indexes.push(i);
 					}
 					if (
-						this.$store.state.currentPlace.images[i].id ===
+						this.currentPlace.images[i].id ===
 							event.target.id
 					) {
 						indexes.push(i);
@@ -410,7 +412,7 @@ new Vue({
 					if (indexes.length === 2) break;
 				}
 				this.$store.commit('swapValues', {
-					parent: this.$store.state.currentPlace.images,
+					parent: this.currentPlace.images,
 					indexes: indexes,
 					values: ['srt'],
 					backup: false,

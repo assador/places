@@ -618,6 +618,7 @@ table.table_wopadd th, table.table_wopadd td {
 }
 .folder-button {
 	display: flex;
+	flex-grow: 1;
 	margin: -1px -1px -1px -1.5em;
 }
 .folder-checkbox {
@@ -627,6 +628,7 @@ table.table_wopadd th, table.table_wopadd td {
 	margin-left: 0.7em;
 }
 .folder-button::before {
+	display: inline-block;
 	flex-shrink: 0;
 	width: 1.6em;
 	margin-left: -1.6em;

@@ -8,6 +8,7 @@
 import { Component, Vue } from 'vue-property-decorator'
 import { constants } from '@/shared/constants'
 import { bus } from '@/shared/bus'
+import { mapState } from 'vuex'
 import auth from '@/components/Auth.vue'
 import home from '@/components/Home.vue'
 import account from '@/components/Account.vue'
@@ -24,20 +25,19 @@ import account from '@/components/Account.vue'
 			currentPlaceCommon: false,
 		}
 	},
-	mounted() {
+	computed: {
+		...mapState(['currentPlace', 'currentPlaceIndex']),
+	},
+	created() {
 		bus.$on('loggedChange', (currentComponent) => {
 			this.currentComponent = currentComponent;
-			if (currentComponent != 'auth') {
-				this.$store.dispatch('setUser')
-					.then(response => {
-						this.$store.dispatch('setPlaces', false);
-						sessionStorage.setItem(
-							'places-store-state',
-							JSON.stringify(this.$store.state)
-						);
-					});
+			if (currentComponent !== 'auth') {
+				this.$store.dispatch('setUser');
+				this.$store.dispatch('setPlaces', false);
 			}
 		});
+	},
+	mounted() {
 		/*
 		 * If the App is mounted during the session (for example, when the page
 		 * is reloaded), the store state is restored from sessionStorage.
@@ -57,28 +57,23 @@ import account from '@/components/Account.vue'
 					: null
 			);
 			if (this.$store.state.currentPlace) {
-				for (let i = 0; i < this.$store.state.commonPlaces.length; i++) {
-					if (this.$store.state.commonPlaces[i].id == this.$store.state.currentPlace.id) {
-						this.$store.state.currentPlace = this.$store.state.commonPlaces[i];
+				for (let place of this.$store.state.commonPlaces) {
+					if (place.id === this.$store.state.currentPlace.id) {
+						this.$store.commit('setCurrentPlace', place);
 						this.currentPlaceCommon = true;
 						break;
 					}
 				}
 				if (!this.currentPlaceCommon) {
-					for (let i = 0; i < this.$store.state.places.length; i++) {
-						if (this.$store.state.places[i].id == this.$store.state.currentPlace.id) {
-							this.$store.state.currentPlace = this.$store.state.places[i];
+					for (let place of this.$store.state.places) {
+						if (place.id === this.$store.state.currentPlace.id) {
+							this.$store.commit('setCurrentPlace', place);
 							break;
 						}
 					}
 				}
 			}
 			this.$store.commit('setRefreshing', false);
-		} else {
-			sessionStorage.setItem(
-				'places-store-state',
-				JSON.stringify(this.$store.state)
-			);
 		}
 		if (!sessionStorage.getItem('places-session')) {
 			sessionStorage.setItem('places-app-child-component', 'auth');

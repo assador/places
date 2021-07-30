@@ -96,9 +96,9 @@
 				data-place-button
 				:srt="place.srt"
 				:title="place.description"
-				:class="'place-button block_01 draggable' + ($store.state.currentPlace && place.id == $store.state.currentPlace.id ? ' active' : '')"
+				:class="'place-button block_01 draggable' + (currentPlace && place.id == currentPlace.id ? ' active' : '')"
 				draggable="true"
-				@click="instanceid !== 'popupexporttree' ? $root.setCurrentPlace(place) : '';"
+				@click="instanceid !== 'popupexporttree' ? setCurrentPlace(place) : '';"
 				@dragstart="$root.handleDragStart"
 			>
 				<input
@@ -155,21 +155,24 @@
 </template>
 
 <script>
-import _ from "lodash"
+import _ from 'lodash'
+import { bus } from '../shared/bus'
+import { mapState } from 'vuex'
 export default {
-	name: "Folder",
-	props: ["instanceid", "folder", "parent"],
+	name: 'Folder',
+	props: ['instanceid', 'folder', 'parent'],
 	data() {
 		return {
 			folderData: {},
 		}
 	},
 	computed: {
+		...mapState(['currentPlace', 'currentPlaceIndex']),
 		orderedChildren() {
-			return _.orderBy(this.folderData.children, "srt");
+			return _.orderBy(this.folderData.children, 'srt');
 		},
 		orderedPlaces() {
-			return _.orderBy(this.$store.state.places, "srt");
+			return _.orderBy(this.$store.state.places, 'srt');
 		},
 	},
 	watch: {
@@ -185,6 +188,9 @@ export default {
 		},
 	},
 	methods: {
+		setCurrentPlace(place) {
+			bus.$emit('setCurrentPlace', {place: place});
+		},
 		selectUnselect(place, checked) {
 			if (checked) {
 				this.$root.selectedToExport.push(place);
@@ -200,12 +206,12 @@ export default {
 		selectUnselectFolder(folderid, checked) {
 			for (let placeButton of
 				document
-					.getElementById("to-export-places-menu-folder-" + folderid)
-					.getElementsByClassName("place-button")
+					.getElementById('to-export-places-menu-folder-' + folderid)
+					.getElementsByClassName('place-button')
 			) {
 				if (checked !=
 					placeButton
-						.getElementsByClassName("to-export-place-checkbox")[0]
+						.getElementsByClassName('to-export-place-checkbox')[0]
 						.checked
 				) {
 					placeButton.click();
@@ -214,8 +220,8 @@ export default {
 			}
 			for (let folderCheckbox of
 				document
-					.getElementById("to-export-places-menu-folder-" + folderid)
-					.getElementsByClassName("folder-checkbox")
+					.getElementById('to-export-places-menu-folder-' + folderid)
+					.getElementsByClassName('folder-checkbox')
 			) {
 				folderCheckbox.checked = checked ? true : false;
 				
