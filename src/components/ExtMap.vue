@@ -59,7 +59,7 @@ export default {
 	watch: {
 		latitude() {
 			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
+				this.$root.currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -72,7 +72,7 @@ export default {
 		},
 		longitude() {
 			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
+				this.$root.currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -91,14 +91,14 @@ export default {
 		},
 		name() {
 			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
+				this.$root.currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
 		},
 		description() {
 			this.updatePlacemark(
-				this.$parent.currentPlaceCommon
+				this.$root.currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -122,7 +122,7 @@ export default {
 			});
 			if (this.$parent.currentPlace) {
 				if (
-					!this.$parent.currentPlaceCommon &&
+					!this.$root.currentPlaceCommon &&
 					this.mrks[this.$parent.currentPlace.id]
 				) {
 					this.mrks[this.$parent.currentPlace.id].options.set(
@@ -189,10 +189,10 @@ export default {
 				this.$store.state.commonPlaces.forEach((commonPlace) => {
 					this.appendPlacemark(this.commonMrks, commonPlace, 'common');
 				});
-				this.$parent.commonPlacesShowHide(this.$parent.currentPlaceCommon);
+				this.$parent.commonPlacesShowHide(this.$root.currentPlaceCommon);
 				if (this.currentPlace) {
 					if (
-						!this.$parent.currentPlaceCommon &&
+						!this.$root.currentPlaceCommon &&
 						this.mrks[this.currentPlace.id]
 					) {
 						this.mrks[this.currentPlace.id].options.set(

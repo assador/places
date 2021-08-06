@@ -65,7 +65,10 @@ export default {
 			);
 		},
 		defineVars() {
-			for (let place of this.$store.state.places) {
+			for (let place of (!this.$root.currentPlaceCommon
+				? this.$store.state.places
+				: this.$store.state.commonPlaces
+			)) {
 				this.image = place.images.find(image => image.id === this.imageId);
 				if (this.image) {
 					this.images = place.images;

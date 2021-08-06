@@ -272,7 +272,7 @@
 								{{ $store.state.placeFields[field] }}:
 							</span>
 						</dt>
-						<dt v-else-if="!(field == 'images' && currentPlace.images.length == 0) && !(field == 'common' && currentPlaceCommon) && field != 'link' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
+						<dt v-else-if="!(field == 'images' && currentPlace.images.length == 0) && !(field == 'common' && $root.currentPlaceCommon) && field != 'link' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
 							{{ $store.state.placeFields[field] }}:
 						</dt>
 						<dd v-if="field == 'srt' || field == 'link' || field == 'latitude' || field == 'longitude' || field == 'altitudecapability'">
@@ -280,7 +280,7 @@
 								:id="'detailed-' + field"
 								v-model.number.trim="currentPlace[field]"
 								type="text"
-								:disabled="currentPlaceCommon"
+								:disabled="$root.currentPlaceCommon"
 								class="fieldwidth_100"
 								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
 							>
@@ -290,13 +290,13 @@
 								:id="'detailed-' + field"
 								v-model="currentPlace[field]"
 								type="datetime-local"
-								:disabled="currentPlaceCommon"
+								:disabled="$root.currentPlaceCommon"
 								class="fieldwidth_100"
 								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
 							>
 						</dd>
 						<dd
-							v-else-if="!(field == 'common' && currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'"
+							v-else-if="!(field == 'common' && $root.currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'"
 							class="margin_bottom"
 						>
 							<label>
@@ -304,7 +304,7 @@
 									:id="'detailed-' + field"
 									v-model="currentPlace[field]"
 									type="checkbox"
-									:disabled="currentPlaceCommon"
+									:disabled="$root.currentPlaceCommon"
 									@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
 								>
 								Место видно другим
@@ -320,8 +320,8 @@
 									:id="image.id"
 									:key="image.id"
 									data-image
-									:class="'place-image' + (currentPlaceCommon ? '' : ' draggable')"
-									:draggable="currentPlaceCommon ? false : true"
+									:class="'place-image' + ($root.currentPlaceCommon ? '' : ' draggable')"
+									:draggable="$root.currentPlaceCommon ? false : true"
 									@click="$router.push({name: 'HomeImages', params: {imageId: image.id}}).catch(() => {})"
 									@dragstart="$root.handleDragStart"
 									@dragenter="$root.handleDragEnter"
@@ -337,7 +337,7 @@
 											:title="currentPlace.name"
 										>
 										<div
-											v-if="!currentPlaceCommon"
+											v-if="!$root.currentPlaceCommon"
 											class="dd-images__delete button"
 											draggable="false"
 											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteImages([image]);"
@@ -352,7 +352,7 @@
 							<textarea
 								:id="'detailed-' + field"
 								v-model.trim="currentPlace[field]"
-								:disabled="currentPlaceCommon"
+								:disabled="$root.currentPlaceCommon"
 								:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
 								class="fieldwidth_100"
 								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
@@ -361,7 +361,7 @@
 					</dl>
 				</dt>
 				<div
-					v-if="currentPlace && !currentPlace.deleted && !currentPlaceCommon"
+					v-if="currentPlace && !currentPlace.deleted && !$root.currentPlaceCommon"
 					class="images-add margin_bottom"
 				>
 					<div class="images-add__div button">
@@ -383,7 +383,7 @@
 				>
 					<span>… загрузка …</span>
 				</div>
-				<div v-if="currentPlace && !currentPlaceCommon">
+				<div v-if="currentPlace && !$root.currentPlaceCommon">
 					<label>
 						<input
 							id="checkbox-homeplace"
@@ -518,9 +518,6 @@ export default {
 		stateReady() {
 			return this.$store.state.ready;
 		},
-		currentPlaceCommon() {
-			return this.$parent.currentPlaceCommon;
-		},
 	},
 	watch: {
 		getCurrentPlace: {
@@ -587,7 +584,7 @@ export default {
 				this.commonPlacesPagesCount = Math.ceil(
 					this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
 				);
-				this.$parent.currentPlaceCommon = false;
+				this.$root.currentPlaceCommon = false;
 				if (
 					this.currentPlace &&
 					this.currentPlace.common &&
@@ -601,7 +598,7 @@ export default {
 						? inPaginator + 1
 						: Math.ceil(inPaginator)
 					);
-					this.$parent.currentPlaceCommon = true;
+					this.$root.currentPlaceCommon = true;
 				}
 				if (this.$refs.extmap) {
 					if (this.$refs.extmap.map) {
@@ -636,7 +633,7 @@ export default {
 			}
 		},
 		openTreeToCurrentPlace() {
-			if (!this.currentPlaceCommon) {
+			if (!this.$root.currentPlaceCommon) {
 				let folder, folderid = this.currentPlace.folderid;
 				while (folderid) {
 					folder = commonFunctions.findInTree(
@@ -659,7 +656,7 @@ export default {
 		setCurrentPlace(place) {
 			if (this.currentPlace) {
 				if (
-					!this.currentPlaceCommon &&
+					!this.$root.currentPlaceCommon &&
 					this.$refs.extmap.mrks[this.currentPlace.id]
 				) {
 					this.$refs.extmap.mrks[this.currentPlace.id].options.set(
@@ -679,13 +676,13 @@ export default {
 			}
 			this.$store.commit('setCurrentPlaceIndex', this.$store.state.places.indexOf(place));
 			this.$store.commit('setCurrentPlace', place);
-			this.$parent.currentPlaceCommon = (
+			this.$root.currentPlaceCommon = (
 				this.currentPlace.userid !== this.$store.state.user.id
 					? true
 					: false
 			);
 			if (
-				!this.currentPlaceCommon &&
+				!this.rootcurrentPlaceCommon &&
 				this.$refs.extmap.mrks[this.currentPlace.id]
 			) {
 				this.$refs.extmap.mrks[this.currentPlace.id].options.set(

@@ -11,11 +11,6 @@ import { bus } from '@/shared/bus'
 import { mapState } from 'vuex'
 @Component({
 	name: 'App',
-	data() {
-		return {
-			currentPlaceCommon: false,
-		}
-	},
 	computed: {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
