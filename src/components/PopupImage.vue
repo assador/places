@@ -1,9 +1,13 @@
 <template>
-	<div>
+	<div
+		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
+		@click="close($event)"
+	>
 		<img
+			v-if="image"
 			class="popup-image border_1"
-			:src="constants.dirs.uploads.images.big + dataprop.file"
-			:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedbig + dataprop.file + '\''"
+			:src="constants.dirs.uploads.images.big + image.file"
+			:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedbig + image.file + '\''"
 			title="Следующая"
 			@click="showImage(1, $event);"
 		>
@@ -20,69 +24,82 @@
 		<a
 			href="javascript:void(0);"
 			class="close"
-			@click="$root.showPopup({show: false}, $event);"
+			@click="close($event)"
 		>×</a>
 	</div>
 </template>
 
 <script>
 import { constants } from "../shared/constants.ts"
-import { mapState } from 'vuex'
 export default {
-	props: ["data"],
+	props: ["imageId"],
 	data() {
 		return {
 			constants: constants,
-			dataprop: this.data,
+			popuped: false,
+			images: null,
+			image: undefined,
 		}
 	},
-	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
-	},
 	watch: {
-		data: {
-			deep: true,
-			immediate: true,
-			handler(data) {
-				this.dataprop = data;
-			},
+		imageId() {
+			this.defineVars();
 		},
 	},
 	mounted() {
+		this.popuped = true;
+		this.defineVars();
 		document.addEventListener('keyup', this.keyup, false);
+	},
+	beforeUpdate() {
+		this.popuped = true;
 	},
 	beforeDestroy() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
+		close(event) {
+			if (event) event.stopPropagation();
+			this.$router.replace(
+				this.$route.matched[this.$route.matched.length - 2].path
+			);
+		},
+		defineVars() {
+			for (let place of this.$store.state.places) {
+				this.image = place.images.find(image => image.id === this.imageId);
+				if (this.image) {
+					this.images = place.images;
+					return;
+				}
+			}
+			this.$router.replace(
+				this.$route.matched[this.$route.matched.length - 2].path
+			);
+		},
 		showImage(step, event) {
-			this.$store.commit("setIdleTime", 0);
 			event.stopPropagation();
-			if (this.currentPlace && this.currentPlace.images.length > 0) {
-				let currentIndex = this.currentPlace.images.indexOf(this.dataprop);
+				let currentIndex = this.images.indexOf(this.image);
 				if (currentIndex > -1) {
-					let ImagesLength = this.currentPlace.images.length;
+					let ImagesLength = this.images.length;
 					currentIndex = (currentIndex + step) % ImagesLength + (
 						(currentIndex + step) % ImagesLength < 0 ? ImagesLength: 0
 					);
-					this.dataprop = this.currentPlace.images[currentIndex];
+					this.$router.push({
+						name: 'HomeImages',
+						params: {imageId: this.images[currentIndex].id}
+					}).catch(() => {});
 				}
-			}
 		},
 		keyup(event) {
 			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :
-					this.$root.showPopup({show: false}, event);
+					this.close();
 					break;
 				case 'left' :
-					if (this.$root.popupComponent === 'popupimage') {
-						this.showImage(-1, event);
-					}
+					this.showImage(-1, event);
 					break;
 				case 'right' :
-					if (this.$root.popupComponent === 'popupimage') {
-						this.showImage(1, event);
-					}
+					this.showImage(1, event);
 					break;
 			}
 		},

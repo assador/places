@@ -1,5 +1,8 @@
 <template>
-	<div>
+	<div
+		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
+		@click="close($event)"
+	>
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
@@ -19,7 +22,7 @@
 						<input
 							name="mime"
 							type="radio"
-							:checked="data.mime == 'application/gpx+xml'"
+							:checked="mime === 'application/gpx+xml'"
 							value="application/gpx+xml"
 						>
 						&#160;
@@ -35,7 +38,7 @@
 						<input
 							name="mime"
 							type="radio"
-							:checked="data.mime == 'application/json'"
+							:checked="mime === 'application/json'"
 							value="application/json"
 						>
 						&#160;
@@ -55,7 +58,7 @@
 					class="menu"
 					@click="$event.stopPropagation();"
 				>
-					<tree
+					<Tree
 						instanceid="popupexporttree"
 						:data="$root.folderRoot || {}"
 					/>
@@ -68,7 +71,7 @@
 						&#160;
 						<button
 							type="button"
-							@click="$root.showPopup({show: false}, $event);"
+							@click="close($event)"
 						>
 							Отмена
 						</button>
@@ -78,7 +81,7 @@
 			<a
 				href="javascript:void(0);"
 				class="close"
-				@click="$root.showPopup({show: false}, $event);"
+				@click="close($event)"
 			>
 				×
 			</a>
@@ -87,14 +90,20 @@
 </template>
 
 <script>
-import tree from "./Tree.vue"
+import Tree from "./Tree.vue"
 import { constants } from '../shared/constants'
 export default {
 	components: {
-		tree,
+		Tree,
 	},
-	props: ["data"],
+	props: ["mime"],
+	data() {
+		return {
+			popuped: false,
+		}
+	},
 	mounted() {
+		this.popuped = true;
 		this.$root.selectedToExport = [];
 		for (let f of document.getElementById("popup-export__tree").getElementsByClassName("folder")) {
 			f.classList.add("folder_closed");
@@ -102,15 +111,24 @@ export default {
 		}
 		document.addEventListener('keyup', this.keyup, false);
 	},
+	beforeUpdate() {
+		this.popuped = true;
+	},
 	beforeDestroy() {
 		this.$root.selectedToExport = [];
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
+		close(event) {
+			if (event) event.stopPropagation();
+			this.$router.replace(
+				this.$route.matched[this.$route.matched.length - 2].path
+			);
+		},
 		keyup(event) {
 			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :
-					this.$root.showPopup({show: false}, event);
+					this.close($event);
 					break;
 			}
 		},

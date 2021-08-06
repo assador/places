@@ -1,10 +1,13 @@
 <template>
-	<div>
-		<div v-html="data" />
+	<div
+		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
+		@click="close($event)"
+	>
+		<div v-html="content" />
 		<a
-			href="javascript:void(0);"
+			href="javascript:void(0)"
 			class="close"
-			@click="$root.showPopup({show: false}, $event);"
+			@click="close($event)"
 		>
 			×
 		</a>
@@ -14,20 +17,44 @@
 <script>
 import { constants } from '../shared/constants'
 export default {
-	props: ["data"],
+	props: ['what'],
+	data() {
+		return {
+			content: null,
+			popuped: false,
+		}
+	},
+	watch: {
+		what() {
+			this.open();
+		},
+	},
 	mounted() {
+		this.open();
 		document.addEventListener('keyup', this.keyup, false);
 	},
 	beforeDestroy() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
+	beforeUpdate() {
+		this.popuped = true;
+	},
 	methods: {
-		keyup(event) {
-			switch (constants.shortcuts[event.keyCode]) {
-				case 'close' :
-					this.$root.showPopup({show: false}, event);
-					break;
+		open(event) {
+			if (event) event.stopPropagation();
+			switch (this.what) {
+				default :
+					this.$root.getAbout().then(data => {this.content = data});
 			}
+		},
+		close(event) {
+			if (event) event.stopPropagation();
+			this.$router.replace(
+				this.$route.matched[this.$route.matched.length - 2].path
+			);
+		},
+		keyup(event) {
+			if (constants.shortcuts[event.keyCode] == 'close')  this.close();
 		},
 	},
 }

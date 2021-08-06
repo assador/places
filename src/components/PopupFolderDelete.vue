@@ -1,12 +1,15 @@
 <template>
-	<div>
+	<div
+		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
+		@click="close($event)"
+	>
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
 					Удаление папки
 				</h1>
 				<p class="margin_bottom_0">
-					«{{ data.folder.name }}»
+					«{{ folder ? folder.name : '' }}»
 				</p>
 			</div>
 			<p class="margin_bottom_0">
@@ -14,7 +17,7 @@
 			</p>
 			<form
 				class="folder-delete__form margin_bottom_0"
-				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+				@click="$event.stopPropagation();"
 				@submit.prevent="deleteFolder($event)"
 			>
 				<fieldset class="margin_bottom">
@@ -45,7 +48,7 @@
 						&#160;
 						<button
 							type="button"
-							@click="$root.showPopup({show: false}, $event);"
+							@click="close($event);"
 						>
 							Отмена
 						</button>
@@ -55,7 +58,7 @@
 			<a
 				href="javascript:void(0);"
 				class="close"
-				@click="$root.showPopup({show: false}, $event);"
+				@click="close($event);"
 			>
 				×
 			</a>
@@ -68,28 +71,52 @@ import { bus } from '../shared/bus'
 import { constants } from '../shared/constants'
 import { mapState } from 'vuex'
 export default {
-	props: ['data'],
+	props: ['folderId'],
 	data() {
 		return {
 			keepContent: 'keep',
+			popuped: false,
+			folder: null,
 		}
+	},
+	watch: {
+		folderId() {
+			this.open();
+		},
 	},
 	computed: {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	mounted() {
+		this.open();
 		document.addEventListener('keyup', this.keyup, false);
+	},
+	beforeUpdate() {
+		this.popuped = true;
 	},
 	beforeDestroy() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
+		open(event) {
+			if (event) event.stopPropagation();
+			this.folder = this.$root.foldersPlain[this.folderId];
+			if (!this.folder) {
+				this.$router.back();
+			}
+		},
+		close(event) {
+			if (event) event.stopPropagation();
+			this.$router.replace(
+				this.$route.matched[this.$route.matched.length - 2].path
+			);
+		},
 		deleteFolder(event) {
 			if (this.keepContent !== 'delete') {
 				this.$store.commit('backupState');
 			}
 			if (this.keepContent === 'delete') {
-				this.markNestedAsDeleted(this.data.folder);
+				this.markNestedAsDeleted(this.folder);
 				this.$store.state.places.forEach(place => {
 					if (place.deleted) {
 						this.$root.deleteImages(place.images, true);
@@ -139,7 +166,7 @@ export default {
 			if (this.keepContent === 'keep') {
 				// Move subplaces and subfolders to the root
 				this.$store.state.places.forEach((place) => {
-					if (place.folderid === this.data.folder.id) {
+					if (place.folderid === this.folder.id) {
 						this.$store.commit('changePlace', {
 							place: place,
 							change: {folderid: 'root', updated: true},
@@ -147,10 +174,10 @@ export default {
 						});
 					}
 				});
-				if (Array.isArray(this.data.folder.children)) {
-					while (this.data.folder.children.length > 0) {
+				if (Array.isArray(this.folder.children)) {
+					while (this.folder.children.length > 0) {
 						this.$store.dispatch('moveFolder', {
-							folder: this.data.folder.children[0],
+							folder: this.folder.children[0],
 							targetId: 'root',
 							backup: false,
 						});
@@ -158,7 +185,7 @@ export default {
 				}
 			}
 			this.$store.commit('changeFolder', {
-				folder: this.data.folder,
+				folder: this.folder,
 				change: {deleted: true},
 				backup: false,
 			});
@@ -174,8 +201,8 @@ export default {
 			}
 			this.$store.commit('deletePlacesMarkedAsDeleted');
 			this.$store.commit('deleteFoldersMarkedAsDeleted');
-			bus.$emit('homeRefresh');
-			this.$root.showPopup({show: false}, event);
+			bus.$emit('refreshMapMarks');
+			this.close();
 		},
 		markNestedAsDeleted(folder) {
 			// Mark places and folders in the currently deleted folder as deleted
@@ -200,11 +227,7 @@ export default {
 			}
 		},
 		keyup(event) {
-			switch (constants.shortcuts[event.keyCode]) {
-				case 'close' :
-					this.$root.showPopup({show: false}, event);
-					break;
-			}
+			if (constants.shortcuts[event.keyCode] == 'close')  this.close();
 		},
 	},
 }

@@ -1,5 +1,8 @@
 <template>
-	<div>
+	<div
+		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
+		@click="close($event)"
+	>
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
@@ -8,7 +11,7 @@
 			</div>
 			<form
 				class="folder-new__form margin_bottom_0"
-				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+				@click="$event.stopPropagation();"
 				@submit.prevent="appendFolder(folderName ? folderName : '', folderDescription ? folderDescription : '');"
 			>
 				<table class="table_form">
@@ -21,7 +24,6 @@
 									v-model="folderName"
 									class="fieldwidth_100"
 									required
-									autofocus
 									type="text"
 								>
 							</td>
@@ -59,9 +61,9 @@
 				</table>
 			</form>
 			<a
-				href="javascript:void(0);"
+				href="javascript:void(0)"
 				class="close"
-				@click="close($event);"
+				@click="close($event)"
 			>
 				×
 			</a>
@@ -70,31 +72,43 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+import axios from 'axios'
 import { constants } from '../shared/constants'
 import commonFunctions from '../shared/common'
 import { makeFieldsValidatable } from '../shared/fields_validate'
-import { mapState } from 'vuex'
-import axios from 'axios'
 export default {
-	props: ["data"],
 	data() {
 		return {
 			folderName: null,
 			folderDescription: null,
 			message: '',
+			popuped: false,
 		}
 	},
 	computed: {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	mounted() {
+		this.popuped = true;
 		makeFieldsValidatable();
+		document.getElementById('folderName').focus();
 		document.addEventListener('keyup', this.keyup, false);
+	},
+	beforeUpdate() {
+		this.popuped = true;
+		document.getElementById('folderName').focus();
 	},
 	beforeDestroy() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
+		close(event) {
+			if (event) event.stopPropagation();
+			this.$router.replace(
+				this.$route.matched[this.$route.matched.length - 2].path
+			);
+		},
 		appendFolder(folderName, folderDescription) {
 			let foldersCount = commonFunctions.childrenCount(
 				this.$root.folderRoot,
@@ -152,20 +166,8 @@ export default {
 					}
 				});
 		},
-		close(event) {
-			event.stopPropagation();
-			this.$root.showPopup({show: false}, event);
-			this.message = '';
-			this.folderName = '';
-			this.folderDescription = '';
-			document.getElementById('folderName').focus();
-		},
 		keyup(event) {
-			switch (constants.shortcuts[event.keyCode]) {
-				case 'close' :
-					this.$root.showPopup({show: false}, event);
-					break;
-			}
+			if (constants.shortcuts[event.keyCode] == 'close')  this.close();
 		},
 	},
 }

@@ -35,7 +35,7 @@
 					id="actions-append-folder"
 					class="actions-button"
 					title="Добавить папку"
-					@click="$root.showPopup({show: true, type: 'folder'}, $event);"
+					@click="$router.push({name: 'HomeFolder'}).catch(() => {});"
 				>
 					П+
 				</button>
@@ -63,22 +63,27 @@
 			<div>
 				<div class="brand">
 					<h1 class="basiccolor margin_bottom_0">
-						Места — <a
-							href="javascript:void(0);"
-							@click="account();"
-						>
+						Места —
+						<router-link to="/account">
 							{{ $store.state.user ? $store.state.user.login : 'o_O' }}
-						</a>
+						</router-link>
 					</h1>
 					<div>Сервис просмотра и редактирования библиотек мест</div>
 				</div>
 			</div>
 			<div
-				id="message-main"
-				class="message invisible"
-				@click="$store.dispatch('clearMessage', true);"
+				id="messages"
+				class="invisible"
+				@click="$store.dispatch('clearMessage');"
 			>
-				{{ $store.state.message }}
+				<div
+					v-for="(message, index) in $store.state.messages"
+					:id="'message-' + index"
+					:key="index"
+					class="message border_1"
+				>
+					{{ $store.state.messages[index] }}
+				</div>
 			</div>
 		</div>
 		<div
@@ -130,7 +135,7 @@
 					id="actions-export"
 					class="actions-button"
 					title="Экспортировать свои места"
-					@click="$root.showPopup({show: true, type: 'export', data: {mime: 'application/gpx+xml'}}, $event);"
+					@click="$router.push({name: 'HomeExport', params: {mime: 'application/gpx+xml'}}).catch(() => {})"
 				>
 					↱
 				</button>
@@ -138,7 +143,7 @@
 					id="actions-about"
 					class="actions-button"
 					title="О «Местах», справка"
-					@click="$root.showAbout($event);"
+					@click="$router.push({name: 'HomeText', params: {what: 'about'}}).catch(() => {})"
 				>
 					?
 				</button>
@@ -162,7 +167,7 @@
 					id="places-menu"
 					class="menu"
 				>
-					<tree
+					<Tree
 						instanceid="placestree"
 						:data="$root.folderRoot || {}"
 					/>
@@ -201,7 +206,7 @@
 			id="basic-basic"
 			class="app-cell"
 		>
-			<extmap
+			<ExtMap
 				:id="currentPlace ? currentPlace.id : null"
 				ref="extmap"
 				:name="currentPlace ? currentPlace.name : ''"
@@ -317,7 +322,7 @@
 									data-image
 									:class="'place-image' + (currentPlaceCommon ? '' : ' draggable')"
 									:draggable="currentPlaceCommon ? false : true"
-									@click="$root.showPopup({show: true, type: 'image', data: image}, $event);"
+									@click="$router.push({name: 'HomeImages', params: {imageId: image.id}}).catch(() => {})"
 									@dragstart="$root.handleDragStart"
 									@dragenter="$root.handleDragEnter"
 								>
@@ -460,17 +465,7 @@
 				>
 			</span>
 		</div>
-		<div
-			:class="'popup ' + $root.popuped"
-			@click="$event => {if ($root.popupComponent === 'popupfolder') {$refs.popup.close($event);} else {$root.showPopup({show: false}, $event);}}"
-		>
-			<component
-				:is="$root.popupComponent"
-				ref="popup"
-				:data="$root.popupData"
-				:current-place="currentPlace"
-			/>
-		</div>
+		<router-view />
 	</div>
 </template>
 
@@ -482,22 +477,12 @@ import commonFunctions from '../shared/common.ts'
 import { makeFieldsValidatable } from '../shared/fields_validate'
 import { bus } from '../shared/bus'
 import axios from 'axios'
-import tree from './Tree.vue'
-import extmap from './ExtMap.vue'
-import popupimage from './PopupImage.vue'
-import popuptext from './PopupText.vue'
-import popupfolder from './PopupFolder.vue'
-import popupfolderdelete from './PopupFolderDelete.vue'
-import popupexport from './PopupExport.vue'
+import Tree from './Tree.vue'
+import ExtMap from './ExtMap.vue'
 export default {
 	components: {
-		tree,
-		extmap,
-		popupimage,
-		popuptext,
-		popupfolder,
-		popupfolderdelete,
-		popupexport,
+		Tree,
+		ExtMap,
 	},
 	data() {
 		return {
@@ -547,19 +532,6 @@ export default {
 						...place,
 						images: place.images,
 					});
-					if (
-						place.userid == this.$store.state.user.id &&
-						!place.name &&
-						document.getElementById('detailed-name')
-					) {
-						document.getElementById('detailed-name').classList.add('highlight');
-						document.getElementById('detailed-name').focus();
-						setTimeout(function() {
-							document.getElementById('detailed-name').classList.remove('highlight');
-						}, 500);
-					}
-				} else {
-					this.$store.commit('setCurrentPlace', null);
 				}
 			},
 		},
@@ -568,38 +540,14 @@ export default {
 		},
 	},
 	created() {
-		bus.$on('placesFilled', happens => {
-		});
-		bus.$on('homeRefresh', () => {
-			this.$refs.extmap.mrks = {};
-			this.$refs.extmap.map.geoObjects.removeAll();
-			this.$store.state.places.forEach((place) => {
-				this.$refs.extmap.appendPlacemark(this.$refs.extmap.mrks, place, 'private');
-			});
-			if (this.currentPlace) {
-				if (
-					!this.currentPlaceCommon &&
-					this.$refs.extmap.mrks[this.currentPlace.id]
-				) {
-					this.$refs.extmap.mrks[this.currentPlace.id].options.set(
-						'iconColor', this.$refs.extmap.activePlacemarksColor
-					);
-				} else if (this.$refs.extmap.commonMrks[this.currentPlace.id]) {
-					this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
-						'iconColor', this.$refs.extmap.activePlacemarksColor
-					);
-				}
-			}
-		});
 		bus.$on('setCurrentPlace', (payload) => {
 			this.setCurrentPlace(payload.place, payload.common);
 		});
 	},
 	mounted() {
-		if (sessionStorage.getItem('places-session')) {
-			sessionStorage.setItem('places-app-child-component', 'home');
+		if (this.stateReady) {
+			this.stateReadyChanged();
 		}
-		this.stateReadyChanged();
 		this.$store.commit('setIdleTime', 0);
 		makeFieldsValidatable();
 	},
@@ -607,7 +555,6 @@ export default {
 		document.removeEventListener('dragover', this.$root.handleDragOver, false);
 		document.removeEventListener('drop', this.$root.handleDrop, false);
 		document.removeEventListener('keyup', this.keyup, false);
-		bus.$off('homeRefresh');
 		bus.$off('setCurrentPlace');
 	},
 	methods: {
@@ -617,34 +564,49 @@ export default {
 		},
 		exit() {
 			this.$store.dispatch('unload');
-			bus.$emit('loggedChange', 'auth');
-		},
-		account() {
-			bus.$emit('loggedChange', 'account');
+			this.$router.push({name: 'Auth'}).catch(() => {});
 		},
 		stateReadyChanged() {
 			if (this.stateReady) {
-				if (this.$store.state.places.length > 0) {
-					if (this.currentPlaceIndex > -1) {
-						// No matter how idiotic it looks:
-						this.setCurrentPlace(this.$store.state.places[this.currentPlaceIndex]);
-					} else if (this.$store.state.homePlace) {
+				this.$store.dispatch('restoreObjectsAsLinks');
+				if (!this.currentPlace && this.$store.state.places.length > 0) {
+					if (this.$store.state.homePlace) {
 						this.setCurrentPlace(this.$store.state.homePlace);
 					} else {
 						let firstPlaceInRoot = this.$store.state.places.find(
 							p => p.folderid === 'root'
 						);
-						if (!firstPlaceInRoot) {
-							this.setCurrentPlace(this.$store.state.places[0]);
-						} else {
+						if (firstPlaceInRoot) {
 							this.setCurrentPlace(firstPlaceInRoot);
+						} else {
+							this.setCurrentPlace(this.$store.state.places[0]);
 						}
 					}
 				}
-				if (this.$refs.extmap && this.$refs.extmap.map) {
-					this.$refs.extmap.map.destroy();
+				this.openTreeToCurrentPlace();
+				this.commonPlacesPagesCount = Math.ceil(
+					this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
+				);
+				this.$parent.currentPlaceCommon = false;
+				if (
+					this.currentPlace &&
+					this.currentPlace.common &&
+					this.currentPlace.userid !== this.$store.state.user.id
+				) {
+					const inPaginator =
+						this.$store.state.commonPlaces.indexOf(this.currentPlace) /
+						this.commonPlacesOnPageCount
+					;
+					this.commonPlacesPage = (Number.isInteger(inPaginator)
+						? inPaginator + 1
+						: Math.ceil(inPaginator)
+					);
+					this.$parent.currentPlaceCommon = true;
 				}
 				if (this.$refs.extmap) {
+					if (this.$refs.extmap.map) {
+						this.$refs.extmap.map.destroy();
+					}
 					if (this.currentPlace) {
 						this.$refs.extmap.showMap(
 							this.currentPlace.latitude,
@@ -657,9 +619,6 @@ export default {
 						);
 					}
 				}
-				this.commonPlacesPagesCount = Math.ceil(
-					this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
-				);
 				document.addEventListener('dragover', this.$root.handleDragOver, false);
 				document.addEventListener('drop', this.$root.handleDrop, false);
 				document.addEventListener('keyup', this.keyup, false);
@@ -669,11 +628,32 @@ export default {
 						this.$store.dispatch("setMessage", `
 							Вы авторизовались под тестовым аккаунтом;
 							невозможны сохранение изменений в базу данных
-							и загрузка файлов, в том числе фотографий
+							и загрузка файлов, в том числе фотографий.
 						`);
 					}, 3000);
 				}
 				this.windowResize();
+			}
+		},
+		openTreeToCurrentPlace() {
+			if (!this.currentPlaceCommon) {
+				let folder, folderid = this.currentPlace.folderid;
+				while (folderid) {
+					folder = commonFunctions.findInTree(
+						this.$root.folderRoot,
+						'children',
+						'id',
+						folderid
+					);
+					if (!folder) {
+						break;
+					}
+					this.$store.commit('folderOpenClose', {
+						folder: folder,
+						opened: true,
+					});
+					folderid = folder.parent;
+				}
 			}
 		},
 		setCurrentPlace(place) {
@@ -718,25 +698,7 @@ export default {
 					'iconColor', this.$refs.extmap.activePlacemarksColor
 				);
 			}
-			if (!this.currentPlaceCommon) {
-				let folder, folderid = place.folderid;
-				while (folderid) {
-					folder = commonFunctions.findInTree(
-						this.$root.folderRoot,
-						'children',
-						'id',
-						folderid
-					);
-					if (!folder) {
-						break;
-					}
-					this.$store.commit('folderOpenClose', {
-						folder: folder,
-						opened: true,
-					});
-					folderid = folder.parent;
-				}
-			}
+			this.openTreeToCurrentPlace();
 			this.$store.commit('changeCenter', {
 				latitude: this.currentPlace.latitude,
 				longitude: this.currentPlace.longitude,
@@ -799,16 +761,20 @@ export default {
 								this.$store.state.places.length - 1
 							]
 						);
+						document.getElementById('detailed-name').classList.add('highlight');
+						document.getElementById('detailed-name').focus();
+						setTimeout(function() {
+							document.getElementById('detailed-name').classList.remove('highlight');
+						}, 500);
 						return newPlace;
 					} else {
-						this.$store.dispatch('setMessage',
-							'Превышено максимально допустимое для вашей ' +
-							'текущей роли количство мест<br />Дождитесь ' +
-							'перехода в следующую роль, или обратитесь ' +
-							'к администрации сервиса по адресу<br />' +
-							'<a href="mailto:' + constants.from +
-							'">' + constants.from + '</a>'
-						);
+						this.$store.dispatch('setMessage', `
+							Превышено максимально допустимое для вашей текущей
+							роли количство мест.<br />Дождитесь перехода
+							в следующую роль или обратитесь к администрации
+							сервиса по адресу<br /><a href="mailto:` +
+							+ constants.from + `">` + constants.from + `</a>.
+						`);
 					}
 				});
 		},
@@ -902,7 +868,7 @@ export default {
 			event.preventDefault();
 			if (this.$store.state.user.testaccount) {
 				this.$store.dispatch('setMessage',
-					'Тестовый аккаунт не позволяет загрузку файлов'
+					'Тестовый аккаунт не позволяет загрузку файлов.'
 				);
 			} else {
 				let
@@ -926,13 +892,13 @@ export default {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
 							files[i].name +
-							' не является картинкой и загружен не будет'
+							' не является картинкой и загружен не будет.'
 						);
 					} else if (files[i].size > constants.uploadsize) {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
 							files[i].name +
-							' слишком большого размера и загружен не будет'
+							' слишком большого размера и загружен не будет.'
 						);
 					} else {
 						files[i].rndname = commonFunctions.generateRandomString(32);
@@ -981,25 +947,25 @@ export default {
 							 */
 							response.data[0].forEach((code) => {
 								switch (code) {
-								case 2 :
-									this.$store.dispatch('setMessage',
-										'Тестовый аккаунт не позволяет загрузку файлов'
-									);
-									break;
-								case 3 :
-									this.$store.dispatch('setMessage',
-										'Некоторые файлы не являются картинками и загружены не были'
-									);
-									break;
-								case 4 :
-									this.$store.dispatch('setMessage',
-										'Некоторые файлы слишком большого размеры и загружены не были'
-									);
-									break;
+									case 2 :
+										this.$store.dispatch('setMessage',
+											'Тестовый аккаунт не позволяет загрузку файлов.'
+										);
+										break;
+									case 3 :
+										this.$store.dispatch('setMessage',
+											'Некоторые файлы не являются картинками и загружены не были.'
+										);
+										break;
+									case 4 :
+										this.$store.dispatch('setMessage',
+											'Некоторые файлы слишком большого размеры и загружены не были.'
+										);
+										break;
 								}
 							});
 							if (response.data[1].length > 0) {
-								this.$store.dispatch('setMessage', 'Файлы успешно загружены');
+								this.$store.dispatch('setMessage', 'Файлы успешно загружены.');
 								bus.$emit('toDB', {
 									what: 'places',
 								});
@@ -1011,7 +977,7 @@ export default {
 						})
 						.catch(error => {
 							this.$store.dispatch('setMessage',
-								'При загрузке файлов произошла ошибка'
+								'При загрузке файлов произошла ошибка.'
 							);
 						});
 				}
@@ -1023,73 +989,76 @@ export default {
 					this.blur();
 				}
 				switch (constants.shortcuts[event.keyCode]) {
-				case 'add' :
-					let newPlace = this.appendPlace();
-					break;
-				case 'delete' :
-					if (
-						this.currentPlace &&
-							this.currentPlace.userid ==
-								this.$store.state.user.id
-					) {
-						this.deletePlace(this.currentPlace);
-					}
-					break;
-				case 'add folder' :
-					this.$root.showPopup({show: true, type: 'folder'}, event);
-					break;
-				case 'edit mode' :
-					this.$root.foldersEditMode = !this.$root.foldersEditMode;
-					if (
-						document.getElementById('actions-edit-folders')
-							.classList.contains('button-pressed')
-					) {
-						document.getElementById('actions-edit-folders')
-							.classList.remove('button-pressed')
-						;
-					} else {
-						document.getElementById('actions-edit-folders')
-							.classList.add('button-pressed')
-						;
-					}
-					break;
-				case 'import' :
-					document.getElementById('inputImportFromFile').click();
-					break;
-				case 'export' :
-					this.$root.showPopup({show: true, type: 'export'}, event);
-					break;
-				case 'save' :
-					bus.$emit('toDBCompletely');
-					break;
-				case 'help' :
-					this.$root.showAbout();
-					break;
-				case 'revert' :
-					document.location.reload(true);
-					break;
-				case 'quit' :
-					bus.$emit('toDBCompletely');
-					this.exit();
-					break;
-				case 'other' :
-					this.commonPlacesShowHide();
-					break;
-				case 'placemarks' :
-					this.$refs.extmap.placemarksShowHide();
-					break;
-				case 'other placemarks' :
-					this.$refs.extmap.commonPlacemarksShowHide();
-					break;
-				case 'center' :
-					this.$refs.extmap.centerPlacemarkShowHide();
-					break;
-				case 'undo' :
-					this.$store.dispatch('undo');
-					break;
-				case 'redo' :
-					this.$store.dispatch('redo');
-					break;
+					case 'add' :
+						let newPlace = this.appendPlace();
+						break;
+					case 'delete' :
+						if (
+							this.currentPlace &&
+								this.currentPlace.userid ==
+									this.$store.state.user.id
+						) {
+							this.deletePlace(this.currentPlace);
+						}
+						break;
+					case 'add folder' :
+						this.$router.push({name: 'HomeFolder'}).catch(() => {});
+						break;
+					case 'edit mode' :
+						this.$root.foldersEditMode = !this.$root.foldersEditMode;
+						if (
+							document.getElementById('actions-edit-folders')
+								.classList.contains('button-pressed')
+						) {
+							document.getElementById('actions-edit-folders')
+								.classList.remove('button-pressed')
+							;
+						} else {
+							document.getElementById('actions-edit-folders')
+								.classList.add('button-pressed')
+							;
+						}
+						break;
+					case 'import' :
+						document.getElementById('inputImportFromFile').click();
+						break;
+					case 'export' :
+						this.$router.push({
+							name: 'HomeExport',
+							params: {mime: 'application/gpx+xml'},
+						}).catch(() => {});
+						break;
+					case 'save' :
+						bus.$emit('toDBCompletely');
+						break;
+					case 'help' :
+						this.$router.push({name: 'HomeText', params: {what: 'about'}}).catch(() => {});
+						break;
+					case 'revert' :
+						document.location.reload(true);
+						break;
+					case 'quit' :
+						bus.$emit('toDBCompletely');
+						this.exit();
+						break;
+					case 'other' :
+						this.commonPlacesShowHide();
+						break;
+					case 'placemarks' :
+						this.$refs.extmap.placemarksShowHide();
+						break;
+					case 'other placemarks' :
+						this.$refs.extmap.commonPlacemarksShowHide();
+						break;
+					case 'center' :
+						this.$refs.extmap.centerPlacemarkShowHide();
+						break;
+					case 'undo' :
+						this.$store.dispatch('undo');
+						break;
+					case 'redo' :
+						this.$store.dispatch('redo');
+						break;
 				}
 			}
 		},
@@ -1147,43 +1116,43 @@ export default {
 				this.sidebarDrag.y = event.screenY;
 			}
 			switch (this.sidebarDrag.what) {
-			case 'top' :
-				this.sidebarDrag.h = this.sidebarSize.top;
-				break;
-			case 'bottom' :
-				this.sidebarDrag.h = this.sidebarSize.bottom;
-				break;
-			case 'left' :
-				this.sidebarDrag.w = this.sidebarSize.left;
-				break;
-			case 'right' :
-				this.sidebarDrag.w = this.sidebarSize.right;
-				break;
+				case 'top' :
+					this.sidebarDrag.h = this.sidebarSize.top;
+					break;
+				case 'bottom' :
+					this.sidebarDrag.h = this.sidebarSize.bottom;
+					break;
+				case 'left' :
+					this.sidebarDrag.w = this.sidebarSize.left;
+					break;
+				case 'right' :
+					this.sidebarDrag.w = this.sidebarSize.right;
+					break;
 			}
 		},
 		documentMouseOver(event) {
 			if (this.sidebarDrag.what !== null) {
 				switch (this.sidebarDrag.what) {
-				case 'top' :
-					this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y +
-							(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
-					;
-					break;
-				case 'bottom' :
-					this.sidebarSize.bottom = this.sidebarDrag.h + this.sidebarDrag.y -
-							(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
-					;
-					break;
-				case 'left' :
-					this.sidebarSize.left = this.sidebarDrag.w - this.sidebarDrag.x +
-							(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
-					;
-					break;
-				case 'right' :
-					this.sidebarSize.right = this.sidebarDrag.w + this.sidebarDrag.x -
-							(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
-					;
-					break;
+					case 'top' :
+						this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y +
+								(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
+						;
+						break;
+					case 'bottom' :
+						this.sidebarSize.bottom = this.sidebarDrag.h + this.sidebarDrag.y -
+								(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
+						;
+						break;
+					case 'left' :
+						this.sidebarSize.left = this.sidebarDrag.w - this.sidebarDrag.x +
+								(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
+						;
+						break;
+					case 'right' :
+						this.sidebarSize.right = this.sidebarDrag.w + this.sidebarDrag.x -
+								(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
+						;
+						break;
 				}
 			}
 		},

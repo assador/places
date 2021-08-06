@@ -1,6 +1,6 @@
 <template>
 	<ul>
-		<folders
+		<TreeNode
 			:instanceid="instanceid"
 			:folder="folderData"
 			:parent="folderData"
@@ -10,10 +10,10 @@
 </template>
 
 <script>
-import folders from "./TreeNode.vue"
+import TreeNode from "./TreeNode.vue"
 export default {
 	components: {
-		folders,
+		TreeNode,
 	},
 	props: ["instanceid", "data"],
 	data() {

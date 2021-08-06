@@ -80,7 +80,7 @@ table.table_decor > * > tr:hover {
 	background-color: rgba(255, 252, 224, 0.12);
 }
 .back_3,
-#message-main, .popup {
+#messages, .popup {
 	background-color: rgba(0, 0, 0, 0.85);
 }
 tr:hover {
@@ -258,6 +258,9 @@ ul, ol, dd {
 	width: 100%;
 	border-collapse: separate;
 }
+li > ul:last-child, li > ol:last-child, li > dd:last-child {
+	margin-bottom: 0 !important;
+}
 ol {
 	padding-left: 1.5em;
 }
@@ -429,7 +432,7 @@ input[type="hidden"] {
 	z-index: 0;
 	animation: waiting 2s ease-in-out infinite;
 }
-#message-main .highlight {animation: highlight-text 1s ease-in-out;}
+#messages .highlight {animation: highlight-text 1s ease-in-out;}
 @keyframes highlight {
 	0% {box-shadow: 0 0 42px rgba(255, 252, 224, 0);}
 	50% {box-shadow: 0 0 42px rgba(255, 252, 224, 1);}
@@ -908,11 +911,20 @@ span.folder-button {
 	box-shadow: 0 0 8px rgba(255, 243, 201, 0.4);
 	transition: all 0.5s;
 }
-#message-main {
+#messages {
 	border-radius: 7px;
 	box-shadow: 0 4px 23px rgba(0, 0, 0, 0.7);
 	text-align: right;
 	cursor: default;
+}
+#messages .message {
+	padding: 7px;
+}
+#messages .message.border_1:first-child {
+	border-top-width: 0;
+}
+#messages .message.border_1 {
+	border-right-width: 0; border-bottom-width: 0; border-left-width: 0;
 }
 #placemarksShowHideButton, #commonPlacesShowHideButton, #commonPlacemarksShowHideButton, #centerPlacemarkShowHideButton {
 	padding: 0;

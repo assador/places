@@ -113,12 +113,36 @@ export default {
 			}
 		},
 	},
+	created() {
+		bus.$on('refreshMapMarks', () => {
+			this.mrks = {};
+			this.map.geoObjects.removeAll();
+			this.$store.state.places.forEach((place) => {
+				this.appendPlacemark(this.mrks, place, 'private');
+			});
+			if (this.$parent.currentPlace) {
+				if (
+					!this.$parent.currentPlaceCommon &&
+					this.mrks[this.$parent.currentPlace.id]
+				) {
+					this.mrks[this.$parent.currentPlace.id].options.set(
+						'iconColor', this.activePlacemarksColor
+					);
+				} else if (this.commonMrks[this.$parent.currentPlace.id]) {
+					this.commonMrks[this.$parent.currentPlace.id].options.set(
+						'iconColor', this.activePlacemarksColor
+					);
+				}
+			}
+		});
+	},
 	mounted() {
 		new ResizeSensor(document.getElementById('basic-basic'), () => {
 			this.fitMap();
 		});
 	},
 	beforeDestroy() {
+		bus.$off('refreshMapMarks');
 		if (this.map) {
 			this.map.destroy();
 		}
@@ -193,6 +217,16 @@ export default {
 				'draggable', (type === 'common' ? false : true)
 			);
 			bus.$emit('setCurrentPlace', {place: place});
+			if (type === 'common') {
+				const inPaginator =
+					this.$store.state.commonPlaces.indexOf(place) /
+					this.$parent.commonPlacesOnPageCount
+				;
+				this.$parent.commonPlacesPage = (Number.isInteger(inPaginator)
+					? inPaginator + 1
+					: Math.ceil(inPaginator)
+				);
+			}
 		},
 		appendPlacemark(marks, place, type) {
 			let options;
@@ -203,7 +237,7 @@ export default {
 				case 'common' :
 					options = this.placemarksOptions.common;
 					break;
-				}
+			}
 			marks[place.id] = new ymaps.Placemark(
 				[place.latitude, place.longitude],
 				{
@@ -216,7 +250,7 @@ export default {
 				if (place !== this.currentPlace) {
 					marks[place.id].options.set('draggable', false);
 					this.$store.dispatch('setMessage',
-						'Для перетаскивания точку сначала нужно выделить'
+						'Для перетаскивания точку сначала нужно выделить.'
 					);
 				}
 			});

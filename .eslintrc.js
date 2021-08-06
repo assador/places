@@ -10,6 +10,7 @@ module.exports = {
 	rules: {
 		'strict': 'off',
 		'no-unused-vars': 'off',
+		'no-unused-components': 'off',
 		'@typescript-eslint/no-empty-function': 0,
 		'indent': ['error', 'tab'],
 		'vue/html-indent': ['error', 'tab'],

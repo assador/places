@@ -16,9 +16,6 @@ Vue.config.productionTip = false
 new Vue({
 	data: {
 		refreshing: false,
-		popupComponent: 'popuptext',
-		popuped: 'disappear',
-		popupData: {},
 		needToUpdate: false,
 		needToUpdateFolders: false,
 		draggingElement: null,
@@ -91,64 +88,10 @@ new Vue({
 		setCurrentPlace(place, common = false) {
 			bus.$emit('setCurrentPlace', {place, common});
 		},
-		showPopup(opts, event) {
-			event.stopPropagation();
-			this.$store.commit('setIdleTime', 0);
-			switch (opts.type) {
-			case 'text' :
-				this.popupData = opts.data;
-				this.popupComponent = 'popuptext';
-				break;
-			case 'image' :
-				this.popupData = opts.data;
-				this.popupComponent = 'popupimage';
-				break;
-			case 'folder' :
-				this.popupData = opts.data;
-				this.popupComponent = 'popupfolder';
-				break;
-			case 'folderDelete' :
-				this.popupData = opts.data;
-				this.popupComponent = 'popupfolderdelete';
-				break;
-			case 'export' :
-				this.popupData = opts.data;
-				this.popupComponent = 'popupexport';
-				break;
-			case 'delete' :
-				this.popupComponent = 'popupdelete';
-				break;
-			default :
-				this.popupComponent = null;
-			}
-			if (!opts['show']) {
-				this.popupComponent = null;
-			}
-			this.popuped = opts['show'] ? 'appear' : 'disappear';
-		},
-		showAbout(event) {
-			const aboutRequest = new XMLHttpRequest();
-			aboutRequest.open('GET', '/about.htm', true);
-			aboutRequest.onreadystatechange = (event) => {
-				if (aboutRequest.readyState == 4) {
-					if (aboutRequest.status == 200) {
-						this.showPopup({
-							show: true,
-							type: 'text',
-							data:
-								JSON.stringify(aboutRequest.responseText)
-									.replace(/^\s*\"/, '')
-									.replace(/\"\s*$/, '')
-									.replace(/(?:\\(?=")|\\(?=\/)|\\t|\\n)/gi, '')
-							,
-						}, event);
-					} else {
-						this.$store.dispatch('setMessage', 'Не могу найти справку');
-					}
-				}
-			};
-			aboutRequest.setRequestHeader('Content-type', 'application/json');
-			aboutRequest.send();
+		getAbout: async () => {
+			return await axios.get('/about.html')
+				.then(response => response.data)
+				.catch(error => '<p>Не могу найти справку. ' + error + '</p>');
 		},
 		toDB(payload) {
 			if (!this.$store.state.user.testaccount) {
@@ -166,11 +109,11 @@ new Vue({
 								}
 								this.$store.commit('setSaved', true);
 								this.$store.dispatch('setMessage',
-									'Изменения сохранены в базе данных'
+									'Изменения сохранены в базе данных.'
 								);
 							} else {
 								this.$store.dispatch('setMessage',
-									'Не могу внести данные в БД'
+									'Не могу внести данные в БД.'
 								);
 							}
 						}
@@ -185,7 +128,7 @@ new Vue({
 					);
 				} else {
 					this.$store.dispatch('setMessage',
-						'Некоторые поля заполнены некорректно'
+						'Некоторые поля заполнены некорректно.'
 					);
 				}
 			}
@@ -199,11 +142,11 @@ new Vue({
 						if (homeRequest.status == 200) {
 							this.$store.commit('setSaved', true);
 							this.$store.dispatch('setMessage',
-								'Изменения сохранены в базе данных'
+								'Изменения сохранены в базе данных.'
 							);
 						} else {
 							this.$store.dispatch('setMessage',
-								'Не могу внести данные в БД'
+								'Не могу внести данные в БД.'
 							);
 						}
 					}
@@ -226,11 +169,11 @@ new Vue({
 						if (placesRequest.status == 200) {
 							this.$store.commit('setSaved', true);
 							this.$store.dispatch('setMessage',
-								'Изменения сохранены в базе данных'
+								'Изменения сохранены в базе данных.'
 							);
 						} else {
 							this.$store.dispatch('setMessage',
-								'Не могу внести данные в БД'
+								'Не могу внести данные в БД.'
 							);
 						}
 					}
@@ -251,6 +194,12 @@ new Vue({
 						'folders': plainFolders,
 					}))
 				);
+			} else {
+				this.$store.dispatch("setMessage", `
+					Вы авторизовались под тестовым аккаунтом;
+					невозможны сохранение изменений в базу данных
+					и загрузка файлов, в том числе фотографий.
+				`);
 			}
 		},
 		deleteImages(images, family?) {
@@ -274,66 +223,66 @@ new Vue({
 			const a = document.createElement('a');
 			let content: string;
 			switch (mime) {
-			case 'application/gpx+xml' :
-				a.download = 'places.gpx';
-				a.dataset.downloadurl = ['application/gpx+xml', a.download, a.href].join(':');
-				content =
-						'<?xml version="1.0" encoding="utf-8" standalone="yes"?>'
-						+ '<gpx'
-						+ ' version="1.1"'
-						+ ' xmlns="http://www.topografix.com/GPX/1/1"'
-						+ ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
-						+ ' xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
-				;
-				for (const p of places) {
-					content += '<wpt lat="' + p.latitude + '" lon="' + p.longitude + '">';
-					content += p.name ? ('<name>' + p.name + '</name>') : '';
-					content += p.description ? ('<description>' + p.description + '</description>') : '';
-					content += p.link ? ('<link href="' + p.link + '"></link>') : '';
-					content += p.altitudecapability ? ('<ele>' + p.altitudecapability + '</ele>') : '';
-					content += p.time ? ('<time>' + p.time + '</time>') : '';
-					content += '</wpt>';
-				}
-				content += '</gpx>';
-				break;
-			default :
-				mime = 'application/json';
-				a.download = 'places.json';
-				a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
-				const foldersPlain = [];
-				let folderId, parentFolder, parentFound, folders = [];
-				commonFunctions.treeToPlain(
-					{'children': this.$store.state.folders}, 'children', foldersPlain
-				);
-				for (const p of places) {
-					if (p.folderid === folderId) {continue;}
-					folderId = p.folderid;
-					for (let i = 0; i < foldersPlain.length; i++) {
-						if (foldersPlain[i].id === p.folderid) {
-							parentFolder = foldersPlain[i];
-							parentFolder.builded = false;
-							folders.push(foldersPlain.splice(i, 1)[0]);
-							do {
-								for (let j = 0; j < foldersPlain.length; j++) {
-									parentFound = false;
-									if (foldersPlain[j].id === parentFolder.parent) {
-										parentFolder = foldersPlain[j];
-										parentFolder.builded = false;
-										folders.push(foldersPlain.splice(j, 1)[0]);
-										parentFound = true;
-										break;
+				case 'application/gpx+xml' :
+					a.download = 'places.gpx';
+					a.dataset.downloadurl = ['application/gpx+xml', a.download, a.href].join(':');
+					content =
+							'<?xml version="1.0" encoding="utf-8" standalone="yes"?>'
+							+ '<gpx'
+							+ ' version="1.1"'
+							+ ' xmlns="http://www.topografix.com/GPX/1/1"'
+							+ ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+							+ ' xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
+					;
+					for (const p of places) {
+						content += '<wpt lat="' + p.latitude + '" lon="' + p.longitude + '">';
+						content += p.name ? ('<name>' + p.name + '</name>') : '';
+						content += p.description ? ('<description>' + p.description + '</description>') : '';
+						content += p.link ? ('<link href="' + p.link + '"></link>') : '';
+						content += p.altitudecapability ? ('<ele>' + p.altitudecapability + '</ele>') : '';
+						content += p.time ? ('<time>' + p.time + '</time>') : '';
+						content += '</wpt>';
+					}
+					content += '</gpx>';
+					break;
+				default :
+					mime = 'application/json';
+					a.download = 'places.json';
+					a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
+					const foldersPlain = [];
+					let folderId, parentFolder, parentFound, folders = [];
+					commonFunctions.treeToPlain(
+						{'children': this.$store.state.folders}, 'children', foldersPlain
+					);
+					for (const p of places) {
+						if (p.folderid === folderId) {continue;}
+						folderId = p.folderid;
+						for (let i = 0; i < foldersPlain.length; i++) {
+							if (foldersPlain[i].id === p.folderid) {
+								parentFolder = foldersPlain[i];
+								parentFolder.builded = false;
+								folders.push(foldersPlain.splice(i, 1)[0]);
+								do {
+									for (let j = 0; j < foldersPlain.length; j++) {
+										parentFound = false;
+										if (foldersPlain[j].id === parentFolder.parent) {
+											parentFolder = foldersPlain[j];
+											parentFolder.builded = false;
+											folders.push(foldersPlain.splice(j, 1)[0]);
+											parentFound = true;
+											break;
+										}
 									}
-								}
-							} while (parentFolder.parent !== 'root' && parentFound);
-							break;
+								} while (parentFolder.parent !== 'root' && parentFound);
+								break;
+							}
 						}
 					}
-				}
-				folders = commonFunctions.plainToTree(folders);
-				content = JSON.stringify({
-					places: places,
-					folders: folders,
-				});
+					folders = commonFunctions.plainToTree(folders);
+					content = JSON.stringify({
+						places: places,
+						folders: folders,
+					});
 			}
 			a.href = URL.createObjectURL(
 				new Blob([content], {type: 'text/plain'})

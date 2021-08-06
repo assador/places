@@ -111,7 +111,7 @@ body {
 .brand {
 	min-width: 38.2%;
 }
-#message-main {
+#messages {
 	box-sizing: border-box;
 	position: absolute;
 	top: 0; right: 0;

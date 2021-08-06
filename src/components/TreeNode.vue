@@ -21,7 +21,7 @@
 				href="javascript: void(0);"
 				class="folder-button"
 				draggable="true"
-				@click="$store.commit('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder.id === 'root' ? $parent.data : folder, opened: folder.opened ? false : true});"
+				@click="$store.commit('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder, opened: folder.opened ? false : true});"
 				@dragstart="$root.handleDragStart"
 				@dragenter="$root.handleDragEnter"
 				@dragleave="$root.handleDragLeave"
@@ -56,7 +56,7 @@
 				<a
 					class="folder-button__delete"
 					title="Удалить папку"
-					@click="$event.stopPropagation(); $root.showPopup({show: true, type: 'folderDelete', data: {folder: folder, parent: parent}}, $event);"
+					@click="$event.stopPropagation(); $router.push({name: 'HomeDeleteFolder', params: {folderId: folder.id}}).catch(() => {})"
 				>
 					×
 				</a>

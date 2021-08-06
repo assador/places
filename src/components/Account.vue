@@ -96,7 +96,7 @@
 								&#160;
 								<button
 									type="button"
-									@click="back();"
+									@click="close($event)"
 								>
 									Назад
 								</button>
@@ -104,7 +104,7 @@
 							<td style="padding-top: 18px; vertical-align: top; text-align: right;">
 								<button
 									type="button"
-									@click="showDelete($event);"
+									@click="$router.push({name: 'AccountDelete'}).catch(() => {})"
 								>
 									Удалить аккаунт
 								</button>
@@ -122,11 +122,7 @@
 					</tbody>
 				</table>
 			</form>
-			<div :class="'popup ' + $root.popuped">
-				<component
-					:is="$root.popupComponent"
-				/>
-			</div>
+			<router-view />
 		</div>
 	</div>
 </template>
@@ -136,13 +132,7 @@ import { constants } from '../shared/constants'
 import { bus } from '../shared/bus'
 import { makeFieldsValidatable } from '../shared/fields_validate'
 import { accountSaveRoutine, acc } from '../shared/account'
-import popuptext from './PopupText.vue'
-import popupdelete from './AccountDelete.vue'
 export default {
-	components: {
-		popuptext,
-		popupdelete,
-	},
 	data() {
 		return {
 			accountLogin: this.$store.state.user.login,
@@ -155,7 +145,6 @@ export default {
 		}
 	},
 	mounted() {
-		sessionStorage.setItem('places-app-child-component', 'account');
 		document.addEventListener('keyup', this.keyup, false);
 		makeFieldsValidatable();
 	},
@@ -163,19 +152,12 @@ export default {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
-		back() {
-			bus.$emit('loggedChange', 'home');
-		},
-		showDelete(event) {
-			this.$root.showPopup({
-				show: true,
-				type: 'delete',
-			}, event);
+		close(event) {
+			if (event) event.stopPropagation();
+			this.$router.push({name: 'Home'}).catch(() => {});
 		},
 		keyup(event) {
-			if (this.$root.popuped == 'appear' && constants.shortcuts[event.keyCode] == 'close') {
-				this.$root.showPopup({show: false}, event);
-			}
+			if (constants.shortcuts[event.keyCode] == 'close')  this.close();
 		},
 		accountSubmit() {
 			if (this.$store.state.user.testaccount) {

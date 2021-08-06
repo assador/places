@@ -109,7 +109,7 @@ const store = new Vuex.Store({
 			longitude: constants.map.initial.longitude,
 		},
 		ready: false,
-		message: '',
+		messages: [],
 		placeFields: {
 			name               : 'Название',
 			description        : 'Описание',
@@ -131,7 +131,10 @@ const store = new Vuex.Store({
 	},
 	mutations: {
 		setMessage(state, message) {
-			Vue.set(state, 'message', message);
+			state.messages.push(message);
+		},
+		deleteMessage(state, index) {
+			state.messages.splice(index, 1);
 		},
 		setRefreshing(state, refreshing) {
 			Vue.set(state, 'refreshing', refreshing);
@@ -463,10 +466,11 @@ const store = new Vuex.Store({
 		},
 		applyUndoRedo({state, commit}) {
 			commit('restoreState', state.stateBackupsIndex);
-			bus.$emit('homeRefresh');
+			bus.$emit('refreshMapMarks');
 		},
 		unload({commit}) {
 			commit('reset');
+			sessionStorage.removeItem('places-store-state');
 			sessionStorage.removeItem('places-userid');
 			sessionStorage.removeItem('places-session');
 		},
@@ -480,12 +484,13 @@ const store = new Vuex.Store({
 					commit('setUser', response.data);
 				})
 				.catch(() => {
-					dispatch('setMessage', 'Не могу получить данные');
+					dispatch('setMessage', 'Не могу получить данные.');
 					commit('setUser', null);
 				})
 			;
 		},
 		setPlaces({state, commit, dispatch}, payload) {
+			commit('stateReady', false);
 			if (!payload) {
 			// If reading from database, not importing
 				axios
@@ -504,13 +509,12 @@ const store = new Vuex.Store({
 						commit('stateReady', true);
 					})
 					.catch(() => {
-						dispatch('setMessage', 'Не могу получить данные из БД');
+						dispatch('setMessage', 'Не могу получить данные из БД.');
 						commit('placesReady', {
 							places: [],
 							commonPlaces: [],
 							folders: [],
 						});
-						commit('stateReady', false);
 					})
 				;
 			} else {
@@ -609,28 +613,28 @@ const store = new Vuex.Store({
 								for (const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
 									try {
 										switch (desc.nodeType) {
-										case 1 : case 3 :
-											description += desc.textContent.trim()
-														+ (desc.nextSibling ? '\n' : '');
-											break;
-										case 4 :
-											const reStr: string =
-														'desc_(?:user|test)' +
-														'\s*\:\s*start\s*--\s*>\s*' +
-														'(.*?)' +
-														'\s*<\s*\!\s*--\s*' +
-														'desc_(?:user|test)' +
-														'\s*\:\s*end'
-													;
-											const descs = desc.textContent.match(
-												new RegExp(reStr, 'gi')
-											);
-											for (let i = 0; i < descs.length; i++) {
-												description += descs[i].replace(
-													new RegExp(reStr, 'i'), "$1"
-												) + (desc.nextSibling ? '\n' : '');
-											}
-											break;
+											case 1 : case 3 :
+												description += desc.textContent.trim()
+															+ (desc.nextSibling ? '\n' : '');
+												break;
+											case 4 :
+												const reStr: string =
+															'desc_(?:user|test)' +
+															'\s*\:\s*start\s*--\s*>\s*' +
+															'(.*?)' +
+															'\s*<\s*\!\s*--\s*' +
+															'desc_(?:user|test)' +
+															'\s*\:\s*end'
+														;
+												const descs = desc.textContent.match(
+													new RegExp(reStr, 'gi')
+												);
+												for (let i = 0; i < descs.length; i++) {
+													description += descs[i].replace(
+														new RegExp(reStr, 'i'), "$1"
+													) + (desc.nextSibling ? '\n' : '');
+												}
+												break;
 										}
 									} catch (e) {
 									}
@@ -665,10 +669,10 @@ const store = new Vuex.Store({
 						}
 						break;
 					default :
-						dispatch('setMessage',
-							'Недопустимый тип импортируемого файла.' +
-							'Допускаются только JSON и GPX.'
-						);
+						dispatch('setMessage', `
+							Недопустимый тип импортируемого файла.
+							Допускаются только JSON и GPX.
+						`);
 						return false;
 				}
 				try {
@@ -743,6 +747,33 @@ const store = new Vuex.Store({
 				return true;
 			}
 		},
+		restoreObjectsAsLinks({state, commit}) {
+			commit('setRefreshing', true);
+			commit(
+				'setHomePlace',
+				state.user.homeplace && state.user.homeplace.id
+					? state.user.homeplace.id
+					: null
+			);
+			if (state.currentPlace) {
+				for (const place of state.commonPlaces) {
+					if (place.id === state.currentPlace.id) {
+						commit('setCurrentPlace', place);
+						commit('setRefreshing', false);
+						return;
+					}
+				}
+				for (const place of state.places) {
+					if (place.id === state.currentPlace.id) {
+						commit('setCurrentPlace', place);
+						commit('setRefreshing', false);
+						return;
+					}
+				}
+				commit('setCurrentPlace', null);
+			}
+			commit('setRefreshing', false);
+		},
 		moveFolder({state, commit}, payload) {
 			let source, target;
 			const folder = payload.hasOwnProperty('folder')
@@ -798,54 +829,40 @@ const store = new Vuex.Store({
 				backup: !payload.hasOwnProperty('backup') || payload.backup ? true : false,
 			});
 		},
-		clearMessage({state, commit}, hide) {
-			let message: string;
-			if (hide || (message = state.message.replace(/^\n[^<>]+\s*/, '')) === '') {
-				const me = document.getElementById('message-main');
-				if (me) {
-					me.classList.add('invisible');
-					me.classList.remove('visible');
-				}
-				setTimeout(function() {
-					commit('setMessage', '');
+		setMessage({state, commit, dispatch}, message) {
+			message = message.replace(/[\t\n]/g, ' ');
+			message = message.replace(/[ ]{2,}/g, ' ').trim();
+			const messagesContainer = document.getElementById('messages');
+			messagesContainer.classList.remove('invisible');
+			messagesContainer.classList.add('visible');
+			const messageIndex = state.messages.indexOf(message);
+			if (messageIndex !== -1) {
+				const messageContainer = document.getElementById('message-' + messageIndex);
+				messageContainer.classList.add('highlight');
+				setTimeout(() => {
+					messageContainer.classList.remove('highlight');
 				}, 500);
 			} else {
 				commit('setMessage', message);
 			}
-		},
-		setMessage({state, commit, dispatch}, message) {
-			const last = state.message.match(/\n([^<>]+)\s*$/);
-			const me = document.getElementById('message-main');
-			if (last !== null && last[1] === message) {
-				if (me && me.lastElementChild) {
-					me.lastElementChild.classList.add('highlight');
-					setTimeout(function() {
-						if (document.getElementById('message-main').lastElementChild) {
-							document.getElementById('message-main').lastElementChild.classList.remove('highlight');
-						}
-					}, 500);
-				}
-			} else {
-				commit('setMessage', state.message += "\n" + message);
-			}
-			if (me && state.message) {
-				me.classList.add('visible');
-				me.classList.remove('invisible');
-			}
 			if (state.messageTimer) {
-				clearTimeout(state.messageTimer);
+				clearInterval(state.messageTimer);
 			}
 			commit(
 				'setMessageTimer',
-				setTimeout(
-					function messageTimeout() {
-						dispatch('clearMessage');
-						if (state.message) {
-							commit('setMessageTimer', setTimeout(messageTimeout, 3000));
-						}
-					},
-					3000
-				)
+				setInterval(() => {
+					if (state.messages.length === 1) {
+						clearInterval(state.messageTimer);
+						messagesContainer.classList.remove('visible');
+						messagesContainer.classList.add('invisible');
+					}
+					setTimeout(function() {
+						commit(
+							'deleteMessage',
+							state.messages[state.messages.length - 1]
+						);
+					}, 500);
+				}, 3000)
 			);
 		},
 	},

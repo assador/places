@@ -78,24 +78,24 @@ const commonFunctions = {
 		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
 			for (let i = 0; i < tree[childrenKey].length; i++) {
 				switch (what) {
-				case "delete" :
-					if (tree[childrenKey][i][key] === value) {
-						tree[childrenKey].splice(
-							tree[childrenKey].indexOf(tree[childrenKey][i]), 1
-						);
-						i--;
-					} else {
+					case "delete" :
+						if (tree[childrenKey][i][key] === value) {
+							tree[childrenKey].splice(
+								tree[childrenKey].indexOf(tree[childrenKey][i]), 1
+							);
+							i--;
+						} else {
+							commonFunctions.changeByKeyValue(
+								tree[childrenKey][i], childrenKey, key, value, what
+							);
+						}
+						break;
+					case "change" :
+						tree[childrenKey][i][key] = value;
 						commonFunctions.changeByKeyValue(
 							tree[childrenKey][i], childrenKey, key, value, what
 						);
-					}
-					break;
-				case "change" :
-					tree[childrenKey][i][key] = value;
-					commonFunctions.changeByKeyValue(
-						tree[childrenKey][i], childrenKey, key, value, what
-					);
-					break;
+						break;
 				}
 			}
 		}

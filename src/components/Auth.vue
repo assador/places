@@ -134,23 +134,12 @@
 		<div>
 			<button
 				title="О «Местах», справка"
-				@click="$event => {$root.showAbout($event);}"
+				@click="$router.push({name: 'AuthText', params: {what: 'about'}}).catch(() => {})"
 			>
 				Что это такое? Описание, мануал
 			</button>
 		</div>
-		<div
-			:class="'popup ' + $root.popuped"
-			@click="$event => {$root.showPopup({show: false}, $event);}"
-		>
-			<component
-				:is="$root.popupComponent"
-				ref="popup"
-				name="popup"
-				:data="$root.popupData"
-				:current-place="currentPlace"
-			/>
-		</div>
+		<router-view />
 	</div>
 </template>
 
@@ -161,11 +150,7 @@ import { makeFieldsValidatable } from '../shared/fields_validate'
 import { loginRoutine, login } from '../shared/auth'
 import { regRoutine, reg } from '../shared/reg'
 import { forgotRoutine, forgot } from '../shared/forgot'
-import popuptext from './PopupText.vue'
 export default {
-	components: {
-		popuptext,
-	},
 	data() {
 		return {
 			login: login,
@@ -186,9 +171,6 @@ export default {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	mounted() {
-		if (!sessionStorage.getItem('places-session')) {
-			sessionStorage.setItem('places-app-child-component', 'auth');
-		}
 		makeFieldsValidatable();
 	},
 	methods: {
