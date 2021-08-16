@@ -23,6 +23,7 @@ new Vue({
 		foldersEditMode: false,
 		selectedToExport: [],
 		currentPlaceCommon: false,
+		idleTimeInterval: null,
 	},
 	computed: {
 		...mapState(['currentPlace', 'currentPlaceIndex']),

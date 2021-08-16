@@ -74,7 +74,7 @@
 			<div
 				id="messages"
 				class="invisible"
-				@click="$store.dispatch('clearMessage');"
+				@click="$store.dispatch('clearMessages');"
 			>
 				<div
 					v-for="(message, index) in $store.state.messages"
@@ -546,6 +546,18 @@ export default {
 			this.stateReadyChanged();
 		}
 		this.$store.commit('setIdleTime', 0);
+		if (!this.$root.idleTimeInterval) {
+			this.$root.idleTimeInterval = setInterval(() => {
+				if (this.$store.state.idleTime < constants.sessionlifetime) {
+					this.$store.commit('setIdleTime', this.$store.state.idleTime + 1);
+				} else {
+					clearInterval(this.$root.idleTimeInterval);
+					this.$root.idleTimeInterval = null;
+					this.$store.dispatch('unload');
+					this.$router.push({name: 'Auth'}).catch(() => {});
+				}
+			}, 1000);
+		}
 		makeFieldsValidatable();
 	},
 	beforeDestroy() {
@@ -759,9 +771,9 @@ export default {
 							]
 						);
 						document.getElementById('detailed-name').classList.add('highlight');
-						document.getElementById('detailed-name').focus();
 						setTimeout(function() {
 							document.getElementById('detailed-name').classList.remove('highlight');
+							document.getElementById('detailed-name').focus();
 						}, 500);
 						return newPlace;
 					} else {

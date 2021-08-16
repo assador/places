@@ -35,7 +35,7 @@
 				<span
 					class="folder-button__geomarks"
 					:title="(folder.geomarks === 1 ? 'Скрыть' : 'Показать') + ' геометки на карте'"
-					@click="$event.stopPropagation(); showHideGeomarks((folder.id === 'root' ? $root.folderRoot : folder), !folder.geomarks);"
+					@click="$event.stopPropagation(); showHideGeomarks((folder.id === 'root' ? $root.folderRoot : folder), (folder.geomarks === 1 ? 0 : 1));"
 				>
 					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
 				</span>

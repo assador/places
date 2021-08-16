@@ -27,8 +27,8 @@ const tracking = (store) => {
 	store.subscribe((mutation, state) => {
 		if (
 			trackingMutations.includes(mutation.type) &&
-			mutation.type != 'setIdleTime' &&
-			mutation.type != 'setRefreshing' &&
+			mutation.type !== 'setIdleTime' &&
+			mutation.type !== 'setRefreshing' &&
 			!state.refreshing
 		) {
 			sessionStorage.setItem('places-store-state', JSON.stringify(state));
@@ -80,7 +80,13 @@ const tracking = (store) => {
 						store.commit('outUndoRedo');
 					}
 				}
-				if (mutation.type !== 'removePlace') {
+				if (
+					mutation.type !== 'removePlace' &&
+					mutation.type !== 'setHomePlace' &&
+					mutation.type !== 'setCurrentPlace' &&
+					mutation.type !== 'placesReady' &&
+					mutation.type !== 'stateReady'
+				) {
 					store.commit('backupState');
 				}
 			}
@@ -132,6 +138,9 @@ const store = new Vuex.Store({
 	mutations: {
 		setMessage(state, message) {
 			state.messages.push(message);
+		},
+		clearMessages(state) {
+			state.messages = [];
 		},
 		deleteMessage(state, index) {
 			state.messages.splice(index, 1);
@@ -833,15 +842,19 @@ const store = new Vuex.Store({
 			message = message.replace(/[\t\n]/g, ' ');
 			message = message.replace(/[ ]{2,}/g, ' ').trim();
 			const messagesContainer = document.getElementById('messages');
-			messagesContainer.classList.remove('invisible');
-			messagesContainer.classList.add('visible');
+			if (messagesContainer) {
+				messagesContainer.classList.remove('invisible');
+				messagesContainer.classList.add('visible');
+			}
 			const messageIndex = state.messages.indexOf(message);
 			if (messageIndex !== -1) {
 				const messageContainer = document.getElementById('message-' + messageIndex);
-				messageContainer.classList.add('highlight');
-				setTimeout(() => {
-					messageContainer.classList.remove('highlight');
-				}, 500);
+				if (messageContainer) {
+					messageContainer.classList.add('highlight');
+					setTimeout(() => {
+						messageContainer.classList.remove('highlight');
+					}, 500);
+				}
 			} else {
 				commit('setMessage', message);
 			}
@@ -852,9 +865,7 @@ const store = new Vuex.Store({
 				'setMessageTimer',
 				setInterval(() => {
 					if (state.messages.length === 1) {
-						clearInterval(state.messageTimer);
-						messagesContainer.classList.remove('visible');
-						messagesContainer.classList.add('invisible');
+						dispatch('clearMessages');
 					}
 					setTimeout(function() {
 						commit(
@@ -864,6 +875,17 @@ const store = new Vuex.Store({
 					}, 500);
 				}, 3000)
 			);
+		},
+		clearMessages({state, commit, dispatch}) {
+			clearInterval(state.messageTimer);
+			const messagesContainer = document.getElementById('messages');
+			if (messagesContainer) {
+				messagesContainer.classList.remove('visible');
+				messagesContainer.classList.add('invisible');
+			}
+			setTimeout(function() {
+				commit('clearMessages');
+			}, 500);
 		},
 	},
 	getters: {

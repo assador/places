@@ -32,15 +32,6 @@ import { mapState } from 'vuex'
 			);
 			this.$store.dispatch('restoreObjectsAsLinks');
 		}
-		const idleTimeInterval = setInterval(() => {
-			if (this.$store.state.idleTime < constants.sessionlifetime) {
-				this.$store.commit('setIdleTime', this.$store.state.idleTime + 1);
-			} else {
-				clearInterval(idleTimeInterval);
-				this.$store.dispatch('unload');
-				this.$router.push({name: 'Auth'}).catch(() => {});
-			}
-		}, 1000);
 		document.addEventListener('mousedown', () => {
 			this.$store.commit('setIdleTime', 0);
 		}, false);
