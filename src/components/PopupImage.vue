@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import { constants } from "../shared/constants.ts"
+import { constants } from "../shared/constants"
 export default {
 	props: ["imageId"],
 	data() {

@@ -473,7 +473,7 @@
 import _ from 'lodash'
 import { constants } from '../shared/constants'
 import { mapState } from 'vuex'
-import commonFunctions from '../shared/common.ts'
+import commonFunctions from '../shared/common'
 import { makeFieldsValidatable } from '../shared/fields_validate'
 import { bus } from '../shared/bus'
 import axios from 'axios'
@@ -645,7 +645,7 @@ export default {
 			}
 		},
 		openTreeToCurrentPlace() {
-			if (!this.$root.currentPlaceCommon) {
+			if (!this.$root.currentPlaceCommon && this.currentPlace) {
 				let folder, folderid = this.currentPlace.folderid;
 				while (folderid) {
 					folder = commonFunctions.findInTree(

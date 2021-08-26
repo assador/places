@@ -4,7 +4,7 @@
 
 <script>
 import axios from 'axios'
-import { constants } from '../shared/constants.ts'
+import { constants } from '../shared/constants'
 import { bus } from '../shared/bus'
 import { mapState } from 'vuex'
 export default {
