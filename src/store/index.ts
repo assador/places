@@ -356,6 +356,9 @@ const store = new Vuex.Store({
 					Vue.set(state, 'currentPlaceIndex',
 						state.places.indexOf(state.currentPlace)
 					);
+					if (state.places.length === 0) {
+						state.currentPlace = null;
+					}
 					break;
 				}
 			}

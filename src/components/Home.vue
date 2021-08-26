@@ -770,7 +770,9 @@ export default {
 								this.$store.state.places.length - 1
 							]
 						);
-						document.getElementById('detailed-name').classList.add('highlight');
+						this.$nextTick(() => {
+							document.getElementById('detailed-name').classList.add('highlight');
+						});
 						setTimeout(function() {
 							document.getElementById('detailed-name').classList.remove('highlight');
 							document.getElementById('detailed-name').focus();
