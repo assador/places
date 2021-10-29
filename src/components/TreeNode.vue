@@ -21,7 +21,7 @@
 				href="javascript: void(0);"
 				class="folder-button"
 				draggable="true"
-				@click="$store.commit('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder, opened: folder.opened ? false : true});"
+				@click="$store.dispatch('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder, opened: folder.opened ? false : true});"
 				@dragstart="$root.handleDragStart"
 				@dragenter="$root.handleDragEnter"
 				@dragleave="$root.handleDragLeave"
@@ -44,13 +44,13 @@
 				v-if="$root.foldersEditMode && folder.id !== 'root'"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folder.id"
 				class="folder-button"
-				@click="$store.commit('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
+				@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			>
 				<input
 					v-model="folder.name"
 					placeholder="Название"
 					class="folder-button__name fieldwidth_100"
-					@change="$store.commit('changeFolder', {folder: folder, change: {updated: true}});"
+					@change="$store.dispatch('changeFolder', {folder: folder, change: {name: folder.name}});"
 					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				>
 				<a
@@ -65,7 +65,7 @@
 					rows="2"
 					placeholder="Описание"
 					class="folder-button__description fieldwidth_100"
-					@change="$store.commit('changeFolder', {folder: folder, change: {updated: true}});"
+					@change="$store.dispatch('changeFolder', {folder: folder, change: {description: folder.description}});"
 					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				/>
 			</span>
@@ -139,7 +139,7 @@
 			v-if="folder.id !== 'root'"
 			data-folder-dragenter-area-top
 			class="dragenter-area dragenter-area_top"
-			@click="$store.commit('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
+			@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
 		/>
@@ -147,7 +147,7 @@
 			v-if="folder.id !== 'root'"
 			data-folder-dragenter-area-bottom
 			class="dragenter-area dragenter-area_bottom"
-			@click="$store.commit('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
+			@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
 		/>

@@ -14,13 +14,6 @@ import { mapState } from 'vuex'
 	computed: {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
-	created() {
-		bus.$on('logged', () => {
-			this.$store.dispatch('setUser');
-			this.$store.dispatch('setPlaces', false);
-			this.$router.push({name: 'Home'}).catch(() => {});
-		});
-	},
 	mounted() {
 		/*
 		 * If the App is mounted during the session (for example, when the page

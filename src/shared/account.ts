@@ -11,7 +11,7 @@ export const accountSaveRoutine = (account) => new Promise((resolve, reject) => 
 		.then(response => {
 			switch (response.data) {
 				case 0 :
-					acc.message = 'При сохранении данных произошла ошибка, свяжитесь с <a href="mailto:' + constants.from + '">техподдержкой</a>';
+					acc.message = 'При сохранении данных произошла ошибка.';
 					break;
 				case 1 :
 					acc.message = 'На указанный вами e-mail отправлено письмо с инструкциями для подтверждения изменения данных, выполните их в течение суток';

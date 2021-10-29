@@ -18,74 +18,35 @@ const tracking = (store) => {
 		'modifyFolders',
 		'modifyPlaces',
 		'removePlace',
-		'swapValues',
+		'swapImages',
 		'setHomePlace',
 		'setCurrentPlace',
 		'placesReady',
 		'stateReady',
 	];
 	store.subscribe((mutation, state) => {
-		if (
-			trackingMutations.includes(mutation.type) &&
-			mutation.type !== 'setIdleTime' &&
-			mutation.type !== 'setRefreshing' &&
-			!state.refreshing
-		) {
-			sessionStorage.setItem('places-store-state', JSON.stringify(state));
-		}
-		if (trackingMutations.includes(mutation.type) && mutation.payload) {
+		if (trackingMutations.includes(mutation.type)) {
 			if (
-				(
-					!mutation.payload.hasOwnProperty('backup') ||
-					mutation.payload.backup
-				) && (
-					mutation.payload.hasOwnProperty('type') ||
-					mutation.payload.hasOwnProperty('change')
-				)
+				mutation.type !== 'setIdleTime' &&
+				mutation.type !== 'setRefreshing' &&
+				!state.refreshing
 			) {
-				if (
-					mutation.payload.added ||
-					mutation.payload.deleted ||
-					mutation.payload.updated ||
-					mutation.payload.change &&
-						(
-							mutation.payload.change.added ||
-							mutation.payload.change.deleted ||
-							mutation.payload.change.updated
-						)
-				) {
-					if (!state.inUndoRedo) {
-						if (mutation.payload.hasOwnProperty('type')) {
-							bus.$emit('toDB', {
-								what: mutation.payload.type + 's',
-								toCommitSaved: mutation.payload,
-							});
-						}
-						if (mutation.payload.hasOwnProperty('change')) {
-							if (mutation.payload.hasOwnProperty('place')) {
-								bus.$emit('toDB', {
-									what: 'places',
-									toCommitSaved: mutation.payload.place,
-								});
-							}
-							if (mutation.payload.hasOwnProperty('folder')) {
-								bus.$emit('toDB', {
-									what: 'folders',
-									toCommitSaved: mutation.payload.folder,
-								});
-							}
-						}
-					} else {
-						bus.$emit('toDBCompletely');
-						store.commit('outUndoRedo');
-					}
-				}
+				sessionStorage.setItem('places-store-state', JSON.stringify(state));
+			}
+			if (mutation.payload) {
 				if (
 					mutation.type !== 'removePlace' &&
 					mutation.type !== 'setHomePlace' &&
 					mutation.type !== 'setCurrentPlace' &&
 					mutation.type !== 'placesReady' &&
-					mutation.type !== 'stateReady'
+					mutation.type !== 'stateReady' &&
+					(
+						!mutation.payload.hasOwnProperty('backup') ||
+						mutation.payload.backup
+					) && (
+						mutation.payload.hasOwnProperty('type') ||
+						mutation.payload.hasOwnProperty('change')
+					)
 				) {
 					store.commit('backupState');
 				}
@@ -134,6 +95,8 @@ const store = new Vuex.Store({
 			url         : 2048,
 		},
 		messageTimer: null,
+		mouseOverMessages: false,
+		serverConfig: null,
 	},
 	mutations: {
 		setMessage(state, message) {
@@ -145,11 +108,19 @@ const store = new Vuex.Store({
 		deleteMessage(state, index) {
 			state.messages.splice(index, 1);
 		},
+		setMouseOverMessages(state, over) {
+			state.mouseOverMessages = (over === false ? false : true);
+		},
 		setRefreshing(state, refreshing) {
 			Vue.set(state, 'refreshing', refreshing);
 		},
 		setSaved(state, saved) {
-			Vue.set(state, 'saved', saved);
+			Vue.set(state, 'saved', (saved === false ? false : true));
+		},
+		setObjectSaved(state, object) {
+			Vue.set(object, 'added', false);
+			Vue.set(object, 'deleted', false);
+			Vue.set(object, 'updated', false);
 		},
 		setIdleTime(state, time) {
 			Vue.set(state, 'idleTime', time);
@@ -225,13 +196,11 @@ const store = new Vuex.Store({
 				url         : 2048,
 			});
 		},
-		savedToDB(state, object) {
-			Vue.set(object, 'added', false);
-			Vue.set(object, 'deleted', false);
-			Vue.set(object, 'updated', false);
-		},
 		setUser(state, user) {
 			Vue.set(state, 'user', user);
+		},
+		setServerConfig(state, config) {
+			Vue.set(state, 'serverConfig', config);
 		},
 		setCurrentPlace(state, place) {
 			Vue.set(state, 'currentPlace', place);
@@ -239,21 +208,9 @@ const store = new Vuex.Store({
 		setCurrentPlaceIndex(state, index) {
 			Vue.set(state, 'currentPlaceIndex', index);
 		},
-		setHomePlace(state, id) {
-			if (!id) {
-				Vue.set(state, 'homePlace', null);
-				Vue.set(state.user, 'homeplace', null);
-				return;
-			}
-			for (let i = 0; i < state.places.length; i++) {
-				if (state.places[i].id === id) {
-					state.homePlace = state.places[i];
-					state.user.homeplace = state.places[i];
-					return;
-				}
-			}
-			Vue.set(state, 'homePlace', null);
-			Vue.set(state.user, 'homeplace', null);
+		setHomePlace(state, place) {
+			state.homePlace = place;
+			state.user.homeplace = !place ? null : place.id;
 		},
 		placesReady(state, payload) {
 			if (payload.places) {
@@ -315,39 +272,10 @@ const store = new Vuex.Store({
 			Vue.set(state, 'currentPlaceIndex', state.places.length - 1);
 		},
 		// Mark the place as to be deleted
-		removePlace(state, payload) {
-			Vue.set(payload.place, 'added', false);
-			Vue.set(payload.place, 'deleted', true);
-			Vue.set(payload.place, 'updated', false);
-		},
-		changePlace(state, changes) {
-			const keys: string[] = Object.keys(changes.change)
-			let toUpdated = true;
-			for (let i = 0; i < keys.length; i++) {
-				Vue.set(changes.place, keys[i], changes.change[keys[i]]);
-				if (keys[i] === 'updated') {
-					toUpdated = false;
-				}
-			}
-			if (toUpdated) {
-				Vue.set(changes.place, 'updated', true);
-			}
-		},
-		addFolder(state, folder) {
-			const parent = commonFunctions.findInTree(
-				{id: 'root', children: state.folders},
-				'children',
-				'id',
-				folder.parent
-			);
-			if (!parent) {
-				state.folders.push(folder);
-			} else {
-				if (!parent.children) {
-					Vue.set(parent, 'children', []);
-				}
-				parent.children.push(folder);
-			}
+		removePlace(state, place) {
+			Vue.set(place, 'added', false);
+			Vue.set(place, 'deleted', true);
+			Vue.set(place, 'updated', false);
 		},
 		deletePlace(state, place) {
 			for (let i = 0; i < state.places.length; i++) {
@@ -361,6 +289,20 @@ const store = new Vuex.Store({
 					}
 					break;
 				}
+			}
+		},
+		changePlace(state, payload) {
+			Vue.set(payload.place, payload.key, payload.value);
+		},
+		changeFolder(state, payload) {
+			Vue.set(payload.folder, payload.key, payload.value);
+		},
+		addFolder(state, payload) {
+			if (!payload.parent) {
+				state.folders.push(payload.folder);
+			} else {
+				if (!payload.parent.children) Vue.set(payload.parent, 'children', []);
+				payload.parent.children.push(payload.folder);
 			}
 		},
 		deleteImages(state, payload) {
@@ -404,51 +346,29 @@ const store = new Vuex.Store({
 				'delete'
 			);
 		},
-		changeFolder(state, changes) {
-			const keys = Object.keys(changes.change);
-			let toUpdated = true;
-			for (let i = 0; i < keys.length; i++) {
-				Vue.set(changes.folder, keys[i], changes.change[keys[i]]);
-				if (keys[i] === 'updated') {
-					toUpdated = false;
-				}
-			}
-			if (toUpdated) {
-				Vue.set(changes.folder, 'updated', true);
-			}
-		},
 		folderOpenClose(state, payload) {
-			if (payload.folder) {
-				Vue.set(
-					payload.folder,
-					'opened',
-					payload.hasOwnProperty('opened')
-						? payload.opened
-						: !payload.folder.opened
-				);
-			}
-			if (payload.target) {
-				if (payload.opened) {
-					payload.target.classList.add('folder_opened');
-				} else {
-					if (payload.target.classList.contains('folder_opened')) {
-						payload.target.classList.add('folder_closed');
-						payload.target.classList.remove('folder_opened');
-					} else {
-						payload.target.classList.add('folder_opened');
-						payload.target.classList.remove('folder_closed');
-					}
-				}
-			}
+			Vue.set(
+				payload.folder,
+				'opened',
+				payload.hasOwnProperty('opened')
+					? payload.opened
+					: !payload.folder.opened
+			);
 		},
-		swapValues(state, changes) {
-			const p1 = changes.parent[changes.indexes[0]];
-			const p2 = changes.parent[changes.indexes[1]];
-			changes.values.forEach(function(key) {
-				Vue.set(p1, key, [p2[key], Vue.set(p2, key, p1[key])][0]);
-			});
-			Vue.set(p1, 'updated', true);
-			Vue.set(p2, 'updated', true);
+		swapImages(state, changes) {
+			Vue.set(
+				changes.place.images[changes.indexes[0]],
+				'srt',
+				[
+					changes.place.images[changes.indexes[1]].srt,
+					Vue.set(
+						changes.place.images[changes.indexes[1]],
+						'srt',
+						changes.place.images[changes.indexes[0]].srt
+					)
+				][0]
+			);
+			Vue.set(changes.place, 'updated', true);
 		},
 		changeCenter(state, center) {
 			Vue.set(state, 'center', center);
@@ -486,6 +406,17 @@ const store = new Vuex.Store({
 			sessionStorage.removeItem('places-userid');
 			sessionStorage.removeItem('places-session');
 		},
+		savedToDB({state, commit}) {
+			for (const place of state.places) {
+				commit('setObjectSaved', place);
+			}
+			const foldersPlain = {};
+			commonFunctions.treeToLivePlain({children: state.folders}, 'children', foldersPlain);
+			for (const id in foldersPlain) {
+				commit('setObjectSaved', foldersPlain[id]);
+			}
+			commit('setSaved');
+		},
 		setUser({commit, dispatch}) {
 			axios
 				.get(
@@ -494,10 +425,26 @@ const store = new Vuex.Store({
 				)
 				.then(response => {
 					commit('setUser', response.data);
+					dispatch('setServerConfig');
 				})
 				.catch(() => {
 					dispatch('setMessage', 'Не могу получить данные.');
 					commit('setUser', null);
+				})
+			;
+		},
+		setServerConfig({commit, dispatch}) {
+			axios
+				.get(
+					'/backend/get_config.php?userid=' +
+					sessionStorage.getItem('places-userid')
+				)
+				.then(response => {
+					commit('setServerConfig', response.data);
+				})
+				.catch(() => {
+					dispatch('setMessage', 'Не могу получить данные.');
+					commit('setServerConfig', null);
 				})
 			;
 		},
@@ -517,7 +464,10 @@ const store = new Vuex.Store({
 							commonPlaces: response.data[1],
 							folders: commonFunctions.plainToTree(response.data[2]),
 						});
-						commit('setHomePlace', state.user.homeplace);
+						const homePlace = state.places.find(
+							p => p.id === state.user.homeplace
+						);
+						commit('setHomePlace', (!homePlace ? null : homePlace));
 						commit('stateReady', true);
 					})
 					.catch(() => {
@@ -529,244 +479,245 @@ const store = new Vuex.Store({
 						});
 					})
 				;
-			} else {
+				return;
+			}
 			/*
 			 * If importing from file.
 			 * A payload parameter is present and is an object:
 			 * {text: <file’s content as a text>, type: <file’s MIME-type>}
 			 */
-				let parsed;
-				switch (payload.mime) {
-					case 'application/json' :
-						try {
-							parsed = JSON.parse(payload.text);
+			let parsed;
+			switch (payload.mime) {
+				case 'application/json' :
+					try {
+						parsed = JSON.parse(payload.text);
+						break;
+					} catch (e) {
+						dispatch('setMessage',
+							'Ошибка при разборе импортируемого файла.'
+						);
+						return false;
+					}
+				case 'application/gpx+xml' :
+					parsed = {places: [], folders: []};
+					for (const folder of state.folders) {
+						if (folder.id === 'imported') {
+							parsed.folders[0] = folder;
 							break;
+						}
+					}
+					let dom = null, importedPlaceFolder;
+					// Parsing XML text to a DOM tree
+					if (window.DOMParser) {
+						try {
+							dom = (new DOMParser()).parseFromString(
+								payload.text, 'text/xml'
+							);
 						} catch (e) {
 							dispatch('setMessage',
 								'Ошибка при разборе импортируемого файла.'
 							);
 							return false;
 						}
-					case 'application/gpx+xml' :
-						parsed = {places: [], folders: []};
-						for (const folder of state.folders) {
-							if (folder.id === 'imported') {
-								parsed.folders[0] = folder;
-								break;
-							}
-						}
-						let dom = null, importedPlaceFolder;
-						// Parsing XML text to a DOM tree
-						if (window.DOMParser) {
-							try {
-								dom = (new DOMParser()).parseFromString(
-									payload.text, 'text/xml'
-								);
-							} catch (e) {
+					} else if (window.ActiveXObject) {
+						try {
+							dom = new ActiveXObject('Microsoft.XMLDOM');
+							dom.async = false;
+							if (!dom.loadXML(payload.text)) {
 								dispatch('setMessage',
-									'Ошибка при разборе импортируемого файла.'
+									dom.parseError.reason + dom.parseError.srcText
 								);
-								return false;
 							}
-						} else if (window.ActiveXObject) {
-							try {
-								dom = new ActiveXObject('Microsoft.XMLDOM');
-								dom.async = false;
-								if (!dom.loadXML(payload.text)) {
-									dispatch('setMessage',
-										dom.parseError.reason + dom.parseError.srcText
-									);
-								}
-							} catch (e) {
-								dispatch('setMessage',
-									'Ошибка при разборе импортируемого файла.'
-								);
-								return false;
-							}
-						} else {
+						} catch (e) {
 							dispatch('setMessage',
 								'Ошибка при разборе импортируемого файла.'
 							);
 							return false;
 						}
-						let description: string, link: string, time;
-						for (const wpt of dom.getElementsByTagName('wpt')) {
-							// Parsing a link node(s) in a place node
-							for (const l of wpt.getElementsByTagName('link')) {
-								if (/^\w/.test(l.getAttribute('href').trim())) {
-									link =
-											/^http/.test(l.getAttribute('href').trim())
-												? '' : 'http://'
-											+ l.getAttribute('href').trim()
-									;
-									break;
-								}
-							}
-							// Parsing a time node in a place node
-							time = '';
-							if (wpt.getElementsByTagName('time').length > 0) {
-								time = new Date(
-									wpt.getElementsByTagName('time')[0].textContent.trim()
-								);
-								time = isNaN(time) ? '' : time.toISOString().slice(0, -5);
-							}
-							/*
-								 * Updating the tree branch of folders for imported places
-								 * and get an ID of a folder for the importing place
-								 */
-							importedPlaceFolder = commonFunctions.formFolderForImported(
-								time,
-								parsed.folders[0]
-							);
-							parsed.folders[0] = importedPlaceFolder.imported;
-							// Parsing a description node in a place node
-							description = '';
-							if (wpt.getElementsByTagName('desc').length > 0) {
-								for (const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
-									try {
-										switch (desc.nodeType) {
-											case 1 : case 3 :
-												description += desc.textContent.trim()
-															+ (desc.nextSibling ? '\n' : '');
-												break;
-											case 4 :
-												const reStr: string =
-															'desc_(?:user|test)' +
-															'\s*\:\s*start\s*--\s*>\s*' +
-															'(.*?)' +
-															'\s*<\s*\!\s*--\s*' +
-															'desc_(?:user|test)' +
-															'\s*\:\s*end'
-														;
-												const descs = desc.textContent.match(
-													new RegExp(reStr, 'gi')
-												);
-												for (let i = 0; i < descs.length; i++) {
-													description += descs[i].replace(
-														new RegExp(reStr, 'i'), "$1"
-													) + (desc.nextSibling ? '\n' : '');
-												}
-												break;
-										}
-									} catch (e) {
-									}
-								}
-							}
-							// Forming an importing place as an object and pushing it in a structure
-							parsed.places.push({
-								id: commonFunctions.generateRandomString(32),
-								folderid: importedPlaceFolder.folderid,
-								name: wpt.getElementsByTagName('name').length > 0
-									? wpt.getElementsByTagName('name')[0].textContent.trim()
-									: '',
-								description: description,
-								link: link,
-								latitude: parseFloat(wpt.getAttribute('lat')),
-								longitude: parseFloat(wpt.getAttribute('lon')),
-								altitudecapability: wpt.getElementsByTagName('ele') > 0
-									? wpt.getElementsByTagName('ele')[0].textContent.trim()
-									: '',
-								time: time,
-								srt: (parsed.places.length > 0 ? parsed.places.length + 1 : 1),
-								common: false,
-								geomark: true,
-								userid: sessionStorage.getItem('places-userid'),
-								images: [],
-								type: 'place',
-								added: true,
-								deleted: false,
-								updated: false,
-								show: true,
-							});
-						}
-						break;
-					default :
-						dispatch('setMessage', `
-							Недопустимый тип импортируемого файла.
-							Допускаются только JSON и GPX.
-						`);
+					} else {
+						dispatch('setMessage',
+							'Ошибка при разборе импортируемого файла.'
+						);
 						return false;
-				}
-				try {
-					let found;
-					const plainStateFolders = [], plainPayloadFolders = [];
-					commonFunctions.treeToPlain({'children': state.folders}, 'children', plainStateFolders);
-					commonFunctions.treeToPlain({'children': parsed.folders}, 'children', plainPayloadFolders);
-					Vue.set(state, 'folders', []);
-					for (const payloadFolder of plainPayloadFolders) {
-						payloadFolder.userid = sessionStorage.getItem('places-userid');
+					}
+					let description: string, link: string, time;
+					for (const wpt of dom.getElementsByTagName('wpt')) {
+						// Parsing a link node(s) in a place node
+						for (const l of wpt.getElementsByTagName('link')) {
+							if (/^\w/.test(l.getAttribute('href').trim())) {
+								link =
+										/^http/.test(l.getAttribute('href').trim())
+											? '' : 'http://'
+										+ l.getAttribute('href').trim()
+								;
+								break;
+							}
+						}
+						// Parsing a time node in a place node
+						time = '';
+						if (wpt.getElementsByTagName('time').length > 0) {
+							time = new Date(
+								wpt.getElementsByTagName('time')[0].textContent.trim()
+							);
+							time = isNaN(time) ? '' : time.toISOString().slice(0, -5);
+						}
 						/*
-						 * Checking if such a folder already exists in the tree.
-						 * If exists, updating; if not, addinng.
-						 */
-						found = plainStateFolders.find(f =>
-							f.id == payloadFolder.id
+							 * Updating the tree branch of folders for imported places
+							 * and get an ID of a folder for the importing place
+							 */
+						importedPlaceFolder = commonFunctions.formFolderForImported(
+							time,
+							parsed.folders[0]
 						);
-						if (found) {
-							payloadFolder.updated = true;
-							for (const key in payloadFolder) {
-								if (
-									key !== 'id' &&
-									key !== 'added' &&
-									key !== 'deleted'
-								) {
-									found[key] = payloadFolder[key];
+						parsed.folders[0] = importedPlaceFolder.imported;
+						// Parsing a description node in a place node
+						description = '';
+						if (wpt.getElementsByTagName('desc').length > 0) {
+							for (const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
+								try {
+									switch (desc.nodeType) {
+										case 1 : case 3 :
+											description += desc.textContent.trim()
+														+ (desc.nextSibling ? '\n' : '');
+											break;
+										case 4 :
+											const reStr: string =
+														'desc_(?:user|test)' +
+														'\s*\:\s*start\s*--\s*>\s*' +
+														'(.*?)' +
+														'\s*<\s*\!\s*--\s*' +
+														'desc_(?:user|test)' +
+														'\s*\:\s*end'
+													;
+											const descs = desc.textContent.match(
+												new RegExp(reStr, 'gi')
+											);
+											for (let i = 0; i < descs.length; i++) {
+												description += descs[i].replace(
+													new RegExp(reStr, 'i'), "$1"
+												) + (desc.nextSibling ? '\n' : '');
+											}
+											break;
+									}
+								} catch (e) {
 								}
 							}
-						} else {
-							payloadFolder.added = true;
-							plainStateFolders.push(payloadFolder);
 						}
+						// Forming an importing place as an object and pushing it in a structure
+						parsed.places.push({
+							id: commonFunctions.generateRandomString(32),
+							folderid: importedPlaceFolder.folderid,
+							name: wpt.getElementsByTagName('name').length > 0
+								? wpt.getElementsByTagName('name')[0].textContent.trim()
+								: '',
+							description: description,
+							link: link,
+							latitude: parseFloat(wpt.getAttribute('lat')),
+							longitude: parseFloat(wpt.getAttribute('lon')),
+							altitudecapability: wpt.getElementsByTagName('ele') > 0
+								? wpt.getElementsByTagName('ele')[0].textContent.trim()
+								: '',
+							time: time,
+							srt: (parsed.places.length > 0 ? parsed.places.length + 1 : 1),
+							common: false,
+							geomark: true,
+							userid: sessionStorage.getItem('places-userid'),
+							images: [],
+							type: 'place',
+							added: true,
+							deleted: false,
+							updated: false,
+							show: true,
+						});
 					}
-					for (const stateFolder of plainStateFolders) {
-						stateFolder.builded = false;
-					}
-					const placesNew = state.places.slice(0);
-					for (const payloadPlace of parsed.places) {
-						payloadPlace.userid = sessionStorage.getItem('places-userid');
-						/*
-						 * Checking if such a place already exists.
-						 * If exists, updating; if not, addinng.
-						 */
-						found = state.places.find(p =>
-							p.id == payloadPlace.id ||
-							p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
-						);
-						if (found) {
-							found.updated = true;
-							for (const key in payloadPlace) {
-								Vue.set(found, key, payloadPlace[key]);
-							}
-						} else {
-							payloadPlace.images = [];
-							payloadPlace.added = true;
-							placesNew.push(payloadPlace);
-						}
-					}
-					commit('placesReady', {
-						places: placesNew,
-						folders: commonFunctions.plainToTree(plainStateFolders),
-					});
-					commit('setHomePlace', state.user.homeplace);
-					commit('stateReady', true);
-					bus.$emit('toDBCompletely');
-				} catch (e) {
-					dispatch('setMessage',
-						'Ошибка при попытке импорта.'
-					);
+					break;
+				default :
+					dispatch('setMessage', `
+						Недопустимый тип импортируемого файла.
+						Допускаются только JSON и GPX.
+					`);
 					return false;
-				}
-				return true;
 			}
+			try {
+				let found;
+				const plainStateFolders = [], plainPayloadFolders = [];
+				commonFunctions.treeToPlain({'children': state.folders}, 'children', plainStateFolders);
+				commonFunctions.treeToPlain({'children': parsed.folders}, 'children', plainPayloadFolders);
+				Vue.set(state, 'folders', []);
+				for (const payloadFolder of plainPayloadFolders) {
+					payloadFolder.userid = sessionStorage.getItem('places-userid');
+					/*
+					 * Checking if such a folder already exists in the tree.
+					 * If exists, updating; if not, addinng.
+					 */
+					found = plainStateFolders.find(f =>
+						f.id == payloadFolder.id
+					);
+					if (found) {
+						payloadFolder.updated = true;
+						for (const key in payloadFolder) {
+							if (
+								key !== 'id' &&
+								key !== 'added' &&
+								key !== 'deleted'
+							) {
+								found[key] = payloadFolder[key];
+							}
+						}
+					} else {
+						payloadFolder.added = true;
+						plainStateFolders.push(payloadFolder);
+					}
+				}
+				for (const stateFolder of plainStateFolders) {
+					stateFolder.builded = false;
+				}
+				const placesNew = state.places.slice(0);
+				for (const payloadPlace of parsed.places) {
+					payloadPlace.userid = sessionStorage.getItem('places-userid');
+					/*
+					 * Checking if such a place already exists.
+					 * If exists, updating; if not, addinng.
+					 */
+					found = state.places.find(p =>
+						p.id == payloadPlace.id ||
+						p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
+					);
+					if (found) {
+						found.updated = true;
+						for (const key in payloadPlace) {
+							Vue.set(found, key, payloadPlace[key]);
+						}
+					} else {
+						payloadPlace.images = [];
+						payloadPlace.added = true;
+						placesNew.push(payloadPlace);
+					}
+				}
+				commit('placesReady', {
+					places: placesNew,
+					folders: commonFunctions.plainToTree(plainStateFolders),
+				});
+				const homePlace = state.places.find(
+					p => p.id === state.user.homeplace
+				);
+				commit('setHomePlace', (!homePlace ? null : homePlace));
+				commit('stateReady', true);
+				bus.$emit('toDBCompletely');
+			} catch (e) {
+				dispatch('setMessage',
+					'Ошибка при попытке импорта.'
+				);
+				return false;
+			}
+			return true;
 		},
-		restoreObjectsAsLinks({state, commit}) {
+		restoreObjectsAsLinks({state, commit, dispatch}) {
 			commit('setRefreshing', true);
-			commit(
-				'setHomePlace',
-				state.user.homeplace && state.user.homeplace.id
-					? state.user.homeplace.id
-					: null
+			const homePlace = state.places.find(
+				p => p.id === state.user.homeplace
 			);
+			commit('setHomePlace', (!homePlace ? null : homePlace));
 			if (state.currentPlace) {
 				for (const place of state.commonPlaces) {
 					if (place.id === state.currentPlace.id) {
@@ -786,7 +737,89 @@ const store = new Vuex.Store({
 			}
 			commit('setRefreshing', false);
 		},
-		moveFolder({state, commit}, payload) {
+		addPlace({state, commit}, place) {
+			commit('addPlace', place);
+			bus.$emit('toDB', {what: 'places', data: [place]});
+		},
+		addFolder({state, commit}, folder) {
+			const parent = commonFunctions.findInTree(
+				{id: 'root', children: state.folders},
+				'children',
+				'id',
+				folder.parent
+			);
+			commit('addFolder', {folder: folder, parent: parent});
+			bus.$emit('toDB', {what: 'folders', data: [folder]});
+		},
+		deletePlace({state, commit, dispatch}, place) {
+			commit('backupState');
+			if (state.homePlace === place) dispatch('setHomePlace', null);
+			commit('removePlace', place);
+			bus.$emit('toDB', {what: 'places', data: [place]});
+			commit('deletePlace', place);
+		},
+		setHomePlace({state, commit}, id) {
+			let place = null;
+			if (id) {
+				const found = state.places.find(p => p.id === id);
+				if (found) {
+					place = found;
+					bus.$emit('homeToDB', id);
+				}
+			}
+			commit('setHomePlace', place);
+			if (!place) bus.$emit('homeToDB', null);
+		},
+		changePlace({state, commit}, payload) {
+			const keys: string[] = Object.keys(payload.change)
+			let toUpdated = true;
+			for (const key of keys) {
+				commit('changePlace', {
+					place: payload.place,
+					key: key,
+					value: payload.change[key],
+				});
+				if (key === 'updated') {
+					toUpdated = false;
+				}
+			}
+			if (toUpdated) {
+				commit('changePlace', {
+					place: payload.place,
+					key: 'updated',
+					value: true,
+				});
+				bus.$emit('toDB', {what: 'places', data: [payload.place]});
+			}
+		},
+		changeFolder({state, commit}, payload) {
+			const keys = Object.keys(payload.change);
+			let toUpdated = true;
+			for (const key of keys) {
+				commit('changeFolder', {
+					folder: payload.folder,
+					key: key,
+					value: payload.change[key],
+				});
+				if (key === 'updated') {
+					toUpdated = false;
+				}
+			}
+			if (toUpdated) {
+				commit('changeFolder', {
+					folder: payload.folder,
+					key: 'updated',
+					value: true,
+				});
+				if (!state.inUndoRedo) {
+					bus.$emit('toDB', {what: 'folders'});
+				} else {
+					bus.$emit('toDBCompletely');
+					commit('outUndoRedo');
+				}
+			}
+		},
+		moveFolder({state, commit, dispatch}, payload) {
 			let source, target;
 			const folder = payload.hasOwnProperty('folder')
 				? payload.folder
@@ -831,15 +864,34 @@ const store = new Vuex.Store({
 				)
 			);
 			target.push(source.splice(source.indexOf(folder), 1)[0]);
-			commit('changeFolder', {
+			dispatch('changeFolder', {
 				folder: folder,
 				change: {
 					parent: payload.targetId,
 					srt: srt,
-					updated: true,
 				},
-				backup: !payload.hasOwnProperty('backup') || payload.backup ? true : false,
 			});
+		},
+		folderOpenClose({commit}, payload) {
+			if (payload.folder) {
+				commit('folderOpenClose', payload);
+			}
+			if (payload.target) {
+				if (payload.opened) {
+					payload.target.classList.add('folder_opened');
+				} else {
+					if (payload.target.classList.contains('folder_opened')) {
+						payload.target.classList.add('folder_closed');
+						payload.target.classList.remove('folder_opened');
+					} else {
+						payload.target.classList.add('folder_opened');
+						payload.target.classList.remove('folder_closed');
+					}
+				}
+			}
+		},
+		swapImages({commit}, payload) {
+			commit('swapImages', payload);
 		},
 		setMessage({state, commit, dispatch}, message) {
 			message = message.replace(/[\t\n]/g, ' ');
@@ -867,15 +919,17 @@ const store = new Vuex.Store({
 			commit(
 				'setMessageTimer',
 				setInterval(() => {
-					if (state.messages.length === 1) {
-						dispatch('clearMessages');
+					if (!state.mouseOverMessages) {
+						if (state.messages.length === 1) {
+							dispatch('clearMessages');
+						}
+						setTimeout(function() {
+							commit(
+								'deleteMessage',
+								state.messages[state.messages.length - 1]
+							);
+						}, 500);
 					}
-					setTimeout(function() {
-						commit(
-							'deleteMessage',
-							state.messages[state.messages.length - 1]
-						);
-					}, 500);
 				}, 3000)
 			);
 		},

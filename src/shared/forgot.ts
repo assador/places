@@ -9,7 +9,7 @@ export const forgotRoutine = (data) => new Promise((resolve, reject) => {
 		.then(response => {
 			switch (response.data) {
 				case 0 :
-					forgot.message = 'При отправке письма произошла ошибка. Свяжитесь с <a href="mailto:' + constants.from + '">техподдержкой</a>.';
+					forgot.message = 'При отправке письма произошла ошибка.';
 					break;
 				case 1 :
 					forgot.message = 'Пользователь с таким e-mail в сервисе не зарегистрирован.';

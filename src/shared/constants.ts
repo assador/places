@@ -1,6 +1,4 @@
 export const constants = {
-	host: 'http://places.scrofa-tridens.ru',
-	from: 'service@places.scrofa-tridens.ru',
 	shortcuts: {
 		65  : 'add',
 		68  : 'delete',
@@ -22,12 +20,6 @@ export const constants = {
 		90  : 'undo',
 		89  : 'redo',
 	},
-	mimes: {
-		'image/gif'     : 'gif',
-		'image/jpeg'    : 'jpg',
-		'image/png'     : 'png',
-		'image/svg+xml' : 'svg',
-	},
 	dirs: {
 		uploads: {
 			images: {
@@ -41,7 +33,6 @@ export const constants = {
 	sessionlifetime: 3600,
 	backupscount: 10,
 	commonplacesonpagecount: 5,
-	uploadsize: 12582912,
 	map: {
 		initial: {
 			latitude  : 51.4778883,
@@ -55,42 +46,4 @@ export const constants = {
 		left   : 250,
 	},
 	compactWidth: 500,
-	rights: {
-		placescounts: {
-			publishers : -1,
-			managers   : -1,
-			admins     : -1,
-			beginners  : 50,
-			ordinary   : 300,
-			trusted    : 1000,
-			superusers : -1,
-		},
-		folderscounts: {
-			publishers : -1,
-			managers   : -1,
-			admins     : -1,
-			beginners  : 30,
-			ordinary   : 200,
-			trusted    : 700,
-			superusers : -1,
-		},
-		photocounts: {
-			publishers : -1,
-			managers   : -1,
-			admins     : -1,
-			beginners  : 10,
-			ordinary   : 50,
-			trusted    : 500,
-			superusers : -1,
-		},
-		photosizes: {
-			publishers : -1,
-			managers   : -1,
-			admins     : -1,
-			beginners  : 1048576,
-			ordinary   : 2097152,
-			trusted    : 4194304,
-			superusers : -1,
-		},
-	},
 }

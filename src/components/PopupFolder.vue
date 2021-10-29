@@ -91,13 +91,14 @@ export default {
 	},
 	mounted() {
 		this.popuped = true;
-		makeFieldsValidatable();
-		document.getElementById('folderName').focus();
-		document.addEventListener('keyup', this.keyup, false);
+		this.$nextTick(() => {
+			makeFieldsValidatable();
+			document.getElementById('folderName').focus();
+			document.addEventListener('keyup', this.keyup, false);
+		});
 	},
-	beforeUpdate() {
-		this.popuped = true;
-		document.getElementById('folderName').focus();
+	updated() {
+		makeFieldsValidatable();
 	},
 	beforeDestroy() {
 		document.removeEventListener('keyup', this.keyup, false);
@@ -110,61 +111,46 @@ export default {
 			);
 		},
 		appendFolder(folderName, folderDescription) {
-			let foldersCount = commonFunctions.childrenCount(
-				this.$root.folderRoot,
-				'children'
-			);
-			let data = new FormData();
-			data.append('userid', this.$store.state.user.id);
-			data.append('need', 'visiting');
-			axios.post('/backend/get_groups.php', data)
-				.then(response => {
-					if (
-						constants.rights.folderscounts[response.data] < 0 ||
-						constants.rights.folderscounts[response.data] > foldersCount ||
-						this.$store.state.user.testaccount
-					) {
-						let newFolder = {
-							type: 'folder',
-							userid: sessionStorage.getItem('places-userid'),
-							name: folderName,
-							description: folderDescription,
-							id: commonFunctions.generateRandomString(32),
-							srt: this.$store.state.folders.length > 0
-								? Math.ceil(Math.max(
-									...this.$store.state.folders.map(function(folder) {
-										return folder.srt;
-									})
-								)) + 1
-								: 1,
-							parent: this.currentPlace.folderid
-								? this.currentPlace.folderid
-								: 'root',
-							opened: false,
-							geomarks: 1,
-							added: true,
-							deleted: false,
-							updated: false,
-						};
-						this.$store.commit('addFolder', newFolder);
-						this.message = 'Папка создана';
-						this.folderName = '';
-						this.folderDescription = "";
-						document.getElementById("folderName").focus();
-					} else {
-						this.message = `
-							Превышено максимально допустимое для вашей
-							текущей роли количство папок<br />Дождитесь
-							перехода в следующую роль, или обратитесь
-							к администрации сервиса по адресу<br />
-							<a href="mailto:
-							` + constants.from + `
-							">
-							` + constants.from + `
-							</a>'
-						`;
-					}
-				});
+			if (
+				this.$store.state.serverConfig.rights.folderscount < 0 ||
+				this.$store.state.serverConfig.rights.folderscount
+					// length - 1 because there is a root folder too
+					> Object.keys(this.$root.foldersPlain).length - 1 ||
+				this.$store.state.user.testaccount
+			) {
+				let newFolder = {
+					type: 'folder',
+					userid: sessionStorage.getItem('places-userid'),
+					name: folderName,
+					description: folderDescription,
+					id: commonFunctions.generateRandomString(32),
+					srt: this.$store.state.folders.length > 0
+						? Math.ceil(Math.max(
+							...this.$store.state.folders.map(function(folder) {
+								return folder.srt;
+							})
+						)) + 1
+						: 1,
+					parent: this.currentPlace && this.currentPlace.folderid
+						? this.currentPlace.folderid
+						: 'root',
+					opened: false,
+					geomarks: 1,
+					added: true,
+					deleted: false,
+					updated: false,
+				};
+				this.$store.dispatch('addFolder', newFolder);
+				this.message = 'Папка создана';
+				this.folderName = '';
+				this.folderDescription = '';
+				document.getElementById("folderName").focus();
+			} else {
+				this.message = `
+					Превышено максимально допустимое для вашей
+					текущей роли количство папок.
+				`;
+			}
 		},
 		keyup(event) {
 			if (constants.shortcuts[event.keyCode] == 'close')  this.close();

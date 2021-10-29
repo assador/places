@@ -74,6 +74,8 @@
 			<div
 				id="messages"
 				class="invisible"
+				@mouseover="$store.commit('setMouseOverMessages', true)"
+				@mouseout="$store.commit('setMouseOverMessages', false)"
 				@click="$store.dispatch('clearMessages');"
 			>
 				<div
@@ -118,7 +120,7 @@
 				<button
 					id="actions-save"
 					:class="'actions-button' + (!$store.state.saved ? ' button-pressed highlight' : '')"
-					:title="(!$store.state.saved ? 'Не сохранено. ' : '') + 'Сохранить в БД'"
+					:title="(!$store.state.saved ? 'Не сохранено. ' : '') + 'Сохранить в базу данных.'"
 					@click="$root.toDBCompletely();"
 				>
 					↯
@@ -282,7 +284,7 @@
 								type="text"
 								:disabled="$root.currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
+								@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 							>
 						</dd>
 						<dd v-else-if="field == 'time'">
@@ -292,7 +294,7 @@
 								type="datetime-local"
 								:disabled="$root.currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
+								@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 							>
 						</dd>
 						<dd
@@ -305,7 +307,7 @@
 									v-model="currentPlace[field]"
 									type="checkbox"
 									:disabled="$root.currentPlaceCommon"
-									@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
+									@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 								>
 								Место видно другим
 							</label>
@@ -355,7 +357,7 @@
 								:disabled="$root.currentPlaceCommon"
 								:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
 								class="fieldwidth_100"
-								@change="$store.commit('changePlace', {place: currentPlace, change: {updated: true}});"
+								@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 							/>
 						</dd>
 					</dl>
@@ -389,7 +391,7 @@
 							id="checkbox-homeplace"
 							type="checkbox"
 							:checked="currentPlace === $store.state.homePlace ? 'checked' : ''"
-							@change="$store.commit('setHomePlace', ($event.target.checked ? currentPlace.id : null)); $root.homeToDB($event.target.checked ? currentPlace : {});"
+							@change="$store.dispatch('setHomePlace', ($event.target.checked ? currentPlace.id : null));"
 						>
 						Домашнее место
 					</label>
@@ -486,7 +488,6 @@ export default {
 	},
 	data() {
 		return {
-			state: this.$store.state,
 			constants: constants,
 			commonPlacesPage: 1,
 			commonPlacesPagesCount: 0,
@@ -558,6 +559,12 @@ export default {
 				}
 			}, 1000);
 		}
+		this.$nextTick(() => {
+		console.dir('asdf');
+			makeFieldsValidatable();
+		});
+	},
+	updated() {
 		makeFieldsValidatable();
 	},
 	beforeDestroy() {
@@ -657,7 +664,7 @@ export default {
 					if (!folder) {
 						break;
 					}
-					this.$store.commit('folderOpenClose', {
+					this.$store.dispatch('folderOpenClose', {
 						folder: folder,
 						opened: true,
 					});
@@ -714,95 +721,76 @@ export default {
 			});
 		},
 		appendPlace() {
-			let data = new FormData();
-			data.append('userid', this.$store.state.user.id);
-			data.append('need', 'visiting');
-			axios.post('/backend/get_groups.php', data)
-				.then(response => {
-					if (
-						constants.rights.placescounts[response.data] < 0 ||
-						constants.rights.placescounts[response.data] > this.$store.state.places.length ||
-						this.$store.state.user.testaccount
-					) {
-						let newPlace = {
-							type: 'place',
-							userid: sessionStorage.getItem('places-userid'),
-							name: '',
-							description: '',
-							link: '',
-							latitude: this.$refs.extmap.map.getCenter()[0].toFixed(7),
-							longitude: this.$refs.extmap.map.getCenter()[1].toFixed(7),
-							altitudecapability: null,
-							time: new Date().toISOString().slice(0, -5),
-							id: commonFunctions.generateRandomString(32),
-							folderid:
-								this.currentPlace
-									? this.currentPlace.folderid
-									: 'root'
-							,
-							srt:
-								this.$store.state.places.length > 0
-									? Math.ceil(Math.max(
-										...this.$store.state.places.map(
-											function(place) {
-												return place.srt;
-											}
-										)
-									)) + 1
-									: 1
-							,
-							common: false,
-							geomark: true,
-							images: [],
-							added: true,
-							deleted: false,
-							updated: false,
-							show: true,
-						};
-						this.$store.commit('addPlace', newPlace);
-						this.$refs.extmap.appendPlacemark(
-							this.$refs.extmap.mrks,
-							newPlace,
-							'private'
-						);
-						this.setCurrentPlace(
-							this.$store.state.places[
-								this.$store.state.places.length - 1
-							]
-						);
-						this.$nextTick(() => {
-							document.getElementById('detailed-name').classList.add('highlight');
-						});
-						setTimeout(function() {
-							document.getElementById('detailed-name').classList.remove('highlight');
-							document.getElementById('detailed-name').focus();
-						}, 500);
-						return newPlace;
-					} else {
-						this.$store.dispatch('setMessage', `
-							Превышено максимально допустимое для вашей текущей
-							роли количство мест.<br />Дождитесь перехода
-							в следующую роль или обратитесь к администрации
-							сервиса по адресу<br /><a href="mailto:` +
-							+ constants.from + `">` + constants.from + `</a>.
-						`);
-					}
+			if (
+				this.$store.state.serverConfig.rights.placescount < 0 ||
+				this.$store.state.serverConfig.rights.placescount
+					> this.$store.state.places.length ||
+				this.$store.state.user.testaccount
+			) {
+				let newPlace = {
+					type: 'place',
+					userid: sessionStorage.getItem('places-userid'),
+					name: '',
+					description: '',
+					link: '',
+					latitude: this.$refs.extmap.map.getCenter()[0].toFixed(7),
+					longitude: this.$refs.extmap.map.getCenter()[1].toFixed(7),
+					altitudecapability: null,
+					time: new Date().toISOString().slice(0, -5),
+					id: commonFunctions.generateRandomString(32),
+					folderid:
+						this.currentPlace
+							? this.currentPlace.folderid
+							: 'root'
+					,
+					srt:
+						this.$store.state.places.length > 0
+							? Math.ceil(Math.max(
+								...this.$store.state.places.map(
+									function(place) {
+										return place.srt;
+									}
+								)
+							)) + 1
+							: 1
+					,
+					common: false,
+					geomark: true,
+					images: [],
+					added: true,
+					deleted: false,
+					updated: false,
+					show: true,
+				};
+				this.$store.dispatch('addPlace', newPlace);
+				this.$refs.extmap.appendPlacemark(
+					this.$refs.extmap.mrks,
+					newPlace,
+					'private'
+				);
+				this.setCurrentPlace(
+					this.$store.state.places[
+						this.$store.state.places.length - 1
+					]
+				);
+				this.$nextTick(() => {
+					document.getElementById('detailed-name').classList.add('highlight');
 				});
+				setTimeout(function() {
+					document.getElementById('detailed-name').classList.remove('highlight');
+					document.getElementById('detailed-name').focus();
+				}, 500);
+				return newPlace;
+			} else {
+				this.$store.dispatch('setMessage', `
+					Превышено максимально допустимое для вашей
+					текущей роли количство мест.
+				`);
+			}
 		},
-		deletePlace(place, backup) {
-			if (!this.$store.state.stateBackups.length) {
-				this.$store.commit('backupState');
-			}
-			if (this.$store.state.homePlace === place) {
-				this.$store.commit('setHomePlace', null);
-			}
-			this.$store.commit('removePlace', {
-				place: place,
-				change: {deleted: true},
-				backup: false,
-			});
+		deletePlace(place) {
 			this.$root.deleteImages(place.images, true);
-			if (this.$store.state.places.length > 0) {
+			if (this.$store.state.places.length > 1) {
 				let firstRootPlace;
 				if (document.getElementById(place.id).nextElementSibling) {
 					this.setCurrentPlace(
@@ -838,7 +826,7 @@ export default {
 				this.setCurrentPlace(null);
 			}
 			this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
-			this.$store.commit('deletePlace', place);
+			this.$store.dispatch('deletePlace', place);
 		},
 		commonPlacesShowHide(show = null) {
 			this.commonPlacesShow =
@@ -899,13 +887,13 @@ export default {
 					srt = 0;
 				}
 				for (let i = 0; i < files.length; i++) {
-					if (!constants.mimes[files[i].type]) {
+					if (!this.$store.state.serverConfig.mimes[files[i].type]) {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
 							files[i].name +
 							' не является картинкой и загружен не будет.'
 						);
-					} else if (files[i].size > constants.uploadsize) {
+					} else if (files[i].size > this.$store.state.serverConfig.uploadsize) {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
 							files[i].name +
@@ -919,7 +907,7 @@ export default {
 							file:
 								files[i].rndname +
 								"." +
-								constants.mimes[files[i].type]
+								this.$store.state.serverConfig.mimes[files[i].type]
 							,
 							size: files[i].size,
 							type: files[i].type,
@@ -948,9 +936,9 @@ export default {
 								? this.currentPlace.images.concat(filesArray)
 								: filesArray
 							;
-							this.$store.commit('changePlace', {
+							this.$store.dispatch('changePlace', {
 								place: this.currentPlace,
-								change: {images: images, updated: true},
+								change: {images: images},
 							});
 							/*
 							 * Проверка накопленных кодов ошибок и замечаний
@@ -959,18 +947,27 @@ export default {
 							response.data[0].forEach((code) => {
 								switch (code) {
 									case 2 :
-										this.$store.dispatch('setMessage',
-											'Тестовый аккаунт не позволяет загрузку файлов.'
+										this.$store.dispatch('setMessage', `
+											Тестовый аккаунт не позволяет загрузку файлов.
+										`
 										);
 										break;
 									case 3 :
-										this.$store.dispatch('setMessage',
-											'Некоторые файлы не являются картинками и загружены не были.'
+										this.$store.dispatch('setMessage', `
+											Некоторые файлы не являются
+											картинками и загружены не были.
+										`
 										);
 										break;
 									case 4 :
-										this.$store.dispatch('setMessage',
-											'Некоторые файлы слишком большого размеры и загружены не были.'
+										this.$store.dispatch('setMessage', `
+											Некоторые файлы слишком большого
+											размера и загружены не были.
+											Для вашей роли размер файла ограничен
+											` + ' ' + Number(
+												(this.$store.state.serverConfig.rights.photosize
+												/ 1048576).toFixed(3)
+											) + ' Mb.'
 										);
 										break;
 								}
@@ -982,7 +979,7 @@ export default {
 								});
 								bus.$emit('toDB', {
 									what: 'images_upload',
-									data: JSON.stringify(filesArray),
+									data: filesArray,
 								});
 							}
 						})

@@ -145,7 +145,12 @@ export default {
 		}
 	},
 	mounted() {
-		document.addEventListener('keyup', this.keyup, false);
+		this.$nextTick(() => {
+			makeFieldsValidatable();
+			document.addEventListener('keyup', this.keyup, false);
+		});
+	},
+	updated() {
 		makeFieldsValidatable();
 	},
 	beforeDestroy() {
@@ -154,10 +159,10 @@ export default {
 	methods: {
 		close(event) {
 			if (event) event.stopPropagation();
-			this.$router.push({name: 'Home'}).catch(() => {});
+			this.$router.push({name: 'Home'});
 		},
 		keyup(event) {
-			if (constants.shortcuts[event.keyCode] == 'close')  this.close();
+			if (constants.shortcuts[event.keyCode] == 'close') this.close();
 		},
 		accountSubmit() {
 			if (this.$store.state.user.testaccount) {

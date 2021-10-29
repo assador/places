@@ -4,10 +4,10 @@ $from = "service@places.scrofa-tridens.ru";
 $dirs = array(
 	"uploads" => array(
 		"images" => array(
-			"big" =>            "../uploads/images/big/",
-			"small" =>          "../uploads/images/small/",
-			"orphaned_big" =>   "../uploads/images/big/orphaned/",
-			"orphaned_small" => "../uploads/images/small/orphaned/",
+			"big" =>            "/var/www/html/uploads/images/big/",
+			"small" =>          "/var/www/html/uploads/images/small/",
+			"orphaned_big" =>   "/var/www/html/uploads/images/big/orphaned/",
+			"orphaned_small" => "/var/www/html/uploads/images/small/orphaned/",
 		),
 	),
 );
@@ -45,34 +45,34 @@ $images = array(
 );
 $uploadsize = 12582912;
 $rights = array(
-	"placescounts" => array(
+	"placescount" => array(
 		"publishers" => -1,
 		"managers"   => -1,
 		"admins"     => -1,
-		"beginners"  => 50,
+		"beginners"  => 100,
 		"ordinary"   => 300,
 		"trusted"    => 1000,
 		"superusers" => -1,
 	),
-	"folderscounts" => array(
+	"folderscount" => array(
 		"publishers" => -1,
 		"managers"   => -1,
 		"admins"     => -1,
-		"beginners"  => 30,
-		"ordinary"   => 200,
-		"trusted"    => 700,
+		"beginners"  => 100,
+		"ordinary"   => 300,
+		"trusted"    => 1000,
 		"superusers" => -1,
 	),
-	"photocounts" => array(
+	"photocount" => array(
 		"publishers" => -1,
 		"managers"   => -1,
 		"admins"     => -1,
-		"beginners"  => 10,
-		"ordinary"   => 50,
-		"trusted"    => 500,
+		"beginners"  => 100,
+		"ordinary"   => 300,
+		"trusted"    => 1000,
 		"superusers" => -1,
 	),
-	"photosizes" => array(
+	"photosize" => array(
 		"publishers" => -1,
 		"managers"   => -1,
 		"admins"     => -1,

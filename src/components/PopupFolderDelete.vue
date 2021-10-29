@@ -121,7 +121,7 @@ export default {
 					if (place.deleted) {
 						this.$root.deleteImages(place.images, true);
 						if (this.$store.state.homePlace === place) {
-							this.$store.commit('setHomePlace', null);
+							this.$store.dispatch('setHomePlace', null);
 						}
 					}
 				});
@@ -167,10 +167,9 @@ export default {
 				// Move subplaces and subfolders to the root
 				this.$store.state.places.forEach((place) => {
 					if (place.folderid === this.folder.id) {
-						this.$store.commit('changePlace', {
+						this.$store.dispatch('changePlace', {
 							place: place,
-							change: {folderid: 'root', updated: true},
-							backup: false,
+							change: {folderid: 'root'},
 						});
 					}
 				});
@@ -184,21 +183,10 @@ export default {
 					}
 				}
 			}
-			this.$store.commit('changeFolder', {
+			this.$store.dispatch('changeFolder', {
 				folder: this.folder,
 				change: {deleted: true},
-				backup: false,
 			});
-			if (!this.$store.state.inUndoRedo) {
-				bus.$emit('toDB', {what: 'places'});
-				bus.$emit('toDB', {what: 'folders'});
-			} else {
-				bus.$emit('toDBCompletely');
-				this.$store.commit('outUndoRedo');
-			}
-			if (this.keepContent !== 'delete') {
-				this.$store.commit('backupState');
-			}
 			this.$store.commit('deletePlacesMarkedAsDeleted');
 			this.$store.commit('deleteFoldersMarkedAsDeleted');
 			bus.$emit('refreshMapMarks');
@@ -210,8 +198,8 @@ export default {
 				if (place.folderid === folder.id) {
 					this.$store.commit('changePlace', {
 						place: place,
-						change: {deleted: true},
-						backup: false,
+						key: 'deleted',
+						value: true,
 					});
 				}
 			});
@@ -219,8 +207,8 @@ export default {
 				for (let i = 0; i < folder.children.length; i++) {
 					this.$store.commit('changeFolder', {
 						folder: folder.children[i],
-						change: {deleted: true},
-						backup: false,
+						key: 'deleted',
+						value: true,
 					});
 					this.markNestedAsDeleted(folder.children[i]);
 				}

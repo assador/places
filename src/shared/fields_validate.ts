@@ -43,10 +43,11 @@ export const makeFieldsValidatable = () => {
 		'detailed-srt'             : ['decimal',     'Пример: 3.752'],
 	}
 	for (const id in fields) {
-		if (document.getElementById(id)) {
-			document.getElementById(id).classList.add('value_validatable');
-			document.getElementById(id).title = fields[id][1];
-			document.getElementById(id).addEventListener('input', (event) => {
+		const field = document.getElementById(id);
+		if (field && !field.classList.contains('value_validatable')) {
+			field.classList.add('value_validatable');
+			field.title = fields[id][1];
+			field.addEventListener('input', (event) => {
 				if ((<HTMLInputElement>event.currentTarget).value !== '') {
 					if (validateField((<HTMLInputElement>event.currentTarget).value, fields[id][0])) {
 						(<HTMLElement>event.currentTarget).classList.remove('value_wrong');

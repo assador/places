@@ -3,6 +3,14 @@ include "config.php";
 include "newpdo.php";
 include "common.php";
 
+$_POST = json_decode(file_get_contents("php://input"), true);
+$faults = [];
+/*
+ * 1: Something’s wrong
+ * 2: Test account
+ * 3: Places limit reached
+ * 4: Folders limit reached
+ */
 function updateImages(&$conn, &$stmt, $images) {
 	$stmt = $conn->prepare("
 		INSERT INTO `images` (
@@ -42,12 +50,12 @@ function updateImages(&$conn, &$stmt, $images) {
 	}
 }
 if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
-	echo 2; exit;
+	echo json_encode([2], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+	exit;
 } else {
-	$data = json_decode($_POST["data"], true);
 	$images = array();
-	if($_POST["todo"] == "places") {
-		foreach($data as $dval) {
+	if($_POST["what"] == "places") {
+		foreach($_POST["data"] as $dval) {
 			$pimg = $dval["images"];
 			foreach($pimg as $ival) {
 				$images[] = $ival;
@@ -80,7 +88,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		AND `parent` = 'visiting'
 	");
 	$visiting = $query->fetch(PDO::FETCH_ASSOC);
-	if($_POST["todo"] == "places") {
+	if($_POST["what"] == "places") {
 		$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id AND `userid` = :userid");
 		$append = $conn->prepare("
 			INSERT INTO `places` (
@@ -141,15 +149,21 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`placeid`      = :placeid
 			WHERE `id` = :id
 		");
-		foreach($data as $row) {
+		foreach($_POST["data"] as $row) {
 			if($row["deleted"] == true) {
 				$delete->bindParam( ":id"     , $row["id"]);
 				$delete->bindParam( ":userid" , $_POST["id"]);
-				try {$delete->execute();} catch(Exception $e) {}
+				try {
+					$delete->execute();
+					$placescount["count"]--;
+				} catch(Exception $e) {
+					error_log($e);
+					continue;
+				}
 			} elseif($row["added"] == true) {
 				if(
-					$placescount["count"] < $rights["placescounts"][$visiting["id"]]
-					|| $rights["placescounts"][$visiting["id"]] < 0
+					$placescount["count"] < $rights["placescount"][$visiting["id"]]
+					|| $rights["placescount"][$visiting["id"]] < 0
 				) {
 					$append->bindParam( ":id"                 , $row[ "id"                 ]);
 					$append->bindParam( ":folderid"           , $row[ "folderid"           ]);
@@ -164,7 +178,15 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					$append->bindParam( ":geomark"            , $row[ "geomark"            ]);
 					$append->bindParam( ":common"             , $row[ "common"             ]);
 					$append->bindParam( ":userid"             , $_POST["id"]);
-					try {$append->execute();} catch(Exception $e) {}
+					try {
+						$append->execute();
+						$placescount["count"]++;
+					} catch(Exception $e) {
+						error_log($e);
+						continue;
+					}
+				} else {
+					if(!in_array(3, $faults)) {$faults[] = 3;}
 				}
 			}
 			if($row["updated"] == true) {
@@ -181,7 +203,10 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$update->bindParam( ":geomark"            , $row[ "geomark"            ]);
 				$update->bindParam( ":common"             , $row[ "common"             ]);
 				$update->bindParam( ":userid"             , $_POST["id"]);
-				try {$update->execute();} catch(Exception $e) {}
+				try {$update->execute();} catch(Exception $e) {
+					error_log($e);
+					continue;
+				}
 			}
 			foreach($row["images"] as $image) {
 				$updateimage->bindParam( ":id"           , $image["id"           ]);
@@ -191,10 +216,13 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$updateimage->bindParam( ":lastmodified" , $image["lastmodified" ]);
 				$updateimage->bindParam( ":srt"          , $image["srt"          ]);
 				$updateimage->bindParam( ":placeid"      , $image["placeid"      ]);
-				try {$updateimage->execute();} catch(Exception $e) {}
+				try {$updateimage->execute();} catch(Exception $e) {
+					error_log($e);
+					continue;
+				}
 			}
 		}
-	} elseif($_POST["todo"] == "folders") {
+	} elseif($_POST["what"] == "folders") {
 		$delete = $conn->prepare("DELETE FROM `folders` WHERE `id` = :id AND `userid` = :userid");
 		$append = $conn->prepare("
 			INSERT INTO `folders` (
@@ -226,15 +254,21 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`userid`      = :userid
 			WHERE `id` = :id
 		");
-		foreach($data as $row) {
+		foreach($_POST["data"] as $row) {
 			if($row["deleted"] == true) {
 				$delete->bindParam( ":id"          , $row[ "id"          ]);
 				$delete->bindParam( ":userid"      , $_POST["id"]);
-				try {$delete->execute();} catch(Exception $e) {}
+				try {
+					$delete->execute();
+					$folderscount["count"]--;
+				} catch(Exception $e) {
+					error_log($e);
+					continue;
+				}
 			} elseif($row["added"] == true) {
 				if(
-					$folderscount["count"] < $rights["folderscounts"][$visiting["id"]]
-					|| $rights["folderscounts"][$visiting["id"]] < 0
+					$folderscount["count"] < $rights["folderscount"][$visiting["id"]]
+					|| $rights["folderscount"][$visiting["id"]] < 0
 				) {
 					$append->bindParam( ":id"          , $row[ "id"          ]);
 					$append->bindParam( ":parent"      , $row[ "parent"      ]);
@@ -243,7 +277,15 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					$append->bindParam( ":srt"         , $row[ "srt"         ]);
 					$append->bindParam( ":geomarks"    , $row[ "geomarks"    ]);
 					$append->bindParam( ":userid"      , $_POST["id"]);
-					try {$append->execute();} catch(Exception $e) {}
+					try {
+						$append->execute();
+						$folderscount["count"]++;
+					} catch(Exception $e) {
+						error_log($e);
+						continue;
+					}
+				} else {
+					if(!in_array(4, $faults)) {$faults[] = 4;}
 				}
 			}
 			if($row["updated"] == true) {
@@ -254,21 +296,23 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$update->bindParam( ":srt"         , $row[ "srt"         ]);
 				$update->bindParam( ":geomarks"    , $row[ "geomarks"    ]);
 				$update->bindParam( ":userid"      , $_POST["id"]);
-				try {$update->execute();} catch(Exception $e) {}
+				try {$update->execute();} catch(Exception $e) {
+					error_log($e);
+					continue;
+				}
 			}
 		}
-	} elseif($_POST["todo"] == "images_upload") {
-		updateImages($conn, $stmt, $data);
-	} elseif($_POST["todo"] == "images_delete") {
+	} elseif($_POST["what"] == "images_upload") {
+		updateImages($conn, $stmt, $_POST["data"]);
+	} elseif($_POST["what"] == "images_delete") {
 		$ids = "";
-		foreach($data as $row) {
+		foreach($_POST["data"] as $row) {
 			$ids .= "'{$row["id"]}',";
 		}
 		$ids = rtrim($ids, ",");
-		$stmt = $conn->prepare("
-			DELETE FROM `images` WHERE `id` IN (" . $ids . ")
-		");
-		try {$stmt->execute();} catch(Exception $e) {}
+		$stmt = $conn->prepare("DELETE FROM `images` WHERE `id` IN (" . $ids . ")");
+		try {$stmt->execute();} catch(Exception $e) {error_log($e);}
 	}
-	echo 1; exit;
+	echo json_encode($faults, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+	exit;
 }

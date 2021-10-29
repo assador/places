@@ -171,6 +171,11 @@ export default {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	mounted() {
+		this.$nextTick(() => {
+			makeFieldsValidatable();
+		});
+	},
+	updated() {
 		makeFieldsValidatable();
 	},
 	methods: {

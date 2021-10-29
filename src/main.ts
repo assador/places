@@ -1,14 +1,15 @@
 import Vue from 'vue'
-import App from './App.vue'
-import './registerServiceWorker'
-import router from './router'
-import store from './store'
+import App from '@/App.vue'
+import '@/registerServiceWorker'
+import router from '@/router'
+import store from '@/store'
 import { mapState } from 'vuex'
-import { bus } from './shared/bus'
-import commonFunctions from './shared/common'
+import { constants } from '@/shared/constants'
+import { bus } from '@/shared/bus'
+import commonFunctions from '@/shared/common'
 import axios from 'axios'
-import './css/style.css'
-import './css/layout.css'
+import '@/css/style.css'
+import '@/css/layout.css'
 
 Vue.config.productionTip = false
 //Vue.config.devtools = true;
@@ -16,8 +17,6 @@ Vue.config.productionTip = false
 new Vue({
 	data: {
 		refreshing: false,
-		needToUpdate: false,
-		needToUpdateFolders: false,
 		draggingElement: null,
 		foldersPlain: {},
 		foldersEditMode: false,
@@ -39,51 +38,77 @@ new Vue({
 		},
 	},
 	watch: {
-		folderRoot: function(folderRoot) {
-			commonFunctions.treeToLivePlain(folderRoot, 'children', this.foldersPlain);
+		folderRoot: {
+			deep: true,
+			immediate: true,
+			handler(folderRoot) {
+				const foldersPlain = {};
+				commonFunctions.treeToLivePlain(folderRoot, 'children', foldersPlain);
+				this.foldersPlain = foldersPlain;
+			},
 		},
 	},
 	mounted() {
+		bus.$on('logged', () => {
+			this.$store.dispatch('setUser')
+				.then(response => {
+					this.$store.dispatch('setPlaces', false);
+					this.$router.push({name: 'Home'});
+				})
+				.catch(error => {
+					console.log(error);
+				});
+		});
 		bus.$on('toDB', payload => {
-			const plainFolders = [];
 			switch (payload.what) {
 				case 'places' :
 					this.toDB({
 						what: payload.what,
-						data: JSON.stringify(this.$store.state.places),
-						toCommitSaved: payload.toCommitSaved,
+						data: payload.data
+							? payload.data
+							: this.$store.state.places
+						,
 					});
 					break;
 				case 'folders' :
-					commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
-					this.toDB({
-						what: payload.what,
-						data: JSON.stringify(plainFolders),
-						toCommitSaved: payload.toCommitSaved,
-					});
+					if (payload.data) {
+						this.toDB({
+							what: payload.what,
+							data: payload.data,
+						});
+					} else {
+						const plainFolders = [];
+						commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
+						this.toDB({
+							what: payload.what,
+							data: plainFolders,
+						});
+					}
 					break;
 				case undefined :
 					this.toDB({
 						what: 'places',
-						data: JSON.stringify(this.$store.state.places),
-						toCommitSaved: payload.toCommitSaved,
+						data: this.$store.state.places,
 					});
+					const plainFolders = [];
 					commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
 					this.toDB({
 						what: 'folders',
-						data: JSON.stringify(plainFolders),
-						toCommitSaved: payload.toCommitSaved,
+						data: plainFolders,
 					});
 					break;
 				default :
 					this.toDB(payload);
 			}
 		});
-		bus.$on('homeToDB', place => {
-			this.homeToDB(place);
+		bus.$on('homeToDB', id => {
+			this.homeToDB(id);
 		});
 		bus.$on('toDBCompletely', () => {
 			this.toDBCompletely();
+		});
+		bus.$on('getFolderById', (id) => {
+			return this.foldersPlain[id];
 		});
 	},
 	methods: {
@@ -98,36 +123,42 @@ new Vue({
 		toDB(payload) {
 			if (!this.$store.state.user.testaccount) {
 				if (!document.querySelector('.value_wrong')) {
-					const placesRequest = new XMLHttpRequest();
-					placesRequest.open('POST', '/backend/set_places.php', true);
-					placesRequest.onreadystatechange = (event) => {
-						if (placesRequest.readyState == 4) {
-							if (placesRequest.status == 200) {
-								if (payload.data.toCommitSaved) {
-									this.$store.commit(
-										'savedToDB',
-										payload.data.toCommitSaved
-									);
+					payload.id = sessionStorage.getItem('places-userid');
+					axios.post('/backend/set_places.php', payload)
+						.then(response => {
+							for (const fault of response.data) {
+								switch (fault) {
+									case 1 :
+										this.$store.dispatch('setMessage',
+											'Не могу внести данные в базу данных.'
+										);
+										return;
+									case 2 :
+										return;
+									case 3 :
+										this.$store.dispatch('setMessage', `
+											Превышено максимально допустимое для вашей
+											текущей роли количство мест.
+										`);
+										return;
+									case 4 :
+										this.$store.dispatch('setMessage', `
+											Превышено максимально допустимое для вашей
+											текущей роли количство папок.
+										`);
+										return;
 								}
-								this.$store.commit('setSaved', true);
-								this.$store.dispatch('setMessage',
-									'Изменения сохранены в базе данных.'
-								);
-							} else {
-								this.$store.dispatch('setMessage',
-									'Не могу внести данные в БД.'
-								);
 							}
-						}
-					};
-					placesRequest.setRequestHeader(
-						'Content-type', 'application/x-www-form-urlencoded'
-					);
-					placesRequest.send(
-						'id=' + sessionStorage.getItem('places-userid') +
-						'&todo=' + payload.what +
-						'&data=' + payload.data
-					);
+							this.$store.dispatch('savedToDB');
+							this.$store.dispatch('setMessage',
+								'Изменения сохранены в базе данных.'
+							);
+						})
+						.catch(error => {
+							this.$store.dispatch('setMessage',
+								'Не могу внести данные в базу данных.'
+							);
+						});
 				} else {
 					this.$store.dispatch('setMessage',
 						'Некоторые поля заполнены некорректно.'
@@ -135,67 +166,77 @@ new Vue({
 				}
 			}
 		},
-		homeToDB(place) {
+		homeToDB(id) {
 			if (!this.$store.state.user.testaccount) {
-				const homeRequest = new XMLHttpRequest();
-				homeRequest.open('POST', '/backend/set_home.php', true);
-				homeRequest.onreadystatechange = (event) => {
-					if (homeRequest.readyState == 4) {
-						if (homeRequest.status == 200) {
-							this.$store.commit('setSaved', true);
-							this.$store.dispatch('setMessage',
-								'Изменения сохранены в базе данных.'
-							);
-						} else {
-							this.$store.dispatch('setMessage',
-								'Не могу внести данные в БД.'
-							);
-						}
-					}
-				};
-				homeRequest.setRequestHeader(
-					'Content-type', 'application/x-www-form-urlencoded'
-				);
-				homeRequest.send(
-					'id=' + sessionStorage.getItem('places-userid') +
-					'&data=' + place.id
-				);
+				axios.post(
+					'/backend/set_home.php',
+					{id: sessionStorage.getItem('places-userid'), data: id}
+				)
+					.then(response => {
+						this.$store.commit('setSaved', true);
+						this.$store.dispatch('setMessage',
+							'Изменения сохранены в базе данных.'
+						);
+					})
+					.catch(error => {
+						this.$store.dispatch('setMessage',
+							'Не могу внести данные в базу данных.'
+						);
+					});
 			}
 		},
 		toDBCompletely() {
 			if (!this.$store.state.user.testaccount) {
-				const placesRequest = new XMLHttpRequest();
-				placesRequest.open('POST', '/backend/set_completely.php', true);
-				placesRequest.onreadystatechange = (event) => {
-					if (placesRequest.readyState == 4) {
-						if (placesRequest.status == 200) {
-							this.$store.commit('setSaved', true);
-							this.$store.dispatch('setMessage',
-								'Изменения сохранены в базе данных.'
-							);
-						} else {
-							this.$store.dispatch('setMessage',
-								'Не могу внести данные в БД.'
-							);
-						}
-					}
-				};
-				placesRequest.setRequestHeader(
-					'Content-type', 'application/x-www-form-urlencoded'
-				);
 				const plainFolders = [];
 				commonFunctions.treeToPlain(
 					this.folderRoot,
 					'children',
 					plainFolders
 				);
-				placesRequest.send(
-					'id=' + sessionStorage.getItem('places-userid') +
-					'&data=' + (JSON.stringify({
-						'places': this.$store.state.places,
-						'folders': plainFolders,
-					}))
-				);
+				axios.post(
+					'/backend/set_completely.php',
+					{
+						id: sessionStorage.getItem('places-userid'),
+						data: {
+							places: this.$store.state.places,
+							folders: plainFolders,
+						},
+					}
+				)
+					.then(response => {
+						for (const fault of response.data) {
+							switch (fault) {
+								case 1 :
+									this.$store.dispatch('setMessage',
+										'Не могу внести данные в базу данных.'
+									);
+									return;
+								case 2 :
+									return;
+								case 3 :
+									this.$store.dispatch('setMessage', `
+										Превышено максимально допустимое для вашей
+										текущей роли количство мест.
+									`);
+									return;
+								case 4 :
+									this.$store.dispatch('setMessage', `
+										Превышено максимально допустимое для вашей
+										текущей роли количство папок.
+									`);
+									return;
+							}
+						}
+						this.$store.dispatch('savedToDB');
+						this.$store.dispatch('setMessage',
+							'Изменения сохранены в базе данных.'
+						);
+					})
+					.catch(error => {
+						this.$store.dispatch('setMessage',
+							'Не могу внести данные в базу данных.'
+						);
+					});
 			} else {
 				this.$store.dispatch("setMessage", `
 					Вы авторизовались под тестовым аккаунтом;
@@ -215,7 +256,7 @@ new Vue({
 					.then(() => {
 						this.toDB({
 							what: 'images_delete',
-							data: JSON.stringify(images),
+							data: images,
 						});
 					});
 			}
@@ -362,13 +403,10 @@ new Vue({
 					}
 					if (indexes.length === 2) break;
 				}
-				this.$store.commit('swapValues', {
-					parent: this.currentPlace.images,
+				this.$store.dispatch('swapImages', {
+					place: this.currentPlace,
 					indexes: indexes,
-					values: ['srt'],
-					backup: false,
 				});
-				this.needToUpdate = true;
 			}
 		},
 		handleDragLeave(event) {
@@ -384,12 +422,13 @@ new Vue({
 		handleDragOver(event) {
 			event.preventDefault();
 		},
-		handleDrop(event, element) {
+		handleDrop(event) {
 			event.preventDefault();
 			event.stopPropagation();
 			if (
 				event.target.nodeType !== 1 ||
-				this.draggingElement === event.target
+				this.draggingElement === event.target &&
+				this.draggingElement.dataset.image === undefined
 			) return;
 			const
 				targetSrt = Number(
@@ -398,17 +437,16 @@ new Vue({
 				),
 				changes: any = {folder: {}, place: {}}
 			;
-			let newPlaceButtonContainer: any;
+			let newContainer: any;
 			const change = () => {
 				if (Object.keys(changes.place).length > 0) {
-					this.$store.commit('changePlace', {
+					this.$store.dispatch('changePlace', {
 						place: this.$store.state.places.find(
 							p => p.id === this.draggingElement.id
 						),
 						change: changes.place,
-						backup: false,
 					});
-					this.needToUpdate = true;
+					this.$store.commit('backupState');
 				}
 				if (Object.keys(changes.folder).length > 0) {
 					this.$store.dispatch('moveFolder', {
@@ -417,21 +455,7 @@ new Vue({
 						srt: changes.folder.srt,
 						backup: false,
 					});
-					this.needToUpdateFolders = true;
-				}
-			};
-			const update = () => {
-				if (this.needToUpdate || this.needToUpdateFolders) {
 					this.$store.commit('backupState');
-					if (this.$store.state.inUndoRedo) {
-						bus.$emit('toDBCompletely');
-					} else if (this.needToUpdate) {
-						bus.$emit('toDB', {what: 'places'});
-						this.needToUpdate = false;
-					} else if (this.needToUpdateFolders) {
-						bus.$emit('toDB', {what: 'folders'});
-						this.needToUpdateFolders = false;
-					}
 				}
 			};
 			const cleanup = () => {
@@ -447,19 +471,18 @@ new Vue({
 						p => p.id === this.draggingElement.id
 					).folderid
 			) {
-				newPlaceButtonContainer =
+				newContainer =
 					event.target.parentNode.nextElementSibling.nextElementSibling;
-				if (newPlaceButtonContainer.lastElementChild) {
+				if (newContainer.lastElementChild) {
 					changes.place.srt = this.$store.state.places.find(
-						p => p.id === newPlaceButtonContainer.lastElementChild.id
+						p => p.id === newContainer.lastElementChild.id
 					).srt + 1;
 				} else {
 					changes.place.srt = 1;
 				}
 				changes.place.folderid =
-					newPlaceButtonContainer.id.replace(/^.*-([^-]*)/, "$1");
+					newContainer.id.replace(/^.*-([^-]*)/, "$1");
 				change();
-				update();
 				cleanup();
 				return;
 			}
@@ -486,7 +509,6 @@ new Vue({
 				}
 				event.target.classList.remove('dragenter-area_top_border');
 				change();
-				update();
 				cleanup();
 				return;
 			}
@@ -503,8 +525,7 @@ new Vue({
 					changes.place.srt = targetSrt + 1;
 				} else {
 					const targetNextSrt = Number(
-						event.target.parentNode.nextElementSibling
-							.getAttribute('srt')
+						event.target.parentNode.nextElementSibling.getAttribute('srt')
 					);
 					changes.place.srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
 				}
@@ -513,7 +534,6 @@ new Vue({
 				}
 				event.target.classList.remove('dragenter-area_bottom_border');
 				change();
-				update();
 				cleanup();
 				return;
 			}
@@ -572,7 +592,6 @@ new Vue({
 					}
 				}
 				change();
-				update();
 				cleanup();
 				return;
 			}
@@ -595,8 +614,26 @@ new Vue({
 					null
 				)
 			) {
+				newContainer =
+					event.target.parentNode.nextElementSibling.firstElementChild;
+				if (newContainer && newContainer.lastElementChild) {
+					changes.folder.srt = this.foldersPlain[
+						newContainer.lastElementChild.id.replace(/^.*-([^-]*)/, "$1")
+					].srt + 1;
+				} else {
+					changes.folder.srt = 1;
+				}
 				change();
-				update();
+				cleanup();
+				return;
+			}
+			// Image thumbnail dropped
+			if (this.draggingElement.dataset.image !== undefined) {
+				this.$store.dispatch('changePlace', {
+					place: this.currentPlace,
+					change: {updated: true},
+				});
+				bus.$emit('toDB', {what: 'places', data: [this.currentPlace]});
 				cleanup();
 				return;
 			}

@@ -8,6 +8,11 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 } else {
 	$files = [];
 	$fault = [];
+	/*
+	 * 1: Something’s wrong
+	 * 3: Invalid MIME type
+	 * 4: File size exceeded
+	 */
 	$finfo = finfo_open(FILEINFO_MIME_TYPE);
 	function push_file($key, $size, $mime) {
 		global $files, $mimes;
@@ -37,11 +42,9 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 			case "ordinary" :
 			case "trusted" :
 			case "superusers" :
-				$acceptsize = $rights["photosizes"][$row["id"]];
+				$acceptsize = $rights["photosize"][$row["id"]];
 				$found = true;
 				break;
-			default :
-				continue;
 		}
 		if($found) {
 			break;
@@ -58,6 +61,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 			}
 			if($size > $uploadsize) {
 				if(!in_array(4, $fault)) {$fault[] = 4;}
+file_put_contents("/media/data/1.txt", '1');
 				continue;
 			}
 			if($mime == "image/svg+xml") {
@@ -92,6 +96,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 					$size = strlen($imagick->getImageBlob());
 					if($acceptsize >= 0 && $size > $acceptsize) {
 						if(!in_array(4, $fault)) {$fault[] = 4;}
+file_put_contents("/media/data/1.txt", '2');
 						continue;
 					} else {
 						$imagick->writeImage($dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]);

@@ -257,12 +257,11 @@ export default {
 			marks[place.id].events.add('dragend', () => {
 				if (place === this.currentPlace) {
 					let coordinates = marks[place.id].geometry.getCoordinates();
-					this.$store.commit('changePlace', {
+					this.$store.dispatch('changePlace', {
 						place: place,
 						change: {
 							latitude: coordinates[0].toFixed(7),
 							longitude: coordinates[1].toFixed(7),
-							updated: true,
 						},
 					});
 					bus.$emit('setCurrentPlace', {place: place});
