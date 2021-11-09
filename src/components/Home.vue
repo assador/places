@@ -208,7 +208,8 @@
 			id="basic-basic"
 			class="app-cell"
 		>
-			<ExtMap
+			<component
+				:is="$root.maps[$root.activeMapIndex].component"
 				:id="currentPlace ? currentPlace.id : null"
 				ref="extmap"
 				:name="currentPlace ? currentPlace.name : ''"
@@ -221,6 +222,7 @@
 				:time="currentPlace ? currentPlace.time : ''"
 				:center-latitude="$store.state.center ? $store.state.center.latitude : constants.map.initial.latitude"
 				:center-longitude="$store.state.center ? $store.state.center.longitude : constants.map.initial.longitude"
+				:zoom="$store.state.zoom ? $store.state.zoom : constants.map.initial.zoom"
 				:geomarks-visibility="geomarksVisibility"
 			/>
 			<div
@@ -405,9 +407,9 @@
 			<div class="control-buttons">
 				<button
 					id="placemarksShowHideButton"
-					class="actions-button button-pressed"
+					:class="'actions-button' + ($store.state.placemarksShow ? ' button-pressed' : '')"
 					title="Показать / скрыть все свои геометки"
-					@click="$refs.extmap.placemarksShowHide();"
+					@click="$store.dispatch('placemarksShowHide')"
 				>
 					◉
 				</button>
@@ -421,17 +423,17 @@
 				</button>
 				<button
 					id="commonPlacemarksShowHideButton"
-					:class="'actions-button' + ($refs.extmap && $refs.extmap.commonPlacemarksShow ? ' button-pressed' : '')"
+					:class="'actions-button' + ($store.state.commonPlacemarksShow ? ' button-pressed' : '')"
 					title="Показать / скрыть все другие геометки"
-					@click="$refs.extmap.commonPlacemarksShowHide();"
+					@click="$store.dispatch('commonPlacemarksShowHide')"
 				>
 					◎
 				</button>
 				<button
 					id="centerPlacemarkShowHideButton"
-					:class="'actions-button' + ($refs.extmap && $refs.extmap.centerPlacemarkShow ? ' button-pressed' : '')"
+					:class="'actions-button' + ($store.state.centerPlacemarkShow ? ' button-pressed' : '')"
 					title="Показать / скрыть метку центра карты"
-					@click="$refs.extmap.centerPlacemarkShowHide();"
+					@click="$store.dispatch('centerPlacemarkShowHide')"
 				>
 					◈
 				</button>
@@ -441,31 +443,47 @@
 			id="bottom-basic"
 			class="app-cell"
 		>
-			<span class="imp">
-				Центр
-			</span>
-			<span
-				class="nobr"
-				style="margin-left: 1em;"
-			>
-				Широта:
-				<input
-					v-model.number.trim="$store.state.center.latitude"
-					placeholder="latitude"
-					title="Широта"
+			<div class="choose-map">
+				<select
+					id="choose-map-input"
+					@change="$root.changeMap($event.target.selectedIndex); showMap(true);"
 				>
-			</span>
-			<span
-				class="nobr"
-				style="margin-left: 1em;"
-			>
-				Долгота:
-				<input
-					v-model.number.trim="$store.state.center.longitude"
-					placeholder="longitude"
-					title="Долгота"
+					<option
+						v-for="(map, index) in $root.maps"
+						:key="index"
+						:value="map.component"
+					>
+						{{ map.name }}
+					</option>
+				</select>
+			</div>
+			<div class="center-coordinates">
+				<span class="imp">
+					Центр
+				</span>
+				<span
+					class="nobr"
+					style="margin-left: 1em;"
 				>
-			</span>
+					Широта:
+					<input
+						v-model.number.trim="$store.state.center.latitude"
+						placeholder="latitude"
+						title="Широта"
+					>
+				</span>
+				<span
+					class="nobr"
+					style="margin-left: 1em;"
+				>
+					Долгота:
+					<input
+						v-model.number.trim="$store.state.center.longitude"
+						placeholder="longitude"
+						title="Долгота"
+					>
+				</span>
+			</div>
 		</div>
 		<router-view />
 	</div>
@@ -480,14 +498,19 @@ import { makeFieldsValidatable } from '../shared/fields_validate'
 import { bus } from '../shared/bus'
 import axios from 'axios'
 import Tree from './Tree.vue'
-import ExtMap from './ExtMap.vue'
+import MapYandex from './MapYandex.vue'
+import MapNavitel from './MapNavitel.vue'
+import MapOpenStreetMap from './MapOpenStreetMap.vue'
 export default {
 	components: {
 		Tree,
-		ExtMap,
+		MapYandex,
+		MapNavitel,
+		MapOpenStreetMap,
 	},
 	data() {
 		return {
+			state: this.$store.state,
 			constants: constants,
 			commonPlacesPage: 1,
 			commonPlacesPagesCount: 0,
@@ -560,7 +583,6 @@ export default {
 			}, 1000);
 		}
 		this.$nextTick(() => {
-		console.dir('asdf');
 			makeFieldsValidatable();
 		});
 	},
@@ -619,22 +641,7 @@ export default {
 					);
 					this.$root.currentPlaceCommon = true;
 				}
-				if (this.$refs.extmap) {
-					if (this.$refs.extmap.map) {
-						this.$refs.extmap.map.destroy();
-					}
-					if (this.currentPlace) {
-						this.$refs.extmap.showMap(
-							this.currentPlace.latitude,
-							this.currentPlace.longitude
-						);
-					} else {
-						this.$refs.extmap.showMap(
-							constants.map.initial.latitude,
-							constants.map.initial.longitude
-						);
-					}
-				}
+				this.showMap(false);
 				document.addEventListener('dragover', this.$root.handleDragOver, false);
 				document.addEventListener('drop', this.$root.handleDrop, false);
 				document.addEventListener('keyup', this.keyup, false);
@@ -650,6 +657,37 @@ export default {
 				}
 				this.windowResize();
 			}
+		},
+		showMap(mapLoaded) {
+			this.$nextTick(() => {
+				if (this.$refs.extmap) {
+					if (this.$refs.extmap.map) {
+						this.$refs.extmap.map.destroy();
+					}
+					if (!mapLoaded) {
+						if (this.currentPlace) {
+							this.$refs.extmap.showMap(
+								this.currentPlace.latitude,
+								this.currentPlace.longitude,
+								constants.map.initial.zoom
+								
+							);
+						} else {
+							this.$refs.extmap.showMap(
+								constants.map.initial.latitude,
+								constants.map.initial.longitude,
+								constants.map.initial.zoom
+							);
+						}
+					} else {
+						this.$refs.extmap.showMap(
+							this.$store.state.center.latitude,
+							this.$store.state.center.longitude,
+							this.$store.state.zoom
+						);
+					}
+				}
+			});
 		},
 		openTreeToCurrentPlace() {
 			if (!this.$root.currentPlaceCommon && this.currentPlace) {
@@ -673,20 +711,33 @@ export default {
 			}
 		},
 		setCurrentPlace(place) {
+			if (this.currentPlace && place === this.currentPlace) return;
 			if (this.currentPlace) {
 				if (
 					!this.$root.currentPlaceCommon &&
 					this.$refs.extmap.mrks[this.currentPlace.id]
 				) {
-					this.$refs.extmap.mrks[this.currentPlace.id].options.set(
-						'iconColor', this.$refs.extmap.privatePlacemarksColor
-					);
+					if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
+						this.$refs.extmap.mrks[this.currentPlace.id].options.set(
+							'iconColor', this.$refs.extmap.privatePlacemarksColor
+						);
+					} else {
+						this.$refs.extmap.mrks[this.currentPlace.id].setIcon(
+							this.$refs.extmap.icon_01
+						);
+					}
 				} else if (
 					this.$refs.extmap.commonMrks[this.currentPlace.id]
 				) {
-					this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
-						'iconColor', this.$refs.extmap.commonPlacemarksColor
-					);
+					if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
+						this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
+							'iconColor', this.$refs.extmap.commonPlacemarksColor
+						);
+					} else {
+						this.$refs.extmap.commonMrks[this.currentPlace.id].setIcon(
+							this.$refs.extmap.icon_02
+						);
+					}
 				}
 			}
 			if (!place) {
@@ -704,18 +755,30 @@ export default {
 				!this.rootcurrentPlaceCommon &&
 				this.$refs.extmap.mrks[this.currentPlace.id]
 			) {
-				this.$refs.extmap.mrks[this.currentPlace.id].options.set(
-					'iconColor', this.$refs.extmap.activePlacemarksColor
-				);
+				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
+					this.$refs.extmap.mrks[this.currentPlace.id].options.set(
+						'iconColor', this.$refs.extmap.activePlacemarksColor
+					);
+				} else {
+					this.$refs.extmap.mrks[this.currentPlace.id].setIcon(
+						this.$refs.extmap.icon_03
+					);
+				}
 			} else if (
 				this.$refs.extmap.commonMrks[this.currentPlace.id]
 			) {
-				this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
-					'iconColor', this.$refs.extmap.activePlacemarksColor
-				);
+				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
+					this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
+						'iconColor', this.$refs.extmap.activePlacemarksColor
+					);
+				} else {
+					this.$refs.extmap.commonMrks[this.currentPlace.id].setIcon(
+						this.$refs.extmap.icon_03
+					);
+				}
 			}
 			this.openTreeToCurrentPlace();
-			this.$store.commit('changeCenter', {
+			this.$store.dispatch('changeMap', {
 				latitude: this.currentPlace.latitude,
 				longitude: this.currentPlace.longitude,
 			});
@@ -834,12 +897,12 @@ export default {
 					? !this.commonPlacesShow
 					: show
 			;
-			this.$refs.extmap.commonPlacemarksShow = this.commonPlacesShow;
+			this.$store.dispatch('commonPlacemarksShowHide', this.commonPlacesShow);
 			for (let key in this.$refs.extmap.commonMrks) {
-				if (!this.$refs.extmap.commonPlacemarksShow) {
-					this.$refs.extmap.commonMrks[key].options.set('visible', false);
+				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
+					this.$refs.extmap.commonMrks[key].options.set('visible', this.commonPlacesShow);
 				} else {
-					this.$refs.extmap.commonMrks[key].options.set('visible', true);
+					this.$refs.extmap.commonMrks[key].setOpacity(this.commonPlacesShow ? 1 : 0);
 				}
 			}
 		},
@@ -1053,13 +1116,13 @@ export default {
 						this.commonPlacesShowHide();
 						break;
 					case 'placemarks' :
-						this.$refs.extmap.placemarksShowHide();
+						this.$store.dispatch('placemarksShowHide');
 						break;
 					case 'other placemarks' :
-						this.$refs.extmap.commonPlacemarksShowHide();
+						this.$store.dispatch('commonPlacemarksShowHide');
 						break;
 					case 'center' :
-						this.$refs.extmap.centerPlacemarkShowHide();
+						this.$store.dispatch('centerPlacemarkShowHide');
 						break;
 					case 'undo' :
 						this.$store.dispatch('undo');

@@ -37,6 +37,7 @@ export const constants = {
 		initial: {
 			latitude  : 51.4778883,
 			longitude : -0.0014822,
+			zoom      : 15,
 		},
 	},
 	sidebars: {

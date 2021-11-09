@@ -23,6 +23,17 @@ new Vue({
 		selectedToExport: [],
 		currentPlaceCommon: false,
 		idleTimeInterval: null,
+		activeMapIndex: 0,
+		maps: [{
+			name: 'Яндекс.Карты',
+			component: 'MapYandex',
+		}, {
+			//name: 'Навител.Карты',
+			//component: 'MapNavitel',
+		//}, {
+			name: 'OpenStreetMap',
+			component: 'MapOpenStreetMap',
+		}],
 	},
 	computed: {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
@@ -112,6 +123,9 @@ new Vue({
 		});
 	},
 	methods: {
+		changeMap(index) {
+			this.activeMapIndex = index;
+		},
 		setCurrentPlace(place, common = false) {
 			bus.$emit('setCurrentPlace', {place, common});
 		},

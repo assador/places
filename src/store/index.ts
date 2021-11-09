@@ -75,6 +75,10 @@ const store = new Vuex.Store({
 			latitude: constants.map.initial.latitude,
 			longitude: constants.map.initial.longitude,
 		},
+		zoom: constants.map.initial.zoom,
+		placemarksShow: true,
+		commonPlacemarksShow: false,
+		centerPlacemarkShow: false,
 		ready: false,
 		messages: [],
 		placeFields: {
@@ -370,8 +374,19 @@ const store = new Vuex.Store({
 			);
 			Vue.set(changes.place, 'updated', true);
 		},
-		changeCenter(state, center) {
-			Vue.set(state, 'center', center);
+		changeMap(state, payload) {
+			if (payload.latitude) state.center.latitude = payload.latitude;
+			if (payload.longitude) state.center.longitude = payload.longitude;
+			if (payload.zoom) state.zoom = payload.zoom;
+		},
+		placemarksShowHide(state, show) {
+			Vue.set(state, 'placemarksShow', show);
+		},
+		commonPlacemarksShowHide(state, show) {
+			Vue.set(state, 'commonPlacemarksShow', show);
+		},
+		centerPlacemarkShowHide(state, show) {
+			Vue.set(state, 'centerPlacemarkShow', show);
 		},
 		setMessageTimer(state, messageTimer) {
 			Vue.set(state, 'messageTimer', messageTimer);
@@ -892,6 +907,18 @@ const store = new Vuex.Store({
 		},
 		swapImages({commit}, payload) {
 			commit('swapImages', payload);
+		},
+		changeMap({commit}, payload) {
+			commit('changeMap', payload);
+		},
+		placemarksShowHide({state, commit}, show) {
+			commit('placemarksShowHide', show === undefined ? !state.placemarksShow : show);
+		},
+		commonPlacemarksShowHide({state, commit}, show) {
+			commit('commonPlacemarksShowHide', show === undefined ? !state.commonPlacemarksShow : show);
+		},
+		centerPlacemarkShowHide({state, commit}, show) {
+			commit('centerPlacemarkShowHide', show === undefined ? !state.centerPlacemarkShow : show);
 		},
 		setMessage({state, commit, dispatch}, message) {
 			message = message.replace(/[\t\n]/g, ' ');

@@ -128,7 +128,7 @@ export default {
 		keyup(event) {
 			switch (constants.shortcuts[event.keyCode]) {
 				case 'close' :
-					this.close($event);
+					this.close(event);
 					break;
 			}
 		},

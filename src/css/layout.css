@@ -92,8 +92,17 @@ body {
 	grid-area: bottom-left;
 }
 #bottom-basic {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-wrap: wrap;
 	grid-area: bottom-basic;
 	z-index: 200;
+}
+#bottom-basic .choose-map {
+	flex-grow: 1;
+	text-align: left;
+	padding-right: 12px;
 }
 #bottom-right {
 	grid-area: bottom-right;

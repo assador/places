@@ -17,6 +17,7 @@ export default {
 		'longitude',
 		'centerLatitude',
 		'centerLongitude',
+		'zoom',
 		'geomarksVisibility',
 	],
 	data() {
@@ -25,9 +26,6 @@ export default {
 			mrk: null,
 			mrks: {},
 			commonMrks: {},
-			placemarksShow: true,
-			commonPlacemarksShow: false,
-			centerPlacemarkShow: false,
 			privatePlacemarksColor: 'rgb(100, 44, 36)',
 			commonPlacemarksColor: 'rgba(144, 98, 62, 0.6)',
 			activePlacemarksColor: 'rgb(217, 82, 0)',
@@ -46,15 +44,22 @@ export default {
 				},
 			},
 			centerPlacemarkOptions: {
-				visible: true,
+				visible: this.$store.state.centerPlacemarkShow ? true : false,
 				draggable: true,
 				preset: 'islands#icon',
 				iconColor: 'rgb(127, 143, 0)',
 			},
+			updatingMap: false,
 		}
 	},
 	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
+		...mapState([
+			'currentPlace',
+			'currentPlaceIndex',
+			'placemarksShow',
+			'commonPlacemarksShow',
+			'centerPlacemarkShow',
+		]),
 	},
 	watch: {
 		latitude() {
@@ -64,7 +69,7 @@ export default {
 					: this.mrks
 			);
 			if (this.currentPlace) {
-				this.$store.commit('changeCenter', {
+				this.$store.dispatch('changeMap', {
 					latitude: this.currentPlace.latitude,
 					longitude: this.currentPlace.longitude,
 				});
@@ -77,17 +82,20 @@ export default {
 					: this.mrks
 			);
 			if (this.currentPlace) {
-				this.$store.commit('changeCenter', {
+				this.$store.dispatch('changeMap', {
 					latitude: this.currentPlace.latitude,
 					longitude: this.currentPlace.longitude,
 				});
 			}
 		},
 		centerLatitude() {
-			this.updateCenter();
+			this.updateMap();
 		},
 		centerLongitude() {
-			this.updateCenter();
+			this.updateMap();
+		},
+		zoom() {
+			this.updateMap();
 		},
 		name() {
 			this.updatePlacemark(
@@ -111,6 +119,19 @@ export default {
 					);
 				}
 			}
+		},
+		placemarksShow() {
+			for (let key in this.mrks) {
+				this.mrks[key].options.set('visible', this.$store.state.placemarksShow);
+			}
+		},
+		commonPlacemarksShow() {
+			for (let key in this.commonMrks) {
+				this.commonMrks[key].options.set('visible', this.$store.state.commonPlacemarksShow);
+			}
+		},
+		centerPlacemarkShow() {
+			this.mrk.options.set('visible', this.$store.state.centerPlacemarkShow);
 		},
 	},
 	created() {
@@ -136,11 +157,6 @@ export default {
 			}
 		});
 	},
-	mounted() {
-		new ResizeSensor(document.getElementById('basic-basic'), () => {
-			this.fitMap();
-		});
-	},
 	beforeDestroy() {
 		bus.$off('refreshMapMarks');
 		if (this.map) {
@@ -148,24 +164,33 @@ export default {
 		}
 	},
 	methods: {
-		showMap(lat, lng) {
+		showMap(lat, lng, zoom) {
 			ymaps.ready(mapinit.bind(this));
 			function mapinit() {
 				this.map = new ymaps.Map('mapblock', {
 					center: [lat, lng],
-					zoom: 15,
+					zoom: zoom,
+				});
+				let coordinates = this.map.getCenter();
+				this.$store.dispatch('changeMap', {
+					latitude: Number(coordinates[0].toFixed(7)),
+					longitude: Number(coordinates[1].toFixed(7)),
+					zoom: Number(this.map.getZoom()),
 				});
 				this.map.controls
 					.add(new ymaps.control.RouteButton())
 					.add(new ymaps.control.RulerControl());
 				this.map.behaviors.enable('scrollZoom');
 				this.map.events.add('actionend', () => {
-					let coordinates = this.map.getCenter();
-					this.$store.commit('changeCenter', {
-						latitude: coordinates[0].toFixed(7),
-						longitude: coordinates[1].toFixed(7),
-					});
-					this.mrk.geometry.setCoordinates(coordinates);
+					if (!this.updatingMap) {
+						let coordinates = this.map.getCenter();
+						this.$store.dispatch('changeMap', {
+							latitude: Number(coordinates[0].toFixed(7)),
+							longitude: Number(coordinates[1].toFixed(7)),
+							zoom: Number(this.map.getZoom()),
+						});
+						this.mrk.geometry.setCoordinates(coordinates);
+					}
 				});
 				this.mrk = new ymaps.Placemark(
 					[lat, lng],
@@ -176,20 +201,19 @@ export default {
 							Новое место будет создано здесь.
 						`,
 					},
-					this.centerPlacemarkOptions,
+					this.centerPlacemarkOptions
 				);
-				this.mrk.options.set('visible', false);
 				this.mrk.events.add('dragend', () => {
 					this.map.setCenter(this.mrk.geometry.getCoordinates());
 				});
 				this.map.geoObjects.add(this.mrk);
-				this.$store.state.places.forEach((place) => {
+				this.$store.state.places.forEach(place => {
 					this.appendPlacemark(this.mrks, place, 'private');
 				});
-				this.$store.state.commonPlaces.forEach((commonPlace) => {
+				this.$store.state.commonPlaces.forEach(commonPlace => {
 					this.appendPlacemark(this.commonMrks, commonPlace, 'common');
 				});
-				this.$parent.commonPlacesShowHide(this.$root.currentPlaceCommon);
+				this.$parent.commonPlacesShowHide(this.$store.state.commonPlacemarksShow);
 				if (this.currentPlace) {
 					if (
 						!this.$root.currentPlaceCommon &&
@@ -286,70 +310,19 @@ export default {
 				});
 			}
 		},
-		updateCenter() {
-			if (this.map !== null) {
+		updateMap() {
+			if (this.map !== null && !this.updatingMap) {
+				this.updatingMap = true;
 				this.map.setCenter([
 					this.centerLatitude,
 					this.centerLongitude,
 				]);
+				this.map.setZoom(
+					this.zoom,
+					{},
+				);
+				this.updatingMap = false;
 			}
-		},
-		fitMap() {
-			if (this.map !== null) {
-				document.getElementById('mapblock').style.right = '100%';
-				this.map.container.fitToViewport();
-				if (!this.$parent.compact) {
-					document.getElementById('mapblock').style.right = '12px';
-				} else {
-					document.getElementById('mapblock').style.right = '0';
-				}
-				this.map.container.fitToViewport();
-			}
-		},
-		placemarksShowHide(show = null) {
-			for (let key in this.mrks) {
-				if (this.placemarksShow) {
-					this.mrks[key].options.set('visible', false);
-				} else {
-					this.mrks[key].options.set('visible', true);
-				}
-			}
-			this.placemarksShow =
-				show === null
-					? !this.placemarksShow
-					: show
-			;
-			if (!this.placemarksShow) {
-				document.getElementById('placemarksShowHideButton').classList.remove('button-pressed');
-			} else {
-				document.getElementById('placemarksShowHideButton').classList.add('button-pressed');
-			}
-		},
-		commonPlacemarksShowHide(show = null) {
-			for (let key in this.commonMrks) {
-				if (this.commonPlacemarksShow) {
-					this.commonMrks[key].options.set('visible', false);
-				} else {
-					this.commonMrks[key].options.set('visible', true);
-				}
-			}
-			this.commonPlacemarksShow =
-				show === null
-					? !this.commonPlacemarksShow
-					: show
-			;
-		},
-		centerPlacemarkShowHide(show = null) {
-			if (this.centerPlacemarkShow) {
-				this.mrk.options.set('visible', false);
-			} else {
-				this.mrk.options.set('visible', true);
-			}
-			this.centerPlacemarkShow =
-				show === null
-					? !this.centerPlacemarkShow
-					: show
-			;
 		},
 	},
 }

@@ -13,8 +13,11 @@
 		<link rel="shortcut icon" href="<%= BASE_URL %>favicon.ico" type="image/vnd.microsoft.icon" />
 		<link rel="apple-touch-icon" href="<%= BASE_URL %>icon_apple_touch.png" />
 		<script src="https://api-maps.yandex.ru/2.1/?lang=ru-RU"></script>
-		<script src="<%= BASE_URL %>vendor/js/css-element-queries/src/ResizeSensor.js"></script>
-		<script src="<%= BASE_URL %>vendor/js/css-element-queries/src/ElementQueries.js"></script>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+		<link rel="stylesheet" href="<%= BASE_URL %>vendor/js/leaflet-fullscreen/Control.FullScreen.css" />
+		<script src="<%= BASE_URL %>vendor/js/leaflet-fullscreen/Control.FullScreen.js"></script>
+		<script src="http://webmapapi.navitel.ru/index.umd.js"></script>
 	</head>
 	<body>
 		<noscript>
