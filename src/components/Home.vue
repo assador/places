@@ -74,8 +74,8 @@
 			<div
 				id="messages"
 				class="invisible"
-				@mouseover="$store.commit('setMouseOverMessages', true)"
-				@mouseout="$store.commit('setMouseOverMessages', false)"
+				@mouseover = "$store.commit('setMouseOverMessages', true)"
+				@mouseout = "$store.commit('setMouseOverMessages', false)"
 				@click="$store.dispatch('clearMessages');"
 			>
 				<div
