@@ -72,7 +72,7 @@ table.table_decor > * > tr:hover {
 }
 .back_1,
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre,
-#sbs-top:hover, #sbs-bottom:hover, #sbs-right:hover, #sbs-left:hover {
+#sbs-top:hover, #sbs-bottom:hover, #sbs-right:hover, #sbs-left:hover, ::-webkit-scrollbar {
 	background-color: rgba(144, 98, 62, 0.2);
 }
 .back_2,
@@ -125,7 +125,7 @@ a:hover,
 .place-button.active, .place-button:hover, .place-button.activated-by-function {
 	color: rgb(255, 217, 164);
 }
-.place-button.active, .place-button:hover, .place-button.activated-by-function {
+.place-button.active, .place-button:hover, .place-button.activated-by-function, ::-webkit-scrollbar-thumb {
 	background-color: rgba(218, 166, 126, 0.2);
 	border-color: rgba(175, 126, 89, 0.2) rgba(232, 179, 139, 0.2) rgba(247, 193, 152, 0.2) rgba(189, 139, 101, 0.2);
 	box-shadow: 0 0 8px rgba(255, 243, 201, 0.2);
@@ -381,6 +381,12 @@ input[type="hidden"] {
 [disabled] {
 	opacity: 0.6;
 	box-shadow: none !important;
+}
+::-webkit-scrollbar {
+	width: 12px;
+}
+::-webkit-scrollbar-thumb {
+	border-width: 1px; border-style: solid;
 }
 
 /* Разные стили */

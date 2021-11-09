@@ -157,6 +157,11 @@ export default {
 			}
 		});
 	},
+	mounted() {
+		new ResizeSensor(document.getElementById('basic-basic'), () => {
+			this.fitMap();
+		});
+	},
 	beforeDestroy() {
 		bus.$off('refreshMapMarks');
 		if (this.map) {
@@ -322,6 +327,19 @@ export default {
 					{},
 				);
 				this.updatingMap = false;
+			}
+		},
+		fitMap() {
+			if (this.map !== null) {
+				const mapblock = document.getElementById('mapblock');
+				mapblock.style.right = '100%';
+				this.map.container.fitToViewport();
+				if (!this.$parent.compact) {
+					mapblock.style.right = '12px';
+				} else {
+					mapblock.style.right = '0';
+				}
+				this.map.container.fitToViewport();
 			}
 		},
 	},

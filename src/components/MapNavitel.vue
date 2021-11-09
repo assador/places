@@ -132,24 +132,38 @@ export default {
 		geomarksVisibility() {
 			for (let id in this.geomarksVisibility) {
 				if (this.mrks[id]) {
-					this.mrks[id].setOpacity(
-						this.geomarksVisibility[id] ? 1 : 0
-					);
+					if (this.geomarksVisibility[id]) {
+						this.map.addLayer(this.mrks[id]);
+					} else {
+						this.map.removeLayer(this.mrks[id]);
+					}
 				}
 			}
 		},
 		placemarksShow() {
 			for (let key in this.mrks) {
-				this.mrks[key].setOpacity(this.$store.state.placemarksShow ? 1 : 0);
+				if (this.$store.state.placemarksShow) {
+					this.map.addLayer(this.mrks[key]);
+				} else {
+					this.map.removeLayer(this.mrks[key]);
+				}
 			}
 		},
 		commonPlacemarksShow() {
 			for (let key in this.commonMrks) {
-				this.commonMrks[key].setOpacity(this.$store.state.commonPlacemarksShow ? 1 : 0);
+				if (this.$store.state.commonPlacemarksShow) {
+					this.map.addLayer(this.commonMrks[key]);
+				} else {
+					this.map.removeLayer(this.commonMrks[key]);
+				}
 			}
 		},
 		centerPlacemarkShow() {
-			this.mrk.setOpacity(this.$store.state.centerPlacemarkShow ? 1 : 0);
+			if (this.$store.state.centerPlacemarkShow) {
+				this.map.addLayer(this.mrk);
+			} else {
+				this.map.removeLayer(this.mrk);
+			}
 		},
 	},
 	created() {

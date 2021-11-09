@@ -452,6 +452,7 @@
 						v-for="(map, index) in $root.maps"
 						:key="index"
 						:value="map.component"
+						:selected="map.component === $root.maps[$root.activeMapIndex].component"
 					>
 						{{ map.name }}
 					</option>
@@ -902,7 +903,11 @@ export default {
 				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
 					this.$refs.extmap.commonMrks[key].options.set('visible', this.commonPlacesShow);
 				} else {
-					this.$refs.extmap.commonMrks[key].setOpacity(this.commonPlacesShow ? 1 : 0);
+					if (this.commonPlacesShow) {
+						this.$refs.extmap.map.addLayer(this.$refs.extmap.commonMrks[key]);
+					} else {
+						this.$refs.extmap.map.removeLayer(this.$refs.extmap.commonMrks[key]);
+					}
 				}
 			}
 		},
