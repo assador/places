@@ -26,34 +26,29 @@ const tracking = (store) => {
 	];
 	store.subscribe((mutation, state) => {
 		if (trackingMutations.includes(mutation.type)) {
-			if (
-				mutation.type !== 'setIdleTime' &&
-				mutation.type !== 'setRefreshing' &&
-				!state.refreshing
-			) {
+			if (!state.refreshing) {
 				sessionStorage.setItem('places-store-state', JSON.stringify(state));
 			}
-			if (mutation.payload) {
-				if (
-					mutation.type !== 'removePlace' &&
-					mutation.type !== 'setHomePlace' &&
-					mutation.type !== 'setCurrentPlace' &&
-					mutation.type !== 'placesReady' &&
-					mutation.type !== 'stateReady' &&
-					(
-						mutation.payload.hasOwnProperty('backup') &&
-						!!mutation.payload.backup ||
-						!mutation.payload.hasOwnProperty('backup')
-					) && !(
-						mutation.payload.key && (
-							mutation.payload.key === 'added' ||
-							mutation.payload.key === 'deleted' ||
-							mutation.payload.key === 'updated'
-						)
+			if (
+				mutation.payload &&
+				mutation.type !== 'removePlace' &&
+				mutation.type !== 'setHomePlace' &&
+				mutation.type !== 'setCurrentPlace' &&
+				mutation.type !== 'placesReady' &&
+				mutation.type !== 'stateReady' &&
+				(
+					mutation.payload.hasOwnProperty('backup') &&
+					!!mutation.payload.backup ||
+					!mutation.payload.hasOwnProperty('backup')
+				) && !(
+					mutation.payload.change && (
+						'added' in mutation.payload.change  ||
+						'deleted' in mutation.payload.change  ||
+						'updated' in mutation.payload.change
 					)
-				) {
-					store.commit('backupState');
-				}
+				)
+			) {
+				store.commit('backupState');
 			}
 		}
 	});
@@ -289,7 +284,9 @@ const store = new Vuex.Store({
 			}
 		},
 		changePlace(state, payload) {
-			Vue.set(payload.place, payload.key, payload.value);
+			for (const key in payload.change) {
+				Vue.set(payload.place, key, payload.change[key]);
+			}
 		},
 		changeFolder(state, payload) {
 			Vue.set(payload.folder, payload.key, payload.value);
@@ -388,8 +385,12 @@ const store = new Vuex.Store({
 	actions: {
 		restoreState({commit, dispatch}, backupIndex) {
 			commit('restoreState', backupIndex);
-			dispatch('restoreObjectsAsLinks');
-			bus.$emit('refreshMapMarks');
+			dispatch('restoreObjectsAsLinks')
+				.then(() => {
+					bus.$emit('refreshMapOpenStreetMapMarks');
+					bus.$emit('refreshMapYandexMarks');
+					bus.$emit('refreshMapNavitelMarks');
+				});
 		},
 		undo({state, commit, dispatch}) {
 			if (state.stateBackupsIndex > 0) {
@@ -779,23 +780,15 @@ const store = new Vuex.Store({
 			if (!place) bus.$emit('homeToDB', null);
 		},
 		changePlace({state, commit}, payload) {
-			const keys: string[] = Object.keys(payload.change)
 			let toUpdated = true;
-			for (const key of keys) {
-				commit('changePlace', {
-					place: payload.place,
-					key: key,
-					value: payload.change[key],
-				});
-				if (key === 'updated') {
-					toUpdated = false;
-				}
+			if ('updated' in payload.change) {
+				toUpdated = false;
 			}
+			commit('changePlace', payload);
 			if (toUpdated) {
 				commit('changePlace', {
 					place: payload.place,
-					key: 'updated',
-					value: true,
+					change: {updated: true},
 				});
 				bus.$emit('toDB', {what: 'places', data: [payload.place]});
 			}

@@ -28,16 +28,13 @@ export default {
 			commonMrks: {},
 			placemarksOptions: {
 				private: {
-					opacity: 1,
 					draggable: true,
 				},
 				common: {
-					opacity: 0,
 					draggable: false,
 				},
 			},
 			centerPlacemarkOptions: {
-				opacity: this.$store.state.centerPlacemarkShow ? 1 : 0,
 				draggable: true,
 			},
 			updatingMap: false,
@@ -168,25 +165,25 @@ export default {
 	},
 	created() {
 		bus.$on('refreshMapMarks', () => {
+			this.markersLayer.clearLayers();
 			this.mrks = {};
-			this.map.geoObjects.removeAll();
-			this.$store.state.places.forEach((place) => {
+			this.$store.state.places.forEach(place => {
 				this.appendPlacemark(this.mrks, place, 'private');
 			});
-			if (this.$parent.currentPlace) {
+			if (this.currentPlace) {
 				if (
 					!this.$root.currentPlaceCommon &&
-					this.mrks[this.$parent.currentPlace.id]
+					this.mrks[this.currentPlace.id]
 				) {
-					this.mrks[this.$parent.currentPlace.id].setIcon(this.icon_03);
-				} else if (this.commonMrks[this.$parent.currentPlace.id]) {
-					this.commonMrks[this.$parent.currentPlace.id].setIcon(this.icon_03);
+					this.mrks[this.currentPlace.id].setIcon(this.icon_03);
+				} else if (this.commonMrks[this.currentPlace.id]) {
+					this.commonMrks[this.currentPlace.id].setIcon(this.icon_03);
 				}
 			}
 		});
 	},
 	beforeDestroy() {
-		bus.$off('refreshMapMarks');
+		bus.$off('refreshMapNavitelMarks');
 		if (this.map) {
 			this.map.remove();
 		}
@@ -238,7 +235,7 @@ export default {
 					break;
 			}
 			marks[place.id] = L.marker([place.latitude, place.longitude], options)
-				.addTo(this.map)
+				.addTo(this.markersLayer)
 				.bindPopup(place.name, {autoPan: false})
 				.openPopup();
 			marks[place.id].on('dragstart', () => {
@@ -255,11 +252,10 @@ export default {
 					this.$store.dispatch('changePlace', {
 						place: place,
 						change: {
-							latitude: coordinates.lat.toFixed(7),
-							longitude: coordinates.lng.toFixed(7),
+							latitude: Number(coordinates.lat.toFixed(7)),
+							longitude: Number(coordinates.lng.toFixed(7)),
 						},
 					});
-					bus.$emit('setCurrentPlace', {place: place});
 				} else {
 					this.clickPlacemark(place, type);
 				}

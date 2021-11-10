@@ -135,22 +135,22 @@ export default {
 		},
 	},
 	created() {
-		bus.$on('refreshMapMarks', () => {
-			this.mrks = {};
+		bus.$on('refreshMapYandexMarks', () => {
 			this.map.geoObjects.removeAll();
-			this.$store.state.places.forEach((place) => {
+			this.mrks = {};
+			this.$store.state.places.forEach(place => {
 				this.appendPlacemark(this.mrks, place, 'private');
 			});
-			if (this.$parent.currentPlace) {
+			if (this.currentPlace) {
 				if (
 					!this.$root.currentPlaceCommon &&
-					this.mrks[this.$parent.currentPlace.id]
+					this.mrks[this.currentPlace.id]
 				) {
-					this.mrks[this.$parent.currentPlace.id].options.set(
+					this.mrks[this.currentPlace.id].options.set(
 						'iconColor', this.activePlacemarksColor
 					);
-				} else if (this.commonMrks[this.$parent.currentPlace.id]) {
-					this.commonMrks[this.$parent.currentPlace.id].options.set(
+				} else if (this.commonMrks[this.currentPlace.id]) {
+					this.commonMrks[this.currentPlace.id].options.set(
 						'iconColor', this.activePlacemarksColor
 					);
 				}
@@ -276,7 +276,7 @@ export default {
 				options,
 			);
 			marks[place.id].events.add('dragstart', () => {
-				if (place !== this.currentPlace) {
+				if (place.id !== this.currentPlace.id) {
 					marks[place.id].options.set('draggable', false);
 					this.$store.dispatch('setMessage',
 						'Для перетаскивания точку сначала нужно выделить.'
@@ -284,16 +284,15 @@ export default {
 				}
 			});
 			marks[place.id].events.add('dragend', () => {
-				if (place === this.currentPlace) {
+				if (place.id === this.currentPlace.id) {
 					let coordinates = marks[place.id].geometry.getCoordinates();
 					this.$store.dispatch('changePlace', {
 						place: place,
 						change: {
-							latitude: coordinates[0].toFixed(7),
-							longitude: coordinates[1].toFixed(7),
+							latitude: Number(coordinates[0].toFixed(7)),
+							longitude: Number(coordinates[1].toFixed(7)),
 						},
 					});
-					bus.$emit('setCurrentPlace', {place: place});
 				} else {
 					this.clickPlacemark(place, type);
 				}
@@ -337,7 +336,7 @@ export default {
 				if (!this.$parent.compact) {
 					mapblock.style.right = '12px';
 				} else {
-					mapblock.style.right = '0';
+					this.map.container.style.right = '0';
 				}
 				this.map.container.fitToViewport();
 			}
