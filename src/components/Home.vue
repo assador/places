@@ -494,7 +494,7 @@
 import _ from 'lodash'
 import { constants } from '../shared/constants'
 import { mapState } from 'vuex'
-import commonFunctions from '../shared/common'
+import { commonFunctions } from '../shared/common'
 import { makeFieldsValidatable } from '../shared/fields_validate'
 import { bus } from '../shared/bus'
 import axios from 'axios'
@@ -664,7 +664,11 @@ export default {
 			this.$nextTick(() => {
 				if (this.$refs.extmap) {
 					if (this.$refs.extmap.map) {
-						this.$refs.extmap.map.destroy();
+						if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
+							this.$refs.extmap.map.destroy();
+						} else {
+							this.$refs.extmap.map.remove();
+						}
 					}
 					if (!mapLoaded) {
 						if (this.currentPlace) {
@@ -792,14 +796,22 @@ export default {
 					> this.$store.state.places.length ||
 				this.$store.state.user.testaccount
 			) {
+				let lat, lng;
+				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
+					lat = this.$refs.extmap.map.getCenter()[0].toFixed(7);
+					lng = this.$refs.extmap.map.getCenter()[1].toFixed(7);
+				} else {
+					lat = this.$refs.extmap.map.getCenter().lat.toFixed(7);
+					lng = this.$refs.extmap.map.getCenter().lng.toFixed(7);
+				}
 				let newPlace = {
 					type: 'place',
 					userid: sessionStorage.getItem('places-userid'),
 					name: '',
 					description: '',
 					link: '',
-					latitude: this.$refs.extmap.map.getCenter()[0].toFixed(7),
-					longitude: this.$refs.extmap.map.getCenter()[1].toFixed(7),
+					latitude: lat,
+					longitude: lng,
 					altitudecapability: null,
 					time: new Date().toISOString().slice(0, -5),
 					id: commonFunctions.generateRandomString(32),
@@ -890,7 +902,12 @@ export default {
 			} else {
 				this.setCurrentPlace(null);
 			}
-			this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
+			if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
+				this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
+			} else {
+				this.$refs.extmap.map.removeLayer(this.$refs.extmap.mrks[place.id]);
+			}
+			delete this.$refs.extmap.mrks[place.id];
 			this.$store.dispatch('deletePlace', place);
 		},
 		commonPlacesShowHide(show = null) {

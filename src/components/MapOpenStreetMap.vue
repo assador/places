@@ -190,19 +190,48 @@ export default {
 	},
 	methods: {
 		showMap(lat, lng, zoom) {
+			const thunderforestAPI = '4857a14b2e4941b6a587f313a2ae6144';
 			const
-				osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-				osmAttrib = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-				osm = L.tileLayer(osmUrl, {
+				osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 					maxZoom: 18,
-					attribution: osmAttrib,
-				});
+					attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+				}),
+				satellite  = L.tileLayer.provider('Esri.WorldImagery'),
+				topography = L.tileLayer.provider('Thunderforest.Landscape', {apikey: thunderforestAPI}),
+				tourists   = L.tileLayer.provider('Thunderforest.Outdoors', {apikey: thunderforestAPI}),
+				transport  = L.tileLayer.provider('Thunderforest.Transport', {apikey: thunderforestAPI}),
+				aero       = L.tileLayer.provider('OPNVKarte'),
+				bicycles   = L.tileLayer.provider('CyclOSM')
+			;
+			const baseMaps = {
+				'Спутник'                  : satellite,
+				'Топография'               : topography,
+				'Топография для туристов'  : tourists,
+				'Общественный транспорт'   : transport,
+				'Общественный транспорт 2' : aero,
+				'Велосипедистам'           : bicycles,
+				'Основная карта'           : osm,
+			};
+			const overlayMaps = {
+			};
 			this.map = L.map('mapblock', {
+				center: [lat, lng],
+				zoom: zoom,
+				layers: [
+					satellite,
+					topography,
+					tourists,
+					transport,
+					aero,
+					bicycles,
+					osm,
+				],
 				fullscreenControl: true,
 				fullscreenControlOptions: {
-					position: 'topleft'
+					position: 'topleft',
 				}
-			}).setView([lat, lng], zoom).addLayer(osm);
+			});
+			L.control.layers(baseMaps, overlayMaps).addTo(this.map);
 			const updateState = () => {
 				if (!this.updatingMap) {
 					let coordinates = this.map.getCenter();

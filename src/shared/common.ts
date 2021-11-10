@@ -1,5 +1,5 @@
 let resultForRecursive: any
-const commonFunctions = {
+export const commonFunctions = {
 	generateRandomString(length = 32): string {
 		const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		const numChars: number = chars.length;
@@ -316,4 +316,3 @@ const commonFunctions = {
 		window.scrollBy({top: amount, behavior: 'smooth'});
 	},
 }
-export default commonFunctions

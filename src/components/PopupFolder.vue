@@ -75,7 +75,7 @@
 import { mapState } from 'vuex'
 import axios from 'axios'
 import { constants } from '../shared/constants'
-import commonFunctions from '../shared/common'
+import { commonFunctions } from '../shared/common'
 import { makeFieldsValidatable } from '../shared/fields_validate'
 export default {
 	data() {

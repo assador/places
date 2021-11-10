@@ -1,4 +1,4 @@
-import commonFunctions from '@/shared/common';
+import { commonFunctions } from '@/shared/common';
 
 const object = {
 	parent: 'HDvAVlozgwYEbIJVgvZE7JQhYQM5Oc1E',

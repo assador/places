@@ -6,7 +6,7 @@ import store from '@/store'
 import { mapState } from 'vuex'
 import { constants } from '@/shared/constants'
 import { bus } from '@/shared/bus'
-import commonFunctions from '@/shared/common'
+import { commonFunctions } from '@/shared/common'
 import axios from 'axios'
 import '@/css/style.css'
 import '@/css/layout.css'
@@ -25,14 +25,14 @@ new Vue({
 		idleTimeInterval: null,
 		activeMapIndex: 0,
 		maps: [{
-			name: 'Яндекс.Карты',
-			component: 'MapYandex',
+			name: 'OpenStreetMap',
+			component: 'MapOpenStreetMap',
 		}, {
 			//name: 'Навител.Карты',
 			//component: 'MapNavitel',
 		//}, {
-			name: 'OpenStreetMap',
-			component: 'MapOpenStreetMap',
+			name: 'Яндекс.Карты',
+			component: 'MapYandex',
 		}],
 	},
 	computed: {

@@ -1,6 +1,6 @@
 import { constants } from '../shared/constants'
 import { bus } from '../shared/bus'
-import commonFunctions from '../shared/common'
+import { commonFunctions } from '../shared/common'
 import axios from 'axios'
 import Vue from 'vue'
 import Vuex from 'vuex'
