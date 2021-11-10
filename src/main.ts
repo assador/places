@@ -460,7 +460,6 @@ new Vue({
 						),
 						change: changes.place,
 					});
-					this.$store.commit('backupState');
 				}
 				if (Object.keys(changes.folder).length > 0) {
 					this.$store.dispatch('moveFolder', {
@@ -469,7 +468,6 @@ new Vue({
 						srt: changes.folder.srt,
 						backup: false,
 					});
-					this.$store.commit('backupState');
 				}
 			};
 			const cleanup = () => {

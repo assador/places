@@ -41,11 +41,15 @@ const tracking = (store) => {
 					mutation.type !== 'placesReady' &&
 					mutation.type !== 'stateReady' &&
 					(
-						!mutation.payload.hasOwnProperty('backup') ||
-						mutation.payload.backup
-					) && (
-						mutation.payload.hasOwnProperty('type') ||
-						mutation.payload.hasOwnProperty('change')
+						mutation.payload.hasOwnProperty('backup') &&
+						!!mutation.payload.backup ||
+						!mutation.payload.hasOwnProperty('backup')
+					) && !(
+						mutation.payload.key && (
+							mutation.payload.key === 'added' ||
+							mutation.payload.key === 'deleted' ||
+							mutation.payload.key === 'updated'
+						)
 					)
 				) {
 					store.commit('backupState');
@@ -130,29 +134,18 @@ const store = new Vuex.Store({
 			Vue.set(state, 'idleTime', time);
 		},
 		backupState(state) {
-			state.stateBackups.splice(++state.stateBackupsIndex, Infinity, {
-				places: JSON.parse(JSON.stringify(state.places)),
-				folders: JSON.parse(JSON.stringify(state.folders)),
-				currentPlaceIndex: state.currentPlaceIndex,
-			});
-			Vue.set(state, 'stateBackupsIndex', state.stateBackups.length - 1);
-			if (state.stateBackups.length > constants.backupscount) {
-				state.stateBackups.shift();
-				state.stateBackupsIndex--;
-			}
+			if (state.stateBackups.length === constants.backupscount) return;
+			state.stateBackups.splice(++state.stateBackupsIndex);
+			state.stateBackups.push(JSON.parse(JSON.stringify(state)));
 		},
 		restoreState(state, index) {
-			Vue.set(state, 'places',
-				JSON.parse(JSON.stringify(state.stateBackups[index].places))
-			);
-			Vue.set(state, 'folders',
-				JSON.parse(JSON.stringify(state.stateBackups[index].folders))
-			);
-			bus.$emit('setCurrentPlace', {
-				place: state.stateBackups[index].currentPlaceIndex < 0
-					? null
-					: state.places[state.stateBackups[index].currentPlaceIndex]
-			});
+			for (const key in state.stateBackups[index]) {
+				if (key !== 'stateBackups') {
+					Vue.set(state, key,
+						JSON.parse(JSON.stringify(state.stateBackups[index][key]))
+					);
+				}
+			}
 		},
 		stateBackupsIndexChange(state, delta) {
 			Vue.set(state, 'stateBackupsIndex', state.stateBackupsIndex + delta);
@@ -393,27 +386,28 @@ const store = new Vuex.Store({
 		},
 	},
 	actions: {
+		restoreState({commit, dispatch}, backupIndex) {
+			commit('restoreState', backupIndex);
+			dispatch('restoreObjectsAsLinks');
+			bus.$emit('refreshMapMarks');
+		},
 		undo({state, commit, dispatch}) {
 			if (state.stateBackupsIndex > 0) {
 				commit('stateBackupsIndexChange', -1);
-				dispatch('applyUndoRedo');
-				store.commit('inUndoRedo');
-				store.commit('setSaved', false);
+				dispatch('restoreState', state.stateBackupsIndex);
+				commit('inUndoRedo');
+				commit('setSaved', false);
 			}
 		},
 		redo({state, commit, dispatch}) {
 			if (state.stateBackupsIndex < state.stateBackups.length - 1) {
 				commit('stateBackupsIndexChange', 1);
-				dispatch('applyUndoRedo');
+				dispatch('restoreState', state.stateBackupsIndex);
 				if (state.stateBackupsIndex === state.stateBackups.length - 1) {
 					store.commit('outUndoRedo');
 					store.commit('setSaved', true);
 				}
 			}
-		},
-		applyUndoRedo({state, commit}) {
-			commit('restoreState', state.stateBackupsIndex);
-			bus.$emit('refreshMapMarks');
 		},
 		unload({commit}) {
 			commit('reset');
@@ -767,7 +761,6 @@ const store = new Vuex.Store({
 			bus.$emit('toDB', {what: 'folders', data: [folder]});
 		},
 		deletePlace({state, commit, dispatch}, place) {
-			commit('backupState');
 			if (state.homePlace === place) dispatch('setHomePlace', null);
 			commit('removePlace', place);
 			bus.$emit('toDB', {what: 'places', data: [place]});

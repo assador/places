@@ -657,6 +657,7 @@ export default {
 					}, 3000);
 				}
 				this.windowResize();
+				this.$store.commit('backupState');
 			}
 		},
 		showMap(mapLoaded) {
