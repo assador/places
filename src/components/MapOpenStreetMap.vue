@@ -201,7 +201,8 @@ export default {
 				tourists   = L.tileLayer.provider('Thunderforest.Outdoors', {apikey: thunderforestAPI}),
 				transport  = L.tileLayer.provider('Thunderforest.Transport', {apikey: thunderforestAPI}),
 				aero       = L.tileLayer.provider('OPNVKarte'),
-				bicycles   = L.tileLayer.provider('CyclOSM')
+				bicycles   = L.tileLayer.provider('CyclOSM'),
+				railroads  = L.tileLayer.provider('OpenRailwayMap')
 			;
 			const baseMaps = {
 				'Спутник'                  : satellite,
@@ -213,6 +214,7 @@ export default {
 				'Основная карта'           : osm,
 			};
 			const overlayMaps = {
+				'Железные дороги'          : railroads,
 			};
 			this.map = L.map('mapblock', {
 				center: [lat, lng],
