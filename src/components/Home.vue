@@ -511,7 +511,6 @@ export default {
 	},
 	data() {
 		return {
-			state: this.$store.state,
 			constants: constants,
 			commonPlacesPage: 1,
 			commonPlacesPagesCount: 0,

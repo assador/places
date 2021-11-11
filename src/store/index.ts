@@ -41,6 +41,12 @@ const tracking = (store) => {
 					!!mutation.payload.backup ||
 					!mutation.payload.hasOwnProperty('backup')
 				) && !(
+					mutation.payload.key && (
+						mutation.payload.key === 'added' ||
+						mutation.payload.key === 'deleted' ||
+						mutation.payload.key === 'updated'
+					)
+				) && !(
 					mutation.payload.change && (
 						'added' in mutation.payload.change  ||
 						'deleted' in mutation.payload.change  ||
@@ -131,7 +137,13 @@ const store = new Vuex.Store({
 		backupState(state) {
 			if (state.stateBackups.length === constants.backupscount) return;
 			state.stateBackups.splice(++state.stateBackupsIndex);
-			state.stateBackups.push(JSON.parse(JSON.stringify(state)));
+			state.stateBackups[state.stateBackups.length] = {};
+			for (const key in state) {
+				if (key !== 'stateBackups') {
+					state.stateBackups[state.stateBackups.length - 1][key] =
+						JSON.parse(JSON.stringify(state[key]));
+				}
+			}
 		},
 		restoreState(state, index) {
 			for (const key in state.stateBackups[index]) {
@@ -801,6 +813,7 @@ const store = new Vuex.Store({
 					folder: payload.folder,
 					key: key,
 					value: payload.change[key],
+					backup: 'movingFolder' in payload && key === 'srt' ? false : true,
 				});
 				if (key === 'updated') {
 					toUpdated = false;
@@ -871,6 +884,7 @@ const store = new Vuex.Store({
 					parent: payload.targetId,
 					srt: srt,
 				},
+				movingFolder: true,
 			});
 		},
 		folderOpenClose({commit}, payload) {
