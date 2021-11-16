@@ -193,14 +193,84 @@ export default {
 			const nmapi = navitel.createWebMapApi('75c22cca303698853d3ce9e5f3bb014cb8e2a2b0', {
 				locale: navitel.LocaleCode.ru_RU,
 			});
-			this.map = L.map('mapblock', {
-				center: [lat, lng],
-				zoom: zoom,
-			});
 			const navitelTile = nmapi.extension.leaflet.createTileLayer({
 				locale: navitel.LocaleCode.ru_RU,
 			});
+			this.map = L.map('mapblock', {
+				center: [lat, lng],
+				zoom: zoom,
+				fullscreenControl: true,
+				fullscreenControlOptions: {
+					position: 'topleft',
+				}
+			});
+			const thunderforestAPI = '4857a14b2e4941b6a587f313a2ae6144';
+			const
+				satellite  = L.tileLayer.provider('Esri.WorldImagery'),
+				topography = L.tileLayer.provider('Thunderforest.Landscape', {apikey: thunderforestAPI}),
+				tourists   = L.tileLayer.provider('Thunderforest.Outdoors', {apikey: thunderforestAPI}),
+				transport  = L.tileLayer.provider('Thunderforest.Transport', {apikey: thunderforestAPI}),
+				aero       = L.tileLayer.provider('OPNVKarte'),
+				bicycles   = L.tileLayer.provider('CyclOSM'),
+				railroads  = L.tileLayer.provider('OpenRailwayMap')
+			;
+			const baseMaps = {
+				'Спутник'                  : satellite,
+				'Топография'               : topography,
+				'Топография для туристов'  : tourists,
+				'Общественный транспорт'   : transport,
+				'Общественный транспорт 2' : aero,
+				'Велосипедистам'           : bicycles,
+				'Основная карта'           : navitelTile,
+			};
+			const overlayMaps = {
+				'Железные дороги'          : railroads,
+			};
 			navitelTile.addTo(this.map);
+			L.control.layers(baseMaps, overlayMaps).addTo(this.map);
+			const updateState = () => {
+				if (!this.updatingMap) {
+					let coordinates = this.map.getCenter();
+					this.$store.dispatch('changeMap', {
+						latitude: Number(coordinates.lat.toFixed(7)),
+						longitude: Number(coordinates.lng.toFixed(7)),
+						zoom: Number(this.map.getZoom()),
+					});
+					this.mrk.setLatLng(coordinates);
+				}
+			}
+			this.map.on('moveend', updateState);
+			this.map.on('zoomend', updateState);
+			this.mrk = L.marker([lat, lng], {icon: this.icon_03, ...this.centerPlacemarkOptions})
+				.addTo(this.map)
+				.bindPopup('Метка центра карты', {autoPan: false})
+				.openPopup();
+			if (!this.$store.state.centerPlacemarkShow) {
+				this.map.removeLayer(this.mrk);
+			}
+			this.mrk.on('dragend', () => {
+				this.map.setView(this.mrk.getLatLng());
+			});
+			this.markersLayer = L.layerGroup().addTo(this.map);
+			this.$store.state.places.forEach(place => {
+				this.appendPlacemark(this.mrks, place, 'private');
+			});
+			this.$store.state.commonPlaces.forEach(commonPlace => {
+				this.appendPlacemark(this.commonMrks, commonPlace, 'common');
+			});
+			this.$parent.commonPlacesShowHide(this.$store.state.commonPlacemarksShow);
+			if (this.currentPlace) {
+				if (
+					!this.$root.currentPlaceCommon &&
+					this.mrks[this.currentPlace.id]
+				) {
+					this.mrks[this.currentPlace.id].setIcon(this.icon_03);
+				} else if (
+					this.commonMrks[this.currentPlace.id]
+				) {
+					this.commonMrks[this.currentPlace.id].setIcon(this.icon_03);
+				}
+			}
 		},
 		clickPlacemark(place, type) {
 			let marks = (type === 'common' ? this.commonMrks : this.mrks);

@@ -28,11 +28,11 @@ new Vue({
 			name: 'OpenStreetMap',
 			component: 'MapOpenStreetMap',
 		}, {
-			//name: 'Навител.Карты',
-			//component: 'MapNavitel',
-		//}, {
 			name: 'Яндекс.Карты',
 			component: 'MapYandex',
+		}, {
+			name: 'Навител.Карты',
+			component: 'MapNavitel',
 		}],
 	},
 	computed: {
