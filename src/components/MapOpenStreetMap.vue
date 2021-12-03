@@ -2,12 +2,18 @@
 	<div id="mapblock" />
 </template>
 
-<script>
-import axios from 'axios'
-import { constants } from '../shared/constants'
-import { bus } from '../shared/bus'
-import { mapState } from 'vuex'
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import { bus } from '../shared/bus';
+import L, { Marker, LayerGroup } from 'leaflet';
+//import 'leaflet-css';
+import 'leaflet-providers';
+import 'leaflet-fullscreen/dist/leaflet.fullscreen.css';
+import 'leaflet-fullscreen';
+import { mapState } from 'vuex';
+import { Place } from '@/store/types';
+
+export default Vue.extend({
 	props: [
 		'id',
 		'name',
@@ -22,10 +28,11 @@ export default {
 	],
 	data() {
 		return {
-			map: null,
-			mrk: null,
-			mrks: {},
-			commonMrks: {},
+			map: null as unknown as L,
+			mrk: null as unknown as Marker,
+			mrks: {} as Record<string, Marker>,
+			commonMrks: {} as Record<string, Marker>,
+			markersLayer: null as unknown as LayerGroup,
 			placemarksOptions: {
 				private: {
 					draggable: true,
@@ -79,7 +86,7 @@ export default {
 	watch: {
 		latitude() {
 			this.updatePlacemark(
-				this.$root.currentPlaceCommon
+				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -92,7 +99,7 @@ export default {
 		},
 		longitude() {
 			this.updatePlacemark(
-				this.$root.currentPlaceCommon
+				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -114,14 +121,14 @@ export default {
 		},
 		name() {
 			this.updatePlacemark(
-				this.$root.currentPlaceCommon
+				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
 		},
 		description() {
 			this.updatePlacemark(
-				this.$root.currentPlaceCommon
+				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -164,15 +171,15 @@ export default {
 		},
 	},
 	created() {
-		bus.$on('refreshMapMarks', () => {
+		bus.$on('refreshMapOpenStreetMapMarks', () => {
 			this.markersLayer.clearLayers();
 			this.mrks = {};
-			this.$store.state.places.forEach(place => {
+			this.$store.state.places.forEach((place: Place) => {
 				this.appendPlacemark(this.mrks, place, 'private');
 			});
 			if (this.currentPlace) {
 				if (
-					!this.$root.currentPlaceCommon &&
+					!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
 					this.mrks[this.currentPlace.id]
 				) {
 					this.mrks[this.currentPlace.id].setIcon(this.icon_03);
@@ -189,7 +196,7 @@ export default {
 		}
 	},
 	methods: {
-		showMap(lat, lng, zoom) {
+		showMap(lat: number, lng: number, zoom: number) {
 			const thunderforestAPI = '4857a14b2e4941b6a587f313a2ae6144';
 			const
 				osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -258,16 +265,17 @@ export default {
 				this.map.setView(this.mrk.getLatLng());
 			});
 			this.markersLayer = L.layerGroup().addTo(this.map);
-			this.$store.state.places.forEach(place => {
+			this.$store.state.places.forEach((place: Place) => {
 				this.appendPlacemark(this.mrks, place, 'private');
 			});
-			this.$store.state.commonPlaces.forEach(commonPlace => {
+			this.$store.state.commonPlaces.forEach((commonPlace: Place) => {
 				this.appendPlacemark(this.commonMrks, commonPlace, 'common');
 			});
-			this.$parent.commonPlacesShowHide(this.$store.state.commonPlacemarksShow);
+			(this.$parent as Vue & {commonPlacesShowHide(show: boolean): void})
+				.commonPlacesShowHide(this.$store.state.commonPlacemarksShow);
 			if (this.currentPlace) {
 				if (
-					!this.$root.currentPlaceCommon &&
+					!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
 					this.mrks[this.currentPlace.id]
 				) {
 					this.mrks[this.currentPlace.id].setIcon(this.icon_03);
@@ -278,11 +286,8 @@ export default {
 				}
 			}
 		},
-		clickPlacemark(place, type) {
+		clickPlacemark(place: Place, type: string) {
 			let marks = (type === 'common' ? this.commonMrks : this.mrks);
-			for (let markId in marks) {
-				marks[markId].dragging.disable();
-			}
 			if (type === 'common') {
 				marks[place.id].dragging.disable();
 			} else {
@@ -292,15 +297,16 @@ export default {
 			if (type === 'common') {
 				const inPaginator =
 					this.$store.state.commonPlaces.indexOf(place) /
-					this.$parent.commonPlacesOnPageCount
+					(this.$parent as Vue & {commonPlacesOnPageCount: number}).commonPlacesOnPageCount
 				;
-				this.$parent.commonPlacesPage = (Number.isInteger(inPaginator)
-					? inPaginator + 1
-					: Math.ceil(inPaginator)
-				);
+				(this.$parent as Vue & {commonPlacesPage: number}).commonPlacesPage =
+					(Number.isInteger(inPaginator)
+						? inPaginator + 1
+						: Math.ceil(inPaginator)
+					);
 			}
 		},
-		appendPlacemark(marks, place, type) {
+		appendPlacemark(marks: Record<string, Marker>, place: Place, type: string) {
 			let options;
 			switch (type) {
 				case 'private' :
@@ -340,7 +346,7 @@ export default {
 				this.clickPlacemark(place, type);
 			});
 		},
-		updatePlacemark(marks) {
+		updatePlacemark(marks: Record<string, Marker>) {
 			if (marks[this.id]) {
 				marks[this.id].setLatLng({
 					lat: this.latitude,
@@ -360,5 +366,5 @@ export default {
 			}
 		},
 	},
-}
+});
 </script>

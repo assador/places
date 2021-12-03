@@ -58,7 +58,7 @@
 					class="menu"
 					@click="$event.stopPropagation();"
 				>
-					<Tree
+					<tree
 						instanceid="popupexporttree"
 						:data="$root.folderRoot || {}"
 					/>
@@ -89,14 +89,17 @@
 	</div>
 </template>
 
-<script>
-import Tree from "./Tree.vue"
-import { constants } from '../shared/constants'
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import Tree from './Tree.vue';
+import { constants } from '../shared/constants';
+import { Place } from '@/store/types';
+
+export default Vue.extend({
 	components: {
 		Tree,
 	},
-	props: ["mime"],
+	props: ['mime'],
 	data() {
 		return {
 			popuped: false,
@@ -104,10 +107,14 @@ export default {
 	},
 	mounted() {
 		this.popuped = true;
-		this.$root.selectedToExport = [];
-		for (let f of document.getElementById("popup-export__tree").getElementsByClassName("folder")) {
-			f.classList.add("folder_closed");
-			f.classList.remove("folder_opened");
+		(this.$root as Vue & {selectedToExport: Array<Place>}).selectedToExport = [];
+		for (
+			let f of
+			document.getElementById('popup-export__tree')!
+				.getElementsByClassName('folder')
+		) {
+			f.classList.add('folder_closed');
+			f.classList.remove('folder_opened');
 		}
 		document.addEventListener('keyup', this.keyup, false);
 	},
@@ -115,23 +122,26 @@ export default {
 		this.popuped = true;
 	},
 	beforeDestroy() {
-		this.$root.selectedToExport = [];
+		(this.$root as Vue & {selectedToExport: Array<Place>}).selectedToExport = [];
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
-		close(event) {
+		close(event: Event) {
 			if (event) event.stopPropagation();
 			this.$router.replace(
 				this.$route.matched[this.$route.matched.length - 2].path
 			);
 		},
-		keyup(event) {
-			switch (constants.shortcuts[event.keyCode]) {
+		keyup(event: Event) {
+			switch (
+				(constants.shortcuts as Record<string, string>)
+					[(event as KeyboardEvent).keyCode]
+			) {
 				case 'close' :
 					this.close(event);
 					break;
 			}
 		},
 	},
-}
+});
 </script>

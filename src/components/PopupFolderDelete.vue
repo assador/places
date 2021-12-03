@@ -66,26 +66,29 @@
 	</div>
 </template>
 
-<script>
-import { bus } from '../shared/bus'
-import { constants } from '../shared/constants'
-import { mapState } from 'vuex'
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import { bus } from '../shared/bus';
+import { constants } from '../shared/constants';
+import { mapState } from 'vuex';
+import { Place, Image, Folder } from '@/store/types';
+
+export default Vue.extend({
 	props: ['folderId'],
 	data() {
 		return {
 			keepContent: 'keep',
 			popuped: false,
-			folder: null,
+			folder: {} as Folder,
 		}
+	},
+	computed: {
+		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	watch: {
 		folderId() {
 			this.open();
 		},
-	},
-	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
 	},
 	mounted() {
 		this.open();
@@ -98,28 +101,32 @@ export default {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
-		open(event) {
+		open(event?: Event) {
 			if (event) event.stopPropagation();
-			this.folder = this.$root.foldersPlain[this.folderId];
+			this.folder =
+				(this.$root as Vue & {foldersPlain: Record<string, Folder>})
+					.foldersPlain[this.folderId];
 			if (!this.folder) {
 				this.$router.back();
 			}
 		},
-		close(event) {
+		close(event: Event) {
 			if (event) event.stopPropagation();
 			this.$router.replace(
 				this.$route.matched[this.$route.matched.length - 2].path
 			);
 		},
-		deleteFolder(event) {
+		deleteFolder(event: Event) {
 			if (this.keepContent !== 'delete') {
 				this.$store.commit('backupState');
 			}
 			if (this.keepContent === 'delete') {
 				this.markNestedAsDeleted(this.folder);
-				this.$store.state.places.forEach(place => {
-					if (place.deleted) {
-						this.$root.deleteImages(place.images, true);
+				this.$store.state.places.forEach((place: Place) => {
+					if (place.deleted && place.images) {
+						(this.$root as Vue & {
+							deleteImages(images: Array<Image>, family?: boolean): void
+						}).deleteImages(place.images, true);
 						if (this.$store.state.homePlace === place) {
 							this.$store.dispatch('setHomePlace', null);
 						}
@@ -138,7 +145,7 @@ export default {
 							);
 						} else if (
 							!!(firstRootPlace = this.$store.state.places.find(
-								p => p.folderid === 'root'
+								(p: Place) => p.folderid === 'root'
 							))
 						) {
 							bus.$emit(
@@ -152,7 +159,7 @@ export default {
 								{place:
 									!(firstPlaceInState =
 										this.$store.state.places.find(
-											p => !p.deleted
+											(p: Place) => !p.deleted
 										)
 									) ? null : firstPlaceInState
 								}
@@ -165,7 +172,7 @@ export default {
 			}
 			if (this.keepContent === 'keep') {
 				// Move subplaces and subfolders to the root
-				this.$store.state.places.forEach((place) => {
+				this.$store.state.places.forEach((place: Place) => {
 					if (place.folderid === this.folder.id) {
 						this.$store.dispatch('changePlace', {
 							place: place,
@@ -190,11 +197,11 @@ export default {
 			this.$store.commit('deletePlacesMarkedAsDeleted');
 			this.$store.commit('deleteFoldersMarkedAsDeleted');
 			bus.$emit('refreshMapMarks');
-			this.close();
+			this.close(event);
 		},
-		markNestedAsDeleted(folder) {
+		markNestedAsDeleted(folder: Folder) {
 			// Mark places and folders in the currently deleted folder as deleted
-			this.$store.state.places.forEach((place) => {
+			this.$store.state.places.forEach((place: Place) => {
 				if (place.folderid === folder.id) {
 					this.$store.commit('changePlace', {
 						place: place,
@@ -214,9 +221,12 @@ export default {
 				}
 			}
 		},
-		keyup(event) {
-			if (constants.shortcuts[event.keyCode] == 'close')  this.close();
+		keyup(event: Event) {
+			if (
+				(constants.shortcuts as Record<string, string>)
+					[(event as KeyboardEvent).keyCode] === 'close'
+			)  this.close(event);
 		},
 	},
-}
+});
 </script>

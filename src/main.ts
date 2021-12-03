@@ -1,24 +1,24 @@
-import Vue from 'vue'
-import App from '@/App.vue'
-import '@/registerServiceWorker'
-import router from '@/router'
-import store from '@/store'
-import { mapState } from 'vuex'
-import { constants } from '@/shared/constants'
-import { bus } from '@/shared/bus'
-import { commonFunctions } from '@/shared/common'
-import axios from 'axios'
-import '@/css/style.css'
-import '@/css/layout.css'
+import Vue from 'vue';
+import App from '@/App.vue';
+import '@/registerServiceWorker';
+import router from '@/router';
+import store from '@/store';
+import { mapState } from 'vuex';
+import { bus } from '@/shared/bus';
+import { commonFunctions } from '@/shared/common';
+import { Place, Image, Folder } from '@/store/types';
+import axios from 'axios';
+import '@/css/style.css';
+import '@/css/layout.css';
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 //Vue.config.devtools = true;
 
 new Vue({
 	data: {
 		refreshing: false,
-		draggingElement: null,
-		foldersPlain: {},
+		draggingElement: null as Element | null,
+		foldersPlain: {} as Record<string, Folder>,
 		foldersEditMode: false,
 		selectedToExport: [],
 		currentPlaceCommon: false,
@@ -30,14 +30,11 @@ new Vue({
 		}, {
 			name: 'Яндекс.Карты',
 			component: 'MapYandex',
-		}, {
-			name: 'Навител.Карты',
-			component: 'MapNavitel',
 		}],
 	},
 	computed: {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
-		folderRoot() {
+		folderRoot(): Folder {
 			return {
 				id: 'root',
 				type: 'folder',
@@ -45,6 +42,13 @@ new Vue({
 				children: this.$store.state.folders,
 				opened: true,
 				geomarks: 1,
+				parent: null,
+				srt: 0,
+				builded: true,
+				added: true,
+				deleted: false,
+				updated: false,
+				userid: '',
 			}
 		},
 	},
@@ -62,15 +66,13 @@ new Vue({
 	mounted() {
 		bus.$on('logged', () => {
 			this.$store.dispatch('setUser')
-				.then(response => {
+				.then(() => {
 					this.$store.dispatch('setPlaces', false);
 					this.$router.push({name: 'Home'});
 				})
-				.catch(error => {
-					console.log(error);
-				});
+			;
 		});
-		bus.$on('toDB', payload => {
+		bus.$on('toDB', (payload: Record<string, any>) => {
 			switch (payload.what) {
 				case 'places' :
 					this.toDB({
@@ -88,7 +90,7 @@ new Vue({
 							data: payload.data,
 						});
 					} else {
-						const plainFolders = [];
+						const plainFolders: Array<Folder> = [];
 						commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
 						this.toDB({
 							what: payload.what,
@@ -101,7 +103,7 @@ new Vue({
 						what: 'places',
 						data: this.$store.state.places,
 					});
-					const plainFolders = [];
+					const plainFolders: Array<Folder> = [];
 					commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
 					this.toDB({
 						what: 'folders',
@@ -112,29 +114,29 @@ new Vue({
 					this.toDB(payload);
 			}
 		});
-		bus.$on('homeToDB', id => {
+		bus.$on('homeToDB', (id: string) => {
 			this.homeToDB(id);
 		});
 		bus.$on('toDBCompletely', () => {
 			this.toDBCompletely();
 		});
-		bus.$on('getFolderById', (id) => {
+		bus.$on('getFolderById', (id: string) => {
 			return this.foldersPlain[id];
 		});
 	},
 	methods: {
-		changeMap(index) {
+		changeMap(index: number): void {
 			this.activeMapIndex = index;
 		},
-		setCurrentPlace(place, common = false) {
+		setCurrentPlace(place: Place, common = false): void {
 			bus.$emit('setCurrentPlace', {place, common});
 		},
-		getAbout: async () => {
+		getAbout: async (): Promise<void> => {
 			return await axios.get('/about.html')
 				.then(response => response.data)
 				.catch(error => '<p>Не могу найти справку. ' + error + '</p>');
 		},
-		toDB(payload) {
+		toDB(payload: Record<string, any>): void {
 			if (!this.$store.state.user.testaccount) {
 				if (!document.querySelector('.value_wrong')) {
 					payload.id = sessionStorage.getItem('places-userid');
@@ -170,7 +172,7 @@ new Vue({
 						})
 						.catch(error => {
 							this.$store.dispatch('setMessage',
-								'Не могу внести данные в базу данных.'
+								'Не могу внести данные в базу данных: ' + error
 							);
 						});
 				} else {
@@ -180,13 +182,13 @@ new Vue({
 				}
 			}
 		},
-		homeToDB(id) {
+		homeToDB(id: string): void {
 			if (!this.$store.state.user.testaccount) {
 				axios.post(
 					'/backend/set_home.php',
 					{id: sessionStorage.getItem('places-userid'), data: id}
 				)
-					.then(response => {
+					.then(() => {
 						this.$store.commit('setSaved', true);
 						this.$store.dispatch('setMessage',
 							'Изменения сохранены в базе данных.'
@@ -194,14 +196,14 @@ new Vue({
 					})
 					.catch(error => {
 						this.$store.dispatch('setMessage',
-							'Не могу внести данные в базу данных.'
+							'Не могу внести данные в базу данных: ' + error
 						);
 					});
 			}
 		},
-		toDBCompletely() {
+		toDBCompletely(): void {
 			if (!this.$store.state.user.testaccount) {
-				const plainFolders = [];
+				const plainFolders: Array<Folder> = [];
 				commonFunctions.treeToPlain(
 					this.folderRoot,
 					'children',
@@ -248,7 +250,7 @@ new Vue({
 					})
 					.catch(error => {
 						this.$store.dispatch('setMessage',
-							'Не могу внести данные в базу данных.'
+							'Не могу внести данные в базу данных: ' + error
 						);
 					});
 			} else {
@@ -259,7 +261,7 @@ new Vue({
 				`);
 			}
 		},
-		deleteImages(images, family?) {
+		deleteImages(images: Array<Image>, family?: boolean): void {
 			const data = new FormData();
 			for (let i = 0; i < images.length; i++) {
 				data.append('file_' + i, images[i].file);
@@ -276,7 +278,7 @@ new Vue({
 			}
 			this.$store.commit('deleteImages', {images: images, family: family});
 		},
-		exportPlaces(places, mime) {
+		exportPlaces(places: Array<Place>, mime: string): void {
 			const a = document.createElement('a');
 			let content: string;
 			switch (mime) {
@@ -306,7 +308,7 @@ new Vue({
 					mime = 'application/json';
 					a.download = 'places.json';
 					a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
-					const foldersPlain = [];
+					const foldersPlain: Array<Folder> = [];
 					let folderId, parentFolder, parentFound, folders = [];
 					commonFunctions.treeToPlain(
 						{'children': this.$store.state.folders}, 'children', foldersPlain
@@ -346,72 +348,73 @@ new Vue({
 			);
 			a.click();
 		},
-		handleDragStart(event) {
+		handleDragStart(event: Event): void {
 			this.$store.commit('setIdleTime', 0);
-			event.dataTransfer.setData('text/plain', null);
-			this.draggingElement = event.target;
+			(event as any).dataTransfer.setData('text/plain', null);
+			(this.draggingElement as Element) = (event.target as Element);
 		},
-		handleDragEnter(event) {
+		handleDragEnter(event: Event): void {
 			event.preventDefault();
 			event.stopPropagation();
 			if (
-				event.target.nodeType !== 1 ||
-				this.draggingElement === event.target
+				!this.draggingElement ||
+				(event.target as Node).nodeType !== 1 ||
+				this.draggingElement === (event.target as Element)
 			) return;
-			const draggingElementPP = this.draggingElement.parentNode.parentNode;
+			const draggingElementPP = (this.draggingElement as Element)!.parentElement!.parentElement!;
 			if (
-				event.target.dataset.folderButton !== undefined &&
+				(event.target as any).dataset.folderButton !== undefined &&
 				(
-					this.draggingElement.dataset.folderButton !== undefined ||
-					this.draggingElement.dataset.placeButton !== undefined
+					(this.draggingElement as any).dataset.folderButton !== undefined ||
+					(this.draggingElement as any).dataset.placeButton !== undefined
 				)
 			) {
-				event.target.classList.add('highlighted');
+				(event.target as Element).classList.add('highlighted');
 			}
 			if (
-				this.draggingElement.dataset.placeButton !== undefined &&
-				event.target.dataset.placeButtonDragenterAreaTop !== undefined &&
-				event.target.parentNode !== this.draggingElement &&
-				event.target.parentNode !== this.draggingElement.nextElementSibling
+				(this.draggingElement as any).dataset.placeButton !== undefined &&
+				(event.target as any).dataset.placeButtonDragenterAreaTop !== undefined &&
+				(event.target as Element).parentElement !== this.draggingElement &&
+				(event.target as Element).parentElement !== (this.draggingElement as Element).nextElementSibling
 			) {
-				event.target.classList.add('dragenter-area_top_border');
+				(event.target as Element).classList.add('dragenter-area_top_border');
 			} else if (
-				this.draggingElement.dataset.placeButton !== undefined &&
-				event.target.dataset.placeButtonDragenterAreaBottom !== undefined &&
-				event.target.parentNode !== this.draggingElement &&
-				event.target.parentNode !== this.draggingElement.previousElementSibling
+				(this.draggingElement as any).dataset.placeButton !== undefined &&
+				(event.target as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
+				(event.target as Element).parentElement !== this.draggingElement &&
+				(event.target as Element).parentElement !== (this.draggingElement as Element).previousElementSibling
 			) {
-				event.target.classList.add('dragenter-area_bottom_border');
+				(event.target as Element).classList.add('dragenter-area_bottom_border');
 			} else if (
-				this.draggingElement.dataset.folderButton !== undefined &&
-				event.target.dataset.folderDragenterAreaTop !== undefined &&
-				event.target.parentNode !== draggingElementPP &&
-				event.target.parentNode !== draggingElementPP.nextElementSibling
+				(this.draggingElement as any).dataset.folderButton !== undefined &&
+				(event.target as any).dataset.folderDragenterAreaTop !== undefined &&
+				(event.target as Element).parentElement !== draggingElementPP! &&
+				(event.target as Element).parentElement !== draggingElementPP!.nextElementSibling
 			) {
-				event.target.classList.add('dragenter-area_top_border');
+				(event.target as Element).classList.add('dragenter-area_top_border');
 			} else if (
-				this.draggingElement.dataset.folderButton !== undefined &&
-				event.target.dataset.folderDragenterAreaBottom !== undefined &&
-				event.target.parentNode !== draggingElementPP &&
-				event.target.parentNode !== draggingElementPP.previousElementSibling
+				(this.draggingElement as any).dataset.folderButton !== undefined &&
+				(event.target as any).dataset.folderDragenterAreaBottom !== undefined &&
+				(event.target as Element).parentElement !== draggingElementPP! &&
+				(event.target as Element).parentElement !== draggingElementPP!.previousElementSibling
 			) {
-				event.target.classList.add('dragenter-area_bottom_border');
+				(event.target as Element).classList.add('dragenter-area_bottom_border');
 			} else if (
 				this.currentPlace &&
-				this.draggingElement.dataset.image !== undefined &&
-				event.target.dataset.image !== undefined
+				(this.draggingElement as any).dataset.image !== undefined &&
+				(event.target as any).dataset.image !== undefined
 			) {
 				const indexes: number[] = [];
 				for (let i = 0; i < this.currentPlace.images.length; i++) {
 					if (
 						this.currentPlace.images[i].id ===
-							this.draggingElement.id
+							(this.draggingElement as Element).id
 					) {
 						indexes.push(i);
 					}
 					if (
 						this.currentPlace.images[i].id ===
-							event.target.id
+							(event.target as Element).id
 					) {
 						indexes.push(i);
 					}
@@ -423,40 +426,42 @@ new Vue({
 				});
 			}
 		},
-		handleDragLeave(event) {
-			if (event.target.nodeType === 1) {
+		handleDragLeave(event: Event): void {
+			if ((event.target as Element).nodeType === 1) {
 				event.preventDefault();
-				event.target.classList.remove('highlighted');
-				event.target.classList.remove('dragenter-area_top_border');
-				event.target.classList.remove('dragenter-area_bottom_border');
-				event.target.classList.remove('dragenter-area_top_border');
-				event.target.classList.remove('dragenter-area_bottom_border');
+				(event.target as Element).classList.remove('highlighted');
+				(event.target as Element).classList.remove('dragenter-area_top_border');
+				(event.target as Element).classList.remove('dragenter-area_bottom_border');
+				(event.target as Element).classList.remove('dragenter-area_top_border');
+				(event.target as Element).classList.remove('dragenter-area_bottom_border');
 			}
 		},
-		handleDragOver(event) {
+		handleDragOver(event: Event): void {
 			event.preventDefault();
 		},
-		handleDrop(event) {
+		handleDrop(event: Event): void {
+			if (this.draggingElement === null) return;
 			event.preventDefault();
 			event.stopPropagation();
 			if (
-				event.target.nodeType !== 1 ||
-				this.draggingElement === event.target &&
-				this.draggingElement.dataset.image === undefined
+				(event.target as Element).nodeType !== 1 ||
+				this.draggingElement === (event.target as Element) &&
+				(this.draggingElement as any).dataset.image === undefined
 			) return;
 			const
 				targetSrt = Number(
-					event.target.parentNode.getAttribute('srt') ||
-					event.target.parentNode.parentNode.getAttribute('srt')
+					((event.target as Element).parentElement as Element).getAttribute('srt') ||
+					(((event.target as Element).parentElement as Element).parentElement as Element).getAttribute('srt')
 				),
-				changes: any = {folder: {}, place: {}}
+				changes: Record<string, any> = {folder: {}, place: {}}
 			;
 			let newContainer: any;
 			const change = () => {
 				if (Object.keys(changes.place).length > 0) {
 					this.$store.dispatch('changePlace', {
 						place: this.$store.state.places.find(
-							p => p.id === this.draggingElement.id
+							(p: Place) => p.id ===
+								(this.draggingElement as Element).id.match(/[\d\w]+$/)![0]
 						),
 						change: changes.place,
 					});
@@ -471,23 +476,23 @@ new Vue({
 				}
 			};
 			const cleanup = () => {
-				event.target.dispatchEvent(new Event('dragleave'));
+				event.target!.dispatchEvent(new Event('dragleave'));
 				this.draggingElement = null;
 			};
 			// Place button was dropped on the folder link
 			if (
-				this.draggingElement.dataset.placeButton !== undefined &&
-				event.target.dataset.folderButton !== undefined &&
-				event.target.id.replace(/^.*-([^-]*)/, "$1") !==
+				(this.draggingElement as any).dataset.placeButton !== undefined &&
+				(event.target as any).dataset.folderButton !== undefined &&
+				(event.target as Element).id.replace(/^.*-([^-]*)/, "$1") !==
 					this.$store.state.places.find(
-						p => p.id === this.draggingElement.id
+						(p: Place) => p.id === (this.draggingElement as Element).id
 					).folderid
 			) {
 				newContainer =
-					event.target.parentNode.nextElementSibling.nextElementSibling;
+					((event.target as Element).parentElement as Element).nextElementSibling!.nextElementSibling;
 				if (newContainer.lastElementChild) {
 					changes.place.srt = this.$store.state.places.find(
-						p => p.id === newContainer.lastElementChild.id
+						(p: Place) => p.id === newContainer.lastElementChild.id
 					).srt + 1;
 				} else {
 					changes.place.srt = 1;
@@ -503,23 +508,23 @@ new Vue({
 			 * on the top sorting area of another place button
 			 */
 			if (
-				this.draggingElement.dataset.placeButton !== undefined &&
-				event.target.dataset.placeButtonDragenterAreaTop !== undefined &&
-				event.target.parentNode !== this.draggingElement.nextElementSibling
+				(this.draggingElement as any).dataset.placeButton !== undefined &&
+				(event.target as any).dataset.placeButtonDragenterAreaTop !== undefined &&
+				(event.target as Element).parentElement !== (this.draggingElement as Element).nextElementSibling
 			) {
-				if (!event.target.parentNode.previousElementSibling) {
+				if (!((event.target as Element).parentElement as Element).previousElementSibling) {
 					changes.place.srt = targetSrt / 2;
 				} else {
 					const targetPrevSrt = Number(
-						event.target.parentNode.previousElementSibling
+						((event.target as Element).parentElement as Element).previousElementSibling!
 							.getAttribute('srt')
 					);
 					changes.place.srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
 				}
-				if (this.draggingElement.parentNode !== event.target.parentNode.parentNode) {
-					changes.place.folderid = event.target.parentNode.parentNode.id;
+				if ((this.draggingElement as Element).parentElement !== (((event.target as Element).parentElement as Element).parentElement as Element)) {
+					changes.place.folderid = (((event.target as Element).parentElement as Element).parentElement as Element).id.match(/[\d\w]+$/)![0];
 				}
-				event.target.classList.remove('dragenter-area_top_border');
+				(event.target as Element).classList.remove('dragenter-area_top_border');
 				change();
 				cleanup();
 				return;
@@ -529,38 +534,38 @@ new Vue({
 			 * on the bottom sorting area of another place button
 			 */
 			if (
-				this.draggingElement.dataset.placeButton !== undefined &&
-				event.target.dataset.placeButtonDragenterAreaBottom !== undefined &&
-				event.target.parentNode !== this.draggingElement.previousElementSibling
+				(this.draggingElement as any).dataset.placeButton !== undefined &&
+				(event.target as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
+				(event.target as Element).parentElement !== (this.draggingElement as Element).previousElementSibling
 			) {
-				if (!event.target.parentNode.nextElementSibling) {
+				if (!((event.target as Element).parentElement as Element).nextElementSibling) {
 					changes.place.srt = targetSrt + 1;
 				} else {
 					const targetNextSrt = Number(
-						event.target.parentNode.nextElementSibling.getAttribute('srt')
+						((event.target as Element).parentElement as Element).nextElementSibling!.getAttribute('srt')
 					);
 					changes.place.srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
 				}
-				if (this.draggingElement.parentNode !== event.target.parentNode.parentNode) {
-					changes.place.folderid = event.target.parentNode.parentNode.id;
+				if ((this.draggingElement as Element).parentElement !== (((event.target as Element).parentElement as Element).parentElement as Element)) {
+					changes.place.folderid = (((event.target as Element).parentElement as Element).parentElement as Element).id.match(/[\d\w]+$/)![0];
 				}
-				event.target.classList.remove('dragenter-area_bottom_border');
+				(event.target as Element).classList.remove('dragenter-area_bottom_border');
 				change();
 				cleanup();
 				return;
 			}
 			// Folder link was dropped on the sorting area of another folder link
 			if (
-				this.draggingElement.dataset.folderButton !== undefined &&
+				(this.draggingElement as any).dataset.folderButton !== undefined &&
 				(
-					event.target.dataset.folderDragenterAreaTop !== undefined ||
-					event.target.dataset.folderDragenterAreaBottom !== undefined
+					(event.target as any).dataset.folderDragenterAreaTop !== undefined ||
+					(event.target as any).dataset.folderDragenterAreaBottom !== undefined
 				) &&
 				!!(changes.folder.id =
-					this.draggingElement.id.replace(/^.*-([^-]*)/, "$1")
+					(this.draggingElement as Element).id.replace(/^.*-([^-]*)/, "$1")
 				) &&
 				!!(changes.folder.parent =
-					event.target.parentNode.parentNode.parentNode.parentNode
+					(((((event.target as Element).parentElement as Element).parentElement as Element).parentElement as Element).parentElement as Element)
 						.id.replace(/^.*-([^-]*)/, "$1")
 				) &&
 				changes.folder.id !== changes.folder.parent &&
@@ -568,35 +573,34 @@ new Vue({
 					{children: this.$store.state.folders},
 					'children',
 					changes.folder.id,
-					changes.folder.parent,
-					null
+					changes.folder.parent
 				)
 			) {
 				if (
-					event.target.dataset.folderDragenterAreaTop !== undefined &&
-					this.draggingElement.parentNode.parentNode !==
-						event.target.parentNode.previousElementSibling
+					(event.target as any).dataset.folderDragenterAreaTop !== undefined &&
+					(this.draggingElement as Element).parentElement!.parentElement !==
+						((event.target as Element).parentElement as Element).previousElementSibling
 				) {
-					if (!event.target.parentNode.previousElementSibling) {
+					if (!((event.target as Element).parentElement as Element).previousElementSibling) {
 						changes.folder.srt = targetSrt / 2;
 					} else {
 						const targetPrevSrt = Number(
-							event.target.parentNode.previousElementSibling
+							((event.target as Element).parentElement as Element).previousElementSibling!
 								.getAttribute('srt')
 						);
 						changes.folder.srt =
 							(targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
 					}
 				} else if (
-					event.target.dataset.folderDragenterAreaBottom !== undefined &&
-					this.draggingElement.parentNode.parentNode !==
-						event.target.parentNode.nextElementSibling
+					(event.target as any).dataset.folderDragenterAreaBottom !== undefined &&
+					(this.draggingElement as Element).parentElement!.parentElement !==
+						((event.target as Element).parentElement as Element).nextElementSibling
 				) {
-					if (!event.target.parentNode.nextElementSibling) {
+					if (!((event.target as Element).parentElement as Element).nextElementSibling) {
 						changes.folder.srt = targetSrt + 1;
 					} else {
 						const targetNextSrt = Number(
-							event.target.parentNode.nextElementSibling
+							((event.target as Element).parentElement as Element).nextElementSibling!
 								.getAttribute('srt')
 						);
 						changes.folder.srt =
@@ -609,25 +613,24 @@ new Vue({
 			}
 			// Folder link dropped on another folder link
 			if (
-				this.draggingElement.dataset.folderButton !== undefined &&
-				event.target.dataset.folderButton !== undefined &&
+				(this.draggingElement as any).dataset.folderButton !== undefined &&
+				(event.target as any).dataset.folderButton !== undefined &&
 				!!(changes.folder.id =
-					this.draggingElement.id.replace(/^.*-([^-]*)/, "$1")
+					(this.draggingElement as Element).id.replace(/^.*-([^-]*)/, "$1")
 				) &&
 				!!(changes.folder.parent =
-					event.target.id.replace(/^.*-([^-]*)/, "$1")
+					(event.target as Element).id.replace(/^.*-([^-]*)/, "$1")
 				) &&
 				changes.folder.id !== changes.folder.parent &&
 				!commonFunctions.isParentInTree(
 					{children: this.$store.state.folders},
 					'children',
 					changes.folder.id,
-					changes.folder.parent,
-					null
+					changes.folder.parent
 				)
 			) {
 				newContainer =
-					event.target.parentNode.nextElementSibling.firstElementChild;
+					((event.target as Element).parentElement as Element).nextElementSibling!.firstElementChild;
 				if (newContainer && newContainer.lastElementChild) {
 					changes.folder.srt = this.foldersPlain[
 						newContainer.lastElementChild.id.replace(/^.*-([^-]*)/, "$1")
@@ -640,7 +643,7 @@ new Vue({
 				return;
 			}
 			// Image thumbnail dropped
-			if (this.draggingElement.dataset.image !== undefined) {
+			if ((this.draggingElement as any).dataset.image !== undefined) {
 				this.$store.dispatch('changePlace', {
 					place: this.currentPlace,
 					change: {updated: true},
@@ -655,4 +658,4 @@ new Vue({
 	router,
 	store,
 	render: h => h(App)
-}).$mount('#app')
+}).$mount('#app');

@@ -52,10 +52,9 @@
 						</tr>
 						<tr class="back_0">
 							<th />
-							<td
-								style="padding-top: 18px;"
-								v-html="message"
-							/>
+							<td style="padding-top: 18px;">
+								{{ message }}
+							</td>
 						</tr>
 					</tbody>
 				</table>
@@ -71,17 +70,19 @@
 	</div>
 </template>
 
-<script>
-import { mapState } from 'vuex'
-import axios from 'axios'
-import { constants } from '../shared/constants'
-import { commonFunctions } from '../shared/common'
-import { makeFieldsValidatable } from '../shared/fields_validate'
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import { mapState } from 'vuex';
+import { constants } from '../shared/constants';
+import { commonFunctions } from '../shared/common';
+import { makeFieldsValidatable } from '../shared/fields_validate';
+import { Folder } from '@/store/types';
+
+export default Vue.extend({
 	data() {
 		return {
-			folderName: null,
-			folderDescription: null,
+			folderName: '',
+			folderDescription: '',
 			message: '',
 			popuped: false,
 		}
@@ -93,7 +94,7 @@ export default {
 		this.popuped = true;
 		this.$nextTick(() => {
 			makeFieldsValidatable();
-			document.getElementById('folderName').focus();
+			document.getElementById('folderName')!.focus();
 			document.addEventListener('keyup', this.keyup, false);
 		});
 	},
@@ -104,18 +105,20 @@ export default {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
-		close(event) {
+		close(event: Event) {
 			if (event) event.stopPropagation();
 			this.$router.replace(
 				this.$route.matched[this.$route.matched.length - 2].path
 			);
 		},
-		appendFolder(folderName, folderDescription) {
+		appendFolder(folderName: string, folderDescription: string) {
 			if (
 				this.$store.state.serverConfig.rights.folderscount < 0 ||
 				this.$store.state.serverConfig.rights.folderscount
 					// length - 1 because there is a root folder too
-					> Object.keys(this.$root.foldersPlain).length - 1 ||
+					> Object.keys(
+						(this.$root as Vue & {foldersPlain: Record<string, Folder>}).foldersPlain
+					).length - 1 ||
 				this.$store.state.user.testaccount
 			) {
 				let newFolder = {
@@ -126,9 +129,9 @@ export default {
 					id: commonFunctions.generateRandomString(32),
 					srt: this.$store.state.folders.length > 0
 						? Math.ceil(Math.max(
-							...this.$store.state.folders.map(function(folder) {
-								return folder.srt;
-							})
+							...this.$store.state.folders.map(
+								(folder: Folder) => folder.srt
+							)
 						)) + 1
 						: 1,
 					parent: this.currentPlace && this.currentPlace.folderid
@@ -144,7 +147,7 @@ export default {
 				this.message = 'Папка создана';
 				this.folderName = '';
 				this.folderDescription = '';
-				document.getElementById("folderName").focus();
+				document.getElementById('folderName')!.focus();
 			} else {
 				this.message = `
 					Превышено максимально допустимое для вашей
@@ -152,9 +155,12 @@ export default {
 				`;
 			}
 		},
-		keyup(event) {
-			if (constants.shortcuts[event.keyCode] == 'close')  this.close();
+		keyup(event: Event) {
+			if (
+				(constants.shortcuts as Record<string, string>)
+					[(event as KeyboardEvent).keyCode] === 'close'
+			)  this.close(event);
 		},
 	},
-}
+});
 </script>

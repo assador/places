@@ -1,17 +1,17 @@
-import Vue from 'vue'
-import VueRouter, { RouteConfig } from 'vue-router'
+import Vue from 'vue';
+import VueRouter, { RouteConfig } from 'vue-router';
 
-const Auth = () => import('@/components/Auth.vue')
-const Home = () => import('@/components/Home.vue')
-const Account = () => import('@/components/Account.vue')
-const AccountDelete = () => import('@/components/AccountDelete.vue')
-const PopupText = () => import('@/components/PopupText.vue')
-const PopupImage = () => import('@/components/PopupImage.vue')
-const PopupFolder = () => import('@/components/PopupFolder.vue')
-const PopupFolderDelete = () => import('@/components/PopupFolderDelete.vue')
-const PopupExport = () => import('@/components/PopupExport.vue')
+const Auth = () => import('@/components/Auth.vue');
+const Home = () => import('@/components/Home.vue');
+const Account = () => import('@/components/Account.vue');
+const AccountDelete = () => import('@/components/AccountDelete.vue');
+const PopupText = () => import('@/components/PopupText.vue');
+const PopupImage = () => import('@/components/PopupImage.vue');
+const PopupFolder = () => import('@/components/PopupFolder.vue');
+const PopupFolderDelete = () => import('@/components/PopupFolderDelete.vue');
+const PopupExport = () => import('@/components/PopupExport.vue');
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
 	{
@@ -76,13 +76,13 @@ const routes: Array<RouteConfig> = [
 		path: '*',
 		redirect: '/home',
 	},
-]
+];
 
 const router = new VueRouter({
 	mode: 'history',
 	base: process.env.BASE_URL,
 	routes
-})
+});
 
 router.beforeEach((to, from, next) => {
 	if (!sessionStorage.getItem('places-session')) {
@@ -98,6 +98,6 @@ router.beforeEach((to, from, next) => {
 	} else {
 		next();
 	}
-})
+});
 
-export default router
+export default router;

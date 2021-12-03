@@ -94,7 +94,7 @@
 					</div>
 				</form>
 				<div style="text-align: center;">
-					<span v-html="acc.message" />
+					{{ acc.message }}
 				</div>
 				<a
 					href="javascript:void(0)"
@@ -108,13 +108,14 @@
 	</div>
 </template>
 
-<script>
-import { bus } from '../shared/bus'
-import { accountDeletionRoutine, acc } from '../shared/account'
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import { accountDeletionRoutine, acc } from '../shared/account';
+
+export default Vue.extend({
 	data() {
 		return {
-			userId: sessionStorage.getItem('places-userid'),
+			userId: sessionStorage.getItem('places-userid') as string,
 			leavePlaces: 'none',
 			leaveImages: 'none',
 			acc: acc,
@@ -128,7 +129,7 @@ export default {
 		this.popuped = true;
 	},
 	methods: {
-		close(event) {
+		close(event: Event) {
 			if (event) event.stopPropagation();
 			this.$router.replace(
 				this.$route.matched[this.$route.matched.length - 2].path
@@ -141,32 +142,32 @@ export default {
 					который удалить нельзя
 				`;
 			} else {
+				const {
+					userId,
+					leavePlaces,
+					leaveImages,
+				} = this;
 				accountDeletionRoutine(
 					userId,
 					leavePlaces,
 					leaveImages,
 				);
 				this.$store.dispatch('unload');
-				this.$router.push({name: 'Auth'}).catch(() => {});
-				const {
-					userId,
-					leavePlaces,
-					leaveImages,
-				} = this;
+				this.$router.push({name: 'Auth'});
 			}
 		},
-		accountDeletionConditionsChange(event) {
-			switch (event.currentTarget.id) {
+		accountDeletionConditionsChange(event: Event) {
+			switch ((event.currentTarget as Element).id) {
 				case 'placesLeaveNone' :
-					document.getElementById('imagesLeaveNone').click();
+					document.getElementById('imagesLeaveNone')!.click();
 					break;
 				case 'imagesLeaveAll' :
-					if (document.getElementById('placesLeaveNone').checked) {
-						document.getElementById('placesLeaveCommon').click();
+					if ((document.getElementById('placesLeaveNone') as HTMLInputElement)!.checked) {
+						document.getElementById('placesLeaveCommon')!.click();
 					}
 					break;
 			}
 		},
 	},
-}
+});
 </script>

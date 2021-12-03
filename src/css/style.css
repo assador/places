@@ -700,10 +700,10 @@ span.folder-button {
 	content: '\25bc';
 }
 .folder_closed > .folder-places {
-	display: none;
+	display: none !important;
 }
-.folder_opened > .folder-places {
-	display: block;
+.folder-places {
+	display: block !important;
 }
 .folder_root {
 	padding-left: 0;

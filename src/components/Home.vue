@@ -74,8 +74,8 @@
 			<div
 				id="messages"
 				class="invisible"
-				@mouseover = "$store.commit('setMouseOverMessages', true)"
-				@mouseout = "$store.commit('setMouseOverMessages', false)"
+				@mouseover="$store.commit('setMouseOverMessages', true)"
+				@mouseout="$store.commit('setMouseOverMessages', false)"
 				@click="$store.dispatch('clearMessages');"
 			>
 				<div
@@ -169,7 +169,7 @@
 					id="places-menu"
 					class="menu"
 				>
-					<Tree
+					<tree
 						instanceid="placestree"
 						:data="$root.folderRoot || {}"
 					/>
@@ -490,23 +490,24 @@
 	</div>
 </template>
 
-<script>
-import _ from 'lodash'
-import { constants } from '../shared/constants'
-import { mapState } from 'vuex'
-import { commonFunctions } from '../shared/common'
-import { makeFieldsValidatable } from '../shared/fields_validate'
-import { bus } from '../shared/bus'
-import axios from 'axios'
-import Tree from './Tree.vue'
-import MapYandex from './MapYandex.vue'
-import MapNavitel from './MapNavitel.vue'
-import MapOpenStreetMap from './MapOpenStreetMap.vue'
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import _ from 'lodash';
+import { constants } from '../shared/constants';
+import { mapState } from 'vuex';
+import { commonFunctions } from '../shared/common';
+import { makeFieldsValidatable } from '../shared/fields_validate';
+import { bus } from '../shared/bus';
+import axios from 'axios';
+import Tree from './Tree.vue';
+import MapYandex from './MapYandex.vue';
+import MapOpenStreetMap from './MapOpenStreetMap.vue';
+import { Place, Image, Folder } from '@/store/types';
+
+export default Vue.extend({
 	components: {
 		Tree,
 		MapYandex,
-		MapNavitel,
 		MapOpenStreetMap,
 	},
 	data() {
@@ -522,24 +523,24 @@ export default {
 				bottom: constants.sidebars.bottom,
 				left: constants.sidebars.left,
 			},
-			sidebarDrag: {what: null, x: 0, y: 0, w: 0, h: 0},
-			compact: false,
+			sidebarDrag: {what: null as unknown, x: 0, y: 0, w: 0, h: 0},
+			compact: false as boolean,
 			linkEditing: false,
 		}
 	},
 	computed: {
 		...mapState(['currentPlace', 'currentPlaceIndex']),
-		orderedImages() {
+		orderedImages(): Array<Image> {
 			return this.currentPlace ? _.orderBy(this.currentPlace.images, 'srt') : [];
 		},
-		geomarksVisibility() {
-			let geomarksVisibility = {};
+		geomarksVisibility(): Record<string, boolean> {
+			let geomarksVisibility: Record<string, boolean> = {};
 			for (let p of this.$store.state.places) {
 				geomarksVisibility[p.id] = p.geomark;
 			}
 			return geomarksVisibility;
 		},
-		stateReady() {
+		stateReady(): boolean {
 			return this.$store.state.ready;
 		},
 	},
@@ -561,7 +562,7 @@ export default {
 		},
 	},
 	created() {
-		bus.$on('setCurrentPlace', (payload) => {
+		bus.$on('setCurrentPlace', (payload: {place: Place, common: boolean}) => {
 			this.setCurrentPlace(payload.place, payload.common);
 		});
 	},
@@ -570,17 +571,22 @@ export default {
 			this.stateReadyChanged();
 		}
 		this.$store.commit('setIdleTime', 0);
-		if (!this.$root.idleTimeInterval) {
-			this.$root.idleTimeInterval = setInterval(() => {
-				if (this.$store.state.idleTime < constants.sessionlifetime) {
-					this.$store.commit('setIdleTime', this.$store.state.idleTime + 1);
-				} else {
-					clearInterval(this.$root.idleTimeInterval);
-					this.$root.idleTimeInterval = null;
-					this.$store.dispatch('unload');
-					this.$router.push({name: 'Auth'}).catch(() => {});
-				}
-			}, 1000);
+		if (!(this.$root as Vue & {idleTimeInterval: number | undefined}).idleTimeInterval) {
+			(this.$root as Vue & {idleTimeInterval: number | undefined}).idleTimeInterval =
+				window.setInterval(() => {
+					if (this.$store.state.idleTime < constants.sessionlifetime) {
+						this.$store.commit('setIdleTime', this.$store.state.idleTime + 1);
+					} else {
+						window.clearInterval(
+							(this.$root as Vue & {idleTimeInterval: number | undefined})
+								.idleTimeInterval
+						);
+						(this.$root as Vue & {idleTimeInterval: number | undefined})
+							.idleTimeInterval = undefined;
+						this.$store.dispatch('unload');
+						this.$router.push({name: 'Auth'}).catch(() => {});
+					}
+				}, 1000);
 		}
 		this.$nextTick(() => {
 			makeFieldsValidatable();
@@ -590,15 +596,25 @@ export default {
 		makeFieldsValidatable();
 	},
 	beforeDestroy() {
-		document.removeEventListener('dragover', this.$root.handleDragOver, false);
-		document.removeEventListener('drop', this.$root.handleDrop, false);
+		document.removeEventListener(
+			'dragover',
+			(this.$root as Vue & {handleDragOver(event: Event): void}).handleDragOver,
+			false
+		);
+		document.removeEventListener(
+			'drop',
+			(this.$root as Vue & {handleDrop(event: Event): void}).handleDrop,
+			false
+		);
 		document.removeEventListener('keyup', this.keyup, false);
 		bus.$off('setCurrentPlace');
 	},
 	methods: {
 		blur() {
 			let el = this.$el.querySelector(':focus');
-			if (el) el.blur();
+			if (el) {
+				try {(el as HTMLElement).blur();} catch(e) {}
+			}
 		},
 		exit() {
 			this.$store.dispatch('unload');
@@ -612,7 +628,7 @@ export default {
 						this.setCurrentPlace(this.$store.state.homePlace);
 					} else {
 						let firstPlaceInRoot = this.$store.state.places.find(
-							p => p.folderid === 'root'
+							(p: Place) => p.folderid === 'root'
 						);
 						if (firstPlaceInRoot) {
 							this.setCurrentPlace(firstPlaceInRoot);
@@ -625,7 +641,7 @@ export default {
 				this.commonPlacesPagesCount = Math.ceil(
 					this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
 				);
-				this.$root.currentPlaceCommon = false;
+				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = false;
 				if (
 					this.currentPlace &&
 					this.currentPlace.common &&
@@ -639,15 +655,23 @@ export default {
 						? inPaginator + 1
 						: Math.ceil(inPaginator)
 					);
-					this.$root.currentPlaceCommon = true;
+					(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = true;
 				}
 				this.showMap(false);
-				document.addEventListener('dragover', this.$root.handleDragOver, false);
-				document.addEventListener('drop', this.$root.handleDrop, false);
+				document.addEventListener(
+					'dragover',
+					(this.$root as Vue & {handleDragOver(event: Event): void}).handleDragOver,
+					false
+				);
+				document.addEventListener(
+					'drop',
+					(this.$root as Vue & {handleDrop(event: Event): void}).handleDrop,
+					false
+				);
 				document.addEventListener('keyup', this.keyup, false);
 				window.addEventListener('resize', this.windowResize, false);
 				if (this.$store.state.user.testaccount) {
-					setTimeout(() => {
+					window.setTimeout(() => {
 						this.$store.dispatch("setMessage", `
 							Вы авторизовались под тестовым аккаунтом;
 							невозможны сохранение изменений в базу данных
@@ -659,33 +683,43 @@ export default {
 				this.$store.commit('backupState');
 			}
 		},
-		showMap(mapLoaded) {
+		showMap(mapLoaded: boolean) {
 			this.$nextTick(() => {
 				if (this.$refs.extmap) {
-					if (this.$refs.extmap.map) {
-						if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
-							this.$refs.extmap.map.destroy();
+					if ((this.$refs.extmap as Vue & {map: any}).map) {
+						if (
+							(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
+								(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
+							].component === 'MapYandex'
+						) {
+							(this.$refs.extmap as Vue & {map: any}).map.destroy();
 						} else {
-							this.$refs.extmap.map.remove();
+							(this.$refs.extmap as Vue & {map: any}).map.remove();
 						}
 					}
 					if (!mapLoaded) {
 						if (this.currentPlace) {
-							this.$refs.extmap.showMap(
+							(this.$refs.extmap as Vue & {
+								showMap(lat: number, lng: number, zoom: number): void
+							}).showMap(
 								this.currentPlace.latitude,
 								this.currentPlace.longitude,
 								constants.map.initial.zoom
 								
 							);
 						} else {
-							this.$refs.extmap.showMap(
+							(this.$refs.extmap as Vue & {
+								showMap(lat: number, lng: number, zoom: number): void
+							}).showMap(
 								constants.map.initial.latitude,
 								constants.map.initial.longitude,
 								constants.map.initial.zoom
 							);
 						}
 					} else {
-						this.$refs.extmap.showMap(
+						(this.$refs.extmap as Vue & {
+							showMap(lat: number, lng: number, zoom: number): void
+						}).showMap(
 							this.$store.state.center.latitude,
 							this.$store.state.center.longitude,
 							this.$store.state.zoom
@@ -695,11 +729,14 @@ export default {
 			});
 		},
 		openTreeToCurrentPlace() {
-			if (!this.$root.currentPlaceCommon && this.currentPlace) {
+			if (
+				!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
+				this.currentPlace
+			) {
 				let folder, folderid = this.currentPlace.folderid;
 				while (folderid) {
 					folder = commonFunctions.findInTree(
-						this.$root.folderRoot,
+						(this.$root as Vue & {folderRoot: Folder}).folderRoot,
 						'children',
 						'id',
 						folderid
@@ -715,33 +752,49 @@ export default {
 				}
 			}
 		},
-		setCurrentPlace(place) {
+		setCurrentPlace(place: Place | null, common?: boolean): void {
 			if (this.currentPlace && place === this.currentPlace) return;
 			if (this.currentPlace) {
 				if (
-					!this.$root.currentPlaceCommon &&
-					this.$refs.extmap.mrks[this.currentPlace.id]
+					!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
+					(this.$refs.extmap as Vue & {mrks: any}).mrks[this.currentPlace.id]
 				) {
-					if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
-						this.$refs.extmap.mrks[this.currentPlace.id].options.set(
-							'iconColor', this.$refs.extmap.privatePlacemarksColor
-						);
+					if (
+						(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
+							(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
+						].component === 'MapYandex'
+					) {
+						(this.$refs.extmap as Vue & {mrks: any})
+							.mrks[this.currentPlace.id].options.set(
+								'iconColor',
+								(this.$refs.extmap as Vue & {privatePlacemarksColor: string})
+									.privatePlacemarksColor
+							);
 					} else {
-						this.$refs.extmap.mrks[this.currentPlace.id].setIcon(
-							this.$refs.extmap.icon_01
-						);
+						(this.$refs.extmap as Vue & {mrks: any})
+							.mrks[this.currentPlace.id].setIcon(
+								(this.$refs.extmap as Vue & {icon_01: any}).icon_01
+							);
 					}
 				} else if (
-					this.$refs.extmap.commonMrks[this.currentPlace.id]
+					(this.$refs.extmap as Vue & {commonMrks: any}).commonMrks[this.currentPlace.id]
 				) {
-					if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
-						this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
-							'iconColor', this.$refs.extmap.commonPlacemarksColor
-						);
+					if (
+						(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
+							(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
+						].component === 'MapYandex'
+					) {
+						(this.$refs.extmap as Vue & {commonMrks: any})
+							.commonMrks[this.currentPlace.id].options.set(
+								'iconColor',
+								(this.$refs.extmap as Vue & {commonPlacemarksColor: string})
+									.commonPlacemarksColor
+							);
 					} else {
-						this.$refs.extmap.commonMrks[this.currentPlace.id].setIcon(
-							this.$refs.extmap.icon_02
-						);
+						(this.$refs.extmap as Vue & {commonMrks: any})
+							.commonMrks[this.currentPlace.id].setIcon(
+								(this.$refs.extmap as Vue & {icon_02: any}).icon_02
+							);
 					}
 				}
 			}
@@ -751,35 +804,51 @@ export default {
 			}
 			this.$store.commit('setCurrentPlaceIndex', this.$store.state.places.indexOf(place));
 			this.$store.commit('setCurrentPlace', place);
-			this.$root.currentPlaceCommon = (
+			(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = (
 				this.currentPlace.userid !== this.$store.state.user.id
 					? true
 					: false
 			);
 			if (
-				!this.rootcurrentPlaceCommon &&
-				this.$refs.extmap.mrks[this.currentPlace.id]
+				!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
+				(this.$refs.extmap as Vue & {mrks: any}).mrks[this.currentPlace.id]
 			) {
-				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
-					this.$refs.extmap.mrks[this.currentPlace.id].options.set(
-						'iconColor', this.$refs.extmap.activePlacemarksColor
-					);
+				if (
+					(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
+						(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
+					].component === 'MapYandex'
+				) {
+					(this.$refs.extmap as Vue & {mrks: any})
+						.mrks[this.currentPlace.id].options.set(
+							'iconColor',
+							(this.$refs.extmap as Vue & {activePlacemarksColor: string})
+								.activePlacemarksColor
+						);
 				} else {
-					this.$refs.extmap.mrks[this.currentPlace.id].setIcon(
-						this.$refs.extmap.icon_03
-					);
+					(this.$refs.extmap as Vue & {mrks: any})
+						.mrks[this.currentPlace.id].setIcon(
+							(this.$refs.extmap as Vue & {icon_03: any}).icon_03
+						);
 				}
 			} else if (
-				this.$refs.extmap.commonMrks[this.currentPlace.id]
+				(this.$refs.extmap as Vue & {commonMrks: any}).commonMrks[this.currentPlace.id]
 			) {
-				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
-					this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
-						'iconColor', this.$refs.extmap.activePlacemarksColor
-					);
+				if (
+					(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
+						(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
+					].component === 'MapYandex'
+				) {
+					(this.$refs.extmap as Vue & {commonMrks: any})
+						.commonMrks[this.currentPlace.id].options.set(
+							'iconColor',
+							(this.$refs.extmap as Vue & {activePlacemarksColor: string})
+								.activePlacemarksColor
+						);
 				} else {
-					this.$refs.extmap.commonMrks[this.currentPlace.id].setIcon(
-						this.$refs.extmap.icon_03
-					);
+					(this.$refs.extmap as Vue & {commonMrks: any})
+						.commonMrks[this.currentPlace.id].setIcon(
+							(this.$refs.extmap as Vue & {icon_03: any}).icon_03
+						);
 				}
 			}
 			this.openTreeToCurrentPlace();
@@ -796,22 +865,25 @@ export default {
 				this.$store.state.user.testaccount
 			) {
 				let lat, lng;
-				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
-					lat = this.$refs.extmap.map.getCenter()[0].toFixed(7);
-					lng = this.$refs.extmap.map.getCenter()[1].toFixed(7);
+				if (
+					(this.$root as Vue & {maps: any}).maps[
+						(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
+					].component === 'MapYandex'
+				) {
+					lat = (this.$refs.extmap as Vue & {map: any}).map.getCenter()[0].toFixed(7);
+					lng = (this.$refs.extmap as Vue & {map: any}).map.getCenter()[1].toFixed(7);
 				} else {
-					lat = this.$refs.extmap.map.getCenter().lat.toFixed(7);
-					lng = this.$refs.extmap.map.getCenter().lng.toFixed(7);
+					lat = (this.$refs.extmap as Vue & {map: any}).map.getCenter().lat.toFixed(7);
+					lng = (this.$refs.extmap as Vue & {map: any}).map.getCenter().lng.toFixed(7);
 				}
 				let newPlace = {
 					type: 'place',
-					userid: sessionStorage.getItem('places-userid'),
+					userid: sessionStorage.getItem('places-userid') as string,
 					name: '',
 					description: '',
 					link: '',
 					latitude: lat,
 					longitude: lng,
-					altitudecapability: null,
 					time: new Date().toISOString().slice(0, -5),
 					id: commonFunctions.generateRandomString(32),
 					folderid:
@@ -823,9 +895,7 @@ export default {
 						this.$store.state.places.length > 0
 							? Math.ceil(Math.max(
 								...this.$store.state.places.map(
-									function(place) {
-										return place.srt;
-									}
+									(place: Place) => place.srt
 								)
 							)) + 1
 							: 1
@@ -839,8 +909,10 @@ export default {
 					show: true,
 				};
 				this.$store.dispatch('addPlace', newPlace);
-				this.$refs.extmap.appendPlacemark(
-					this.$refs.extmap.mrks,
+				(this.$refs.extmap as Vue & {appendPlacemark(
+					marks: Record<string, any>, place: Place, type: string
+				): void}).appendPlacemark(
+					(this.$refs.extmap as Vue & {mrks: any}).mrks,
 					newPlace,
 					'private'
 				);
@@ -850,11 +922,11 @@ export default {
 					]
 				);
 				this.$nextTick(() => {
-					document.getElementById('detailed-name').classList.add('highlight');
+					document.getElementById('detailed-name')!.classList.add('highlight');
 				});
-				setTimeout(function() {
-					document.getElementById('detailed-name').classList.remove('highlight');
-					document.getElementById('detailed-name').focus();
+				window.setTimeout(function() {
+					document.getElementById('detailed-name')!.classList.remove('highlight');
+					document.getElementById('detailed-name')!.focus();
 				}, 500);
 				return newPlace;
 			} else {
@@ -864,27 +936,35 @@ export default {
 				`);
 			}
 		},
-		deletePlace(place) {
-			this.$root.deleteImages(place.images, true);
+		deletePlace(place: Place) {
+			if (place.images) {
+				(this.$root as Vue & {deleteImages(
+					images: Array<Image>, family?: boolean
+				): void}).deleteImages(place.images, true);
+			}
 			if (this.$store.state.places.length > 1) {
 				let firstRootPlace;
-				if (document.getElementById(place.id).nextElementSibling) {
+				if (document.getElementById(place.id)!.nextElementSibling!) {
 					this.setCurrentPlace(
 						this.$store.state.places.find(
-							p => p.id === document.getElementById(place.id).nextElementSibling.id
+							(p: Place) => p.id ===
+								document.getElementById(place.id)!
+									.nextElementSibling!.id
 						)
 					);
-				} else if (document.getElementById(place.id).previousElementSibling) {
+				} else if (document.getElementById(place.id)!.previousElementSibling!) {
 					this.setCurrentPlace(
 						this.$store.state.places.find(
-							p => p.id === document.getElementById(place.id).previousElementSibling.id
+							(p: Place) => p.id ===
+								document.getElementById(place.id)!
+									.previousElementSibling!.id
 						)
 					);
 				} else if (this.$store.state.homePlace) {
 					this.setCurrentPlace(this.$store.state.homePlace);
 				} else if (
 					!!(firstRootPlace = this.$store.state.places.find(
-						p => p.folderid === 'root'
+						(p: Place) => p.folderid === 'root'
 					))
 				) {
 					this.setCurrentPlace(firstRootPlace);
@@ -893,7 +973,7 @@ export default {
 					this.setCurrentPlace(
 						!(firstPlaceInState =
 							this.$store.state.places.find(
-								p => !p.deleted
+								(p: Place) => !p.deleted
 							)
 						) ? null : firstPlaceInState
 					);
@@ -901,12 +981,20 @@ export default {
 			} else {
 				this.setCurrentPlace(null);
 			}
-			if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
-				this.$refs.extmap.map.geoObjects.remove(this.$refs.extmap.mrks[place.id]);
+			if (
+				(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
+					(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
+				].component === 'MapYandex'
+			) {
+				(this.$refs.extmap as Vue & {map: any}).map.geoObjects.remove(
+					(this.$refs.extmap as Vue & {mrks: any}).mrks[place.id]
+				);
 			} else {
-				this.$refs.extmap.map.removeLayer(this.$refs.extmap.mrks[place.id]);
+				(this.$refs.extmap as Vue & {map: any}).map.removeLayer(
+					(this.$refs.extmap as Vue & {mrks: any}).mrks[place.id]
+				);
 			}
-			delete this.$refs.extmap.mrks[place.id];
+			delete (this.$refs.extmap as Vue & {mrks: any}).mrks[place.id];
 			this.$store.dispatch('deletePlace', place);
 		},
 		commonPlacesShowHide(show = null) {
@@ -916,39 +1004,53 @@ export default {
 					: show
 			;
 			this.$store.dispatch('commonPlacemarksShowHide', this.commonPlacesShow);
-			for (let key in this.$refs.extmap.commonMrks) {
-				if (this.$root.maps[this.$root.activeMapIndex].component === 'MapYandex') {
-					this.$refs.extmap.commonMrks[key].options.set('visible', this.commonPlacesShow);
+			for (let key in (this.$refs.extmap as Vue & {commonMrks: any}).commonMrks) {
+				if (
+					(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
+						(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
+					].component === 'MapYandex'
+				) {
+					(this.$refs.extmap as Vue & {commonMrks: any})
+						.commonMrks[key].options.set('visible', this.commonPlacesShow);
 				} else {
 					if (this.commonPlacesShow) {
-						this.$refs.extmap.map.addLayer(this.$refs.extmap.commonMrks[key]);
+						(this.$refs.extmap as Vue & {map: any}).map.addLayer(
+							(this.$refs.extmap as Vue & {commonMrks: any}).commonMrks[key]
+						);
 					} else {
-						this.$refs.extmap.map.removeLayer(this.$refs.extmap.commonMrks[key]);
+						(this.$refs.extmap as Vue & {map: any}).map.removeLayer(
+							(this.$refs.extmap as Vue & {commonMrks: any}).commonMrks[key]
+						);
 					}
 				}
 			}
 		},
 		importFromFile() {
-			let mime = this.$refs.inputImportFromFile.files[0].type;
+			let mime = (this.$refs.inputImportFromFile as HTMLInputElement).files![0].type;
 			let reader = new FileReader();
-			reader.onload = (event) => {
+			reader.onload = (event: Event) => {
 				this.$nextTick(() => {
 					this.$store.dispatch('setPlaces', {
-						text: event.target.result,
+						text: (event.target as FileReader).result,
 						mime: mime,
+					}).then(() => {
+						this.showMap(true);
 					});
-					document.getElementById('inputImportFromFile').value = '';
+					(this.$refs.inputImportFromFile as HTMLInputElement).value = '';
 				});
 			};
 			if (mime == 'application/json' || mime == 'application/gpx+xml') {
-				reader.readAsText(this.$refs.inputImportFromFile.files[0]);
-			} else {
-				this.$store.dispatch('setMessage',
-					'Недопустимый тип импортируемого файла. Допускаются только JSON и GPX.'
+				reader.readAsText(
+					(this.$refs.inputImportFromFile as HTMLInputElement).files![0]
 				);
+			} else {
+				this.$store.dispatch('setMessage', `
+					Недопустимый тип импортируемого файла.
+					Допускаются только JSON и GPX.
+				`);
 			}
 		},
-		uploadFiles(event) {
+		uploadFiles(event: Event) {
 			event.preventDefault();
 			if (this.$store.state.user.testaccount) {
 				this.$store.dispatch('setMessage',
@@ -957,46 +1059,45 @@ export default {
 			} else {
 				let
 					data = new FormData(),
-					files = this.$refs.inputUploadFiles.files,
-					filesArray = [],
-					rndname,
-					srt
+					files = (this.$refs.inputUploadFiles as HTMLInputElement).files,
+					filesArray: Array<Record<string, unknown>> = [],
+					srt: number
 				;
 				if (
 					this.currentPlace &&
 					this.currentPlace.images.length > 0
 				) {
 					let storeImages = this.currentPlace.images;
-					srt = commonFunctions.sortObjects(storeImages, 'srt').pop().srt;
+					srt = commonFunctions.sortObjects(storeImages, 'srt').pop()!.srt;
 				} else {
 					srt = 0;
 				}
-				for (let i = 0; i < files.length; i++) {
-					if (!this.$store.state.serverConfig.mimes[files[i].type]) {
+				for (let i = 0; i < files!.length; i++) {
+					if (!this.$store.state.serverConfig.mimes[files![i].type]) {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
-							files[i].name +
+							files![i].name +
 							' не является картинкой и загружен не будет.'
 						);
-					} else if (files[i].size > this.$store.state.serverConfig.uploadsize) {
+					} else if (files![i].size > this.$store.state.serverConfig.uploadsize) {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
-							files[i].name +
+							files![i].name +
 							' слишком большого размера и загружен не будет.'
 						);
 					} else {
-						files[i].rndname = commonFunctions.generateRandomString(32);
-						data.append(files[i].rndname, files[i]);
+						let rndname = commonFunctions.generateRandomString(32);
+						data.append(rndname, files![i]);
 						filesArray.push({
-							id: files[i].rndname,
+							id: rndname,
 							file:
-								files[i].rndname +
-								"." +
-								this.$store.state.serverConfig.mimes[files[i].type]
+								rndname +
+								'.' +
+								this.$store.state.serverConfig.mimes[files![i].type]
 							,
-							size: files[i].size,
-							type: files[i].type,
-							lastmodified: files[i].lastModified,
+							size: files![i].size,
+							type: files![i].type,
+							lastmodified: files![i].lastModified,
 							srt: ++srt,
 							placeid: this.currentPlace.id
 								? this.currentPlace.id
@@ -1005,14 +1106,17 @@ export default {
 					}
 				}
 				if (filesArray.length > 0) {
-					document.getElementById('images-uploading').classList.remove('hidden');
+					document.getElementById('images-uploading')!.classList.remove('hidden');
 					data.append('userid', this.$store.state.user.id);
 					axios.post('/backend/upload.php', data)
 						.then(response => {
-							document.getElementById('images-add__input').value = '';
-							document.getElementById('images-uploading').classList.add('hidden');
+							(document.getElementById('images-add__input') as HTMLInputElement).value = '';
+							document.getElementById('images-uploading')!.classList.add('hidden');
 							for (let i = 0; i < filesArray.length; i++) {
-								if (!response.data[1].find(f => f.id === filesArray[i].id)) {
+								if (!response.data[1].find(
+									(f: Record<string, unknown>) =>
+										f.id === filesArray[i].id
+								)) {
 									filesArray.splice(i, 1);
 									i--;
 								}
@@ -1029,7 +1133,7 @@ export default {
 							 * Проверка накопленных кодов ошибок и замечаний
 							 * в процессе выполнения /dist/backend/upload.php
 							 */
-							response.data[0].forEach((code) => {
+							response.data[0].forEach((code: number) => {
 								switch (code) {
 									case 2 :
 										this.$store.dispatch('setMessage', `
@@ -1058,7 +1162,9 @@ export default {
 								}
 							});
 							if (response.data[1].length > 0) {
-								this.$store.dispatch('setMessage', 'Файлы успешно загружены.');
+								this.$store.dispatch('setMessage',
+									'Файлы успешно загружены.'
+								);
 								bus.$emit('toDB', {
 									what: 'places',
 								});
@@ -1070,20 +1176,29 @@ export default {
 						})
 						.catch(error => {
 							this.$store.dispatch('setMessage',
-								'При загрузке файлов произошла ошибка.'
+								'При загрузке файлов произошла ошибка. ' + error
 							);
 						});
 				}
 			}
 		},
-		keyup(event) {
-			if (event.altKey && event.shiftKey) {
-				if (constants.shortcuts[event.keyCode]) {
+		keyup(event: Event) {
+			if (
+				(event as KeyboardEvent).altKey &&
+				(event as KeyboardEvent).shiftKey
+			) {
+				if (
+					(constants.shortcuts as Record<string, string>)
+						[(event as KeyboardEvent).keyCode]
+				) {
 					this.blur();
 				}
-				switch (constants.shortcuts[event.keyCode]) {
+				switch (
+					(constants.shortcuts as Record<string, string>)
+						[(event as KeyboardEvent).keyCode]
+				) {
 					case 'add' :
-						let newPlace = this.appendPlace();
+						this.appendPlace();
 						break;
 					case 'delete' :
 						if (
@@ -1098,22 +1213,23 @@ export default {
 						this.$router.push({name: 'HomeFolder'}).catch(() => {});
 						break;
 					case 'edit mode' :
-						this.$root.foldersEditMode = !this.$root.foldersEditMode;
+						(this.$root as Vue & {foldersEditMode: boolean}).foldersEditMode =
+							!(this.$root as Vue & {foldersEditMode: boolean}).foldersEditMode;
 						if (
-							document.getElementById('actions-edit-folders')
+							document.getElementById('actions-edit-folders')!
 								.classList.contains('button-pressed')
 						) {
-							document.getElementById('actions-edit-folders')
+							document.getElementById('actions-edit-folders')!
 								.classList.remove('button-pressed')
 							;
 						} else {
-							document.getElementById('actions-edit-folders')
+							document.getElementById('actions-edit-folders')!
 								.classList.add('button-pressed')
 							;
 						}
 						break;
 					case 'import' :
-						document.getElementById('inputImportFromFile').click();
+						document.getElementById('inputImportFromFile')!.click();
 						break;
 					case 'export' :
 						this.$router.push({
@@ -1125,10 +1241,10 @@ export default {
 						bus.$emit('toDBCompletely');
 						break;
 					case 'help' :
-						this.$router.push({name: 'HomeText', params: {what: 'about'}}).catch(() => {});
+						this.$router.push({name: 'HomeText', params: {what: 'about'}});
 						break;
 					case 'revert' :
-						document.location.reload(true);
+						document.location.reload();
 						break;
 					case 'quit' :
 						bus.$emit('toDBCompletely');
@@ -1161,52 +1277,49 @@ export default {
 				this.sidebarSize.right = constants.sidebars.right;
 				this.sidebarSize.bottom = constants.sidebars.bottom;
 				this.sidebarSize.left = constants.sidebars.left;
-				document.getElementById('sbs-left').style.marginLeft = 0;
-				document.getElementById('sbs-top').style.marginTop = 0;
-				document.getElementById('sbs-bottom').style.marginBottom = 0;
+				document.getElementById('sbs-left')!.style.marginLeft = '0';
+				document.getElementById('sbs-top')!.style.marginTop = '0';
+				document.getElementById('sbs-bottom')!.style.marginBottom = '0';
 				this.compact = false;
 			} else {
 				if (this.compact) {
 					this.sidebarSize.top = parseInt(window.getComputedStyle(
-						document.getElementById('top-left')
+						document.getElementById('top-left') as Element
 					).height);
 				}
 				this.sidebarSize.right = parseInt(window.getComputedStyle(
-					document.getElementById('top-right')
+					document.getElementById('top-right') as Element
 				).width);
-				this.sidebarSize.bottom = (this.compact
+				(this.sidebarSize.bottom as unknown) = (this.compact
 					? parseInt(window.getComputedStyle(
-						document.getElementById('basic-basic')
+						document.getElementById('basic-basic') as Element
 					).height)
 					: '1fr'
 				);
 				this.sidebarSize.left = parseInt(window.getComputedStyle(
-					document.getElementById('top-left')
+					document.getElementById('top-left') as Element
 				).width);
-				document.getElementById('sbs-left').style.marginLeft =
-					this.sidebarSize.left + 'px'
-				;
-				document.getElementById('sbs-top').style.marginTop =
+				document.getElementById('sbs-left')!.style.marginLeft =
+					this.sidebarSize.left + 'px';
+				document.getElementById('sbs-top')!.style.marginTop =
 					-parseInt(window.getComputedStyle(
-						document.getElementById('basic-left')
-					).height) + 'px'
-				;
-				document.getElementById('sbs-bottom').style.marginBottom =
-					this.sidebarSize.bottom + 'px'
-				;
+						document.getElementById('basic-left') as Element
+					).height) + 'px';
+				document.getElementById('sbs-bottom')!.style.marginBottom =
+					this.sidebarSize.bottom + 'px';
 				this.compact = true;
 			}
-			document.getElementById('grid').classList.remove('loading-grid');
+			document.getElementById('grid')!.classList.remove('loading-grid');
 		},
-		sidebarDragStart(event, what) {
+		sidebarDragStart(event: Event, what: string) {
 			event.preventDefault();
 			this.sidebarDrag.what = what;
-			if (event.changedTouches) {
-				this.sidebarDrag.x = event.changedTouches[0].pageX;
-				this.sidebarDrag.y = event.changedTouches[0].pageY;
+			if ((event as TouchEvent).changedTouches) {
+				this.sidebarDrag.x = (event as TouchEvent).changedTouches[0].pageX;
+				this.sidebarDrag.y = (event as TouchEvent).changedTouches[0].pageY;
 			} else {
-				this.sidebarDrag.x = event.screenX;
-				this.sidebarDrag.y = event.screenY;
+				this.sidebarDrag.x = (event as MouseEvent).screenX;
+				this.sidebarDrag.y = (event as MouseEvent).screenY;
 			}
 			switch (this.sidebarDrag.what) {
 				case 'top' :
@@ -1223,51 +1336,68 @@ export default {
 					break;
 			}
 		},
-		documentMouseOver(event) {
+		documentMouseOver(event: Event) {
 			if (this.sidebarDrag.what !== null) {
 				switch (this.sidebarDrag.what) {
 					case 'top' :
-						this.sidebarSize.top = this.sidebarDrag.h - this.sidebarDrag.y +
-								(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
-						;
+						this.sidebarSize.top =
+							this.sidebarDrag.h - this.sidebarDrag.y +
+							((event as TouchEvent).changedTouches
+								? (event as TouchEvent).changedTouches[0].pageY
+								: (event as MouseEvent).screenY
+							);
 						break;
 					case 'bottom' :
-						this.sidebarSize.bottom = this.sidebarDrag.h + this.sidebarDrag.y -
-								(event.changedTouches ? event.changedTouches[0].pageY : event.screenY)
-						;
+						this.sidebarSize.bottom =
+							this.sidebarDrag.h + this.sidebarDrag.y -
+							((event as TouchEvent).changedTouches
+								? (event as TouchEvent).changedTouches[0].pageY
+								: (event as MouseEvent).screenY
+							);
 						break;
 					case 'left' :
-						this.sidebarSize.left = this.sidebarDrag.w - this.sidebarDrag.x +
-								(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
-						;
+						this.sidebarSize.left =
+							this.sidebarDrag.w - this.sidebarDrag.x +
+							((event as TouchEvent).changedTouches
+								? (event as TouchEvent).changedTouches[0].pageX
+								: (event as MouseEvent).screenX
+							);
 						break;
 					case 'right' :
-						this.sidebarSize.right = this.sidebarDrag.w + this.sidebarDrag.x -
-								(event.changedTouches ? event.changedTouches[0].pageX : event.screenX)
-						;
+						this.sidebarSize.right =
+							this.sidebarDrag.w + this.sidebarDrag.x -
+							((event as TouchEvent).changedTouches
+								? (event as TouchEvent).changedTouches[0].pageX
+								: (event as MouseEvent).screenX
+							);
 						break;
 				}
 			}
 		},
-		sidebarDragStop(event) {
+		sidebarDragStop(event: Event) {
 			this.sidebarDrag.what = null;
 			if (this.compact) {
 				this.windowResize();
 			}
 		},
 		// Search and select a place by name
-		selectPlaces(event) {
-			if (event.keyCode == 27) {
-				event.target.value = '';
+		selectPlaces(event: Event) {
+			if ((event as KeyboardEvent).keyCode === 27) {
+				(event.target as HTMLInputElement).value = '';
 			} else {
 				for (let place of this.$store.state.places) {
-					let regexp = new RegExp(event.target.value, 'i');
-					if (event.target.value.length > 1 && regexp.test(place.name)) {
+					let regexp = new RegExp(
+						(event.target as HTMLInputElement).value, 'i'
+					);
+					if (
+						(event.target as HTMLInputElement).value.length > 1 &&
+						regexp.test(place.name)
+					) {
 						this.setCurrentPlace(place);
 					}
 				}
 			}
 		},
 	},
-}
+});
 </script>

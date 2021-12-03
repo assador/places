@@ -14,13 +14,15 @@
 	</div>
 </template>
 
-<script>
-import { constants } from '../shared/constants'
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import { constants } from '../shared/constants';
+
+export default Vue.extend({
 	props: ['what'],
 	data() {
 		return {
-			content: null,
+			content: '',
 			popuped: false,
 		}
 	},
@@ -40,22 +42,26 @@ export default {
 		this.popuped = true;
 	},
 	methods: {
-		open(event) {
+		open(event?: Event) {
 			if (event) event.stopPropagation();
 			switch (this.what) {
 				default :
-					this.$root.getAbout().then(data => {this.content = data});
+					(this.$root as Vue & {getAbout(): Promise<void>}).getAbout()
+						.then((data: unknown) => {this.content = data as string});
 			}
 		},
-		close(event) {
+		close(event: Event) {
 			if (event) event.stopPropagation();
 			this.$router.replace(
 				this.$route.matched[this.$route.matched.length - 2].path
 			);
 		},
-		keyup(event) {
-			if (constants.shortcuts[event.keyCode] == 'close')  this.close();
+		keyup(event: Event) {
+			if (
+				(constants.shortcuts as Record<string, string>)
+					[(event as KeyboardEvent).keyCode] === 'close'
+			) this.close(event);
 		},
 	},
-}
+});
 </script>

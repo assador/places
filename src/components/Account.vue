@@ -127,17 +127,18 @@
 	</div>
 </template>
 
-<script>
-import { constants } from '../shared/constants'
-import { bus } from '../shared/bus'
-import { makeFieldsValidatable } from '../shared/fields_validate'
-import { accountSaveRoutine, acc } from '../shared/account'
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import { constants } from '../shared/constants';
+import { makeFieldsValidatable } from '../shared/fields_validate';
+import { accountSaveRoutine, acc } from '../shared/account';
+
+export default Vue.extend({
 	data() {
 		return {
 			accountLogin: this.$store.state.user.login,
-			accountNewPassword: null,
-			accountNewPasswordRepeat: null,
+			accountNewPassword: '',
+			accountNewPasswordRepeat: '',
 			accountName: this.$store.state.user.name,
 			accountEmail: this.$store.state.user.email,
 			accountPhone: this.$store.state.user.phone,
@@ -157,16 +158,22 @@ export default {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
-		close(event) {
+		close(event: Event) {
 			if (event) event.stopPropagation();
 			this.$router.push({name: 'Home'});
 		},
-		keyup(event) {
-			if (constants.shortcuts[event.keyCode] == 'close') this.close();
+		keyup(event: Event) {
+			if (
+				(constants.shortcuts as Record<string, string>)
+					[(event as KeyboardEvent).keyCode] === 'close'
+			) this.close(event);
 		},
 		accountSubmit() {
 			if (this.$store.state.user.testaccount) {
-				acc.message = 'Вы авторизовались под тестовым аккаунтом, который изменить нельзя';
+				acc.message = `
+					Вы авторизовались под тестовым аккаунтом,
+					который изменить нельзя
+				`;
 			} else {
 				if (!document.querySelector('.value_wrong')) {
 					const {
@@ -178,7 +185,7 @@ export default {
 						accountPhone,
 					} = this;
 					if (accountNewPassword === accountNewPasswordRepeat) {
-						const accountId = sessionStorage.getItem('places-userid');
+						const accountId = sessionStorage.getItem('places-userid') as string;
 						accountSaveRoutine({
 							accountId,
 							accountLogin,
@@ -196,5 +203,5 @@ export default {
 			}
 		},
 	},
-}
+});
 </script>

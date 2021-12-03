@@ -29,16 +29,19 @@
 	</div>
 </template>
 
-<script>
-import { constants } from "../shared/constants"
-export default {
-	props: ["imageId"],
+<script lang="ts">
+import Vue from 'vue';
+import { constants } from '../shared/constants';
+import { Image } from '@/store/types';
+
+export default Vue.extend({
+	props: ['imageId'],
 	data() {
 		return {
 			constants: constants,
 			popuped: false,
-			images: null,
-			image: undefined,
+			images: [] as Array<Image>,
+			image: {} as Image,
 		}
 	},
 	watch: {
@@ -58,18 +61,19 @@ export default {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
-		close(event) {
+		close(event: Event) {
 			if (event) event.stopPropagation();
 			this.$router.replace(
 				this.$route.matched[this.$route.matched.length - 2].path
 			);
 		},
 		defineVars() {
-			for (let place of (!this.$root.currentPlaceCommon
-				? this.$store.state.places
-				: this.$store.state.commonPlaces
+			for (let place of (
+				!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
+					? this.$store.state.places
+					: this.$store.state.commonPlaces
 			)) {
-				this.image = place.images.find(image => image.id === this.imageId);
+				this.image = place.images.find((image: Image) => image.id === this.imageId);
 				if (this.image) {
 					this.images = place.images;
 					return;
@@ -79,7 +83,7 @@ export default {
 				this.$route.matched[this.$route.matched.length - 2].path
 			);
 		},
-		showImage(step, event) {
+		showImage(step: number, event: Event) {
 			event.stopPropagation();
 				let currentIndex = this.images.indexOf(this.image);
 				if (currentIndex > -1) {
@@ -93,10 +97,13 @@ export default {
 					}).catch(() => {});
 				}
 		},
-		keyup(event) {
-			switch (constants.shortcuts[event.keyCode]) {
+		keyup(event: Event) {
+			switch (
+				(constants.shortcuts as Record<string, string>)
+					[(event as KeyboardEvent).keyCode]
+			) {
 				case 'close' :
-					this.close();
+					this.close(event);
 					break;
 				case 'left' :
 					this.showImage(-1, event);
@@ -107,5 +114,5 @@ export default {
 			}
 		},
 	},
-}
+});
 </script>

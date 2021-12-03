@@ -1,5 +1,5 @@
-export const validateField = (value, type) => {
-	const re = {
+export const validateField = (value: string, type: string): boolean => {
+	const re: Record<string, RegExp> = {
 		'integer'     : /^-?\d+$/,
 		'integerm'    : /^\d+$/,
 		'decimal'     : /^-?\d+(?:\.\d+)?$/,
@@ -15,9 +15,9 @@ export const validateField = (value, type) => {
 	}
 	if (typeof value !== 'string' || typeof re[type] === 'undefined') {throw 'Illegal function attributes';}
 	return re[type].test(value);
-}
-export const makeFieldsValidatable = () => {
-	const fields = {
+};
+export const makeFieldsValidatable = (): void => {
+	const fields: Record<string, string[]> = {
 		'authLogin'                : ['login',       'Не более 24 символов'],
 		'forgotEmail'              : ['e-mail',      'Пример: my.Name@хост.рф'],
 		'regLogin'                 : ['login',       'Не более 24 символов'],
@@ -47,7 +47,7 @@ export const makeFieldsValidatable = () => {
 		if (field && !field.classList.contains('value_validatable')) {
 			field.classList.add('value_validatable');
 			field.title = fields[id][1];
-			field.addEventListener('input', (event) => {
+			field.addEventListener('input', event => {
 				if ((<HTMLInputElement>event.currentTarget).value !== '') {
 					if (validateField((<HTMLInputElement>event.currentTarget).value, fields[id][0])) {
 						(<HTMLElement>event.currentTarget).classList.remove('value_wrong');
@@ -60,4 +60,4 @@ export const makeFieldsValidatable = () => {
 			}, false);
 		}
 	}
-}
+};

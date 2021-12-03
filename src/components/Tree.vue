@@ -9,16 +9,19 @@
 	</ul>
 </template>
 
-<script>
-import TreeNode from "./TreeNode.vue"
-export default {
+<script lang="ts">
+import Vue from 'vue';
+import TreeNode from './TreeNode.vue';
+import { Folder } from '@/store/types';
+
+export default Vue.extend({
 	components: {
 		TreeNode,
 	},
 	props: ["instanceid", "data"],
 	data() {
 		return {
-			folderData: {},
+			folderData: {} as Folder,
 		}
 	},
 	watch: {
@@ -33,5 +36,5 @@ export default {
 			},
 		},
 	},
-}
+});
 </script>

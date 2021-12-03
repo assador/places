@@ -1,4 +1,4 @@
-let resultForRecursive: any
+let resultForRecursive: unknown;
 export const commonFunctions = {
 	generateRandomString(length = 32): string {
 		const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -9,7 +9,7 @@ export const commonFunctions = {
 		}
 		return string;
 	},
-	sortObjects(array, field): any {
+	sortObjects(array: Record<string, any>[], field: string): Record<string, any>[] {
 		const sorted = array.slice().sort(function(a, b) {
 			if (a[field] > b[field]) {
 				return 1;
@@ -21,19 +21,20 @@ export const commonFunctions = {
 		});
 		return sorted;
 	},
-	sortObjectsByProximity(array): void {
+	// Sort geomarks so as to build the shortest path through them.
+	sortObjectsByProximity(array: Record<string, any>[]): void {
 		let
-			dlt, dln, indexNearest,
+			indexNearest = -1,
 			distCurrent,
 			distMin = 10,
 			lastIndex = 0
 		;
 		while (array.length > lastIndex + 1) {
 			for (let i = lastIndex + 1; i < array.length; i++) {
-				const llt = array[lastIndex].latitude * Math.PI / 180;
-				const lln = array[lastIndex].longitude * Math.PI / 180;
-				const clt = array[i].latitude * Math.PI / 180;
-				const cln = array[i].longitude * Math.PI / 180;
+				const llt = Number(array[lastIndex].latitude) * Math.PI / 180;
+				const lln = Number(array[lastIndex].longitude) * Math.PI / 180;
+				const clt = Number(array[i].latitude) * Math.PI / 180;
+				const cln = Number(array[i].longitude) * Math.PI / 180;
 				distCurrent =
 					Math.acos(
 						Math.sin(llt) * Math.sin(clt) +
@@ -46,18 +47,20 @@ export const commonFunctions = {
 				}
 			}
 			distMin = 10;
-			array.splice(lastIndex++ + 1, 0, array.splice(indexNearest, 1)[0]);
+			if (indexNearest !== -1) {
+				array.splice(lastIndex++ + 1, 0, array.splice(indexNearest, 1)[0]);
+			}
 		}
 	},
-	childrenCount(tree, childrenKey, result = 0): number {
+	childrenCount(tree: Record<string, any>, childrenKey: string, result = 0): number {
 		if (Array.isArray(tree[childrenKey])) {
 			for (let i = 0; i < tree[childrenKey].length; i++) {
-				result = commonFunctions.childrenCount(tree[childrenKey][i], childrenKey, ++result);
+				result = this.childrenCount(tree[childrenKey][i], childrenKey, ++result);
 			}
 		}
 		return result;
 	},
-	findInTree(tree, childrenKey, key, value): any {
+	findInTree(tree: Record<string, any>, childrenKey: string, key: string, value: unknown): any {
 		if (tree[key] === value) {
 			return tree;
 		}
@@ -66,7 +69,7 @@ export const commonFunctions = {
 				if (tree[childrenKey][i][key] === value) {
 					return tree[childrenKey][i];
 				}
-				resultForRecursive = commonFunctions.findInTree(tree[childrenKey][i], childrenKey, key, value);
+				resultForRecursive = this.findInTree(tree[childrenKey][i], childrenKey, key, value);
 				if (resultForRecursive) {
 					return resultForRecursive;
 				}
@@ -74,7 +77,7 @@ export const commonFunctions = {
 		}
 		return null;
 	},
-	changeByKeyValue(tree, childrenKey, key, value, what): void {
+	changeByKeyValue(tree: Record<string, any>, childrenKey: string, key: string, value: unknown, what: string): void {
 		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
 			for (let i = 0; i < tree[childrenKey].length; i++) {
 				switch (what) {
@@ -85,14 +88,14 @@ export const commonFunctions = {
 							);
 							i--;
 						} else {
-							commonFunctions.changeByKeyValue(
+							this.changeByKeyValue(
 								tree[childrenKey][i], childrenKey, key, value, what
 							);
 						}
 						break;
 					case "change" :
 						tree[childrenKey][i][key] = value;
-						commonFunctions.changeByKeyValue(
+						this.changeByKeyValue(
 							tree[childrenKey][i], childrenKey, key, value, what
 						);
 						break;
@@ -100,32 +103,37 @@ export const commonFunctions = {
 			}
 		}
 	},
-	treeToPlain(tree, childrenKey, plain): [] {
+	treeToPlain(
+		tree: Record<string, any>,
+		childrenKey: string,
+		plain: Record<string, any>[]
+	): Array<Record<string, any>> {
 		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
 			let plained;
 			for (let i = 0; i < tree[childrenKey].length; i++) {
 				plained = JSON.parse(JSON.stringify(tree[childrenKey][i]));
 				delete plained[childrenKey];
 				plain.push(plained);
-				resultForRecursive = commonFunctions.treeToPlain(tree[childrenKey][i], childrenKey, plain);
+				(resultForRecursive as Array<Record<string, any>>) =
+					this.treeToPlain(tree[childrenKey][i], childrenKey, plain);
 			}
-			return resultForRecursive;
 		}
+		return (resultForRecursive as Array<Record<string, any>>);
 	},
-	treeToLivePlain(tree, childrenKey, plain): void {
+	treeToLivePlain(tree: Record<string, any>, childrenKey: string, plain: Record<string, any>): void {
 		plain[tree.id] = tree;
 		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
 			for (const child of tree[childrenKey]) {
-				commonFunctions.treeToLivePlain(child, childrenKey, plain);
+				this.treeToLivePlain(child, childrenKey, plain);
 			}
 		}
 	},
-	treeNewIds(tree, childrenKey, parentKey, items, itemParentKey): void {
-		const newId = tree.id === "root" ? null : commonFunctions.generateRandomString(32);
+	treeNewIds(tree: Record<string, any>, childrenKey: string, parentKey: string, items: Record<string, any>[], itemParentKey: string): void {
+		const newId = tree.id === "root" ? null : this.generateRandomString(32);
 		if (Array.isArray(items) && items.length > 0) {
 			for (let i = 0; i < items.length; i++) {
 				if (items[i][itemParentKey] === tree.id) {
-					items[i].id = commonFunctions.generateRandomString(32);
+					items[i].id = this.generateRandomString(32);
 					items[i][itemParentKey] = newId;
 				}
 			}
@@ -134,7 +142,7 @@ export const commonFunctions = {
 		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
 			for (let i = 0; i < tree[childrenKey].length; i++) {
 				tree[childrenKey][i][parentKey] = tree.id;
-				commonFunctions.treeNewIds(
+				this.treeNewIds(
 					tree[childrenKey][i],
 					childrenKey,
 					parentKey,
@@ -144,23 +152,23 @@ export const commonFunctions = {
 			}
 		}
 	},
-	isParentInTree(tree, childrenKey, parentId, childId, parent): boolean {
+	isParentInTree(tree: Record<string, any>, childrenKey: string, parentId: string, childId: string, parent?: Record<string, any>): boolean {
 		if (!parent) {
-			parent = commonFunctions.findInTree(tree, childrenKey, 'id', parentId) || tree;
+			parent = this.findInTree(tree, childrenKey, 'id', parentId) || tree;
 		}
-		if (Array.isArray(parent[childrenKey]) && parent[childrenKey].length > 0) {
-			for (let i = 0; i < parent[childrenKey].length; i++) {
-				if (parent[childrenKey][i].id === childId) {
+		if (Array.isArray(parent![childrenKey]) && parent![childrenKey].length > 0) {
+			for (let i = 0; i < parent![childrenKey].length; i++) {
+				if (parent![childrenKey][i].id === childId) {
 					return true;
 				}
-				if (commonFunctions.isParentInTree(tree, childrenKey, parentId, childId, parent[childrenKey][i])) {
+				if (this.isParentInTree(tree, childrenKey, parentId, childId, parent![childrenKey][i])) {
 					return true;
 				}
 			}
 		}
 		return false;
 	},
-	plainToTree(plain): any {
+	plainToTree(plain: Record<string, any>[]): any {
 		const tree = [];
 		let ready = false;
 		while (!ready && plain.length > 0) {
@@ -201,7 +209,7 @@ export const commonFunctions = {
 	 *     [<object of a root folder for imported places>]
 	 * )
 	 */
-	formFolderForImported(time, imported): any {
+	formFolderForImported(time: string, imported: Record<string, any>): any {
 		if (!imported || !imported.id) {
 			imported = {
 				type: 'folder',
@@ -244,7 +252,7 @@ export const commonFunctions = {
 					deleted: false,
 					updated: false,
 					show: true,
-					id: commonFunctions.generateRandomString(32),
+					id: this.generateRandomString(32),
 					parent: imported.id,
 					name: date.y,
 					description: '',
@@ -271,7 +279,7 @@ export const commonFunctions = {
 					deleted: false,
 					updated: false,
 					show: true,
-					id: commonFunctions.generateRandomString(32),
+					id: this.generateRandomString(32),
 					parent: folders.y.id,
 					name: date.m,
 					description: '',
@@ -298,7 +306,7 @@ export const commonFunctions = {
 					deleted: false,
 					updated: false,
 					show: true,
-					id: commonFunctions.generateRandomString(32),
+					id: this.generateRandomString(32),
 					parent: folders.m.id,
 					name: date.d,
 					description: '',
@@ -311,8 +319,5 @@ export const commonFunctions = {
 			}
 			return {imported: imported, folderid: folders.d.id};
 		}
-	},
-	scrollWindow(amount): void {
-		window.scrollBy({top: amount, behavior: 'smooth'});
 	},
 }

@@ -1,13 +1,14 @@
-import { constants } from '../shared/constants'
-import { bus } from '../shared/bus'
-import { commonFunctions } from '../shared/common'
-import axios from 'axios'
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { constants } from '../shared/constants';
+import { bus } from '../shared/bus';
+import { commonFunctions } from '../shared/common';
+import axios from 'axios';
+import Vue from 'vue';
+import Vuex, { Store, Plugin, MutationPayload } from 'vuex';
+import { State, Place, Folder } from './types';
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
-const tracking = (store) => {
+const tracking: Plugin<State> = (store: Store<State>) => {
 	const trackingMutations: string[] = [
 		'addFolder',
 		'addPlace',
@@ -24,7 +25,7 @@ const tracking = (store) => {
 		'placesReady',
 		'stateReady',
 	];
-	store.subscribe((mutation, state) => {
+	const unsubscribe = store.subscribe((mutation: MutationPayload, state: State) => {
 		if (trackingMutations.includes(mutation.type)) {
 			if (!state.refreshing) {
 				sessionStorage.setItem('places-store-state', JSON.stringify(state));
@@ -58,9 +59,9 @@ const tracking = (store) => {
 			}
 		}
 	});
-}
+};
 
-const store = new Vuex.Store({
+const store: Store<State> = new Vuex.Store<State>({
 	plugins: [tracking],
 	state: {
 		refreshing: false,
@@ -103,7 +104,7 @@ const store = new Vuex.Store({
 			description : 5000,
 			url         : 2048,
 		},
-		messageTimer: null,
+		messageTimer: 0,
 		mouseOverMessages: false,
 		serverConfig: null,
 	},
@@ -135,22 +136,23 @@ const store = new Vuex.Store({
 			Vue.set(state, 'idleTime', time);
 		},
 		backupState(state) {
-			if (state.stateBackups.length === constants.backupscount) return;
-			state.stateBackups.splice(++state.stateBackupsIndex);
-			state.stateBackups[state.stateBackups.length] = {};
-			for (const key in state) {
-				if (key !== 'stateBackups') {
-					state.stateBackups[state.stateBackups.length - 1][key] =
-						JSON.parse(JSON.stringify(state[key]));
-				}
+			if (state.stateBackups) {
+				if (state.stateBackups.length === constants.backupscount) return;
+				state.stateBackups.splice(++state.stateBackupsIndex);
+				state.stateBackups.push(
+					Object.assign({}, JSON.parse(JSON.stringify(state)))
+				);
+				delete state.stateBackups[state.stateBackups.length - 1].stateBackups;
 			}
 		},
 		restoreState(state, index) {
-			for (const key in state.stateBackups[index]) {
-				if (key !== 'stateBackups') {
-					Vue.set(state, key,
-						JSON.parse(JSON.stringify(state.stateBackups[index][key]))
-					);
+			if (state.stateBackups) {
+				for (const key in Object(state.stateBackups[index])) {
+					if (key !== 'stateBackups') {
+						Vue.set(state, key,
+							JSON.parse(JSON.stringify(state.stateBackups[index][key as keyof State]))
+						);
+					}
 				}
 			}
 		},
@@ -214,7 +216,9 @@ const store = new Vuex.Store({
 		},
 		setHomePlace(state, place) {
 			state.homePlace = place;
-			state.user.homeplace = !place ? null : place.id;
+			if (state.user) {
+				state.user.homeplace = !place ? null : place.id;
+			}
 		},
 		placesReady(state, payload) {
 			if (payload.places) {
@@ -286,10 +290,10 @@ const store = new Vuex.Store({
 				if (state.places[i] === place) {
 					state.places.splice(i, 1);
 					Vue.set(state, 'currentPlaceIndex',
-						state.places.indexOf(state.currentPlace)
+						(state.currentPlace ? state.places.indexOf(state.currentPlace) : -1)
 					);
 					if (state.places.length === 0) {
-						state.currentPlace = null;
+						Vue.set(state, 'currentPlace', null);
 					}
 					break;
 				}
@@ -323,9 +327,11 @@ const store = new Vuex.Store({
 			}
 			for (const toDelete of payload.images) {
 				for (const place of state.places) {
-					for (const image of place.images) {
-						if (image.id === toDelete.id) {
-							place.images.splice(place.images.indexOf(image), 1);
+					if (place.images) {
+						for (const image of place.images) {
+							if (image.id === toDelete.id) {
+								place.images.splice(place.images.indexOf(image), 1);
+							}
 						}
 					}
 				}
@@ -334,13 +340,12 @@ const store = new Vuex.Store({
 		deletePlacesMarkedAsDeleted(state) {
 			for (let i = 0; i < state.places.length; i++) {
 				if (state.places[i].deleted) {
-					state.places[i] = null;
 					state.places.splice(i, 1);
 					i--;
 				}
 			}
 			Vue.set(state, 'currentPlaceIndex',
-				state.places.indexOf(state.currentPlace)
+				(state.currentPlace ? state.places.indexOf(state.currentPlace) : -1)
 			);
 		},
 		deleteFoldersMarkedAsDeleted(state) {
@@ -401,7 +406,6 @@ const store = new Vuex.Store({
 				.then(() => {
 					bus.$emit('refreshMapOpenStreetMapMarks');
 					bus.$emit('refreshMapYandexMarks');
-					bus.$emit('refreshMapNavitelMarks');
 				});
 		},
 		undo({state, commit, dispatch}) {
@@ -413,12 +417,15 @@ const store = new Vuex.Store({
 			}
 		},
 		redo({state, commit, dispatch}) {
-			if (state.stateBackupsIndex < state.stateBackups.length - 1) {
+			if (
+				state.stateBackups &&
+				state.stateBackupsIndex < state.stateBackups.length - 1
+			) {
 				commit('stateBackupsIndexChange', 1);
 				dispatch('restoreState', state.stateBackupsIndex);
 				if (state.stateBackupsIndex === state.stateBackups.length - 1) {
-					store.commit('outUndoRedo');
-					store.commit('setSaved', true);
+					commit('outUndoRedo');
+					commit('setSaved', true);
 				}
 			}
 		},
@@ -432,10 +439,10 @@ const store = new Vuex.Store({
 			for (const place of state.places) {
 				commit('setObjectSaved', place);
 			}
-			const foldersPlain = {};
+			const foldersPlain:Record<string, Folder> = {};
 			commonFunctions.treeToLivePlain({children: state.folders}, 'children', foldersPlain);
 			for (const id in foldersPlain) {
-				commit('setObjectSaved', foldersPlain[id]);
+				commit('setObjectSaved', foldersPlain[id as keyof Folder]);
 			}
 			commit('setSaved');
 		},
@@ -487,7 +494,7 @@ const store = new Vuex.Store({
 							folders: commonFunctions.plainToTree(response.data[2]),
 						});
 						const homePlace = state.places.find(
-							p => p.id === state.user.homeplace
+							p => p.id === (state.user ? state.user.homeplace : '')
 						);
 						commit('setHomePlace', (!homePlace ? null : homePlace));
 						commit('stateReady', true);
@@ -508,7 +515,7 @@ const store = new Vuex.Store({
 			 * A payload parameter is present and is an object:
 			 * {text: <file’s content as a text>, type: <file’s MIME-type>}
 			 */
-			let parsed;
+			let parsed: {places: Array<Place>, folders: Array<Folder>};
 			switch (payload.mime) {
 				case 'application/json' :
 					try {
@@ -562,7 +569,7 @@ const store = new Vuex.Store({
 						);
 						return false;
 					}
-					let description: string, link: string, time;
+					let description = '', link = '', time = '';
 					for (const wpt of dom.getElementsByTagName('wpt')) {
 						// Parsing a link node(s) in a place node
 						for (const l of wpt.getElementsByTagName('link')) {
@@ -578,10 +585,10 @@ const store = new Vuex.Store({
 						// Parsing a time node in a place node
 						time = '';
 						if (wpt.getElementsByTagName('time').length > 0) {
-							time = new Date(
+							const date = new Date(
 								wpt.getElementsByTagName('time')[0].textContent.trim()
 							);
-							time = isNaN(time) ? '' : time.toISOString().slice(0, -5);
+							time = !date ? '' : date.toISOString().slice(0, -5);
 						}
 						/*
 							 * Updating the tree branch of folders for imported places
@@ -643,7 +650,7 @@ const store = new Vuex.Store({
 							srt: (parsed.places.length > 0 ? parsed.places.length + 1 : 1),
 							common: false,
 							geomark: true,
-							userid: sessionStorage.getItem('places-userid'),
+							userid: String(sessionStorage.getItem('places-userid')),
 							images: [],
 							type: 'place',
 							added: true,
@@ -662,18 +669,20 @@ const store = new Vuex.Store({
 			}
 			try {
 				let found;
-				const plainStateFolders = [], plainPayloadFolders = [];
+				const
+					plainStateFolders: Array<Folder> = [],
+					plainPayloadFolders: Array<Folder> = [];
 				commonFunctions.treeToPlain({'children': state.folders}, 'children', plainStateFolders);
 				commonFunctions.treeToPlain({'children': parsed.folders}, 'children', plainPayloadFolders);
 				Vue.set(state, 'folders', []);
 				for (const payloadFolder of plainPayloadFolders) {
-					payloadFolder.userid = sessionStorage.getItem('places-userid');
+					payloadFolder.userid = String(sessionStorage.getItem('places-userid'));
 					/*
 					 * Checking if such a folder already exists in the tree.
 					 * If exists, updating; if not, addinng.
 					 */
 					found = plainStateFolders.find(f =>
-						f.id == payloadFolder.id
+						f.id === payloadFolder.id
 					);
 					if (found) {
 						payloadFolder.updated = true;
@@ -683,7 +692,7 @@ const store = new Vuex.Store({
 								key !== 'added' &&
 								key !== 'deleted'
 							) {
-								found[key] = payloadFolder[key];
+								Vue.set(found, key, payloadFolder[key as keyof Folder]);
 							}
 						}
 					} else {
@@ -696,19 +705,21 @@ const store = new Vuex.Store({
 				}
 				const placesNew = state.places.slice(0);
 				for (const payloadPlace of parsed.places) {
-					payloadPlace.userid = sessionStorage.getItem('places-userid');
+					payloadPlace.userid = String(sessionStorage.getItem('places-userid'));
 					/*
 					 * Checking if such a place already exists.
 					 * If exists, updating; if not, addinng.
 					 */
 					found = state.places.find(p =>
-						p.id == payloadPlace.id ||
-						p.time && p.time.slice(0, -5) == payloadPlace.time.slice(0, -5)
+						p.id === payloadPlace.id ||
+						p.time &&
+						payloadPlace.time &&
+						p.time.slice(0, -5) === payloadPlace.time.slice(0, -5)
 					);
 					if (found) {
 						found.updated = true;
 						for (const key in payloadPlace) {
-							Vue.set(found, key, payloadPlace[key]);
+							Vue.set(found, key, payloadPlace[key as keyof Place]);
 						}
 					} else {
 						payloadPlace.images = [];
@@ -721,7 +732,7 @@ const store = new Vuex.Store({
 					folders: commonFunctions.plainToTree(plainStateFolders),
 				});
 				const homePlace = state.places.find(
-					p => p.id === state.user.homeplace
+					p => p.id === (state.user ? state.user.homeplace : '')
 				);
 				commit('setHomePlace', (!homePlace ? null : homePlace));
 				commit('stateReady', true);
@@ -734,10 +745,10 @@ const store = new Vuex.Store({
 			}
 			return true;
 		},
-		restoreObjectsAsLinks({state, commit, dispatch}) {
+		restoreObjectsAsLinks({state, commit}) {
 			commit('setRefreshing', true);
 			const homePlace = state.places.find(
-				p => p.id === state.user.homeplace
+				p => p.id === (state.user ? state.user.homeplace : '')
 			);
 			commit('setHomePlace', (!homePlace ? null : homePlace));
 			if (state.currentPlace) {
@@ -759,7 +770,7 @@ const store = new Vuex.Store({
 			}
 			commit('setRefreshing', false);
 		},
-		addPlace({state, commit}, place) {
+		addPlace({commit}, place) {
 			commit('addPlace', place);
 			bus.$emit('toDB', {what: 'places', data: [place]});
 		},
@@ -791,7 +802,7 @@ const store = new Vuex.Store({
 			commit('setHomePlace', place);
 			if (!place) bus.$emit('homeToDB', null);
 		},
-		changePlace({state, commit}, payload) {
+		changePlace({commit}, payload) {
 			let toUpdated = true;
 			if ('updated' in payload.change) {
 				toUpdated = false;
@@ -833,7 +844,7 @@ const store = new Vuex.Store({
 				}
 			}
 		},
-		moveFolder({state, commit, dispatch}, payload) {
+		moveFolder({state, dispatch}, payload) {
 			let source, target;
 			const folder = payload.hasOwnProperty('folder')
 				? payload.folder
@@ -920,7 +931,7 @@ const store = new Vuex.Store({
 		centerPlacemarkShowHide({state, commit}, show) {
 			commit('centerPlacemarkShowHide', show === undefined ? !state.centerPlacemarkShow : show);
 		},
-		setMessage({state, commit, dispatch}, message) {
+		setMessage({state, commit, dispatch}, message: string) {
 			message = message.replace(/[\t\n]/g, ' ');
 			message = message.replace(/[ ]{2,}/g, ' ').trim();
 			const messagesContainer = document.getElementById('messages');
@@ -933,7 +944,7 @@ const store = new Vuex.Store({
 				const messageContainer = document.getElementById('message-' + messageIndex);
 				if (messageContainer) {
 					messageContainer.classList.add('highlight');
-					setTimeout(() => {
+					window.setTimeout(() => {
 						messageContainer.classList.remove('highlight');
 					}, 500);
 				}
@@ -945,12 +956,12 @@ const store = new Vuex.Store({
 			}
 			commit(
 				'setMessageTimer',
-				setInterval(() => {
+				window.setInterval(() => {
 					if (!state.mouseOverMessages) {
 						if (state.messages.length === 1) {
 							dispatch('clearMessages');
 						}
-						setTimeout(function() {
+						window.setTimeout(function() {
 							commit(
 								'deleteMessage',
 								state.messages[state.messages.length - 1]
@@ -960,20 +971,20 @@ const store = new Vuex.Store({
 				}, 3000)
 			);
 		},
-		clearMessages({state, commit, dispatch}) {
+		clearMessages({state, commit}) {
 			clearInterval(state.messageTimer);
 			const messagesContainer = document.getElementById('messages');
 			if (messagesContainer) {
 				messagesContainer.classList.remove('visible');
 				messagesContainer.classList.add('invisible');
 			}
-			setTimeout(function() {
+			window.setTimeout(function() {
 				commit('clearMessages');
 			}, 500);
 		},
 	},
 	getters: {
 	},
-})
+});
 
-export default store
+export default store;

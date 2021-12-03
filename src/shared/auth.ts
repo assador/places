@@ -1,11 +1,11 @@
-import Vue from 'vue'
-import axios from 'axios'
-import { bus } from './bus'
+import Vue from 'vue';
+import axios from 'axios';
+import { bus } from './bus';
 export const login = Vue.observable({
 	message: '',
 });
-export const loginRoutine = (user: {login: string, password: string}) =>
-	 new Promise((resolve, reject) => {
+export const loginRoutine: (user: {authLogin: string, authPassword: string}) => void =
+	(user: {authLogin: string, authPassword: string}) => {
 		axios.post('/backend/auth.php', user)
 			.then(response => {
 				switch (response.data) {
@@ -21,11 +21,10 @@ export const loginRoutine = (user: {login: string, password: string}) =>
 							bus.$emit('logged');
 						}
 				}
-				resolve(response);
 			})
-			.catch(error => {
+			.catch(() => {
 				sessionStorage.removeItem('places-userid');
 				sessionStorage.removeItem('places-session');
-				reject(error);
 			})
-	});
+		;
+	};

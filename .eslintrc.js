@@ -8,9 +8,11 @@ module.exports = {
 		'@vue/typescript/recommended',
 	],
 	rules: {
-		'strict': 'off',
-		'no-unused-vars': 'off',
+		'strict': 2,
+		'no-unused-vars': 1,
 		'no-unused-components': 'off',
+		'@typescript-eslint/no-non-null-assertion': 'off',
+		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/no-empty-function': 0,
 		'indent': ['error', 'tab'],
 		'vue/html-indent': ['error', 'tab'],

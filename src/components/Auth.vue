@@ -36,10 +36,9 @@
 							Войти
 						</button>
 					</div>
-					<div
-						class="margin_bottom"
-						v-html="login.message"
-					/>
+					<div class="margin_bottom">
+						{{ login.message }}
+					</div>
 					<button
 						type="button"
 						onclick="let f = document.querySelector('.auth__forgot'); if (f.classList.contains('hidden')) {f.classList.remove('hidden');} else {f.classList.add('hidden');}"
@@ -66,7 +65,9 @@
 					>
 						Прислать
 					</button>
-					<div v-html="forgot.message" />
+					<div>
+						{{ forgot.message }}
+					</div>
 				</form>
 			</div>
 			<form
@@ -128,7 +129,9 @@
 				>
 					Зарегистрироваться
 				</button>
-				<div v-html="reg.message" />
+				<div>
+					{{ reg.message }}
+				</div>
 			</form>
 		</div>
 		<div>
@@ -143,14 +146,15 @@
 	</div>
 </template>
 
-<script>
-import { bus } from '../shared/bus'
+<script lang="ts">
+import Vue from 'vue';
 import { mapState } from 'vuex'
-import { makeFieldsValidatable } from '../shared/fields_validate'
-import { loginRoutine, login } from '../shared/auth'
-import { regRoutine, reg } from '../shared/reg'
-import { forgotRoutine, forgot } from '../shared/forgot'
-export default {
+import { makeFieldsValidatable } from '../shared/fields_validate';
+import { loginRoutine, login } from '../shared/auth';
+import { regRoutine, reg } from '../shared/reg';
+import { forgotRoutine, forgot } from '../shared/forgot';
+
+export default Vue.extend({
 	data() {
 		return {
 			login: login,
@@ -186,7 +190,7 @@ export default {
 			} = this;
 			loginRoutine({
 				authLogin,
-				authPassword
+				authPassword,
 			});
 		},
 		authRegSubmit() {
@@ -205,7 +209,7 @@ export default {
 						regPassword,
 						regName,
 						regEmail,
-						regPhone
+						regPhone,
 					});
 				} else {
 					reg.message = 'Введёные пароли не совпадают';
@@ -216,12 +220,12 @@ export default {
 		},
 		authForgot() {
 			const {forgotEmail} = this;
-			if (!document.getElementById('forgotEmail').classList.contains('value_wrong')) {
+			if (!document.getElementById('forgotEmail')!.classList.contains('value_wrong')) {
 				forgotRoutine({forgotEmail});
 			} else {
 				forgot.message = 'Некорректный e-mail';
 			}
 		},
 	},
-}
+});
 </script>
