@@ -104,6 +104,12 @@ body {
 	text-align: left;
 	padding-right: 12px;
 }
+#bottom-basic .center-coordinates {
+	display: flex;
+	justify-content: center;
+	align-items: baseline;
+	flex-wrap: wrap;
+}
 #bottom-right {
 	grid-area: bottom-right;
 }
@@ -247,7 +253,7 @@ body {
 		padding: 0;
 	}
 }
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 700px) {
 	#grid {
 		grid-template-areas:
 			"top-basic    top-basic"

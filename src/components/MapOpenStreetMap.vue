@@ -10,6 +10,8 @@ import L, { Marker, LayerGroup } from 'leaflet';
 import 'leaflet-providers';
 import 'leaflet-fullscreen/dist/leaflet.fullscreen.css';
 import 'leaflet-fullscreen';
+import 'leaflet-geosearch/dist/geosearch.css';
+import * as GeoSearch from 'leaflet-geosearch';
 import { mapState } from 'vuex';
 import { Place } from '@/store/types';
 
@@ -241,6 +243,11 @@ export default Vue.extend({
 				}
 			});
 			L.control.layers(baseMaps, overlayMaps).addTo(this.map);
+			this.map.addControl(
+				(GeoSearch.GeoSearchControl as any)({
+					provider: new GeoSearch.OpenStreetMapProvider(),
+				})
+			);
 			const updateState = () => {
 				if (!this.updatingMap) {
 					let coordinates = this.map.getCenter();

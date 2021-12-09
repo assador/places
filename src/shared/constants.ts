@@ -46,5 +46,5 @@ export const constants = {
 		bottom : 54,
 		left   : 250,
 	},
-	compactWidth: 500,
+	compactWidth: 700,
 };
