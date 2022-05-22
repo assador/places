@@ -71,19 +71,26 @@ import Vue from 'vue';
 import { bus } from '../shared/bus';
 import { constants } from '../shared/constants';
 import { mapState } from 'vuex';
-import { Place, Image, Folder } from '@/store/types';
+import { Place, Folder } from '@/store/types';
 
 export default Vue.extend({
-	props: ['folderId'],
+	props: {
+		folderId: {
+			type: String,
+			default: '',
+		},
+	},
 	data() {
 		return {
 			keepContent: 'keep',
 			popuped: false,
 			folder: {} as Folder,
+			places: {} as Record<string, Place>,
+			folders: {} as Record<string, Folder>,
 		}
 	},
 	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
+		...mapState(['currentPlace']),
 	},
 	watch: {
 		folderId() {
@@ -103,9 +110,7 @@ export default Vue.extend({
 	methods: {
 		open(event?: Event) {
 			if (event) event.stopPropagation();
-			this.folder =
-				(this.$root as Vue & {foldersPlain: Record<string, Folder>})
-					.foldersPlain[this.folderId];
+			this.folder = this.$store.getters.treeFlat[this.folderId];
 			if (!this.folder) {
 				this.$router.back();
 			}
@@ -116,108 +121,139 @@ export default Vue.extend({
 				this.$route.matched[this.$route.matched.length - 2].path
 			);
 		},
-		deleteFolder(event: Event) {
+		async deleteFolder(event: Event) {
 			if (this.keepContent !== 'delete') {
 				this.$store.commit('backupState');
 			}
 			if (this.keepContent === 'delete') {
 				this.markNestedAsDeleted(this.folder);
-				this.$store.state.places.forEach((place: Place) => {
-					if (place.deleted && place.images) {
-						(this.$root as Vue & {
-							deleteImages(images: Array<Image>, family?: boolean): void
-						}).deleteImages(place.images, true);
-						if (this.$store.state.homePlace === place) {
-							this.$store.dispatch('setHomePlace', null);
-						}
-					}
-				});
+				if (
+					this.$store.state.homePlace &&
+					this.$store.state.homePlace.deleted
+				) {
+					await this.$store.dispatch('setHomePlace', null);
+				}
 				if (
 					this.currentPlace &&
 					this.currentPlace.deleted
 				) {
-					if (this.$store.state.places.length > 0) {
-						let firstRootPlace;
-						if (this.$store.state.homePlace) {
+					if (Object.keys(this.$store.state.places).length) {
+						if (
+							this.$store.state.homePlace &&
+							!this.$store.state.homePlace.deleted
+						) {
 							bus.$emit(
 								'setCurrentPlace',
 								{place: this.$store.state.homePlace}
 							);
-						} else if (
-							!!(firstRootPlace = this.$store.state.places.find(
-								(p: Place) => p.folderid === 'root'
-							))
-						) {
-							bus.$emit(
-								'setCurrentPlace',
-								{place: firstRootPlace}
-							);
 						} else {
-							let firstPlaceInState;
-							bus.$emit(
-								'setCurrentPlace',
-								{place:
-									!(firstPlaceInState =
-										this.$store.state.places.find(
-											(p: Place) => !p.deleted
-										)
-									) ? null : firstPlaceInState
+							let firstPlaceInRoot: Place;
+							for (const id in this.$store.state.places) {
+								if (this.$store.state.places[id].folderid === 'root') {
+									if (firstPlaceInRoot) {
+										if (this.$store.state.places[id].srt < firstPlaceInRoot.srt) {
+											firstPlaceInRoot = this.$store.state.places[id];
+										}
+									} else {
+										firstPlaceInRoot = this.$store.state.places[id];
+									}
 								}
-							);
+							}
+							if (firstPlaceInRoot && !firstPlaceInRoot.deleted) {
+								bus.$emit(
+									'setCurrentPlace',
+									{place: firstPlaceInRoot}
+								);
+							} else if (
+								!this.$store.state.places[
+									Object.keys(this.$store.state.places)[0]
+								].deleted
+							) {
+								bus.$emit(
+									'setCurrentPlace',
+									{place: this.$store.state.places[
+										Object.keys(this.$store.state.places)[0]
+									]}
+								);
+							} else {
+								bus.$emit('setCurrentPlace', {place: null});
+							}
 						}
 					} else {
 						bus.$emit('setCurrentPlace', {place: null});
 					}
 				}
-			}
-			if (this.keepContent === 'keep') {
+				await this.$store.dispatch('deletePlaces', {places: this.places});
+				await this.$store.dispatch('deleteFolders', {folders: this.folders});
+			} else if (this.keepContent === 'keep') {
 				// Move subplaces and subfolders to the root
-				this.$store.state.places.forEach((place: Place) => {
-					if (place.folderid === this.folder.id) {
-						this.$store.dispatch('changePlace', {
-							place: place,
-							change: {folderid: 'root'},
+				for (const id in this.$store.state.places) {
+					if (this.$store.state.places[id].folderid === this.folder.id) {
+						await this.$store.dispatch('changePlace', {
+							place: this.$store.state.places[id],
+							change: {
+								folderid: 'root',
+								updated: true,
+							},
 						});
-					}
-				});
-				if (Array.isArray(this.folder.children)) {
-					while (this.folder.children.length > 0) {
-						this.$store.dispatch('moveFolder', {
-							folder: this.folder.children[0],
-							targetId: 'root',
-							backup: false,
-						});
+						this.places[id] = this.$store.state.places[id];
 					}
 				}
+				if (this.folder.children) {
+					while (Object.keys(this.folder.children).length) {
+						this.folders[Object.keys(this.folder.children)[0]] =
+							this.folder.children[
+								Object.keys(this.folder.children)[0]
+							]
+						;
+						await this.$store.dispatch('moveFolder', {
+							folder: this.folder.children[
+								Object.keys(this.folder.children)[0]
+							],
+							targetId: 'root',
+							todb: false,
+						})
+					}
+				}
+				if (!this.$store.state.inUndoRedo) {
+					bus.$emit('toDB', {
+						what: 'places',
+						data: Object.values(this.places),
+					});
+					bus.$emit('toDB', {
+						what: 'folders',
+						data: Object.values(this.folders),
+					});
+				} else {
+					bus.$emit('toDBCompletely');
+					this.$store.commit('outUndoRedo');
+				}
 			}
-			this.$store.dispatch('changeFolder', {
-				folder: this.folder,
-				change: {deleted: true},
-			});
-			this.$store.commit('deletePlacesMarkedAsDeleted');
-			this.$store.commit('deleteFoldersMarkedAsDeleted');
+			this.$store.dispatch('deleteFolders', {folders: {[this.folder.id]: this.folder}});
 			bus.$emit('refreshMapMarks');
 			this.close(event);
 		},
 		markNestedAsDeleted(folder: Folder) {
 			// Mark places and folders in the currently deleted folder as deleted
-			this.$store.state.places.forEach((place: Place) => {
-				if (place.folderid === folder.id) {
+			for (const id in this.$store.state.places) {
+				if (this.$store.state.places[id].folderid === folder.id) {
 					this.$store.commit('changePlace', {
-						place: place,
+						place: this.$store.state.places[id],
 						key: 'deleted',
 						value: true,
 					});
+					this.places[id] = this.$store.state.places[id];
 				}
-			});
-			if (Array.isArray(folder.children)) {
-				for (let i = 0; i < folder.children.length; i++) {
+			}
+			if (folder.children) {
+				for (const id in folder.children) {
 					this.$store.commit('changeFolder', {
-						folder: folder.children[i],
+						folder: folder.children[id],
 						key: 'deleted',
 						value: true,
 					});
-					this.markNestedAsDeleted(folder.children[i]);
+					this.folders[id] = folder.children[id];
+					this.markNestedAsDeleted(folder.children[id]);
 				}
 			}
 		},

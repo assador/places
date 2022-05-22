@@ -5,8 +5,8 @@
 		:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
 		@mousemove="documentMouseOver($event);"
 		@touchmove="documentMouseOver($event);"
-		@mouseup="sidebarDragStop($event);"
-		@touchend="sidebarDragStop($event);"
+		@mouseup="sidebarDragStop();"
+		@touchend="sidebarDragStop();"
 	>
 		<div
 			id="top-left"
@@ -26,8 +26,8 @@
 					id="actions-delete"
 					class="actions-button"
 					title="Удалить текущее место"
-					:disabled="!($store.state.user && currentPlace && currentPlace.userid == $store.state.user.id)"
-					@click="deletePlace(currentPlace);"
+					:disabled="!($store.state.user && currentPlace && currentPlace.userid === $store.state.user.id)"
+					@click="$store.dispatch('deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
 				>
 					×
 				</button>
@@ -165,23 +165,23 @@
 		>
 			<div id="basic-left__places">
 				<div
-					v-if="$store.state.places.length > 0 || $store.state.folders.length > 0"
+					v-if="Object.keys($store.state.places).length > 0 || Object.keys($store.state.folders).length > 0"
 					id="places-menu"
 					class="menu"
 				>
 					<tree
 						instanceid="placestree"
-						:data="$root.folderRoot || {}"
+						:data="$store.getters.tree || {}"
 					/>
 				</div>
-				<div v-if="$store.state.commonPlaces.length > 0 && commonPlacesShow">
+				<div v-if="Object.keys($store.state.commonPlaces).length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">
 						Другие места
 					</h2>
 					<div class="margin_bottom">
 						<div
 							v-for="commonPlace in $store.state.commonPlaces"
-							v-if="$store.state.commonPlaces.indexOf(commonPlace) >= commonPlacesOnPageCount * (commonPlacesPage - 1) && $store.state.commonPlaces.indexOf(commonPlace) < commonPlacesOnPageCount * commonPlacesPage"
+							v-if="Object.keys($store.state.commonPlaces).indexOf(commonPlace.id) >= commonPlacesOnPageCount * (commonPlacesPage - 1) && Object.keys($store.state.commonPlaces).indexOf(commonPlace.id) < commonPlacesOnPageCount * commonPlacesPage"
 							:id="commonPlace.id"
 							:key="commonPlace.id"
 							:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
@@ -216,9 +216,9 @@
 				:description="currentPlace ? currentPlace.description : ''"
 				:link="currentPlace ? currentPlace.link : ''"
 				:images="currentPlace ? currentPlace.images : []"
-				:latitude="currentPlace ? currentPlace.latitude : constants.map.initial.latitude"
-				:longitude="currentPlace ? currentPlace.longitude : constants.map.initial.longitude"
-				:altitudecapability="currentPlace ? currentPlace.altitudecapability : ''"
+				:latitude="currentPlace ? $store.state.waypoints[currentPlace.waypoint].latitude : constants.map.initial.latitude"
+				:longitude="currentPlace ? $store.state.waypoints[currentPlace.waypoint].longitude : constants.map.initial.longitude"
+				:altitudecapability="currentPlace ? $store.state.waypoints[currentPlace.waypoint].altitudecapability : ''"
 				:time="currentPlace ? currentPlace.time : ''"
 				:center-latitude="$store.state.center ? $store.state.center.latitude : constants.map.initial.latitude"
 				:center-longitude="$store.state.center ? $store.state.center.longitude : constants.map.initial.longitude"
@@ -255,14 +255,14 @@
 			class="app-cell"
 		>
 			<div>
-				<dt v-if="currentPlace">
+				<div v-if="currentPlace">
 					<dl
-						v-for="field in Object.keys(currentPlace)"
+						v-for="field in orderedCurrentPlaceFields"
 						:key="field"
 						class="place-detailed margin_bottom_0"
 					>
 						<dt
-							v-if="field == 'link'"
+							v-if="field === 'link'"
 							class="place-detailed__link-dt"
 						>
 							<a
@@ -276,10 +276,33 @@
 								{{ $store.state.placeFields[field] }}:
 							</span>
 						</dt>
-						<dt v-else-if="!(field == 'images' && currentPlace.images.length == 0) && !(field == 'common' && $root.currentPlaceCommon) && field != 'link' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated' && field != 'common'">
+						<dt v-else-if="field === 'images' && orderedImages.length">
 							{{ $store.state.placeFields[field] }}:
 						</dt>
-						<dd v-if="field == 'srt' || field == 'link' || field == 'latitude' || field == 'longitude' || field == 'altitudecapability'">
+						<div v-if="field === 'waypoint'">
+							<div
+								v-for="coord in orderedCurrentWaypointFields"
+								:key="coord"
+							>
+								<dt>
+									{{ $store.state.placeFields[coord] }}
+								</dt>
+								<dd>
+									<input
+										:id="'detailed-' + coord"
+										v-model.number.trim="$store.state.waypoints[currentPlace.waypoint][coord]"
+										type="text"
+										:disabled="$root.currentPlaceCommon"
+										class="fieldwidth_100"
+										@change="$store.dispatch('changePlace', {place: currentPlace, change: {[coord]: $store.state.waypoints[currentPlace.waypoint][coord]}});"
+									>
+								</dd>
+							</div>
+						</div>
+						<dt v-else-if="field !== 'common' && field !== 'waypoint' && field !== 'images'">
+							{{ $store.state.placeFields[field] }}:
+						</dt>
+						<dd v-if="field === 'srt' || field === 'link'">
 							<input
 								:id="'detailed-' + field"
 								v-model.number.trim="currentPlace[field]"
@@ -289,7 +312,7 @@
 								@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 							>
 						</dd>
-						<dd v-else-if="field == 'time'">
+						<dd v-else-if="field === 'time'">
 							<input
 								:id="'detailed-' + field"
 								v-model="currentPlace[field]"
@@ -300,7 +323,7 @@
 							>
 						</dd>
 						<dd
-							v-else-if="!(field == 'common' && $root.currentPlaceCommon) && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated' && field == 'common'"
+							v-else-if="field === 'common'"
 							class="margin_bottom"
 						>
 							<label>
@@ -315,7 +338,7 @@
 							</label>
 						</dd>
 						<dd
-							v-else-if="field == 'images' && currentPlace.images.length > 0"
+							v-else-if="field === 'images' && orderedImages.length"
 							id="place-images"
 						>
 							<div class="dd-images">
@@ -344,7 +367,7 @@
 											v-if="!$root.currentPlaceCommon"
 											class="dd-images__delete button"
 											draggable="false"
-											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteImages([image]);"
+											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteImages({[image.id]: image});"
 										>
 											×
 										</div>
@@ -352,18 +375,18 @@
 								</div>
 							</div>
 						</dd>
-						<dd v-else-if="field != 'common' && field != 'link' && field != 'images' && field != 'show' && field != 'type' && field != 'id' && field != 'folderid' && field != 'userid' && field != 'geomark' && field != 'added' && field != 'deleted' && field != 'updated'">
+						<dd v-else-if="field !== 'waypoint' && field !== 'images'">
 							<textarea
 								:id="'detailed-' + field"
 								v-model.trim="currentPlace[field]"
 								:disabled="$root.currentPlaceCommon"
-								:placeholder="field == 'name' ? 'Название места' : (field == 'description' ? 'Описание места' : '')"
+								:placeholder="field === 'name' ? 'Название места' : (field === 'description' ? 'Описание места' : '')"
 								class="fieldwidth_100"
 								@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 							/>
 						</dd>
 					</dl>
-				</dt>
+				</div>
 				<div
 					v-if="currentPlace && !currentPlace.deleted && !$root.currentPlaceCommon"
 					class="images-add margin_bottom"
@@ -502,7 +525,7 @@ import axios from 'axios';
 import Tree from './Tree.vue';
 import MapYandex from './MapYandex.vue';
 import MapOpenStreetMap from './MapOpenStreetMap.vue';
-import { Place, Image, Folder } from '@/store/types';
+import { Waypoint, Place, Image } from '@/store/types';
 
 export default Vue.extend({
 	components: {
@@ -512,6 +535,7 @@ export default Vue.extend({
 	},
 	data() {
 		return {
+			state: this.$store.state,
 			constants: constants,
 			commonPlacesPage: 1,
 			commonPlacesPagesCount: 0,
@@ -526,17 +550,36 @@ export default Vue.extend({
 			sidebarDrag: {what: null as unknown, x: 0, y: 0, w: 0, h: 0},
 			compact: false as boolean,
 			linkEditing: false,
+			orderedCurrentPlaceFields: [
+				'name',
+				'description',
+				'waypoint',
+				'link',
+				'time',
+				'srt',
+				'common',
+				'images',
+			],
+			orderedCurrentWaypointFields: [
+				'latitude',
+				'longitude',
+				'altitudecapability',
+			],
 		}
 	},
 	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
+		...mapState(['currentPlace']),
 		orderedImages(): Array<Image> {
-			return this.currentPlace ? _.orderBy(this.currentPlace.images, 'srt') : [];
+			return (
+				this.currentPlace
+					? _.orderBy(this.currentPlace.images, 'srt')
+					: []
+			);
 		},
 		geomarksVisibility(): Record<string, boolean> {
 			let geomarksVisibility: Record<string, boolean> = {};
-			for (let p of this.$store.state.places) {
-				geomarksVisibility[p.id] = p.geomark;
+			for (let id in this.$store.state.places) {
+				geomarksVisibility[id] = this.$store.state.places[id].geomark;
 			}
 			return geomarksVisibility;
 		},
@@ -562,8 +605,11 @@ export default Vue.extend({
 		},
 	},
 	created() {
-		bus.$on('setCurrentPlace', (payload: {place: Place, common: boolean}) => {
-			this.setCurrentPlace(payload.place, payload.common);
+		bus.$on('setCurrentPlace', (payload: {place: Place}) => {
+			this.setCurrentPlace(payload.place);
+		});
+		bus.$on('deletePlace', (place: Place) => {
+			this.deletePlace(place);
 		});
 	},
 	mounted() {
@@ -590,6 +636,7 @@ export default Vue.extend({
 		}
 		this.$nextTick(() => {
 			makeFieldsValidatable();
+			this.showMap(true);
 		});
 	},
 	updated() {
@@ -623,23 +670,32 @@ export default Vue.extend({
 		stateReadyChanged() {
 			if (this.stateReady) {
 				this.$store.dispatch('restoreObjectsAsLinks');
-				if (!this.currentPlace && this.$store.state.places.length > 0) {
+				if (!this.currentPlace) {
 					if (this.$store.state.homePlace) {
 						this.setCurrentPlace(this.$store.state.homePlace);
-					} else {
-						let firstPlaceInRoot = this.$store.state.places.find(
-							(p: Place) => p.folderid === 'root'
-						);
+					} else if (Object.keys(this.$store.state.places).length) {
+						let firstPlaceInRoot: Place;
+						for (const id in this.$store.state.places) {
+							if (this.$store.state.places[id].folderid === 'root') {
+								firstPlaceInRoot = this.$store.state.places[id];
+								break;
+							}
+						}
 						if (firstPlaceInRoot) {
 							this.setCurrentPlace(firstPlaceInRoot);
 						} else {
-							this.setCurrentPlace(this.$store.state.places[0]);
+							this.setCurrentPlace(
+								this.$store.state.places[
+									Object.keys(this.$store.state.places)[0]
+								]
+							)
 						}
 					}
 				}
 				this.openTreeToCurrentPlace();
 				this.commonPlacesPagesCount = Math.ceil(
-					this.$store.state.commonPlaces.length / this.commonPlacesOnPageCount
+					Object.keys(this.$store.state.commonPlaces).length /
+					this.commonPlacesOnPageCount
 				);
 				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = false;
 				if (
@@ -648,7 +704,7 @@ export default Vue.extend({
 					this.currentPlace.userid !== this.$store.state.user.id
 				) {
 					const inPaginator =
-						this.$store.state.commonPlaces.indexOf(this.currentPlace) /
+						Object.keys(this.$store.state.commonPlaces).indexOf(this.currentPlace.id) /
 						this.commonPlacesOnPageCount
 					;
 					this.commonPlacesPage = (Number.isInteger(inPaginator)
@@ -702,8 +758,8 @@ export default Vue.extend({
 							(this.$refs.extmap as Vue & {
 								showMap(lat: number, lng: number, zoom: number): void
 							}).showMap(
-								this.currentPlace.latitude,
-								this.currentPlace.longitude,
+								this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
+								this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
 								constants.map.initial.zoom
 								
 							);
@@ -735,12 +791,7 @@ export default Vue.extend({
 			) {
 				let folder, folderid = this.currentPlace.folderid;
 				while (folderid) {
-					folder = commonFunctions.findInTree(
-						(this.$root as Vue & {folderRoot: Folder}).folderRoot,
-						'children',
-						'id',
-						folderid
-					);
+					folder = this.$store.getters.treeFlat[folderid];
 					if (!folder) {
 						break;
 					}
@@ -752,7 +803,7 @@ export default Vue.extend({
 				}
 			}
 		},
-		setCurrentPlace(place: Place | null, common?: boolean): void {
+		setCurrentPlace(place: Place | null): void {
 			if (this.currentPlace && place === this.currentPlace) return;
 			if (this.currentPlace) {
 				if (
@@ -802,7 +853,6 @@ export default Vue.extend({
 				this.$store.commit('setCurrentPlace', null);
 				return;
 			}
-			this.$store.commit('setCurrentPlaceIndex', this.$store.state.places.indexOf(place));
 			this.$store.commit('setCurrentPlace', place);
 			(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = (
 				this.currentPlace.userid !== this.$store.state.user.id
@@ -853,15 +903,15 @@ export default Vue.extend({
 			}
 			this.openTreeToCurrentPlace();
 			this.$store.dispatch('changeMap', {
-				latitude: this.currentPlace.latitude,
-				longitude: this.currentPlace.longitude,
+				latitude: this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
+				longitude: this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
 			});
 		},
-		appendPlace() {
+		async appendPlace() {
 			if (
 				this.$store.state.serverConfig.rights.placescount < 0 ||
 				this.$store.state.serverConfig.rights.placescount
-					> this.$store.state.places.length ||
+					> Object.keys(this.$store.state.places).length ||
 				this.$store.state.user.testaccount
 			) {
 				let lat, lng;
@@ -876,14 +926,26 @@ export default Vue.extend({
 					lat = (this.$refs.extmap as Vue & {map: any}).map.getCenter().lat.toFixed(7);
 					lng = (this.$refs.extmap as Vue & {map: any}).map.getCenter().lng.toFixed(7);
 				}
-				let newPlace = {
+				const newWaypoint: Waypoint = {
+					id: commonFunctions.generateRandomString(32),
+					latitude: lat,
+					longitude: lng,
+					altitudecapability: null,
+					time: new Date().toISOString().slice(0, -5),
+					common: false,
+					type: 'waypoint',
+					added: true,
+					deleted: false,
+					updated: false,
+					show: true,
+				};
+				const newPlace: Place = {
 					type: 'place',
 					userid: sessionStorage.getItem('places-userid') as string,
 					name: '',
 					description: '',
+					waypoint: newWaypoint.id,
 					link: '',
-					latitude: lat,
-					longitude: lng,
 					time: new Date().toISOString().slice(0, -5),
 					id: commonFunctions.generateRandomString(32),
 					folderid:
@@ -892,9 +954,9 @@ export default Vue.extend({
 							: 'root'
 					,
 					srt:
-						this.$store.state.places.length > 0
+						Object.keys(this.$store.state.places).length > 0
 							? Math.ceil(Math.max(
-								...this.$store.state.places.map(
+								...Object.values(this.$store.state.places).map(
 									(place: Place) => place.srt
 								)
 							)) + 1
@@ -902,13 +964,14 @@ export default Vue.extend({
 					,
 					common: false,
 					geomark: true,
-					images: [],
+					images: {},
 					added: true,
 					deleted: false,
 					updated: false,
 					show: true,
 				};
-				this.$store.dispatch('addPlace', newPlace);
+				await this.$store.dispatch('addPlace', {place: newPlace});
+				this.$store.dispatch('addWaypoint', {waypoint: newWaypoint, from: newPlace});
 				(this.$refs.extmap as Vue & {appendPlacemark(
 					marks: Record<string, any>, place: Place, type: string
 				): void}).appendPlacemark(
@@ -916,11 +979,7 @@ export default Vue.extend({
 					newPlace,
 					'private'
 				);
-				this.setCurrentPlace(
-					this.$store.state.places[
-						this.$store.state.places.length - 1
-					]
-				);
+				this.setCurrentPlace(newPlace);
 				this.$nextTick(() => {
 					document.getElementById('detailed-name')!.classList.add('highlight');
 				});
@@ -937,50 +996,49 @@ export default Vue.extend({
 			}
 		},
 		deletePlace(place: Place) {
-			if (place.images) {
-				(this.$root as Vue & {deleteImages(
-					images: Array<Image>, family?: boolean
-				): void}).deleteImages(place.images, true);
-			}
-			if (this.$store.state.places.length > 1) {
-				let firstRootPlace;
-				if (document.getElementById(place.id)!.nextElementSibling!) {
-					this.setCurrentPlace(
-						this.$store.state.places.find(
-							(p: Place) => p.id ===
-								document.getElementById(place.id)!
-									.nextElementSibling!.id
-						)
-					);
-				} else if (document.getElementById(place.id)!.previousElementSibling!) {
-					this.setCurrentPlace(
-						this.$store.state.places.find(
-							(p: Place) => p.id ===
-								document.getElementById(place.id)!
-									.previousElementSibling!.id
-						)
-					);
-				} else if (this.$store.state.homePlace) {
-					this.setCurrentPlace(this.$store.state.homePlace);
-				} else if (
-					!!(firstRootPlace = this.$store.state.places.find(
-						(p: Place) => p.folderid === 'root'
-					))
-				) {
-					this.setCurrentPlace(firstRootPlace);
+			if (place === this.currentPlace) {
+				// Set current place
+				if (Object.keys(this.$store.state.places).length > 1) {
+					if (document.getElementById(place.id)!.nextElementSibling!) {
+						this.setCurrentPlace(this.$store.state.places[
+							document.getElementById(place.id)!.nextElementSibling!.id
+						]);
+					} else if (document.getElementById(place.id)!.previousElementSibling!) {
+						this.setCurrentPlace(this.$store.state.places[
+							document.getElementById(place.id)!.previousElementSibling!.id
+						]);
+					} else if (
+						this.$store.state.homePlace &&
+						this.$store.state.homePlace !== place
+					) {
+						this.setCurrentPlace(this.$store.state.homePlace);
+					} else {
+						let firstPlaceInRoot: Place, inRoot = false;
+						for (const id in this.$store.state.places) {
+							if (this.$store.state.places[id].folderid === 'root') {
+								if (firstPlaceInRoot) {
+									if (this.$store.state.places[id].srt < firstPlaceInRoot.srt) {
+										firstPlaceInRoot = this.$store.state.places[id];
+									}
+								} else {
+									firstPlaceInRoot = this.$store.state.places[id];
+								}
+								inRoot = true;
+							}
+						}
+						if (inRoot) {
+							this.setCurrentPlace(firstPlaceInRoot);
+						} else {
+							this.setCurrentPlace(
+								this.$store.state.places[Object.keys(this.$store.state.places)[0]]
+							);
+						}
+					}
 				} else {
-					let firstPlaceInState;
-					this.setCurrentPlace(
-						!(firstPlaceInState =
-							this.$store.state.places.find(
-								(p: Place) => !p.deleted
-							)
-						) ? null : firstPlaceInState
-					);
+					this.setCurrentPlace(null);
 				}
-			} else {
-				this.setCurrentPlace(null);
 			}
+			// Delete marker from the map
 			if (
 				(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
 					(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
@@ -995,7 +1053,6 @@ export default Vue.extend({
 				);
 			}
 			delete (this.$refs.extmap as Vue & {mrks: any}).mrks[place.id];
-			this.$store.dispatch('deletePlace', place);
 		},
 		commonPlacesShowHide(show = null) {
 			this.commonPlacesShow =
@@ -1039,7 +1096,7 @@ export default Vue.extend({
 					(this.$refs.inputImportFromFile as HTMLInputElement).value = '';
 				});
 			};
-			if (mime == 'application/json' || mime == 'application/gpx+xml') {
+			if (mime === 'application/json' || mime === 'application/gpx+xml') {
 				reader.readAsText(
 					(this.$refs.inputImportFromFile as HTMLInputElement).files![0]
 				);
@@ -1060,19 +1117,19 @@ export default Vue.extend({
 				let
 					data = new FormData(),
 					files = (this.$refs.inputUploadFiles as HTMLInputElement).files,
-					filesArray: Array<Record<string, unknown>> = [],
+					filesArray: Array<Image> = [],
 					srt: number
 				;
 				if (
-					this.currentPlace &&
-					this.currentPlace.images.length > 0
+					this.currentPlace.images &&
+					Object.keys(this.currentPlace.images).length
 				) {
-					let storeImages = this.currentPlace.images;
-					srt = commonFunctions.sortObjects(storeImages, 'srt').pop()!.srt;
+					let storeImages = Object.values(this.currentPlace.images);
+					srt = commonFunctions.sortObjects(storeImages, 'srt').pop().srt;
 				} else {
 					srt = 0;
 				}
-				for (let i = 0; i < files!.length; i++) {
+				for (let i = 0; i < files.length; i++) {
 					if (!this.$store.state.serverConfig.mimes[files![i].type]) {
 						this.$store.dispatch('setMessage',
 							'Файл ' +
@@ -1105,7 +1162,7 @@ export default Vue.extend({
 						});
 					}
 				}
-				if (filesArray.length > 0) {
+				if (filesArray.length) {
 					document.getElementById('images-uploading')!.classList.remove('hidden');
 					data.append('userid', this.$store.state.user.id);
 					axios.post('/backend/upload.php', data)
@@ -1121,18 +1178,10 @@ export default Vue.extend({
 									i--;
 								}
 							}
-							let images = this.currentPlace.images
-								? this.currentPlace.images.concat(filesArray)
-								: filesArray
-							;
-							this.$store.dispatch('changePlace', {
-								place: this.currentPlace,
-								change: {images: images},
-							});
 							/*
-							 * Проверка накопленных кодов ошибок и замечаний
-							 * в процессе выполнения /dist/backend/upload.php
-							 */
+							Проверка накопленных кодов ошибок и замечаний
+							в процессе выполнения /dist/backend/upload.php
+							*/
 							response.data[0].forEach((code: number) => {
 								switch (code) {
 									case 2 :
@@ -1162,16 +1211,32 @@ export default Vue.extend({
 								}
 							});
 							if (response.data[1].length > 0) {
-								this.$store.dispatch('setMessage',
-									'Файлы успешно загружены.'
-								);
-								bus.$emit('toDB', {
-									what: 'places',
-								});
+								if (this.currentPlace) {
+									let newImagesObject: Record<string, Image> =
+										Object.assign({}, (this.currentPlace.images
+											? this.currentPlace.images
+											: {}
+										));
+									for (const image of filesArray) {
+										newImagesObject[image.id] = image;
+									}
+									this.$store.dispatch('changePlace', {
+										place: this.currentPlace,
+										change: {images: newImagesObject},
+									}).then(() => {
+										bus.$emit('toDB', {
+											what: 'places',
+											data: [this.currentPlace],
+										});
+									});
+								}
 								bus.$emit('toDB', {
 									what: 'images_upload',
 									data: filesArray,
 								});
+								this.$store.dispatch('setMessage',
+									'Файлы успешно загружены.'
+								);
 							}
 						})
 						.catch(error => {
@@ -1203,10 +1268,12 @@ export default Vue.extend({
 					case 'delete' :
 						if (
 							this.currentPlace &&
-								this.currentPlace.userid ==
+								this.currentPlace.userid ===
 									this.$store.state.user.id
 						) {
-							this.deletePlace(this.currentPlace);
+							this.$store.dispatch('deletePlaces', {
+								places: {[this.currentPlace.id]: this.currentPlace}
+							});
 						}
 						break;
 					case 'add folder' :
@@ -1374,7 +1441,7 @@ export default Vue.extend({
 				}
 			}
 		},
-		sidebarDragStop(event: Event) {
+		sidebarDragStop() {
 			this.sidebarDrag.what = null;
 			if (this.compact) {
 				this.windowResize();
@@ -1385,15 +1452,15 @@ export default Vue.extend({
 			if ((event as KeyboardEvent).keyCode === 27) {
 				(event.target as HTMLInputElement).value = '';
 			} else {
-				for (let place of this.$store.state.places) {
+				for (let id in this.$store.state.places) {
 					let regexp = new RegExp(
 						(event.target as HTMLInputElement).value, 'i'
 					);
 					if (
 						(event.target as HTMLInputElement).value.length > 1 &&
-						regexp.test(place.name)
+						regexp.test(this.$store.state.places[id].name)
 					) {
-						this.setCurrentPlace(place);
+						this.setCurrentPlace(this.$store.state.places[id]);
 					}
 				}
 			}

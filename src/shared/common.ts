@@ -1,3 +1,4 @@
+import { State, Waypoint, Place, Folder } from '../store/types';
 let resultForRecursive: unknown;
 export const commonFunctions = {
 	generateRandomString(length = 32): string {
@@ -60,16 +61,16 @@ export const commonFunctions = {
 		}
 		return result;
 	},
-	findInTree(tree: Record<string, any>, childrenKey: string, key: string, value: unknown): any {
+	findInTree(tree: Folder, childrenKey: string, key: string, value: unknown): any {
 		if (tree[key] === value) {
 			return tree;
 		}
-		if (Array.isArray(tree[childrenKey])) {
-			for (let i = 0; i < tree[childrenKey].length; i++) {
-				if (tree[childrenKey][i][key] === value) {
-					return tree[childrenKey][i];
+		if (tree[childrenKey]) {
+			for (const sub in tree[childrenKey]) {
+				if (sub === value) {
+					return tree[childrenKey][sub];
 				}
-				resultForRecursive = this.findInTree(tree[childrenKey][i], childrenKey, key, value);
+				resultForRecursive = this.findInTree(tree[childrenKey][sub], childrenKey, key, value);
 				if (resultForRecursive) {
 					return resultForRecursive;
 				}
@@ -78,25 +79,22 @@ export const commonFunctions = {
 		return null;
 	},
 	changeByKeyValue(tree: Record<string, any>, childrenKey: string, key: string, value: unknown, what: string): void {
-		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
-			for (let i = 0; i < tree[childrenKey].length; i++) {
+		if (tree[childrenKey] && Object.keys(tree[childrenKey]).length > 0) {
+			for (const id in tree[childrenKey]) {
 				switch (what) {
 					case "delete" :
-						if (tree[childrenKey][i][key] === value) {
-							tree[childrenKey].splice(
-								tree[childrenKey].indexOf(tree[childrenKey][i]), 1
-							);
-							i--;
+						if (tree[childrenKey][id][key] === value) {
+							delete tree[childrenKey][id];
 						} else {
 							this.changeByKeyValue(
-								tree[childrenKey][i], childrenKey, key, value, what
+								tree[childrenKey][id], childrenKey, key, value, what
 							);
 						}
 						break;
 					case "change" :
-						tree[childrenKey][i][key] = value;
+						tree[childrenKey][id][key] = value;
 						this.changeByKeyValue(
-							tree[childrenKey][i], childrenKey, key, value, what
+							tree[childrenKey][id], childrenKey, key, value, what
 						);
 						break;
 				}
@@ -106,25 +104,25 @@ export const commonFunctions = {
 	treeToPlain(
 		tree: Record<string, any>,
 		childrenKey: string,
-		plain: Record<string, any>[]
-	): Array<Record<string, any>> {
-		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
+		plain: Record<string, any>
+	): Record<string, any> {
+		if (tree[childrenKey] && Object.keys(tree[childrenKey]).length > 0) {
 			let plained;
-			for (let i = 0; i < tree[childrenKey].length; i++) {
-				plained = JSON.parse(JSON.stringify(tree[childrenKey][i]));
+			for (const obj of Object.values(tree[childrenKey])) {
+				plained = JSON.parse(JSON.stringify(obj));
 				delete plained[childrenKey];
-				plain.push(plained);
-				(resultForRecursive as Array<Record<string, any>>) =
-					this.treeToPlain(tree[childrenKey][i], childrenKey, plain);
+				plain[plained.id] = plained;
+				(resultForRecursive as Record<string, any>) =
+					this.treeToPlain(obj, childrenKey, plain);
 			}
 		}
-		return (resultForRecursive as Array<Record<string, any>>);
+		return (resultForRecursive as Record<string, any>);
 	},
 	treeToLivePlain(tree: Record<string, any>, childrenKey: string, plain: Record<string, any>): void {
 		plain[tree.id] = tree;
-		if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
-			for (const child of tree[childrenKey]) {
-				this.treeToLivePlain(child, childrenKey, plain);
+		if (tree[childrenKey] && Object.keys(tree[childrenKey]).length) {
+			for (const id in tree[childrenKey]) {
+				this.treeToLivePlain(tree[childrenKey][id], childrenKey, plain);
 			}
 		}
 	},
@@ -156,40 +154,36 @@ export const commonFunctions = {
 		if (!parent) {
 			parent = this.findInTree(tree, childrenKey, 'id', parentId) || tree;
 		}
-		if (Array.isArray(parent![childrenKey]) && parent![childrenKey].length > 0) {
-			for (let i = 0; i < parent![childrenKey].length; i++) {
-				if (parent![childrenKey][i].id === childId) {
-					return true;
-				}
-				if (this.isParentInTree(tree, childrenKey, parentId, childId, parent![childrenKey][i])) {
-					return true;
-				}
+		if (parent![childrenKey] && parent![childrenKey][childId]) {
+			return true;
+		}
+		for (const id in parent![childrenKey]) {
+			if (this.isParentInTree(tree, childrenKey, parentId, childId, parent![childrenKey][id])) {
+				return true;
 			}
 		}
 		return false;
 	},
-	plainToTree(plain: Record<string, any>[]): any {
-		const tree = [];
+	plainToTree(plain: Record<string, Folder>): Folder {
+		const tree = {};
 		let ready = false;
-		while (!ready && plain.length > 0) {
-			for (let i = 0; i < plain.length; i++) {
+		while (!ready && Object.keys(plain).length > 0) {
+			for (const id1 in plain) {
 				ready = true;
-				if (!plain[i].builded) {
-					if (plain[i].parent === 'root') {
-						tree.push(plain[i]);
-						plain[i].builded = true;
+				if (!plain[id1].builded) {
+					if (plain[id1].parent === 'root') {
+						tree[id1] = plain[id1];
+						plain[id1].builded = true;
 						ready = false;
-						i--;
 					} else {
-						for (let y = 0; y < plain.length; y++) {
-							if (plain[y].id === plain[i].parent) {
-								if (!plain[y].children) {
-									plain[y].children = [];
+						for (const id2 in plain) {
+							if (id2 === plain[id1].parent) {
+								if (!plain[id2].children) {
+									plain[id2].children = {};
 								}
-								plain[y].children.push(plain[i]);
-								plain[i].builded = true;
+								plain[id2].children[id1] = plain[id1];
+								plain[id1].builded = true;
 								ready = false;
-								i--;
 								break;
 							}
 							
@@ -198,7 +192,7 @@ export const commonFunctions = {
 				}
 			}
 		}
-		return tree;
+		return tree as Folder;
 	},
 	/**
 	 * Creation of a folder for the imported places
@@ -209,7 +203,7 @@ export const commonFunctions = {
 	 *     [<object of a root folder for imported places>]
 	 * )
 	 */
-	formFolderForImported(time: string, imported: Record<string, any>): any {
+	formFolderForImported(time: string, imported?: Folder): any {
 		if (!imported || !imported.id) {
 			imported = {
 				type: 'folder',
@@ -218,13 +212,14 @@ export const commonFunctions = {
 				added: true,
 				deleted: false,
 				updated: false,
-				show: true,
 				id: 'imported',
 				parent: 'root',
 				name: 'Импортированное',
 				description: 'Импортированные места',
 				srt: 99999,
-				children: [],
+				userid: sessionStorage.getItem('places-userid') as string,
+				geomarks: 1,
+				children: {} as Record<string, Folder>,
 			};
 		}
 		if (!time) {
@@ -235,15 +230,15 @@ export const commonFunctions = {
 				m: time.slice(5, 7),
 				d: time.slice(8, 10),
 			};
-			const folders: any = {};
-			for (const y of imported.children) {
-				if (y.name === date.y) {
-					folders.y = y;
+			const folders = {};
+			for (const id in imported.children) {
+				if (imported.children[id].name === date.y) {
+					folders['y' + date.y] = imported.children[id];
 					break;
 				}
 			}
-			if (!folders.y) {
-				folders.y = {
+			if (!folders['y' + date.y]) {
+				folders['y' + date.y] = {
 					type: 'folder',
 					builded: false,
 					opened: false,
@@ -251,26 +246,23 @@ export const commonFunctions = {
 					added: true,
 					deleted: false,
 					updated: false,
-					show: true,
 					id: this.generateRandomString(32),
 					parent: imported.id,
 					name: date.y,
 					description: '',
-					srt: imported.children.length > 0
-						? imported.children[imported.children.length - 1].srt + 1
-						: 1,
-					children: [],
+					srt: date.y,
+					children: {},
 				};
-				imported.children.push(folders.y);
+				imported.children[folders['y' + date.y].id] = folders['y' + date.y];
 			}
-			for (const m of folders.y.children) {
-				if (m.name === date.m) {
-					folders.m = m;
+			for (const id in folders['y' + date.y].children) {
+				if (folders['y' + date.y].children[id].name === date.m) {
+					folders['m' + date.m] = folders['y' + date.y].children[id];
 					break;
 				}
 			}
-			if (!folders.m) {
-				folders.m = {
+			if (!folders['m' + date.m]) {
+				folders['m' + date.m] = {
 					type: 'folder',
 					builded: false,
 					opened: false,
@@ -278,26 +270,23 @@ export const commonFunctions = {
 					added: true,
 					deleted: false,
 					updated: false,
-					show: true,
 					id: this.generateRandomString(32),
-					parent: folders.y.id,
+					parent: folders['y' + date.y].id,
 					name: date.m,
 					description: '',
-					srt: folders.y.children.length > 0
-						? folders.y.children[folders.y.children.length - 1].srt + 1
-						: 1,
-					children: [],
+					srt: date.m,
+					children: {},
 				};
-				folders.y.children.push(folders.m);
+				folders['y' + date.y].children[folders['m' + date.m].id] = folders['m' + date.m];
 			}
-			for (const d of folders.m.children) {
-				if (d.name === date.d) {
-					folders.d = d;
+			for (const id in folders['m' + date.m].children) {
+				if (folders['m' + date.m].children[id].name === date.d) {
+					folders['d' + date.d] = folders['m' + date.m].children[id];
 					break;
 				}
 			}
-			if (!folders.d) {
-				folders.d = {
+			if (!folders['d' + date.d]) {
+				folders['d' + date.d] = {
 					type: 'folder',
 					builded: false,
 					opened: false,
@@ -305,19 +294,16 @@ export const commonFunctions = {
 					added: true,
 					deleted: false,
 					updated: false,
-					show: true,
 					id: this.generateRandomString(32),
-					parent: folders.m.id,
+					parent: folders['m' + date.m].id,
 					name: date.d,
 					description: '',
-					srt: folders.m.children.length > 0
-						? folders.m.children[folders.m.children.length - 1].srt + 1
-						: 1,
-					children: [],
+					srt: date.d,
+					children: {},
 				};
-				folders.m.children.push(folders.d);
+				folders['m' + date.m].children[folders['d' + date.d].id] = folders['d' + date.d];
 			}
-			return {imported: imported, folderid: folders.d.id};
+			return {imported: imported, folderid: folders['d' + date.d].id};
 		}
 	},
 }

@@ -43,15 +43,23 @@ CREATE TABLE `usergroup` (
 	`enabled` BOOLEAN NOT NULL DEFAULT 1,
 	PRIMARY KEY (`user`, `group`)
 );
+CREATE TABLE `waypoints` (
+	`id` VARCHAR (32) NOT NULL,
+	`latitude` DOUBLE NOT NULL,
+	`longitude` DOUBLE NOT NULL,
+	`altitudecapability` DOUBLE DEFAULT NULL,
+	`time` VARCHAR (24) NOT NULL DEFAULT '',
+	`common` BOOLEAN NOT NULL DEFAULT 0,
+	PRIMARY KEY (`id`),
+	CONSTRAINT `U_waypoints` UNIQUE (`id`)
+);
 CREATE TABLE `places` (
 	`id` VARCHAR (32) NOT NULL,
+	`waypoint` VARCHAR (32) NOT NULL,
 	`folderid` VARCHAR (32) NOT NULL DEFAULT 'root',
 	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
 	`description` VARCHAR (2048) NOT NULL DEFAULT '',
 	`link` VARCHAR (512) NOT NULL DEFAULT '',
-	`latitude` DOUBLE NOT NULL,
-	`longitude` DOUBLE NOT NULL,
-	`altitudecapability` DOUBLE DEFAULT NULL,
 	`time` VARCHAR (24) NOT NULL DEFAULT '',
 	`srt` DOUBLE NOT NULL DEFAULT 0,
 	`geomark` BOOLEAN NOT NULL DEFAULT 1,
@@ -63,10 +71,10 @@ CREATE TABLE `places` (
 CREATE TABLE `folders` (
 	`id` VARCHAR (32) NOT NULL,
 	`parent` VARCHAR (32) NOT NULL DEFAULT 'root',
-	`name` VARCHAR (500) NOT NULL DEFAULT 'Без названия',
-	`description` VARCHAR (2044) NOT NULL DEFAULT '',
-	`srt` DOUBLE NOT NULL DEFAULT '0',
-	`geomarks` INT UNSIGNED NOT NULL DEFAULT 1,
+	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
+	`description` VARCHAR (2048) NOT NULL DEFAULT '',
+	`srt` DOUBLE NOT NULL DEFAULT 0,
+	`geomarks` BOOLEAN NOT NULL DEFAULT 1,
 	`userid` VARCHAR (32) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `U_folders` UNIQUE (`id`)

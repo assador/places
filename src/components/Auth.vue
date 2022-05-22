@@ -172,7 +172,7 @@ export default Vue.extend({
 		}
 	},
 	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
+		...mapState(['currentPlace']),
 	},
 	mounted() {
 		this.$nextTick(() => {

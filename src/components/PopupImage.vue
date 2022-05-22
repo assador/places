@@ -31,8 +31,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import _ from 'lodash';
 import { constants } from '../shared/constants';
-import { Image } from '@/store/types';
+import { Place, Image } from '@/store/types';
 
 export default Vue.extend({
 	props: ['imageId'],
@@ -68,14 +69,15 @@ export default Vue.extend({
 			);
 		},
 		defineVars() {
-			for (let place of (
+			const places: Record<string, Place> = (
 				!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
 					? this.$store.state.places
 					: this.$store.state.commonPlaces
-			)) {
-				this.image = place.images.find((image: Image) => image.id === this.imageId);
-				if (this.image) {
-					this.images = place.images;
+			);
+			for (const id in places) {
+				if (places[id].images && this.imageId in places[id].images) {
+					this.image = places[id].images[this.imageId];
+					this.images = _.orderBy(Object.values(places[id].images));
 					return;
 				}
 			}

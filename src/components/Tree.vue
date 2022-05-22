@@ -1,9 +1,8 @@
 <template>
 	<ul>
-		<TreeNode
+		<tree-node
 			:instanceid="instanceid"
-			:folder="folderData"
-			:parent="folderData"
+			:folder="data"
 			class="folder_root"
 		/>
 	</ul>
@@ -19,22 +18,5 @@ export default Vue.extend({
 		TreeNode,
 	},
 	props: ["instanceid", "data"],
-	data() {
-		return {
-			folderData: {} as Folder,
-		}
-	},
-	watch: {
-		data: {
-			deep: true,
-			immediate: true,
-			handler(data) {
-				this.folderData = {
-					...data,
-					children: data.children,
-				};
-			},
-		},
-	},
 });
 </script>

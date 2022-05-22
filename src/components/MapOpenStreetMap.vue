@@ -79,7 +79,6 @@ export default Vue.extend({
 	computed: {
 		...mapState([
 			'currentPlace',
-			'currentPlaceIndex',
 			'placemarksShow',
 			'commonPlacemarksShow',
 			'centerPlacemarkShow',
@@ -94,8 +93,8 @@ export default Vue.extend({
 			);
 			if (this.currentPlace) {
 				this.$store.dispatch('changeMap', {
-					latitude: this.currentPlace.latitude,
-					longitude: this.currentPlace.longitude,
+					latitude: this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
+					longitude: this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
 				});
 			}
 		},
@@ -107,8 +106,8 @@ export default Vue.extend({
 			);
 			if (this.currentPlace) {
 				this.$store.dispatch('changeMap', {
-					latitude: this.currentPlace.latitude,
-					longitude: this.currentPlace.longitude,
+					latitude: this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
+					longitude: this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
 				});
 			}
 		},
@@ -176,9 +175,9 @@ export default Vue.extend({
 		bus.$on('refreshMapOpenStreetMapMarks', () => {
 			this.markersLayer.clearLayers();
 			this.mrks = {};
-			this.$store.state.places.forEach((place: Place) => {
-				this.appendPlacemark(this.mrks, place, 'private');
-			});
+			for (const id in this.$store.state.places) {
+				this.appendPlacemark(this.mrks, this.$store.state.places[id], 'private');
+			}
 			if (this.currentPlace) {
 				if (
 					!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
@@ -272,12 +271,12 @@ export default Vue.extend({
 				this.map.setView(this.mrk.getLatLng());
 			});
 			this.markersLayer = L.layerGroup().addTo(this.map);
-			this.$store.state.places.forEach((place: Place) => {
-				this.appendPlacemark(this.mrks, place, 'private');
-			});
-			this.$store.state.commonPlaces.forEach((commonPlace: Place) => {
-				this.appendPlacemark(this.commonMrks, commonPlace, 'common');
-			});
+			for (const id in this.$store.state.places) {
+				this.appendPlacemark(this.mrks, this.$store.state.places[id], 'private');
+			}
+			for (const id in this.$store.state.commonPlaces) {
+				this.appendPlacemark(this.commonMrks, this.$store.state.commonPlaces[id], 'common');
+			}
 			(this.$parent as Vue & {commonPlacesShowHide(show: boolean): void})
 				.commonPlacesShowHide(this.$store.state.commonPlacemarksShow);
 			if (this.currentPlace) {
@@ -303,7 +302,7 @@ export default Vue.extend({
 			bus.$emit('setCurrentPlace', {place: place});
 			if (type === 'common') {
 				const inPaginator =
-					this.$store.state.commonPlaces.indexOf(place) /
+					Object.keys(this.$store.state.commonPlaces).indexOf(place.id) /
 					(this.$parent as Vue & {commonPlacesOnPageCount: number}).commonPlacesOnPageCount
 				;
 				(this.$parent as Vue & {commonPlacesPage: number}).commonPlacesPage =
@@ -323,10 +322,12 @@ export default Vue.extend({
 					options = {icon: this.icon_02, ...this.placemarksOptions.common};
 					break;
 			}
-			marks[place.id] = L.marker([place.latitude, place.longitude], options)
+			marks[place.id] = L.marker([
+					this.$store.state.waypoints[place.waypoint].latitude,
+					this.$store.state.waypoints[place.waypoint].longitude,
+				], options)
 				.addTo(this.markersLayer)
-				.bindPopup(place.name, {autoPan: false})
-				.openPopup();
+				.bindPopup(place.name, {autoPan: false});
 			marks[place.id].on('dragstart', () => {
 				if (place !== this.currentPlace) {
 					marks[place.id].dragging.disable();
@@ -359,7 +360,7 @@ export default Vue.extend({
 					lat: this.latitude,
 					lng: this.longitude,
 				});
-				marks[this.id].title = this.name;
+				marks[this.id].bindPopup(this.name, {autoPan: false});
 			}
 		},
 		updateMap() {

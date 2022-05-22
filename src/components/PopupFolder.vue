@@ -88,7 +88,7 @@ export default Vue.extend({
 		}
 	},
 	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
+		...mapState(['currentPlace']),
 	},
 	mounted() {
 		this.popuped = true;
@@ -116,25 +116,35 @@ export default Vue.extend({
 				this.$store.state.serverConfig.rights.folderscount < 0 ||
 				this.$store.state.serverConfig.rights.folderscount
 					// length - 1 because there is a root folder too
-					> Object.keys(
-						(this.$root as Vue & {foldersPlain: Record<string, Folder>}).foldersPlain
-					).length - 1 ||
+					> Object.keys(this.$store.getters.treeFlat).length - 1 ||
 				this.$store.state.user.testaccount
 			) {
+				let srt = 1;
+				if (
+					this.currentPlace &&
+					this.$store.getters.treeFlat[this.currentPlace.folderid].children
+				) {
+					srt = Math.ceil(Math.max(
+						...Object.keys(
+							this.$store.getters.treeFlat[
+								this.currentPlace.folderid
+							].children
+						).map(
+							(id: string) =>
+								this.$store.getters.treeFlat[
+									this.currentPlace.folderid
+								].children[id].srt
+						)
+					)) + 1;
+				}
 				let newFolder = {
 					type: 'folder',
 					userid: sessionStorage.getItem('places-userid'),
 					name: folderName,
 					description: folderDescription,
-					id: commonFunctions.generateRandomString(32),
-					srt: this.$store.state.folders.length > 0
-						? Math.ceil(Math.max(
-							...this.$store.state.folders.map(
-								(folder: Folder) => folder.srt
-							)
-						)) + 1
-						: 1,
-					parent: this.currentPlace && this.currentPlace.folderid
+					id: commonFunctions.generateRandomString(32) as string,
+					srt: srt,
+					parent: this.currentPlace
 						? this.currentPlace.folderid
 						: 'root',
 					opened: false,

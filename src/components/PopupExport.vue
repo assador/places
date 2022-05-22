@@ -53,14 +53,14 @@
 				</fieldset>
 				<p>Выберите места для экспорта:</p>
 				<div
-					v-if="$store.state.places.length > 0 || $store.state.folders.length > 0"
+					v-if="Object.keys($store.state.places).length > 0 || Object.keys($store.state.folders).length > 0"
 					id="popup-export__tree"
 					class="menu"
 					@click="$event.stopPropagation();"
 				>
 					<tree
 						instanceid="popupexporttree"
-						:data="$root.folderRoot || {}"
+						:data="$store.getters.tree || {}"
 					/>
 				</div>
 				<div style="text-align: center;">
@@ -107,7 +107,7 @@ export default Vue.extend({
 	},
 	mounted() {
 		this.popuped = true;
-		(this.$root as Vue & {selectedToExport: Array<Place>}).selectedToExport = [];
+		(this.$root as Vue & {selectedToExport: Record<string, Place>}).selectedToExport = {};
 		for (
 			let f of
 			document.getElementById('popup-export__tree')!
@@ -122,7 +122,7 @@ export default Vue.extend({
 		this.popuped = true;
 	},
 	beforeDestroy() {
-		(this.$root as Vue & {selectedToExport: Array<Place>}).selectedToExport = [];
+		(this.$root as Vue & {selectedToExport: Record<string, Place>}).selectedToExport = {};
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {

@@ -61,7 +61,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 			}
 			if($size > $uploadsize) {
 				if(!in_array(4, $fault)) {$fault[] = 4;}
-file_put_contents("/media/data/1.txt", '1');
 				continue;
 			}
 			if($mime == "image/svg+xml") {
@@ -96,7 +95,6 @@ file_put_contents("/media/data/1.txt", '1');
 					$size = strlen($imagick->getImageBlob());
 					if($acceptsize >= 0 && $size > $acceptsize) {
 						if(!in_array(4, $fault)) {$fault[] = 4;}
-file_put_contents("/media/data/1.txt", '2');
 						continue;
 					} else {
 						$imagick->writeImage($dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]);

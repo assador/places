@@ -53,15 +53,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 	echo json_encode([2], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
 	exit;
 } else {
-	$images = array();
-	if($_POST["what"] == "places") {
-		foreach($_POST["data"] as $dval) {
-			$pimg = $dval["images"];
-			foreach($pimg as $ival) {
-				$images[] = $ival;
-			}
-		}
-	}
 	$query = $conn->query("
 		SELECT COUNT(*)
 		AS `count`
@@ -96,10 +87,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`folderid`           ,
 				`name`               ,
 				`description`        ,
+				`waypoint`           ,
 				`link`               ,
-				`latitude`           ,
-				`longitude`          ,
-				`altitudecapability` ,
 				`time`               ,
 				`srt`                ,
 				`geomark`            ,
@@ -110,10 +99,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				:folderid           ,
 				:name               ,
 				:description        ,
+				:waypoint           ,
 				:link               ,
-				:latitude           ,
-				:longitude          ,
-				:altitudecapability ,
 				:time               ,
 				:srt                ,
 				:geomark            ,
@@ -127,10 +114,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				`folderid`           = :folderid           ,
 				`name`               = :name               ,
 				`description`        = :description        ,
+				`waypoint`           = :waypoint           ,
 				`link`               = :link               ,
-				`latitude`           = :latitude           ,
-				`longitude`          = :longitude          ,
-				`altitudecapability` = :altitudecapability ,
 				`time`               = :time               ,
 				`srt`                = :srt                ,
 				`geomark`            = :geomark            ,
@@ -169,10 +154,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					$append->bindParam( ":folderid"           , $row[ "folderid"           ]);
 					$append->bindParam( ":name"               , $row[ "name"               ]);
 					$append->bindParam( ":description"        , $row[ "description"        ]);
+					$append->bindParam( ":waypoint"           , $row[ "waypoint"           ]);
 					$append->bindParam( ":link"               , $row[ "link"               ]);
-					$append->bindParam( ":latitude"           , $row[ "latitude"           ]);
-					$append->bindParam( ":longitude"          , $row[ "longitude"          ]);
-					$append->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
 					$append->bindParam( ":time"               , $row[ "time"               ]);
 					$append->bindParam( ":srt"                , $row[ "srt"                ]);
 					$append->bindParam( ":geomark"            , $row[ "geomark"            ]);
@@ -188,16 +171,13 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				} else {
 					if(!in_array(3, $faults)) {$faults[] = 3;}
 				}
-			}
-			if($row["updated"] == true) {
+			} elseif($row["updated"] == true) {
 				$update->bindParam( ":id"                 , $row[ "id"                 ]);
 				$update->bindParam( ":folderid"           , $row[ "folderid"           ]);
 				$update->bindParam( ":name"               , $row[ "name"               ]);
 				$update->bindParam( ":description"        , $row[ "description"        ]);
+				$update->bindParam( ":waypoint"           , $row[ "waypoint"           ]);
 				$update->bindParam( ":link"               , $row[ "link"               ]);
-				$update->bindParam( ":latitude"           , $row[ "latitude"           ]);
-				$update->bindParam( ":longitude"          , $row[ "longitude"          ]);
-				$update->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
 				$update->bindParam( ":time"               , $row[ "time"               ]);
 				$update->bindParam( ":srt"                , $row[ "srt"                ]);
 				$update->bindParam( ":geomark"            , $row[ "geomark"            ]);
@@ -207,18 +187,20 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					error_log($e);
 					continue;
 				}
-			}
-			foreach($row["images"] as $image) {
-				$updateimage->bindParam( ":id"           , $image["id"           ]);
-				$updateimage->bindParam( ":file"         , $image["file"         ]);
-				$updateimage->bindParam( ":size"         , $image["size"         ]);
-				$updateimage->bindParam( ":type"         , $image["type"         ]);
-				$updateimage->bindParam( ":lastmodified" , $image["lastmodified" ]);
-				$updateimage->bindParam( ":srt"          , $image["srt"          ]);
-				$updateimage->bindParam( ":placeid"      , $image["placeid"      ]);
-				try {$updateimage->execute();} catch(Exception $e) {
-					error_log($e);
-					continue;
+				if(array_key_exists("images", $row)) {
+					foreach($row["images"] as $image) {
+						$updateimage->bindParam( ":id"           , $image["id"           ]);
+						$updateimage->bindParam( ":file"         , $image["file"         ]);
+						$updateimage->bindParam( ":size"         , $image["size"         ]);
+						$updateimage->bindParam( ":type"         , $image["type"         ]);
+						$updateimage->bindParam( ":lastmodified" , $image["lastmodified" ]);
+						$updateimage->bindParam( ":srt"          , $image["srt"          ]);
+						$updateimage->bindParam( ":placeid"      , $image["placeid"      ]);
+						try {$updateimage->execute();} catch(Exception $e) {
+							error_log($e);
+							continue;
+						}
+					}
 				}
 			}
 		}
@@ -256,8 +238,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 		");
 		foreach($_POST["data"] as $row) {
 			if($row["deleted"] == true) {
-				$delete->bindParam( ":id"          , $row[ "id"          ]);
-				$delete->bindParam( ":userid"      , $_POST["id"]);
+				$delete->bindParam(":id", $row[ "id" ]);
+				$delete->bindParam(":userid", $_POST["id"]);
 				try {
 					$delete->execute();
 					$folderscount["count"]--;

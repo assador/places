@@ -4,35 +4,34 @@ import { commonFunctions } from '../shared/common';
 import axios from 'axios';
 import Vue from 'vue';
 import Vuex, { Store, Plugin, MutationPayload } from 'vuex';
-import { State, Place, Folder } from './types';
+import { State, Waypoint, Place, Folder, Image } from './types';
 
 Vue.use(Vuex);
 
 const tracking: Plugin<State> = (store: Store<State>) => {
 	const trackingMutations: string[] = [
-		'addFolder',
 		'addPlace',
-		'changeFolder',
+		'addFolder',
+		'changeWaypoint',
 		'changePlace',
+		'changeFolder',
 		'deleteFolder',
 		'deletePlace',
 		'modifyFolders',
 		'modifyPlaces',
-		'removePlace',
 		'swapImages',
 		'setHomePlace',
 		'setCurrentPlace',
 		'placesReady',
 		'stateReady',
 	];
-	const unsubscribe = store.subscribe((mutation: MutationPayload, state: State) => {
+	store.subscribe((mutation: MutationPayload, state: State) => {
 		if (trackingMutations.includes(mutation.type)) {
 			if (!state.refreshing) {
 				sessionStorage.setItem('places-store-state', JSON.stringify(state));
 			}
 			if (
 				mutation.payload &&
-				mutation.type !== 'removePlace' &&
 				mutation.type !== 'setHomePlace' &&
 				mutation.type !== 'setCurrentPlace' &&
 				mutation.type !== 'placesReady' &&
@@ -73,10 +72,10 @@ const store: Store<State> = new Vuex.Store<State>({
 		user: null,
 		currentPlace: null,
 		homePlace: null,
-		currentPlaceIndex: -1,
-		places: [],
-		folders: [],
-		commonPlaces: [],
+		waypoints: {},
+		places: {},
+		folders: {},
+		commonPlaces: {},
 		center: {
 			latitude: constants.map.initial.latitude,
 			longitude: constants.map.initial.longitude,
@@ -99,14 +98,22 @@ const store: Store<State> = new Vuex.Store<State>({
 			common             : 'Приватность',
 			images             : 'Фотографии',
 		},
-		lengths: {
-			name        : 500,
-			description : 5000,
-			url         : 2048,
-		},
 		messageTimer: 0,
 		mouseOverMessages: false,
 		serverConfig: null,
+		rootPlace: {
+			id: 'root',
+			parent: null,
+			name: 'Мои места',
+			srt: 0,
+			geomarks: 1,
+			type: 'folder',
+			added: false,
+			deleted: false,
+			updated: false,
+			opened: true,
+			builded: true,
+		},
 	},
 	mutations: {
 		setMessage(state, message) {
@@ -142,7 +149,10 @@ const store: Store<State> = new Vuex.Store<State>({
 				state.stateBackups.push(
 					Object.assign({}, JSON.parse(JSON.stringify(state)))
 				);
-				delete state.stateBackups[state.stateBackups.length - 1].stateBackups;
+				Vue.delete(
+					state.stateBackups[state.stateBackups.length - 1],
+					'stateBackups'
+				);
 			}
 		},
 		restoreState(state, index) {
@@ -150,7 +160,11 @@ const store: Store<State> = new Vuex.Store<State>({
 				for (const key in Object(state.stateBackups[index])) {
 					if (key !== 'stateBackups') {
 						Vue.set(state, key,
-							JSON.parse(JSON.stringify(state.stateBackups[index][key as keyof State]))
+							JSON.parse(
+								JSON.stringify(
+									state.stateBackups[index][key as keyof State]
+								)
+							)
 						);
 					}
 				}
@@ -174,10 +188,10 @@ const store: Store<State> = new Vuex.Store<State>({
 			Vue.set(state, 'user', null);
 			Vue.set(state, 'currentPlace', null);
 			Vue.set(state, 'homePlace', null);
-			Vue.set(state, 'currentPlaceIndex', -1);
-			Vue.set(state, 'places', []);
-			Vue.set(state, 'folders', []);
-			Vue.set(state, 'commonPlaces', []);
+			Vue.set(state, 'waypoints', {});
+			Vue.set(state, 'places', {});
+			Vue.set(state, 'folders', {});
+			Vue.set(state, 'commonPlaces', {});
 			Vue.set(state, 'center', {
 				latitude: constants.map.initial.latitude,
 				longitude: constants.map.initial.longitude,
@@ -196,11 +210,6 @@ const store: Store<State> = new Vuex.Store<State>({
 				common             : 'Приватность',
 				images             : 'Фотографии',
 			});
-			Vue.set(state, 'lengths', {
-				name        : 500,
-				description : 5000,
-				url         : 2048,
-			});
 		},
 		setUser(state, user) {
 			Vue.set(state, 'user', user);
@@ -211,9 +220,6 @@ const store: Store<State> = new Vuex.Store<State>({
 		setCurrentPlace(state, place) {
 			Vue.set(state, 'currentPlace', place);
 		},
-		setCurrentPlaceIndex(state, index) {
-			Vue.set(state, 'currentPlaceIndex', index);
-		},
 		setHomePlace(state, place) {
 			state.homePlace = place;
 			if (state.user) {
@@ -221,6 +227,9 @@ const store: Store<State> = new Vuex.Store<State>({
 			}
 		},
 		placesReady(state, payload) {
+			if (payload.waypoints) {
+				Vue.set(state, 'waypoints', payload.waypoints);
+			}
 			if (payload.places) {
 				Vue.set(state, 'places', payload.places);
 			}
@@ -242,29 +251,37 @@ const store: Store<State> = new Vuex.Store<State>({
 					updated = true;
 					break;
 			}
-			for (const place of payload.places) {
-				Vue.set(place, 'type', 'place');
-				Vue.set(place, 'added', added);
-				Vue.set(place, 'deleted', deleted);
-				Vue.set(place, 'updated', updated);
-				Vue.set(place, 'show', true);
+			for (const id in payload.waypoints) {
+				Vue.set(payload.waypoints[id], 'type', 'waypoint');
+				Vue.set(payload.waypoints[id], 'added', added);
+				Vue.set(payload.waypoints[id], 'deleted', deleted);
+				Vue.set(payload.waypoints[id], 'updated', updated);
+				Vue.set(payload.waypoints[id], 'show', true);
 			}
-			for (const folder of payload.folders) {
-				Vue.set(folder, 'type', 'folder');
-				Vue.set(folder, 'added', added);
-				Vue.set(folder, 'deleted', deleted);
-				Vue.set(folder, 'updated', updated);
-				Vue.set(folder, 'opened', false);
+			for (const id in payload.places) {
+				Vue.set(payload.places[id], 'type', 'place');
+				Vue.set(payload.places[id], 'added', added);
+				Vue.set(payload.places[id], 'deleted', deleted);
+				Vue.set(payload.places[id], 'updated', updated);
+				Vue.set(payload.places[id], 'show', true);
 			}
+			for (const id in payload.folders) {
+				Vue.set(payload.folders[id], 'type', 'folder');
+				Vue.set(payload.folders[id], 'added', added);
+				Vue.set(payload.folders[id], 'deleted', deleted);
+				Vue.set(payload.folders[id], 'updated', updated);
+				Vue.set(payload.folders[id], 'opened', false);
+			}
+			Vue.set(state, 'folders', commonFunctions.plainToTree(state.folders));
 		},
 		stateReady(state, ready) {
 			Vue.set(state, 'ready', ready);
 		},
-		show(state, index) {
-			Vue.set(state.places[index], 'show', true);
+		show(state, id) {
+			Vue.set(state.places[id], 'show', true);
 		},
-		hide(state, index) {
-			Vue.set(state.places[index], 'show', false);
+		hide(state, id) {
+			Vue.set(state.places[id], 'show', false);
 		},
 		modifyPlaces(state, places) {
 			Vue.set(state, 'places', places);
@@ -275,87 +292,58 @@ const store: Store<State> = new Vuex.Store<State>({
 		modifyCommonPlaces(state, commonPlaces) {
 			Vue.set(state, 'commonPlaces', commonPlaces);
 		},
-		addPlace(state, place) {
-			Vue.set(state, 'places', state.places.concat(place));
-			Vue.set(state, 'currentPlaceIndex', state.places.length - 1);
+		addWaypoint(state, waypoint) {
+			Vue.set(state.waypoints, waypoint.id, waypoint);
 		},
-		// Mark the place as to be deleted
-		removePlace(state, place) {
-			Vue.set(place, 'added', false);
-			Vue.set(place, 'deleted', true);
-			Vue.set(place, 'updated', false);
+		addPlace(state, place) {
+			Vue.set(state.places, place.id, place);
+		},
+		deleteWaypoint(state, waypoint) {
+			Vue.delete(state.waypoints, waypoint.id);
 		},
 		deletePlace(state, place) {
-			for (let i = 0; i < state.places.length; i++) {
-				if (state.places[i] === place) {
-					state.places.splice(i, 1);
-					Vue.set(state, 'currentPlaceIndex',
-						(state.currentPlace ? state.places.indexOf(state.currentPlace) : -1)
-					);
-					if (state.places.length === 0) {
-						Vue.set(state, 'currentPlace', null);
-					}
-					break;
+			Vue.delete(state.places, place.id);
+		},
+		addFolder(state, payload) {
+			if (!payload.parent) {
+				Vue.set(state.folders, payload.folder.id, payload.folder);
+			} else {
+				if (!payload.parent.children) {
+					Vue.set(payload.parent, 'children', {});
+				} else {
+					Vue.set(payload.parent, 'needToRefreshTreeSorry', null);
+					Vue.delete(payload.parent, 'needToRefreshTreeSorry');
 				}
+				Vue.set(payload.parent.children, payload.folder.id, payload.folder);
 			}
 		},
-		changePlace(state, payload) {
-			for (const key in payload.change) {
-				Vue.set(payload.place, key, payload.change[key]);
+		deleteFolder(state, payload) {
+			if (!payload.source) {
+				payload.source = store.getters.treeFlat[payload.folder.parent];
 			}
+			Vue.delete(payload.source.children, payload.folder.id);
+			Vue.set(payload.source, 'needToRefreshTreeSorry', null);
+			Vue.delete(payload.source, 'needToRefreshTreeSorry');
+		},
+		changeWaypoint(state, payload) {
+			Vue.set(payload.waypoint, payload.key, payload.value);
+		},
+		changePlace(state, payload) {
+			Vue.set(payload.place, payload.key, payload.value);
 		},
 		changeFolder(state, payload) {
 			Vue.set(payload.folder, payload.key, payload.value);
 		},
-		addFolder(state, payload) {
-			if (!payload.parent) {
-				state.folders.push(payload.folder);
-			} else {
-				if (!payload.parent.children) Vue.set(payload.parent, 'children', []);
-				payload.parent.children.push(payload.folder);
-			}
-		},
 		deleteImages(state, payload) {
-			if (!payload.images || payload.images.length === 0) return;
-			if (payload.family) {
-				for (const place of state.places) {
-					if (place.id === payload.images[0].id) {
-						Vue.set(place, 'images', []);
-					}
-				}
-				return;
-			}
-			for (const toDelete of payload.images) {
-				for (const place of state.places) {
-					if (place.images) {
-						for (const image of place.images) {
-							if (image.id === toDelete.id) {
-								place.images.splice(place.images.indexOf(image), 1);
-							}
-						}
-					}
+			if (!payload.images || !Object.keys(payload.images).length) return;
+			for (const id in payload.images) {
+				if (
+					state.places[payload.images[id].placeid] &&
+					state.places[payload.images[id].placeid].images[id]
+				) {
+					Vue.delete(state.places[payload.images[id].placeid].images, id);
 				}
 			}
-		},
-		deletePlacesMarkedAsDeleted(state) {
-			for (let i = 0; i < state.places.length; i++) {
-				if (state.places[i].deleted) {
-					state.places.splice(i, 1);
-					i--;
-				}
-			}
-			Vue.set(state, 'currentPlaceIndex',
-				(state.currentPlace ? state.places.indexOf(state.currentPlace) : -1)
-			);
-		},
-		deleteFoldersMarkedAsDeleted(state) {
-			commonFunctions.changeByKeyValue(
-				{children: state.folders},
-				'children',
-				'deleted',
-				true,
-				'delete'
-			);
 		},
 		folderOpenClose(state, payload) {
 			Vue.set(
@@ -368,14 +356,14 @@ const store: Store<State> = new Vuex.Store<State>({
 		},
 		swapImages(state, changes) {
 			Vue.set(
-				changes.place.images[changes.indexes[0]],
+				changes.place.images[changes.ids[0]],
 				'srt',
 				[
-					changes.place.images[changes.indexes[1]].srt,
+					changes.place.images[changes.ids[1]].srt,
 					Vue.set(
-						changes.place.images[changes.indexes[1]],
+						changes.place.images[changes.ids[1]],
 						'srt',
-						changes.place.images[changes.indexes[0]].srt
+						changes.place.images[changes.ids[0]].srt
 					)
 				][0]
 			);
@@ -435,17 +423,6 @@ const store: Store<State> = new Vuex.Store<State>({
 			sessionStorage.removeItem('places-userid');
 			sessionStorage.removeItem('places-session');
 		},
-		savedToDB({state, commit}) {
-			for (const place of state.places) {
-				commit('setObjectSaved', place);
-			}
-			const foldersPlain:Record<string, Folder> = {};
-			commonFunctions.treeToLivePlain({children: state.folders}, 'children', foldersPlain);
-			for (const id in foldersPlain) {
-				commit('setObjectSaved', foldersPlain[id as keyof Folder]);
-			}
-			commit('setSaved');
-		},
 		setUser({commit, dispatch}) {
 			axios
 				.get(
@@ -477,7 +454,7 @@ const store: Store<State> = new Vuex.Store<State>({
 				})
 			;
 		},
-		setPlaces({state, commit, dispatch}, payload) {
+		async setPlaces({state, commit, dispatch, getters}, payload) {
 			commit('stateReady', false);
 			if (!payload) {
 			// If reading from database, not importing
@@ -487,178 +464,325 @@ const store: Store<State> = new Vuex.Store<State>({
 						sessionStorage.getItem('places-userid')
 					)
 					.then(response => {
-						commonFunctions.sortObjectsByProximity(response.data[1]);
 						commit('placesReady', {
-							places: response.data[0],
-							commonPlaces: response.data[1],
-							folders: commonFunctions.plainToTree(response.data[2]),
+							waypoints: response.data.waypoints,
+							places: response.data.places,
+							commonPlaces: response.data.common_places,
+							folders: response.data.folders,
 						});
-						const homePlace = state.places.find(
-							p => p.id === (state.user ? state.user.homeplace : '')
-						);
-						commit('setHomePlace', (!homePlace ? null : homePlace));
+						commit('setHomePlace', (state.user.homeplace
+							? state.places[state.user.homeplace]
+							: null
+						));
 						commit('stateReady', true);
 					})
 					.catch(() => {
 						dispatch('setMessage', 'Не могу получить данные из БД.');
 						commit('placesReady', {
-							places: [],
-							commonPlaces: [],
-							folders: [],
+							waypoints: {},
+							places: {},
+							commonPlaces: {},
+							folders: {},
 						});
 					})
 				;
 				return;
 			}
 			/*
-			 * If importing from file.
-			 * A payload parameter is present and is an object:
-			 * {text: <file’s content as a text>, type: <file’s MIME-type>}
-			 */
-			let parsed: {places: Array<Place>, folders: Array<Folder>};
-			switch (payload.mime) {
-				case 'application/json' :
-					try {
-						parsed = JSON.parse(payload.text);
-						break;
-					} catch (e) {
-						dispatch('setMessage',
-							'Ошибка при разборе импортируемого файла.'
-						);
-						return false;
+			If importing from file.
+			A payload parameter is present and is an object:
+			{text: <file’s content as a text>, type: <file’s MIME-type>}
+			*/
+			function parseJSON(text: string) {
+				try {
+					const result =
+						<Record<string, Array<Place | Waypoint | Folder>>>
+						JSON.parse(payload.text)
+					;
+					return result;
+				} catch (e) {
+					dispatch('setMessage',
+						'Ошибка при разборе импортируемого файла: ' + e
+					);
+					return null;
+				}
+			}
+			function parseGPX(text: string) {
+				const result = {
+					waypoints: [] as Array<Waypoint>,
+					places: [] as Array<Place>,
+					tree: {} as Folder,
+				};
+				// Parsing XML text to a DOM tree
+				let dom = null;
+				try {
+					dom = (new DOMParser()).parseFromString(
+						text, 'text/xml'
+					);
+				} catch (e) {
+					dispatch('setMessage',
+						'Ошибка при разборе импортируемого файла: ' + e
+					);
+					return null;
+				}
+				if (getters.treeFlat.imported) {
+					result.tree = getters.treeFlat.imported;
+				}
+				let importedPlaceFolder, importedFolder: Folder;
+				let description = '', time = '';
+				for (const wpt of dom.getElementsByTagName('wpt')) {
+					// Parsing a time node in a place node
+					time = '';
+					if (wpt.getElementsByTagName('time').length) {
+						time = wpt.getElementsByTagName('time')[0].textContent.trim();
 					}
-				case 'application/gpx+xml' :
-					parsed = {places: [], folders: []};
-					for (const folder of state.folders) {
-						if (folder.id === 'imported') {
-							parsed.folders[0] = folder;
-							break;
+					/*
+					Updating the tree branch of folders for imported places
+					and get an ID of a folder for the importing place
+					*/
+					importedPlaceFolder = commonFunctions.formFolderForImported(
+						time.slice(0, 10),
+						importedFolder
+					);
+					importedFolder = importedPlaceFolder.imported;
+					// Parsing a description node in a place node
+					description = '';
+					if (wpt.getElementsByTagName('desc').length) {
+						for (const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
+							try {
+								switch (desc.nodeType) {
+									case 1 : case 3 :
+										description +=
+											desc.textContent.trim() +
+											(desc.nextSibling ? '\n' : '');
+										break;
+									case 4 :
+										const reStr: string =
+											'desc_(?:user|test)' +
+											'\s*\:\s*start\s*--\s*>\s*' +
+											'(.*?)' +
+											'\s*<\s*\!\s*--\s*' +
+											'desc_(?:user|test)' +
+											'\s*\:\s*end'
+										;
+										const descs = desc.textContent.match(
+											new RegExp(reStr, 'gi')
+										);
+										for (let i = 0; i < descs.length; i++) {
+											description += descs[i].replace(
+												new RegExp(reStr, 'i'), "$1"
+											) + (desc.nextSibling ? '\n' : '');
+										}
+										break;
+								}
+							} catch (e) {}
 						}
 					}
-					let dom = null, importedPlaceFolder;
-					// Parsing XML text to a DOM tree
-					if (window.DOMParser) {
-						try {
-							dom = (new DOMParser()).parseFromString(
-								payload.text, 'text/xml'
-							);
-						} catch (e) {
-							dispatch('setMessage',
-								'Ошибка при разборе импортируемого файла.'
-							);
-							return false;
-						}
-					} else if (window.ActiveXObject) {
-						try {
-							dom = new ActiveXObject('Microsoft.XMLDOM');
-							dom.async = false;
-							if (!dom.loadXML(payload.text)) {
-								dispatch('setMessage',
-									dom.parseError.reason + dom.parseError.srcText
-								);
-							}
-						} catch (e) {
-							dispatch('setMessage',
-								'Ошибка при разборе импортируемого файла.'
-							);
-							return false;
-						}
-					} else {
-						dispatch('setMessage',
-							'Ошибка при разборе импортируемого файла.'
-						);
-						return false;
-					}
-					let description = '', link = '', time = '';
-					for (const wpt of dom.getElementsByTagName('wpt')) {
-						// Parsing a link node(s) in a place node
-						for (const l of wpt.getElementsByTagName('link')) {
-							if (/^\w/.test(l.getAttribute('href').trim())) {
-								link =
-										/^http/.test(l.getAttribute('href').trim())
-											? '' : 'http://'
-										+ l.getAttribute('href').trim()
-								;
-								break;
-							}
-						}
-						// Parsing a time node in a place node
-						time = '';
-						if (wpt.getElementsByTagName('time').length > 0) {
-							const date = new Date(
-								wpt.getElementsByTagName('time')[0].textContent.trim()
-							);
-							time = !date ? '' : date.toISOString().slice(0, -5);
-						}
-						/*
-							 * Updating the tree branch of folders for imported places
-							 * and get an ID of a folder for the importing place
-							 */
-						importedPlaceFolder = commonFunctions.formFolderForImported(
-							time,
-							parsed.folders[0]
-						);
-						parsed.folders[0] = importedPlaceFolder.imported;
-						// Parsing a description node in a place node
-						description = '';
-						if (wpt.getElementsByTagName('desc').length > 0) {
-							for (const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
-								try {
-									switch (desc.nodeType) {
-										case 1 : case 3 :
-											description += desc.textContent.trim()
-														+ (desc.nextSibling ? '\n' : '');
-											break;
-										case 4 :
-											const reStr: string =
-														'desc_(?:user|test)' +
-														'\s*\:\s*start\s*--\s*>\s*' +
-														'(.*?)' +
-														'\s*<\s*\!\s*--\s*' +
-														'desc_(?:user|test)' +
-														'\s*\:\s*end'
-													;
-											const descs = desc.textContent.match(
-												new RegExp(reStr, 'gi')
-											);
-											for (let i = 0; i < descs.length; i++) {
-												description += descs[i].replace(
-													new RegExp(reStr, 'i'), "$1"
-												) + (desc.nextSibling ? '\n' : '');
-											}
-											break;
+					// Forming an importing place as an object and pushing it in a structure
+					const newWaypointId = commonFunctions.generateRandomString(32);
+					const newPlaceId = commonFunctions.generateRandomString(32);
+					const newWaypoint = {
+						id: newWaypointId,
+						latitude: parseFloat(wpt.getAttribute('lat')),
+						longitude: parseFloat(wpt.getAttribute('lon')),
+						altitudecapability: (wpt.getElementsByTagName('ele').length
+							? parseFloat(wpt.getElementsByTagName('ele')[0].textContent.trim())
+							: null
+						),
+						time: time,
+						type: 'waypoint',
+						common: false,
+						added: true,
+						deleted: false,
+						updated: false,
+						show: true,
+					};
+					const newPlace = {
+						id: newPlaceId,
+						waypoint: newWaypointId,
+						folderid: importedPlaceFolder.folderid,
+						name: (wpt.getElementsByTagName('name').length
+							? wpt.getElementsByTagName('name')[0].textContent.trim()
+							: ''
+						),
+						description: description,
+						link: (wpt.getElementsByTagName('link').length
+							? wpt.getElementsByTagName('link')[0].getAttribute('href').trim()
+							: ''
+						),
+						time: time,
+						srt: (Object.keys(result.places).length
+							? Object.keys(result.places).length + 1
+							: 0
+						),
+						common: false,
+						geomark: true,
+						userid: String(sessionStorage.getItem('places-userid')),
+						images: {},
+						type: 'place',
+						added: true,
+						deleted: false,
+						updated: false,
+						show: true,
+					};
+					result.waypoints.push(newWaypoint);
+					result.places.push(newPlace);
+				}
+				result.tree = importedPlaceFolder.imported;
+				return result;
+			}
+			function addImported(
+				mime: string,
+				parsed:
+					Record<string,
+						Array<Waypoint | Place | Folder> |
+						Record<string, Array<Waypoint | Place> | Folder>
+					> | null
+			) {
+				try {
+					switch (mime) {
+						case 'application/json' :
+							let allParentsAdded = false;
+							while (!allParentsAdded) {
+								allParentsAdded = true;
+								for (const folder of (parsed.folders as Array<Folder>)) {
+									/*
+									Checking if such a folder already exists in the tree
+									and user has rights to add a folder.
+									*/
+									if (
+										getters.treeFlat[folder.id] ||
+										!getters.treeFlat[folder.parent] &&
+										(parsed.folders as Array<Folder>)
+											.find(f => f.id === folder.parent)
+									) {
+										continue;
 									}
-								} catch (e) {
+									if (
+										state.serverConfig.rights.folderscount < 0 ||
+										state.serverConfig.rights.folderscount
+											// length - 1 because there is a root folder too
+											> Object.keys(getters.treeFlat).length - 1 ||
+										state.user.testaccount
+									) {
+										const newFolder: Folder = {
+											type: 'folder',
+											userid: sessionStorage.getItem('places-userid') as string,
+											name: folder.name,
+											description: folder.description,
+											id: folder.id,
+											srt: folder.srt,
+											parent: folder.parent,
+											opened: false,
+											geomarks: 1,
+											added: true,
+											deleted: false,
+											updated: false,
+											builded: true,
+										};
+										dispatch('addFolder', newFolder);
+									} else {
+										dispatch('setMessage', `
+											Превышено максимально допустимое для вашей
+											текущей роли количство папок.
+										`);
+										break;
+									}
+									allParentsAdded = false;
 								}
 							}
-						}
-						// Forming an importing place as an object and pushing it in a structure
-						parsed.places.push({
-							id: commonFunctions.generateRandomString(32),
-							folderid: importedPlaceFolder.folderid,
-							name: wpt.getElementsByTagName('name').length > 0
-								? wpt.getElementsByTagName('name')[0].textContent.trim()
-								: '',
-							description: description,
-							link: link,
-							latitude: parseFloat(wpt.getAttribute('lat')),
-							longitude: parseFloat(wpt.getAttribute('lon')),
-							altitudecapability: wpt.getElementsByTagName('ele') > 0
-								? wpt.getElementsByTagName('ele')[0].textContent.trim()
-								: '',
-							time: time,
-							srt: (parsed.places.length > 0 ? parsed.places.length + 1 : 1),
-							common: false,
-							geomark: true,
-							userid: String(sessionStorage.getItem('places-userid')),
-							images: [],
-							type: 'place',
-							added: true,
-							deleted: false,
-							updated: false,
-							show: true,
-						});
+							break;
+						case 'application/gpx+xml' :
+							dispatch('addFolder', parsed.tree);
+							break;
+						default :
+							dispatch('setMessage', `
+								Хм.
+							`);
+							return false;
 					}
+					for (const place of (parsed.places as Array<Place>)) {
+						/*
+						Checking if such a place already exists
+						and user has rights to add a place.
+						*/
+						if (state.places[place.id]) continue;
+						if (
+							state.serverConfig.rights.placescount < 0 ||
+							state.serverConfig.rights.placescount
+								> Object.keys(state.places).length ||
+							state.user.testaccount
+						) {
+							let newWaypoint: Waypoint;
+							if (state.waypoints[place.waypoint]) {
+								newWaypoint = state.waypoints[place.waypoint];
+							} else {
+								const parsedWaypoint =
+									(parsed.waypoints as Array<Waypoint>)
+										.find(w => w.id === place.waypoint)
+								;
+								newWaypoint = {
+									id: parsedWaypoint.id,
+									latitude: parsedWaypoint.latitude,
+									longitude: parsedWaypoint.longitude,
+									altitudecapability: parsedWaypoint.altitudecapability,
+									time: parsedWaypoint.time,
+									common: parsedWaypoint.common,
+									type: 'waypoint',
+									added: true,
+									deleted: false,
+									updated: false,
+									show: true,
+								};
+							}
+							const newPlace: Place = {
+								type: 'place',
+								userid: sessionStorage.getItem('places-userid') as string,
+								name: place.name,
+								description: place.description,
+								waypoint: place.waypoint,
+								link: place.link,
+								time: place.time,
+								id: place.id,
+								folderid: place.folderid,
+								srt: place.srt,
+								common: place.common,
+								geomark: true,
+								added: true,
+								deleted: false,
+								updated: false,
+								show: true,
+							};
+							dispatch('addPlace', {place: newPlace});
+							if (!state.waypoints[place.waypoint]) {
+								dispatch('addWaypoint', {
+									waypoint: newWaypoint,
+									from: newPlace,
+								});
+							}
+						} else {
+							dispatch('setMessage', `
+								Превышено максимально допустимое для вашей
+								текущей роли количство мест.
+							`);
+						}
+					}
+					bus.$emit('toDBCompletely');
+				} catch (e) {
+					dispatch('setMessage',
+						'Ошибка при попытке импорта: ' + e
+					);
+					return false;
+				}
+				return true;
+			}
+			let parsed;
+			switch (payload.mime) {
+				case 'application/json' :
+					parsed = parseJSON(payload.text);
+					break;
+				case 'application/gpx+xml' :
+					parsed = parseGPX(payload.text);
 					break;
 				default :
 					dispatch('setMessage', `
@@ -667,236 +791,409 @@ const store: Store<State> = new Vuex.Store<State>({
 					`);
 					return false;
 			}
-			try {
-				let found;
-				const
-					plainStateFolders: Array<Folder> = [],
-					plainPayloadFolders: Array<Folder> = [];
-				commonFunctions.treeToPlain({'children': state.folders}, 'children', plainStateFolders);
-				commonFunctions.treeToPlain({'children': parsed.folders}, 'children', plainPayloadFolders);
-				Vue.set(state, 'folders', []);
-				for (const payloadFolder of plainPayloadFolders) {
-					payloadFolder.userid = String(sessionStorage.getItem('places-userid'));
-					/*
-					 * Checking if such a folder already exists in the tree.
-					 * If exists, updating; if not, addinng.
-					 */
-					found = plainStateFolders.find(f =>
-						f.id === payloadFolder.id
-					);
-					if (found) {
-						payloadFolder.updated = true;
-						for (const key in payloadFolder) {
-							if (
-								key !== 'id' &&
-								key !== 'added' &&
-								key !== 'deleted'
-							) {
-								Vue.set(found, key, payloadFolder[key as keyof Folder]);
-							}
-						}
-					} else {
-						payloadFolder.added = true;
-						plainStateFolders.push(payloadFolder);
-					}
-				}
-				for (const stateFolder of plainStateFolders) {
-					stateFolder.builded = false;
-				}
-				const placesNew = state.places.slice(0);
-				for (const payloadPlace of parsed.places) {
-					payloadPlace.userid = String(sessionStorage.getItem('places-userid'));
-					/*
-					 * Checking if such a place already exists.
-					 * If exists, updating; if not, addinng.
-					 */
-					found = state.places.find(p =>
-						p.id === payloadPlace.id ||
-						p.time &&
-						payloadPlace.time &&
-						p.time.slice(0, -5) === payloadPlace.time.slice(0, -5)
-					);
-					if (found) {
-						found.updated = true;
-						for (const key in payloadPlace) {
-							Vue.set(found, key, payloadPlace[key as keyof Place]);
-						}
-					} else {
-						payloadPlace.images = [];
-						payloadPlace.added = true;
-						placesNew.push(payloadPlace);
-					}
-				}
-				commit('placesReady', {
-					places: placesNew,
-					folders: commonFunctions.plainToTree(plainStateFolders),
-				});
-				const homePlace = state.places.find(
-					p => p.id === (state.user ? state.user.homeplace : '')
-				);
-				commit('setHomePlace', (!homePlace ? null : homePlace));
-				commit('stateReady', true);
-				bus.$emit('toDBCompletely');
-			} catch (e) {
-				dispatch('setMessage',
-					'Ошибка при попытке импорта.'
-				);
-				return false;
-			}
-			return true;
+			addImported(payload.mime, parsed);
 		},
 		restoreObjectsAsLinks({state, commit}) {
 			commit('setRefreshing', true);
-			const homePlace = state.places.find(
-				p => p.id === (state.user ? state.user.homeplace : '')
-			);
-			commit('setHomePlace', (!homePlace ? null : homePlace));
+			commit('setHomePlace', (state.user.homeplace
+				? state.places[state.user.homeplace]
+				: null
+			));
 			if (state.currentPlace) {
-				for (const place of state.commonPlaces) {
-					if (place.id === state.currentPlace.id) {
-						commit('setCurrentPlace', place);
-						commit('setRefreshing', false);
-						return;
-					}
-				}
-				for (const place of state.places) {
-					if (place.id === state.currentPlace.id) {
-						commit('setCurrentPlace', place);
-						commit('setRefreshing', false);
-						return;
-					}
-				}
-				commit('setCurrentPlace', null);
+				let place: Place = null;
+				if (state.commonPlaces[state.currentPlace.id])
+					place = state.commonPlaces[state.currentPlace.id];
+				if (state.places[state.currentPlace.id])
+					place = state.places[state.currentPlace.id];
+				commit('setCurrentPlace', place);
 			}
 			commit('setRefreshing', false);
 		},
-		addPlace({commit}, place) {
-			commit('addPlace', place);
-			bus.$emit('toDB', {what: 'places', data: [place]});
-		},
-		addFolder({state, commit}, folder) {
-			const parent = commonFunctions.findInTree(
-				{id: 'root', children: state.folders},
-				'children',
-				'id',
-				folder.parent
-			);
+		async addFolder({commit, getters}, folder) {
+			const parent = getters.treeFlat[folder.parent]
+				? getters.treeFlat[folder.parent]
+				: getters.tree
+			;
 			commit('addFolder', {folder: folder, parent: parent});
-			bus.$emit('toDB', {what: 'folders', data: [folder]});
-		},
-		deletePlace({state, commit, dispatch}, place) {
-			if (state.homePlace === place) dispatch('setHomePlace', null);
-			commit('removePlace', place);
-			bus.$emit('toDB', {what: 'places', data: [place]});
-			commit('deletePlace', place);
 		},
 		setHomePlace({state, commit}, id) {
 			let place = null;
-			if (id) {
-				const found = state.places.find(p => p.id === id);
-				if (found) {
-					place = found;
-					bus.$emit('homeToDB', id);
-				}
+			if (state.places[id]) {
+				place = state.places[id];
+				bus.$emit('homeToDB', id);
 			}
 			commit('setHomePlace', place);
 			if (!place) bus.$emit('homeToDB', null);
 		},
-		changePlace({commit}, payload) {
-			let toUpdated = true;
-			if ('updated' in payload.change) {
-				toUpdated = false;
-			}
-			commit('changePlace', payload);
-			if (toUpdated) {
-				commit('changePlace', {
-					place: payload.place,
-					change: {updated: true},
-				});
-				bus.$emit('toDB', {what: 'places', data: [payload.place]});
-			}
-		},
-		changeFolder({state, commit}, payload) {
-			const keys = Object.keys(payload.change);
-			let toUpdated = true;
-			for (const key of keys) {
-				commit('changeFolder', {
-					folder: payload.folder,
-					key: key,
-					value: payload.change[key],
-					backup: 'movingFolder' in payload && key === 'srt' ? false : true,
-				});
-				if (key === 'updated') {
-					toUpdated = false;
+		async deletePlacesMarkedAsDeleted({state, dispatch}) {
+			const places: Record<string, Place> = {};
+			for (const id in state.places) {
+				if (state.places[id].deleted) {
+					places[id] = state.places[id];
 				}
 			}
-			if (toUpdated) {
-				commit('changeFolder', {
-					folder: payload.folder,
-					key: 'updated',
-					value: true,
-				});
+			await dispatch('deletePlaces', {places: places});
+		},
+		async deleteFoldersMarkedAsDeleted({dispatch, getters}) {
+			const folders: Record<string, Folder> = {};
+			for (const id in getters.treeFlat) {
+				if (getters.treeFlat[id].deleted) {
+					folders[id] = getters.treeFlat[id];
+				}
+			}
+			await dispatch('deleteFolders', {folders: folders});
+		},
+		async deletePlaces({state, commit}, payload) {
+			const
+				saveToDB = 'todb' in payload && payload.todb === false ? false : true,
+				waypoints: Array<Waypoint> = [],
+				places: Array<Place> = [],
+				images: Array<Image> = []
+			;
+			let commonWaypoint = false;
+			for (const payloadPlaceId in payload.places) {
+				for (const placeId in state.places) {
+					if (
+						placeId !== payloadPlaceId &&
+						state.places[placeId].waypoint ===
+							payload.places[payloadPlaceId].waypoint
+					) {
+						commonWaypoint = true;
+						break;
+					}
+				}
+				bus.$emit('deletePlace', payload.places[payloadPlaceId]);
+				if (!commonWaypoint) {
+					waypoints.push(
+						state.waypoints[payload.places[payloadPlaceId].waypoint]
+					);
+					waypoints[waypoints.length - 1].deleted = true;
+					commit('deleteWaypoint',
+						state.waypoints[payload.places[payloadPlaceId].waypoint]
+					);
+				}
+				places.push(payload.places[payloadPlaceId]);
+				if (payload.places[payloadPlaceId].images) {
+					for (const id in payload.places[payloadPlaceId].images) {
+						images.push(payload.places[payloadPlaceId].images[id]);
+					}
+				}
+				places[places.length - 1].deleted = true;
+				commit('deletePlace', state.places[payloadPlaceId]);
+				commonWaypoint = false;
+			}
+			if (saveToDB && !state.user.testaccount) {
 				if (!state.inUndoRedo) {
-					bus.$emit('toDB', {what: 'folders'});
+					const data = new FormData();
+					for (const image of images) {
+						data.append('file_' + image.id, image.file);
+					}
+					data.append('userid', state.user.id);
+					await axios.post('/backend/delete.php', data)
+						.then(() => {
+							bus.$emit('toDB', {what: 'images_delete', data: images});
+						});
+					bus.$emit('toDB', {what: 'waypoints', data: waypoints});
+					bus.$emit('toDB', {what: 'places', data: places});
 				} else {
 					bus.$emit('toDBCompletely');
 					commit('outUndoRedo');
 				}
 			}
 		},
-		moveFolder({state, dispatch}, payload) {
-			let source, target;
-			const folder = payload.hasOwnProperty('folder')
+		async deleteFolders({state, commit, getters}, payload) {
+			const
+				saveToDB = 'todb' in payload && payload.todb === false ? false : true,
+				folders: Array<Folder> = []
+			;
+			for (const payloadFolderId in payload.folders) {
+				folders.push(payload.folders[payloadFolderId]);
+				folders[folders.length - 1].deleted = true;
+				if (getters.treeFlat[payloadFolderId]) {
+					commit('deleteFolder', {folder: getters.treeFlat[payloadFolderId]});
+				}
+			}
+			if (saveToDB && !state.user.testaccount) {
+				if (!state.inUndoRedo) {
+					bus.$emit('toDB', {what: 'folders', data: folders});
+				} else {
+					bus.$emit('toDBCompletely');
+					commit('outUndoRedo');
+				}
+			}
+		},
+		async addWaypoint({state, commit}, payload) {
+			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			if (saveToDB && !state.user.testaccount) {
+				if (!state.inUndoRedo) {
+					bus.$emit('toDB', {
+						what: 'waypoints',
+						data: [{
+							...payload.waypoint,
+							from: (payload.from ? payload.from : null),
+						}],
+					});
+				} else {
+					bus.$emit('toDBCompletely');
+					commit('outUndoRedo');
+				}
+			}
+			commit('setObjectSaved', payload.waypoint);
+			commit('addWaypoint', payload.waypoint);
+		},
+		async addPlace({state, commit}, payload) {
+			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			if (saveToDB && !state.user.testaccount) {
+				if (!state.inUndoRedo) {
+					bus.$emit('toDB', {what: 'places', data: [payload.place]});
+				} else {
+					bus.$emit('toDBCompletely');
+					commit('outUndoRedo');
+				}
+			}
+			commit('setObjectSaved', payload.place);
+			commit('addPlace', payload.place);
+		},
+		async changeWaypoint({state, commit}, payload) {
+			let saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			for (const key in payload.change) {
+				commit('changeWaypoint', {
+					waypoint: payload.waypoint,
+					key: key,
+					value: payload.change[key],
+				});
+				if (
+					key === 'added' ||
+					key === 'deleted' ||
+					key === 'updated'
+				) {
+					saveToDB = false;
+				}
+			}
+			if (saveToDB && !state.user.testaccount) {
+				commit('changeWaypoint', {
+					waypoint: payload.waypoint,
+					key: 'updated',
+					value: true,
+				});
+				if (!state.inUndoRedo) {
+					bus.$emit('toDB', {
+						what: 'waypoints',
+						data: [{
+							...payload.waypoint,
+							from: (payload.from ? payload.from : null),
+						}],
+					});
+				} else {
+					bus.$emit('toDBCompletely');
+					commit('outUndoRedo');
+				}
+			}
+		},
+		async changePlace({state, commit, dispatch}, payload) {
+			let saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			if (
+				'latitude' in payload.change ||
+				'longitude' in payload.change ||
+				'altitudecapability' in payload.change
+			) {
+				const
+					lat = ('latitude' in payload.change
+						? payload.change.latitude
+						: state.waypoints[payload.place.waypoint].latitude
+					),
+					lng = ('longitude' in payload.change
+						? payload.change.longitude
+						: state.waypoints[payload.place.waypoint].longitude
+					),
+					alt = ('altitudecapability' in payload.change
+						? payload.change.altitudecapability
+						: ('altitudecapability' in state.waypoints[payload.place.waypoint]
+							? state.waypoints[payload.place.waypoint].altitudecapability
+							: null
+						)
+					)
+				;
+				dispatch('changeWaypoint', {
+					waypoint: state.waypoints[payload.place.waypoint],
+					change: {
+						latitude: lat,
+						longitude: lng,
+						altitudecapability: alt,
+					},
+					from: payload.place,
+				});
+			}
+			for (const key in payload.change) {
+				if (
+					key === 'latitude' ||
+					key === 'longitude' ||
+					key === 'altitudecapability'
+				) {
+					continue;
+				}
+				commit('changePlace', {
+					place: payload.place,
+					key: key,
+					value: payload.change[key],
+				});
+				if (
+					key === 'added' ||
+					key === 'deleted' ||
+					key === 'updated'
+				) {
+					saveToDB = false;
+				}
+			}
+			if (saveToDB && !state.user.testaccount) {
+				commit('changePlace', {
+					place: payload.place,
+					key: 'updated',
+					value: true,
+				});
+				if (!state.inUndoRedo) {
+					bus.$emit('toDB', {what: 'places', data: [payload.place]});
+				} else {
+					bus.$emit('toDBCompletely');
+					commit('outUndoRedo');
+				}
+			}
+		},
+		changeFolder({state, commit}, payload) {
+			let saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			for (const key in payload.change) {
+				commit('changeFolder', {
+					folder: payload.folder,
+					key: key,
+					value: payload.change[key],
+				});
+				if (
+					key === 'added' ||
+					key === 'deleted' ||
+					key === 'updated'
+				) {
+					saveToDB = false;
+				}
+			}
+			if (saveToDB && !state.user.testaccount) {
+				commit('changeFolder', {
+					folder: payload.folder,
+					key: 'updated',
+					value: true,
+				});
+				if (!state.inUndoRedo) {
+					bus.$emit('toDB', {what: 'folders', data: [payload.folder]});
+				} else {
+					bus.$emit('toDBCompletely');
+					commit('outUndoRedo');
+				}
+			}
+		},
+		async moveFolder({commit, dispatch, getters}, payload) {
+			let source;
+			const folder = ('folder' in payload)
 				? payload.folder
-				: commonFunctions.findInTree(
-					{id: 'root', children: state.folders},
-					'children',
-					'id',
-					payload.folderId
-				)
+				: getters.treeFlat[payload.folderId]
 			;
 			if (folder.parent === 'root') {
-				source = state.folders;
+				source = getters.tree;
 			} else {
-				source = commonFunctions.findInTree(
-					{id: 'root', children: state.folders},
-					'children',
-					'id',
-					folder.parent
-				).children;
+				source = getters.treeFlat[folder.parent];
 			}
-			if (
-				!payload.targetId ||
-				payload.targetId === null ||
-				payload.targetId === 'root'
-			) {
-				target = state.folders;
-			} else {
-				target = commonFunctions.findInTree(
-					{id: 'root', children: state.folders},
-					'children',
-					'id',
-					payload.targetId
-				);
-				if (!target.children) {
-					Vue.set(target, 'children', []);
-				}
-				target = target.children;
-			}
-			const srt: number = (
-				payload.hasOwnProperty('srt') ? payload.srt : (
-					target.length > 0 ? target[target.length - 1].srt + 1 : 1
+			const target = ('target' in payload)
+				? payload.target
+				: getters.treeFlat[payload.targetId]
+			;
+			const srt = (
+				('srt' in payload) ? payload.srt : (
+					Object.keys(target.children).length
+						? target.children[
+							Object.keys(target.children)[
+								Object.keys(target.children).length - 1
+							]
+						].srt + 1
+						: 1
 				)
 			);
-			target.push(source.splice(source.indexOf(folder), 1)[0]);
-			dispatch('changeFolder', {
+			if (target !== source) {
+				commit('addFolder', {folder: folder, parent: target});
+				commit('deleteFolder', {folder: folder, source: source});
+			}
+			const changeFolderPayload = {
 				folder: folder,
 				change: {
-					parent: payload.targetId,
+					parent: target.id,
 					srt: srt,
+					updated: false,
 				},
-				movingFolder: true,
-			});
+				todb: true,
+			};
+			if ('todb' in payload && payload.todb === false) {
+				changeFolderPayload.todb = false;
+				changeFolderPayload.change.updated = true;
+			}
+			await dispatch('changeFolder', changeFolderPayload);
+		},
+		savedToDB({state, commit, getters}, payload) {
+			switch (payload.what) {
+				case 'waypoints' :
+					if (payload.data) {
+						for (const waypoint of payload.data) {
+							commit('setObjectSaved', waypoint);
+						}
+					} else {
+						for (const id in state.waypoints) {
+							commit('setObjectSaved', state.waypoints[id]);
+						}
+					}
+					break;
+				case 'places' :
+					if (payload.data) {
+						for (const place of payload.data) {
+							commit('setObjectSaved', place);
+						}
+					} else {
+						for (const id in state.places) {
+							commit('setObjectSaved', state.places[id]);
+						}
+					}
+					break;
+				case 'folders' :
+					if (payload.data) {
+						for (const folder of payload.data) {
+							commit('setObjectSaved', folder);
+						}
+					} else {
+						for (const id in getters.treeFlat) {
+							commit('setObjectSaved', getters.treeFlat[id]);
+						}
+					}
+					break;
+				default :
+					if (payload.data) {
+						for (const waypoint of payload.data) {
+							commit('setObjectSaved', waypoint);
+						}
+						for (const place of payload.data) {
+							commit('setObjectSaved', place);
+						}
+						for (const folder of payload.data) {
+							commit('setObjectSaved', folder);
+						}
+					} else {
+						for (const id in state.waypoints) {
+							commit('setObjectSaved', state.waypoints[id]);
+						}
+						for (const id in state.places) {
+							commit('setObjectSaved', state.places[id]);
+						}
+						for (const id in getters.treeFlat) {
+							commit('setObjectSaved', getters.treeFlat[id]);
+						}
+					}
+					
+			}
+			commit('setSaved');
 		},
 		folderOpenClose({commit}, payload) {
 			if (payload.folder) {
@@ -984,6 +1281,16 @@ const store: Store<State> = new Vuex.Store<State>({
 		},
 	},
 	getters: {
+		tree(state) {
+			Vue.set(state.rootPlace, 'children', state.folders);
+			Vue.set(state.rootPlace, 'userid', (state.user ? state.user.id : null));
+			return state.rootPlace;
+		},
+		treeFlat(state, getters) {
+			const treeFlat: Record<string, Folder> = {};
+			commonFunctions.treeToLivePlain(getters.tree, 'children', treeFlat);
+			return treeFlat;
+		},
 	},
 });
 

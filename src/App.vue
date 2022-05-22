@@ -12,13 +12,13 @@ import { mapState } from 'vuex'
 @Component({
 	name: 'App',
 	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
+		...mapState(['currentPlace']),
 	},
 	mounted() {
 		/*
-		 * If the App is mounted during the session (for example, when the page
-		 * is reloaded), the store state is restored from sessionStorage.
-		 */
+		If the App is mounted during the session (for example, when the page
+		is reloaded), the store state is restored from sessionStorage.
+		*/
 		if (sessionStorage.getItem('places-session')) {
 			this.$store.replaceState(
 				JSON.parse(sessionStorage.getItem('places-store-state'))

@@ -35,7 +35,7 @@
 				<span
 					class="folder-button__geomarks"
 					:title="(folder.geomarks === 1 ? 'Скрыть' : 'Показать') + ' геометки на карте'"
-					@click="$event.stopPropagation(); showHideGeomarks((folder.id === 'root' ? $root.folderRoot : folder), (folder.geomarks === 1 ? 0 : 1));"
+					@click="$event.stopPropagation(); showHideGeomarks((folder.id === 'root' ? $store.getters.tree : folder), (folder.geomarks === 1 ? 0 : 1));"
 				>
 					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
 				</span>
@@ -72,11 +72,11 @@
 		</div>
 		<div class="folder-subfolders">
 			<ul
-				v-if="folder.children && folder.children.length"
+				v-if="folder.children && Object.keys(folder.children).length"
 				class="margin_bottom_0"
 			>
 				<folder
-					v-for="(child, index) in orderedChildren"
+					v-for="(child, index) in children"
 					:key="folder.id + index"
 					:instanceid="instanceid"
 					:folder="child"
@@ -89,7 +89,7 @@
 			class="folder-places"
 		>
 			<label
-				v-for="place in orderedPlaces"
+				v-for="place in places"
 				v-if="place.folderid === folder.id && place.show"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-place-' : '') + place.id"
 				:key="place.id"
@@ -156,6 +156,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { PropType } from 'vue';
 import _ from 'lodash';
 import { bus } from '../shared/bus';
 import { mapState } from 'vuex';
@@ -163,30 +164,48 @@ import { Place, Folder } from '@/store/types';
 
 export default Vue.extend({
 	name: 'Folder',
-	props: ['instanceid', 'folder', 'parent'],
+	props: {
+		instanceid: {
+			type: String,
+			default: '',
+		},
+		folder: {
+			type: Object as PropType<Folder>,
+			default() {return {};},
+		},
+		parent: {
+			type: Object as PropType<Folder>,
+			default() {return {};},
+		},
+	},
 	data() {
 		return {
-			folderData: {} as Folder,
+			children: [] as Array<Folder>,
+			places: [] as Array<Place>,
 		}
 	},
 	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
-		orderedChildren(): Array<Folder> {
-			return _.orderBy(this.folderData.children, 'srt');
+		...mapState(['currentPlace']),
+		stateFolderChildren(): Record<string, Folder> {
+			return this.folder.children;
 		},
-		orderedPlaces(): Array<Folder> {
-			return _.orderBy(this.$store.state.places, 'srt');
+		statePlaces(): Record<string, Folder> {
+			return this.$store.state.places;
 		},
 	},
 	watch: {
-		folder: {
+		stateFolderChildren: {
 			deep: true,
 			immediate: true,
-			handler(folder: Folder) {
-				this.folderData = {
-					...folder,
-					children: folder.children,
-				};
+			handler(stateFolderChildren: Record<string, Folder>) {
+				this.children = _.orderBy(stateFolderChildren, 'srt');
+			},
+		},
+		statePlaces: {
+			deep: true,
+			immediate: true,
+			handler(statePlaces: Record<string, Place>) {
+				this.places = _.orderBy(statePlaces, 'srt');
 			},
 		},
 	},
@@ -196,24 +215,11 @@ export default Vue.extend({
 		},
 		selectUnselect(place: Place, checked: boolean) {
 			if (checked) {
-				(this.$root as Vue & {selectedToExport: Array<Place>})
-					.selectedToExport.push(place);
+				(this.$root as Vue & {selectedToExport: Record<string, Place>})
+					.selectedToExport[place.id] = place;
 			} else {
-				for (
-					let i = 0;
-					i < (this.$root as Vue & {selectedToExport: Array<Place>})
-						.selectedToExport.length;
-					i++
-				) {
-					if (
-						(this.$root as Vue & {selectedToExport: Array<Place>})
-							.selectedToExport[i] === place
-					) {
-						(this.$root as Vue & {selectedToExport: Array<Place>})
-							.selectedToExport.splice(i, 1);
-						break;
-					}
-				}
+				delete (this.$root as Vue & {selectedToExport: Record<string, Place>})
+					.selectedToExport[place.id];
 			}
 		},
 		selectUnselectFolder(folderid: string, checked: boolean) {
@@ -236,22 +242,22 @@ export default Vue.extend({
 				(folderCheckbox as HTMLInputElement).checked = checked ? true : false;
 			}
 		},
-		showHideGeomarks(object: any, show: boolean) {
+		showHideGeomarks(object: any, show: number | boolean) {
 			let visibility: number;
-			let showHideSubGeomarks = (object: any, show: boolean) => {
+			let showHideSubGeomarks = (object: any, show: number | boolean) => {
 				if (object.type === 'place') {
 					object.geomark = !show ? false : true;
 					return;
 				}
 				object.geomarks = !show ? 0 : 1;
-				for (let place of this.$store.state.places) {
-					if (place.folderid === object.id) {
-						place.geomark = show;
+				for (const id in this.$store.state.places) {
+					if (this.$store.state.places[id].folderid === object.id) {
+						this.$store.state.places[id].geomark = show;
 					}
 				}
-				if (Array.isArray(object.children) && object.children.length > 0) {
-					for (let child of object.children) {
-						showHideSubGeomarks(child, show);
+				if (object.children && Object.keys(object.children).length) {
+					for (const id in object.children) {
+						showHideSubGeomarks(object.children[id], show);
 					}
 				}
 			}
@@ -259,22 +265,20 @@ export default Vue.extend({
 				if (object.id === 'root') return;
 				const parentProperty = (object.type === 'place' ? 'folderid' : 'parent');
 				let geomarksProperty;
-				let neibours = this.$store.state.places.filter((neibour: Place) =>
-					neibour.folderid === object[parentProperty]
-				);
-				if (
-					(this.$root as Vue & {foldersPlain: Record<string, Folder>})
-						.foldersPlain[object[parentProperty]].children
-				) {
+				let neibours: Array<Place | Folder> =
+					Object.values(this.$store.state.places).filter(
+						(neibour: Place) => neibour.folderid === object[parentProperty]
+					) as Array<Place | Folder>
+				;
+				if (this.$store.getters.treeFlat[object[parentProperty]].children) {
 					neibours = neibours.concat(
-						(this.$root as Vue & {foldersPlain: Record<string, Folder>})
-							.foldersPlain[object[parentProperty]].children
+						Object.values(this.$store.getters.treeFlat[object[parentProperty]].children)
 					);
 				}
 				for (let i = 0; i < neibours.length; i++) {
 					geomarksProperty = (neibours[i].type === 'place' ? 'geomark' : 'geomarks');
 					if (i === 0) {
-						visibility = neibours[i][geomarksProperty]
+						visibility = neibours[i][geomarksProperty];
 						continue;
 					}
 					if (visibility != neibours[i][geomarksProperty]) {
@@ -282,12 +286,8 @@ export default Vue.extend({
 						break;
 					}
 				}
-				(this.$root as Vue & {foldersPlain: Record<string, Folder>})
-					.foldersPlain[object[parentProperty]].geomarks = Number(visibility);
-				showHideParentsGeomarks(
-					(this.$root as Vue & {foldersPlain: Record<string, Folder>})
-						.foldersPlain[object[parentProperty]]
-					);
+				this.$store.getters.treeFlat[object[parentProperty]].geomarks = Number(visibility);
+				showHideParentsGeomarks(this.$store.getters.treeFlat[object[parentProperty]]);
 			}
 			showHideSubGeomarks(object, show);
 			showHideParentsGeomarks(object);

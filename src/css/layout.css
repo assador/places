@@ -133,7 +133,7 @@ body {
 	max-width: 100%;
 	margin: 12px;
 	padding: 10px 20px 12px 20px;
-	z-index: 10;
+	z-index: 100000;
 }
 #imp {
 	display: block;

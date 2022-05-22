@@ -1,33 +1,44 @@
-export interface Place {
+export interface Waypoint {
 	id: string;
-	folderid: string;
-	name: string;
-	description?: string;
-	link?: string;
 	latitude: number;
 	longitude: number;
 	altitudecapability?: number;
 	time?: string;
-	srt: number;
 	common: boolean;
-	geomark: boolean;
-	userid: string;
-	images?: Array<Image>;
 	type: string;
 	added: boolean;
 	deleted: boolean;
 	updated: boolean;
 	show: boolean;
-};
+}
+export interface Place {
+	id: string;
+	folderid: string;
+	name: string;
+	description?: string;
+	waypoint: string;
+	link?: string;
+	time?: string;
+	srt: number;
+	common: boolean;
+	geomark: boolean;
+	userid: string;
+	images?: Record<string, Image>;
+	type: string;
+	added: boolean;
+	deleted: boolean;
+	updated: boolean;
+	show: boolean;
+}
 export interface Image {
 	id: string;
 	placeid: string;
 	file: string;
 	type: string;
-	lastmodified: string;
+	lastmodified: number;
 	size: number;
 	srt: number;
-};
+}
 export interface Folder {
 	id: string;
 	parent: string | null;
@@ -42,8 +53,8 @@ export interface Folder {
 	updated: boolean;
 	opened: boolean;
 	userid: string;
-	children?: Array<Folder>;
-};
+	children?: Record<string, Folder>;
+}
 export interface User {
 	id: string;
 	login: string;
@@ -56,7 +67,7 @@ export interface User {
 	token: string;
 	homeplace: string;
 	testaccount: boolean;
-};
+}
 export interface State {
 	refreshing: boolean;
 	saved: boolean;
@@ -67,10 +78,10 @@ export interface State {
 	user: User | null;
 	currentPlace: Place | null;
 	homePlace: Place | null;
-	currentPlaceIndex: number;
-	places: Array<Place>;
-	folders: Array<Folder>;
-	commonPlaces: Array<Place>;
+	waypoints: Record<string, Waypoint>;
+	places: Record<string, Place>;
+	folders: Record<string, Folder>;
+	commonPlaces: Record<string, Place>;
 	center: {
 		latitude: number;
 		longitude: number;
@@ -80,7 +91,7 @@ export interface State {
 	commonPlacemarksShow: boolean;
 	centerPlacemarkShow: boolean;
 	ready: boolean;
-	messages: string[];
+	messages: Array<string>;
 	placeFields: {
 		name               : string;
 		description        : string;
@@ -93,12 +104,8 @@ export interface State {
 		common             : string;
 		images             : string;
 	};
-	lengths: {
-		name        : number;
-		description : number;
-		url         : number;
-	};
 	messageTimer: number;
 	mouseOverMessages: boolean;
 	serverConfig: Record<string, any> | null;
-};
+	rootPlace: any;
+}

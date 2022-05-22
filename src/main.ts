@@ -6,7 +6,7 @@ import store from '@/store';
 import { mapState } from 'vuex';
 import { bus } from '@/shared/bus';
 import { commonFunctions } from '@/shared/common';
-import { Place, Image, Folder } from '@/store/types';
+import { Place, Image, Folder, Waypoint } from '@/store/types';
 import axios from 'axios';
 import '@/css/style.css';
 import '@/css/layout.css';
@@ -18,9 +18,8 @@ new Vue({
 	data: {
 		refreshing: false,
 		draggingElement: null as Element | null,
-		foldersPlain: {} as Record<string, Folder>,
 		foldersEditMode: false,
-		selectedToExport: [],
+		selectedToExport: {},
 		currentPlaceCommon: false,
 		idleTimeInterval: null,
 		activeMapIndex: 0,
@@ -33,37 +32,9 @@ new Vue({
 		}],
 	},
 	computed: {
-		...mapState(['currentPlace', 'currentPlaceIndex']),
-		folderRoot(): Folder {
-			return {
-				id: 'root',
-				type: 'folder',
-				name: 'Мои места',
-				children: this.$store.state.folders,
-				opened: true,
-				geomarks: 1,
-				parent: null,
-				srt: 0,
-				builded: true,
-				added: true,
-				deleted: false,
-				updated: false,
-				userid: '',
-			}
-		},
+		...mapState(['currentPlace']),
 	},
-	watch: {
-		folderRoot: {
-			deep: true,
-			immediate: true,
-			handler(folderRoot) {
-				const foldersPlain = {};
-				commonFunctions.treeToLivePlain(folderRoot, 'children', foldersPlain);
-				this.foldersPlain = foldersPlain;
-			},
-		},
-	},
-	mounted() {
+	created() {
 		bus.$on('logged', () => {
 			this.$store.dispatch('setUser')
 				.then(() => {
@@ -72,42 +43,49 @@ new Vue({
 				})
 			;
 		});
-		bus.$on('toDB', (payload: Record<string, any>) => {
+		bus.$on('toDB', (
+			payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
+		) => {
 			switch (payload.what) {
+				case 'waypoints' :
+					this.toDB({
+						what: payload.what,
+						data: payload.data
+							? payload.data
+							: Object.values(this.$store.state.waypoints)
+						,
+					});
+					break;
 				case 'places' :
 					this.toDB({
 						what: payload.what,
 						data: payload.data
 							? payload.data
-							: this.$store.state.places
+							: Object.values(this.$store.state.places)
 						,
 					});
 					break;
 				case 'folders' :
-					if (payload.data) {
-						this.toDB({
-							what: payload.what,
-							data: payload.data,
-						});
-					} else {
-						const plainFolders: Array<Folder> = [];
-						commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
-						this.toDB({
-							what: payload.what,
-							data: plainFolders,
-						});
-					}
+					this.toDB({
+						what: payload.what,
+						data: payload.data
+							? payload.data
+							: Object.values(this.$store.getters.treeFlat)
+						,
+					});
 					break;
 				case undefined :
 					this.toDB({
-						what: 'places',
-						data: this.$store.state.places,
+						what: 'waypoints',
+						data: Object.values(this.$store.state.waypoints),
 					});
-					const plainFolders: Array<Folder> = [];
-					commonFunctions.treeToPlain(this.folderRoot, 'children', plainFolders);
+					this.toDB({
+						what: 'places',
+						data: Object.values(this.$store.state.places),
+					});
 					this.toDB({
 						what: 'folders',
-						data: plainFolders,
+						data: Object.values(this.$store.getters.treeFlat),
 					});
 					break;
 				default :
@@ -121,51 +99,95 @@ new Vue({
 			this.toDBCompletely();
 		});
 		bus.$on('getFolderById', (id: string) => {
-			return this.foldersPlain[id];
+			return this.$store.getters.treeFlat[id];
 		});
 	},
 	methods: {
 		changeMap(index: number): void {
 			this.activeMapIndex = index;
 		},
-		setCurrentPlace(place: Place, common = false): void {
-			bus.$emit('setCurrentPlace', {place, common});
+		setCurrentPlace(place: Place): void {
+			bus.$emit('setCurrentPlace', {place});
 		},
 		getAbout: async (): Promise<void> => {
 			return await axios.get('/about.html')
 				.then(response => response.data)
 				.catch(error => '<p>Не могу найти справку. ' + error + '</p>');
 		},
-		toDB(payload: Record<string, any>): void {
+		toDB(
+			payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
+		): void {
 			if (!this.$store.state.user.testaccount) {
 				if (!document.querySelector('.value_wrong')) {
 					payload.id = sessionStorage.getItem('places-userid');
-					axios.post('/backend/set_places.php', payload)
+					axios.post(
+						'/backend/set_' +
+						(payload.what === 'waypoints' ? 'waypoints' : 'places') +
+						'.php',
+						payload
+					)
 						.then(response => {
-							for (const fault of response.data) {
-								switch (fault) {
-									case 1 :
-										this.$store.dispatch('setMessage',
-											'Не могу внести данные в базу данных.'
-										);
-										return;
-									case 2 :
-										return;
-									case 3 :
-										this.$store.dispatch('setMessage', `
-											Превышено максимально допустимое для вашей
-											текущей роли количство мест.
-										`);
-										return;
-									case 4 :
-										this.$store.dispatch('setMessage', `
-											Превышено максимально допустимое для вашей
-											текущей роли количство папок.
-										`);
-										return;
+							if (
+								payload.what === 'waypoints' &&
+								response.data.length > 0
+							) {
+							/*
+							When adding new waypoints, the backend found existing
+							waypoints with the same coordinates and returned them:
+							no need to create new ones; or:
+							When updating waypoints, backend found them common,
+							created new waypoints with new values and returned them.
+							Then we update the waypoint key of the corresponding places.
+							*/
+								for (const rec of response.data) {
+									if (!this.$store.state.waypoints[rec.waypoint.id]) {
+										this.$store.dispatch('addWaypoint', {
+											'waypoint': rec.waypoint,
+											'todb': false,
+										});
+									}
+									this.$store.dispatch(
+										'change' +
+											rec.waypointof.type.charAt(0).toUpperCase() +
+											rec.waypointof.type.slice(1),
+										{
+											[rec.waypointof.type]:
+												this.$store.state
+													[rec.waypointof.type + 's']
+													[rec.waypointof.id]
+											,
+											change: {
+												waypoint: rec.waypoint.id,
+											}
+										}
+									);
+								}
+							} else {
+								for (const fault of response.data) {
+									switch (fault) {
+										case 1 :
+											this.$store.dispatch('setMessage',
+												'Не могу внести данные в базу данных.'
+											);
+											return;
+										case 2 :
+											return;
+										case 3 :
+											this.$store.dispatch('setMessage', `
+												Превышено максимально допустимое для вашей
+												текущей роли количство мест.
+											`);
+											return;
+										case 4 :
+											this.$store.dispatch('setMessage', `
+												Превышено максимально допустимое для вашей
+												текущей роли количство папок.
+											`);
+											return;
+									}
 								}
 							}
-							this.$store.dispatch('savedToDB');
+							this.$store.dispatch('savedToDB', payload);
 							this.$store.dispatch('setMessage',
 								'Изменения сохранены в базе данных.'
 							);
@@ -203,68 +225,44 @@ new Vue({
 		},
 		toDBCompletely(): void {
 			if (!this.$store.state.user.testaccount) {
-				const plainFolders: Array<Folder> = [];
-				commonFunctions.treeToPlain(
-					this.folderRoot,
-					'children',
-					plainFolders
-				);
-				axios.post(
-					'/backend/set_completely.php',
-					{
-						id: sessionStorage.getItem('places-userid'),
-						data: {
-							places: this.$store.state.places,
-							folders: plainFolders,
-						},
+				const
+					waypoints: Array<Waypoint> = [],
+					places: Array<Place> = [],
+					folders: Array<Folder> = []
+				;
+				for (
+					const waypoint of
+					<Array<Waypoint>>Object.values(this.$store.state.waypoints)
+				) {
+					if (waypoint.added || waypoint.deleted || waypoint.updated) {
+						waypoints.push(waypoint);
 					}
-				)
-					.then(response => {
-						for (const fault of response.data) {
-							switch (fault) {
-								case 1 :
-									this.$store.dispatch('setMessage',
-										'Не могу внести данные в базу данных.'
-									);
-									return;
-								case 2 :
-									return;
-								case 3 :
-									this.$store.dispatch('setMessage', `
-										Превышено максимально допустимое для вашей
-										текущей роли количство мест.
-									`);
-									return;
-								case 4 :
-									this.$store.dispatch('setMessage', `
-										Превышено максимально допустимое для вашей
-										текущей роли количство папок.
-									`);
-									return;
-							}
-						}
-						this.$store.dispatch('savedToDB');
-						this.$store.dispatch('setMessage',
-							'Изменения сохранены в базе данных.'
-						);
-					})
-					.catch(error => {
-						this.$store.dispatch('setMessage',
-							'Не могу внести данные в базу данных: ' + error
-						);
-					});
-			} else {
-				this.$store.dispatch("setMessage", `
-					Вы авторизовались под тестовым аккаунтом;
-					невозможны сохранение изменений в базу данных
-					и загрузка файлов, в том числе фотографий.
-				`);
+				}
+				for (
+					const place of
+					<Array<Place>>Object.values(this.$store.state.places)
+				) {
+					if (place.added || place.deleted || place.updated) {
+						places.push(place);
+					}
+				}
+				for (
+					const folder of
+					<Array<Folder>>Object.values(this.$store.getters.treeFlat)
+				) {
+					if (folder.added || folder.deleted || folder.updated) {
+						folders.push(folder);
+					}
+				}
+				this.toDB({what: 'waypoints', data: waypoints});
+				this.toDB({what: 'places', data: places});
+				this.toDB({what: 'folders', data: folders});
 			}
 		},
-		deleteImages(images: Array<Image>, family?: boolean): void {
+		deleteImages(images: Record<string, Image>, family?: boolean): void {
 			const data = new FormData();
-			for (let i = 0; i < images.length; i++) {
-				data.append('file_' + i, images[i].file);
+			for (const id in images) {
+				data.append('file_' + id, images[id].file);
 			}
 			data.append('userid', this.$store.state.user.id);
 			if (!this.$store.state.user.testaccount) {
@@ -272,13 +270,13 @@ new Vue({
 					.then(() => {
 						this.toDB({
 							what: 'images_delete',
-							data: images,
+							data: Object.values(images),
 						});
 					});
 			}
 			this.$store.commit('deleteImages', {images: images, family: family});
 		},
-		exportPlaces(places: Array<Place>, mime: string): void {
+		exportPlaces(places: Record<string, Place>, mime: string): void {
 			const a = document.createElement('a');
 			let content: string;
 			switch (mime) {
@@ -293,12 +291,26 @@ new Vue({
 							+ ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
 							+ ' xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
 					;
-					for (const p of places) {
-						content += '<wpt lat="' + p.latitude + '" lon="' + p.longitude + '">';
+					for (const p of Object.values(places)) {
+						content +=
+							'<wpt lat="' +
+							this.$store.state.waypoints[p.waypoint].latitude +
+							'" lon="' +
+							this.$store.state.waypoints[p.waypoint].longitude +
+							'">'
+						;
+						content +=
+							this.$store.state.waypoints[p.waypoint].altitudecapability
+								? (
+									'<ele>' +
+									this.$store.state.waypoints[p.waypoint].altitudecapability +
+									'</ele>'
+								)
+								: ''
+							;
 						content += p.name ? ('<name>' + p.name + '</name>') : '';
-						content += p.description ? ('<description>' + p.description + '</description>') : '';
+						content += p.description ? ('<desc>' + p.description + '</desc>') : '';
 						content += p.link ? ('<link href="' + p.link + '"></link>') : '';
-						content += p.altitudecapability ? ('<ele>' + p.altitudecapability + '</ele>') : '';
 						content += p.time ? ('<time>' + p.time + '</time>') : '';
 						content += '</wpt>';
 					}
@@ -308,38 +320,54 @@ new Vue({
 					mime = 'application/json';
 					a.download = 'places.json';
 					a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
-					const foldersPlain: Array<Folder> = [];
-					let folderId, parentFolder, parentFound, folders = [];
-					commonFunctions.treeToPlain(
-						{'children': this.$store.state.folders}, 'children', foldersPlain
-					);
-					for (const p of places) {
-						if (p.folderid === folderId) {continue;}
-						folderId = p.folderid;
-						for (let i = 0; i < foldersPlain.length; i++) {
-							if (foldersPlain[i].id === p.folderid) {
-								parentFolder = foldersPlain[i];
-								parentFolder.builded = false;
-								folders.push(foldersPlain.splice(i, 1)[0]);
-								do {
-									for (let j = 0; j < foldersPlain.length; j++) {
-										parentFound = false;
-										if (foldersPlain[j].id === parentFolder.parent) {
-											parentFolder = foldersPlain[j];
-											parentFolder.builded = false;
-											folders.push(foldersPlain.splice(j, 1)[0]);
-											parentFound = true;
-											break;
-										}
-									}
-								} while (parentFolder.parent !== 'root' && parentFound);
-								break;
+					const waypoints: Array<Waypoint> = [], folders: Array<Folder> = [];
+					let parentFolder: Folder;
+					for (const p of Object.values(places)) {
+						waypoints.push(this.$store.state.waypoints[p.waypoint]);
+						if (!folders.find(f => f.id === p.folderid)) {
+							parentFolder = this.$store.getters.treeFlat[p.folderid];
+							while (
+								parentFolder.id !== 'root' &&
+								!folders.find(f => f.id === parentFolder.id)
+							) {
+								folders.push(parentFolder);
+								parentFolder = this.$store.getters.treeFlat[parentFolder.parent];
 							}
 						}
 					}
-					folders = commonFunctions.plainToTree(folders);
+					const placesArray = [];
+					for (const id in places) {
+						placesArray.push(Object.assign({}, places[id]));
+						delete placesArray[placesArray.length - 1].type;
+						delete placesArray[placesArray.length - 1].show;
+						delete placesArray[placesArray.length - 1].added;
+						delete placesArray[placesArray.length - 1].deleted;
+						delete placesArray[placesArray.length - 1].updated;
+						delete placesArray[placesArray.length - 1].geomark;
+						delete placesArray[placesArray.length - 1].images;
+					}
+					for (let i = waypoints.length - 1; i >= 0; i--) {
+						waypoints[i] = Object.assign({}, waypoints[i]);
+						delete waypoints[i].type;
+						delete waypoints[i].show;
+						delete waypoints[i].added;
+						delete waypoints[i].deleted;
+						delete waypoints[i].updated;
+					}
+					for (let i = folders.length - 1; i >= 0; i--) {
+						folders[i] = Object.assign({}, folders[i]);
+						delete folders[i].type;
+						delete folders[i].added;
+						delete folders[i].deleted;
+						delete folders[i].updated;
+						delete folders[i].opened;
+						delete folders[i].builded;
+						delete folders[i].geomarks;
+						delete folders[i].children;
+					}
 					content = JSON.stringify({
-						places: places,
+						places: placesArray,
+						waypoints: waypoints,
 						folders: folders,
 					});
 			}
@@ -404,25 +432,19 @@ new Vue({
 				(this.draggingElement as any).dataset.image !== undefined &&
 				(event.target as any).dataset.image !== undefined
 			) {
-				const indexes: number[] = [];
-				for (let i = 0; i < this.currentPlace.images.length; i++) {
-					if (
-						this.currentPlace.images[i].id ===
-							(this.draggingElement as Element).id
-					) {
-						indexes.push(i);
+				const ids: string[] = [];
+				for (const id in this.currentPlace.images) {
+					if (id === (this.draggingElement as Element).id) {
+						ids.push(id);
 					}
-					if (
-						this.currentPlace.images[i].id ===
-							(event.target as Element).id
-					) {
-						indexes.push(i);
+					if (id === (event.target as Element).id) {
+						ids.push(id);
 					}
-					if (indexes.length === 2) break;
+					if (ids.length === 2) break;
 				}
 				this.$store.dispatch('swapImages', {
 					place: this.currentPlace,
-					indexes: indexes,
+					ids: ids,
 				});
 			}
 		},
@@ -457,16 +479,15 @@ new Vue({
 			;
 			let newContainer: any;
 			const change = () => {
-				if (Object.keys(changes.place).length > 0) {
+				if (Object.keys(changes.place).length) {
 					this.$store.dispatch('changePlace', {
-						place: this.$store.state.places.find(
-							(p: Place) => p.id ===
+						place: this.$store.state.places[
 								(this.draggingElement as Element).id.match(/[\d\w]+$/)![0]
-						),
+						],
 						change: changes.place,
 					});
 				}
-				if (Object.keys(changes.folder).length > 0) {
+				if (Object.keys(changes.folder).length) {
 					this.$store.dispatch('moveFolder', {
 						folderId: changes.folder.id,
 						targetId: changes.folder.parent,
@@ -484,16 +505,16 @@ new Vue({
 				(this.draggingElement as any).dataset.placeButton !== undefined &&
 				(event.target as any).dataset.folderButton !== undefined &&
 				(event.target as Element).id.replace(/^.*-([^-]*)/, "$1") !==
-					this.$store.state.places.find(
-						(p: Place) => p.id === (this.draggingElement as Element).id
-					).folderid
+					this.$store.state.places[
+						(this.draggingElement as Element).id
+					].folderid
 			) {
 				newContainer =
 					((event.target as Element).parentElement as Element).nextElementSibling!.nextElementSibling;
 				if (newContainer.lastElementChild) {
-					changes.place.srt = this.$store.state.places.find(
-						(p: Place) => p.id === newContainer.lastElementChild.id
-					).srt + 1;
+					changes.place.srt = this.$store.state.places[
+						newContainer.lastElementChild.id
+					].srt + 1;
 				} else {
 					changes.place.srt = 1;
 				}
@@ -504,9 +525,9 @@ new Vue({
 				return;
 			}
 			/*
-			 * Place button was dropped
-			 * on the top sorting area of another place button
-			 */
+			Place button was dropped
+			on the top sorting area of another place button
+			*/
 			if (
 				(this.draggingElement as any).dataset.placeButton !== undefined &&
 				(event.target as any).dataset.placeButtonDragenterAreaTop !== undefined &&
@@ -530,9 +551,9 @@ new Vue({
 				return;
 			}
 			/*
-			 * Place button was dropped
-			 * on the bottom sorting area of another place button
-			 */
+			Place button was dropped
+			on the bottom sorting area of another place button
+			*/
 			if (
 				(this.draggingElement as any).dataset.placeButton !== undefined &&
 				(event.target as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
@@ -570,7 +591,7 @@ new Vue({
 				) &&
 				changes.folder.id !== changes.folder.parent &&
 				!commonFunctions.isParentInTree(
-					{children: this.$store.state.folders},
+					this.$store.getters.tree,
 					'children',
 					changes.folder.id,
 					changes.folder.parent
@@ -621,9 +642,12 @@ new Vue({
 				!!(changes.folder.parent =
 					(event.target as Element).id.replace(/^.*-([^-]*)/, "$1")
 				) &&
-				changes.folder.id !== changes.folder.parent &&
+				changes.folder.id !== changes.folder.parent && (
+					!this.$store.getters.treeFlat[changes.folder.parent].children ||
+					!this.$store.getters.treeFlat[changes.folder.parent].children[changes.folder.id]
+				) &&
 				!commonFunctions.isParentInTree(
-					{children: this.$store.state.folders},
+					this.$store.getters.tree,
 					'children',
 					changes.folder.id,
 					changes.folder.parent
@@ -632,7 +656,7 @@ new Vue({
 				newContainer =
 					((event.target as Element).parentElement as Element).nextElementSibling!.firstElementChild;
 				if (newContainer && newContainer.lastElementChild) {
-					changes.folder.srt = this.foldersPlain[
+					changes.folder.srt = this.$store.getters.treeFlat[
 						newContainer.lastElementChild.id.replace(/^.*-([^-]*)/, "$1")
 					].srt + 1;
 				} else {
@@ -648,7 +672,7 @@ new Vue({
 					place: this.currentPlace,
 					change: {updated: true},
 				});
-				bus.$emit('toDB', {what: 'places', data: [this.currentPlace]});
+				this.toDB({what: 'places', data: [this.currentPlace]});
 				cleanup();
 				return;
 			}
