@@ -12,7 +12,7 @@
 					<p>Укажите, что делать с вашим наследием на сервисе и подтвердите удаление аккаунта</p>
 				</div>
 				<form
-					@submit.prevent="accountDeletionSubmit(); close($event);"
+					@submit.prevent="accountDeletionSubmit();"
 					@click="$event.stopPropagation();"
 				>
 					<div class="account__form margin_bottom">

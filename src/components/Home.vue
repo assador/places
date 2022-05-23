@@ -20,7 +20,8 @@
 					title="Добавить место в центре карты"
 					@click="appendPlace();"
 				>
-					+
+					<span>➕</span>
+					<span>новое</span>
 				</button>
 				<button
 					id="actions-delete"
@@ -29,7 +30,8 @@
 					:disabled="!($store.state.user && currentPlace && currentPlace.userid === $store.state.user.id)"
 					@click="$store.dispatch('deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
 				>
-					×
+					<span>➖</span>
+					<span>удалить</span>
 				</button>
 				<button
 					id="actions-append-folder"
@@ -37,7 +39,8 @@
 					title="Добавить папку"
 					@click="$router.push({name: 'HomeFolder'}).catch(() => {});"
 				>
-					П+
+					<span>🗀</span>
+					<span>папка</span>
 				</button>
 				<button
 					id="actions-edit-folders"
@@ -45,7 +48,8 @@
 					title="Редактировать папки"
 					@click="$root.foldersEditMode = !$root.foldersEditMode;"
 				>
-					ПР
+					<span>🗁</span>
+					<span>ред.папки</span>
 				</button>
 			</div>
 			// Input field to search the places by name
@@ -107,7 +111,8 @@
 					title="Отменить"
 					@click="$store.dispatch('undo');"
 				>
-					↺
+					<span>↺</span>
+					<span>отменить</span>
 				</button>
 				<button
 					id="actions-redo"
@@ -115,7 +120,8 @@
 					title="Вернуть"
 					@click="$store.dispatch('redo');"
 				>
-					↻
+					<span>↻</span>
+					<span>вернуть</span>
 				</button>
 				<button
 					id="actions-save"
@@ -123,7 +129,8 @@
 					:title="(!$store.state.saved ? 'Не сохранено. ' : '') + 'Сохранить в базу данных.'"
 					@click="$root.toDBCompletely();"
 				>
-					↯
+					<span>🢰</span>
+					<span>в базу</span>
 				</button>
 				<button
 					id="actions-import"
@@ -131,7 +138,8 @@
 					title="Импортировать места"
 					onclick="document.getElementById('inputImportFromFile').click();"
 				>
-					↲
+					<span>↲</span>
+					<span>импорт</span>
 				</button>
 				<button
 					id="actions-export"
@@ -139,7 +147,8 @@
 					title="Экспортировать свои места"
 					@click="$router.push({name: 'HomeExport', params: {mime: 'application/gpx+xml'}}).catch(() => {})"
 				>
-					↱
+					<span>↱</span>
+					<span>экспорт</span>
 				</button>
 				<button
 					id="actions-about"
@@ -147,7 +156,8 @@
 					title="О «Местах», справка"
 					@click="$router.push({name: 'HomeText', params: {what: 'about'}}).catch(() => {})"
 				>
-					?
+					<span>?</span>
+					<span>справка</span>
 				</button>
 				<button
 					id="actions-exit"
@@ -155,7 +165,8 @@
 					title="Выйти"
 					@click="$root.toDBCompletely(); exit();"
 				>
-					↪
+					<span>↪</span>
+					<span>выход</span>
 				</button>
 			</div>
 		</div>
@@ -299,7 +310,7 @@
 								</dd>
 							</div>
 						</div>
-						<dt v-else-if="field !== 'common' && field !== 'waypoint' && field !== 'images'">
+						<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
 							{{ $store.state.placeFields[field] }}:
 						</dt>
 						<dd v-if="field === 'srt' || field === 'link'">
@@ -434,7 +445,8 @@
 					title="Показать / скрыть все свои геометки"
 					@click="$store.dispatch('placemarksShowHide')"
 				>
-					◉
+					<span>◆</span>
+					<span>метки</span>
 				</button>
 				<button
 					id="commonPlacesShowHideButton"
@@ -442,7 +454,8 @@
 					title="Показать / скрыть все другие места и их геометки"
 					@click="commonPlacesShowHide();"
 				>
-					◪
+					<span>◇</span>
+					<span>чужие</span>
 				</button>
 				<button
 					id="commonPlacemarksShowHideButton"
@@ -450,7 +463,8 @@
 					title="Показать / скрыть все другие геометки"
 					@click="$store.dispatch('commonPlacemarksShowHide')"
 				>
-					◎
+					<span>⬙</span>
+					<span>их метки</span>
 				</button>
 				<button
 					id="centerPlacemarkShowHideButton"
@@ -458,7 +472,8 @@
 					title="Показать / скрыть метку центра карты"
 					@click="$store.dispatch('centerPlacemarkShowHide')"
 				>
-					◈
+					<span>◈</span>
+					<span>центр</span>
 				</button>
 			</div>
 		</div>
@@ -636,7 +651,7 @@ export default Vue.extend({
 		}
 		this.$nextTick(() => {
 			makeFieldsValidatable();
-			this.showMap(true);
+			this.showMap(false);
 		});
 	},
 	updated() {
@@ -737,6 +752,7 @@ export default Vue.extend({
 				}
 				this.windowResize();
 				this.$store.commit('backupState');
+				console.trace();
 			}
 		},
 		showMap(mapLoaded: boolean) {

@@ -791,11 +791,21 @@ span.folder-button {
 	font-size: 0 !important;
 }
 .actions-button {
-	width: 28px; height: 28px;
+	display: flex;
+	flex-direction: column;
+	width: 50px; height: 28px;
 	margin: 4px;
-	padding: 13px 0;
-	line-height: 0;
-	font-size: 20px;
+	padding: 4px 0 1px 0;
+	line-height: 0.7;
+	font-size: 11px !important;
+}
+.actions-button * {
+	text-align: center;
+	width: 100%;
+}
+.actions-button *:first-child {
+	flex-grow: 1;
+	font-size: 17px !important;
 }
 #actions-append, #actions-delete, #actions-about {
 	font-size: 24px;

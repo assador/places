@@ -163,6 +163,8 @@ body {
 	overflow: auto;
 }
 .control-buttons {
+	display: flex;
+	flex-wrap: wrap;
 	margin: -4px;
 }
 .find-places-input {
