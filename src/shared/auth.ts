@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import axios from 'axios';
 import { bus } from './bus';
+import store from '@/store';
+
 export const login = Vue.observable({
 	message: '',
 });
@@ -12,12 +14,14 @@ export const loginRoutine: (user: {authLogin: string, authPassword: string}) => 
 					case 0 :
 						sessionStorage.removeItem('places-userid');
 						sessionStorage.removeItem('places-session');
-						login.message = 'Неверные логин или пароль';
+						sessionStorage.removeItem('places-lang');
+						login.message = store.state.t.m.paged.wrongLoginPassword;
 						break;
 					default :
 						if (typeof response.data === 'object') {
-							sessionStorage.setItem('places-session', response.data.session);
 							sessionStorage.setItem('places-userid', response.data.id);
+							sessionStorage.setItem('places-session', response.data.session);
+							sessionStorage.setItem('places-lang', store.state.lang);
 							bus.$emit('logged');
 						}
 				}
@@ -25,6 +29,7 @@ export const loginRoutine: (user: {authLogin: string, authPassword: string}) => 
 			.catch(() => {
 				sessionStorage.removeItem('places-userid');
 				sessionStorage.removeItem('places-session');
+				sessionStorage.removeItem('places-lang');
 			})
 		;
 	};

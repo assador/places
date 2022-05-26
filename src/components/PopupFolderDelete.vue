@@ -6,14 +6,14 @@
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					Удаление папки
+					{{ $store.state.t.i.captions.deletingFolder }}
 				</h1>
 				<p class="margin_bottom_0">
 					«{{ folder ? folder.name : '' }}»
 				</p>
 			</div>
 			<p class="margin_bottom_0">
-				Укажите, что делать с содержимым удаляемой папки:
+				{{ $store.state.t.i.text.whatToDoWithFolder }}:
 			</p>
 			<form
 				class="folder-delete__form margin_bottom_0"
@@ -28,7 +28,7 @@
 							type="radio"
 							value="keep"
 						>
-						<span>Оставить содержимое в корне</span>
+						<span>{{ $store.state.t.i.inputs.leaveContentInRoot }}</span>
 					</label>
 					<label>
 						<input
@@ -37,20 +37,20 @@
 							type="radio"
 							value="delete"
 						>
-						<span>Удалить содержимое (без возможности отмены)</span>
+						<span>{{ $store.state.t.i.inputs.deleteContent }}</span>
 					</label>
 				</fieldset>
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">
-							Удалить папку
+							{{ $store.state.t.i.buttons.deleteFolder }}
 						</button>
 						&#160;
 						<button
 							type="button"
 							@click="close($event);"
 						>
-							Отмена
+							{{ $store.state.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
 				</div>

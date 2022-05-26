@@ -17,45 +17,45 @@
 				<button
 					id="actions-append"
 					class="actions-button"
-					title="Добавить место в центре карты"
+					:title="$store.state.t.i.hints.addPlace"
 					@click="appendPlace();"
 				>
-					<span>➕</span>
-					<span>новое</span>
+					<span>+</span>
+					<span>{{ $store.state.t.i.buttons.newPlace }}</span>
 				</button>
 				<button
 					id="actions-delete"
 					class="actions-button"
-					title="Удалить текущее место"
+					:title="$store.state.t.i.hints.deletePlace"
 					:disabled="!($store.state.user && currentPlace && currentPlace.userid === $store.state.user.id)"
 					@click="$store.dispatch('deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
 				>
-					<span>➖</span>
-					<span>удалить</span>
+					<span>-</span>
+					<span>{{ $store.state.t.i.buttons.delete }}</span>
 				</button>
 				<button
 					id="actions-append-folder"
 					class="actions-button"
-					title="Добавить папку"
+					:title="$store.state.t.i.hints.addFolder"
 					@click="$router.push({name: 'HomeFolder'}).catch(() => {});"
 				>
-					<span>🗀</span>
-					<span>папка</span>
+					<span>↧</span>
+					<span>{{ $store.state.t.i.buttons.newFolder }}</span>
 				</button>
 				<button
 					id="actions-edit-folders"
 					:class="'actions-button' + ($root.foldersEditMode ? ' button-pressed' : '')"
-					title="Редактировать папки"
+					:title="$store.state.t.i.hints.editFolders"
 					@click="$root.foldersEditMode = !$root.foldersEditMode;"
 				>
-					<span>🗁</span>
-					<span>ред.папки</span>
+					<span>⇆</span>
+					<span>{{ $store.state.t.i.buttons.editFolders }}</span>
 				</button>
 			</div>
 			// Input field to search the places by name
 			<input
-				placeholder="Поиск по названию мест"
-				title="Поиск по названию мест"
+				:placeholder="$store.state.t.i.inputs.searchPlaces"
+				:title="$store.state.t.i.inputs.searchPlaces"
 				class="find-places-input fieldwidth_100 fontsize_n"
 				@keyup="selectPlaces"
 			>
@@ -67,13 +67,14 @@
 			<div>
 				<div class="brand">
 					<h1 class="basiccolor margin_bottom_0">
-						Места —
+						{{ $store.state.t.i.brand.header }} —
 						<router-link to="/account">
 							{{ $store.state.user ? $store.state.user.login : 'o_O' }}
 						</router-link>
 					</h1>
-					<div>Сервис просмотра и редактирования библиотек мест</div>
+					<div>{{ $store.state.t.i.brand.slogan }}</div>
 				</div>
+				<dashboard />
 			</div>
 			<div
 				id="messages"
@@ -108,65 +109,65 @@
 				<button
 					id="actions-undo"
 					class="actions-button"
-					title="Отменить"
+					:title="$store.state.t.i.buttons.undo"
 					@click="$store.dispatch('undo');"
 				>
 					<span>↺</span>
-					<span>отменить</span>
+					<span>{{ $store.state.t.i.buttons.undo }}</span>
 				</button>
 				<button
 					id="actions-redo"
 					class="actions-button"
-					title="Вернуть"
+					:title="$store.state.t.i.buttons.redo"
 					@click="$store.dispatch('redo');"
 				>
 					<span>↻</span>
-					<span>вернуть</span>
+					<span>{{ $store.state.t.i.buttons.redo }}</span>
 				</button>
 				<button
 					id="actions-save"
 					:class="'actions-button' + (!$store.state.saved ? ' button-pressed highlight' : '')"
-					:title="(!$store.state.saved ? 'Не сохранено. ' : '') + 'Сохранить в базу данных.'"
+					:title="(!$store.state.saved ? ($store.state.t.i.hints.notSaved + '. ') : '') + $store.state.t.i.hints.sabeToDb"
 					@click="$root.toDBCompletely();"
 				>
-					<span>🢰</span>
-					<span>в базу</span>
+					<span>↸</span>
+					<span>{{ $store.state.t.i.buttons.todb }}</span>
 				</button>
 				<button
 					id="actions-import"
 					class="actions-button"
-					title="Импортировать места"
+					:title="$store.state.t.i.hints.importPlaces"
 					onclick="document.getElementById('inputImportFromFile').click();"
 				>
 					<span>↲</span>
-					<span>импорт</span>
+					<span>{{ $store.state.t.i.buttons.import }}</span>
 				</button>
 				<button
 					id="actions-export"
 					class="actions-button"
-					title="Экспортировать свои места"
+					:title="$store.state.t.i.hints.exportPlaces"
 					@click="$router.push({name: 'HomeExport', params: {mime: 'application/gpx+xml'}}).catch(() => {})"
 				>
 					<span>↱</span>
-					<span>экспорт</span>
+					<span>{{ $store.state.t.i.buttons.export }}</span>
 				</button>
 				<button
 					id="actions-about"
 					class="actions-button"
-					title="О «Местах», справка"
+					:title="$store.state.t.i.hints.about"
 					@click="$router.push({name: 'HomeText', params: {what: 'about'}}).catch(() => {})"
 				>
 					<span>?</span>
-					<span>справка</span>
+					<span>{{ $store.state.t.i.buttons.help }}</span>
 				</button>
 				<button
 					id="actions-exit"
 					class="actions-button"
-					title="Выйти"
+					:title="$store.state.t.i.hints.exit"
 					@click="$root.toDBCompletely(); exit();"
 				>
 					<span>↪</span>
-					<span>выход</span>
+					<span>{{ $store.state.t.i.buttons.exit }}</span>
 				</button>
 			</div>
 		</div>
@@ -187,7 +188,7 @@
 				</div>
 				<div v-if="Object.keys($store.state.commonPlaces).length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">
-						Другие места
+						{{ $store.state.t.i.captions.commonPlaces }}
 					</h2>
 					<div class="margin_bottom">
 						<div
@@ -281,14 +282,14 @@
 								:href="currentPlace[field].trim()"
 								target="_blank"
 							>
-								{{ $store.state.placeFields[field] }}
+								{{ $store.getters.placeFields[field] }}
 							</a>
 							<span v-else>
-								{{ $store.state.placeFields[field] }}:
+								{{ $store.getters.placeFields[field] }}:
 							</span>
 						</dt>
 						<dt v-else-if="field === 'images' && orderedImages.length">
-							{{ $store.state.placeFields[field] }}:
+							{{ $store.getters.placeFields[field] }}:
 						</dt>
 						<div v-if="field === 'waypoint'">
 							<div
@@ -296,7 +297,7 @@
 								:key="coord"
 							>
 								<dt>
-									{{ $store.state.placeFields[coord] }}
+									{{ $store.getters.placeFields[coord] }}
 								</dt>
 								<dd>
 									<input
@@ -311,7 +312,7 @@
 							</div>
 						</div>
 						<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
-							{{ $store.state.placeFields[field] }}:
+							{{ $store.getters.placeFields[field] }}:
 						</dt>
 						<dd v-if="field === 'srt' || field === 'link'">
 							<input
@@ -345,7 +346,7 @@
 									:disabled="$root.currentPlaceCommon"
 									@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 								>
-								Место видно другим
+								{{ $store.state.t.i.inputs.checkboxCommon }}
 							</label>
 						</dd>
 						<dd
@@ -391,7 +392,7 @@
 								:id="'detailed-' + field"
 								v-model.trim="currentPlace[field]"
 								:disabled="$root.currentPlaceCommon"
-								:placeholder="field === 'name' ? 'Название места' : (field === 'description' ? 'Описание места' : '')"
+								:placeholder="field === 'name' ? $store.state.t.i.inputs.placeName : (field === 'description' ? $store.state.t.i.inputs.placeDescription : '')"
 								class="fieldwidth_100"
 								@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 							/>
@@ -403,7 +404,7 @@
 					class="images-add margin_bottom"
 				>
 					<div class="images-add__div button">
-						<span>Добавить фотографии</span>
+						<span>{{ $store.state.t.i.buttons.addPhotos }}</span>
 						<input
 							id="images-add__input"
 							ref="inputUploadFiles"
@@ -419,7 +420,7 @@
 					id="images-uploading"
 					class="block_02 waiting hidden"
 				>
-					<span>… загрузка …</span>
+					<span>… {{ $store.state.t.i.buttons.loading }} …</span>
 				</div>
 				<div v-if="currentPlace && !$root.currentPlaceCommon">
 					<label>
@@ -429,7 +430,7 @@
 							:checked="currentPlace === $store.state.homePlace ? 'checked' : ''"
 							@change="$store.dispatch('setHomePlace', ($event.target.checked ? currentPlace.id : null));"
 						>
-						Домашнее место
+						{{ $store.state.t.i.inputs.checkboxHome }}
 					</label>
 				</div>
 			</div>
@@ -442,38 +443,38 @@
 				<button
 					id="placemarksShowHideButton"
 					:class="'actions-button' + ($store.state.placemarksShow ? ' button-pressed' : '')"
-					title="Показать / скрыть все свои геометки"
+					:title="$store.state.t.i.hints.shPlacemarks"
 					@click="$store.dispatch('placemarksShowHide')"
 				>
 					<span>◆</span>
-					<span>метки</span>
+					<span>{{ $store.state.t.i.buttons.places }}</span>
 				</button>
 				<button
 					id="commonPlacesShowHideButton"
 					:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
-					title="Показать / скрыть все другие места и их геометки"
+					:title="$store.state.t.i.hints.shCommonPlaces"
 					@click="commonPlacesShowHide();"
 				>
 					<span>◇</span>
-					<span>чужие</span>
+					<span>{{ $store.state.t.i.buttons.commonPlaces }}</span>
 				</button>
 				<button
 					id="commonPlacemarksShowHideButton"
 					:class="'actions-button' + ($store.state.commonPlacemarksShow ? ' button-pressed' : '')"
-					title="Показать / скрыть все другие геометки"
+					:title="$store.state.t.i.hints.shCommonPlacemarks"
 					@click="$store.dispatch('commonPlacemarksShowHide')"
 				>
 					<span>⬙</span>
-					<span>их метки</span>
+					<span>{{ $store.state.t.i.buttons.commonPlacemarks }}</span>
 				</button>
 				<button
 					id="centerPlacemarkShowHideButton"
 					:class="'actions-button' + ($store.state.centerPlacemarkShow ? ' button-pressed' : '')"
-					title="Показать / скрыть метку центра карты"
+					:title="$store.state.t.i.hints.shCenter"
 					@click="$store.dispatch('centerPlacemarkShowHide')"
 				>
 					<span>◈</span>
-					<span>центр</span>
+					<span>{{ $store.state.t.i.buttons.center }}</span>
 				</button>
 			</div>
 		</div>
@@ -484,7 +485,7 @@
 			<div class="choose-map">
 				<select
 					id="choose-map-input"
-					@change="$root.changeMap($event.target.selectedIndex); showMap(true);"
+					@change="$root.changeMap($event.target.selectedIndex); showMap();"
 				>
 					<option
 						v-for="(map, index) in $root.maps"
@@ -498,28 +499,28 @@
 			</div>
 			<div class="center-coordinates">
 				<span class="imp">
-					Центр
+					{{ $store.state.t.i.buttons.center }}
 				</span>
 				<span
 					class="nobr"
 					style="margin-left: 1em;"
 				>
-					Широта:
+					{{ $store.state.t.i.captions.latitude }}:
 					<input
 						v-model.number.trim="$store.state.center.latitude"
 						placeholder="latitude"
-						title="Широта"
+						title="$store.state.t.i.captions.latitude"
 					>
 				</span>
 				<span
 					class="nobr"
 					style="margin-left: 1em;"
 				>
-					Долгота:
+					{{ $store.state.t.i.captions.longitude }}:
 					<input
 						v-model.number.trim="$store.state.center.longitude"
 						placeholder="longitude"
-						title="Долгота"
+						title="$store.state.t.i.captions.longitude"
 					>
 				</span>
 			</div>
@@ -537,6 +538,7 @@ import { commonFunctions } from '../shared/common';
 import { makeFieldsValidatable } from '../shared/fields_validate';
 import { bus } from '../shared/bus';
 import axios from 'axios';
+import Dashboard from './Dashboard.vue';
 import Tree from './Tree.vue';
 import MapYandex from './MapYandex.vue';
 import MapOpenStreetMap from './MapOpenStreetMap.vue';
@@ -544,6 +546,7 @@ import { Waypoint, Place, Image } from '@/store/types';
 
 export default Vue.extend({
 	components: {
+		Dashboard,
 		Tree,
 		MapYandex,
 		MapOpenStreetMap,
@@ -651,7 +654,7 @@ export default Vue.extend({
 		}
 		this.$nextTick(() => {
 			makeFieldsValidatable();
-			this.showMap(false);
+			this.showMap();
 		});
 	},
 	updated() {
@@ -728,7 +731,7 @@ export default Vue.extend({
 					);
 					(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = true;
 				}
-				this.showMap(false);
+				this.showMap();
 				document.addEventListener(
 					'dragover',
 					(this.$root as Vue & {handleDragOver(event: Event): void}).handleDragOver,
@@ -743,19 +746,16 @@ export default Vue.extend({
 				window.addEventListener('resize', this.windowResize, false);
 				if (this.$store.state.user.testaccount) {
 					window.setTimeout(() => {
-						this.$store.dispatch("setMessage", `
-							Вы авторизовались под тестовым аккаунтом;
-							невозможны сохранение изменений в базу данных
-							и загрузка файлов, в том числе фотографий.
-						`);
+						this.$store.dispatch("setMessage",
+							this.$store.state.t.m.popup.testAccount
+						);
 					}, 3000);
 				}
 				this.windowResize();
 				this.$store.commit('backupState');
-				console.trace();
 			}
 		},
-		showMap(mapLoaded: boolean) {
+		showMap() {
 			this.$nextTick(() => {
 				if (this.$refs.extmap) {
 					if ((this.$refs.extmap as Vue & {map: any}).map) {
@@ -769,7 +769,7 @@ export default Vue.extend({
 							(this.$refs.extmap as Vue & {map: any}).map.remove();
 						}
 					}
-					if (!mapLoaded) {
+					if (this.$store.state.center.latitude === null) {
 						if (this.currentPlace) {
 							(this.$refs.extmap as Vue & {
 								showMap(lat: number, lng: number, zoom: number): void
@@ -1005,10 +1005,9 @@ export default Vue.extend({
 				}, 500);
 				return newPlace;
 			} else {
-				this.$store.dispatch('setMessage', `
-					Превышено максимально допустимое для вашей
-					текущей роли количство мест.
-				`);
+				this.$store.dispatch('setMessage',
+					this.$store.state.t.m.popup.placesCountExceeded
+				);
 			}
 		},
 		deletePlace(place: Place) {
@@ -1107,7 +1106,7 @@ export default Vue.extend({
 						text: (event.target as FileReader).result,
 						mime: mime,
 					}).then(() => {
-						this.showMap(true);
+						this.showMap();
 					});
 					(this.$refs.inputImportFromFile as HTMLInputElement).value = '';
 				});
@@ -1117,17 +1116,16 @@ export default Vue.extend({
 					(this.$refs.inputImportFromFile as HTMLInputElement).files![0]
 				);
 			} else {
-				this.$store.dispatch('setMessage', `
-					Недопустимый тип импортируемого файла.
-					Допускаются только JSON и GPX.
-				`);
+				this.$store.dispatch('setMessage',
+					this.$store.state.t.m.popup.invalidImportFileType
+				);
 			}
 		},
 		uploadFiles(event: Event) {
 			event.preventDefault();
 			if (this.$store.state.user.testaccount) {
 				this.$store.dispatch('setMessage',
-					'Тестовый аккаунт не позволяет загрузку файлов.'
+					this.$store.state.t.m.popup.taNotAllowFileUploads
 				);
 			} else {
 				let
@@ -1148,15 +1146,15 @@ export default Vue.extend({
 				for (let i = 0; i < files.length; i++) {
 					if (!this.$store.state.serverConfig.mimes[files![i].type]) {
 						this.$store.dispatch('setMessage',
-							'Файл ' +
+							this.$store.state.t.m.popup.file + ' ' +
 							files![i].name +
-							' не является картинкой и загружен не будет.'
+							' ' + this.$store.state.t.m.popup.fileNotImage
 						);
 					} else if (files![i].size > this.$store.state.serverConfig.uploadsize) {
 						this.$store.dispatch('setMessage',
-							'Файл ' +
+							this.$store.state.t.m.popup.file + ' ' +
 							files![i].name +
-							' слишком большого размера и загружен не будет.'
+							' ' + this.$store.state.t.m.popup.fileTooLarge
 						);
 					} else {
 						let rndname = commonFunctions.generateRandomString(32);
@@ -1201,24 +1199,19 @@ export default Vue.extend({
 							response.data[0].forEach((code: number) => {
 								switch (code) {
 									case 2 :
-										this.$store.dispatch('setMessage', `
-											Тестовый аккаунт не позволяет загрузку файлов.
-										`
+										this.$store.dispatch('setMessage',
+											this.$store.state.t.m.popup.taNotAllowFileUploads
 										);
 										break;
 									case 3 :
-										this.$store.dispatch('setMessage', `
-											Некоторые файлы не являются
-											картинками и загружены не были.
-										`
+										this.$store.dispatch('setMessage',
+											this.$store.state.t.m.popup.filesNotImages
 										);
 										break;
 									case 4 :
-										this.$store.dispatch('setMessage', `
-											Некоторые файлы слишком большого
-											размера и загружены не были.
-											Для вашей роли размер файла ограничен
-											` + ' ' + Number(
+										this.$store.dispatch('setMessage',
+											this.$store.state.t.m.popup.filesTooLarge +
+											' ' + Number(
 												(this.$store.state.serverConfig.rights.photosize
 												/ 1048576).toFixed(3)
 											) + ' Mb.'
@@ -1251,13 +1244,14 @@ export default Vue.extend({
 									data: filesArray,
 								});
 								this.$store.dispatch('setMessage',
-									'Файлы успешно загружены.'
+									this.$store.state.t.m.popup.filesUploadedSuccessfully
 								);
 							}
 						})
 						.catch(error => {
 							this.$store.dispatch('setMessage',
-								'При загрузке файлов произошла ошибка. ' + error
+								this.$store.state.t.m.popup.filesUploadError +
+								' ' + error
 							);
 						});
 				}

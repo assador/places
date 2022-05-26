@@ -7,9 +7,9 @@
 			<div class="narrower">
 				<div class="brand">
 					<h1 class="margin_bottom_0">
-						Удаление аккаунта
+						{{ $store.state.t.i.captions.deletingAccount }}
 					</h1>
-					<p>Укажите, что делать с вашим наследием на сервисе и подтвердите удаление аккаунта</p>
+					<p>{{ $store.state.t.i.text.whatToDoWithAll }}</p>
 				</div>
 				<form
 					@submit.prevent="accountDeletionSubmit();"
@@ -17,7 +17,9 @@
 				>
 					<div class="account__form margin_bottom">
 						<fieldset>
-							<h2>Места</h2>
+							<h2>
+								{{ $store.state.t.i.captions.places }}
+							</h2>
 							<label>
 								<input
 									id="placesLeaveNone"
@@ -27,7 +29,9 @@
 									value="none"
 									@change="accountDeletionConditionsChange($event);"
 								>
-								<span>Удалить все мои места</span>
+								<span>
+									{{ $store.state.t.i.inputs.daDeletePlaces }}
+								</span>
 							</label>
 							<label>
 								<input
@@ -38,7 +42,9 @@
 									value="common"
 									@change="accountDeletionConditionsChange($event);"
 								>
-								<span>Оставить только видимые всем места</span>
+								<span>
+									{{ $store.state.t.i.inputs.daLeaveOnlyCommonPlaces }}
+								</span>
 							</label>
 							<label>
 								<input
@@ -49,11 +55,15 @@
 									value="all"
 									@change="accountDeletionConditionsChange($event);"
 								>
-								<span>Оставить все мои места, сделав их видимыми всем</span>
+								<span>
+									{{ $store.state.t.i.inputs.daLeaveAllPlaces }}
+								</span>
 							</label>
 						</fieldset>
 						<fieldset>
-							<h2>Фотографии</h2>
+							<h2>
+								{{ $store.state.t.i.captions.images }}
+							</h2>
 							<label>
 								<input
 									id="imagesLeaveNone"
@@ -63,7 +73,9 @@
 									value="none"
 									@change="accountDeletionConditionsChange($event);"
 								>
-								<span>Удалить мои фотографии</span>
+								<span>
+									{{ $store.state.t.i.inputs.daDeleteImages }}
+								</span>
 							</label>
 							<label>
 								<input
@@ -74,21 +86,23 @@
 									value="all"
 									@change="accountDeletionConditionsChange($event);"
 								>
-								<span>Оставить мои фотографии</span>
+								<span>
+									{{ $store.state.t.i.inputs.daLeaveImages }}
+								</span>
 							</label>
 						</fieldset>
 					</div>
 					<div style="text-align: center;">
 						<fieldset>
 							<button type="submit">
-								Удалить аккаунт
+								{{ $store.state.t.i.buttons.deleteAccount }}
 							</button>
 							&#160;
 							<button
 								type="button"
 								@click="close($event)"
 							>
-								Отмена
+								{{ $store.state.t.i.buttons.cancel }}
 							</button>
 						</fieldset>
 					</div>
@@ -137,10 +151,7 @@ export default Vue.extend({
 		},
 		accountDeletionSubmit() {
 			if (this.$store.state.user.testaccount) {
-				acc.message = `
-					Вы авторизовались под тестовым аккаунтом,
-					который удалить нельзя
-				`;
+				acc.message = this.$store.state.t.m.paged.taCannotBeDeleted;
 			} else {
 				const {
 					userId,

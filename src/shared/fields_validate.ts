@@ -1,3 +1,5 @@
+import store from '@/store';
+
 export const validateField = (value: string, type: string): boolean => {
 	const re: Record<string, RegExp> = {
 		'integer'     : /^-?\d+$/,
@@ -16,35 +18,35 @@ export const validateField = (value: string, type: string): boolean => {
 	if (typeof value !== 'string' || typeof re[type] === 'undefined') {throw 'Illegal function attributes';}
 	return re[type].test(value);
 };
-export const makeFieldsValidatable = (): void => {
+export const makeFieldsValidatable = (anyway?: boolean): void => {
 	const fields: Record<string, string[]> = {
-		'authLogin'                : ['login',       'Не более 24 символов'],
-		'forgotEmail'              : ['e-mail',      'Пример: my.Name@хост.рф'],
-		'regLogin'                 : ['login',       'Не более 24 символов'],
-		'accountLogin'             : ['login',       'Не более 24 символов'],
-		'authPassword'             : ['password',    'Не более 255 символов'],
-		'regPassword'              : ['password',    'Не более 255 символов'],
-		'regPasswordRepeat'        : ['password',    'Не более 255 символов'],
-		'accountPassword'          : ['password',    'Не более 255 символов'],
-		'accountNewPassword'       : ['password',    'Не более 255 символов'],
-		'accountNewPasswordRepeat' : ['password',    'Не более 255 символов'],
-		'regName'                  : ['name',        'Не более 100 символов.'],
-		'accountName'              : ['name',        'Не более 100 символов.'],
-		'folderName'               : ['longname',    'Не более 500 символов.'],
-		'folderDescription'        : ['description', 'Не более 2044 символов.'],
-		'regPhone'                 : ['phone',       'Слитно, с ведущим +7. Пример: +71234567890'],
-		'accountPhone'             : ['phone',       'Слитно, с ведущим +7. Пример: +71234567890'],
-		'regEmail'                 : ['e-mail',      'Пример: my.Name@хост.рф'],
-		'accountEmail'             : ['e-mail',      'Пример: my.Name@хост.рф'],
-		'email'                    : ['e-mail',      'Пример: my.Name@хост.рф'],
-		'detailed-latitude'        : ['latlong',     'Пример: 55.5555555'],
-		'detailed-longitude'       : ['latlong',     'Пример: 55.5555555'],
-		'detailed-id'              : ['integerm',    'Пример: 238'],
-		'detailed-srt'             : ['decimal',     'Пример: 3.752'],
+		'authLogin'                : ['login',       store.state.t.i.hints.fvNotMore24],
+		'forgotEmail'              : ['e-mail',      store.state.t.i.hints.fvEmailExample],
+		'regLogin'                 : ['login',       store.state.t.i.hints.fvNotMore24],
+		'accountLogin'             : ['login',       store.state.t.i.hints.fvNotMore24],
+		'authPassword'             : ['password',    store.state.t.i.hints.fvNotMore255],
+		'regPassword'              : ['password',    store.state.t.i.hints.fvNotMore255],
+		'regPasswordRepeat'        : ['password',    store.state.t.i.hints.fvNotMore255],
+		'accountPassword'          : ['password',    store.state.t.i.hints.fvNotMore255],
+		'accountNewPassword'       : ['password',    store.state.t.i.hints.fvNotMore255],
+		'accountNewPasswordRepeat' : ['password',    store.state.t.i.hints.fvNotMore255],
+		'regName'                  : ['name',        store.state.t.i.hints.fvNotMore100],
+		'accountName'              : ['name',        store.state.t.i.hints.fvNotMore100],
+		'folderName'               : ['longname',    store.state.t.i.hints.fvNotMore500],
+		'folderDescription'        : ['description', store.state.t.i.hints.fvNotMore2044],
+		'regPhone'                 : ['phone',       store.state.t.i.hints.fvPhoneExample],
+		'accountPhone'             : ['phone',       store.state.t.i.hints.fvPhoneExample],
+		'regEmail'                 : ['e-mail',      store.state.t.i.hints.fvEmailExample],
+		'accountEmail'             : ['e-mail',      store.state.t.i.hints.fvEmailExample],
+		'email'                    : ['e-mail',      store.state.t.i.hints.fvEmailExample],
+		'detailed-latitude'        : ['latlong',     store.state.t.i.hints.fvLatLonExample],
+		'detailed-longitude'       : ['latlong',     store.state.t.i.hints.fvLatLonExample],
+		'detailed-id'              : ['integerm',    store.state.t.i.hints.fvIdExample],
+		'detailed-srt'             : ['decimal',     store.state.t.i.hints.fvSrtExample],
 	}
 	for (const id in fields) {
 		const field = document.getElementById(id);
-		if (field && !field.classList.contains('value_validatable')) {
+		if (field && (!field.classList.contains('value_validatable') || anyway)) {
 			field.classList.add('value_validatable');
 			field.title = fields[id][1];
 			field.addEventListener('input', event => {

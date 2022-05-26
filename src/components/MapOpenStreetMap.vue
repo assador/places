@@ -213,16 +213,16 @@ export default Vue.extend({
 				railroads  = L.tileLayer.provider('OpenRailwayMap')
 			;
 			const baseMaps = {
-				'Спутник'                  : satellite,
-				'Топография'               : topography,
-				'Топография для туристов'  : tourists,
-				'Общественный транспорт'   : transport,
-				'Общественный транспорт 2' : aero,
-				'Велосипедистам'           : bicycles,
-				'Основная карта'           : osm,
+				[this.$store.state.t.i.maps.satellite] : satellite,
+				[this.$store.state.t.i.maps.topography] : topography,
+				[this.$store.state.t.i.maps.tourists] : tourists,
+				[this.$store.state.t.i.maps.transport] : transport,
+				[this.$store.state.t.i.maps.aero] : aero,
+				[this.$store.state.t.i.maps.bicycles] : bicycles,
+				[this.$store.state.t.i.maps.osm] : osm,
 			};
 			const overlayMaps = {
-				'Железные дороги'          : railroads,
+				[this.$store.state.t.i.maps.railroads] : railroads,
 			};
 			this.map = L.map('mapblock', {
 				center: [lat, lng],
@@ -262,7 +262,7 @@ export default Vue.extend({
 			this.map.on('zoomend', updateState);
 			this.mrk = L.marker([lat, lng], {icon: this.icon_03, ...this.centerPlacemarkOptions})
 				.addTo(this.map)
-				.bindPopup('Метка центра карты', {autoPan: false})
+				.bindPopup(this.$store.state.t.i.maps.center, {autoPan: false})
 				.openPopup();
 			if (!this.$store.state.centerPlacemarkShow) {
 				this.map.removeLayer(this.mrk);
@@ -291,6 +291,7 @@ export default Vue.extend({
 					this.commonMrks[this.currentPlace.id].setIcon(this.icon_03);
 				}
 			}
+			updateState();
 		},
 		clickPlacemark(place: Place, type: string) {
 			let marks = (type === 'common' ? this.commonMrks : this.mrks);
@@ -332,7 +333,7 @@ export default Vue.extend({
 				if (place !== this.currentPlace) {
 					marks[place.id].dragging.disable();
 					this.$store.dispatch('setMessage',
-						'Для перетаскивания точку сначала нужно выделить.'
+						this.$store.state.t.m.popup.needToChoosePlacemark
 					);
 				}
 			});

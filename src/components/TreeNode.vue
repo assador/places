@@ -34,7 +34,7 @@
 				</span>
 				<span
 					class="folder-button__geomarks"
-					:title="(folder.geomarks === 1 ? 'Скрыть' : 'Показать') + ' геометки на карте'"
+					:title="(folder.geomarks === 1 ? $store.state.t.i.hints.hide : $store.state.t.i.hints.show) + ' ' + $store.state.t.i.hints.placemarksOnMap"
 					@click="$event.stopPropagation(); showHideGeomarks((folder.id === 'root' ? $store.getters.tree : folder), (folder.geomarks === 1 ? 0 : 1));"
 				>
 					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
@@ -48,14 +48,14 @@
 			>
 				<input
 					v-model="folder.name"
-					placeholder="Название"
+					:placeholder="$store.state.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
 					@change="$store.dispatch('changeFolder', {folder: folder, change: {name: folder.name}});"
 					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
 				>
 				<a
 					class="folder-button__delete"
-					title="Удалить папку"
+					:title="$store.state.t.i.buttons.deleteFolder"
 					@click="$event.stopPropagation(); $router.push({name: 'HomeDeleteFolder', params: {folderId: folder.id}}).catch(() => {})"
 				>
 					×
@@ -63,7 +63,7 @@
 				<textarea
 					v-model="folder.description"
 					rows="2"
-					placeholder="Описание"
+					:placeholder="$store.state.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
 					@change="$store.dispatch('changeFolder', {folder: folder, change: {description: folder.description}});"
 					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
@@ -116,7 +116,7 @@
 				</span>
 				<a
 					class="place-button__geomark"
-					:title="(place.geomark === false ? 'Показать' : 'Скрыть') + ' геометку на карте'"
+					:title="(place.geomark === false ? $store.state.t.i.hints.show : $store.state.t.i.hints.hide) + ' ' + $store.state.t.i.hints.placemarkOnMap"
 					@click="$event.stopPropagation(); showHideGeomarks(place, !place.geomark);"
 				>
 					{{ !place.geomark ? '⚇' : '⚉' }}

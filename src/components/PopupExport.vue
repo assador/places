@@ -6,11 +6,11 @@
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					Экспортировать места
+					{{ $store.state.t.i.captions.exportPlaces }}
 				</h1>
 			</div>
 			<p class="margin_bottom_0">
-				Укажите формат файла, в который будут экспортированы места:
+				{{ $store.state.t.i.text.specifyFormatToExport }}:
 			</p>
 			<form
 				class="popup-export__form"
@@ -29,10 +29,7 @@
 						<span>GPX</span>
 					</label>
 					<p>
-						Стандартный XML-формат хранения и обмена данными GPS.
-						Понимается большинством программ-навигаторов
-						(например, Locus Map, Navitel и т.д.). Экспортируются
-						только сами места. Дерево папок не сохраняется.
+						{{ $store.state.t.i.text.descGpx }}
 					</p>
 					<label>
 						<input
@@ -45,13 +42,10 @@
 						<span>JSON</span>
 					</label>
 					<p>
-						Формат хранения и обмена произвольными данными,
-						основанный на JavaScript. Идеально подходит для обмена
-						данными пользователей этого сервиса. Экспортируются
-						как сами места, так и деревья папок или их части.
+						{{ $store.state.t.i.text.descJson }}
 					</p>
 				</fieldset>
-				<p>Выберите места для экспорта:</p>
+				<p>{{ $store.state.t.i.text.specifyPlacesToExport }}:</p>
 				<div
 					v-if="Object.keys($store.state.places).length > 0 || Object.keys($store.state.folders).length > 0"
 					id="popup-export__tree"
@@ -66,14 +60,14 @@
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">
-							Экспортировать
+							{{ $store.state.t.i.buttons.export }}
 						</button>
 						&#160;
 						<button
 							type="button"
 							@click="close($event)"
 						>
-							Отмена
+							{{ $store.state.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
 				</div>

@@ -92,20 +92,9 @@ export interface State {
 	centerPlacemarkShow: boolean;
 	ready: boolean;
 	messages: Array<string>;
-	placeFields: {
-		name               : string;
-		description        : string;
-		link               : string;
-		latitude           : string;
-		longitude          : string;
-		altitudecapability : string;
-		time               : string;
-		srt                : string;
-		common             : string;
-		images             : string;
-	};
 	messageTimer: number;
 	mouseOverMessages: boolean;
 	serverConfig: Record<string, any> | null;
-	rootPlace: any;
+	lang: string;
+	t: any;
 }

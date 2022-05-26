@@ -3,9 +3,9 @@
 		<div class="narrower">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					Места
+					{{ $store.state.t.i.brand.header }}
 				</h1>
-				<p>Страница пользователя</p>
+				<p>{{ $store.state.t.i.captions.accountPage }}</p>
 			</div>
 			<form
 				class="account__form"
@@ -14,7 +14,7 @@
 				<table class="table_form">
 					<tbody>
 						<tr>
-							<th>Логин:</th>
+							<th>{{ $store.state.t.i.captions.login }}:</th>
 							<td colspan="2">
 								<input
 									id="accountLogin"
@@ -22,43 +22,43 @@
 									class="fieldwidth_100"
 									required
 									type="text"
-									placeholder="Логин *"
+									:placeholder="$store.state.t.i.inputs.regLogin"
 								>
 							</td>
 						</tr>
 						<tr>
-							<th>Новый пароль:</th>
+							<th>{{ $store.state.t.i.captions.newPassword }}:</th>
 							<td colspan="2">
 								<input
 									id="accountNewPassword"
 									v-model="accountNewPassword"
 									class="fieldwidth_100"
 									type="password"
-									placeholder="если нужно сменить пароль"
+									:placeholder="$store.state.t.i.inputs.needToChangePassword"
 								>
 							</td>
 						</tr>
 						<tr>
-							<th>Повторите новый пароль:</th>
+							<th>{{ $store.state.t.i.captions.repeatNewPassword }}:</th>
 							<td colspan="2">
 								<input
 									id="accountNewPasswordRepeat"
 									v-model="accountNewPasswordRepeat"
 									class="fieldwidth_100"
 									type="password"
-									placeholder="если нужно сменить пароль"
+									:placeholder="$store.state.t.i.inputs.needToChangePassword"
 								>
 							</td>
 						</tr>
 						<tr>
-							<th>Обращение (имя):</th>
+							<th>{{ $store.state.t.i.inputs.regAddressBy }}:</th>
 							<td colspan="2">
 								<input
 									id="accountName"
 									v-model="accountName"
 									class="fieldwidth_100"
 									type="text"
-									placeholder="Обращение (имя)"
+									:placeholder="$store.state.t.i.inputs.regAddressBy"
 								>
 							</td>
 						</tr>
@@ -76,14 +76,14 @@
 							</td>
 						</tr>
 						<tr>
-							<th>Телефон:</th>
+							<th>{{ $store.state.t.i.captions.phone }}:</th>
 							<td colspan="2">
 								<input
 									id="accountPhone"
 									v-model="accountPhone"
 									class="fieldwidth_100"
 									type="text"
-									placeholder="Телефон"
+									:placeholder="$store.state.t.i.captions.phone"
 								>
 							</td>
 						</tr>
@@ -91,14 +91,14 @@
 							<th />
 							<td style="padding-top: 18px; vertical-align: top;">
 								<button type="submit">
-									Сохранить
+									{{ $store.state.t.i.buttons.save }}
 								</button>
 								&#160;
 								<button
 									type="button"
 									@click="close($event)"
 								>
-									Назад
+									{{ $store.state.t.i.buttons.back }}
 								</button>
 							</td>
 							<td style="padding-top: 18px; vertical-align: top; text-align: right;">
@@ -106,7 +106,7 @@
 									type="button"
 									@click="$router.push({name: 'AccountDelete'}).catch(() => {})"
 								>
-									Удалить аккаунт
+									{{ $store.state.t.i.buttons.deleteAccount }}
 								</button>
 							</td>
 						</tr>
@@ -170,10 +170,7 @@ export default Vue.extend({
 		},
 		accountSubmit() {
 			if (this.$store.state.user.testaccount) {
-				acc.message = `
-					Вы авторизовались под тестовым аккаунтом,
-					который изменить нельзя
-				`;
+				acc.message = this.$store.state.t.m.paged.taCannotBeChanged;
 			} else {
 				if (!document.querySelector('.value_wrong')) {
 					const {
@@ -195,10 +192,10 @@ export default Vue.extend({
 							accountPhone,
 						});
 					} else {
-						acc.message = 'Введёные пароли не совпадают';
+						acc.message = this.$store.state.t.m.paged.passwordsNotMatch;
 					}
 				} else {
-					acc.message = 'Некоторые поля заполнены некорректно';
+					acc.message = this.$store.state.t.m.paged.incorrectFields;
 				}
 			}
 		},

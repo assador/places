@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import axios from 'axios';
+import store from '@/store';
+
 export const forgot = Vue.observable({
 	message: '',
 });
@@ -9,13 +11,13 @@ export const forgotRoutine: (data: Record<string, string>) => void =
 			.then(response => {
 				switch (response.data) {
 					case 0 :
-						forgot.message = 'При отправке письма произошла ошибка.';
+						forgot.message = store.state.t.m.paged.letterError;
 						break;
 					case 1 :
-						forgot.message = 'Пользователь с таким e-mail в сервисе не зарегистрирован.';
+						forgot.message = store.state.t.m.paged.noUserWithEmail;
 						break;
 					default :
-						forgot.message = 'На указанный вами e-mail отправлено письмо с вашими логином и новым паролем. При желении вы сможете изменить их в личном кабинете после авторизации.';
+						forgot.message = store.state.t.m.paged.forgotLetterSent;
 				}
 			})
 		;

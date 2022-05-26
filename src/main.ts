@@ -30,6 +30,13 @@ new Vue({
 			name: 'Яндекс.Карты',
 			component: 'MapYandex',
 		}],
+		langs: [{
+			value: 'ru',
+			title: 'Русский',
+		}, {
+			value: 'en',
+			title: 'English',
+		}],
 	},
 	computed: {
 		...mapState(['currentPlace']),
@@ -112,7 +119,9 @@ new Vue({
 		getAbout: async (): Promise<void> => {
 			return await axios.get('/about.html')
 				.then(response => response.data)
-				.catch(error => '<p>Не могу найти справку. ' + error + '</p>');
+				.catch(error =>
+					'<p>' + error + '</p>'
+				);
 		},
 		toDB(
 			payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
@@ -167,39 +176,37 @@ new Vue({
 									switch (fault) {
 										case 1 :
 											this.$store.dispatch('setMessage',
-												'Не могу внести данные в базу данных.'
+												this.$store.state.t.m.popup.cannotSendDataToDb
 											);
 											return;
 										case 2 :
 											return;
 										case 3 :
-											this.$store.dispatch('setMessage', `
-												Превышено максимально допустимое для вашей
-												текущей роли количство мест.
-											`);
+											this.$store.dispatch('setMessage',
+												this.$store.state.t.m.popup.placesCountExceeded
+											);
 											return;
 										case 4 :
-											this.$store.dispatch('setMessage', `
-												Превышено максимально допустимое для вашей
-												текущей роли количство папок.
-											`);
+											this.$store.dispatch('setMessage',
+												this.$store.state.t.m.paged.foldersCountExceeded
+											);
 											return;
 									}
 								}
 							}
 							this.$store.dispatch('savedToDB', payload);
 							this.$store.dispatch('setMessage',
-								'Изменения сохранены в базе данных.'
+								this.$store.state.t.m.popup.savedToDb
 							);
 						})
 						.catch(error => {
 							this.$store.dispatch('setMessage',
-								'Не могу внести данные в базу данных: ' + error
+								this.$store.state.t.m.popup.cannotSendDataToDb + ': ' + error
 							);
 						});
 				} else {
 					this.$store.dispatch('setMessage',
-						'Некоторые поля заполнены некорректно.'
+						this.$store.state.t.m.paged.incorrectFields
 					);
 				}
 			}
@@ -213,12 +220,12 @@ new Vue({
 					.then(() => {
 						this.$store.commit('setSaved', true);
 						this.$store.dispatch('setMessage',
-							'Изменения сохранены в базе данных.'
+							this.$store.state.t.m.popup.savedToDb
 						);
 					})
 					.catch(error => {
 						this.$store.dispatch('setMessage',
-							'Не могу внести данные в базу данных: ' + error
+							this.$store.state.t.m.popup.cannotSendDataToDb + ': ' + error
 						);
 					});
 			}

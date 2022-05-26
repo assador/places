@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import axios from 'axios';
+import store from '@/store';
+
 export const acc = Vue.observable({
 	message: '',
 });
@@ -10,23 +12,16 @@ export const accountSaveRoutine: (account: Record<string, string>) => void =
 			.then(response => {
 				switch (response.data) {
 					case 0 :
-						acc.message = 'При сохранении данных произошла ошибка.';
+						acc.message = store.state.t.m.paged.savingDataError;
 						break;
 					case 1 :
-						acc.message = `
-							На указанный вами e-mail отправлено письмо
-							с инструкциями для подтверждения изменения данных,
-							выполните их в течение суток.
-						`;
+						acc.message = store.state.t.m.paged.confirmDataLetterSent;
 						break;
 					case 2 :
-						acc.message = `
-							Вы авторизовались под тестовым аккаунтом,
-							который изменить нельзя.
-						`;
+						acc.message = store.state.t.m.paged.taCannotBeChanged;
 						break;
 					case 3 :
-						acc.message = 'Этот логин занят, выберите другой.';
+						acc.message = store.state.t.m.paged.loginTaken;
 						break;
 				}
 			})

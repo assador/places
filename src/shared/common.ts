@@ -1,4 +1,6 @@
+import store from '@/store';
 import { State, Waypoint, Place, Folder } from '../store/types';
+
 let resultForRecursive: unknown;
 export const commonFunctions = {
 	generateRandomString(length = 32): string {
@@ -214,8 +216,8 @@ export const commonFunctions = {
 				updated: false,
 				id: 'imported',
 				parent: 'root',
-				name: 'Импортированное',
-				description: 'Импортированные места',
+				name: store.state.t.o.importedFolderName,
+				description: store.state.t.o.importedFolderDescription,
 				srt: 99999,
 				userid: sessionStorage.getItem('places-userid') as string,
 				geomarks: 1,

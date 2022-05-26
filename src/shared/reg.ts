@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import axios from 'axios';
+import store from '@/store';
+
 export const reg = Vue.observable({
 	message: '',
 });
@@ -9,17 +11,13 @@ export const regRoutine: (data: Record<string, string>) => void =
 			.then(response => {
 				switch (response.data) {
 					case 0 :
-						reg.message = 'При регистрации произошла ошибка.';
+						reg.message = store.state.t.m.paged.regError;
 						break;
 					case 1 :
-						reg.message = 'Этот логин занят. Выберите другой.';
+						reg.message = store.state.t.m.paged.loginTaken;
 						break;
 					default :
-						reg.message = `
-							На указанный вами e-mail отправлено письмо
-							с инструкциями для подтверждения регистрации.
-							Выполните их в течение суток.
-						`;
+						reg.message = store.state.t.m.paged.regLetterSent;
 				}
 			})
 		;

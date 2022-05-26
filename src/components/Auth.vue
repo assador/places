@@ -2,17 +2,18 @@
 	<div class="auth centered">
 		<div class="brand">
 			<h1 class="margin_bottom_0">
-				Места
+				{{ $store.state.t.i.brand.header }}
 			</h1>
-			<p>Сервис просмотра и редактирования библиотек мест</p>
+			<p>{{ $store.state.t.i.brand.slogan }}</p>
 		</div>
+		<dashboard />
 		<div class="auth_forms">
 			<div class="auth__login margin_bottom">
 				<form
 					class="margin_bottom"
 					@submit.prevent="authLoginSubmit"
 				>
-					<h2>Авторизация</h2>
+					<h2>{{ $store.state.t.i.captions.auth }}</h2>
 					<div class="auth__login__fields margin_bottom">
 						<input
 							id="authLogin"
@@ -20,7 +21,7 @@
 							class="fieldwidth_100"
 							required
 							type="text"
-							placeholder="Логин *"
+							:placeholder="$store.state.t.i.inputs.regLogin"
 						>
 						<input
 							id="authPassword"
@@ -28,12 +29,12 @@
 							class="fieldwidth_100"
 							required
 							type="password"
-							placeholder="Пароль *"
+							:placeholder="$store.state.t.i.inputs.regPassword"
 						>
 					</div>
 					<div class="margin_bottom">
 						<button type="submit">
-							Войти
+							{{ $store.state.t.i.buttons.login }}
 						</button>
 					</div>
 					<div class="margin_bottom">
@@ -43,14 +44,14 @@
 						type="button"
 						onclick="let f = document.querySelector('.auth__forgot'); if (f.classList.contains('hidden')) {f.classList.remove('hidden');} else {f.classList.add('hidden');}"
 					>
-						Не помню логин / пароль
+						{{ $store.state.t.i.buttons.forgot }}
 					</button>
 				</form>
 				<form
 					class="auth__forgot hidden"
 					@submit.prevent="authForgot"
 				>
-					<p>Введите e-mail, указанный вами при регистрации. На него будут высланы ваши логин и новый пароль.</p>
+					<p>{{ $store.state.t.i.text.emailToSendPassword }}</p>
 					<input
 						id="forgotEmail"
 						v-model.trim="forgotEmail"
@@ -63,7 +64,7 @@
 						type="submit"
 						class="margin_bottom"
 					>
-						Прислать
+						{{ $store.state.t.i.buttons.sendPassword }}
 					</button>
 					<div>
 						{{ forgot.message }}
@@ -74,7 +75,7 @@
 				class="auth__registration"
 				@submit.prevent="authRegSubmit"
 			>
-				<h2>Регистрация</h2>
+				<h2>{{ $store.state.t.i.captions.reg }}</h2>
 				<div class="auth__registration__fields margin_bottom">
 					<input
 						id="regLogin"
@@ -82,14 +83,14 @@
 						class="fieldwidth_100"
 						required
 						type="text"
-						placeholder="Логин *"
+						:placeholder="$store.state.t.i.inputs.regLogin"
 					>
 					<input
 						id="regName"
 						v-model.trim="regName"
 						class="fieldwidth_100"
 						type="text"
-						placeholder="Обращение (имя)"
+						:placeholder="$store.state.t.i.inputs.regAddressBy"
 					>
 					<input
 						id="regPassword"
@@ -97,7 +98,7 @@
 						class="fieldwidth_100"
 						required
 						type="password"
-						placeholder="Пароль *"
+						:placeholder="$store.state.t.i.inputs.regPassword"
 					>
 					<input
 						id="regPasswordRepeat"
@@ -105,7 +106,7 @@
 						class="fieldwidth_100"
 						required
 						type="password"
-						placeholder="Повторите пароль *"
+						:placeholder="$store.state.t.i.inputs.regRepeatPassword"
 					>
 					<input
 						id="regEmail"
@@ -120,14 +121,14 @@
 						v-model.trim="regPhone"
 						class="fieldwidth_100"
 						type="text"
-						placeholder="Телефон"
+						:placeholder="$store.state.t.i.inputs.regPhone"
 					>
 				</div>
 				<button
 					type="submit"
 					class="margin_bottom"
 				>
-					Зарегистрироваться
+					{{ $store.state.t.i.buttons.register }}
 				</button>
 				<div>
 					{{ reg.message }}
@@ -136,10 +137,10 @@
 		</div>
 		<div>
 			<button
-				title="О «Местах», справка"
+				:title="$store.state.t.i.hints.about"
 				@click="$router.push({name: 'AuthText', params: {what: 'about'}}).catch(() => {})"
 			>
-				Что это такое? Описание, мануал
+				{{ $store.state.t.i.buttons.whatIsIt }}
 			</button>
 		</div>
 		<router-view />
@@ -148,13 +149,17 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import Dashboard from './Dashboard.vue';
 import { mapState } from 'vuex'
-import { makeFieldsValidatable } from '../shared/fields_validate';
-import { loginRoutine, login } from '../shared/auth';
-import { regRoutine, reg } from '../shared/reg';
-import { forgotRoutine, forgot } from '../shared/forgot';
+import { makeFieldsValidatable } from '@/shared/fields_validate';
+import { loginRoutine, login } from '@/shared/auth';
+import { regRoutine, reg } from '@/shared/reg';
+import { forgotRoutine, forgot } from '@/shared/forgot';
 
 export default Vue.extend({
+	components: {
+		Dashboard,
+	},
 	data() {
 		return {
 			login: login,
@@ -212,10 +217,10 @@ export default Vue.extend({
 						regPhone,
 					});
 				} else {
-					reg.message = 'Введёные пароли не совпадают';
+					reg.message = this.$store.state.t.m.paged.passwordsNotMatch;
 				}
 			} else {
-				reg.message = 'Некоторые поля заполнены некорректно';
+				reg.message = this.$store.state.t.m.paged.incorrectFields;
 			}
 		},
 		authForgot() {
@@ -223,7 +228,7 @@ export default Vue.extend({
 			if (!document.getElementById('forgotEmail')!.classList.contains('value_wrong')) {
 				forgotRoutine({forgotEmail});
 			} else {
-				forgot.message = 'Некорректный e-mail';
+				forgot.message = this.$store.state.t.m.paged.incorrectEmail;
 			}
 		},
 	},

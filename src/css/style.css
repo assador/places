@@ -798,6 +798,7 @@ span.folder-button {
 	padding: 4px 0 1px 0;
 	line-height: 0.7;
 	font-size: 11px !important;
+	text-transform: lowercase;
 }
 .actions-button * {
 	text-align: center;

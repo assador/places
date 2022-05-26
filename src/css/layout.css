@@ -38,6 +38,9 @@ body {
 .auth__registration__fields {
 	grid-template-columns: 1fr 1fr;
 }
+.auth #langs {
+	margin: -40px 0 40px 0;
+}
 #a {
 	position: absolute;
 }
@@ -125,6 +128,9 @@ body {
 }
 .brand {
 	min-width: 38.2%;
+}
+#top-basic .brand {
+	flex-grow: 1;
 }
 #messages {
 	box-sizing: border-box;

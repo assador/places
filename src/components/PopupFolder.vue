@@ -6,7 +6,7 @@
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					Новая папка
+					{{ $store.state.t.i.captions.newFolder }}
 				</h1>
 			</div>
 			<form
@@ -17,7 +17,7 @@
 				<table class="table_form">
 					<tbody>
 						<tr>
-							<th>Название:</th>
+							<th>{{ $store.state.t.i.captions.name }}:</th>
 							<td>
 								<input
 									id="folderName"
@@ -29,7 +29,7 @@
 							</td>
 						</tr>
 						<tr>
-							<th>Описание:</th>
+							<th>{{ $store.state.t.i.captions.description }}:</th>
 							<td>
 								<textarea
 									id="folderDescription"
@@ -42,11 +42,11 @@
 							<th />
 							<td style="padding-top: 18px; vertical-align: top;">
 								<button type="submit">
-									Создать папку
+									{{ $store.state.t.i.buttons.createFolder }}
 								</button>
 								&#160;
 								<button @click="close($event);">
-									Закрыть
+									{{ $store.state.t.i.buttons.cancel }}
 								</button>
 							</td>
 						</tr>
@@ -154,15 +154,12 @@ export default Vue.extend({
 					updated: false,
 				};
 				this.$store.dispatch('addFolder', newFolder);
-				this.message = 'Папка создана';
+				this.message = this.$store.state.t.m.paged.folderCreated;
 				this.folderName = '';
 				this.folderDescription = '';
 				document.getElementById('folderName')!.focus();
 			} else {
-				this.message = `
-					Превышено максимально допустимое для вашей
-					текущей роли количство папок.
-				`;
+				this.message = this.$store.state.t.m.paged.foldersCountExceeded;
 			}
 		},
 		keyup(event: Event) {

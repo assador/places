@@ -8,7 +8,6 @@
 			class="popup-image border_1"
 			:src="constants.dirs.uploads.images.big + image.file"
 			:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedbig + image.file + '\''"
-			title="Следующая"
 			@click="showImage(1, $event);"
 		>
 		<a

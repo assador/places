@@ -210,11 +210,8 @@ export default Vue.extend({
 				this.mrk = new this.maps.Placemark(
 					[lat, lng],
 					{
-						hintContent: 'Метка центра карты',
-						balloonContent: `
-							Метка текущих координат центра карты.
-							Новое место будет создано здесь.
-						`,
+						hintContent: this.$store.state.t.i.maps.center,
+						balloonContent: this.$store.state.t.i.maps.centerExt,
 					},
 					this.centerPlacemarkOptions
 				);
@@ -291,7 +288,7 @@ export default Vue.extend({
 				if (place.id !== this.currentPlace.id) {
 					marks[place.id].options.set({draggable: false});
 					this.$store.dispatch('setMessage',
-						'Для перетаскивания точку сначала нужно выделить.'
+						this.$store.state.t.i.maps.needToChoosePlacemark
 					);
 				}
 			});

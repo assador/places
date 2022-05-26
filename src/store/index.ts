@@ -1,6 +1,7 @@
 import { constants } from '../shared/constants';
 import { bus } from '../shared/bus';
 import { commonFunctions } from '../shared/common';
+import { makeFieldsValidatable } from '@/shared/fields_validate';
 import axios from 'axios';
 import Vue from 'vue';
 import Vuex, { Store, Plugin, MutationPayload } from 'vuex';
@@ -58,6 +59,11 @@ const tracking: Plugin<State> = (store: Store<State>) => {
 			}
 		}
 	});
+	store.watch(
+		state => state.t,
+		l => makeFieldsValidatable(true)
+	);
+	store.dispatch('changeLang', store.state.lang);
 };
 
 const store: Store<State> = new Vuex.Store<State>({
@@ -77,8 +83,8 @@ const store: Store<State> = new Vuex.Store<State>({
 		folders: {},
 		commonPlaces: {},
 		center: {
-			latitude: constants.map.initial.latitude,
-			longitude: constants.map.initial.longitude,
+			latitude: null,
+			longitude: null,
 		},
 		zoom: constants.map.initial.zoom,
 		placemarksShow: true,
@@ -86,36 +92,19 @@ const store: Store<State> = new Vuex.Store<State>({
 		centerPlacemarkShow: false,
 		ready: false,
 		messages: [],
-		placeFields: {
-			name               : 'Название',
-			description        : 'Описание',
-			link               : 'Ссылка',
-			latitude           : 'Широта',
-			longitude          : 'Долгота',
-			altitudecapability : 'Высота над уровнем моря (м)',
-			time               : 'Время создания геометки (UTC)',
-			srt                : 'Сортировка',
-			common             : 'Приватность',
-			images             : 'Фотографии',
-		},
 		messageTimer: 0,
 		mouseOverMessages: false,
 		serverConfig: null,
-		rootPlace: {
-			id: 'root',
-			parent: null,
-			name: 'Мои места',
-			srt: 0,
-			geomarks: 1,
-			type: 'folder',
-			added: false,
-			deleted: false,
-			updated: false,
-			opened: true,
-			builded: true,
-		},
+		lang: sessionStorage.getItem('places-lang')
+			? sessionStorage.getItem('places-lang')
+			: 'ru',
+		t: {},
 	},
 	mutations: {
+		changeLang(state, payload) {
+			Vue.set(state, 'lang', payload.lang);
+			Vue.set(state, 't', payload.dict);
+		},
 		setMessage(state, message) {
 			state.messages.push(message);
 		},
@@ -180,6 +169,7 @@ const store: Store<State> = new Vuex.Store<State>({
 			Vue.set(state, 'inUndoRedo', false);
 		},
 		reset(state) {
+			Vue.set(state, 'refreshing', false);
 			Vue.set(state, 'saved', true);
 			Vue.set(state, 'idleTime', 0);
 			Vue.set(state, 'stateBackups', []);
@@ -193,22 +183,29 @@ const store: Store<State> = new Vuex.Store<State>({
 			Vue.set(state, 'folders', {});
 			Vue.set(state, 'commonPlaces', {});
 			Vue.set(state, 'center', {
-				latitude: constants.map.initial.latitude,
-				longitude: constants.map.initial.longitude,
+				latitude: null,
+				longitude: null,
 			});
+			Vue.set(state, 'zoom', constants.map.initial.zoom);
+			Vue.set(state, 'placemarksShow', true);
+			Vue.set(state, 'commonPlacemarksShow', false);
+			Vue.set(state, 'centerPlacemarkShow', false);
 			Vue.set(state, 'ready', false);
-			Vue.set(state, 'message', '');
+			Vue.set(state, 'messages', []);
+			Vue.set(state, 'messageTimer', 0);
+			Vue.set(state, 'mouseOverMessages', false);
+			Vue.set(state, 'serverConfig', null);
 			Vue.set(state, 'placeFields', {
-				name               : 'Название',
-				description        : 'Описание',
-				link               : 'Ссылка',
-				latitude           : 'Широта',
-				longitude          : 'Долгота',
-				altitudecapability : 'Высота над уровнем моря (м)',
-				time               : 'Время создания геометки (UTC)',
-				srt                : 'Сортировка',
-				common             : 'Приватность',
-				images             : 'Фотографии',
+				name               : state.t.i.captions.name,
+				description        : state.t.i.captions.description,
+				link               : state.t.i.captions.link,
+				latitude           : state.t.i.captions.latitude,
+				longitude          : state.t.i.captions.longitude,
+				altitudecapability : state.t.i.captions.altitudecapability,
+				time               : state.t.i.captions.time,
+				srt                : state.t.i.captions.srt,
+				common             : state.t.i.captions.common,
+				images             : state.t.i.captions.images,
 			});
 		},
 		setUser(state, user) {
@@ -388,6 +385,13 @@ const store: Store<State> = new Vuex.Store<State>({
 		},
 	},
 	actions: {
+		changeLang({state, commit}, lang) {
+			const getLang = () => import(`@/lang/${lang}.ts`);
+			getLang().then(l => {
+				commit('changeLang', {lang: lang, dict: l.t});
+				sessionStorage.setItem('places-lang', state.lang);
+			});
+		},
 		restoreState({commit, dispatch}, backupIndex) {
 			commit('restoreState', backupIndex);
 			dispatch('restoreObjectsAsLinks')
@@ -422,8 +426,9 @@ const store: Store<State> = new Vuex.Store<State>({
 			sessionStorage.removeItem('places-store-state');
 			sessionStorage.removeItem('places-userid');
 			sessionStorage.removeItem('places-session');
+			sessionStorage.removeItem('places-lang');
 		},
-		setUser({commit, dispatch}) {
+		setUser({state, commit, dispatch}) {
 			axios
 				.get(
 					'/backend/get_account.php?id=' +
@@ -434,12 +439,12 @@ const store: Store<State> = new Vuex.Store<State>({
 					dispatch('setServerConfig');
 				})
 				.catch(() => {
-					dispatch('setMessage', 'Не могу получить данные.');
+					dispatch('setMessage', state.t.m.popup.cannotGetData);
 					commit('setUser', null);
 				})
 			;
 		},
-		setServerConfig({commit, dispatch}) {
+		setServerConfig({state, commit, dispatch}) {
 			axios
 				.get(
 					'/backend/get_config.php?userid=' +
@@ -449,7 +454,7 @@ const store: Store<State> = new Vuex.Store<State>({
 					commit('setServerConfig', response.data);
 				})
 				.catch(() => {
-					dispatch('setMessage', 'Не могу получить данные.');
+					dispatch('setMessage', state.t.m.popup.cannotGetData);
 					commit('setServerConfig', null);
 				})
 			;
@@ -477,7 +482,9 @@ const store: Store<State> = new Vuex.Store<State>({
 						commit('stateReady', true);
 					})
 					.catch(() => {
-						dispatch('setMessage', 'Не могу получить данные из БД.');
+						dispatch('setMessage',
+							state.t.m.popup.cannotGetDataFromDb
+						);
 						commit('placesReady', {
 							waypoints: {},
 							places: {},
@@ -502,7 +509,7 @@ const store: Store<State> = new Vuex.Store<State>({
 					return result;
 				} catch (e) {
 					dispatch('setMessage',
-						'Ошибка при разборе импортируемого файла: ' + e
+						this.$store.state.t.m.popup.parsingImportError + ': ' + e
 					);
 					return null;
 				}
@@ -521,7 +528,7 @@ const store: Store<State> = new Vuex.Store<State>({
 					);
 				} catch (e) {
 					dispatch('setMessage',
-						'Ошибка при разборе импортируемого файла: ' + e
+						this.$store.state.t.m.popup.parsingImportError + ': ' + e
 					);
 					return null;
 				}
@@ -682,10 +689,9 @@ const store: Store<State> = new Vuex.Store<State>({
 										};
 										dispatch('addFolder', newFolder);
 									} else {
-										dispatch('setMessage', `
-											Превышено максимально допустимое для вашей
-											текущей роли количство папок.
-										`);
+										dispatch('setMessage',
+											this.$store.state.t.m.popup.foldersCountExceeded
+										);
 										break;
 									}
 									allParentsAdded = false;
@@ -697,7 +703,7 @@ const store: Store<State> = new Vuex.Store<State>({
 							break;
 						default :
 							dispatch('setMessage', `
-								Хм.
+								o_O
 							`);
 							return false;
 					}
@@ -761,16 +767,15 @@ const store: Store<State> = new Vuex.Store<State>({
 								});
 							}
 						} else {
-							dispatch('setMessage', `
-								Превышено максимально допустимое для вашей
-								текущей роли количство мест.
-							`);
+							dispatch('setMessage',
+								this.$store.state.t.m.popup.placesCountExceeded
+							);
 						}
 					}
 					bus.$emit('toDBCompletely');
 				} catch (e) {
 					dispatch('setMessage',
-						'Ошибка при попытке импорта: ' + e
+						this.$store.state.t.m.popup.parsingImportError + ': ' + e
 					);
 					return false;
 				}
@@ -785,10 +790,9 @@ const store: Store<State> = new Vuex.Store<State>({
 					parsed = parseGPX(payload.text);
 					break;
 				default :
-					dispatch('setMessage', `
-						Недопустимый тип импортируемого файла.
-						Допускаются только JSON и GPX.
-					`);
+					dispatch('setMessage',
+						state.t.m.popup.invalidImportFileType
+					);
 					return false;
 			}
 			addImported(payload.mime, parsed);
@@ -1281,10 +1285,41 @@ const store: Store<State> = new Vuex.Store<State>({
 		},
 	},
 	getters: {
-		tree(state) {
-			Vue.set(state.rootPlace, 'children', state.folders);
-			Vue.set(state.rootPlace, 'userid', (state.user ? state.user.id : null));
-			return state.rootPlace;
+		rootPlace(state) {
+			const rootPlace = {
+				id: 'root',
+				parent: null,
+				name: state.t.i.captions.rootFolder,
+				srt: 0,
+				geomarks: 1,
+				type: 'folder',
+				added: false,
+				deleted: false,
+				updated: false,
+				opened: true,
+				builded: true,
+			};
+			return rootPlace;
+		},
+		placeFields(state) {
+			const placeFields = {
+				name               : state.t.i.captions.name,
+				description        : state.t.i.captions.description,
+				link               : state.t.i.captions.link,
+				latitude           : state.t.i.captions.latitude,
+				longitude          : state.t.i.captions.longitude,
+				altitudecapability : state.t.i.captions.altitudecapability,
+				time               : state.t.i.captions.time,
+				srt                : state.t.i.captions.srt,
+				common             : state.t.i.captions.common,
+				images             : state.t.i.captions.images,
+			}
+			return placeFields;
+		},
+		tree(state, getters) {
+			Vue.set(getters.rootPlace, 'children', state.folders);
+			Vue.set(getters.rootPlace, 'userid', (state.user ? state.user.id : null));
+			return getters.rootPlace;
 		},
 		treeFlat(state, getters) {
 			const treeFlat: Record<string, Folder> = {};
