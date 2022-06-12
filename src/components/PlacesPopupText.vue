@@ -15,16 +15,21 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { constants } from '../shared/constants';
+import { defineComponent } from 'vue';
+import { constants } from '@/shared/constants';
 
-export default Vue.extend({
-	props: ['what'],
+export default defineComponent({
+	props: {
+		what: {
+			type: String,
+			default: '',
+		},
+	},
 	data() {
 		return {
 			content: '',
 			popuped: false,
-		}
+		};
 	},
 	watch: {
 		what() {
@@ -35,7 +40,7 @@ export default Vue.extend({
 		this.open();
 		document.addEventListener('keyup', this.keyup, false);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	beforeUpdate() {
@@ -46,8 +51,9 @@ export default Vue.extend({
 			if (event) event.stopPropagation();
 			switch (this.what) {
 				default :
-					(this.$root as Vue & {getAbout(): Promise<void>}).getAbout()
-						.then((data: unknown) => {this.content = data as string});
+					this.$root.getAbout().then(
+						(data: unknown) => {this.content = data as string}
+					);
 			}
 		},
 		close(event: Event) {

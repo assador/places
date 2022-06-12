@@ -1,8 +1,8 @@
-import Vue from 'vue';
+import { reactive } from 'vue';
 import axios from 'axios';
 import store from '@/store';
 
-export const reg = Vue.observable({
+export const reg = reactive({
 	message: '',
 });
 export const regRoutine: (data: Record<string, string>) => void =

@@ -1,3 +1,3 @@
-import Vue from 'vue';
+import mitt from 'mitt';
 
-export const bus = new Vue();
+export const emitter = mitt();

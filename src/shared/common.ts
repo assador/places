@@ -1,5 +1,6 @@
 import store from '@/store';
-import { State, Waypoint, Place, Folder } from '../store/types';
+import { constants } from '@/shared/constants';
+import { Folder } from '@/store/types';
 
 let resultForRecursive: unknown;
 export const commonFunctions = {
@@ -12,7 +13,10 @@ export const commonFunctions = {
 		}
 		return string;
 	},
-	sortObjects(array: Record<string, any>[], field: string): Record<string, any>[] {
+	sortObjects(
+		array: Array<Record<string, any>>,
+		field: string
+	): Array<Record<string, any>> {
 		const sorted = array.slice().sort(function(a, b) {
 			if (a[field] > b[field]) {
 				return 1;
@@ -25,7 +29,7 @@ export const commonFunctions = {
 		return sorted;
 	},
 	// Sort geomarks so as to build the shortest path through them.
-	sortObjectsByProximity(array: Record<string, any>[]): void {
+	sortObjectsByProximity(array: Array<Record<string, any>>): void {
 		let
 			indexNearest = -1,
 			distCurrent,
@@ -34,10 +38,26 @@ export const commonFunctions = {
 		;
 		while (array.length > lastIndex + 1) {
 			for (let i = lastIndex + 1; i < array.length; i++) {
-				const llt = Number(array[lastIndex].latitude) * Math.PI / 180;
-				const lln = Number(array[lastIndex].longitude) * Math.PI / 180;
-				const clt = Number(array[i].latitude) * Math.PI / 180;
-				const cln = Number(array[i].longitude) * Math.PI / 180;
+				const llt = (
+					Number(array[lastIndex].latitude) ||
+					Number(constants.map.initial.latitude) ||
+					null
+				) * Math.PI / 180;
+				const lln = (
+					Number(array[lastIndex].longitude) ||
+					Number(constants.map.initial.longitude) ||
+					null
+				) * Math.PI / 180;
+				const clt = (
+					Number(array[i].latitude) ||
+					Number(constants.map.initial.latitude) ||
+					null
+				) * Math.PI / 180;
+				const cln = (
+					Number(array[i].longitude) ||
+					Number(constants.map.initial.longitude) ||
+					null
+				) * Math.PI / 180;
 				distCurrent =
 					Math.acos(
 						Math.sin(llt) * Math.sin(clt) +
@@ -55,15 +75,26 @@ export const commonFunctions = {
 			}
 		}
 	},
-	childrenCount(tree: Record<string, any>, childrenKey: string, result = 0): number {
+	childrenCount(
+		tree: Record<string, any>,
+		childrenKey: string,
+		result = 0
+	): number {
 		if (Array.isArray(tree[childrenKey])) {
 			for (let i = 0; i < tree[childrenKey].length; i++) {
-				result = this.childrenCount(tree[childrenKey][i], childrenKey, ++result);
+				result = this.childrenCount(
+					tree[childrenKey][i], childrenKey, ++result
+				);
 			}
 		}
 		return result;
 	},
-	findInTree(tree: Folder, childrenKey: string, key: string, value: unknown): any {
+	findInTree(
+		tree: Record<string, any>,
+		childrenKey: string,
+		key: string,
+		value: unknown
+	): Record<string, any> | null {
 		if (tree[key] === value) {
 			return tree;
 		}
@@ -72,7 +103,12 @@ export const commonFunctions = {
 				if (sub === value) {
 					return tree[childrenKey][sub];
 				}
-				resultForRecursive = this.findInTree(tree[childrenKey][sub], childrenKey, key, value);
+				resultForRecursive = this.findInTree(
+					tree[childrenKey][sub],
+					childrenKey,
+					key,
+					value
+				);
 				if (resultForRecursive) {
 					return resultForRecursive;
 				}
@@ -80,7 +116,13 @@ export const commonFunctions = {
 		}
 		return null;
 	},
-	changeByKeyValue(tree: Record<string, any>, childrenKey: string, key: string, value: unknown, what: string): void {
+	changeByKeyValue(
+		tree: Record<string, any>,
+		childrenKey: string,
+		key: string,
+		value: unknown,
+		what: string
+	): void {
 		if (tree[childrenKey] && Object.keys(tree[childrenKey]).length > 0) {
 			for (const id in tree[childrenKey]) {
 				switch (what) {
@@ -89,14 +131,22 @@ export const commonFunctions = {
 							delete tree[childrenKey][id];
 						} else {
 							this.changeByKeyValue(
-								tree[childrenKey][id], childrenKey, key, value, what
+								tree[childrenKey][id],
+								childrenKey,
+								key,
+								value,
+								what
 							);
 						}
 						break;
 					case "change" :
 						tree[childrenKey][id][key] = value;
 						this.changeByKeyValue(
-							tree[childrenKey][id], childrenKey, key, value, what
+							tree[childrenKey][id],
+							childrenKey,
+							key,
+							value,
+							what
 						);
 						break;
 				}
@@ -106,21 +156,25 @@ export const commonFunctions = {
 	treeToPlain(
 		tree: Record<string, any>,
 		childrenKey: string,
-		plain: Record<string, any>
-	): Record<string, any> {
+		plain: Array<Record<string, any>>
+	): Array<Record<string, any>> {
 		if (tree[childrenKey] && Object.keys(tree[childrenKey]).length > 0) {
 			let plained;
 			for (const obj of Object.values(tree[childrenKey])) {
 				plained = JSON.parse(JSON.stringify(obj));
 				delete plained[childrenKey];
 				plain[plained.id] = plained;
-				(resultForRecursive as Record<string, any>) =
+				(resultForRecursive as Array<Record<string, any>>) =
 					this.treeToPlain(obj, childrenKey, plain);
 			}
 		}
-		return (resultForRecursive as Record<string, any>);
+		return (resultForRecursive as Array<Record<string, any>>);
 	},
-	treeToLivePlain(tree: Record<string, any>, childrenKey: string, plain: Record<string, any>): void {
+	treeToLivePlain(
+		tree: Record<string, any>,
+		childrenKey: string,
+		plain: Record<string, any>
+	): void {
 		plain[tree.id] = tree;
 		if (tree[childrenKey] && Object.keys(tree[childrenKey]).length) {
 			for (const id in tree[childrenKey]) {
@@ -128,7 +182,13 @@ export const commonFunctions = {
 			}
 		}
 	},
-	treeNewIds(tree: Record<string, any>, childrenKey: string, parentKey: string, items: Record<string, any>[], itemParentKey: string): void {
+	treeNewIds(
+		tree: Record<string, any>,
+		childrenKey: string,
+		parentKey: string,
+		items: Array<Record<string, any>>,
+		itemParentKey: string
+	): void {
 		const newId = tree.id === "root" ? null : this.generateRandomString(32);
 		if (Array.isArray(items) && items.length > 0) {
 			for (let i = 0; i < items.length; i++) {
@@ -152,7 +212,13 @@ export const commonFunctions = {
 			}
 		}
 	},
-	isParentInTree(tree: Record<string, any>, childrenKey: string, parentId: string, childId: string, parent?: Record<string, any>): boolean {
+	isParentInTree(
+		tree: Record<string, any>,
+		childrenKey: string,
+		parentId: string,
+		childId: string,
+		parent?: Record<string, any>
+	): boolean {
 		if (!parent) {
 			parent = this.findInTree(tree, childrenKey, 'id', parentId) || tree;
 		}
@@ -160,13 +226,19 @@ export const commonFunctions = {
 			return true;
 		}
 		for (const id in parent![childrenKey]) {
-			if (this.isParentInTree(tree, childrenKey, parentId, childId, parent![childrenKey][id])) {
+			if (this.isParentInTree(
+				tree,
+				childrenKey,
+				parentId,
+				childId,
+				parent![childrenKey][id]
+			)) {
 				return true;
 			}
 		}
 		return false;
 	},
-	plainToTree(plain: Record<string, Folder>): Folder {
+	plainToTree(plain: Record<string, any>): Record<string, any> {
 		const tree = {};
 		let ready = false;
 		while (!ready && Object.keys(plain).length > 0) {
@@ -194,7 +266,7 @@ export const commonFunctions = {
 				}
 			}
 		}
-		return tree as Folder;
+		return tree as Record<string, any>;
 	},
 	/**
 	 * Creation of a folder for the imported places
@@ -252,7 +324,7 @@ export const commonFunctions = {
 					parent: imported.id,
 					name: date.y,
 					description: '',
-					srt: date.y,
+					srt: Number(date.y) || 0,
 					children: {},
 				};
 				imported.children[folders['y' + date.y].id] = folders['y' + date.y];
@@ -276,7 +348,7 @@ export const commonFunctions = {
 					parent: folders['y' + date.y].id,
 					name: date.m,
 					description: '',
-					srt: date.m,
+					srt: Number(date.m) || 0,
 					children: {},
 				};
 				folders['y' + date.y].children[folders['m' + date.m].id] = folders['m' + date.m];
@@ -300,7 +372,7 @@ export const commonFunctions = {
 					parent: folders['m' + date.m].id,
 					name: date.d,
 					description: '',
-					srt: date.d,
+					srt: Number(date.d) || 0,
 					children: {},
 				};
 				folders['m' + date.m].children[folders['d' + date.d].id] = folders['d' + date.d];

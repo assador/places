@@ -173,4 +173,8 @@ export const t = {
 			savedToDb: 'Changes have been saved to the database.',
 		},
 	},
+	o: {
+		importedFolderName: 'Imported',
+		importedFolderDescription: 'Imported places',
+	},
 };

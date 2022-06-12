@@ -29,20 +29,25 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import _ from 'lodash';
-import { constants } from '../shared/constants';
+import { constants } from '@/shared/constants';
 import { Place, Image } from '@/store/types';
 
-export default Vue.extend({
-	props: ['imageId'],
+export default defineComponent({
+	props: {
+		imageId: {
+			type: String,
+			default: '',
+		},
+	},
 	data() {
 		return {
 			constants: constants,
 			popuped: false,
 			images: [] as Array<Image>,
 			image: {} as Image,
-		}
+		};
 	},
 	watch: {
 		imageId() {
@@ -57,7 +62,7 @@ export default Vue.extend({
 	beforeUpdate() {
 		this.popuped = true;
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
@@ -69,7 +74,7 @@ export default Vue.extend({
 		},
 		defineVars() {
 			const places: Record<string, Place> = (
-				!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
+				!this.$root.currentPlaceCommon
 					? this.$store.state.places
 					: this.$store.state.commonPlaces
 			);
@@ -93,7 +98,7 @@ export default Vue.extend({
 						(currentIndex + step) % ImagesLength < 0 ? ImagesLength: 0
 					);
 					this.$router.push({
-						name: 'HomeImages',
+						name: 'PlacesHomeImages',
 						params: {imageId: this.images[currentIndex].id}
 					}).catch(() => {});
 				}

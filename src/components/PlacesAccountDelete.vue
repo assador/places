@@ -123,10 +123,10 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { accountDeletionRoutine, acc } from '../shared/account';
 
-export default Vue.extend({
+export default defineComponent({
 	data() {
 		return {
 			userId: sessionStorage.getItem('places-userid') as string,
@@ -134,7 +134,7 @@ export default Vue.extend({
 			leaveImages: 'none',
 			acc: acc,
 			popuped: false,
-		}
+		};
 	},
 	mounted() {
 		this.popuped = true;
@@ -164,7 +164,7 @@ export default Vue.extend({
 					leaveImages,
 				);
 				this.$store.dispatch('unload');
-				this.$router.push({name: 'Auth'});
+				this.$router.push({name: 'PlacesAuth'});
 			}
 		},
 		accountDeletionConditionsChange(event: Event) {

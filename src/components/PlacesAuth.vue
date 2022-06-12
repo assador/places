@@ -6,7 +6,7 @@
 			</h1>
 			<p>{{ $store.state.t.i.brand.slogan }}</p>
 		</div>
-		<dashboard />
+		<places-dashboard />
 		<div class="auth_forms">
 			<div class="auth__login margin_bottom">
 				<form
@@ -138,7 +138,7 @@
 		<div>
 			<button
 				:title="$store.state.t.i.hints.about"
-				@click="$router.push({name: 'AuthText', params: {what: 'about'}}).catch(() => {})"
+				@click="$router.push({name: 'PlacesAuthText', params: {what: 'about'}}).catch(() => {})"
 			>
 				{{ $store.state.t.i.buttons.whatIsIt }}
 			</button>
@@ -148,17 +148,17 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import Dashboard from './Dashboard.vue';
+import { defineComponent } from 'vue';
+import PlacesDashboard from './PlacesDashboard.vue';
 import { mapState } from 'vuex'
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { loginRoutine, login } from '@/shared/auth';
 import { regRoutine, reg } from '@/shared/reg';
 import { forgotRoutine, forgot } from '@/shared/forgot';
 
-export default Vue.extend({
+export default defineComponent({
 	components: {
-		Dashboard,
+		PlacesDashboard,
 	},
 	data() {
 		return {
@@ -174,7 +174,7 @@ export default Vue.extend({
 			regEmail: '',
 			regPhone: '',
 			forgotEmail: '',
-		}
+		};
 	},
 	computed: {
 		...mapState(['currentPlace']),

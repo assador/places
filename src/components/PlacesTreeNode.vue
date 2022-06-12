@@ -20,7 +20,7 @@
 				data-folder-button
 				href="javascript: void(0);"
 				class="folder-button"
-				draggable="true"
+				:draggable="true"
 				@click="$store.dispatch('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder, opened: folder.opened ? false : true});"
 				@dragstart="$root.handleDragStart"
 				@dragenter="$root.handleDragEnter"
@@ -47,7 +47,7 @@
 				@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			>
 				<input
-					v-model="folder.name"
+					:value="folder.name"
 					:placeholder="$store.state.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
 					@change="$store.dispatch('changeFolder', {folder: folder, change: {name: folder.name}});"
@@ -56,12 +56,12 @@
 				<a
 					class="folder-button__delete"
 					:title="$store.state.t.i.buttons.deleteFolder"
-					@click="$event.stopPropagation(); $router.push({name: 'HomeDeleteFolder', params: {folderId: folder.id}}).catch(() => {})"
+					@click="$event.stopPropagation(); $router.push({name: 'PlacesHomeDeleteFolder', params: {folderId: folder.id}}).catch(() => {})"
 				>
 					×
 				</a>
 				<textarea
-					v-model="folder.description"
+					:value="folder.description"
 					rows="2"
 					:placeholder="$store.state.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
@@ -75,9 +75,9 @@
 				v-if="folder.children && Object.keys(folder.children).length"
 				class="margin_bottom_0"
 			>
-				<folder
-					v-for="(child, index) in children"
-					:key="folder.id + index"
+				<places-folder
+					v-for="child in children"
+					:key="child.id"
 					:instanceid="instanceid"
 					:folder="child"
 					:parent="folder"
@@ -90,14 +90,13 @@
 		>
 			<label
 				v-for="place in places"
-				v-if="place.folderid === folder.id && place.show"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-place-' : '') + place.id"
 				:key="place.id"
 				data-place-button
 				:srt="place.srt"
 				:title="place.description"
 				:class="'place-button block_01 draggable' + (currentPlace && place.id == currentPlace.id ? ' active' : '')"
-				draggable="true"
+				:draggable="true"
 				@click="instanceid !== 'popupexporttree' ? setCurrentPlace(place) : '';"
 				@dragstart="$root.handleDragStart"
 			>
@@ -155,15 +154,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import _ from 'lodash';
-import { bus } from '../shared/bus';
+import { emitter } from '../shared/bus';
 import { mapState } from 'vuex';
 import { Place, Folder } from '@/store/types';
 
-export default Vue.extend({
-	name: 'Folder',
+export default defineComponent({
+	name: 'PlacesFolder',
 	props: {
 		instanceid: {
 			type: String,
@@ -182,14 +180,14 @@ export default Vue.extend({
 		return {
 			children: [] as Array<Folder>,
 			places: [] as Array<Place>,
-		}
+		};
 	},
 	computed: {
 		...mapState(['currentPlace']),
 		stateFolderChildren(): Record<string, Folder> {
 			return this.folder.children;
 		},
-		statePlaces(): Record<string, Folder> {
+		statePlaces(): Record<string, Place> {
 			return this.$store.state.places;
 		},
 	},
@@ -198,28 +196,31 @@ export default Vue.extend({
 			deep: true,
 			immediate: true,
 			handler(stateFolderChildren: Record<string, Folder>) {
-				this.children = _.orderBy(stateFolderChildren, 'srt');
+				this.children = _.sortBy(stateFolderChildren, 'srt');
 			},
 		},
 		statePlaces: {
 			deep: true,
 			immediate: true,
 			handler(statePlaces: Record<string, Place>) {
-				this.places = _.orderBy(statePlaces, 'srt');
+				this.places =
+					_.chain(statePlaces)
+					.filter(p => p.folderid === this.folder.id && p.show)
+					.sortBy('srt')
+					.value()
+				;
 			},
 		},
 	},
 	methods: {
 		setCurrentPlace(place: Place) {
-			bus.$emit('setCurrentPlace', {place: place});
+			emitter.emit('setCurrentPlace', {place: place});
 		},
 		selectUnselect(place: Place, checked: boolean) {
 			if (checked) {
-				(this.$root as Vue & {selectedToExport: Record<string, Place>})
-					.selectedToExport[place.id] = place;
+				this.$root.selectedToExport[place.id] = place;
 			} else {
-				delete (this.$root as Vue & {selectedToExport: Record<string, Place>})
-					.selectedToExport[place.id];
+				delete this.$root.selectedToExport[place.id];
 			}
 		},
 		selectUnselectFolder(folderid: string, checked: boolean) {
@@ -286,7 +287,9 @@ export default Vue.extend({
 						break;
 					}
 				}
-				this.$store.getters.treeFlat[object[parentProperty]].geomarks = Number(visibility);
+				this.$store.getters.treeFlat[object[parentProperty]].geomarks =
+					Number(visibility) || 1
+				;
 				showHideParentsGeomarks(this.$store.getters.treeFlat[object[parentProperty]]);
 			}
 			showHideSubGeomarks(object, show);

@@ -3,27 +3,54 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { bus } from '../shared/bus';
+import { defineComponent, PropType } from 'vue';
 import ymaps from 'ymaps';
 import { Map, Placemark } from 'yandex-maps';
 import { ResizeSensor } from 'css-element-queries'
 import { mapState } from 'vuex';
+import { emitter } from '@/shared/bus';
+import { constants } from '@/shared/constants';
 import { Place } from '@/store/types';
 
-export default Vue.extend({
-	props: [
-		'id',
-		'name',
-		'description',
-		'images',
-		'latitude',
-		'longitude',
-		'centerLatitude',
-		'centerLongitude',
-		'zoom',
-		'geomarksVisibility',
-	],
+export default defineComponent({
+	props: {
+		id: {
+			type: String,
+			default: '',
+		},
+		name: {
+			type: String,
+			default: '',
+		},
+		description: {
+			type: String,
+			default: '',
+		},
+		latitude: {
+			type: Number,
+			default: constants.map.initial.latitude,
+		},
+		longitude: {
+			type: Number,
+			default: constants.map.initial.longitude,
+		},
+		centerLatitude: {
+			type: Number,
+			default: constants.map.initial.latitude,
+		},
+		centerLongitude: {
+			type: Number,
+			default: constants.map.initial.longitude,
+		},
+		zoom: {
+			type: Number,
+			default: constants.map.initial.zoom,
+		},
+		geomarksVisibility: {
+			type: Object as PropType<Record<string, boolean>>,
+			default() {return {};},
+		},
+	},
 	data() {
 		return {
 			maps: null as unknown as any,
@@ -55,7 +82,7 @@ export default Vue.extend({
 				iconColor: 'rgb(127, 143, 0)',
 			},
 			updatingMap: false,
-		}
+		};
 	},
 	computed: {
 		...mapState([
@@ -68,7 +95,7 @@ export default Vue.extend({
 	watch: {
 		latitude() {
 			this.updatePlacemark(
-				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
+				this.$root.currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -81,7 +108,7 @@ export default Vue.extend({
 		},
 		longitude() {
 			this.updatePlacemark(
-				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
+				this.$root.currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -103,14 +130,14 @@ export default Vue.extend({
 		},
 		name() {
 			this.updatePlacemark(
-				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
+				this.$root.currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
 		},
 		description() {
 			this.updatePlacemark(
-				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon
+				this.$root.currentPlaceCommon
 					? this.commonMrks
 					: this.mrks
 			);
@@ -145,7 +172,7 @@ export default Vue.extend({
 		},
 	},
 	created() {
-		bus.$on('refreshMapYandexMarks', () => {
+		emitter.on('refreshMapYandexMarks', () => {
 			this.map.geoObjects.removeAll();
 			this.mrks = {};
 			for (const id in this.$store.state.places) {
@@ -153,7 +180,7 @@ export default Vue.extend({
 			}
 			if (this.currentPlace) {
 				if (
-					!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
+					!this.$root.currentPlaceCommon &&
 					this.mrks[this.currentPlace.id]
 				) {
 					this.mrks[this.currentPlace.id].options.set({
@@ -172,8 +199,8 @@ export default Vue.extend({
 			this.fitMap();
 		});
 	},
-	beforeDestroy() {
-		bus.$off('refreshMapYandexMarks');
+	beforeUnmount() {
+		emitter.off('refreshMapYandexMarks');
 		if (this.map) {
 			this.map.destroy();
 		}
@@ -188,9 +215,15 @@ export default Vue.extend({
 				});
 				let coordinates = this.map.getCenter();
 				this.$store.dispatch('changeMap', {
-					latitude: Number(coordinates[0].toFixed(7)),
-					longitude: Number(coordinates[1].toFixed(7)),
-					zoom: Number(this.map.getZoom()),
+					latitude:
+						Number(coordinates[0].toFixed(7)) ||
+						Number(constants.map.initial.latitude) ||
+						null,
+					longitude:
+						Number(coordinates[1].toFixed(7)) ||
+						Number(constants.map.initial.longitude) ||
+						null,
+					zoom: Number(this.map.getZoom()) || null,
 				});
 				this.map.controls
 					.add(new this.maps.control.RouteButton())
@@ -200,9 +233,15 @@ export default Vue.extend({
 					if (!this.updatingMap) {
 						let coordinates = this.map.getCenter();
 						this.$store.dispatch('changeMap', {
-							latitude: Number(coordinates[0].toFixed(7)),
-							longitude: Number(coordinates[1].toFixed(7)),
-							zoom: Number(this.map.getZoom()),
+							latitude:
+								Number(coordinates[0].toFixed(7)) ||
+								Number(constants.map.initial.latitude) ||
+								null,
+							longitude:
+								Number(coordinates[1].toFixed(7)) ||
+								Number(constants.map.initial.longitude) ||
+								null,
+							zoom: Number(this.map.getZoom()) || null,
 						});
 						this.mrk.geometry!.setCoordinates(coordinates);
 					}
@@ -225,12 +264,12 @@ export default Vue.extend({
 				for (const id in this.$store.state.commonPlaces) {
 					this.appendPlacemark(this.commonMrks, this.$store.state.commonPlaces[id], 'common');
 				}
-				(this.$parent as Vue & {commonPlacesShowHide(show: boolean): void}).commonPlacesShowHide(
+				this.$parent.commonPlacesShowHide(
 					this.$store.state.commonPlacemarksShow
 				);
 				if (this.currentPlace) {
 					if (
-						!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
+						!this.$root.currentPlaceCommon &&
 						this.mrks[this.currentPlace.id]
 					) {
 						this.mrks[this.currentPlace.id].options.set({
@@ -251,16 +290,17 @@ export default Vue.extend({
 			marks[place.id].options.set({
 				draggable: (type === 'common' ? false : true),
 			});
-			bus.$emit('setCurrentPlace', {place: place});
+			emitter.emit('setCurrentPlace', {place: place});
 			if (type === 'common') {
 				const inPaginator =
 					Object.keys(this.$store.state.commonPlaces).indexOf(place.id) /
-					(this.$parent as Vue & {commonPlacesOnPageCount: number}).commonPlacesOnPageCount;
-				(this.$parent as Vue & {commonPlacesPage: number}).commonPlacesPage =
-					(Number.isInteger(inPaginator)
+					this.$parent.commonPlacesOnPageCount
+				;
+				this.$parent.commonPlacesPage = (
+					Number.isInteger(inPaginator)
 						? inPaginator + 1
 						: Math.ceil(inPaginator)
-					);
+				);
 			}
 		},
 		appendPlacemark(marks: Record<string, Placemark>, place: Place, type: string) {
@@ -298,8 +338,14 @@ export default Vue.extend({
 					this.$store.dispatch('changePlace', {
 						place: place,
 						change: {
-							latitude: Number(coordinates![0].toFixed(7)),
-							longitude: Number(coordinates![1].toFixed(7)),
+							latitude:
+								Number(coordinates![0].toFixed(7)) ||
+								Number(constants.map.initial.latitude) ||
+								null,
+							longitude:
+								Number(coordinates![1].toFixed(7)) ||
+								Number(constants.map.initial.longitude) ||
+								null,
 						},
 					});
 				} else {
@@ -340,7 +386,7 @@ export default Vue.extend({
 				const mapblock = document.getElementById('mapblock') as HTMLElement;
 				mapblock.style.right = '100%';
 				this.map.container.fitToViewport();
-				if (!(this.$parent as Vue & {compact: boolean}).compact) {
+				if (!this.$parent.compact) {
 					mapblock.style.right = '12px';
 				} else {
 					mapblock.style.right = '0';

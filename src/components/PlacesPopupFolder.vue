@@ -71,21 +71,21 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapState } from 'vuex';
 import { constants } from '../shared/constants';
 import { commonFunctions } from '../shared/common';
 import { makeFieldsValidatable } from '../shared/fields_validate';
 import { Folder } from '@/store/types';
 
-export default Vue.extend({
+export default defineComponent({
 	data() {
 		return {
 			folderName: '',
 			folderDescription: '',
 			message: '',
 			popuped: false,
-		}
+		};
 	},
 	computed: {
 		...mapState(['currentPlace']),
@@ -101,7 +101,7 @@ export default Vue.extend({
 	updated() {
 		makeFieldsValidatable();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
@@ -137,21 +137,22 @@ export default Vue.extend({
 						)
 					)) + 1;
 				}
-				let newFolder = {
-					type: 'folder',
-					userid: sessionStorage.getItem('places-userid'),
-					name: folderName,
-					description: folderDescription,
+				let newFolder: Folder = {
 					id: commonFunctions.generateRandomString(32) as string,
-					srt: srt,
 					parent: this.currentPlace
 						? this.currentPlace.folderid
 						: 'root',
-					opened: false,
+					name: folderName,
+					description: folderDescription,
+					srt: Number(srt) || 0,
 					geomarks: 1,
+					builded: false,
+					type: 'folder',
 					added: true,
 					deleted: false,
 					updated: false,
+					opened: false,
+					userid: sessionStorage.getItem('places-userid'),
 				};
 				this.$store.dispatch('addFolder', newFolder);
 				this.message = this.$store.state.t.m.paged.folderCreated;

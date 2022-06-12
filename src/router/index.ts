@@ -1,97 +1,93 @@
-import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
-const Auth = () => import('@/components/Auth.vue');
-const Home = () => import('@/components/Home.vue');
-const Account = () => import('@/components/Account.vue');
-const AccountDelete = () => import('@/components/AccountDelete.vue');
-const PopupText = () => import('@/components/PopupText.vue');
-const PopupImage = () => import('@/components/PopupImage.vue');
-const PopupFolder = () => import('@/components/PopupFolder.vue');
-const PopupFolderDelete = () => import('@/components/PopupFolderDelete.vue');
-const PopupExport = () => import('@/components/PopupExport.vue');
+const PlacesAuth = () => import('@/components/PlacesAuth.vue');
+const PlacesHome = () => import('@/components/PlacesHome.vue');
+const PlacesAccount = () => import('@/components/PlacesAccount.vue');
+const PlacesAccountDelete = () => import('@/components/PlacesAccountDelete.vue');
+const PlacesPopupText = () => import('@/components/PlacesPopupText.vue');
+const PlacesPopupImage = () => import('@/components/PlacesPopupImage.vue');
+const PlacesPopupFolder = () => import('@/components/PlacesPopupFolder.vue');
+const PlacesPopupFolderDelete = () => import('@/components/PlacesPopupFolderDelete.vue');
+const PlacesPopupExport = () => import('@/components/PlacesPopupExport.vue');
 
-Vue.use(VueRouter);
-
-const routes: Array<RouteConfig> = [
+const routes: RouteRecordRaw[] = [
 	{
 		path: '/auth',
-		name: 'Auth',
-		component: Auth,
+		name: 'PlacesAuth',
+		component: PlacesAuth,
 		children: [
 			{
 				path: 'text/:what',
-				name: 'AuthText',
-				component: PopupText,
+				name: 'PlacesAuthText',
+				component: PlacesPopupText,
 				props: true,
 			},
 		],
 	}, {
 		path: '/home',
-		name: 'Home',
-		component: Home,
+		name: 'PlacesHome',
+		component: PlacesHome,
 		children: [
 			{
 				path: 'text/:what',
-				name: 'HomeText',
-				component: PopupText,
+				name: 'PlacesHomeText',
+				component: PlacesPopupText,
 				props: true,
 			}, {
 				path: 'images/:imageId',
-				name: 'HomeImages',
-				component: PopupImage,
+				name: 'PlacesHomeImages',
+				component: PlacesPopupImage,
 				props: true,
 			}, {
 				path: 'folder',
-				name: 'HomeFolder',
-				component: PopupFolder,
+				name: 'PlacesHomeFolder',
+				component: PlacesPopupFolder,
 			}, {
 				path: 'deletefolder/:folderId',
-				name: 'HomeDeleteFolder',
-				component: PopupFolderDelete,
+				name: 'PlacesHomeDeleteFolder',
+				component: PlacesPopupFolderDelete,
 				props: true,
 			}, {
 				path: 'export',
-				name: 'HomeExport',
-				component: PopupExport,
+				name: 'PlacesHomeExport',
+				component: PlacesPopupExport,
 				props: true,
 			}, 
 		],
 	}, {
 		path: '/account',
-		name: 'Account',
-		component: Account,
+		name: 'PlacesAccount',
+		component: PlacesAccount,
 		children: [
 			{
 				path: 'delete',
-				name: 'AccountDelete',
-				component: AccountDelete,
+				name: 'PlacesAccountDelete',
+				component: PlacesAccountDelete,
 			},
 		],
 	}, {
 		path: '/about',
-		name: 'About',
-		component: PopupText,
+		name: 'PlacesAbout',
+		component: PlacesPopupText,
 	}, {
-		path: '*',
+		path: '/:catchAll(.*)*',
 		redirect: '/home',
 	},
 ];
 
-const router = new VueRouter({
-	mode: 'history',
-	base: process.env.BASE_URL,
-	routes
+const router = createRouter({
+	history: createWebHistory(process.env.BASE_URL),
+	routes,
 });
 
 router.beforeEach((to, from, next) => {
 	if (!sessionStorage.getItem('places-session')) {
 		if (
-			to.name !== 'Auth' &&
-			to.name !== 'About' &&
-			to.name !== 'AuthText'
+			to.name !== 'PlacesAuth' &&
+			to.name !== 'PlacesAbout' &&
+			to.name !== 'PlacesAuthText'
 		) {
-			next({name: 'Auth'});
+			next({name: 'PlacesAuth'});
 		} else {
 			next();
 		}

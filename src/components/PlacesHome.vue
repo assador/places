@@ -37,7 +37,7 @@
 					id="actions-append-folder"
 					class="actions-button"
 					:title="$store.state.t.i.hints.addFolder"
-					@click="$router.push({name: 'HomeFolder'}).catch(() => {});"
+					@click="$router.push({name: 'PlacesHomeFolder'}).catch(() => {});"
 				>
 					<span>↧</span>
 					<span>{{ $store.state.t.i.buttons.newFolder }}</span>
@@ -74,7 +74,7 @@
 					</h1>
 					<div>{{ $store.state.t.i.brand.slogan }}</div>
 				</div>
-				<dashboard />
+				<places-dashboard />
 			</div>
 			<div
 				id="messages"
@@ -146,7 +146,7 @@
 					id="actions-export"
 					class="actions-button"
 					:title="$store.state.t.i.hints.exportPlaces"
-					@click="$router.push({name: 'HomeExport', params: {mime: 'application/gpx+xml'}}).catch(() => {})"
+					@click="$router.push({name: 'PlacesHomeExport', params: {mime: 'application/gpx+xml'}}).catch(() => {})"
 				>
 					<span>↱</span>
 					<span>{{ $store.state.t.i.buttons.export }}</span>
@@ -155,7 +155,7 @@
 					id="actions-about"
 					class="actions-button"
 					:title="$store.state.t.i.hints.about"
-					@click="$router.push({name: 'HomeText', params: {what: 'about'}}).catch(() => {})"
+					@click="$router.push({name: 'PlacesHomeText', params: {what: 'about'}}).catch(() => {})"
 				>
 					<span>?</span>
 					<span>{{ $store.state.t.i.buttons.help }}</span>
@@ -181,7 +181,7 @@
 					id="places-menu"
 					class="menu"
 				>
-					<tree
+					<places-tree
 						instanceid="placestree"
 						:data="$store.getters.tree || {}"
 					/>
@@ -192,8 +192,7 @@
 					</h2>
 					<div class="margin_bottom">
 						<div
-							v-for="commonPlace in $store.state.commonPlaces"
-							v-if="Object.keys($store.state.commonPlaces).indexOf(commonPlace.id) >= commonPlacesOnPageCount * (commonPlacesPage - 1) && Object.keys($store.state.commonPlaces).indexOf(commonPlace.id) < commonPlacesOnPageCount * commonPlacesPage"
+							v-for="commonPlace in commonPlaces"
 							:id="commonPlace.id"
 							:key="commonPlace.id"
 							:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
@@ -227,7 +226,6 @@
 				:name="currentPlace ? currentPlace.name : ''"
 				:description="currentPlace ? currentPlace.description : ''"
 				:link="currentPlace ? currentPlace.link : ''"
-				:images="currentPlace ? currentPlace.images : []"
 				:latitude="currentPlace ? $store.state.waypoints[currentPlace.waypoint].latitude : constants.map.initial.latitude"
 				:longitude="currentPlace ? $store.state.waypoints[currentPlace.waypoint].longitude : constants.map.initial.longitude"
 				:altitudecapability="currentPlace ? $store.state.waypoints[currentPlace.waypoint].altitudecapability : ''"
@@ -303,7 +301,7 @@
 									<input
 										:id="'detailed-' + coord"
 										v-model.number.trim="$store.state.waypoints[currentPlace.waypoint][coord]"
-										type="text"
+										type="number"
 										:disabled="$root.currentPlaceCommon"
 										class="fieldwidth_100"
 										@change="$store.dispatch('changePlace', {place: currentPlace, change: {[coord]: $store.state.waypoints[currentPlace.waypoint][coord]}});"
@@ -318,7 +316,7 @@
 							<input
 								:id="'detailed-' + field"
 								v-model.number.trim="currentPlace[field]"
-								type="text"
+								:type="field === 'srt' ? 'number' : 'text'"
 								:disabled="$root.currentPlaceCommon"
 								class="fieldwidth_100"
 								@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
@@ -361,7 +359,7 @@
 									data-image
 									:class="'place-image' + ($root.currentPlaceCommon ? '' : ' draggable')"
 									:draggable="$root.currentPlaceCommon ? false : true"
-									@click="$router.push({name: 'HomeImages', params: {imageId: image.id}}).catch(() => {})"
+									@click="$router.push({name: 'PlacesHomeImages', params: {imageId: image.id}}).catch(() => {})"
 									@dragstart="$root.handleDragStart"
 									@dragenter="$root.handleDragEnter"
 								>
@@ -370,7 +368,7 @@
 									>
 										<img
 											class="image-thumbnail border_1"
-											draggable="false"
+											:draggable="false"
 											:src="constants.dirs.uploads.images.small + image.file"
 											:alt="currentPlace.name"
 											:title="currentPlace.name"
@@ -378,7 +376,7 @@
 										<div
 											v-if="!$root.currentPlaceCommon"
 											class="dd-images__delete button"
-											draggable="false"
+											:draggable="false"
 											@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteImages({[image.id]: image});"
 										>
 											×
@@ -530,26 +528,26 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import _ from 'lodash';
-import { constants } from '../shared/constants';
-import { mapState } from 'vuex';
-import { commonFunctions } from '../shared/common';
-import { makeFieldsValidatable } from '../shared/fields_validate';
-import { bus } from '../shared/bus';
+import { defineComponent } from 'vue';
 import axios from 'axios';
-import Dashboard from './Dashboard.vue';
-import Tree from './Tree.vue';
-import MapYandex from './MapYandex.vue';
-import MapOpenStreetMap from './MapOpenStreetMap.vue';
+import _ from 'lodash';
+import { mapState } from 'vuex';
+import { constants } from '@/shared/constants';
+import { commonFunctions } from '@/shared/common';
+import { makeFieldsValidatable } from '@/shared/fields_validate';
+import { emitter } from '@/shared/bus';
+import PlacesDashboard from './PlacesDashboard.vue';
+import PlacesTree from './PlacesTree.vue';
+import PlacesMapYandex from './PlacesMapYandex.vue';
+import PlacesMapOpenStreetMap from './PlacesMapOpenStreetMap.vue';
 import { Waypoint, Place, Image } from '@/store/types';
 
-export default Vue.extend({
+export default defineComponent({
 	components: {
-		Dashboard,
-		Tree,
-		MapYandex,
-		MapOpenStreetMap,
+		PlacesDashboard,
+		PlacesTree,
+		PlacesMapYandex,
+		PlacesMapOpenStreetMap,
 	},
 	data() {
 		return {
@@ -583,10 +581,24 @@ export default Vue.extend({
 				'longitude',
 				'altitudecapability',
 			],
-		}
+		};
 	},
 	computed: {
 		...mapState(['currentPlace']),
+		commonPlaces(): Record<string, Place> {
+			let commonPlaces: Record<string, Place> = {};
+			for (let id in this.$store.state.commonPlaces) {
+				if (
+					Object.keys(this.$store.state.commonPlaces).indexOf(id) >=
+					this.commonPlacesOnPageCount * (this.commonPlacesPage - 1) &&
+					Object.keys(this.$store.state.commonPlaces).indexOf(id) <
+					this.commonPlacesOnPageCount * this.commonPlacesPage
+				) {
+					commonPlaces[id] = this.$store.state.commonPlaces[id];
+				}
+			}
+			return commonPlaces;
+		},
 		orderedImages(): Array<Image> {
 			return (
 				this.currentPlace
@@ -623,10 +635,10 @@ export default Vue.extend({
 		},
 	},
 	created() {
-		bus.$on('setCurrentPlace', (payload: {place: Place}) => {
+		emitter.on('setCurrentPlace', (payload: {place: Place}) => {
 			this.setCurrentPlace(payload.place);
 		});
-		bus.$on('deletePlace', (place: Place) => {
+		emitter.on('deletePlace', (place: Place) => {
 			this.deletePlace(place);
 		});
 	},
@@ -635,20 +647,16 @@ export default Vue.extend({
 			this.stateReadyChanged();
 		}
 		this.$store.commit('setIdleTime', 0);
-		if (!(this.$root as Vue & {idleTimeInterval: number | undefined}).idleTimeInterval) {
-			(this.$root as Vue & {idleTimeInterval: number | undefined}).idleTimeInterval =
+		if (!this.$root.idleTimeInterval) {
+			this.$root.idleTimeInterval =
 				window.setInterval(() => {
 					if (this.$store.state.idleTime < constants.sessionlifetime) {
 						this.$store.commit('setIdleTime', this.$store.state.idleTime + 1);
 					} else {
-						window.clearInterval(
-							(this.$root as Vue & {idleTimeInterval: number | undefined})
-								.idleTimeInterval
-						);
-						(this.$root as Vue & {idleTimeInterval: number | undefined})
-							.idleTimeInterval = undefined;
+						window.clearInterval(this.$root.idleTimeInterval);
+						this.$root.idleTimeInterval = undefined;
 						this.$store.dispatch('unload');
-						this.$router.push({name: 'Auth'}).catch(() => {});
+						this.$router.push({name: 'PlacesAuth'}).catch(() => {});
 					}
 				}, 1000);
 		}
@@ -660,19 +668,11 @@ export default Vue.extend({
 	updated() {
 		makeFieldsValidatable();
 	},
-	beforeDestroy() {
-		document.removeEventListener(
-			'dragover',
-			(this.$root as Vue & {handleDragOver(event: Event): void}).handleDragOver,
-			false
-		);
-		document.removeEventListener(
-			'drop',
-			(this.$root as Vue & {handleDrop(event: Event): void}).handleDrop,
-			false
-		);
+	beforeUnmount() {
+		document.removeEventListener('dragover', this.$root.handleDragOver, false);
+		document.removeEventListener('drop', this.$root.handleDrop, false);
 		document.removeEventListener('keyup', this.keyup, false);
-		bus.$off('setCurrentPlace');
+		emitter.off('setCurrentPlace');
 	},
 	methods: {
 		blur() {
@@ -683,7 +683,7 @@ export default Vue.extend({
 		},
 		exit() {
 			this.$store.dispatch('unload');
-			this.$router.push({name: 'Auth'}).catch(() => {});
+			this.$router.push({name: 'PlacesAuth'}).catch(() => {});
 		},
 		stateReadyChanged() {
 			if (this.stateReady) {
@@ -715,7 +715,7 @@ export default Vue.extend({
 					Object.keys(this.$store.state.commonPlaces).length /
 					this.commonPlacesOnPageCount
 				);
-				(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = false;
+				this.$root.currentPlaceCommon = false;
 				if (
 					this.currentPlace &&
 					this.currentPlace.common &&
@@ -729,19 +729,11 @@ export default Vue.extend({
 						? inPaginator + 1
 						: Math.ceil(inPaginator)
 					);
-					(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = true;
+					this.$root.currentPlaceCommon = true;
 				}
 				this.showMap();
-				document.addEventListener(
-					'dragover',
-					(this.$root as Vue & {handleDragOver(event: Event): void}).handleDragOver,
-					false
-				);
-				document.addEventListener(
-					'drop',
-					(this.$root as Vue & {handleDrop(event: Event): void}).handleDrop,
-					false
-				);
+				document.addEventListener('dragover', this.$root.handleDragOver, false);
+				document.addEventListener('drop', this.$root.handleDrop, false);
 				document.addEventListener('keyup', this.keyup, false);
 				window.addEventListener('resize', this.windowResize, false);
 				if (this.$store.state.user.testaccount) {
@@ -758,40 +750,32 @@ export default Vue.extend({
 		showMap() {
 			this.$nextTick(() => {
 				if (this.$refs.extmap) {
-					if ((this.$refs.extmap as Vue & {map: any}).map) {
+					if (this.$refs.extmap.map) {
 						if (
-							(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
-								(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
-							].component === 'MapYandex'
+							this.$root.maps[this.$root.activeMapIndex].component ===
+							'PlacesMapYandex'
 						) {
-							(this.$refs.extmap as Vue & {map: any}).map.destroy();
+							this.$refs.extmap.map.destroy();
 						} else {
-							(this.$refs.extmap as Vue & {map: any}).map.remove();
+							this.$refs.extmap.map.remove();
 						}
 					}
 					if (this.$store.state.center.latitude === null) {
 						if (this.currentPlace) {
-							(this.$refs.extmap as Vue & {
-								showMap(lat: number, lng: number, zoom: number): void
-							}).showMap(
+							this.$refs.extmap.showMap(
 								this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
 								this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
 								constants.map.initial.zoom
-								
 							);
 						} else {
-							(this.$refs.extmap as Vue & {
-								showMap(lat: number, lng: number, zoom: number): void
-							}).showMap(
+							this.$refs.extmap.showMap(
 								constants.map.initial.latitude,
 								constants.map.initial.longitude,
 								constants.map.initial.zoom
 							);
 						}
 					} else {
-						(this.$refs.extmap as Vue & {
-							showMap(lat: number, lng: number, zoom: number): void
-						}).showMap(
+						this.$refs.extmap.showMap(
 							this.$store.state.center.latitude,
 							this.$store.state.center.longitude,
 							this.$store.state.zoom
@@ -801,10 +785,7 @@ export default Vue.extend({
 			});
 		},
 		openTreeToCurrentPlace() {
-			if (
-				!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
-				this.currentPlace
-			) {
+			if (!this.$root.currentPlaceCommon && this.currentPlace) {
 				let folder, folderid = this.currentPlace.folderid;
 				while (folderid) {
 					folder = this.$store.getters.treeFlat[folderid];
@@ -823,45 +804,35 @@ export default Vue.extend({
 			if (this.currentPlace && place === this.currentPlace) return;
 			if (this.currentPlace) {
 				if (
-					!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
-					(this.$refs.extmap as Vue & {mrks: any}).mrks[this.currentPlace.id]
+					!this.$root.currentPlaceCommon &&
+					this.$refs.extmap.mrks[this.currentPlace.id]
 				) {
 					if (
-						(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
-							(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
-						].component === 'MapYandex'
+						this.$root.maps[this.$root.activeMapIndex].component ===
+						'PlacesMapYandex'
 					) {
-						(this.$refs.extmap as Vue & {mrks: any})
-							.mrks[this.currentPlace.id].options.set(
-								'iconColor',
-								(this.$refs.extmap as Vue & {privatePlacemarksColor: string})
-									.privatePlacemarksColor
-							);
+						this.$refs.extmap.mrks[this.currentPlace.id].options.set(
+							'iconColor',
+							this.$refs.extmap.privatePlacemarksColor
+						);
 					} else {
-						(this.$refs.extmap as Vue & {mrks: any})
-							.mrks[this.currentPlace.id].setIcon(
-								(this.$refs.extmap as Vue & {icon_01: any}).icon_01
-							);
+						this.$refs.extmap.mrks[this.currentPlace.id].setIcon(
+							this.$refs.extmap.icon_01
+						);
 					}
-				} else if (
-					(this.$refs.extmap as Vue & {commonMrks: any}).commonMrks[this.currentPlace.id]
-				) {
+				} else if (this.$refs.extmap.commonMrks[this.currentPlace.id]) {
 					if (
-						(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
-							(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
-						].component === 'MapYandex'
+						this.$root.maps[this.$root.activeMapIndex].component ===
+						'PlacesMapYandex'
 					) {
-						(this.$refs.extmap as Vue & {commonMrks: any})
-							.commonMrks[this.currentPlace.id].options.set(
-								'iconColor',
-								(this.$refs.extmap as Vue & {commonPlacemarksColor: string})
-									.commonPlacemarksColor
-							);
+						this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
+							'iconColor',
+							this.$refs.extmap.commonPlacemarksColor
+						);
 					} else {
-						(this.$refs.extmap as Vue & {commonMrks: any})
-							.commonMrks[this.currentPlace.id].setIcon(
-								(this.$refs.extmap as Vue & {icon_02: any}).icon_02
-							);
+						this.$refs.extmap.commonMrks[this.currentPlace.id].setIcon(
+							this.$refs.extmap.icon_02
+						);
 					}
 				}
 			}
@@ -870,51 +841,41 @@ export default Vue.extend({
 				return;
 			}
 			this.$store.commit('setCurrentPlace', place);
-			(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon = (
+			this.$root.currentPlaceCommon = (
 				this.currentPlace.userid !== this.$store.state.user.id
 					? true
 					: false
 			);
 			if (
-				!(this.$root as Vue & {currentPlaceCommon: boolean}).currentPlaceCommon &&
-				(this.$refs.extmap as Vue & {mrks: any}).mrks[this.currentPlace.id]
+				!this.$root.currentPlaceCommon &&
+				this.$refs.extmap.mrks[this.currentPlace.id]
 			) {
 				if (
-					(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
-						(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
-					].component === 'MapYandex'
+					this.$root.maps[this.$root.activeMapIndex].component ===
+					'PlacesMapYandex'
 				) {
-					(this.$refs.extmap as Vue & {mrks: any})
-						.mrks[this.currentPlace.id].options.set(
-							'iconColor',
-							(this.$refs.extmap as Vue & {activePlacemarksColor: string})
-								.activePlacemarksColor
-						);
+					this.$refs.extmap.mrks[this.currentPlace.id].options.set(
+						'iconColor',
+						this.$refs.extmap.activePlacemarksColor
+					);
 				} else {
-					(this.$refs.extmap as Vue & {mrks: any})
-						.mrks[this.currentPlace.id].setIcon(
-							(this.$refs.extmap as Vue & {icon_03: any}).icon_03
-						);
+					this.$refs.extmap.mrks[this.currentPlace.id].setIcon(
+						this.$refs.extmap.icon_03
+					);
 				}
-			} else if (
-				(this.$refs.extmap as Vue & {commonMrks: any}).commonMrks[this.currentPlace.id]
-			) {
+			} else if (this.$refs.extmap.commonMrks[this.currentPlace.id]) {
 				if (
-					(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
-						(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
-					].component === 'MapYandex'
+					this.$root.maps[this.$root.activeMapIndex].component ===
+					'PlacesMapYandex'
 				) {
-					(this.$refs.extmap as Vue & {commonMrks: any})
-						.commonMrks[this.currentPlace.id].options.set(
-							'iconColor',
-							(this.$refs.extmap as Vue & {activePlacemarksColor: string})
-								.activePlacemarksColor
-						);
+					this.$refs.extmap.commonMrks[this.currentPlace.id].options.set(
+						'iconColor',
+						this.$refs.extmap.activePlacemarksColor
+					);
 				} else {
-					(this.$refs.extmap as Vue & {commonMrks: any})
-						.commonMrks[this.currentPlace.id].setIcon(
-							(this.$refs.extmap as Vue & {icon_03: any}).icon_03
-						);
+					this.$refs.extmap.commonMrks[this.currentPlace.id].setIcon(
+						this.$refs.extmap.icon_03
+					);
 				}
 			}
 			this.openTreeToCurrentPlace();
@@ -930,22 +891,27 @@ export default Vue.extend({
 					> Object.keys(this.$store.state.places).length ||
 				this.$store.state.user.testaccount
 			) {
-				let lat, lng;
+				let lat: number, lng: number;
 				if (
-					(this.$root as Vue & {maps: any}).maps[
-						(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
-					].component === 'MapYandex'
+					this.$root.maps[this.$root.activeMapIndex].component ===
+					'PlacesMapYandex'
 				) {
-					lat = (this.$refs.extmap as Vue & {map: any}).map.getCenter()[0].toFixed(7);
-					lng = (this.$refs.extmap as Vue & {map: any}).map.getCenter()[1].toFixed(7);
+					lat = this.$refs.extmap.map.getCenter()[0].toFixed(7);
+					lng = this.$refs.extmap.map.getCenter()[1].toFixed(7);
 				} else {
-					lat = (this.$refs.extmap as Vue & {map: any}).map.getCenter().lat.toFixed(7);
-					lng = (this.$refs.extmap as Vue & {map: any}).map.getCenter().lng.toFixed(7);
+					lat = this.$refs.extmap.map.getCenter().lat.toFixed(7);
+					lng = this.$refs.extmap.map.getCenter().lng.toFixed(7);
 				}
 				const newWaypoint: Waypoint = {
 					id: commonFunctions.generateRandomString(32),
-					latitude: lat,
-					longitude: lng,
+					latitude:
+						Number(lat) ||
+						Number(constants.map.initial.latitude) ||
+						null,
+					longitude:
+						Number(lng) ||
+						Number(constants.map.initial.longitude) ||
+						null,
 					altitudecapability: null,
 					time: new Date().toISOString().slice(0, -5),
 					common: false,
@@ -957,7 +923,7 @@ export default Vue.extend({
 				};
 				const newPlace: Place = {
 					type: 'place',
-					userid: sessionStorage.getItem('places-userid') as string,
+					userid: sessionStorage.getItem('places-userid'),
 					name: '',
 					description: '',
 					waypoint: newWaypoint.id,
@@ -969,7 +935,7 @@ export default Vue.extend({
 							? this.currentPlace.folderid
 							: 'root'
 					,
-					srt:
+					srt: Number(
 						Object.keys(this.$store.state.places).length > 0
 							? Math.ceil(Math.max(
 								...Object.values(this.$store.state.places).map(
@@ -977,7 +943,7 @@ export default Vue.extend({
 								)
 							)) + 1
 							: 1
-					,
+					) || 0,
 					common: false,
 					geomark: true,
 					images: {},
@@ -988,10 +954,8 @@ export default Vue.extend({
 				};
 				await this.$store.dispatch('addPlace', {place: newPlace});
 				this.$store.dispatch('addWaypoint', {waypoint: newWaypoint, from: newPlace});
-				(this.$refs.extmap as Vue & {appendPlacemark(
-					marks: Record<string, any>, place: Place, type: string
-				): void}).appendPlacemark(
-					(this.$refs.extmap as Vue & {mrks: any}).mrks,
+				this.$refs.extmap.appendPlacemark(
+					this.$refs.extmap.mrks,
 					newPlace,
 					'private'
 				);
@@ -1055,19 +1019,18 @@ export default Vue.extend({
 			}
 			// Delete marker from the map
 			if (
-				(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
-					(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
-				].component === 'MapYandex'
+				this.$root.maps[this.$root.activeMapIndex].component ===
+				'PlacesMapYandex'
 			) {
-				(this.$refs.extmap as Vue & {map: any}).map.geoObjects.remove(
-					(this.$refs.extmap as Vue & {mrks: any}).mrks[place.id]
+				this.$refs.extmap.map.geoObjects.remove(
+					this.$refs.extmap.mrks[place.id]
 				);
 			} else {
-				(this.$refs.extmap as Vue & {map: any}).map.removeLayer(
-					(this.$refs.extmap as Vue & {mrks: any}).mrks[place.id]
+				this.$refs.extmap.map.removeLayer(
+					this.$refs.extmap.mrks[place.id]
 				);
 			}
-			delete (this.$refs.extmap as Vue & {mrks: any}).mrks[place.id];
+			delete this.$refs.extmap.mrks[place.id];
 		},
 		commonPlacesShowHide(show = null) {
 			this.commonPlacesShow =
@@ -1076,22 +1039,23 @@ export default Vue.extend({
 					: show
 			;
 			this.$store.dispatch('commonPlacemarksShowHide', this.commonPlacesShow);
-			for (let key in (this.$refs.extmap as Vue & {commonMrks: any}).commonMrks) {
+			for (let key in this.$refs.extmap.commonMrks) {
 				if (
-					(this.$root as Vue & {maps: Array<Record<string, string>>}).maps[
-						(this.$root as Vue & {activeMapIndex: number}).activeMapIndex
-					].component === 'MapYandex'
+					this.$root.maps[this.$root.activeMapIndex].component ===
+					'PlacesMapYandex'
 				) {
-					(this.$refs.extmap as Vue & {commonMrks: any})
-						.commonMrks[key].options.set('visible', this.commonPlacesShow);
+					this.$refs.extmap.commonMrks[key].options.set(
+						'visible',
+						this.commonPlacesShow
+					);
 				} else {
 					if (this.commonPlacesShow) {
-						(this.$refs.extmap as Vue & {map: any}).map.addLayer(
-							(this.$refs.extmap as Vue & {commonMrks: any}).commonMrks[key]
+						this.$refs.extmap.map.addLayer(
+							this.$refs.extmap.commonMrks[key]
 						);
 					} else {
-						(this.$refs.extmap as Vue & {map: any}).map.removeLayer(
-							(this.$refs.extmap as Vue & {commonMrks: any}).commonMrks[key]
+						this.$refs.extmap.map.removeLayer(
+							this.$refs.extmap.commonMrks[key]
 						);
 					}
 				}
@@ -1139,7 +1103,7 @@ export default Vue.extend({
 					Object.keys(this.currentPlace.images).length
 				) {
 					let storeImages = Object.values(this.currentPlace.images);
-					srt = commonFunctions.sortObjects(storeImages, 'srt').pop().srt;
+					srt = Number(commonFunctions.sortObjects(storeImages, 'srt').pop().srt) || 0;
 				} else {
 					srt = 0;
 				}
@@ -1166,9 +1130,9 @@ export default Vue.extend({
 								'.' +
 								this.$store.state.serverConfig.mimes[files![i].type]
 							,
-							size: files![i].size,
+							size: Number(files![i].size) || null,
 							type: files![i].type,
-							lastmodified: files![i].lastModified,
+							lastmodified: Number(files![i].lastModified) || null,
 							srt: ++srt,
 							placeid: this.currentPlace.id
 								? this.currentPlace.id
@@ -1211,10 +1175,10 @@ export default Vue.extend({
 									case 4 :
 										this.$store.dispatch('setMessage',
 											this.$store.state.t.m.popup.filesTooLarge +
-											' ' + Number(
+											' ' + (Number(
 												(this.$store.state.serverConfig.rights.photosize
 												/ 1048576).toFixed(3)
-											) + ' Mb.'
+											) || 0) + ' Mb.'
 										);
 										break;
 								}
@@ -1233,13 +1197,13 @@ export default Vue.extend({
 										place: this.currentPlace,
 										change: {images: newImagesObject},
 									}).then(() => {
-										bus.$emit('toDB', {
+										emitter.emit('toDB', {
 											what: 'places',
 											data: [this.currentPlace],
 										});
 									});
 								}
-								bus.$emit('toDB', {
+								emitter.emit('toDB', {
 									what: 'images_upload',
 									data: filesArray,
 								});
@@ -1287,11 +1251,10 @@ export default Vue.extend({
 						}
 						break;
 					case 'add folder' :
-						this.$router.push({name: 'HomeFolder'}).catch(() => {});
+						this.$router.push({name: 'PlacesHomeFolder'}).catch(() => {});
 						break;
 					case 'edit mode' :
-						(this.$root as Vue & {foldersEditMode: boolean}).foldersEditMode =
-							!(this.$root as Vue & {foldersEditMode: boolean}).foldersEditMode;
+						this.$root.foldersEditMode = !this.$root.foldersEditMode;
 						if (
 							document.getElementById('actions-edit-folders')!
 								.classList.contains('button-pressed')
@@ -1310,21 +1273,21 @@ export default Vue.extend({
 						break;
 					case 'export' :
 						this.$router.push({
-							name: 'HomeExport',
+							name: 'PlacesHomeExport',
 							params: {mime: 'application/gpx+xml'},
 						}).catch(() => {});
 						break;
 					case 'save' :
-						bus.$emit('toDBCompletely');
+						emitter.emit('toDBCompletely');
 						break;
 					case 'help' :
-						this.$router.push({name: 'HomeText', params: {what: 'about'}});
+						this.$router.push({name: 'PlacesHomeText', params: {what: 'about'}});
 						break;
 					case 'revert' :
 						document.location.reload();
 						break;
 					case 'quit' :
-						bus.$emit('toDBCompletely');
+						emitter.emit('toDBCompletely');
 						this.exit();
 						break;
 					case 'other' :

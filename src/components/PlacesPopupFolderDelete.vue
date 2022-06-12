@@ -67,13 +67,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { bus } from '../shared/bus';
+import { defineComponent } from 'vue';
+import { emitter } from '../shared/bus';
 import { constants } from '../shared/constants';
 import { mapState } from 'vuex';
 import { Place, Folder } from '@/store/types';
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		folderId: {
 			type: String,
@@ -87,7 +87,7 @@ export default Vue.extend({
 			folder: {} as Folder,
 			places: {} as Record<string, Place>,
 			folders: {} as Record<string, Folder>,
-		}
+		};
 	},
 	computed: {
 		...mapState(['currentPlace']),
@@ -104,7 +104,7 @@ export default Vue.extend({
 	beforeUpdate() {
 		this.popuped = true;
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
@@ -142,7 +142,7 @@ export default Vue.extend({
 							this.$store.state.homePlace &&
 							!this.$store.state.homePlace.deleted
 						) {
-							bus.$emit(
+							emitter.emit(
 								'setCurrentPlace',
 								{place: this.$store.state.homePlace}
 							);
@@ -160,7 +160,7 @@ export default Vue.extend({
 								}
 							}
 							if (firstPlaceInRoot && !firstPlaceInRoot.deleted) {
-								bus.$emit(
+								emitter.emit(
 									'setCurrentPlace',
 									{place: firstPlaceInRoot}
 								);
@@ -169,18 +169,18 @@ export default Vue.extend({
 									Object.keys(this.$store.state.places)[0]
 								].deleted
 							) {
-								bus.$emit(
+								emitter.emit(
 									'setCurrentPlace',
 									{place: this.$store.state.places[
 										Object.keys(this.$store.state.places)[0]
 									]}
 								);
 							} else {
-								bus.$emit('setCurrentPlace', {place: null});
+								emitter.emit('setCurrentPlace', {place: null});
 							}
 						}
 					} else {
-						bus.$emit('setCurrentPlace', {place: null});
+						emitter.emit('setCurrentPlace', {place: null});
 					}
 				}
 				await this.$store.dispatch('deletePlaces', {places: this.places});
@@ -216,21 +216,21 @@ export default Vue.extend({
 					}
 				}
 				if (!this.$store.state.inUndoRedo) {
-					bus.$emit('toDB', {
+					emitter.emit('toDB', {
 						what: 'places',
 						data: Object.values(this.places),
 					});
-					bus.$emit('toDB', {
+					emitter.emit('toDB', {
 						what: 'folders',
 						data: Object.values(this.folders),
 					});
 				} else {
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 					this.$store.commit('outUndoRedo');
 				}
 			}
 			this.$store.dispatch('deleteFolders', {folders: {[this.folder.id]: this.folder}});
-			bus.$emit('refreshMapMarks');
+			emitter.emit('refreshMapMarks');
 			this.close(event);
 		},
 		markNestedAsDeleted(folder: Folder) {

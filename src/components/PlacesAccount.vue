@@ -104,7 +104,7 @@
 							<td style="padding-top: 18px; vertical-align: top; text-align: right;">
 								<button
 									type="button"
-									@click="$router.push({name: 'AccountDelete'}).catch(() => {})"
+									@click="$router.push({name: 'PlacesAccountDelete'}).catch(() => {})"
 								>
 									{{ $store.state.t.i.buttons.deleteAccount }}
 								</button>
@@ -128,12 +128,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { constants } from '../shared/constants';
 import { makeFieldsValidatable } from '../shared/fields_validate';
 import { accountSaveRoutine, acc } from '../shared/account';
 
-export default Vue.extend({
+export default defineComponent({
 	data() {
 		return {
 			accountLogin: this.$store.state.user.login,
@@ -143,7 +143,7 @@ export default Vue.extend({
 			accountEmail: this.$store.state.user.email,
 			accountPhone: this.$store.state.user.phone,
 			acc: acc,
-		}
+		};
 	},
 	mounted() {
 		this.$nextTick(() => {
@@ -154,13 +154,13 @@ export default Vue.extend({
 	updated() {
 		makeFieldsValidatable();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
 		close(event: Event) {
 			if (event) event.stopPropagation();
-			this.$router.push({name: 'Home'});
+			this.$router.push({name: 'PlacesHome'});
 		},
 		keyup(event: Event) {
 			if (

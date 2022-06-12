@@ -52,7 +52,7 @@
 					class="menu"
 					@click="$event.stopPropagation();"
 				>
-					<tree
+					<places-tree
 						instanceid="popupexporttree"
 						:data="$store.getters.tree || {}"
 					/>
@@ -84,24 +84,28 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import Tree from './Tree.vue';
+import { defineComponent } from 'vue';
+import PlacesTree from './PlacesTree.vue';
 import { constants } from '../shared/constants';
-import { Place } from '@/store/types';
 
-export default Vue.extend({
+export default defineComponent({
 	components: {
-		Tree,
+		PlacesTree,
 	},
-	props: ['mime'],
+	props: {
+		mime: {
+			type: String,
+			default: '',
+		},
+	},
 	data() {
 		return {
 			popuped: false,
-		}
+		};
 	},
 	mounted() {
 		this.popuped = true;
-		(this.$root as Vue & {selectedToExport: Record<string, Place>}).selectedToExport = {};
+		this.$root.selectedToExport = {};
 		for (
 			let f of
 			document.getElementById('popup-export__tree')!
@@ -115,8 +119,8 @@ export default Vue.extend({
 	beforeUpdate() {
 		this.popuped = true;
 	},
-	beforeDestroy() {
-		(this.$root as Vue & {selectedToExport: Record<string, Place>}).selectedToExport = {};
+	beforeUnmount() {
+		this.$root.selectedToExport = {};
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {

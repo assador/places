@@ -1,13 +1,10 @@
 import { constants } from '../shared/constants';
-import { bus } from '../shared/bus';
+import { emitter } from '../shared/bus';
 import { commonFunctions } from '../shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import axios from 'axios';
-import Vue from 'vue';
-import Vuex, { Store, Plugin, MutationPayload } from 'vuex';
+import { Store, Plugin, MutationPayload, createStore } from 'vuex';
 import { State, Waypoint, Place, Folder, Image } from './types';
-
-Vue.use(Vuex);
 
 const tracking: Plugin<State> = (store: Store<State>) => {
 	const trackingMutations: string[] = [
@@ -66,7 +63,7 @@ const tracking: Plugin<State> = (store: Store<State>) => {
 	store.dispatch('changeLang', store.state.lang);
 };
 
-const store: Store<State> = new Vuex.Store<State>({
+const store = createStore({
 	plugins: [tracking],
 	state: {
 		refreshing: false,
@@ -86,7 +83,7 @@ const store: Store<State> = new Vuex.Store<State>({
 			latitude: null,
 			longitude: null,
 		},
-		zoom: constants.map.initial.zoom,
+		zoom: Number(constants.map.initial.zoom),
 		placemarksShow: true,
 		commonPlacemarksShow: false,
 		centerPlacemarkShow: false,
@@ -102,8 +99,8 @@ const store: Store<State> = new Vuex.Store<State>({
 	},
 	mutations: {
 		changeLang(state, payload) {
-			Vue.set(state, 'lang', payload.lang);
-			Vue.set(state, 't', payload.dict);
+			state.lang = payload.lang;
+			state.t = payload.dict;
 		},
 		setMessage(state, message) {
 			state.messages.push(message);
@@ -118,18 +115,18 @@ const store: Store<State> = new Vuex.Store<State>({
 			state.mouseOverMessages = (over === false ? false : true);
 		},
 		setRefreshing(state, refreshing) {
-			Vue.set(state, 'refreshing', refreshing);
+			state.refreshing = refreshing;
 		},
 		setSaved(state, saved) {
-			Vue.set(state, 'saved', (saved === false ? false : true));
+			state.saved = (saved === false ? false : true);
 		},
 		setObjectSaved(state, object) {
-			Vue.set(object, 'added', false);
-			Vue.set(object, 'deleted', false);
-			Vue.set(object, 'updated', false);
+			object.added = false;
+			object.deleted = false;
+			object.updated = false;
 		},
 		setIdleTime(state, time) {
-			Vue.set(state, 'idleTime', time);
+			state.idleTime = time;
 		},
 		backupState(state) {
 			if (state.stateBackups) {
@@ -138,84 +135,69 @@ const store: Store<State> = new Vuex.Store<State>({
 				state.stateBackups.push(
 					Object.assign({}, JSON.parse(JSON.stringify(state)))
 				);
-				Vue.delete(
-					state.stateBackups[state.stateBackups.length - 1],
-					'stateBackups'
-				);
+				delete state.stateBackups[state.stateBackups.length - 1].stateBackups
 			}
 		},
 		restoreState(state, index) {
 			if (state.stateBackups) {
 				for (const key in Object(state.stateBackups[index])) {
 					if (key !== 'stateBackups') {
-						Vue.set(state, key,
+						state[key] =
 							JSON.parse(
 								JSON.stringify(
 									state.stateBackups[index][key as keyof State]
 								)
 							)
-						);
+						;
 					}
 				}
 			}
 		},
 		stateBackupsIndexChange(state, delta) {
-			Vue.set(state, 'stateBackupsIndex', state.stateBackupsIndex + delta);
+			state.stateBackupsIndex = state.stateBackupsIndex + delta;
 		},
 		inUndoRedo(state) {
-			Vue.set(state, 'inUndoRedo', true);
+			state.inUndoRedo = true;
 		},
 		outUndoRedo(state) {
-			Vue.set(state, 'inUndoRedo', false);
+			state.inUndoRedo = false;
 		},
 		reset(state) {
-			Vue.set(state, 'refreshing', false);
-			Vue.set(state, 'saved', true);
-			Vue.set(state, 'idleTime', 0);
-			Vue.set(state, 'stateBackups', []);
-			Vue.set(state, 'stateBackupsIndex', -1);
-			Vue.set(state, 'inUndoRedo', false);
-			Vue.set(state, 'user', null);
-			Vue.set(state, 'currentPlace', null);
-			Vue.set(state, 'homePlace', null);
-			Vue.set(state, 'waypoints', {});
-			Vue.set(state, 'places', {});
-			Vue.set(state, 'folders', {});
-			Vue.set(state, 'commonPlaces', {});
-			Vue.set(state, 'center', {
+			state.refreshing = false;
+			state.saved = true;
+			state.idleTime = 0;
+			state.stateBackups = [];
+			state.stateBackupsIndex = -1;
+			state.inUndoRedo = false;
+			state.user = null;
+			state.currentPlace = null;
+			state.homePlace = null;
+			state.waypoints = {};
+			state.places = {};
+			state.folders = {};
+			state.commonPlaces = {};
+			state.center = {
 				latitude: null,
 				longitude: null,
-			});
-			Vue.set(state, 'zoom', constants.map.initial.zoom);
-			Vue.set(state, 'placemarksShow', true);
-			Vue.set(state, 'commonPlacemarksShow', false);
-			Vue.set(state, 'centerPlacemarkShow', false);
-			Vue.set(state, 'ready', false);
-			Vue.set(state, 'messages', []);
-			Vue.set(state, 'messageTimer', 0);
-			Vue.set(state, 'mouseOverMessages', false);
-			Vue.set(state, 'serverConfig', null);
-			Vue.set(state, 'placeFields', {
-				name               : state.t.i.captions.name,
-				description        : state.t.i.captions.description,
-				link               : state.t.i.captions.link,
-				latitude           : state.t.i.captions.latitude,
-				longitude          : state.t.i.captions.longitude,
-				altitudecapability : state.t.i.captions.altitudecapability,
-				time               : state.t.i.captions.time,
-				srt                : state.t.i.captions.srt,
-				common             : state.t.i.captions.common,
-				images             : state.t.i.captions.images,
-			});
+			};
+			state.zoom = Number(constants.map.initial.zoom) || null;
+			state.placemarksShow = true;
+			state.commonPlacemarksShow = false;
+			state.centerPlacemarkShow = false;
+			state.ready = false;
+			state.messages = [];
+			state.messageTimer = 0;
+			state.mouseOverMessages = false;
+			state.serverConfig = null;
 		},
 		setUser(state, user) {
-			Vue.set(state, 'user', user);
+			state.user = user;
 		},
 		setServerConfig(state, config) {
-			Vue.set(state, 'serverConfig', config);
+			state.serverConfig = config;
 		},
 		setCurrentPlace(state, place) {
-			Vue.set(state, 'currentPlace', place);
+			state.currentPlace = place;
 		},
 		setHomePlace(state, place) {
 			state.homePlace = place;
@@ -225,16 +207,16 @@ const store: Store<State> = new Vuex.Store<State>({
 		},
 		placesReady(state, payload) {
 			if (payload.waypoints) {
-				Vue.set(state, 'waypoints', payload.waypoints);
+				state.waypoints = payload.waypoints;
 			}
 			if (payload.places) {
-				Vue.set(state, 'places', payload.places);
+				state.places = payload.places;
 			}
 			if (payload.commonPlaces) {
-				Vue.set(state, 'commonPlaces', payload.commonPlaces);
+				state.commonPlaces = payload.commonPlaces;
 			}
 			if (payload.folders) {
-				Vue.set(state, 'folders', payload.folders);
+				state.folders = payload.folders;
 			}
 			let added = false, deleted = false, updated = false;
 			switch (payload.what) {
@@ -249,87 +231,87 @@ const store: Store<State> = new Vuex.Store<State>({
 					break;
 			}
 			for (const id in payload.waypoints) {
-				Vue.set(payload.waypoints[id], 'type', 'waypoint');
-				Vue.set(payload.waypoints[id], 'added', added);
-				Vue.set(payload.waypoints[id], 'deleted', deleted);
-				Vue.set(payload.waypoints[id], 'updated', updated);
-				Vue.set(payload.waypoints[id], 'show', true);
+				payload.waypoints[id].type = 'waypoint';
+				payload.waypoints[id].added = added;
+				payload.waypoints[id].deleted = deleted;
+				payload.waypoints[id].updated = updated;
+				payload.waypoints[id].show = true;
 			}
 			for (const id in payload.places) {
-				Vue.set(payload.places[id], 'type', 'place');
-				Vue.set(payload.places[id], 'added', added);
-				Vue.set(payload.places[id], 'deleted', deleted);
-				Vue.set(payload.places[id], 'updated', updated);
-				Vue.set(payload.places[id], 'show', true);
+				payload.places[id].type = 'place';
+				payload.places[id].added = added;
+				payload.places[id].deleted = deleted;
+				payload.places[id].updated = updated;
+				payload.places[id].show = true;
 			}
 			for (const id in payload.folders) {
-				Vue.set(payload.folders[id], 'type', 'folder');
-				Vue.set(payload.folders[id], 'added', added);
-				Vue.set(payload.folders[id], 'deleted', deleted);
-				Vue.set(payload.folders[id], 'updated', updated);
-				Vue.set(payload.folders[id], 'opened', false);
+				payload.folders[id].type = 'folder';
+				payload.folders[id].added = added;
+				payload.folders[id].deleted = deleted;
+				payload.folders[id].updated = updated;
+				payload.folders[id].opened = false;
 			}
-			Vue.set(state, 'folders', commonFunctions.plainToTree(state.folders));
+			state.folders = commonFunctions.plainToTree(state.folders);
 		},
 		stateReady(state, ready) {
-			Vue.set(state, 'ready', ready);
+			state.ready = ready;
 		},
 		show(state, id) {
-			Vue.set(state.places[id], 'show', true);
+			state.places[id].show = true;
 		},
 		hide(state, id) {
-			Vue.set(state.places[id], 'show', false);
+			state.places[id].show = false;
 		},
 		modifyPlaces(state, places) {
-			Vue.set(state, 'places', places);
+			state.places = places;
 		},
 		modifyFolders(state, folders) {
-			Vue.set(state, 'folders', folders);
+			state.folders = folders;
 		},
 		modifyCommonPlaces(state, commonPlaces) {
-			Vue.set(state, 'commonPlaces', commonPlaces);
+			state.commonPlaces = commonPlaces;
 		},
 		addWaypoint(state, waypoint) {
-			Vue.set(state.waypoints, waypoint.id, waypoint);
+			state.waypoints[waypoint.id] = waypoint;
 		},
 		addPlace(state, place) {
-			Vue.set(state.places, place.id, place);
+			state.places[place.id] = place;
 		},
 		deleteWaypoint(state, waypoint) {
-			Vue.delete(state.waypoints, waypoint.id);
+			delete state.waypoints[waypoint.id];
 		},
 		deletePlace(state, place) {
-			Vue.delete(state.places, place.id);
+			delete state.places[place.id];
 		},
 		addFolder(state, payload) {
 			if (!payload.parent) {
-				Vue.set(state.folders, payload.folder.id, payload.folder);
+				state.folders[payload.folder.id] = payload.folder;
 			} else {
 				if (!payload.parent.children) {
-					Vue.set(payload.parent, 'children', {});
+					payload.parent.children = {};
 				} else {
-					Vue.set(payload.parent, 'needToRefreshTreeSorry', null);
-					Vue.delete(payload.parent, 'needToRefreshTreeSorry');
+					payload.parent.needToRefreshTreeSorry = null;
+					delete payload.parent.needToRefreshTreeSorry;
 				}
-				Vue.set(payload.parent.children, payload.folder.id, payload.folder);
+				payload.parent.children[payload.folder.id] = payload.folder;
 			}
 		},
 		deleteFolder(state, payload) {
 			if (!payload.source) {
 				payload.source = store.getters.treeFlat[payload.folder.parent];
 			}
-			Vue.delete(payload.source.children, payload.folder.id);
-			Vue.set(payload.source, 'needToRefreshTreeSorry', null);
-			Vue.delete(payload.source, 'needToRefreshTreeSorry');
+			delete payload.source.children[payload.folder.id];
+			payload.source.needToRefreshTreeSorry = null;
+			delete payload.source.needToRefreshTreeSorry;
 		},
 		changeWaypoint(state, payload) {
-			Vue.set(payload.waypoint, payload.key, payload.value);
+			payload.waypoint[payload.key] = payload.value;
 		},
 		changePlace(state, payload) {
-			Vue.set(payload.place, payload.key, payload.value);
+			payload.place[payload.key] = payload.value;
 		},
 		changeFolder(state, payload) {
-			Vue.set(payload.folder, payload.key, payload.value);
+			payload.folder[payload.key] = payload.value;
 		},
 		deleteImages(state, payload) {
 			if (!payload.images || !Object.keys(payload.images).length) return;
@@ -338,33 +320,26 @@ const store: Store<State> = new Vuex.Store<State>({
 					state.places[payload.images[id].placeid] &&
 					state.places[payload.images[id].placeid].images[id]
 				) {
-					Vue.delete(state.places[payload.images[id].placeid].images, id);
+					delete state.places[payload.images[id].placeid].images[id];
 				}
 			}
 		},
 		folderOpenClose(state, payload) {
-			Vue.set(
-				payload.folder,
-				'opened',
+			payload.folder.opened =
 				payload.hasOwnProperty('opened')
 					? payload.opened
 					: !payload.folder.opened
-			);
+			;
 		},
 		swapImages(state, changes) {
-			Vue.set(
-				changes.place.images[changes.ids[0]],
-				'srt',
+			changes.place.images[changes.ids[0]].srt =
 				[
 					changes.place.images[changes.ids[1]].srt,
-					Vue.set(
-						changes.place.images[changes.ids[1]],
-						'srt',
+					changes.place.images[changes.ids[1]].srt =
 						changes.place.images[changes.ids[0]].srt
-					)
 				][0]
-			);
-			Vue.set(changes.place, 'updated', true);
+			;
+			changes.place.updated = true;
 		},
 		changeMap(state, payload) {
 			if (payload.latitude) state.center.latitude = payload.latitude;
@@ -372,16 +347,16 @@ const store: Store<State> = new Vuex.Store<State>({
 			if (payload.zoom) state.zoom = payload.zoom;
 		},
 		placemarksShowHide(state, show) {
-			Vue.set(state, 'placemarksShow', show);
+			state.placemarksShow = show;
 		},
 		commonPlacemarksShowHide(state, show) {
-			Vue.set(state, 'commonPlacemarksShow', show);
+			state.commonPlacemarksShow = show;
 		},
 		centerPlacemarkShowHide(state, show) {
-			Vue.set(state, 'centerPlacemarkShow', show);
+			state.centerPlacemarkShow = show;
 		},
 		setMessageTimer(state, messageTimer) {
-			Vue.set(state, 'messageTimer', messageTimer);
+			state.messageTimer = messageTimer;
 		},
 	},
 	actions: {
@@ -396,8 +371,8 @@ const store: Store<State> = new Vuex.Store<State>({
 			commit('restoreState', backupIndex);
 			dispatch('restoreObjectsAsLinks')
 				.then(() => {
-					bus.$emit('refreshMapOpenStreetMapMarks');
-					bus.$emit('refreshMapYandexMarks');
+					emitter.emit('refreshMapOpenStreetMapMarks');
+					emitter.emit('refreshMapYandexMarks');
 				});
 		},
 		undo({state, commit, dispatch}) {
@@ -461,8 +436,8 @@ const store: Store<State> = new Vuex.Store<State>({
 		},
 		async setPlaces({state, commit, dispatch, getters}, payload) {
 			commit('stateReady', false);
-			if (!payload) {
 			// If reading from database, not importing
+			if (!payload) {
 				axios
 					.get(
 						'/backend/get_places.php?id=' +
@@ -504,12 +479,12 @@ const store: Store<State> = new Vuex.Store<State>({
 				try {
 					const result =
 						<Record<string, Array<Place | Waypoint | Folder>>>
-						JSON.parse(payload.text)
+						JSON.parse(text)
 					;
 					return result;
 				} catch (e) {
 					dispatch('setMessage',
-						this.$store.state.t.m.popup.parsingImportError + ': ' + e
+						state.t.m.popup.parsingImportError + ': ' + e
 					);
 					return null;
 				}
@@ -528,7 +503,7 @@ const store: Store<State> = new Vuex.Store<State>({
 					);
 				} catch (e) {
 					dispatch('setMessage',
-						this.$store.state.t.m.popup.parsingImportError + ': ' + e
+						state.t.m.popup.parsingImportError + ': ' + e
 					);
 					return null;
 				}
@@ -590,10 +565,16 @@ const store: Store<State> = new Vuex.Store<State>({
 					const newPlaceId = commonFunctions.generateRandomString(32);
 					const newWaypoint = {
 						id: newWaypointId,
-						latitude: parseFloat(wpt.getAttribute('lat')),
-						longitude: parseFloat(wpt.getAttribute('lon')),
+						latitude:
+							Number(wpt.getAttribute('lat')) ||
+							Number(constants.map.initial.latitude) ||
+							null,
+						longitude:
+							Number(wpt.getAttribute('lon')) ||
+							Number(constants.map.initial.longitude) ||
+							null,
 						altitudecapability: (wpt.getElementsByTagName('ele').length
-							? parseFloat(wpt.getElementsByTagName('ele')[0].textContent.trim())
+							? (Number(wpt.getElementsByTagName('ele')[0].textContent.trim()) || null)
 							: null
 						),
 						time: time,
@@ -678,7 +659,7 @@ const store: Store<State> = new Vuex.Store<State>({
 											name: folder.name,
 											description: folder.description,
 											id: folder.id,
-											srt: folder.srt,
+											srt: Number(folder.srt) || 0,
 											parent: folder.parent,
 											opened: false,
 											geomarks: 1,
@@ -690,7 +671,7 @@ const store: Store<State> = new Vuex.Store<State>({
 										dispatch('addFolder', newFolder);
 									} else {
 										dispatch('setMessage',
-											this.$store.state.t.m.popup.foldersCountExceeded
+											state.t.m.popup.foldersCountExceeded
 										);
 										break;
 									}
@@ -729,9 +710,17 @@ const store: Store<State> = new Vuex.Store<State>({
 								;
 								newWaypoint = {
 									id: parsedWaypoint.id,
-									latitude: parsedWaypoint.latitude,
-									longitude: parsedWaypoint.longitude,
-									altitudecapability: parsedWaypoint.altitudecapability,
+									latitude:
+										Number(parsedWaypoint.latitude) ||
+										Number(constants.map.initial.latitude) ||
+										null,
+									longitude:
+										Number(parsedWaypoint.longitude) ||
+										Number(constants.map.initial.longitude) ||
+										null,
+									altitudecapability:
+										Number(parsedWaypoint.altitudecapability) ||
+										null,
 									time: parsedWaypoint.time,
 									common: parsedWaypoint.common,
 									type: 'waypoint',
@@ -751,7 +740,7 @@ const store: Store<State> = new Vuex.Store<State>({
 								time: place.time,
 								id: place.id,
 								folderid: place.folderid,
-								srt: place.srt,
+								srt: Number(place.srt) || 0,
 								common: place.common,
 								geomark: true,
 								added: true,
@@ -768,14 +757,14 @@ const store: Store<State> = new Vuex.Store<State>({
 							}
 						} else {
 							dispatch('setMessage',
-								this.$store.state.t.m.popup.placesCountExceeded
+								state.t.m.popup.placesCountExceeded
 							);
 						}
 					}
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 				} catch (e) {
 					dispatch('setMessage',
-						this.$store.state.t.m.popup.parsingImportError + ': ' + e
+						state.t.m.popup.parsingImportError + ': ' + e
 					);
 					return false;
 				}
@@ -824,10 +813,10 @@ const store: Store<State> = new Vuex.Store<State>({
 			let place = null;
 			if (state.places[id]) {
 				place = state.places[id];
-				bus.$emit('homeToDB', id);
+				emitter.emit('homeToDB', id);
 			}
 			commit('setHomePlace', place);
-			if (!place) bus.$emit('homeToDB', null);
+			if (!place) emitter.emit('homeToDB', null);
 		},
 		async deletePlacesMarkedAsDeleted({state, dispatch}) {
 			const places: Record<string, Place> = {};
@@ -866,7 +855,7 @@ const store: Store<State> = new Vuex.Store<State>({
 						break;
 					}
 				}
-				bus.$emit('deletePlace', payload.places[payloadPlaceId]);
+				emitter.emit('deletePlace', payload.places[payloadPlaceId]);
 				if (!commonWaypoint) {
 					waypoints.push(
 						state.waypoints[payload.places[payloadPlaceId].waypoint]
@@ -895,12 +884,12 @@ const store: Store<State> = new Vuex.Store<State>({
 					data.append('userid', state.user.id);
 					await axios.post('/backend/delete.php', data)
 						.then(() => {
-							bus.$emit('toDB', {what: 'images_delete', data: images});
+							emitter.emit('toDB', {what: 'images_delete', data: images});
 						});
-					bus.$emit('toDB', {what: 'waypoints', data: waypoints});
-					bus.$emit('toDB', {what: 'places', data: places});
+					emitter.emit('toDB', {what: 'waypoints', data: waypoints});
+					emitter.emit('toDB', {what: 'places', data: places});
 				} else {
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 					commit('outUndoRedo');
 				}
 			}
@@ -919,9 +908,9 @@ const store: Store<State> = new Vuex.Store<State>({
 			}
 			if (saveToDB && !state.user.testaccount) {
 				if (!state.inUndoRedo) {
-					bus.$emit('toDB', {what: 'folders', data: folders});
+					emitter.emit('toDB', {what: 'folders', data: folders});
 				} else {
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 					commit('outUndoRedo');
 				}
 			}
@@ -930,7 +919,7 @@ const store: Store<State> = new Vuex.Store<State>({
 			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
 			if (saveToDB && !state.user.testaccount) {
 				if (!state.inUndoRedo) {
-					bus.$emit('toDB', {
+					emitter.emit('toDB', {
 						what: 'waypoints',
 						data: [{
 							...payload.waypoint,
@@ -938,7 +927,7 @@ const store: Store<State> = new Vuex.Store<State>({
 						}],
 					});
 				} else {
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 					commit('outUndoRedo');
 				}
 			}
@@ -949,9 +938,9 @@ const store: Store<State> = new Vuex.Store<State>({
 			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
 			if (saveToDB && !state.user.testaccount) {
 				if (!state.inUndoRedo) {
-					bus.$emit('toDB', {what: 'places', data: [payload.place]});
+					emitter.emit('toDB', {what: 'places', data: [payload.place]});
 				} else {
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 					commit('outUndoRedo');
 				}
 			}
@@ -981,7 +970,7 @@ const store: Store<State> = new Vuex.Store<State>({
 					value: true,
 				});
 				if (!state.inUndoRedo) {
-					bus.$emit('toDB', {
+					emitter.emit('toDB', {
 						what: 'waypoints',
 						data: [{
 							...payload.waypoint,
@@ -989,7 +978,7 @@ const store: Store<State> = new Vuex.Store<State>({
 						}],
 					});
 				} else {
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 					commit('outUndoRedo');
 				}
 			}
@@ -1021,9 +1010,9 @@ const store: Store<State> = new Vuex.Store<State>({
 				dispatch('changeWaypoint', {
 					waypoint: state.waypoints[payload.place.waypoint],
 					change: {
-						latitude: lat,
-						longitude: lng,
-						altitudecapability: alt,
+						latitude: Number(lat) || Number(constants.map.initial.latitude) || null,
+						longitude: Number(lng) || Number(constants.map.initial.longitude) || null,
+						altitudecapability: Number(alt) || null,
 					},
 					from: payload.place,
 				});
@@ -1039,7 +1028,9 @@ const store: Store<State> = new Vuex.Store<State>({
 				commit('changePlace', {
 					place: payload.place,
 					key: key,
-					value: payload.change[key],
+					value: key === 'srt'
+						? (Number(payload.change[key]) || 0)
+						: payload.change[key],
 				});
 				if (
 					key === 'added' ||
@@ -1056,9 +1047,9 @@ const store: Store<State> = new Vuex.Store<State>({
 					value: true,
 				});
 				if (!state.inUndoRedo) {
-					bus.$emit('toDB', {what: 'places', data: [payload.place]});
+					emitter.emit('toDB', {what: 'places', data: [payload.place]});
 				} else {
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 					commit('outUndoRedo');
 				}
 			}
@@ -1086,9 +1077,9 @@ const store: Store<State> = new Vuex.Store<State>({
 					value: true,
 				});
 				if (!state.inUndoRedo) {
-					bus.$emit('toDB', {what: 'folders', data: [payload.folder]});
+					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
 				} else {
-					bus.$emit('toDBCompletely');
+					emitter.emit('toDBCompletely');
 					commit('outUndoRedo');
 				}
 			}
@@ -1127,7 +1118,7 @@ const store: Store<State> = new Vuex.Store<State>({
 				folder: folder,
 				change: {
 					parent: target.id,
-					srt: srt,
+					srt: Number(srt) || 0,
 					updated: false,
 				},
 				todb: true,
@@ -1317,9 +1308,10 @@ const store: Store<State> = new Vuex.Store<State>({
 			return placeFields;
 		},
 		tree(state, getters) {
-			Vue.set(getters.rootPlace, 'children', state.folders);
-			Vue.set(getters.rootPlace, 'userid', (state.user ? state.user.id : null));
-			return getters.rootPlace;
+			const rootPlace = getters.rootPlace;
+			rootPlace.children = state.folders;
+			rootPlace.userid = (state.user ? state.user.id : null);
+			return rootPlace;
 		},
 		treeFlat(state, getters) {
 			const treeFlat: Record<string, Folder> = {};

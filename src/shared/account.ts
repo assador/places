@@ -1,8 +1,8 @@
-import Vue from 'vue';
+import { reactive } from 'vue';
 import axios from 'axios';
 import store from '@/store';
 
-export const acc = Vue.observable({
+export const acc = reactive({
 	message: '',
 });
 export const accountSaveRoutine: (account: Record<string, string>) => void =

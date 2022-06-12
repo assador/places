@@ -1,8 +1,8 @@
-import Vue from 'vue';
+import { reactive } from 'vue';
 import axios from 'axios';
 import store from '@/store';
 
-export const forgot = Vue.observable({
+export const forgot = reactive({
 	message: '',
 });
 export const forgotRoutine: (data: Record<string, string>) => void =

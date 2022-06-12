@@ -1,9 +1,9 @@
-import Vue from 'vue';
+import { reactive } from 'vue';
 import axios from 'axios';
-import { bus } from './bus';
+import { emitter } from './bus';
 import store from '@/store';
 
-export const login = Vue.observable({
+export const login = reactive({
 	message: '',
 });
 export const loginRoutine: (user: {authLogin: string, authPassword: string}) => void =
@@ -22,7 +22,7 @@ export const loginRoutine: (user: {authLogin: string, authPassword: string}) => 
 							sessionStorage.setItem('places-userid', response.data.id);
 							sessionStorage.setItem('places-session', response.data.session);
 							sessionStorage.setItem('places-lang', store.state.lang);
-							bus.$emit('logged');
+							emitter.emit('logged');
 						}
 				}
 			})
