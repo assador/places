@@ -21,7 +21,7 @@
 				href="javascript: void(0);"
 				class="folder-button"
 				:draggable="true"
-				@click="$store.dispatch('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder, opened: folder.opened ? false : true});"
+				@click="$store.dispatch('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder, opened: !folder.opened});"
 				@dragstart="$root.handleDragStart"
 				@dragenter="$root.handleDragEnter"
 				@dragleave="$root.handleDragLeave"

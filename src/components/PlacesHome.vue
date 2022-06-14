@@ -183,7 +183,6 @@
 				>
 					<places-tree
 						instanceid="placestree"
-						:data="$store.getters.tree || {}"
 					/>
 				</div>
 				<div v-if="Object.keys($store.state.commonPlaces).length > 0 && commonPlacesShow">
