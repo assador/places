@@ -141,6 +141,8 @@ body {
 	padding: 10px 20px 12px 20px;
 	z-index: 100000;
 }
+#messages.visible {top: 0;}
+#messages.invisible {top: -100%;}
 #imp {
 	display: block;
 	box-sizing: border-box;
@@ -169,12 +171,15 @@ body {
 	overflow: auto;
 }
 .control-buttons {
-	display: flex;
-	flex-wrap: wrap;
-	margin: -4px;
+	position: absolute;
+	top: 8px; right: 8px; bottom: 8px; left: 8px;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
 }
 .find-places-input {
-	margin-top: 12px;
+	margin: 8px 4px 4px 4px;
+	grid-column-start: 1;
+	grid-column-end: 5;
 }
 #sbs-top, #sbs-right, #sbs-bottom, #sbs-left {
 	position: absolute;

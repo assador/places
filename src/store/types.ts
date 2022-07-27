@@ -97,4 +97,5 @@ export interface State {
 	serverConfig: Record<string, any> | null;
 	lang: string;
 	t: any;
+	tree: Folder;
 }

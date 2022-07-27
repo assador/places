@@ -2,7 +2,7 @@
 	<ul>
 		<places-tree-node
 			:instanceid="instanceid"
-			:folder="folder"
+			:folder="$store.state.tree"
 			class="folder_root"
 		/>
 	</ul>
@@ -22,11 +22,6 @@ export default defineComponent({
 			type: String,
 			default: '',
 		},
-	},
-	data() {
-		return {
-			folder: this.$store.getters.tree,
-		};
 	},
 });
 </script>

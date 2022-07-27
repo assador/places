@@ -137,7 +137,7 @@ export default defineComponent({
 						)
 					)) + 1;
 				}
-				let newFolder: Folder = {
+				const newFolder: Folder = {
 					id: commonFunctions.generateRandomString(32) as string,
 					parent: this.currentPlace
 						? this.currentPlace.folderid

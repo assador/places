@@ -1,85 +1,127 @@
 <template>
-	<div id="mapblock" />
+	<yandex-map
+		id="mapblock"
+		ref="map"
+		:coords="mapCenter.coords"
+		:center="mapCenter.coords"
+		:zoom="mapCenter.zoom"
+		@map-was-initialized="mapHandler"
+		@actionend="
+			updateState({
+				coords: [
+					map.getCenter()[0],
+					map.getCenter()[1],
+				],
+				zoom: map.getZoom(),
+			});
+		"
+	>
+		<ymap-marker
+			markerId="centerMarker"
+			ref="centerMarker"
+			:coords="mapCenter.coords"
+			:hintContent="$store.state.t.i.maps.center"
+			:balloon="{body: $store.state.t.i.maps.centerExt}"
+			:options="{
+				visible: centerPlacemarkShow,
+				...placemarksOptions.basic,
+				...placemarksOptions.center,
+				...placemarksOptions.icon_06,
+			}"
+			@dragend="
+				updateState({
+					coords: $event.originalEvent.target.geometry._coordinates,
+				});
+			"
+		/>
+		<ymap-marker
+			v-for="(place, id) in places"
+			:key="id"
+			:markerId="place.id"
+			:coords="[
+				waypoints[place.waypoint] ? waypoints[place.waypoint].latitude : 0,
+				waypoints[place.waypoint] ? waypoints[place.waypoint].longitude : 0,
+			]"
+			:hintContent="place.name"
+			:balloon="{body: place.description}"
+			:options="{
+				visible: placemarksShow && place.show && place.geomark,
+				...placemarksOptions.basic,
+				...placemarksOptions.private,
+				...placemarksOptions[currentPlace && id === currentPlace.id ? 'icon_06' : 'icon_04'],
+			}"
+			:properties="{
+				place: place,
+			}"
+			@click="placemarkClick($event);"
+			@dragstart="placemarkDragStart($event);"
+			@dragend="placemarkDragEnd($event);"
+		/>
+		<ymap-marker
+			v-for="(place, id) in commonPlaces"
+			:key="id"
+			:markerId="place.id"
+			:coords="[waypoints[place.waypoint].latitude, waypoints[place.waypoint].longitude]"
+			:hintContent="place.name"
+			:balloon="{body: place.description}"
+			:options="{
+				visible: commonPlacemarksShow && place.show && place.geomark,
+				...placemarksOptions.basic,
+				...placemarksOptions.common,
+				...placemarksOptions[currentPlace && id === currentPlace.id ? 'icon_06' : 'icon_05'],
+			}"
+			:properties="{
+				place: place,
+			}"
+			@click="placemarkClick($event);"
+		/>
+	</yandex-map>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import ymaps from 'ymaps';
-import { Map, Placemark } from 'yandex-maps';
+import { defineComponent, PropType, ref } from 'vue';
+import { emitter } from '@/shared/bus';
 import { ResizeSensor } from 'css-element-queries'
 import { mapState } from 'vuex';
-import { emitter } from '@/shared/bus';
 import { constants } from '@/shared/constants';
-import { Place } from '@/store/types';
+import { YmapPlugin, loadYmap, yandexMap, ymapMarker } from 'vue-yandex-maps';
+import { Place, Waypoint } from '@/store/types';
 
 export default defineComponent({
-	props: {
-		id: {
-			type: String,
-			default: '',
-		},
-		name: {
-			type: String,
-			default: '',
-		},
-		description: {
-			type: String,
-			default: '',
-		},
-		latitude: {
-			type: Number,
-			default: constants.map.initial.latitude,
-		},
-		longitude: {
-			type: Number,
-			default: constants.map.initial.longitude,
-		},
-		centerLatitude: {
-			type: Number,
-			default: constants.map.initial.latitude,
-		},
-		centerLongitude: {
-			type: Number,
-			default: constants.map.initial.longitude,
-		},
-		zoom: {
-			type: Number,
-			default: constants.map.initial.zoom,
-		},
-		geomarksVisibility: {
-			type: Object as PropType<Record<string, boolean>>,
-			default() {return {};},
-		},
+	components: {
+		yandexMap,
+		ymapMarker,
 	},
 	data() {
 		return {
-			maps: null as unknown as any,
-			map: null as unknown as Map,
-			mrk: null as unknown as Placemark,
-			mrks: {} as Record<string, Placemark>,
-			commonMrks: {} as Record<string, Placemark>,
-			privatePlacemarksColor: 'rgb(100, 44, 36)' as string,
-			commonPlacemarksColor: 'rgba(144, 98, 62, 0.6)' as string,
-			activePlacemarksColor: 'rgb(217, 82, 0)' as string,
+			map: null as unknown as yandexMap,
 			placemarksOptions: {
+				basic: {
+					iconLayout: 'default#image',
+					iconImageSize: [25, 38],
+					iconImageOffset: [0, -34],
+				},
 				private: {
-					visible: true as boolean,
-					draggable: true as boolean,
-					preset: 'islands#icon',
-					iconColor: 'rgb(100, 44, 36)',
+					draggable: true,
 				},
 				common: {
-					visible: false as boolean,
-					draggable: false as boolean,
-					preset: 'islands#icon',
-					iconColor: 'rgba(144, 98, 62, 0.6)',
+					draggable: false,
 				},
-			},
-			centerPlacemarkOptions: {
-				visible: this.$store.state.centerPlacemarkShow ? true : false,
-				draggable: true,
-				preset: 'islands#icon',
-				iconColor: 'rgb(127, 143, 0)',
+				active: {
+					draggable: true,
+				},
+				center: {
+					draggable: true,
+				},
+				icon_04: {
+					iconImageHref: '../img/markers/marker_04.svg',
+				},
+				icon_05: {
+					iconImageHref: '../img/markers/marker_05.svg',
+				},
+				icon_06: {
+					iconImageHref: '../img/markers/marker_06.svg',
+				},
 			},
 			updatingMap: false,
 		};
@@ -90,211 +132,71 @@ export default defineComponent({
 			'placemarksShow',
 			'commonPlacemarksShow',
 			'centerPlacemarkShow',
+			'places',
+			'commonPlaces',
+			'waypoints',
 		]),
+		mapCenter(): Record<string, Array<number> | number> {
+			return {
+				coords: [
+					this.$store.state.center.latitude,
+					this.$store.state.center.longitude,
+				],
+				zoom: this.$store.state.zoom,
+			};
+		},
 	},
 	watch: {
-		latitude() {
-			this.updatePlacemark(
-				this.$root.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-			if (this.currentPlace) {
-				this.$store.dispatch('changeMap', {
-					latitude: this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
-					longitude: this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
-				});
-			}
-		},
-		longitude() {
-			this.updatePlacemark(
-				this.$root.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-			if (this.currentPlace) {
-				this.$store.dispatch('changeMap', {
-					latitude: this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
-					longitude: this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
-				});
-			}
-		},
-		centerLatitude() {
-			this.updateMap();
-		},
-		centerLongitude() {
-			this.updateMap();
-		},
-		zoom() {
-			this.updateMap();
-		},
-		name() {
-			this.updatePlacemark(
-				this.$root.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-		},
-		description() {
-			this.updatePlacemark(
-				this.$root.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-		},
-		geomarksVisibility() {
-			for (let id in this.geomarksVisibility) {
-				if (this.mrks[id]) {
-					this.mrks[id].options.set({
-						visible: this.geomarksVisibility[id],
-					});
-				}
-			}
-		},
 		placemarksShow() {
-			for (let key in this.mrks) {
-				this.mrks[key].options.set({
-					visible: this.$store.state.placemarksShow,
-				});
+			if (this.placemarksShow) {
+				this.placemarksOptions.private.visible = true;
+			} else {
+				this.placemarksOptions.private.visible = false;
 			}
 		},
 		commonPlacemarksShow() {
-			for (let key in this.commonMrks) {
-				this.commonMrks[key].options.set({
-					visible: this.$store.state.commonPlacemarksShow,
-				});
+			if (this.commonPlacemarksShow) {
+				this.placemarksOptions.common.visible = true;
+			} else {
+				this.placemarksOptions.common.visible = false;
 			}
 		},
 		centerPlacemarkShow() {
-			this.mrk.options.set({
-				visible: this.$store.state.centerPlacemarkShow,
-			});
+			if (this.centerPlacemarkShow) {
+				this.placemarksOptions.center.visible = true;
+			} else {
+				this.placemarksOptions.center.visible = false;
+			}
 		},
-	},
-	created() {
-		emitter.on('refreshMapYandexMarks', () => {
-			this.map.geoObjects.removeAll();
-			this.mrks = {};
-			for (const id in this.$store.state.places) {
-				this.appendPlacemark(this.mrks, this.$store.state.places[id], 'private');
-			}
-			if (this.currentPlace) {
-				if (
-					!this.$root.currentPlaceCommon &&
-					this.mrks[this.currentPlace.id]
-				) {
-					this.mrks[this.currentPlace.id].options.set({
-						iconColor: this.activePlacemarksColor,
-					});
-				} else if (this.commonMrks[this.currentPlace.id]) {
-					this.commonMrks[this.currentPlace.id].options.set({
-						iconColor: this.activePlacemarksColor,
-					});
-				}
-			}
-		});
 	},
 	mounted() {
 		new ResizeSensor(document.getElementById('basic-basic') as HTMLElement, () => {
 			this.fitMap();
 		});
 	},
-	beforeUnmount() {
-		emitter.off('refreshMapYandexMarks');
-		if (this.map) {
-			this.map.destroy();
-		}
-	},
 	methods: {
-		showMap(lat: number, lng: number, zoom: number) {
-			ymaps.load('https://api-maps.yandex.ru/2.1/?lang=ru_RU').then((maps: any) => {
-				this.maps = maps;
-				this.map = new maps.Map('mapblock', {
-					center: [lat, lng],
-					zoom: zoom,
-				});
-				let coordinates = this.map.getCenter();
-				this.$store.dispatch('changeMap', {
-					latitude:
-						Number(coordinates[0].toFixed(7)) ||
-						Number(constants.map.initial.latitude) ||
-						null,
-					longitude:
-						Number(coordinates[1].toFixed(7)) ||
-						Number(constants.map.initial.longitude) ||
-						null,
-					zoom: Number(this.map.getZoom()) || null,
-				});
-				this.map.controls
-					.add(new this.maps.control.RouteButton())
-					.add(new this.maps.control.RulerControl());
-				this.map.behaviors.enable('scrollZoom');
-				this.map.events.add('actionend', () => {
-					if (!this.updatingMap) {
-						let coordinates = this.map.getCenter();
-						this.$store.dispatch('changeMap', {
-							latitude:
-								Number(coordinates[0].toFixed(7)) ||
-								Number(constants.map.initial.latitude) ||
-								null,
-							longitude:
-								Number(coordinates[1].toFixed(7)) ||
-								Number(constants.map.initial.longitude) ||
-								null,
-							zoom: Number(this.map.getZoom()) || null,
-						});
-						this.mrk.geometry!.setCoordinates(coordinates);
-					}
-				});
-				this.mrk = new this.maps.Placemark(
-					[lat, lng],
-					{
-						hintContent: this.$store.state.t.i.maps.center,
-						balloonContent: this.$store.state.t.i.maps.centerExt,
-					},
-					this.centerPlacemarkOptions
-				);
-				this.mrk.events.add('dragend', () => {
-					this.map.setCenter(this.mrk.geometry!.getCoordinates() as number[]);
-				});
-				this.map.geoObjects.add(this.mrk);
-				for (const id in this.$store.state.places) {
-					this.appendPlacemark(this.mrks, this.$store.state.places[id], 'private');
-				}
-				for (const id in this.$store.state.commonPlaces) {
-					this.appendPlacemark(this.commonMrks, this.$store.state.commonPlaces[id], 'common');
-				}
-				this.$parent.commonPlacesShowHide(
-					this.$store.state.commonPlacemarksShow
-				);
-				if (this.currentPlace) {
-					if (
-						!this.$root.currentPlaceCommon &&
-						this.mrks[this.currentPlace.id]
-					) {
-						this.mrks[this.currentPlace.id].options.set({
-							iconColor: this.activePlacemarksColor,
-						});
-					} else if (
-						this.commonMrks[this.currentPlace.id]
-					) {
-						this.commonMrks[this.currentPlace.id].options.set({
-							iconColor: this.activePlacemarksColor,
-						});
-					}
-				}
-			});
+		mapHandler(map) {
+			this.map = map;
+			this.map.controls.add('routeButtonControl', {});
+			this.map.behaviors.enable('scrollZoom');
+			this.$parent.commonPlacesShowHide(
+				this.$store.state.commonPlacemarksShow
+			);
 		},
-		clickPlacemark(place: Place, type: string) {
-			let marks: Record<string, Placemark> = (type === 'common' ? this.commonMrks : this.mrks);
-			marks[place.id].options.set({
-				draggable: (type === 'common' ? false : true),
-			});
-			emitter.emit('setCurrentPlace', {place: place});
-			if (type === 'common') {
+		placemarkClick(e) {
+			e.get('target').options.set(
+				'draggable',
+				e.get('target').properties.get('place.common') ? false : true
+			);
+			emitter.emit(
+				'setCurrentPlace',
+				{place: e.get('target').properties.get('place')}
+			);
+			if (e.get('target').properties.get('place.common')) {
 				const inPaginator =
-					Object.keys(this.$store.state.commonPlaces).indexOf(place.id) /
-					this.$parent.commonPlacesOnPageCount
+					Object.keys(this.commonPlaces)
+						.indexOf(e.get('target').properties.get('place.id')) /
+						this.$parent.commonPlacesOnPageCount
 				;
 				this.$parent.commonPlacesPage = (
 					Number.isInteger(inPaginator)
@@ -303,83 +205,46 @@ export default defineComponent({
 				);
 			}
 		},
-		appendPlacemark(marks: Record<string, Placemark>, place: Place, type: string) {
-			let options;
-			switch (type) {
-				case 'private' :
-					options = this.placemarksOptions.private;
-					break;
-				case 'common' :
-					options = this.placemarksOptions.common;
-					break;
-			}
-			marks[place.id] = new this.maps.Placemark(
-				[
-					this.$store.state.waypoints[place.waypoint].latitude,
-					this.$store.state.waypoints[place.waypoint].longitude,
-				],
-				{
-					hintContent: place.name,
-					balloonContent: place.description,
-				},
-				options,
-			);
-			marks[place.id].events.add('dragstart', () => {
-				if (place.id !== this.currentPlace.id) {
-					marks[place.id].options.set({draggable: false});
-					this.$store.dispatch('setMessage',
-						this.$store.state.t.i.maps.needToChoosePlacemark
-					);
-				}
-			});
-			marks[place.id].events.add('dragend', () => {
-				if (place.id === this.currentPlace.id) {
-					let coordinates = marks[place.id].geometry!.getCoordinates();
-					this.$store.dispatch('changePlace', {
-						place: place,
-						change: {
-							latitude:
-								Number(coordinates![0].toFixed(7)) ||
-								Number(constants.map.initial.latitude) ||
-								null,
-							longitude:
-								Number(coordinates![1].toFixed(7)) ||
-								Number(constants.map.initial.longitude) ||
-								null,
-						},
-					});
-				} else {
-					this.clickPlacemark(place, type);
-				}
-			});
-			marks[place.id].events.add('mouseup', () => {
-				this.clickPlacemark(place, type);
-			});
-			this.map.geoObjects.add(marks[place.id]);
-		},
-		updatePlacemark(marks: Record<string, Placemark>) {
-			if (marks[this.id]) {
-				marks[this.id].geometry!.setCoordinates([
-					this.latitude,
-					this.longitude,
-				]);
-				marks[this.id].properties.set('hintContent', this.name);
-				marks[this.id].properties.set('balloonContent', this.description);
-			}
-		},
-		updateMap() {
-			if (this.map !== null && !this.updatingMap) {
-				this.updatingMap = true;
-				this.map.setCenter([
-					this.centerLatitude,
-					this.centerLongitude,
-				]);
-				this.map.setZoom(
-					this.zoom,
-					{},
+		placemarkDragStart(e) {
+			if (e.get('target').properties.get('place.id') !== this.currentPlace.id) {
+				e.get('target').options.set({draggable: false});
+				this.$store.dispatch('setMessage',
+					this.$store.state.t.m.popup.needToChoosePlacemark
 				);
-				this.updatingMap = false;
 			}
+		},
+		placemarkDragEnd(e) {
+			e.get('target').options.set({draggable: true});
+			if (e.get('target').properties.get('place.id') === this.currentPlace.id) {
+				const coordinates = e.get('target').geometry.getCoordinates();
+				this.$store.dispatch('changePlace', {
+					place: e.get('target').properties.get('place'),
+					change: {
+						latitude: Number(coordinates[0].toFixed(7)),
+						longitude: Number(coordinates[1].toFixed(7)),
+					},
+				});
+				this.map.setCenter(coordinates);
+			}
+		},
+		updateState(payload?: {coords: Array<number>, zoom: number}) {
+			this.$store.dispatch('changeMap', {
+				latitude: Number(
+					payload && payload.coords
+						? payload.coords[0].toFixed(7)
+						: this.map.getCenter()[0].toFixed(7)
+				),
+				longitude: Number(
+					payload && payload.coords
+						? payload.coords[1].toFixed(7)
+						: this.map.getCenter()[1].toFixed(7)
+				),
+				zoom: Number(
+					payload && payload.zoom
+						? payload.zoom
+						: this.map.getZoom()
+				),
+			});
 		},
 		fitMap() {
 			if (this.map !== null) {

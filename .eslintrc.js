@@ -20,6 +20,7 @@ module.exports = {
 		'indent': 'off',
 		'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 		'vue/no-use-v-if-with-v-for': 'off',
+		"vue/no-v-model-argument": "off",
 	},
 	parserOptions: {
 		ecmaVersion: 2020,

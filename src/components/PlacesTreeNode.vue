@@ -35,7 +35,13 @@
 				<span
 					class="folder-button__geomarks"
 					:title="(folder.geomarks === 1 ? $store.state.t.i.hints.hide : $store.state.t.i.hints.show) + ' ' + $store.state.t.i.hints.placemarksOnMap"
-					@click="$event.stopPropagation(); showHideGeomarks((folder.id === 'root' ? $store.getters.tree : folder), (folder.geomarks === 1 ? 0 : 1));"
+					@click="
+						$event.stopPropagation();
+						$store.dispatch('showHideGeomarks', {
+							object: (folder.id === 'root' ? $store.state.tree : folder),
+							show: (folder.geomarks === 1 ? 0 : 1),
+						});
+					"
 				>
 					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
 				</span>
@@ -115,8 +121,14 @@
 				</span>
 				<a
 					class="place-button__geomark"
-					:title="(place.geomark === false ? $store.state.t.i.hints.show : $store.state.t.i.hints.hide) + ' ' + $store.state.t.i.hints.placemarkOnMap"
-					@click="$event.stopPropagation(); showHideGeomarks(place, !place.geomark);"
+					:title="(!place.geomark ? $store.state.t.i.hints.show : $store.state.t.i.hints.hide) + ' ' + $store.state.t.i.hints.placemarkOnMap"
+					@click="
+						$event.stopPropagation();
+						$store.dispatch('showHideGeomarks', {
+							object: place,
+							show: !place.geomark,
+						});
+					"
 				>
 					{{ !place.geomark ? '⚇' : '⚉' }}
 				</a>
@@ -224,7 +236,7 @@ export default defineComponent({
 			}
 		},
 		selectUnselectFolder(folderid: string, checked: boolean) {
-			for (let placeButton of
+			for (const placeButton of
 				document
 					.getElementById('to-export-places-menu-folder-' + folderid)!
 						.getElementsByClassName('place-button')
@@ -235,65 +247,13 @@ export default defineComponent({
 					(placeButton as HTMLElement).click();
 				}
 			}
-			for (let folderCheckbox of
+			for (const folderCheckbox of
 				document
 					.getElementById('to-export-places-menu-folder-' + folderid)!
 						.getElementsByClassName('folder-checkbox')
 			) {
 				(folderCheckbox as HTMLInputElement).checked = checked ? true : false;
 			}
-		},
-		showHideGeomarks(object: any, show: number | boolean) {
-			let visibility: number;
-			let showHideSubGeomarks = (object: any, show: number | boolean) => {
-				if (object.type === 'place') {
-					object.geomark = !show ? false : true;
-					return;
-				}
-				object.geomarks = !show ? 0 : 1;
-				for (const id in this.$store.state.places) {
-					if (this.$store.state.places[id].folderid === object.id) {
-						this.$store.state.places[id].geomark = show;
-					}
-				}
-				if (object.children && Object.keys(object.children).length) {
-					for (const id in object.children) {
-						showHideSubGeomarks(object.children[id], show);
-					}
-				}
-			}
-			let showHideParentsGeomarks = (object: any) => {
-				if (object.id === 'root') return;
-				const parentProperty = (object.type === 'place' ? 'folderid' : 'parent');
-				let geomarksProperty;
-				let neibours: Array<Place | Folder> =
-					Object.values(this.$store.state.places).filter(
-						(neibour: Place) => neibour.folderid === object[parentProperty]
-					) as Array<Place | Folder>
-				;
-				if (this.$store.getters.treeFlat[object[parentProperty]].children) {
-					neibours = neibours.concat(
-						Object.values(this.$store.getters.treeFlat[object[parentProperty]].children)
-					);
-				}
-				for (let i = 0; i < neibours.length; i++) {
-					geomarksProperty = (neibours[i].type === 'place' ? 'geomark' : 'geomarks');
-					if (i === 0) {
-						visibility = neibours[i][geomarksProperty];
-						continue;
-					}
-					if (visibility != neibours[i][geomarksProperty]) {
-						visibility = 2;
-						break;
-					}
-				}
-				this.$store.getters.treeFlat[object[parentProperty]].geomarks =
-					Number(visibility) || 1
-				;
-				showHideParentsGeomarks(this.$store.getters.treeFlat[object[parentProperty]]);
-			}
-			showHideSubGeomarks(object, show);
-			showHideParentsGeomarks(object);
 		},
 	},
 });

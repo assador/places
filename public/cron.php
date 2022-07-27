@@ -1,6 +1,6 @@
 <?php
-include "./backend/config.php";
-include "./backend/newpdo.php";
+include "/backend/config.php";
+include "/backend/newpdo.php";
 
 $query = $conn->query("
 	SELECT `w`.`id`

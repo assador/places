@@ -2,12 +2,12 @@
 <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="306.79501" viewBox="0 0 187.5 287.62033" id="svg4136" version="1.1">
     <defs id="defs4138">
         <linearGradient id="linearGradient4594">
-            <stop id="stop4590" offset="0" style="stop-color:#bd8b65;stop-opacity:1" />
-            <stop id="stop4592" offset="1" style="stop-color:#ffe2af;stop-opacity:1" />
+            <stop id="stop4590" offset="0" style="stop-color:#9e8368;stop-opacity:1;" />
+            <stop id="stop4592" offset="1" style="stop-color:#f9e8df;stop-opacity:1;" />
         </linearGradient>
         <linearGradient id="linearGradient3741">
-            <stop style="stop-color:#462917;stop-opacity:1;" offset="0" id="stop3737" />
-            <stop style="stop-color:#ffcd91;stop-opacity:1" offset="1" id="stop3739" />
+            <stop style="stop-color:#624b4b;stop-opacity:1;" offset="0" id="stop3737" />
+            <stop style="stop-color:#f4dfbf;stop-opacity:1;" offset="1" id="stop3739" />
         </linearGradient>
         <radialGradient xlink:href="#linearGradient3741" id="radialGradient4550" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-1.7133371e-7,-2.1500001,1.533973,-2.2864274e-6,-792.22851,1007.8139)" cx="375" cy="577.57117" fx="375" fy="577.57117" r="93.75" />
         <radialGradient xlink:href="#linearGradient4594" id="radialGradient4580" cx="374.99222" cy="537.88159" fx="374.99222" fy="537.88159" r="72.65625" gradientTransform="matrix(1.1027342,2.4440329e-8,-3.9405882e-8,1.7822581,-319.76673,-808.05795)" gradientUnits="userSpaceOnUse" />

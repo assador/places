@@ -54,7 +54,7 @@
 				>
 					<places-tree
 						instanceid="popupexporttree"
-						:data="$store.getters.tree || {}"
+						:data="$store.state.tree || {}"
 					/>
 				</div>
 				<div style="text-align: center;">
@@ -107,7 +107,7 @@ export default defineComponent({
 		this.popuped = true;
 		this.$root.selectedToExport = {};
 		for (
-			let f of
+			const f of
 			document.getElementById('popup-export__tree')!
 				.getElementsByClassName('folder')
 		) {

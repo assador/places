@@ -1,6 +1,6 @@
 <?php
-include "./backend/config.php";
-include "./backend/newpdo.php";
+include "/backend/config.php";
+include "/backend/newpdo.php";
 
 $result = $conn->exec("UPDATE `users` SET `confirmed` = 1 WHERE `token` = '" . $_GET["token"] . "'");
 if($result === 1) {

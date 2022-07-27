@@ -93,7 +93,7 @@ export default defineComponent({
 			event.stopPropagation();
 				let currentIndex = this.images.indexOf(this.image);
 				if (currentIndex > -1) {
-					let ImagesLength = this.images.length;
+					const ImagesLength = this.images.length;
 					currentIndex = (currentIndex + step) % ImagesLength + (
 						(currentIndex + step) % ImagesLength < 0 ? ImagesLength: 0
 					);

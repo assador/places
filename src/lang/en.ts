@@ -69,6 +69,7 @@ export const t = {
 			deleteAccount: 'Delete account',
 			cancel: 'Cancel',
 			createFolder: 'Create folder',
+			fullscreen: 'Fullscreen',
 		},
 		inputs: {
 			regLogin: 'Login *',

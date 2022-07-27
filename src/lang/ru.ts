@@ -69,6 +69,7 @@ export const t = {
 			deleteAccount: 'Удалить аккаунт',
 			cancel: 'Отмена',
 			createFolder: 'Создать папку',
+			fullscreen: 'На экран',
 		},
 		inputs: {
 			regLogin: 'Логин *',

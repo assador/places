@@ -1,5 +1,83 @@
 <template>
-	<div id="mapblock" />
+	<div id="mapblock">
+		<l-map
+			ref="map"
+			v-model:zoom="mapCenter.zoom"
+			:center="mapCenter.coords"
+			@ready="ready()"
+			@moveend="
+				updateState({
+					coords: [
+						$event.target.getCenter().lat,
+						$event.target.getCenter().lng,
+					],
+					zoom: $event.target.getZoom(),
+				});
+			"
+		>
+			<l-control-layers />
+			<l-tile-layer
+				v-for="(provider, index) in providers"
+				:key="'key' + index"
+				:name="provider.name"
+				:url="provider.url"
+				:visible="provider.visible"
+				layer-type="base"
+			/>
+			<l-marker
+				ref="centerMarker"
+				:lat-lng="mapCenter.coords"
+				draggable
+				:visible="centerPlacemarkShow ? true : false"
+				@moveend="
+					updateState({
+						coords: [
+							$event.target.getLatLng().lat,
+							$event.target.getLatLng().lng,
+						],
+					});
+				"
+			>
+				<l-icon v-bind="icon_03" />
+				<l-tooltip>
+					{{ $store.state.t.i.maps.center }}
+				</l-tooltip>
+			</l-marker>
+			<l-marker
+				v-for="(place, id) in places"
+				:key="id"
+				:lat-lng="[
+					waypoints[place.waypoint] ? waypoints[place.waypoint].latitude : 0,
+					waypoints[place.waypoint] ? waypoints[place.waypoint].longitude : 0,
+				]"
+				draggable
+				:visible="placemarksShow && place.show && place.geomark ? true : false"
+				@click="placemarkClick(place);"
+				@mousedown="placemarkDragStart(place, $event);"
+				@mouseup="placemarkDragEnd(place, $event);"
+			>
+				<l-icon v-bind="place === currentPlace ? icon_03 : icon_01" />
+				<l-tooltip>
+					{{ place.name }}
+				</l-tooltip>
+			</l-marker>
+			<l-marker
+				v-for="(place, id) in commonPlaces"
+				:key="id"
+				:lat-lng="[
+					waypoints[place.waypoint].latitude,
+					waypoints[place.waypoint].longitude,
+				]"
+				:visible="commonPlacemarksShow && place.show && place.geomark ? true : false"
+				@click="placemarkClick(place);"
+			>
+				<l-icon v-bind="place === currentPlace ? icon_03 : icon_02" />
+				<l-tooltip>
+					{{ place.name }}
+				</l-tooltip>
+			</l-marker>
+		</l-map>
+	</div>
 </template>
 
 <script lang="ts">
@@ -7,60 +85,44 @@ import { defineComponent, PropType } from 'vue';
 import { mapState } from 'vuex';
 import { emitter } from '@/shared/bus';
 import { constants } from '@/shared/constants';
-import L, { Marker, LayerGroup } from 'leaflet';
-import 'leaflet-providers';
-import 'leaflet-fullscreen/dist/leaflet.fullscreen.css';
-import 'leaflet-fullscreen';
-import 'leaflet-geosearch/dist/geosearch.css';
-import * as GeoSearch from 'leaflet-geosearch';
-import { Place } from '@/store/types';
+import {
+	LMap,
+	LTileLayer,
+	LMarker,
+	LTooltip,
+	LIcon,
+	LControlLayers,
+/*
+	LPopup,
+	LPolyline,
+	LPolygon,
+	LRectangle,
+*/
+} from "@vue-leaflet/vue-leaflet";
+import "leaflet/dist/leaflet.css";
+import {
+	Place,
+	Waypoint,
+} from '@/store/types';
 
 export default defineComponent({
-	props: {
-		id: {
-			type: String,
-			default: '',
-		},
-		name: {
-			type: String,
-			default: '',
-		},
-		description: {
-			type: String,
-			default: '',
-		},
-		latitude: {
-			type: Number,
-			default: constants.map.initial.latitude,
-		},
-		longitude: {
-			type: Number,
-			default: constants.map.initial.longitude,
-		},
-		centerLatitude: {
-			type: Number,
-			default: constants.map.initial.latitude,
-		},
-		centerLongitude: {
-			type: Number,
-			default: constants.map.initial.longitude,
-		},
-		zoom: {
-			type: Number,
-			default: constants.map.initial.zoom,
-		},
-		geomarksVisibility: {
-			type: Object as PropType<Record<string, boolean>>,
-			default() {return {};},
-		},
+	components: {
+		LMap,
+		LTileLayer,
+		LMarker,
+		LTooltip,
+		LIcon,
+		LControlLayers,
+/*
+		LPopup,
+		LPolyline,
+		LPolygon,
+		LRectangle,
+*/
 	},
 	data() {
 		return {
-			map: null as unknown as L,
-			mrk: null as unknown as Marker,
-			mrks: {} as Record<string, Marker>,
-			commonMrks: {} as Record<string, Marker>,
-			markersLayer: null as unknown as LayerGroup,
+			map: null,
 			placemarksOptions: {
 				private: {
 					draggable: true,
@@ -73,33 +135,66 @@ export default defineComponent({
 				draggable: true,
 			},
 			updatingMap: false,
-			icon_01: L.icon({
-				iconUrl: '../img/markers/marker_01.png',
+			icon_01: {
+				iconUrl: '../img/markers/marker_01.svg',
 				iconSize: [25, 38],
 				iconAnchor: [13, 38],
 				popupAnchor: [0, -34],
-				shadowUrl: '../img/markers/marker_01_shadow.png',
-				shadowSize: [18, 10],
-				shadowAnchor: [0, 10],
-			}),
-			icon_02: L.icon({
-				iconUrl: '../img/markers/marker_02.png',
+				shadowUrl: '../img/markers/marker_01_shadow.svg',
+				shadowSize: [25, 38],
+				shadowAnchor: [2, 24],
+			},
+			icon_02: {
+				iconUrl: '../img/markers/marker_02.svg',
 				iconSize: [25, 38],
 				iconAnchor: [13, 38],
 				popupAnchor: [0, -34],
-				shadowUrl: '../img/markers/marker_02_shadow.png',
-				shadowSize: [18, 10],
-				shadowAnchor: [0, 10],
-			}),
-			icon_03: L.icon({
-				iconUrl: '../img/markers/marker_03.png',
+				shadowUrl: '../img/markers/marker_01_shadow.svg',
+				shadowSize: [25, 38],
+				shadowAnchor: [2, 24],
+			},
+			icon_03: {
+				iconUrl: '../img/markers/marker_03.svg',
 				iconSize: [25, 38],
 				iconAnchor: [13, 38],
 				popupAnchor: [0, -34],
-				shadowUrl: '../img/markers/marker_03_shadow.png',
-				shadowSize: [18, 10],
-				shadowAnchor: [0, 10],
-			}),
+				shadowUrl: '../img/markers/marker_01_shadow.svg',
+				shadowSize: [25, 38],
+				shadowAnchor: [2, 24],
+			},
+			providers: [{
+				name: this.$store.state.t.i.maps.osm,
+				url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+				visible: true,
+			}, {
+				name: this.$store.state.t.i.maps.satellite,
+				url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+				visible: false,
+			}, {
+				name: this.$store.state.t.i.maps.topography,
+				url: 'https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
+				visible: false,
+			}, {
+				name: this.$store.state.t.i.maps.tourists,
+				url: 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
+				visible: false,
+			}, {
+				name: this.$store.state.t.i.maps.transport,
+				url: 'https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
+				visible: false,
+			}, {
+				name: this.$store.state.t.i.maps.aero,
+				url: 'https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png',
+				visible: false,
+			}, {
+				name: this.$store.state.t.i.maps.bicycles,
+				url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
+				visible: false,
+			}, {
+				name: this.$store.state.t.i.maps.railroads,
+				url: 'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
+				visible: false,
+			}],
 		};
 	},
 	computed: {
@@ -108,234 +203,24 @@ export default defineComponent({
 			'placemarksShow',
 			'commonPlacemarksShow',
 			'centerPlacemarkShow',
+			'places',
+			'commonPlaces',
+			'waypoints',
 		]),
-	},
-	watch: {
-		latitude() {
-			this.updatePlacemark(
-				this.$root.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-			if (this.currentPlace) {
-				this.$store.dispatch('changeMap', {
-					latitude: this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
-					longitude: this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
-				});
-			}
+		mapCenter(): Record<string, Array<number> | number> {
+			return {
+				coords: [
+					this.$store.state.center.latitude,
+					this.$store.state.center.longitude,
+				],
+				zoom: this.$store.state.zoom,
+			};
 		},
-		longitude() {
-			this.updatePlacemark(
-				this.$root.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-			if (this.currentPlace) {
-				this.$store.dispatch('changeMap', {
-					latitude: this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
-					longitude: this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
-				});
-			}
-		},
-		centerLatitude() {
-			this.updateMap();
-		},
-		centerLongitude() {
-			this.updateMap();
-		},
-		zoom() {
-			this.updateMap();
-		},
-		name() {
-			this.updatePlacemark(
-				this.$root.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-		},
-		description() {
-			this.updatePlacemark(
-				this.$root.currentPlaceCommon
-					? this.commonMrks
-					: this.mrks
-			);
-		},
-		geomarksVisibility() {
-			for (let id in this.geomarksVisibility) {
-				if (this.mrks[id]) {
-					if (this.geomarksVisibility[id]) {
-						this.map.addLayer(this.mrks[id]);
-					} else {
-						this.map.removeLayer(this.mrks[id]);
-					}
-				}
-			}
-		},
-		placemarksShow() {
-			for (let key in this.mrks) {
-				if (this.$store.state.placemarksShow) {
-					this.map.addLayer(this.mrks[key]);
-				} else {
-					this.map.removeLayer(this.mrks[key]);
-				}
-			}
-		},
-		commonPlacemarksShow() {
-			for (let key in this.commonMrks) {
-				if (this.$store.state.commonPlacemarksShow) {
-					this.map.addLayer(this.commonMrks[key]);
-				} else {
-					this.map.removeLayer(this.commonMrks[key]);
-				}
-			}
-		},
-		centerPlacemarkShow() {
-			if (this.$store.state.centerPlacemarkShow) {
-				this.map.addLayer(this.mrk);
-			} else {
-				this.map.removeLayer(this.mrk);
-			}
-		},
-	},
-	created() {
-		emitter.on('refreshMapOpenStreetMapMarks', () => {
-			this.markersLayer.clearLayers();
-			this.mrks = {};
-			for (const id in this.$store.state.places) {
-				this.appendPlacemark(this.mrks, this.$store.state.places[id], 'private');
-			}
-			if (this.currentPlace) {
-				if (
-					!this.$root.currentPlaceCommon &&
-					this.mrks[this.currentPlace.id]
-				) {
-					this.mrks[this.currentPlace.id].setIcon(this.icon_03);
-				} else if (this.commonMrks[this.currentPlace.id]) {
-					this.commonMrks[this.currentPlace.id].setIcon(this.icon_03);
-				}
-			}
-		});
-	},
-	beforeUnmount() {
-		emitter.off('refreshMapOpenStreetMapMarks');
-		if (this.map) {
-			this.map.remove();
-		}
 	},
 	methods: {
-		showMap(lat: number, lng: number, zoom: number) {
-			const thunderforestAPI = '4857a14b2e4941b6a587f313a2ae6144';
-			const
-				osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-					maxZoom: 18,
-					attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-				}),
-				satellite  = L.tileLayer.provider('Esri.WorldImagery'),
-				topography = L.tileLayer.provider('Thunderforest.Landscape', {apikey: thunderforestAPI}),
-				tourists   = L.tileLayer.provider('Thunderforest.Outdoors', {apikey: thunderforestAPI}),
-				transport  = L.tileLayer.provider('Thunderforest.Transport', {apikey: thunderforestAPI}),
-				aero       = L.tileLayer.provider('OPNVKarte'),
-				bicycles   = L.tileLayer.provider('CyclOSM'),
-				railroads  = L.tileLayer.provider('OpenRailwayMap')
-			;
-			const baseMaps = {
-				[this.$store.state.t.i.maps.satellite] : satellite,
-				[this.$store.state.t.i.maps.topography] : topography,
-				[this.$store.state.t.i.maps.tourists] : tourists,
-				[this.$store.state.t.i.maps.transport] : transport,
-				[this.$store.state.t.i.maps.aero] : aero,
-				[this.$store.state.t.i.maps.bicycles] : bicycles,
-				[this.$store.state.t.i.maps.osm] : osm,
-			};
-			const overlayMaps = {
-				[this.$store.state.t.i.maps.railroads] : railroads,
-			};
-			this.map = L.map('mapblock', {
-				center: [lat, lng],
-				zoom: zoom,
-				layers: [
-					satellite,
-					topography,
-					tourists,
-					transport,
-					aero,
-					bicycles,
-					osm,
-				],
-				fullscreenControl: true,
-				fullscreenControlOptions: {
-					position: 'topleft',
-				}
-			});
-			L.control.layers(baseMaps, overlayMaps).addTo(this.map);
-			this.map.addControl(
-				(GeoSearch.GeoSearchControl as any)({
-					provider: new GeoSearch.OpenStreetMapProvider(),
-					position: 'topleft',
-				})
-			);
-			const updateState = () => {
-				if (!this.updatingMap) {
-					let coordinates = this.map.getCenter();
-					this.$store.dispatch('changeMap', {
-						latitude:
-							Number(coordinates.lat.toFixed(7)) ||
-							Number(constants.map.initial.latitude) ||
-							null,
-						longitude:
-							Number(coordinates.lng.toFixed(7)) ||
-							Number(constants.map.initial.longitude) ||
-							null,
-						zoom: Number(this.map.getZoom()) || null,
-					});
-					this.mrk.setLatLng(coordinates);
-				}
-			}
-			this.map.on('moveend', updateState);
-			this.map.on('zoomend', updateState);
-			this.mrk = L.marker([lat, lng], {icon: this.icon_03, ...this.centerPlacemarkOptions})
-				.addTo(this.map)
-				.bindPopup(this.$store.state.t.i.maps.center, {autoPan: false})
-				.openPopup();
-			if (!this.$store.state.centerPlacemarkShow) {
-				this.map.removeLayer(this.mrk);
-			}
-			this.mrk.on('dragend', () => {
-				this.map.setView(this.mrk.getLatLng());
-			});
-			this.markersLayer = L.layerGroup().addTo(this.map);
-			for (const id in this.$store.state.places) {
-				this.appendPlacemark(this.mrks, this.$store.state.places[id], 'private');
-			}
-			for (const id in this.$store.state.commonPlaces) {
-				this.appendPlacemark(this.commonMrks, this.$store.state.commonPlaces[id], 'common');
-			}
-			this.$parent.commonPlacesShowHide(
-				this.$store.state.commonPlacemarksShow
-			);
-			if (this.currentPlace) {
-				if (
-					!this.$root.currentPlaceCommon &&
-					this.mrks[this.currentPlace.id]
-				) {
-					this.mrks[this.currentPlace.id].setIcon(this.icon_03);
-				} else if (
-					this.commonMrks[this.currentPlace.id]
-				) {
-					this.commonMrks[this.currentPlace.id].setIcon(this.icon_03);
-				}
-			}
-			updateState();
-		},
-		clickPlacemark(place: Place, type: string) {
-			let marks = (type === 'common' ? this.commonMrks : this.mrks);
-			if (type === 'common') {
-				marks[place.id].dragging.disable();
-			} else {
-				marks[place.id].dragging.enable();
-			}
+		placemarkClick(place, e) {
 			emitter.emit('setCurrentPlace', {place: place});
-			if (type === 'common') {
+			if (place.common) {
 				const inPaginator =
 					Object.keys(this.$store.state.commonPlaces).indexOf(place.id) /
 					this.$parent.commonPlacesOnPageCount
@@ -347,66 +232,48 @@ export default defineComponent({
 				);
 			}
 		},
-		appendPlacemark(marks: Record<string, Marker>, place: Place, type: string) {
-			let options;
-			switch (type) {
-				case 'private' :
-					options = {icon: this.icon_01, ...this.placemarksOptions.private};
-					break;
-				case 'common' :
-					options = {icon: this.icon_02, ...this.placemarksOptions.common};
-					break;
-			}
-			marks[place.id] = L.marker([
-					this.$store.state.waypoints[place.waypoint].latitude,
-					this.$store.state.waypoints[place.waypoint].longitude,
-				], options)
-				.addTo(this.markersLayer)
-				.bindPopup(place.name, {autoPan: false});
-			marks[place.id].on('dragstart', () => {
-				if (place !== this.currentPlace) {
-					marks[place.id].dragging.disable();
-					this.$store.dispatch('setMessage',
-						this.$store.state.t.m.popup.needToChoosePlacemark
-					);
-				}
-			});
-			marks[place.id].on('dragend', () => {
-				if (place === this.currentPlace) {
-					let coordinates = marks[place.id].getLatLng();
-					this.$store.dispatch('changePlace', {
-						place: place,
-						change: {
-							latitude: Number(coordinates.lat.toFixed(7)),
-							longitude: Number(coordinates.lng.toFixed(7)),
-						},
-					});
-				} else {
-					this.clickPlacemark(place, type);
-				}
-			});
-			marks[place.id].on('mouseup', () => {
-				this.clickPlacemark(place, type);
-			});
-		},
-		updatePlacemark(marks: Record<string, Marker>) {
-			if (marks[this.id]) {
-				marks[this.id].setLatLng({
-					lat: this.latitude,
-					lng: this.longitude,
-				});
-				marks[this.id].bindPopup(this.name, {autoPan: false});
+		placemarkDragStart(place, event) {
+			if (place !== this.currentPlace) {
+				event.target.dragging.disable();
+				this.$store.dispatch('setMessage',
+					this.$store.state.t.m.popup.needToChoosePlacemark
+				);
 			}
 		},
-		updateMap() {
-			if (this.map !== null && !this.updatingMap) {
-				this.updatingMap = true;
-				this.map.setView({
-					lat: this.centerLatitude,
-					lng: this.centerLongitude,
-				}, this.zoom);
-				this.updatingMap = false;
-			}
+		placemarkDragEnd(place, event) {
+			event.target.dragging.enable();
+			const coordinates = event.target.getLatLng();
+			this.$store.dispatch('changePlace', {
+				place: place,
+				change: {
+					latitude: Number(coordinates.lat.toFixed(7)),
+					longitude: Number(coordinates.lng.toFixed(7)),
+				},
+			});
+			this.updateState(coordinates);
+		},
+		updateState(payload?: {coords: Array<number>, zoom: number}) {
+			this.$store.dispatch('changeMap', {
+				latitude: Number(
+					payload && payload.coords
+						? payload.coords[0].toFixed(7)
+						: this.map.getCenter().lat.toFixed(7)
+				),
+				longitude: Number(
+					payload && payload.coords
+						? payload.coords[1].toFixed(7)
+						: this.map.getCenter().lng.toFixed(7)
+				),
+				zoom: Number(
+					payload && payload.zoom
+						? payload.zoom
+						: this.map.getZoom()
+				),
+			});
+		},
+		ready() {
+			this.map = this.$refs.map.leafletObject;
+			this.map.panTo(this.mapCenter.coords);
 		},
 	},
 });

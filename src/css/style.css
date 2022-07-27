@@ -358,6 +358,9 @@ input, select, .selectspan, textarea {
 	background-color: rgba(144, 98, 62, 0.1);
 	border-color: rgba(200, 177, 160, 0.05) rgba(200, 177, 160, 0.1) rgba(200, 177, 160, 0.6) rgba(200, 177, 160, 0.1);
 }
+option {
+	background-color: rgb(86, 53, 33);
+}
 .button, button, input[type="button"], button[disabled]:hover, input[type="button"][disabled]:hover {
 	background-color: rgb(193, 170, 154);
 	border-color: rgb(152, 131, 115) rgb(207, 184, 167) rgb(221, 198, 181) rgb(166, 144, 128);
@@ -417,7 +420,7 @@ input[type="hidden"] {
 .appear, .disappear {transition: transform 0.5s, opacity 0.5s;}
 .appear {transform: scale(1, 1); opacity: 1;}
 .disappear {transform: scale(0, 0); opacity: 0;}
-.visible, .invisible {transition: opacity 0.5s;}
+.visible, .invisible {transition: all 0.5s;}
 .visible {opacity: 1;}
 .invisible {opacity: 0;}
 .highlight {animation: highlight 1s ease-in-out;}
@@ -793,12 +796,12 @@ span.folder-button {
 .actions-button {
 	display: flex;
 	flex-direction: column;
-	width: 50px; height: 28px;
 	margin: 4px;
 	padding: 4px 0 1px 0;
 	line-height: 0.7;
 	font-size: 11px !important;
 	text-transform: lowercase;
+	overflow: hidden;
 }
 .actions-button * {
 	text-align: center;

@@ -621,7 +621,7 @@ export default defineComponent({
 				) &&
 				changes.folder.id !== changes.folder.parent &&
 				!commonFunctions.isParentInTree(
-					this.$store.getters.tree,
+					this.$store.state.tree,
 					'children',
 					changes.folder.id,
 					changes.folder.parent
@@ -677,7 +677,7 @@ export default defineComponent({
 					!this.$store.getters.treeFlat[changes.folder.parent].children[changes.folder.id]
 				) &&
 				!commonFunctions.isParentInTree(
-					this.$store.getters.tree,
+					this.$store.state.tree,
 					'children',
 					changes.folder.id,
 					changes.folder.parent

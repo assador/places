@@ -80,8 +80,8 @@ const store = createStore({
 		folders: {},
 		commonPlaces: {},
 		center: {
-			latitude: null,
-			longitude: null,
+			latitude: Number(constants.map.initial.latitude),
+			longitude: Number(constants.map.initial.longitude),
 		},
 		zoom: Number(constants.map.initial.zoom),
 		placemarksShow: true,
@@ -96,11 +96,27 @@ const store = createStore({
 			? sessionStorage.getItem('places-lang')
 			: 'ru',
 		t: {},
+		tree: {
+			id: 'root',
+			parent: null,
+			srt: 0,
+			geomarks: 1,
+			type: 'folder',
+			added: false,
+			deleted: false,
+			updated: false,
+			opened: true,
+			builded: true,
+			name: '',
+			userid: '',
+			children: {},
+		},
 	},
 	mutations: {
 		changeLang(state, payload) {
 			state.lang = payload.lang;
 			state.t = payload.dict;
+			state.tree.name = state.t.i.captions.rootFolder;
 		},
 		setMessage(state, message) {
 			state.messages.push(message);
@@ -177,10 +193,10 @@ const store = createStore({
 			state.folders = {};
 			state.commonPlaces = {};
 			state.center = {
-				latitude: null,
-				longitude: null,
+				latitude: Number(constants.map.initial.latitude),
+				longitude: Number(constants.map.initial.longitude),
 			};
-			state.zoom = Number(constants.map.initial.zoom) || null;
+			state.zoom = Number(constants.map.initial.zoom);
 			state.placemarksShow = true;
 			state.commonPlacemarksShow = false;
 			state.centerPlacemarkShow = false;
@@ -252,6 +268,9 @@ const store = createStore({
 				payload.folders[id].opened = false;
 			}
 			state.folders = commonFunctions.plainToTree(state.folders);
+			state.tree.name = state.t.i.captions.rootFolder;
+			state.tree.userid = state.user ? state.user.id : null;
+			state.tree.children = state.folders;
 		},
 		stateReady(state, ready) {
 			state.ready = ready;
@@ -354,6 +373,12 @@ const store = createStore({
 		},
 		centerPlacemarkShowHide(state, show) {
 			state.centerPlacemarkShow = show;
+		},
+		showHidePlaceGeomark(state, payload) {
+			payload.place.geomark = payload.show;
+		},
+		showHideFolderGeomarks(state, payload) {
+			payload.folder.geomarks = payload.show;
 		},
 		setMessageTimer(state, messageTimer) {
 			state.messageTimer = messageTimer;
@@ -802,10 +827,10 @@ const store = createStore({
 			}
 			commit('setRefreshing', false);
 		},
-		async addFolder({commit, getters}, folder) {
+		async addFolder({state, commit, getters}, folder) {
 			const parent = getters.treeFlat[folder.parent]
 				? getters.treeFlat[folder.parent]
-				: getters.tree
+				: state.tree
 			;
 			commit('addFolder', {folder: folder, parent: parent});
 		},
@@ -1084,14 +1109,14 @@ const store = createStore({
 				}
 			}
 		},
-		async moveFolder({commit, dispatch, getters}, payload) {
+		async moveFolder({state, commit, dispatch, getters}, payload) {
 			let source;
 			const folder = ('folder' in payload)
 				? payload.folder
 				: getters.treeFlat[payload.folderId]
 			;
 			if (folder.parent === 'root') {
-				source = getters.tree;
+				source = state.tree;
 			} else {
 				source = getters.treeFlat[folder.parent];
 			}
@@ -1223,6 +1248,68 @@ const store = createStore({
 		centerPlacemarkShowHide({state, commit}, show) {
 			commit('centerPlacemarkShowHide', show === undefined ? !state.centerPlacemarkShow : show);
 		},
+		showHideGeomarks({state, commit, getters}, payload) {
+			let visibility: number;
+			const showHideSubGeomarks = (object: any, show: number | boolean) => {
+				if (object.type === 'place') {
+					commit('showHidePlaceGeomark', {
+						place: object,
+						show: !show ? false : true,
+					});
+					return;
+				}
+				commit('showHideFolderGeomarks', {
+					folder: object,
+					show: !show ? 0 : 1,
+				});
+				for (const id in state.places) {
+					if (state.places[id].folderid === object.id) {
+						commit('showHidePlaceGeomark', {
+							place: state.places[id],
+							show: show,
+						});
+					}
+				}
+				if (object.children && Object.keys(object.children).length) {
+					for (const id in object.children) {
+						showHideSubGeomarks(object.children[id], show);
+					}
+				}
+			}
+			const showHideParentsGeomarks = (object: any) => {
+				if (object.id === 'root') return;
+				const parentProperty = (object.type === 'place' ? 'folderid' : 'parent');
+				let geomarksProperty;
+				let neibours: Array<Place | Folder> =
+					Object.values(state.places).filter(
+						(neibour: Place) => neibour.folderid === object[parentProperty]
+					) as Array<Place | Folder>
+				;
+				if (getters.treeFlat[object[parentProperty]].children) {
+					neibours = neibours.concat(
+						Object.values(getters.treeFlat[object[parentProperty]].children)
+					);
+				}
+				for (let i = 0; i < neibours.length; i++) {
+					geomarksProperty = (neibours[i].type === 'place' ? 'geomark' : 'geomarks');
+					if (i === 0) {
+						visibility = neibours[i][geomarksProperty];
+						continue;
+					}
+					if (visibility != neibours[i][geomarksProperty]) {
+						visibility = 2;
+						break;
+					}
+				}
+				commit('showHideFolderGeomarks', {
+					folder: getters.treeFlat[object[parentProperty]],
+					show: Number(visibility) || 1,
+				});
+				showHideParentsGeomarks(getters.treeFlat[object[parentProperty]]);
+			}
+			showHideSubGeomarks(payload.object, payload.show);
+			showHideParentsGeomarks(payload.object);
+		},
 		setMessage({state, commit, dispatch}, message: string) {
 			message = message.replace(/[\t\n]/g, ' ');
 			message = message.replace(/[ ]{2,}/g, ' ').trim();
@@ -1276,22 +1363,6 @@ const store = createStore({
 		},
 	},
 	getters: {
-		rootPlace(state) {
-			const rootPlace = {
-				id: 'root',
-				parent: null,
-				name: state.t.i.captions.rootFolder,
-				srt: 0,
-				geomarks: 1,
-				type: 'folder',
-				added: false,
-				deleted: false,
-				updated: false,
-				opened: true,
-				builded: true,
-			};
-			return rootPlace;
-		},
 		placeFields(state) {
 			const placeFields = {
 				name               : state.t.i.captions.name,
@@ -1307,15 +1378,9 @@ const store = createStore({
 			}
 			return placeFields;
 		},
-		tree(state, getters) {
-			const rootPlace = getters.rootPlace;
-			rootPlace.children = state.folders;
-			rootPlace.userid = (state.user ? state.user.id : null);
-			return rootPlace;
-		},
 		treeFlat(state, getters) {
 			const treeFlat: Record<string, Folder> = {};
-			commonFunctions.treeToLivePlain(getters.tree, 'children', treeFlat);
+			commonFunctions.treeToLivePlain(state.tree, 'children', treeFlat);
 			return treeFlat;
 		},
 	},
