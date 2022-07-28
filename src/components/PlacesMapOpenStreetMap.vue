@@ -68,7 +68,7 @@
 					waypoints[place.waypoint].latitude,
 					waypoints[place.waypoint].longitude,
 				]"
-				:visible="commonPlacemarksShow && place.show && place.geomark ? true : false"
+				:visible="commonPlacemarksShow && place.geomark ? true : false"
 				@click="placemarkClick(place);"
 			>
 				<l-icon v-bind="place === currentPlace ? icon_03 : icon_02" />
