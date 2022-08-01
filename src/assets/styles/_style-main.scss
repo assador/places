@@ -69,7 +69,7 @@ table.table_decor > * > tr:hover {
 tr:hover {
 	background-color: $color-17;
 }
-&#container {
+& {
 	background-color: $color-22;
 }
 #scroll-up, #scroll-down {
@@ -86,7 +86,7 @@ tr:hover {
 	color: $color-13;
 }
 .basiccolor, #places-menu-folder-link-root,
-&#container, input, select, textarea {
+&, input, select, textarea {
 	color: $color-15;
 }
 ::placeholder {
@@ -178,10 +178,10 @@ a:hover,
 
 /* Основные стили */
 
-&#container, .fontsize_n {
+&, .fontsize_n {
 	font-size: 14px;
 }
-&#container {
+& {
 	font-family: "PT Sans", Tahoma, Arial, sans-serif; line-height: 1.286;
 	text-indent: 0;
 	text-align: left;

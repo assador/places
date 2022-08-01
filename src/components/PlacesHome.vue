@@ -603,11 +603,10 @@ export default defineComponent({
 				'longitude',
 				'altitudecapability',
 			],
-			state: this.$store.state,
 		};
 	},
 	computed: {
-		...mapState(['currentPlace']),
+		...mapState(['currentPlace', 'colortheme']),
 		commonPlaces(): Record<string, Place> {
 			const commonPlaces: Record<string, Place> = {};
 			for (const id in this.$store.state.commonPlaces) {
@@ -656,6 +655,15 @@ export default defineComponent({
 		stateReady() {
 			this.stateReadyChanged();
 		},
+		fullscreen() {
+			if (this.fullscreen) {
+				document.querySelector('.fullscreen-wrapper')
+					.classList.add('colortheme-' + this.colortheme);
+			}
+		},
+		colortheme() {
+			this.updateColorthemeInFullscreen();
+		},
 	},
 	created() {
 		emitter.on('setCurrentPlace', (payload: {place: Place}) => {
@@ -697,6 +705,15 @@ export default defineComponent({
 		emitter.off('setCurrentPlace');
 	},
 	methods: {
+		updateColorthemeInFullscreen(): void {
+			if (this.fullscreen) {
+				const fullscreenWrapper = document.querySelector('.fullscreen-wrapper');
+				for (const colortheme of this.$root.colorthemes) {
+					fullscreenWrapper.classList.remove('colortheme-' + colortheme.value);
+				}
+				fullscreenWrapper.classList.add('colortheme-' + this.colortheme);
+			}
+		},
 		blur() {
 			const el = this.$el.querySelector(':focus');
 			if (el) {
