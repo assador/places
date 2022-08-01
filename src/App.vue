@@ -1,5 +1,7 @@
 <template>
-	<router-view />
+	<div id="container" :class="'colortheme-' + colortheme">
+		<router-view />
+	</div>
 </template>
 
 <script lang="ts">
@@ -10,8 +12,8 @@ import { mapState } from 'vuex'
 import { emitter } from '@/shared/bus'
 import { commonFunctions } from '@/shared/common';
 import { Place, Image, Folder, Waypoint } from '@/store/types';
-import '@/css/style.css';
-import '@/css/layout.css';
+import '@/assets/styles/style.scss';
+import '@/assets/styles/layout.scss';
 
 export default defineComponent({
 	name: 'App',
@@ -41,7 +43,22 @@ export default defineComponent({
 		};
 	},
 	computed: {
-		...mapState(['currentPlace']),
+		...mapState(['currentPlace', 'colortheme']),
+		colorthemes(): Array<Record<string, string>> {
+			return [{
+				value: 'brown',
+				title: this.$store.state.t.i.inputs.colorthemeBrown,
+			}, {
+				value: 'blue',
+				title: this.$store.state.t.i.inputs.colorthemeBlue,
+			}, {
+				value: 'pink',
+				title: this.$store.state.t.i.inputs.colorthemePink,
+			}, {
+				value: 'green',
+				title: this.$store.state.t.i.inputs.colorthemeGreen,
+			}];
+		}
 	},
 	created() {
 		emitter.on('logged', () => {
@@ -110,6 +127,7 @@ export default defineComponent({
 		emitter.on('getFolderById', (id: string) => {
 			return this.$store.getters.treeFlat[id];
 		});
+		this.$store.dispatch('changeLang', this.$store.state.lang);
 	},
 	mounted() {
 		/*
@@ -117,10 +135,9 @@ export default defineComponent({
 		is reloaded), the store state is restored from sessionStorage.
 		*/
 		if (sessionStorage.getItem('places-session')) {
-			this.$store.replaceState(
-				JSON.parse(sessionStorage.getItem('places-store-state'))
-			);
-			this.$store.dispatch('restoreObjectsAsLinks');
+			this.$store.dispatch('replaceState', {
+				state: JSON.parse(sessionStorage.getItem('places-store-state')),
+			});
 		}
 		document.addEventListener('mousedown', () => {
 			this.$store.commit('setIdleTime', 0);

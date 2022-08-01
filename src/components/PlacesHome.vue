@@ -63,7 +63,7 @@
 				id="top-basic"
 				class="app-cell"
 			>
-				<div>
+				<div id="top-basic-content">
 					<div class="brand">
 						<h1 class="basiccolor margin_bottom_0">
 							{{ $store.state.t.i.brand.header }} —
@@ -603,6 +603,7 @@ export default defineComponent({
 				'longitude',
 				'altitudecapability',
 			],
+			state: this.$store.state,
 		};
 	},
 	computed: {

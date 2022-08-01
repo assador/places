@@ -100,6 +100,7 @@ declare module '@vue/runtime-core' {
 		mouseOverMessages: boolean;
 		serverConfig: Record<string, any> | null;
 		lang: string;
+		colortheme: string;
 		t: any;
 	}
 	interface ComponentCustomProperties {

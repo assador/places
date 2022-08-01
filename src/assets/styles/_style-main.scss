@@ -1,20 +1,3 @@
-
-/* Обнуление */
-
-* {
-	margin: 0;
-	padding: 0;
-}
-:focus {
-	outline-style: none;
-}
-::-moz-focus-inner {
-	border: none;
-	padding: 0;
-}
-
-/* Часто использующиеся стили */
-
 .margin_bottom_1 {
 	margin-bottom: 12px !important;
 }
@@ -40,31 +23,31 @@ table.table_form, table.table_form > * > tr > td, table.table_form > * > tr > th
 td, th,
 table.border_1 > * > tr > td, table.border_1 > * > tr > th,
 .auth__login {
-	border: 1px solid rgba(200, 177, 160, 0.2);
+	border: 1px solid $color-12;
 }
 .border_2,
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	border-width: 1px;
 	border-style: solid;
-	border-color: rgba(200, 177, 160, 0.04) rgba(200, 177, 160, 0.07) rgba(200, 177, 160, 0.1) rgba(200, 177, 160, 0.07);
+	border-color: $color-08 $color-10 $color-11 $color-10;
 }
 .dragenter-area_top_border {
-	border-top: 1px solid rgba(200, 177, 160, 0.6);
+	border-top: 1px solid $color-14;
 }
 .dragenter-area_bottom_border {
-	border-bottom: 1px solid rgba(200, 177, 160, 0.6);
+	border-bottom: 1px solid $color-14;
 }
 .borderh,
 table.borderh > * > tr > td, table.borderh > * > tr > th {
-	border-top: 1px solid rgba(200, 177, 160, 0.2); border-right: none; border-bottom: 1px solid rgba(200, 177, 160, 0.2); border-left: none;
+	border-top: 1px solid $color-12; border-right: none; border-bottom: 1px solid $color-12; border-left: none;
 }
 .borderv,
 table.borderv > * > tr > td, table.borderv > * > tr > th {
-	border-top: none; border-right: 1px solid rgba(200, 177, 160, 0.2); border-bottom: none; border-left: 1px solid rgba(200, 177, 160, 0.2);
+	border-top: none; border-right: 1px solid $color-12; border-bottom: none; border-left: 1px solid $color-12;
 }
 img.border_1 {
-	border: none; outline: 1px solid rgba(200, 177, 160, 0.1); outline-offset: -1px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+	border: none; outline: 1px solid $color-11; outline-offset: -1px;
+	box-shadow: 0 2px 8px $color-01;
 }
 .back_0,
 table.table_decor > * > tr:hover {
@@ -73,62 +56,62 @@ table.table_decor > * > tr:hover {
 .back_1,
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre,
 #sbs-top:hover, #sbs-bottom:hover, #sbs-right:hover, #sbs-left:hover, ::-webkit-scrollbar, ::-webkit-scrollbar-corner {
-	background-color: rgba(144, 98, 62, 0.2);
+	background-color: $color-18;
 }
 .back_2,
 .folder_root .folder_opened::before {
-	background-color: rgba(255, 252, 224, 0.12);
+	background-color: $color-06;
 }
 .back_3,
 #messages, .popup {
-	background-color: rgba(0, 0, 0, 0.85);
+	background-color: $color-03;
 }
 tr:hover {
-	background-color: rgba(144, 98, 62, 0.1);
+	background-color: $color-17;
 }
-body, body.iframe {
-	background-color: rgb(70, 41, 23);
+&#container {
+	background-color: $color-22;
 }
 #scroll-up, #scroll-down {
-	background-color: rgba(70, 41, 23, 0.7);
+	background-color: $color-21;
 }
 .value_correct:focus {
-	background-color: rgb(78, 85, 24) !important;
+	background-color: $color-66 !important;
 }
 .value_wrong:focus {
-	background-color: rgb(100, 44, 36) !important;
+	background-color: $color-67 !important;
 }
 .un_color,
 .un_imp {
-	color: rgba(200, 177, 160, 0.5);
+	color: $color-13;
 }
 .basiccolor, #places-menu-folder-link-root,
-body, input, select, textarea {
-	color: rgb(200, 177, 160);
+&#container, input, select, textarea {
+	color: $color-15;
 }
 ::placeholder {
-	color: rgba(200, 177, 160, 0.6);
+	color: $color-14;
 }
 .color, .imp, .imp_01, .imp_02,
 h1, h2, h3, h4, h5, h6, b, strong, caption, legend, dt, th,
 ul > li::before, .pseudo_button::before {
-	color: rgb(178, 126, 77);
+	color: $color-23;
 }
 .button-pressed {
-	color: rgb(153, 58, 0) !important;
+	color: $color-24 !important;
 }
 a,
 .place-button {
-	color: rgb(234, 177, 126);
+	color: $color-25;
 }
 a:hover,
 .place-button.active, .place-button:hover, .place-button.activated-by-function {
-	color: rgb(255, 217, 164);
+	color: $color-26;
 }
 .place-button.active, .place-button:hover, .place-button.activated-by-function, ::-webkit-scrollbar-thumb {
-	background-color: rgba(218, 166, 126, 0.2);
-	border-color: rgba(175, 126, 89, 0.2) rgba(232, 179, 139, 0.2) rgba(247, 193, 152, 0.2) rgba(189, 139, 101, 0.2);
-	box-shadow: 0 0 8px rgba(255, 243, 201, 0.2);
+	background-color: $color-28;
+	border-color: $color-30 $color-32 $color-34 $color-36;
+	box-shadow: 0 0 8px $color-39;
 }
 
 /* Шрифты */
@@ -195,10 +178,10 @@ a:hover,
 
 /* Основные стили */
 
-body, .fontsize_n {
+&#container, .fontsize_n {
 	font-size: 14px;
 }
-body {
+&#container {
 	font-family: "PT Sans", Tahoma, Arial, sans-serif; line-height: 1.286;
 	text-indent: 0;
 	text-align: left;
@@ -278,8 +261,8 @@ ul > li::before {
 }
 hr {
 	height: 1px;
-	color: rgba(200, 177, 160, 0.2);
-	background: rgba(200, 177, 160, 0.2);
+	color: $color-12;
+	background: $color-12;
 	border: none;
 }
 code, pre, .pre, .code {
@@ -351,32 +334,32 @@ select[multiple], textarea {
 	vertical-align: top;
 }
 input:hover, select:hover, .selectspan:hover, textarea:hover, input:focus, select:focus, .selectspan:focus, textarea:focus {
-	background-color: rgba(218, 166, 126, 0.14);
-	box-shadow: 0 0 8px rgba(255, 243, 201, 0.14);
+	background-color: $color-27;
+	box-shadow: 0 0 8px $color-38;
 }
 input, select, .selectspan, textarea {
-	background-color: rgba(144, 98, 62, 0.1);
-	border-color: rgba(200, 177, 160, 0.05) rgba(200, 177, 160, 0.1) rgba(200, 177, 160, 0.6) rgba(200, 177, 160, 0.1);
+	background-color: $color-17;
+	border-color: $color-09 $color-11 $color-14 $color-11;
 }
 option {
-	background-color: rgb(86, 53, 33);
+	background-color: $color-42;
 }
 .button, button, input[type="button"], button[disabled]:hover, input[type="button"][disabled]:hover {
-	background-color: rgb(193, 170, 154);
-	border-color: rgb(152, 131, 115) rgb(207, 184, 167) rgb(221, 198, 181) rgb(166, 144, 128);
-	color: rgb(70, 41, 23);
+	background-color: $color-43;
+	border-color: $color-44 $color-45 $color-46 $color-47;
+	color: $color-22;
 }
 input[type="submit"], input[type="reset"], input[type="submit"][disabled]:hover, input[type="reset"][disabled]:hover {
-	background-color: rgb(186, 136, 98);
-	border-color: rgb(144, 98, 62) rgb(200, 149, 110) rgb(214, 162, 123) rgb(158, 110, 74);
-	color: rgb(70, 41, 23);
+	background-color: $color-48;
+	border-color: $color-49 $color-50 $color-51 $color-52;
+	color: $color-22;
 }
 .button:hover, button:hover, input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover,
 .button-pressed {
-	background-color: rgb(218, 166, 126);
-	border-color: rgb(175, 126, 89) rgb(232, 179, 139) rgb(247, 193, 152) rgb(189, 139, 101);
-	box-shadow: 0 0 8px rgba(255, 243, 201, 0.3);
-	color: rgb(70, 41, 23);
+	background-color: $color-29;
+	border-color: $color-31 $color-33 $color-35 $color-37;
+	box-shadow: 0 0 8px $color-40;
+	color: $color-22;
 }
 input[type="hidden"] {
 	display: none;
@@ -437,20 +420,20 @@ input[type="hidden"] {
 }
 .waiting::before {
 	content: "";
-	background: linear-gradient(to right, rgba(144, 98, 62, 0) 0%, rgba(144, 98, 62, 1) 50%, rgba(144, 98, 62, 0) 100%);
+	background: linear-gradient(to right, $color-16 0%, $color-20 50%, $color-16 100%);
 	z-index: 0;
 	animation: waiting 2s ease-in-out infinite;
 }
 #messages .highlight {animation: highlight-text 1s ease-in-out;}
 @keyframes highlight {
-	0% {box-shadow: 0 0 42px rgba(255, 252, 224, 0);}
-	50% {box-shadow: 0 0 42px rgba(255, 252, 224, 1);}
-	100% {box-shadow: 0 0 42px rgba(255, 252, 224, 0);}
+	0% {box-shadow: 0 0 42px $color-05;}
+	50% {box-shadow: 0 0 42px $color-07;}
+	100% {box-shadow: 0 0 42px $color-05;}
 }
 @keyframes highlight-text {
-	0% {text-shadow: 0 0 11px rgba(255, 255, 255, 0);}
-	50% {text-shadow: 0 0 11px rgba(255, 255, 255, 1); color: rgb(255, 255, 255);}
-	100% {text-shadow: 0 0 11px rgba(255, 255, 255, 0);}
+	0% {text-shadow: 0 0 11px $color-64;}
+	50% {text-shadow: 0 0 11px $color-65; color: $color-65;}
+	100% {text-shadow: 0 0 11px $color-64;}
 }
 @keyframes waiting {
 	0% {
@@ -776,7 +759,7 @@ span.folder-button {
 	height: 4px; bottom: -1px;
 }
 .folder-button.over {
-	text-shadow: 0 0 3px rgb(255, 255, 255);
+	text-shadow: 0 0 3px $color-65;
 }
 .place-button[class*="block_"] .dragenter-area_top {
 	top: -6px;
@@ -873,67 +856,67 @@ span.folder-button {
 
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	border-radius: 3px;
-	box-shadow: 0 0 6px rgba(47, 20, 0, 0.4);
+	box-shadow: 0 0 6px $color-56;
 }
 #top-basic, #basic-basic, #bottom-basic {
-	border-left: 1px solid rgba(255, 172, 110, 0.12);
-	border-right: 1px solid rgba(47, 20, 0, 0.24);
+	border-left: 1px solid $color-60;
+	border-right: 1px solid $color-55;
 }
 #top-left, #top-right {
-	border-bottom: 1px solid rgba(255, 172, 110, 0.04);
+	border-bottom: 1px solid $color-58;
 }
 #top-basic {
-	border-bottom: 1px solid rgba(255, 172, 110, 0.08);
+	border-bottom: 1px solid $color-59;
 }
 #bottom-left, #bottom-right {
-	border-top: 1px solid rgba(47, 20, 0, 0.1);
+	border-top: 1px solid $color-53;
 }
 #bottom-basic {
-	border-top: 1px solid rgba(47, 20, 0, 0.24);
+	border-top: 1px solid $color-55;
 }
 #top-left, #top-right, #bottom-right, #bottom-left {
-	background-color: rgb(96, 61, 35);
+	background-color: $color-61;
 }
 #top-basic, #bottom-basic {
-	background-color: rgb(64, 36, 18);
+	background-color: $color-62;
 }
 #basic-left, #basic-right {
-	background-color: rgba(144, 98, 62, 0.4);
+	background-color: $color-19;
 }
 #top-basic {
-	box-shadow: inset 0 -100px 20px -100px rgba(47, 20, 0, 0.2);
+	box-shadow: inset 0 -100px 20px -100px $color-54;
 }
 #bottom-basic {
 	text-align: right;
-	box-shadow: inset 0 100px 20px -100px rgba(47, 20, 0, 0.2);
+	box-shadow: inset 0 100px 20px -100px $color-54;
 }
 #basic-left {
-	box-shadow: inset -100px 0 20px -100px rgba(47, 20, 0, 0.6);
+	box-shadow: inset -100px 0 20px -100px $color-57;
 }
 #basic-right {
-	box-shadow: inset 100px 0 20px -100px rgba(47, 20, 0, 0.6);
+	box-shadow: inset 100px 0 20px -100px $color-57;
 }
 #top-left {
-	box-shadow: inset -100px -85px 20px -100px rgba(47, 20, 0, 0.6);
+	box-shadow: inset -100px -85px 20px -100px $color-57;
 }
 #top-right {
-	box-shadow: inset 100px -85px 20px -100px rgba(47, 20, 0, 0.6);
+	box-shadow: inset 100px -85px 20px -100px $color-57;
 }
 #bottom-right {
-	box-shadow: inset 100px 85px 20px -100px rgba(47, 20, 0, 0.6);
+	box-shadow: inset 100px 85px 20px -100px $color-57;
 }
 #bottom-left {
-	box-shadow: inset -100px 85px 20px -100px rgba(47, 20, 0, 0.6);
+	box-shadow: inset -100px 85px 20px -100px $color-57;
 }
 .highlighted {
-	border-color: rgba(255, 223, 170, 0.3);
-	background-color: rgba(218, 166, 126, 0.2);
-	box-shadow: 0 0 8px rgba(255, 243, 201, 0.4);
+	border-color: $color-63;
+	background-color: $color-28;
+	box-shadow: 0 0 8px $color-41;
 	transition: all 0.5s;
 }
 #messages {
 	border-radius: 7px;
-	box-shadow: 0 4px 23px rgba(0, 0, 0, 0.7);
+	box-shadow: 0 4px 23px $color-04;
 	text-align: right;
 	cursor: default;
 }
@@ -983,7 +966,7 @@ span.folder-button {
 	white-space: nowrap;
 }
 .leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar {
-	box-shadow: 0 1px 5px rgb(0 0 0 / 65%);
+	box-shadow: 0 1px 5px $color-02;
 	border: none;
 }
 .leaflet-control-geosearch form {
@@ -991,15 +974,15 @@ span.folder-button {
 }
 .leaflet-control-geosearch .glass {
 	height: 100%;
-	background-color: rgb(255, 255, 255);
+	background-color: $color-65;
 }
 
 @media screen and (max-width: 700px) {
 	#basic-left {
-		box-shadow: inset -100px -100px 20px -100px rgba(47, 20, 0, 0.6);
+		box-shadow: inset -100px -100px 20px -100px $color-57;
 	}
 	#basic-right {
-		box-shadow: inset 100px -100px 20px -100px rgba(47, 20, 0, 0.6);
+		box-shadow: inset 100px -100px 20px -100px $color-57;
 	}
 	.folder-button {
 		margin-right: 0;

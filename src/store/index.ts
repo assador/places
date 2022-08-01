@@ -22,6 +22,8 @@ const tracking: Plugin<State> = (store: Store<State>) => {
 		'setCurrentPlace',
 		'placesReady',
 		'stateReady',
+		'changeLang',
+		'changeColortheme',
 	];
 	store.subscribe((mutation: MutationPayload, state: State) => {
 		if (trackingMutations.includes(mutation.type)) {
@@ -60,7 +62,6 @@ const tracking: Plugin<State> = (store: Store<State>) => {
 		state => state.t,
 		l => makeFieldsValidatable(true)
 	);
-	store.dispatch('changeLang', store.state.lang);
 };
 
 const store = createStore({
@@ -92,9 +93,8 @@ const store = createStore({
 		messageTimer: 0,
 		mouseOverMessages: false,
 		serverConfig: null,
-		lang: sessionStorage.getItem('places-lang')
-			? sessionStorage.getItem('places-lang')
-			: 'ru',
+		lang: 'ru',
+		colortheme: 'brown',
 		t: {},
 		tree: {
 			id: 'root',
@@ -117,6 +117,9 @@ const store = createStore({
 			state.lang = payload.lang;
 			state.t = payload.dict;
 			state.tree.name = state.t.i.captions.rootFolder;
+		},
+		changeColortheme(state, colortheme) {
+			state.colortheme = colortheme;
 		},
 		setMessage(state, message) {
 			state.messages.push(message);
@@ -275,6 +278,11 @@ const store = createStore({
 		stateReady(state, ready) {
 			state.ready = ready;
 		},
+		replaceState(state, newState) {
+			for (const prop in newState) {
+				state[prop] = newState[prop];
+			}
+		},
 		show(state, id) {
 			state.places[id].show = true;
 		},
@@ -389,8 +397,10 @@ const store = createStore({
 			const getLang = () => import(`@/lang/${lang}.ts`);
 			getLang().then(l => {
 				commit('changeLang', {lang: lang, dict: l.t});
-				sessionStorage.setItem('places-lang', state.lang);
 			});
+		},
+		changeColortheme({state, commit}, colortheme) {
+			commit('changeColortheme', colortheme);
 		},
 		restoreState({commit, dispatch}, backupIndex) {
 			commit('restoreState', backupIndex);
@@ -426,7 +436,6 @@ const store = createStore({
 			sessionStorage.removeItem('places-store-state');
 			sessionStorage.removeItem('places-userid');
 			sessionStorage.removeItem('places-session');
-			sessionStorage.removeItem('places-lang');
 		},
 		setUser({state, commit, dispatch}) {
 			axios
@@ -810,6 +819,17 @@ const store = createStore({
 					return false;
 			}
 			addImported(payload.mime, parsed);
+		},
+		replaceState({state, commit, dispatch}, payload) {
+			commit('replaceState', payload.state);
+			dispatch('changeLang', state.lang);
+			dispatch('restoreObjectsAsLinks');
+			if (state.currentPlace) {
+				dispatch('changeMap', {
+					latitude: state.waypoints[state.currentPlace.waypoint].latitude,
+					longitude: state.waypoints[state.currentPlace.waypoint].longitude,
+				});
+			}
 		},
 		restoreObjectsAsLinks({state, commit}) {
 			commit('setRefreshing', true);

@@ -1,16 +1,15 @@
 {
 	"name": "places",
 	"description": "Yet another geo placemarks viewer and editor service",
-	"version": "4.1.1",
+	"version": "4.2.0",
 	"author": "Dmitry Sokolov <assador@gmail.com>",
 	"license": "MIT",
 	"private": true,
 	"scripts": {
 		"serve": "vue-cli-service serve",
 		"build": "vue-cli-service build",
-		"test:unit": "vue-cli-service test:unit",
-		"test:e2e": "vue-cli-service test:e2e",
-		"lint": "vue-cli-service lint"
+		"lint": "vue-cli-service lint",
+		"test": "jest"
 	},
 	"dependencies": {
 		"core-js": "latest",
@@ -24,11 +23,11 @@
 		"vuex": "latest"
 	},
 	"devDependencies": {
+		"@types/jest": "latest",
 		"@typescript-eslint/eslint-plugin": "latest",
 		"@typescript-eslint/parser": "latest",
 		"@vue-leaflet/vue-leaflet": "latest",
 		"@vue/cli-plugin-babel": "latest",
-		"@vue/cli-plugin-e2e-webdriverio": "latest",
 		"@vue/cli-plugin-eslint": "latest",
 		"@vue/cli-plugin-router": "latest",
 		"@vue/cli-plugin-typescript": "latest",
@@ -45,9 +44,14 @@
 		"eslint-plugin-promise": "latest",
 		"eslint-plugin-vue": "latest",
 		"geckodriver": "latest",
+		"jest": "latest",
 		"lint-staged": "latest",
+		"node-sass": "latest",
+		"sass-loader": "latest",
+		"ts-jest": "latest",
 		"ts-node": "latest",
 		"typescript": "latest",
+		"vue3-jest": "latest",
 		"wdio-chromedriver-service": "latest",
 		"wdio-geckodriver-service": "latest"
 	},
@@ -59,5 +63,15 @@
 			"vue-cli-service lint",
 			"git add"
 		]
+	},
+	"jest": {
+		"moduleFileExtensions": [
+			"js",
+			"json",
+			"vue"
+		],
+		"transform": {
+			".*\\.(vue)$": "<rootDir>/node_modules/vue-jest"
+		}
 	}
 }

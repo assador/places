@@ -1,0 +1,14 @@
+@import "reset";
+
+.colortheme-brown {
+	@import "colors-brown", "colors", "style-main";
+}
+.colortheme-blue {
+	@import "colors-blue", "colors", "style-main";
+}
+.colortheme-green {
+	@import "colors-green", "colors", "style-main";
+}
+.colortheme-pink {
+	@import "colors-pink", "colors", "style-main";
+}

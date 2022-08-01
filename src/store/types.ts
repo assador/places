@@ -96,6 +96,7 @@ export interface State {
 	mouseOverMessages: boolean;
 	serverConfig: Record<string, any> | null;
 	lang: string;
+	colortheme: string;
 	t: any;
 	tree: Folder;
 }

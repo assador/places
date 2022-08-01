@@ -12,6 +12,18 @@
 				{{ l.title }}
 			</option>
 		</select>
+		<select
+			id="colorthemes"
+			v-model="colortheme"
+		>
+			<option
+				v-for="(c, i) in $root.colorthemes"
+				:key="i"
+				:value="c.value"
+			>
+				{{ c.title }}
+			</option>
+		</select>
 	</div>
 </template>
 
@@ -21,14 +33,16 @@ import { defineComponent } from 'vue';
 export default defineComponent({
 	data() {
 		return {
-			lang: sessionStorage.getItem('places-lang')
-				? sessionStorage.getItem('places-lang')
-				: this.$store.state.lang,
+			lang: this.$store.state.lang,
+			colortheme: this.$store.state.colortheme,
 		};
 	},
 	watch: {
 		lang() {
 			this.$store.dispatch('changeLang', this.lang);
+		},
+		colortheme() {
+			this.$store.dispatch('changeColortheme', this.colortheme);
 		},
 	},
 });

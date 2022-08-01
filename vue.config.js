@@ -2,5 +2,8 @@ module.exports = {
 	devServer: {
 		proxy: '',
 	},
-	//	lintOnSave: false,
+//	lintOnSave: false,
+	css: {
+//		requireModuleExtension: false,
+	},
 }

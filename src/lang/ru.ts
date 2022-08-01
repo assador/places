@@ -90,6 +90,10 @@ export const t = {
 			daLeaveImages: 'Оставить мои фотографии',
 			placeName: 'Название места',
 			placeDescription: 'Описание места',
+			colorthemeBrown: 'Коричневая тема',
+			colorthemeBlue: 'Синяя тема',
+			colorthemeGreen: 'Зелёная тема',
+			colorthemePink: 'Пурпурная тема',
 		},
 		hints: {
 			fvNotMore24: 'Не более 24 символов',

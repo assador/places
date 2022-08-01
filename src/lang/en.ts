@@ -90,6 +90,10 @@ export const t = {
 			daLeaveImages: 'Leave my photos',
 			placeName: 'Place name',
 			placeDescription: 'Place description',
+			colorthemeBrown: 'Brown theme',
+			colorthemeBlue: 'Blue theme',
+			colorthemeGreen: 'Green theme',
+			colorthemePink: 'Purple theme',
 		},
 		hints: {
 			fvNotMore24: 'Not more than 24 symbols',

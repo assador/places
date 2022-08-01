@@ -14,14 +14,12 @@ export const loginRoutine: (user: {authLogin: string, authPassword: string}) => 
 					case 0 :
 						sessionStorage.removeItem('places-userid');
 						sessionStorage.removeItem('places-session');
-						sessionStorage.removeItem('places-lang');
 						login.message = store.state.t.m.paged.wrongLoginPassword;
 						break;
 					default :
 						if (typeof response.data === 'object') {
 							sessionStorage.setItem('places-userid', response.data.id);
 							sessionStorage.setItem('places-session', response.data.session);
-							sessionStorage.setItem('places-lang', store.state.lang);
 							emitter.emit('logged');
 						}
 				}
@@ -29,7 +27,6 @@ export const loginRoutine: (user: {authLogin: string, authPassword: string}) => 
 			.catch(() => {
 				sessionStorage.removeItem('places-userid');
 				sessionStorage.removeItem('places-session');
-				sessionStorage.removeItem('places-lang');
 			})
 		;
 	};
