@@ -94,6 +94,10 @@ export const t = {
 			colorthemeBlue: 'Blue theme',
 			colorthemeGreen: 'Green theme',
 			colorthemePink: 'Purple theme',
+			colorthemePinkLight: 'Pink light theme',
+			colorthemeBlueLight: 'Blue light theme',
+			colorthemeGreenLight: 'Green light theme',
+			colorthemePurpleLight: 'Purple light theme',
 		},
 		hints: {
 			fvNotMore24: 'Not more than 24 symbols',

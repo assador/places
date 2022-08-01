@@ -151,7 +151,7 @@ body {
 	min-width: 38.2%;
 }
 #top-basic .brand {
-	flex-grow: 1;
+	overflow: hidden;
 }
 #messages {
 	box-sizing: border-box;
@@ -315,9 +315,6 @@ body {
 	#top-basic, #basic-basic {
 		border-right: none;
 		border-left: none;
-	}
-	#top-basic .brand {
-		display: flex;
 	}
 	#top-basic .brand > *:first-child + * {
 		display: flex;

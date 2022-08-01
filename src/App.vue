@@ -57,6 +57,18 @@ export default defineComponent({
 			}, {
 				value: 'green',
 				title: this.$store.state.t.i.inputs.colorthemeGreen,
+			}, {
+				value: 'pink-light',
+				title: this.$store.state.t.i.inputs.colorthemePinkLight,
+			}, {
+				value: 'blue-light',
+				title: this.$store.state.t.i.inputs.colorthemeBlueLight,
+			}, {
+				value: 'purple-light',
+				title: this.$store.state.t.i.inputs.colorthemePurpleLight,
+			}, {
+				value: 'green-light',
+				title: this.$store.state.t.i.inputs.colorthemeGreenLight,
 			}];
 		}
 	},

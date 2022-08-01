@@ -1,9 +1,9 @@
 @import "colors-opacities";
 
-$color-01: rgba(0, 0, 0, $opacity-07);
-$color-02: rgba(0, 0, 0, $opacity-11);
-$color-03: rgba(0, 0, 0, $opacity-13);
-$color-04: rgba(0, 0, 0, $opacity-12);
+$color-01: rgba($col-36, $opacity-07);
+$color-02: rgba($col-36, $opacity-11);
+$color-03: rgba($col-36, $opacity-13);
+$color-04: rgba($col-36, $opacity-12);
 
 $color-05: rgba($col-01, 0);
 $color-06: rgba($col-01, $opacity-05);
@@ -97,3 +97,10 @@ $color-65: rgba($col-31, 1);
 $color-66: rgba($col-32, 1);
 
 $color-67: rgba($col-33, 1);
+
+$color-68: rgba($col-34, 1);
+
+$color-69: rgba($col-35, $opacity-02);
+$color-70: rgba($col-35, $opacity-04);
+$color-71: rgba($col-35, $opacity-10);
+$color-72: rgba($col-35, $opacity-04);

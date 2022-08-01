@@ -94,6 +94,10 @@ export const t = {
 			colorthemeBlue: 'Синяя тема',
 			colorthemeGreen: 'Зелёная тема',
 			colorthemePink: 'Пурпурная тема',
+			colorthemePinkLight: 'Розовая светлая тема',
+			colorthemeBlueLight: 'Синяя светлая тема',
+			colorthemeGreenLight: 'Зелёная светлая тема',
+			colorthemePurpleLight: 'Пурпурная светлая тема',
 		},
 		hints: {
 			fvNotMore24: 'Не более 24 символов',

@@ -339,7 +339,7 @@ input:hover, select:hover, .selectspan:hover, textarea:hover, input:focus, selec
 }
 input, select, .selectspan, textarea {
 	background-color: $color-17;
-	border-color: $color-09 $color-11 $color-14 $color-11;
+	border-color: $color-69 $color-70 $color-71 $color-72;
 }
 option {
 	background-color: $color-42;
@@ -347,19 +347,19 @@ option {
 .button, button, input[type="button"], button[disabled]:hover, input[type="button"][disabled]:hover {
 	background-color: $color-43;
 	border-color: $color-44 $color-45 $color-46 $color-47;
-	color: $color-22;
+	color: $color-68;
 }
-input[type="submit"], input[type="reset"], input[type="submit"][disabled]:hover, input[type="reset"][disabled]:hover {
+[type="submit"], [type="reset"], [type="submit"][disabled]:hover, [type="reset"][disabled]:hover {
 	background-color: $color-48;
 	border-color: $color-49 $color-50 $color-51 $color-52;
-	color: $color-22;
+	color: $color-68;
 }
 .button:hover, button:hover, input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover,
 .button-pressed {
 	background-color: $color-29;
 	border-color: $color-31 $color-33 $color-35 $color-37;
 	box-shadow: 0 0 8px $color-40;
-	color: $color-22;
+	color: $color-68;
 }
 input[type="hidden"] {
 	display: none;
