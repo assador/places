@@ -154,7 +154,7 @@ export default defineComponent({
 					opened: false,
 					userid: sessionStorage.getItem('places-userid'),
 				};
-				this.$store.dispatch('addFolder', newFolder);
+				this.$store.dispatch('addFolder', {folder: newFolder});
 				this.message = this.$store.state.t.m.paged.folderCreated;
 				this.folderName = '';
 				this.folderDescription = '';

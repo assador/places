@@ -2,7 +2,6 @@
 include "config.php";
 include "newpdo.php";
 include "common.php";
-include "randomstring.php";
 
 $date = new DateTime();
 $date->add(new DateInterval("P1D"));
@@ -85,8 +84,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
 				Ваш e-mail был указан как e-mail пользователя сервиса просмотра
 				и редактирования библиотек геометок «Места». Если это были вы,
 				для подтверждения изменения данных аккаунта перейдите по ссылке:<br />
-				<a href="' . $host . '/confirmaccount.php?token=' . $token . '">
-					' . $host . '/confirmaccount.php?token=' . $token . '
+				<a href="' . $host . '/backend/confirmaccount.php?token=' . $token . '">
+					' . $host . '/backend/confirmaccount.php?token=' . $token . '
 				</a>
 			</p>
 		</body>

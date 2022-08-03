@@ -36,6 +36,8 @@ const tracking: Plugin<State> = (store: Store<State>) => {
 				mutation.type !== 'setCurrentPlace' &&
 				mutation.type !== 'placesReady' &&
 				mutation.type !== 'stateReady' &&
+				mutation.type !== 'changeLang' &&
+				mutation.type !== 'changeColortheme' &&
 				(
 					mutation.payload.hasOwnProperty('backup') &&
 					!!mutation.payload.backup ||
@@ -479,10 +481,10 @@ const store = createStore({
 					)
 					.then(response => {
 						commit('placesReady', {
-							waypoints: response.data.waypoints,
-							places: response.data.places,
-							commonPlaces: response.data.common_places,
-							folders: response.data.folders,
+							waypoints: Object.assign({}, response.data.waypoints),
+							places: Object.assign({}, response.data.places),
+							commonPlaces: Object.assign({}, response.data.common_places),
+							folders: Object.assign({}, response.data.folders),
 						});
 						commit('setHomePlace', (state.user.homeplace
 							? state.places[state.user.homeplace]
@@ -490,7 +492,7 @@ const store = createStore({
 						));
 						commit('stateReady', true);
 					})
-					.catch(() => {
+					.catch(reject => {
 						dispatch('setMessage',
 							state.t.m.popup.cannotGetDataFromDb
 						);
@@ -702,7 +704,7 @@ const store = createStore({
 											updated: false,
 											builded: true,
 										};
-										dispatch('addFolder', newFolder);
+										dispatch('addFolder', {folder: newFolder});
 									} else {
 										dispatch('setMessage',
 											state.t.m.popup.foldersCountExceeded
@@ -714,7 +716,7 @@ const store = createStore({
 							}
 							break;
 						case 'application/gpx+xml' :
-							dispatch('addFolder', parsed.tree);
+							dispatch('addFolder', {folder: parsed.tree});
 							break;
 						default :
 							dispatch('setMessage', `
@@ -847,12 +849,22 @@ const store = createStore({
 			}
 			commit('setRefreshing', false);
 		},
-		async addFolder({state, commit, getters}, folder) {
-			const parent = getters.treeFlat[folder.parent]
-				? getters.treeFlat[folder.parent]
+		async addFolder({state, commit, getters}, payload) {
+			const parent = getters.treeFlat[payload.folder.parent]
+				? getters.treeFlat[payload.folder.parent]
 				: state.tree
 			;
-			commit('addFolder', {folder: folder, parent: parent});
+			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			if (saveToDB && !state.user.testaccount) {
+				if (!state.inUndoRedo) {
+					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
+				} else {
+					emitter.emit('toDBCompletely');
+					commit('outUndoRedo');
+				}
+			}
+			commit('setObjectSaved', payload.folder);
+			commit('addFolder', {folder: payload.folder, parent: parent});
 		},
 		setHomePlace({state, commit}, id) {
 			let place = null;

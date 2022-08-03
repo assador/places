@@ -1,6 +1,6 @@
 <?php
-include "/backend/config.php";
-include "/backend/newpdo.php";
+include "config.php";
+include "newpdo.php";
 
 $query = $conn->query("SELECT * FROM `users_change` WHERE `token` = '" . $_GET["token"] . "'");
 $result = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -21,7 +21,7 @@ if(count($result) > 0) {
 		echo '
 			<h1>Успешно</h1>
 			<p>
-				Данные вашего аккаунта успешно изменены. Перезагрузите страницу сервиса.
+				Данные вашего аккаунта успешно изменены. Переавторизуйтесь на сервисе.
 			</p>
 		';
 	}

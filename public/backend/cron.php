@@ -1,12 +1,14 @@
 <?php
-include "/backend/config.php";
-include "/backend/newpdo.php";
+include "config.php";
+include "newpdo.php";
+
+$query = $conn->query("SET FOREIGN_KEY_CHECKS = 0");
+$query->execute();
 
 $query = $conn->query("
 	SELECT `w`.`id`
 	FROM `waypoints` `w`
 ");
-$query->execute();
 $waypoints = $query->fetchAll(PDO::FETCH_ASSOC);
 
 $all_with_waypoint_id = [];
@@ -28,4 +30,22 @@ $query = $conn->query("
 		implode("','", $orphaned_waypoints_ids)
 	. "')
 ");
+$query->execute();
+
+$query = $conn->query("
+	SELECT `u`.`id`, `u`.`confirmbefore`
+	FROM `users` `u`
+	WHERE `u`.`confirmed` = 0
+");
+$users = $query->fetchAll(PDO::FETCH_ASSOC);
+$nowDateTime = new DateTime("now");
+foreach($users as $user) {
+	$regDateTime = DateTime::createFromFormat("Y-m-d H:i:s", $user["confirmbefore"]);
+	if($regDateTime < $nowDateTime) {
+		$query = $conn->query("DELETE FROM `users` WHERE `id` = '" . $user["id"] . "'");
+		$query->execute();
+	}
+}
+
+$query = $conn->query("SET FOREIGN_KEY_CHECKS = 1");
 $query->execute();
