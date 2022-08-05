@@ -20,8 +20,8 @@ $query = $conn->query(
 		$_POST["regEmail"] .
 		"'"
 );
-$result = $query->fetchAll(PDO::FETCH_ASSOC);
-if(count($result) > 0) {echo 1; exit;}
+$result = $query->fetch(PDO::FETCH_ASSOC);
+if(!!$result) {echo 1; exit;}
 
 $id = generateRandomString(32);
 $token = generateRandomString(32);

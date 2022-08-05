@@ -122,7 +122,11 @@ export default defineComponent({
 				let srt = 1;
 				if (
 					this.currentPlace &&
-					this.$store.getters.treeFlat[this.currentPlace.folderid].children
+					Object.keys(
+						this.$store.getters.treeFlat[
+							this.currentPlace.folderid
+						].children
+					).length
 				) {
 					srt = Math.ceil(Math.max(
 						...Object.keys(

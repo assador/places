@@ -11,34 +11,34 @@ if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
 	echo 2; exit;
 } else {
 	$query = $conn->query("SELECT * FROM `users` WHERE `id` = '" . $_POST["accountId"] . "' AND `confirmed` = 1");
-	$result = $query->fetchAll(PDO::FETCH_ASSOC);
-	if(count($result) > 0) {
+	$result = $query->fetch(PDO::FETCH_ASSOC);
+	if(!!$result) {
 		$passwordchange =
 			$_POST["accountNewPassword"] == "" ||
-			password_verify($_POST["accountNewPassword"], $result[0]["password"])
+			password_verify($_POST["accountNewPassword"], $result["password"])
 				? false : true;
 	}
 	if(
 		count($result) == 0 ||
-		$result[0]["login" ] == $_POST["accountLogin" ] &&
-		$result[0]["name"  ] == $_POST["accountName"  ] &&
-		$result[0]["email" ] == $_POST["accountEmail" ] &&
-		$result[0]["phone" ] == $_POST["accountPhone" ] &&
+		$result["login" ] == $_POST["accountLogin" ] &&
+		$result["name"  ] == $_POST["accountName"  ] &&
+		$result["email" ] == $_POST["accountEmail" ] &&
+		$result["phone" ] == $_POST["accountPhone" ] &&
 		!$passwordchange
 	) {
 		echo 0; exit;
 	}
-	$currentuser = $result[0];
+	$currentuser = $result;
 	if($currentuser["login" ] != $_POST["accountLogin" ]) {
 		$query = $conn->query("SELECT `id` FROM `users` WHERE `login` = '" . $_POST["accountLogin"] . "'");
-		$result = $query->fetchAll(PDO::FETCH_ASSOC);
-		if(count($result) > 0) {
+		$result = $query->fetch(PDO::FETCH_ASSOC);
+		if(!!$result) {
 			echo 3; exit;
 		}
 	}
 	$query = $conn->query("SELECT `id` FROM `users_change` WHERE `id` = '" . $_POST["accountId"] . "'");
-	$result = $query->fetchAll(PDO::FETCH_ASSOC);
-	if(count($result) > 0) {
+	$result = $query->fetch(PDO::FETCH_ASSOC);
+	if(!!$result) {
 		$query = $conn->query("DELETE FROM `users_change` WHERE `id` = '" . $_POST["accountId"] . "'");
 		$result = $query->execute();
 	}
