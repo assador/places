@@ -1112,21 +1112,14 @@ const store = createStore({
 			}
 		},
 		changeFolder({state, commit}, payload) {
-			let saveToDB = 'todb' in payload && payload.todb === false ? false : true;
 			for (const key in payload.change) {
 				commit('changeFolder', {
 					folder: payload.folder,
 					key: key,
 					value: payload.change[key],
 				});
-				if (
-					key === 'added' ||
-					key === 'deleted' ||
-					key === 'updated'
-				) {
-					saveToDB = false;
-				}
 			}
+			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
 			if (saveToDB && !state.user.testaccount) {
 				commit('changeFolder', {
 					folder: payload.folder,
