@@ -1,3 +1,13 @@
+const { defaults } = require('jest-config');
+
 module.exports = {
-//	preset: '@vue/cli-plugin-unit-jest/presets/typescript-and-babel'
-}
+	preset: 'ts-jest',
+	moduleFileExtensions: [
+		...defaults.moduleFileExtensions,
+		'ts',
+		'tsx',
+	],
+	moduleNameMapper: {
+		'^@/(.*)$': '<rootDir>/src/$1',
+	},
+};

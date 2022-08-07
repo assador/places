@@ -1,7 +1,7 @@
 {
 	"name": "places",
 	"description": "Yet another geo placemarks viewer and editor service",
-	"version": "4.2.5",
+	"version": "4.2.6",
 	"author": "Dmitry Sokolov <assador@gmail.com>",
 	"license": "MIT",
 	"private": true,
@@ -63,15 +63,5 @@
 			"vue-cli-service lint",
 			"git add"
 		]
-	},
-	"jest": {
-		"moduleFileExtensions": [
-			"js",
-			"json",
-			"vue"
-		],
-		"transform": {
-			".*\\.(vue)$": "<rootDir>/node_modules/vue-jest"
-		}
 	}
 }

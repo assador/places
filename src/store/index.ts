@@ -1,6 +1,6 @@
-import { constants } from '../shared/constants';
-import { emitter } from '../shared/bus';
-import { commonFunctions } from '../shared/common';
+import { constants } from '@/shared/constants';
+import { emitter } from '@/shared/bus';
+import { commonFunctions } from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import axios from 'axios';
 import { Store, Plugin, MutationPayload, createStore } from 'vuex';
