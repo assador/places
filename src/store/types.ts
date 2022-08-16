@@ -95,7 +95,10 @@ export interface State {
 	messageTimer: number;
 	mouseOverMessages: boolean;
 	serverConfig: Record<string, any> | null;
+	activeMapIndex: number;
+	maps: Array<Record<string, string>>;
 	lang: string;
+	langs: Array<Record<string, string>>;
 	colortheme: string;
 	t: any;
 	tree: Folder;

@@ -5,7 +5,7 @@
 			v-model="lang"
 		>
 			<option
-				v-for="(l, i) in $root.langs"
+				v-for="(l, i) in $store.state.langs"
 				:key="i"
 				:value="l.value"
 			>

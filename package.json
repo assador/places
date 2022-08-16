@@ -1,7 +1,7 @@
 {
 	"name": "places",
 	"description": "Yet another geo placemarks viewer and editor service",
-	"version": "4.2.6",
+	"version": "4.2.7",
 	"author": "Dmitry Sokolov <assador@gmail.com>",
 	"license": "MIT",
 	"private": true,
@@ -9,7 +9,7 @@
 		"serve": "vue-cli-service serve",
 		"build": "vue-cli-service build",
 		"lint": "vue-cli-service lint",
-		"test": "jest"
+		"test:unit": "jest"
 	},
 	"dependencies": {
 		"core-js": "latest",

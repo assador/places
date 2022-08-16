@@ -95,7 +95,22 @@ const store = createStore({
 		messageTimer: 0,
 		mouseOverMessages: false,
 		serverConfig: null,
+		activeMapIndex: 0,
+		maps: [{
+			name: 'OpenStreetMap',
+			component: 'PlacesMapOpenStreetMap',
+		}, {
+			name: 'Яндекс.Карты',
+			component: 'PlacesMapYandex',
+		}],
 		lang: 'ru',
+		langs: [{
+			value: 'ru',
+			title: 'Русский',
+		}, {
+			value: 'en',
+			title: 'English',
+		}],
 		colortheme: 'brown',
 		t: {},
 		tree: {
@@ -119,6 +134,9 @@ const store = createStore({
 			state.lang = payload.lang;
 			state.t = payload.dict;
 			state.tree.name = state.t.i.captions.rootFolder;
+		},
+		changeMap(state, index) {
+			state.activeMapIndex = index;
 		},
 		changeColortheme(state, colortheme) {
 			state.colortheme = colortheme;
@@ -370,7 +388,7 @@ const store = createStore({
 			;
 			changes.place.updated = true;
 		},
-		changeMap(state, payload) {
+		updateMap(state, payload) {
 			if (payload.latitude) state.center.latitude = payload.latitude;
 			if (payload.longitude) state.center.longitude = payload.longitude;
 			if (payload.zoom) state.zoom = payload.zoom;
@@ -400,6 +418,9 @@ const store = createStore({
 			getLang().then(l => {
 				commit('changeLang', {lang: lang, dict: l.t});
 			});
+		},
+		changeMap({state, commit}, index) {
+			commit('changeMap', index);
 		},
 		changeColortheme({state, commit}, colortheme) {
 			commit('changeColortheme', colortheme);
@@ -827,7 +848,7 @@ const store = createStore({
 			dispatch('changeLang', state.lang);
 			dispatch('restoreObjectsAsLinks');
 			if (state.currentPlace) {
-				dispatch('changeMap', {
+				dispatch('updateMap', {
 					latitude: state.waypoints[state.currentPlace.waypoint].latitude,
 					longitude: state.waypoints[state.currentPlace.waypoint].longitude,
 				});
@@ -1261,8 +1282,8 @@ const store = createStore({
 		swapImages({commit}, payload) {
 			commit('swapImages', payload);
 		},
-		changeMap({commit}, payload) {
-			commit('changeMap', payload);
+		updateMap({commit}, payload) {
+			commit('updateMap', payload);
 		},
 		placemarksShowHide({state, commit}, show) {
 			commit('placemarksShowHide', show === undefined ? !state.placemarksShow : show);

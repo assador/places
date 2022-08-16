@@ -227,7 +227,7 @@
 				class="app-cell"
 			>
 				<component
-					:is="$root.maps[$root.activeMapIndex].component"
+					:is="$store.state.maps[$store.state.activeMapIndex].component"
 					ref="extmap"
 				/>
 				<div
@@ -478,13 +478,13 @@
 				<div class="choose-map">
 					<select
 						id="choose-map-input"
-						@change="$root.changeMap($event.target.selectedIndex);"
+						@change="$store.dispatch('changeMap', $event.target.selectedIndex);"
 					>
 						<option
-							v-for="(map, index) in $root.maps"
+							v-for="(map, index) in $store.state.maps"
 							:key="index"
 							:value="map.component"
-							:selected="map.component === $root.maps[$root.activeMapIndex].component"
+							:selected="map.component === $store.state.maps[$store.state.activeMapIndex].component"
 						>
 							{{ map.name }}
 						</option>
@@ -814,7 +814,7 @@ export default defineComponent({
 					: false
 			);
 			this.openTreeToCurrentPlace();
-			this.$store.dispatch('changeMap', {
+			this.$store.dispatch('updateMap', {
 				latitude: this.$store.state.waypoints[this.currentPlace.waypoint].latitude,
 				longitude: this.$store.state.waypoints[this.currentPlace.waypoint].longitude,
 			});
@@ -828,7 +828,7 @@ export default defineComponent({
 			) {
 				let lat: number, lng: number;
 				if (
-					this.$root.maps[this.$root.activeMapIndex].component ===
+					this.$store.state.maps[this.$store.state.activeMapIndex].component ===
 					'PlacesMapYandex'
 				) {
 					lat = this.$refs.extmap.map.getCenter()[0].toFixed(7);

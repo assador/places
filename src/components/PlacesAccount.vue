@@ -158,7 +158,7 @@ export default defineComponent({
 		document.removeEventListener('keyup', this.keyup, false);
 	},
 	methods: {
-		close(event: Event) {
+		close() {
 			if (event) event.stopPropagation();
 			this.$router.push({name: 'PlacesHome'});
 		},

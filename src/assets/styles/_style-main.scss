@@ -5,7 +5,8 @@
 .showhide:checked + .showhide_next {
 	margin-bottom: 18px !important;
 }
-address, blockquote, caption, legend, dl, form, h1, h2, #places-menu-folder-link-root, h3, h4, h5, h6, hr, ol, p, pre, .pre, table, ul {
+address, blockquote, caption, legend, dl, form, h1, h2, h3, h4, h5, h6, hr, ol,
+p, pre, .pre, table, ul, #places-menu-folder-link-root {
 	margin-bottom: 18px;
 }
 .margin_bottom_0,
@@ -14,14 +15,13 @@ address, blockquote, caption, legend, dl, form, h1, h2, #places-menu-folder-link
 }
 .border_0,
 img, form, fieldset,
-table.border_0, table.border_0 > * > tr > td, table.border_0 > * > tr > th,
-table.table_decor, table.table_decor > * > tr > td, table.table_decor > * > tr > th,
-table.table_form, table.table_form > * > tr > td, table.table_form > * > tr > th {
+table:is(.border_0, .table_decor, .table_form),
+table:is(.border_0, .table_decor, .table_form) > * > tr > :is(td, th) {
 	border: none;
 }
 .border_1,
 td, th,
-table.border_1 > * > tr > td, table.border_1 > * > tr > th,
+table.border_1 > * > tr > :is(td, th),
 .auth__login {
 	border: 1px solid $color-12;
 }
@@ -38,12 +38,18 @@ table.border_1 > * > tr > td, table.border_1 > * > tr > th,
 	border-bottom: 1px solid $color-14;
 }
 .borderh,
-table.borderh > * > tr > td, table.borderh > * > tr > th {
-	border-top: 1px solid $color-12; border-right: none; border-bottom: 1px solid $color-12; border-left: none;
+table.borderh > * > tr > :is(td, th) {
+	border-top: 1px solid $color-12;
+	border-right: none;
+	border-bottom: 1px solid $color-12;
+	border-left: none;
 }
 .borderv,
-table.borderv > * > tr > td, table.borderv > * > tr > th {
-	border-top: none; border-right: 1px solid $color-12; border-bottom: none; border-left: 1px solid $color-12;
+table.borderv > * > tr > :is(td, th) {
+	border-top: none;
+	border-right: 1px solid $color-12;
+	border-bottom: none;
+	border-left: 1px solid $color-12;
 }
 img.border_1 {
 	border: none; outline: 1px solid $color-11; outline-offset: -1px;
@@ -55,7 +61,8 @@ table.table_decor > * > tr:hover {
 }
 .back_1,
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre,
-#sbs-top:hover, #sbs-bottom:hover, #sbs-right:hover, #sbs-left:hover, ::-webkit-scrollbar, ::-webkit-scrollbar-corner {
+:is(#sbs-top, #sbs-bottom, #sbs-right, #sbs-left):hover,
+::-webkit-scrollbar, ::-webkit-scrollbar-corner {
 	background-color: $color-18;
 }
 .back_2,
@@ -94,7 +101,7 @@ tr:hover {
 }
 .color, .imp, .imp_01, .imp_02,
 h1, h2, h3, h4, h5, h6, b, strong, caption, legend, dt, th,
-ul > li::before, .pseudo_button::before {
+:is(ul > li, .pseudo_button)::before {
 	color: $color-23;
 }
 .button-pressed {
@@ -108,7 +115,10 @@ a:hover,
 .place-button.active, .place-button:hover, .place-button.activated-by-function {
 	color: $color-26;
 }
-.place-button.active, .place-button:hover, .place-button.activated-by-function, ::-webkit-scrollbar-thumb {
+.place-button.active,
+.place-button:hover,
+.place-button.activated-by-function,
+::-webkit-scrollbar-thumb {
 	background-color: $color-28;
 	border-color: $color-30 $color-32 $color-34 $color-36;
 	box-shadow: 0 0 8px $color-39;
@@ -241,7 +251,7 @@ ul, ol, dd {
 	width: 100%;
 	border-collapse: separate;
 }
-li > ul:last-child, li > ol:last-child, li > dd:last-child {
+li > :is(ul, ol, dd):last-child {
 	margin-bottom: 0 !important;
 }
 ol {
@@ -280,16 +290,25 @@ pre, .pre {
 	border-style: solid;
 	border-radius: 3px;
 	vertical-align: middle;
-	font-family: "PT Sans", Tahoma, Arial, sans-serif; font-size: 100%; line-height: 1.286;
+	font-family: "PT Sans", Tahoma, Arial, sans-serif;
+	font-size: 100%;
+	line-height: 1.286;
 	transition: all 0.3s;
 }
-input[type="checkbox"], input[type="color"], input[type="file"], input[type="image"], input[type="radio"], input[type="range"] {
+input:is(
+	[type="checkbox"],
+	[type="color"],
+	[type="file"],
+	[type="image"],
+	[type="radio"],
+	[type="range"]
+) {
 	height: auto;
 	padding: 0;
 	background-color: transparent;
 	border: none;
 }
-.button, button, input[type="button"], input[type="reset"], input[type="submit"] {
+.button, button, input:is([type="button"], [type="reset"], [type="submit"]) {
 	text-align: center;
 	cursor: pointer;
 }
@@ -308,7 +327,7 @@ select {
 	padding: 0;
 	overflow: hidden;
 }
-.selectspan::before, .selectspan::after {
+.selectspan:is(::before, ::after) {
 	position: absolute;
 	right: 10px;
 	line-height: 0;
@@ -333,7 +352,7 @@ select[multiple], textarea {
 	padding-right: 7px; padding-left: 7px;
 	vertical-align: top;
 }
-input:hover, select:hover, .selectspan:hover, textarea:hover, input:focus, select:focus, .selectspan:focus, textarea:focus {
+:is(input, select, .selectspan, textarea):is(:hover, :focus) {
 	background-color: $color-27;
 	box-shadow: 0 0 8px $color-38;
 }
@@ -344,18 +363,26 @@ input, select, .selectspan, textarea {
 option {
 	background-color: $color-42;
 }
-.button, button, input[type="button"], button[disabled]:hover, input[type="button"][disabled]:hover {
+.button, button,
+input[type="button"],
+button[disabled]:hover,
+input[type="button"][disabled]:hover {
 	background-color: $color-43;
 	border-color: $color-44 $color-45 $color-46 $color-47;
 	color: $color-68;
 }
-[type="submit"], [type="reset"], [type="submit"][disabled]:hover, [type="reset"][disabled]:hover {
+[type="submit"],
+[type="reset"],
+[type="submit"][disabled]:hover,
+[type="reset"][disabled]:hover {
 	background-color: $color-48;
 	border-color: $color-49 $color-50 $color-51 $color-52;
 	color: $color-68;
 }
-.button:hover, button:hover, input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover,
-.button-pressed {
+:is(
+	.button, button,
+	input:is([type="button"], [type="submit"], [type="reset"])
+):hover, .button-pressed {
 	background-color: $color-29;
 	border-color: $color-31 $color-33 $color-35 $color-37;
 	box-shadow: 0 0 8px $color-40;
@@ -377,7 +404,7 @@ input[type="hidden"] {
 
 /* Разные стили */
 
-.clearfix::after, .object::after {
+:is(.clearfix, .object)::after {
 	content: "";
 	display: block;
 	clear: left;
@@ -446,7 +473,13 @@ input[type="hidden"] {
 		right: 50%; left: -50%;
 	}
 }
-a[target*="_blank"]::after {content: "\219d"; display: inline-block; margin: -0.15em 0.2em 0 0.2em; vertical-align: text-top; font-size: 90%;}
+a[target*="_blank"]::after {
+	content: "\219d";
+	display: inline-block;
+	margin: -0.15em 0.2em 0 0.2em;
+	vertical-align: text-top;
+	font-size: 90%;
+}
 .pseudo_button {
 	display: inline-block;
 	margin-left: 1.8em;
@@ -483,7 +516,7 @@ a[target*="_blank"]::after {content: "\219d"; display: inline-block; margin: -0.
 .bounded {
 	width: 220px;
 }
-#right .thumb.bounded, #right .thumb_01.bounded, #left .thumb.bounded, #left .thumb_01.bounded {
+:is(#right, #left) :is(.thumb, .thumb_01).bounded {
 	display: block !important;
 	width: auto !important;
 	min-height: 0 !important;
@@ -505,7 +538,7 @@ a[target*="_blank"]::after {content: "\219d"; display: inline-block; margin: -0.
 .short {
 	width: 1%;
 }
-table.table_wohead > tbody > tr > th, table.table_form > tbody > tr > th, .tableforml, .at_left {
+table:is(.table_wohead, .table_form) > tbody > tr > th, .tableforml, .at_left {
 	padding-right: 0.8em;
 	white-space: nowrap;
 	text-align: right;
@@ -513,7 +546,7 @@ table.table_wohead > tbody > tr > th, table.table_form > tbody > tr > th, .table
 table.table_decor {
 	margin: 0;
 }
-table.table_decor > * > tr > td, table.table_decor > * > tr > th {
+table:is(.table_decor, .table_decor) > * > tr > :is(td, th) {
 	padding: 0;
 }
 table.table_form {
@@ -526,7 +559,22 @@ table.table_form > * > tr > th {
 	position: relative;
 	white-space: nowrap;
 }
-.fieldwidth_100, .fieldswidth_100 input[type="email"]:first-child:last-child, .fieldswidth_100 input[type="file"]:first-child:last-child, .fieldswidth_100 input[type="password"]:first-child:last-child, .fieldswidth_100 input[type="search"]:first-child:last-child, .fieldswidth_100 input[type="tel"]:first-child:last-child, .fieldswidth_100 input[type="text"]:first-child:last-child, .fieldswidth_100 input[type="number"]:first-child:last-child, .fieldswidth_100 input[type="url"]:first-child:last-child, .fieldswidth_100 select:first-child:last-child, .fieldswidth_100 .selectspan:first-child:last-child, .fieldswidth_100 textarea:first-child:last-child {
+.fieldwidth_100,
+.fieldswidth_100 :is(
+	select,
+	.selectspan,
+	textarea,
+	input:is(
+		[type="email"],
+		[type="file"],
+		[type="password"],
+		[type="search"],
+		[type="tel"],
+		[type="text"],
+		[type="number"],
+		[type="url"]
+	)
+):first-child:last-child {
 	width: 100%;
 }
 .showhide {
@@ -551,7 +599,7 @@ table.table_form > * > tr > th {
 .showhide:checked + .showhide_next::before {
 	content: "\25b2";
 }
-table.table_wopadd th, table.table_wopadd td {
+table.table_wopadd :is(th, td) {
 	padding: 0;
 }
 .auth__login {
@@ -670,12 +718,7 @@ span.folder-button {
 .folder_opened > .folder-subfolders {
 	display: block;
 }
-.folder_closed > h2,
-.folder_opened > h2,
-.folder_closed > h2::before,
-.folder_opened > h2::before,
-.folder_closed > a::before,
-.folder_opened > a::before {
+:is(.folder_closed, .folder_opened) > :is(h2, h2::before, a::before) s{
 	cursor: pointer;
 }
 .folder_closed > * > .folder-button::before {
@@ -706,7 +749,8 @@ span.folder-button {
 	cursor: pointer;
 	transition: all 0.3s;
 }
-.place-button:hover .place-button__geomark, .folder-button:hover .folder-button__geomarks {
+.place-button:hover .place-button__geomark,
+.folder-button:hover .folder-button__geomarks {
 	opacity: 1;
 }
 .place-button__text, .folder-button__text {
@@ -722,7 +766,9 @@ span.folder-button {
 	margin-right: 0.5em;
 	vertical-align: middle;
 }
-.folder-checkbox, #popup-export__tree .place-button, #popup-export__tree .place-button * {
+.folder-checkbox,
+#popup-export__tree .place-button,
+#popup-export__tree .place-button * {
 	cursor: auto;
 }
 .place-button[class*="block_"] {
@@ -800,7 +846,10 @@ span.folder-button {
 .place-detailed dd {
 	padding-left: 0;
 }
-.place-detailed textarea, .place-detailed input[type="text"], .place-detailed input[type="number"], .place-detailed input[type="datetime-local"] {
+.place-detailed :is(
+	textarea,
+	input:is([type="text"], [type="number"], [type="datetime-local"])
+) {
 	display: inline-block;
 	margin: 3px 0 8px 0;
 }
@@ -929,7 +978,10 @@ span.folder-button {
 #messages .message.border_1 {
 	border-right-width: 0; border-bottom-width: 0; border-left-width: 0;
 }
-#placemarksShowHideButton, #commonPlacesShowHideButton, #commonPlacemarksShowHideButton, #centerPlacemarkShowHideButton {
+#placemarksShowHideButton,
+#commonPlacesShowHideButton,
+#commonPlacemarksShowHideButton,
+#centerPlacemarkShowHideButton {
 	padding: 0;
 	font-size: 13px;
 }
@@ -942,13 +994,28 @@ span.folder-button {
 #detailed-description {
 	height: 115px;
 }
-.account__form fieldset, .folder-delete__form fieldset, .popup-export__form fieldset, .place-delete__form fieldset {
+:is(
+	.account__form,
+	.folder-delete__form,
+	.popup-export__form,
+	.place-delete__form
+) fieldset {
 	margin: 1em;
 }
-.account__form label, .folder-delete__form label, .popup-export__form label, .place-delete__form label {
+:is(
+	.account__form,
+	.folder-delete__form,
+	.popup-export__form,
+	.place-delete__form
+) label {
 	display: flex;
 }
-.account__form label input[type="radio"], .account__form label input[type="checkbox"], .folder-delete__form label input[type="radio"], .folder-delete__form label input[type="checkbox"], .popup-export__form label input[type="checkbox"], .place-delete__form label input[type="radio"], .place-delete__form label input[type="checkbox"] {
+:is(
+	.account__form,
+	.folder-delete__form,
+	.popup-export__form,
+	.place-delete__form
+) label input:is([type="radio"], [type="checkbox"]) {
 	margin: 0.3em 0.5em 0 0;
 }
 .popup-export__form {
@@ -965,7 +1032,9 @@ span.folder-button {
 #to-export-places-menu-folder-link-root {
 	white-space: nowrap;
 }
-.leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar {
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
 	box-shadow: 0 1px 5px $color-02;
 	border: none;
 }

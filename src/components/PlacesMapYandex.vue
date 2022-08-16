@@ -6,15 +6,8 @@
 		:center="mapCenter.coords"
 		:zoom="mapCenter.zoom"
 		@map-was-initialized="mapHandler"
-		@actionend="
-			updateState({
-				coords: [
-					map.getCenter()[0],
-					map.getCenter()[1],
-				],
-				zoom: map.getZoom(),
-			});
-		"
+		@mouseup="updateState()"
+		@wheel="updateState();"
 	>
 		<ymap-marker
 			markerId="centerMarker"
@@ -224,11 +217,11 @@ export default defineComponent({
 						longitude: Number(coordinates[1].toFixed(7)),
 					},
 				});
-				this.map.setCenter(coordinates);
+				this.updateState({coords: coordinates});
 			}
 		},
 		updateState(payload?: {coords: Array<number>, zoom: number}) {
-			this.$store.dispatch('changeMap', {
+			this.$store.dispatch('updateMap', {
 				latitude: Number(
 					payload && payload.coords
 						? payload.coords[0].toFixed(7)

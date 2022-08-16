@@ -1,4 +1,6 @@
-const { defaults } = require('jest-config');
+const {
+	defaults
+} = require('jest-config');
 
 module.exports = {
 	preset: 'ts-jest',
@@ -10,4 +12,8 @@ module.exports = {
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
 	},
+	transform: {
+		".*\\.(vue)$": "vue3-jest",
+	},
+	testEnvironment: 'jsdom',
 };

@@ -23,7 +23,6 @@ describe('Common shared functions', () => {
 		expect(commonFunctions.findInTree(tree, 'children', 'name', 'Хибины')).toEqual(folder);
 	});
 	it('sort objects in array of objects by property value', () => {
-		console.dir(Object.values(tree.children));
 		expect(commonFunctions.sortObjects(Object.values(tree.children), 'name')).toEqual(treeSorted);
 	});
 });

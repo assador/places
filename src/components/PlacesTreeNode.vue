@@ -98,7 +98,6 @@
 				v-for="place in places"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-place-' : '') + place.id"
 				:key="place.id"
-				data-place-button
 				:srt="place.srt"
 				:title="place.description"
 				:class="'place-button block_01 draggable' + (currentPlace && place.id == currentPlace.id ? ' active' : '')"
@@ -148,7 +147,6 @@
 		</div>
 		<div
 			v-if="folder.id !== 'root'"
-			data-folder-dragenter-area-top
 			class="dragenter-area dragenter-area_top"
 			@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
@@ -156,7 +154,6 @@
 		/>
 		<div
 			v-if="folder.id !== 'root'"
-			data-folder-dragenter-area-bottom
 			class="dragenter-area dragenter-area_bottom"
 			@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"

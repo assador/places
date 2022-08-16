@@ -5,15 +5,7 @@
 			v-model:zoom="mapCenter.zoom"
 			:center="mapCenter.coords"
 			@ready="ready()"
-			@moveend="
-				updateState({
-					coords: [
-						$event.target.getCenter().lat,
-						$event.target.getCenter().lng,
-					],
-					zoom: $event.target.getZoom(),
-				});
-			"
+			@moveend="updateState()"
 		>
 			<l-control-layers />
 			<l-tile-layer
@@ -253,7 +245,7 @@ export default defineComponent({
 			this.updateState(coordinates);
 		},
 		updateState(payload?: {coords: Array<number>, zoom: number}) {
-			this.$store.dispatch('changeMap', {
+			this.$store.dispatch('updateMap', {
 				latitude: Number(
 					payload && payload.coords
 						? payload.coords[0].toFixed(7)

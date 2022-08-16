@@ -4,6 +4,11 @@
 	</div>
 </template>
 
+<style lang="scss">
+@import '@/assets/styles/style.scss';
+@import '@/assets/styles/layout.scss';
+</style>
+
 <script lang="ts">
 import { defineComponent } from 'vue'
 import axios from 'axios';
@@ -12,8 +17,6 @@ import { mapState } from 'vuex'
 import { emitter } from '@/shared/bus'
 import { commonFunctions } from '@/shared/common';
 import { Place, Image, Folder, Waypoint } from '@/store/types';
-import '@/assets/styles/style.scss';
-import '@/assets/styles/layout.scss';
 
 export default defineComponent({
 	name: 'App',
@@ -25,21 +28,6 @@ export default defineComponent({
 			selectedToExport: {},
 			currentPlaceCommon: false,
 			idleTimeInterval: null,
-			activeMapIndex: 0,
-			maps: [{
-				name: 'OpenStreetMap',
-				component: 'PlacesMapOpenStreetMap',
-			}, {
-				name: 'Яндекс.Карты',
-				component: 'PlacesMapYandex',
-			}],
-			langs: [{
-				value: 'ru',
-				title: 'Русский',
-			}, {
-				value: 'en',
-				title: 'English',
-			}],
 		};
 	},
 	computed: {
@@ -159,9 +147,6 @@ export default defineComponent({
 		}, false);
 	},
 	methods: {
-		changeMap(index: number): void {
-			this.activeMapIndex = index;
-		},
 		setCurrentPlace(place: Place): void {
 			emitter.emit('setCurrentPlace', {place});
 		},
