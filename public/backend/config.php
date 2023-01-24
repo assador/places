@@ -4,10 +4,10 @@ $from = "service@places.scrofa-tridens.ru";
 $dirs = array(
 	"uploads" => array(
 		"images" => array(
-			"big" =>            "/var/www/html/uploads/images/big/",
-			"small" =>          "/var/www/html/uploads/images/small/",
-			"orphaned_big" =>   "/var/www/html/uploads/images/big/orphaned/",
-			"orphaned_small" => "/var/www/html/uploads/images/small/orphaned/",
+			"big" =>            "/uploads/images/big/",
+			"small" =>          "/uploads/images/small/",
+			"orphaned_big" =>   "/uploads/images/big/orphaned/",
+			"orphaned_small" => "/uploads/images/small/orphaned/",
 		),
 	),
 );

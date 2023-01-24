@@ -42,7 +42,7 @@ $message = '
 			<a href="' . $host . '">сервиса просмотра и редактирования библиотек
 			геометок «Места»</a>. Если вы этого не делали, просто проигнорируйте это письмо.
 			В противном случае для создания нового пароля вашего аккаунта перейдите по ссылке: 
-			<a href="' . $host . 'http://localhost:80/backend/change_password.php?token=' . $token . '">' . $host . 'http://localhost:80/backend/change_password.php?token=' . $token . '</a>
+			<a href="' . $host . '/backend/change_password.php?token=' . $token . '">' . $host . '/backend/change_password.php?token=' . $token . '</a>
 		</p>
 	</body>
 	</html>

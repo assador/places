@@ -84,8 +84,8 @@ if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
 				Ваш e-mail был указан как e-mail пользователя сервиса просмотра
 				и редактирования библиотек геометок «Места». Если это были вы,
 				для подтверждения изменения данных аккаунта перейдите по ссылке:<br />
-				<a href="' . $host . 'http://localhost:80/backend/confirmaccount.php?token=' . $token . '">
-					' . $host . 'http://localhost:80/backend/confirmaccount.php?token=' . $token . '
+				<a href="' . $host . '/backend/confirmaccount.php?token=' . $token . '">
+					' . $host . '/backend/confirmaccount.php?token=' . $token . '
 				</a>
 			</p>
 		</body>

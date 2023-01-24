@@ -76,8 +76,8 @@ $message = '
 		</p>
 		<p>
 			Для подтверждения регистрации в сервисе перейдите по ссылке:<br />
-			<a href="' . $host . 'http://localhost:80/backend/confirm.php?token=' . $token . '">
-				' . $host . 'http://localhost:80/backend/confirm.php?token=' . $token . '
+			<a href="' . $host . '/backend/confirm.php?token=' . $token . '">
+				' . $host . '/backend/confirm.php?token=' . $token . '
 			</a>
 		</p>
 	</body>
