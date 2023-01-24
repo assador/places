@@ -14,60 +14,58 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref, watch, onMounted, onBeforeUnmount, onBeforeUpdate } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { constants } from '@/shared/constants';
+import { getAbout } from '@/shared/common';
 
-export default defineComponent({
-	props: {
-		what: {
-			type: String,
-			default: '',
-		},
-	},
-	data() {
-		return {
-			content: '',
-			popuped: false,
-		};
-	},
-	watch: {
-		what() {
-			this.open();
-		},
-	},
-	mounted() {
-		this.open();
-		document.addEventListener('keyup', this.keyup, false);
-	},
-	beforeUnmount() {
-		document.removeEventListener('keyup', this.keyup, false);
-	},
-	beforeUpdate() {
-		this.popuped = true;
-	},
-	methods: {
-		open(event?: Event) {
-			if (event) event.stopPropagation();
-			switch (this.what) {
-				default :
-					this.$root.getAbout().then(
-						(data: unknown) => {this.content = data as string}
-					);
-			}
-		},
-		close(event: Event) {
-			if (event) event.stopPropagation();
-			this.$router.replace(
-				this.$route.matched[this.$route.matched.length - 2].path
+export interface IPlacesPopupTextProps {
+  what?: string;
+}
+const props = withDefaults(defineProps<IPlacesPopupTextProps>(), {
+  what: '',
+});
+
+const content = ref('');
+const popuped = ref(false);
+const router = useRouter();
+const route = useRoute();
+
+const open = (event?: Event): void => {
+	if (event) event.stopPropagation();
+	switch (props.what) {
+		case 'about':
+			getAbout().then(
+				(data: unknown) => {content.value = data as string}
 			);
-		},
-		keyup(event: Event) {
-			if (
-				(constants.shortcuts as Record<string, string>)
-					[(event as KeyboardEvent).keyCode] === 'close'
-			) this.close(event);
-		},
-	},
+			break;
+		default:
+			content.value = '';
+	}
+};
+const close = (event: Event): void => {
+	if (event) event.stopPropagation();
+	router.replace(route.matched[route.matched.length - 2].path);
+};
+const keyup = (event: Event): void => {
+	if (
+		(constants.shortcuts as Record<string, string>)
+			[(event as KeyboardEvent).keyCode] === 'close'
+	) close(event);
+};
+
+watch(() => props.what, (newValue, oldValue) => {
+	open();
+});
+onMounted(() => {
+	open();
+	document.addEventListener('keyup', keyup, false);
+});
+onBeforeUnmount(() => {
+	document.removeEventListener('keyup', keyup, false);
+});
+onBeforeUpdate(() => {
+	popuped.value = true;
 });
 </script>

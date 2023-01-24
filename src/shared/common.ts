@@ -1,3 +1,4 @@
+import axios from 'axios';
 import store from '@/store';
 import { constants } from '@/shared/constants';
 import { Folder } from '@/store/types';
@@ -380,4 +381,10 @@ export const commonFunctions = {
 			return {imported: imported, folderid: folders['d' + date.d].id};
 		}
 	},
-}
+};
+export const getAbout = async (): Promise<void> => {
+	return await axios.get('/about.html')
+		.then(response => response.data)
+		.catch(error => new Error(error))
+	;
+};

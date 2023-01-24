@@ -1,16 +1,14 @@
 <template>
-	<div id="container" :class="'colortheme-' + colortheme">
+	<div
+		id="container"
+		:class="'colortheme-' + colortheme"
+	>
 		<router-view />
 	</div>
 </template>
 
-<style lang="scss">
-@import '@/assets/styles/style.scss';
-@import '@/assets/styles/layout.scss';
-</style>
-
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { ref, provide, defineComponent } from 'vue'
 import axios from 'axios';
 import store from '@/store';
 import { mapState } from 'vuex'
@@ -20,13 +18,17 @@ import { Place, Image, Folder, Waypoint } from '@/store/types';
 
 export default defineComponent({
 	name: 'App',
+	setup() {
+		const currentPlaceCommon = ref(false);
+		provide('currentPlaceCommon', currentPlaceCommon);
+		return {currentPlaceCommon};
+	},
 	data() {
 		return {
 			refreshing: false,
 			draggingElement: null,
 			foldersEditMode: false,
 			selectedToExport: {},
-			currentPlaceCommon: false,
 			idleTimeInterval: null,
 		};
 	},
@@ -149,13 +151,6 @@ export default defineComponent({
 	methods: {
 		setCurrentPlace(place: Place): void {
 			emitter.emit('setCurrentPlace', {place});
-		},
-		getAbout: async (): Promise<void> => {
-			return await axios.get('/about.html')
-				.then(response => response.data)
-				.catch(error =>
-					'<p>' + error + '</p>'
-				);
 		},
 		toDB(
 			payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
@@ -305,8 +300,8 @@ export default defineComponent({
 		},
 		deleteImages(images: Record<string, Image>, family?: boolean): void {
 			const data = new FormData();
-			for (const id in images) {
-				data.append('file_' + id, images[id].file);
+			for (const [id, image] of Object.entries(images)) {
+				data.append('file_' + id, image.file);
 			}
 			data.append('userid', this.$store.state.user.id);
 			if (!this.$store.state.user.testaccount) {
@@ -367,21 +362,21 @@ export default defineComponent({
 					const waypoints: Array<Waypoint> = [], folders: Array<Folder> = [];
 					let parentFolder: Folder;
 					for (const p of Object.values(places)) {
-						waypoints.push(this.$store.state.waypoints[p.waypoint]);
+						waypoints.push(Object.assign({}, this.$store.state.waypoints[p.waypoint]));
 						if (!folders.find(f => f.id === p.folderid)) {
 							parentFolder = this.$store.getters.treeFlat[p.folderid];
 							while (
 								parentFolder.id !== 'root' &&
 								!folders.find(f => f.id === parentFolder.id)
 							) {
-								folders.push(parentFolder);
+								folders.push(Object.assign({}, parentFolder));
 								parentFolder = this.$store.getters.treeFlat[parentFolder.parent];
 							}
 						}
 					}
 					const placesArray = [];
-					for (const id in places) {
-						placesArray.push(Object.assign({}, places[id]));
+					for (const place of Object.values(places)) {
+						placesArray.push(Object.assign({}, place));
 						delete placesArray[placesArray.length - 1].type;
 						delete placesArray[placesArray.length - 1].show;
 						delete placesArray[placesArray.length - 1].added;
@@ -390,24 +385,22 @@ export default defineComponent({
 						delete placesArray[placesArray.length - 1].geomark;
 						delete placesArray[placesArray.length - 1].images;
 					}
-					for (let i = waypoints.length - 1; i >= 0; i--) {
-						waypoints[i] = Object.assign({}, waypoints[i]);
-						delete waypoints[i].type;
-						delete waypoints[i].show;
-						delete waypoints[i].added;
-						delete waypoints[i].deleted;
-						delete waypoints[i].updated;
+					for (const waypoint of Object.values(waypoints)) {
+						delete waypoint.type;
+						delete waypoint.show;
+						delete waypoint.added;
+						delete waypoint.deleted;
+						delete waypoint.updated;
 					}
-					for (let i = folders.length - 1; i >= 0; i--) {
-						folders[i] = Object.assign({}, folders[i]);
-						delete folders[i].type;
-						delete folders[i].added;
-						delete folders[i].deleted;
-						delete folders[i].updated;
-						delete folders[i].opened;
-						delete folders[i].builded;
-						delete folders[i].geomarks;
-						delete folders[i].children;
+					for (const folder of Object.values(folders)) {
+						delete folder.type;
+						delete folder.added;
+						delete folder.deleted;
+						delete folder.updated;
+						delete folder.opened;
+						delete folder.builded;
+						delete folder.geomarks;
+						delete folder.children;
 					}
 					content = JSON.stringify({
 						places: placesArray,
@@ -725,3 +718,8 @@ export default defineComponent({
 	},
 });
 </script>
+
+<style lang="scss">
+@import '@/assets/styles/style.scss';
+@import '@/assets/styles/layout.scss';
+</style>

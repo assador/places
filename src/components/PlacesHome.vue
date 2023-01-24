@@ -1,526 +1,528 @@
 <template>
-	<div ref="root"><div class="fullscreen-wrapper">
-		<div
-			id="grid"
-			class="loading-grid"
-			:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
-			@mousemove="documentMouseOver($event);"
-			@touchmove="documentMouseOver($event);"
-			@mouseup="sidebarDragStop();"
-			@touchend="sidebarDragStop();"
-		>
+	<div ref="root">
+		<div class="fullscreen-wrapper">
 			<div
-				id="top-left"
-				class="app-cell fieldwidth_100"
+				id="grid"
+				class="loading-grid"
+				:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
+				@mousemove="documentMouseOver($event);"
+				@touchmove="documentMouseOver($event);"
+				@mouseup="sidebarDragStop();"
+				@touchend="sidebarDragStop();"
 			>
-				<div class="control-buttons">
-					<button
-						id="actions-append"
-						class="actions-button"
-						:title="$store.state.t.i.hints.addPlace"
-						@click="appendPlace();"
-					>
-						<span>+</span>
-						<span>{{ $store.state.t.i.buttons.newPlace }}</span>
-					</button>
-					<button
-						id="actions-delete"
-						class="actions-button"
-						:title="$store.state.t.i.hints.deletePlace"
-						:disabled="!($store.state.user && currentPlace && currentPlace.userid === $store.state.user.id)"
-						@click="$store.dispatch('deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
-					>
-						<span>-</span>
-						<span>{{ $store.state.t.i.buttons.delete }}</span>
-					</button>
-					<button
-						id="actions-append-folder"
-						class="actions-button"
-						:title="$store.state.t.i.hints.addFolder"
-						@click="$router.push({name: 'PlacesHomeFolder'}).catch(() => {});"
-					>
-						<span>↧</span>
-						<span>{{ $store.state.t.i.buttons.newFolder }}</span>
-					</button>
-					<button
-						id="actions-edit-folders"
-						:class="'actions-button' + ($root.foldersEditMode ? ' button-pressed' : '')"
-						:title="$store.state.t.i.hints.editFolders"
-						@click="$root.foldersEditMode = !$root.foldersEditMode;"
-					>
-						<span>⇆</span>
-						<span>{{ $store.state.t.i.buttons.editFolders }}</span>
-					</button>
-					<input
-						:placeholder="$store.state.t.i.inputs.searchPlaces"
-						:title="$store.state.t.i.inputs.searchPlaces"
-						class="find-places-input fontsize_n"
-						@keyup="selectPlaces"
-					/>
-				</div>
-			</div>
-			<div
-				id="top-basic"
-				class="app-cell"
-			>
-				<div id="top-basic-content">
-					<div class="brand">
-						<h1 class="basiccolor margin_bottom_0">
-							{{ $store.state.t.i.brand.header }} —
-							<router-link to="/account">
-								{{ $store.state.user ? $store.state.user.login : 'o_O' }}
-							</router-link>
-						</h1>
-						<div>{{ $store.state.t.i.brand.slogan }}</div>
-					</div>
-					<places-dashboard />
-				</div>
 				<div
-					id="messages"
-					class="invisible"
-					@mouseover="$store.commit('setMouseOverMessages', true)"
-					@mouseout="$store.commit('setMouseOverMessages', false)"
-					@click="$store.dispatch('clearMessages');"
+					id="top-left"
+					class="app-cell fieldwidth_100"
 				>
-					<div
-						v-for="(message, index) in $store.state.messages"
-						:id="'message-' + index"
-						:key="index"
-						class="message border_1"
-					>
-						{{ $store.state.messages[index] }}
-					</div>
-				</div>
-			</div>
-			<div
-				id="top-right"
-				class="app-cell"
-			>
-				<div class="control-buttons">
-					<input
-						id="inputImportFromFile"
-						ref="inputImportFromFile"
-						name="jsonFile"
-						type="file"
-						accept=".json, .gpx"
-						@change="importFromFile();"
-					>
-					<button
-						id="actions-fullscreen"
-						class="actions-button"
-						:title="$store.state.t.i.buttons.fullscreen"
-						v-fullscreen="options"
-					>
-						<span>⤧</span>
-						<span>{{ $store.state.t.i.buttons.fullscreen }}</span>
-					</button>
-					<button
-						id="actions-undo"
-						class="actions-button"
-						:title="$store.state.t.i.buttons.undo"
-						@click="$store.dispatch('undo');"
-					>
-						<span>↺</span>
-						<span>{{ $store.state.t.i.buttons.undo }}</span>
-					</button>
-					<button
-						id="actions-redo"
-						class="actions-button"
-						:title="$store.state.t.i.buttons.redo"
-						@click="$store.dispatch('redo');"
-					>
-						<span>↻</span>
-						<span>{{ $store.state.t.i.buttons.redo }}</span>
-					</button>
-					<button
-						id="actions-save"
-						:class="'actions-button' + (!$store.state.saved ? ' button-pressed highlight' : '')"
-						:title="(!$store.state.saved ? ($store.state.t.i.hints.notSaved + '. ') : '') + $store.state.t.i.hints.sabeToDb"
-						@click="$root.toDBCompletely();"
-					>
-						<span>↸</span>
-						<span>{{ $store.state.t.i.buttons.todb }}</span>
-					</button>
-					<button
-						id="actions-import"
-						class="actions-button"
-						:title="$store.state.t.i.hints.importPlaces"
-						onclick="document.getElementById('inputImportFromFile').click();"
-					>
-						<span>↲</span>
-						<span>{{ $store.state.t.i.buttons.import }}</span>
-					</button>
-					<button
-						id="actions-export"
-						class="actions-button"
-						:title="$store.state.t.i.hints.exportPlaces"
-						@click="$router.push({name: 'PlacesHomeExport', params: {mime: 'application/gpx+xml'}}).catch(() => {})"
-					>
-						<span>↱</span>
-						<span>{{ $store.state.t.i.buttons.export }}</span>
-					</button>
-					<button
-						id="actions-about"
-						class="actions-button"
-						:title="$store.state.t.i.hints.about"
-						@click="$router.push({name: 'PlacesHomeText', params: {what: 'about'}}).catch(() => {}); $refs.extmap.center = $refs.extmap.mapCenter;"
-					>
-						<span>?</span>
-						<span>{{ $store.state.t.i.buttons.help }}</span>
-					</button>
-					<button
-						id="actions-exit"
-						class="actions-button"
-						:title="$store.state.t.i.hints.exit"
-						@click="$root.toDBCompletely(); exit();"
-					>
-						<span>↪</span>
-						<span>{{ $store.state.t.i.buttons.exit }}</span>
-					</button>
-				</div>
-			</div>
-			<div
-				id="basic-left"
-				class="app-cell"
-			>
-				<div id="basic-left__places">
-					<div
-						v-if="Object.keys($store.state.places).length > 0 || Object.keys($store.state.folders).length > 0"
-						id="places-menu"
-						class="menu"
-					>
-						<places-tree
-							instanceid="placestree"
-						/>
-					</div>
-					<div v-if="Object.keys($store.state.commonPlaces).length > 0 && commonPlacesShow">
-						<h2 class="basiccolor">
-							{{ $store.state.t.i.captions.commonPlaces }}
-						</h2>
-						<div class="margin_bottom">
-							<div
-								v-for="commonPlace in commonPlaces"
-								:id="commonPlace.id"
-								:key="commonPlace.id"
-								:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
-								@click="setCurrentPlace(commonPlace);"
-							>
-								{{ commonPlace.name }}
-							</div>
-						</div>
-						<div class="margin_bottom">
-							<a
-								v-for="(page, index) in commonPlacesPagesCount"
-								:key="index"
-								href="javascript:void(0);"
-								:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
-								@click="commonPlacesPage = index + 1;"
-							>
-								{{ index + 1 }}
-							</a>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div
-				id="basic-basic"
-				class="app-cell"
-			>
-				<component
-					:is="$store.state.maps[$store.state.activeMapIndex].component"
-					ref="extmap"
-				/>
-				<div
-					id="sbs-top"
-					:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-					@mousedown="sidebarDragStart($event, 'top');"
-					@touchstart="sidebarDragStart($event, 'top');"
-				/>
-				<div
-					id="sbs-right"
-					:style="'top: -' + (sidebarSize.top + (compact ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-					@mousedown="sidebarDragStart($event, 'right');"
-					@touchstart="sidebarDragStart($event, 'right');"
-				/>
-				<div
-					id="sbs-bottom"
-					:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-					@mousedown="sidebarDragStart($event, 'bottom');"
-					@touchstart="sidebarDragStart($event, 'bottom');"
-				/>
-				<div
-					id="sbs-left"
-					:style="'top: -' + (sidebarSize.top + (compact > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-					@mousedown="sidebarDragStart($event, 'left');"
-					@touchstart="sidebarDragStart($event, 'left');"
-				/>
-			</div>
-			<div
-				id="basic-right"
-				class="app-cell"
-			>
-				<div>
-					<div v-if="currentPlace">
-						<dl
-							v-for="field in orderedCurrentPlaceFields"
-							:key="field"
-							class="place-detailed margin_bottom_0"
+					<div class="control-buttons">
+						<button
+							id="actions-append"
+							class="actions-button"
+							:title="$store.state.t.i.hints.addPlace"
+							@click="appendPlace();"
 						>
-							<dt
-								v-if="field === 'link'"
-								class="place-detailed__link-dt"
-							>
-								<a
-									v-if="!linkEditing && currentPlace[field].trim()"
-									:href="currentPlace[field].trim()"
-									target="_blank"
-								>
-									{{ $store.getters.placeFields[field] }}
-								</a>
-								<span v-else>
-									{{ $store.getters.placeFields[field] }}:
-								</span>
-							</dt>
-							<dt v-else-if="field === 'images' && orderedImages.length">
-								{{ $store.getters.placeFields[field] }}:
-							</dt>
-							<div v-if="field === 'waypoint'">
+							<span>+</span>
+							<span>{{ $store.state.t.i.buttons.newPlace }}</span>
+						</button>
+						<button
+							id="actions-delete"
+							class="actions-button"
+							:title="$store.state.t.i.hints.deletePlace"
+							:disabled="!($store.state.user && currentPlace && currentPlace.userid === $store.state.user.id)"
+							@click="$store.dispatch('deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
+						>
+							<span>-</span>
+							<span>{{ $store.state.t.i.buttons.delete }}</span>
+						</button>
+						<button
+							id="actions-append-folder"
+							class="actions-button"
+							:title="$store.state.t.i.hints.addFolder"
+							@click="$router.push({name: 'PlacesHomeFolder'}).catch(() => {});"
+						>
+							<span>↧</span>
+							<span>{{ $store.state.t.i.buttons.newFolder }}</span>
+						</button>
+						<button
+							id="actions-edit-folders"
+							:class="'actions-button' + ($root.foldersEditMode ? ' button-pressed' : '')"
+							:title="$store.state.t.i.hints.editFolders"
+							@click="$root.foldersEditMode = !$root.foldersEditMode;"
+						>
+							<span>⇆</span>
+							<span>{{ $store.state.t.i.buttons.editFolders }}</span>
+						</button>
+						<input
+							:placeholder="$store.state.t.i.inputs.searchPlaces"
+							:title="$store.state.t.i.inputs.searchPlaces"
+							class="find-places-input fontsize_n"
+							@keyup="selectPlaces"
+						>
+					</div>
+				</div>
+				<div
+					id="top-basic"
+					class="app-cell"
+				>
+					<div id="top-basic-content">
+						<div class="brand">
+							<h1 class="basiccolor margin_bottom_0">
+								{{ $store.state.t.i.brand.header }} —
+								<router-link to="/account">
+									{{ $store.state.user ? $store.state.user.login : 'o_O' }}
+								</router-link>
+							</h1>
+							<div>{{ $store.state.t.i.brand.slogan }}</div>
+						</div>
+						<places-dashboard />
+					</div>
+					<div
+						id="messages"
+						class="invisible"
+						@mouseover="$store.commit('setMouseOverMessages', true)"
+						@mouseout="$store.commit('setMouseOverMessages', false)"
+						@click="$store.dispatch('clearMessages');"
+					>
+						<div
+							v-for="(message, index) in $store.state.messages"
+							:id="'message-' + index"
+							:key="index"
+							class="message border_1"
+						>
+							{{ $store.state.messages[index] }}
+						</div>
+					</div>
+				</div>
+				<div
+					id="top-right"
+					class="app-cell"
+				>
+					<div class="control-buttons">
+						<input
+							id="inputImportFromFile"
+							ref="inputImportFromFile"
+							name="jsonFile"
+							type="file"
+							accept=".json, .gpx"
+							@change="importFromFile();"
+						>
+						<button
+							id="actions-fullscreen"
+							v-fullscreen="options"
+							class="actions-button"
+							:title="$store.state.t.i.buttons.fullscreen"
+						>
+							<span>⤧</span>
+							<span>{{ $store.state.t.i.buttons.fullscreen }}</span>
+						</button>
+						<button
+							id="actions-undo"
+							class="actions-button"
+							:title="$store.state.t.i.buttons.undo"
+							@click="$store.dispatch('undo');"
+						>
+							<span>↺</span>
+							<span>{{ $store.state.t.i.buttons.undo }}</span>
+						</button>
+						<button
+							id="actions-redo"
+							class="actions-button"
+							:title="$store.state.t.i.buttons.redo"
+							@click="$store.dispatch('redo');"
+						>
+							<span>↻</span>
+							<span>{{ $store.state.t.i.buttons.redo }}</span>
+						</button>
+						<button
+							id="actions-save"
+							:class="'actions-button' + (!$store.state.saved ? ' button-pressed highlight' : '')"
+							:title="(!$store.state.saved ? ($store.state.t.i.hints.notSaved + '. ') : '') + $store.state.t.i.hints.sabeToDb"
+							@click="$root.toDBCompletely();"
+						>
+							<span>↸</span>
+							<span>{{ $store.state.t.i.buttons.todb }}</span>
+						</button>
+						<button
+							id="actions-import"
+							class="actions-button"
+							:title="$store.state.t.i.hints.importPlaces"
+							onclick="document.getElementById('inputImportFromFile').click();"
+						>
+							<span>↲</span>
+							<span>{{ $store.state.t.i.buttons.import }}</span>
+						</button>
+						<button
+							id="actions-export"
+							class="actions-button"
+							:title="$store.state.t.i.hints.exportPlaces"
+							@click="$router.push({name: 'PlacesHomeExport', params: {mime: 'application/gpx+xml'}}).catch(() => {})"
+						>
+							<span>↱</span>
+							<span>{{ $store.state.t.i.buttons.export }}</span>
+						</button>
+						<button
+							id="actions-about"
+							class="actions-button"
+							:title="$store.state.t.i.hints.about"
+							@click="$router.push({name: 'PlacesHomeText', params: {what: 'about'}}).catch(() => {}); $refs.extmap.center = $refs.extmap.mapCenter;"
+						>
+							<span>?</span>
+							<span>{{ $store.state.t.i.buttons.help }}</span>
+						</button>
+						<button
+							id="actions-exit"
+							class="actions-button"
+							:title="$store.state.t.i.hints.exit"
+							@click="$root.toDBCompletely(); exit();"
+						>
+							<span>↪</span>
+							<span>{{ $store.state.t.i.buttons.exit }}</span>
+						</button>
+					</div>
+				</div>
+				<div
+					id="basic-left"
+					class="app-cell"
+				>
+					<div id="basic-left__places">
+						<div
+							v-if="Object.keys($store.state.places).length > 0 || Object.keys($store.state.folders).length > 0"
+							id="places-menu"
+							class="menu"
+						>
+							<places-tree
+								instanceid="placestree"
+							/>
+						</div>
+						<div v-if="Object.keys($store.state.commonPlaces).length > 0 && commonPlacesShow">
+							<h2 class="basiccolor">
+								{{ $store.state.t.i.captions.commonPlaces }}
+							</h2>
+							<div class="margin_bottom">
 								<div
-									v-for="coord in orderedCurrentWaypointFields"
-									:key="coord"
+									v-for="commonPlace in commonPlaces"
+									:id="commonPlace.id"
+									:key="commonPlace.id"
+									:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
+									@click="setCurrentPlace(commonPlace);"
 								>
-									<dt>
-										{{ $store.getters.placeFields[coord] }}
-									</dt>
-									<dd>
-										<input
-											:id="'detailed-' + coord"
-											v-model.number.trim="$store.state.waypoints[currentPlace.waypoint][coord]"
-											type="number"
-											:disabled="$root.currentPlaceCommon"
-											class="fieldwidth_100"
-											@change="$store.dispatch('changePlace', {place: currentPlace, change: {[coord]: $store.state.waypoints[currentPlace.waypoint][coord]}});"
-										>
-									</dd>
+									{{ commonPlace.name }}
 								</div>
 							</div>
-							<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
-								{{ $store.getters.placeFields[field] }}:
-							</dt>
-							<dd v-if="field === 'srt' || field === 'link'">
-								<input
-									:id="'detailed-' + field"
-									v-model.number.trim="currentPlace[field]"
-									:type="field === 'srt' ? 'number' : 'text'"
-									:disabled="$root.currentPlaceCommon"
-									class="fieldwidth_100"
-									@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+							<div class="margin_bottom">
+								<a
+									v-for="(page, index) in commonPlacesPagesCount"
+									:key="index"
+									href="javascript:void(0);"
+									:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
+									@click="commonPlacesPage = index + 1;"
 								>
-							</dd>
-							<dd v-else-if="field === 'time'">
-								<input
-									:id="'detailed-' + field"
-									v-model="currentPlace[field]"
-									type="datetime-local"
-									:disabled="$root.currentPlaceCommon"
-									class="fieldwidth_100"
-									@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
-								>
-							</dd>
-							<dd
-								v-else-if="field === 'common'"
-								class="margin_bottom"
+									{{ index + 1 }}
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div
+					id="basic-basic"
+					class="app-cell"
+				>
+					<component
+						:is="$store.state.maps[$store.state.activeMapIndex].component"
+						ref="extmap"
+					/>
+					<div
+						id="sbs-top"
+						:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+						@mousedown="sidebarDragStart($event, 'top');"
+						@touchstart="sidebarDragStart($event, 'top');"
+					/>
+					<div
+						id="sbs-right"
+						:style="'top: -' + (sidebarSize.top + (compact ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+						@mousedown="sidebarDragStart($event, 'right');"
+						@touchstart="sidebarDragStart($event, 'right');"
+					/>
+					<div
+						id="sbs-bottom"
+						:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+						@mousedown="sidebarDragStart($event, 'bottom');"
+						@touchstart="sidebarDragStart($event, 'bottom');"
+					/>
+					<div
+						id="sbs-left"
+						:style="'top: -' + (sidebarSize.top + (compact > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+						@mousedown="sidebarDragStart($event, 'left');"
+						@touchstart="sidebarDragStart($event, 'left');"
+					/>
+				</div>
+				<div
+					id="basic-right"
+					class="app-cell"
+				>
+					<div>
+						<div v-if="currentPlace">
+							<dl
+								v-for="field in orderedCurrentPlaceFields"
+								:key="field"
+								class="place-detailed margin_bottom_0"
 							>
-								<label>
+								<dt
+									v-if="field === 'link'"
+									class="place-detailed__link-dt"
+								>
+									<a
+										v-if="!linkEditing && currentPlace[field].trim()"
+										:href="currentPlace[field].trim()"
+										target="_blank"
+									>
+										{{ $store.getters.placeFields[field] }}
+									</a>
+									<span v-else>
+										{{ $store.getters.placeFields[field] }}:
+									</span>
+								</dt>
+								<dt v-else-if="field === 'images' && orderedImages.length">
+									{{ $store.getters.placeFields[field] }}:
+								</dt>
+								<div v-if="field === 'waypoint'">
+									<div
+										v-for="coord in orderedCurrentWaypointFields"
+										:key="coord"
+									>
+										<dt>
+											{{ $store.getters.placeFields[coord] }}
+										</dt>
+										<dd>
+											<input
+												:id="'detailed-' + coord"
+												v-model.number.trim="$store.state.waypoints[currentPlace.waypoint][coord]"
+												type="number"
+												:disabled="$root.currentPlaceCommon"
+												class="fieldwidth_100"
+												@change="$store.dispatch('changePlace', {place: currentPlace, change: {[coord]: $store.state.waypoints[currentPlace.waypoint][coord]}});"
+											>
+										</dd>
+									</div>
+								</div>
+								<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
+									{{ $store.getters.placeFields[field] }}:
+								</dt>
+								<dd v-if="field === 'srt' || field === 'link'">
+									<input
+										:id="'detailed-' + field"
+										v-model.number.trim="currentPlace[field]"
+										:type="field === 'srt' ? 'number' : 'text'"
+										:disabled="$root.currentPlaceCommon"
+										class="fieldwidth_100"
+										@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+									>
+								</dd>
+								<dd v-else-if="field === 'time'">
 									<input
 										:id="'detailed-' + field"
 										v-model="currentPlace[field]"
-										type="checkbox"
+										type="datetime-local"
 										:disabled="$root.currentPlaceCommon"
+										class="fieldwidth_100"
 										@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 									>
-									{{ $store.state.t.i.inputs.checkboxCommon }}
-								</label>
-							</dd>
-							<dd
-								v-else-if="field === 'images' && orderedImages.length"
-								id="place-images"
-							>
-								<div class="dd-images">
-									<div
-										v-for="image in orderedImages"
-										:id="image.id"
-										:key="image.id"
-										data-image
-										:class="'place-image' + ($root.currentPlaceCommon ? '' : ' draggable')"
-										:draggable="$root.currentPlaceCommon ? false : true"
-										@click="$router.push({name: 'PlacesHomeImages', params: {imageId: image.id}}).catch(() => {})"
-										@dragstart="$root.handleDragStart"
-										@dragenter="$root.handleDragEnter"
-									>
-										<div
-											class="block_02"
+								</dd>
+								<dd
+									v-else-if="field === 'common'"
+									class="margin_bottom"
+								>
+									<label>
+										<input
+											:id="'detailed-' + field"
+											v-model="currentPlace[field]"
+											type="checkbox"
+											:disabled="$root.currentPlaceCommon"
+											@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 										>
-											<img
-												class="image-thumbnail border_1"
-												:draggable="false"
-												:src="constants.dirs.uploads.images.small + image.file"
-												:alt="currentPlace.name"
-												:title="currentPlace.name"
-											>
+										{{ $store.state.t.i.inputs.checkboxCommon }}
+									</label>
+								</dd>
+								<dd
+									v-else-if="field === 'images' && orderedImages.length"
+									id="place-images"
+								>
+									<div class="dd-images">
+										<div
+											v-for="image in orderedImages"
+											:id="image.id"
+											:key="image.id"
+											data-image
+											:class="'place-image' + ($root.currentPlaceCommon ? '' : ' draggable')"
+											:draggable="$root.currentPlaceCommon ? false : true"
+											@click="$router.push({name: 'PlacesHomeImages', params: {imageId: image.id}}).catch(() => {})"
+											@dragstart="$root.handleDragStart"
+											@dragenter="$root.handleDragEnter"
+										>
 											<div
-												v-if="!$root.currentPlaceCommon"
-												class="dd-images__delete button"
-												:draggable="false"
-												@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteImages({[image.id]: image});"
+												class="block_02"
 											>
-												×
+												<img
+													class="image-thumbnail border_1"
+													:draggable="false"
+													:src="constants.dirs.uploads.images.small + image.file"
+													:alt="currentPlace.name"
+													:title="currentPlace.name"
+												>
+												<div
+													v-if="!$root.currentPlaceCommon"
+													class="dd-images__delete button"
+													:draggable="false"
+													@click="$event.stopPropagation(); $store.commit('setIdleTime', 0); $root.deleteImages({[image.id]: image});"
+												>
+													×
+												</div>
 											</div>
 										</div>
 									</div>
-								</div>
-							</dd>
-							<dd v-else-if="field !== 'waypoint' && field !== 'images'">
-								<textarea
-									:id="'detailed-' + field"
-									v-model.trim="currentPlace[field]"
-									:disabled="$root.currentPlaceCommon"
-									:placeholder="field === 'name' ? $store.state.t.i.inputs.placeName : (field === 'description' ? $store.state.t.i.inputs.placeDescription : '')"
-									class="fieldwidth_100"
-									@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
-								/>
-							</dd>
-						</dl>
-					</div>
-					<div
-						v-if="currentPlace && !currentPlace.deleted && !$root.currentPlaceCommon"
-						class="images-add margin_bottom"
-					>
-						<div class="images-add__div button">
-							<span>{{ $store.state.t.i.buttons.addPhotos }}</span>
-							<input
-								id="images-add__input"
-								ref="inputUploadFiles"
-								type="file"
-								name="files"
-								multiple
-								class="images-add__input"
-								@change="uploadFiles($event);"
-							>
+								</dd>
+								<dd v-else-if="field !== 'waypoint' && field !== 'images'">
+									<textarea
+										:id="'detailed-' + field"
+										v-model.trim="currentPlace[field]"
+										:disabled="$root.currentPlaceCommon"
+										:placeholder="field === 'name' ? $store.state.t.i.inputs.placeName : (field === 'description' ? $store.state.t.i.inputs.placeDescription : '')"
+										class="fieldwidth_100"
+										@change="$store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+									/>
+								</dd>
+							</dl>
+						</div>
+						<div
+							v-if="currentPlace && !currentPlace.deleted && !$root.currentPlaceCommon"
+							class="images-add margin_bottom"
+						>
+							<div class="images-add__div button">
+								<span>{{ $store.state.t.i.buttons.addPhotos }}</span>
+								<input
+									id="images-add__input"
+									ref="inputUploadFiles"
+									type="file"
+									name="files"
+									multiple
+									class="images-add__input"
+									@change="uploadFiles($event);"
+								>
+							</div>
+						</div>
+						<div
+							id="images-uploading"
+							class="block_02 waiting hidden"
+						>
+							<span>… {{ $store.state.t.i.buttons.loading }} …</span>
+						</div>
+						<div v-if="currentPlace && !$root.currentPlaceCommon">
+							<label>
+								<input
+									id="checkbox-homeplace"
+									type="checkbox"
+									:checked="currentPlace === $store.state.homePlace"
+									@change="$store.dispatch('setHomePlace', ($event.target.checked ? currentPlace.id : null));"
+								>
+								{{ $store.state.t.i.inputs.checkboxHome }}
+							</label>
 						</div>
 					</div>
-					<div
-						id="images-uploading"
-						class="block_02 waiting hidden"
-					>
-						<span>… {{ $store.state.t.i.buttons.loading }} …</span>
+				</div>
+				<div
+					id="bottom-left"
+					class="app-cell"
+				>
+					<div class="control-buttons">
+						<button
+							id="placemarksShowHideButton"
+							:class="'actions-button' + ($store.state.placemarksShow ? ' button-pressed' : '')"
+							:title="$store.state.t.i.hints.shPlacemarks"
+							@click="$store.dispatch('placemarksShowHide')"
+						>
+							<span>◆</span>
+							<span>{{ $store.state.t.i.buttons.places }}</span>
+						</button>
+						<button
+							id="commonPlacesShowHideButton"
+							:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
+							:title="$store.state.t.i.hints.shCommonPlaces"
+							@click="commonPlacesShowHide();"
+						>
+							<span>◇</span>
+							<span>{{ $store.state.t.i.buttons.commonPlaces }}</span>
+						</button>
+						<button
+							id="commonPlacemarksShowHideButton"
+							:class="'actions-button' + ($store.state.commonPlacemarksShow ? ' button-pressed' : '')"
+							:title="$store.state.t.i.hints.shCommonPlacemarks"
+							@click="$store.dispatch('commonPlacemarksShowHide')"
+						>
+							<span>⬙</span>
+							<span>{{ $store.state.t.i.buttons.commonPlacemarks }}</span>
+						</button>
+						<button
+							id="centerPlacemarkShowHideButton"
+							:class="'actions-button' + ($store.state.centerPlacemarkShow ? ' button-pressed' : '')"
+							:title="$store.state.t.i.hints.shCenter"
+							@click="$store.dispatch('centerPlacemarkShowHide')"
+						>
+							<span>◈</span>
+							<span>{{ $store.state.t.i.buttons.center }}</span>
+						</button>
 					</div>
-					<div v-if="currentPlace && !$root.currentPlaceCommon">
-						<label>
-							<input
-								id="checkbox-homeplace"
-								type="checkbox"
-								:checked="currentPlace === $store.state.homePlace"
-								@change="$store.dispatch('setHomePlace', ($event.target.checked ? currentPlace.id : null));"
+				</div>
+				<div
+					id="bottom-basic"
+					class="app-cell"
+				>
+					<div class="choose-map">
+						<select
+							id="choose-map-input"
+							@change="$store.dispatch('changeMap', $event.target.selectedIndex);"
+						>
+							<option
+								v-for="(map, index) in $store.state.maps"
+								:key="index"
+								:value="map.component"
+								:selected="map.component === $store.state.maps[$store.state.activeMapIndex].component"
 							>
-							{{ $store.state.t.i.inputs.checkboxHome }}
-						</label>
+								{{ map.name }}
+							</option>
+						</select>
+					</div>
+					<div class="center-coordinates">
+						<span class="imp">
+							{{ $store.state.t.i.buttons.center }}
+						</span>
+						<span
+							class="nobr"
+							style="margin-left: 1em;"
+						>
+							{{ $store.state.t.i.captions.latitude }}:
+							<input
+								v-model.number.trim="$store.state.center.latitude"
+								placeholder="latitude"
+								title="$store.state.t.i.captions.latitude"
+							>
+						</span>
+						<span
+							class="nobr"
+							style="margin-left: 1em;"
+						>
+							{{ $store.state.t.i.captions.longitude }}:
+							<input
+								v-model.number.trim="$store.state.center.longitude"
+								placeholder="longitude"
+								title="$store.state.t.i.captions.longitude"
+							>
+						</span>
 					</div>
 				</div>
+				<router-view />
 			</div>
-			<div
-				id="bottom-left"
-				class="app-cell"
-			>
-				<div class="control-buttons">
-					<button
-						id="placemarksShowHideButton"
-						:class="'actions-button' + ($store.state.placemarksShow ? ' button-pressed' : '')"
-						:title="$store.state.t.i.hints.shPlacemarks"
-						@click="$store.dispatch('placemarksShowHide')"
-					>
-						<span>◆</span>
-						<span>{{ $store.state.t.i.buttons.places }}</span>
-					</button>
-					<button
-						id="commonPlacesShowHideButton"
-						:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
-						:title="$store.state.t.i.hints.shCommonPlaces"
-						@click="commonPlacesShowHide();"
-					>
-						<span>◇</span>
-						<span>{{ $store.state.t.i.buttons.commonPlaces }}</span>
-					</button>
-					<button
-						id="commonPlacemarksShowHideButton"
-						:class="'actions-button' + ($store.state.commonPlacemarksShow ? ' button-pressed' : '')"
-						:title="$store.state.t.i.hints.shCommonPlacemarks"
-						@click="$store.dispatch('commonPlacemarksShowHide')"
-					>
-						<span>⬙</span>
-						<span>{{ $store.state.t.i.buttons.commonPlacemarks }}</span>
-					</button>
-					<button
-						id="centerPlacemarkShowHideButton"
-						:class="'actions-button' + ($store.state.centerPlacemarkShow ? ' button-pressed' : '')"
-						:title="$store.state.t.i.hints.shCenter"
-						@click="$store.dispatch('centerPlacemarkShowHide')"
-					>
-						<span>◈</span>
-						<span>{{ $store.state.t.i.buttons.center }}</span>
-					</button>
-				</div>
-			</div>
-			<div
-				id="bottom-basic"
-				class="app-cell"
-			>
-				<div class="choose-map">
-					<select
-						id="choose-map-input"
-						@change="$store.dispatch('changeMap', $event.target.selectedIndex);"
-					>
-						<option
-							v-for="(map, index) in $store.state.maps"
-							:key="index"
-							:value="map.component"
-							:selected="map.component === $store.state.maps[$store.state.activeMapIndex].component"
-						>
-							{{ map.name }}
-						</option>
-					</select>
-				</div>
-				<div class="center-coordinates">
-					<span class="imp">
-						{{ $store.state.t.i.buttons.center }}
-					</span>
-					<span
-						class="nobr"
-						style="margin-left: 1em;"
-					>
-						{{ $store.state.t.i.captions.latitude }}:
-						<input
-							v-model.number.trim="$store.state.center.latitude"
-							placeholder="latitude"
-							title="$store.state.t.i.captions.latitude"
-						>
-					</span>
-					<span
-						class="nobr"
-						style="margin-left: 1em;"
-					>
-						{{ $store.state.t.i.captions.longitude }}:
-						<input
-							v-model.number.trim="$store.state.center.longitude"
-							placeholder="longitude"
-							title="$store.state.t.i.captions.longitude"
-						>
-					</span>
-				</div>
-			</div>
-			<router-view />
 		</div>
-	</div></div>
+	</div>
 </template>
 
 <script lang="ts">
@@ -542,6 +544,12 @@ import { Waypoint, Place, Image } from '@/store/types';
 export default defineComponent({
     directives: {
     	fullscreen,
+	},
+	components: {
+		PlacesDashboard,
+		PlacesTree,
+		PlacesMapYandex,
+		PlacesMapOpenStreetMap,
 	},
 	setup() {
 		const root = ref();
@@ -565,12 +573,6 @@ export default defineComponent({
 			...toRefs(state),
 			options,
 		};
-	},
-	components: {
-		PlacesDashboard,
-		PlacesTree,
-		PlacesMapYandex,
-		PlacesMapOpenStreetMap,
 	},
 	data() {
 		return {
@@ -703,6 +705,7 @@ export default defineComponent({
 		document.removeEventListener('drop', this.$root.handleDrop, false);
 		document.removeEventListener('keyup', this.keyup, false);
 		emitter.off('setCurrentPlace');
+		window.clearInterval(this.$root.idleTimeInterval);
 	},
 	methods: {
 		updateColorthemeInFullscreen(): void {
