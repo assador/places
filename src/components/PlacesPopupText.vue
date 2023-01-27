@@ -21,10 +21,10 @@ import { constants } from '@/shared/constants';
 import { getAbout } from '@/shared/common';
 
 export interface IPlacesPopupTextProps {
-  what?: string;
+	what?: string;
 }
 const props = withDefaults(defineProps<IPlacesPopupTextProps>(), {
-  what: '',
+	what: '',
 });
 
 const content = ref('');

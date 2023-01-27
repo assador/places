@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { ref, provide, defineComponent } from 'vue'
+import { ref, reactive, provide, defineComponent } from 'vue'
 import axios from 'axios';
 import store from '@/store';
 import { mapState } from 'vuex'
@@ -20,15 +20,19 @@ export default defineComponent({
 	name: 'App',
 	setup() {
 		const currentPlaceCommon = ref(false);
+		const selectedToExport = ref({});
 		provide('currentPlaceCommon', currentPlaceCommon);
-		return {currentPlaceCommon};
+		provide('selectedToExport', selectedToExport);
+		return {
+			currentPlaceCommon,
+			selectedToExport,
+		};
 	},
 	data() {
 		return {
 			refreshing: false,
 			draggingElement: null,
 			foldersEditMode: false,
-			selectedToExport: {},
 			idleTimeInterval: null,
 		};
 	},

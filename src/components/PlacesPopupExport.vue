@@ -83,63 +83,56 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref, inject, onMounted, onBeforeUnmount, onBeforeUpdate } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import PlacesTree from './PlacesTree.vue';
 import { constants } from '../shared/constants';
 
-export default defineComponent({
-	components: {
-		PlacesTree,
-	},
-	props: {
-		mime: {
-			type: String,
-			default: '',
-		},
-	},
-	data() {
-		return {
-			popuped: false,
-		};
-	},
-	mounted() {
-		this.popuped = true;
-		this.$root.selectedToExport = {};
-		for (
-			const f of
-			document.getElementById('popup-export__tree')!
-				.getElementsByClassName('folder')
-		) {
-			f.classList.add('folder_closed');
-			f.classList.remove('folder_opened');
-		}
-		document.addEventListener('keyup', this.keyup, false);
-	},
-	beforeUpdate() {
-		this.popuped = true;
-	},
-	beforeUnmount() {
-		this.$root.selectedToExport = {};
-		document.removeEventListener('keyup', this.keyup, false);
-	},
-	methods: {
-		close(event: Event) {
-			if (event) event.stopPropagation();
-			this.$router.replace(
-				this.$route.matched[this.$route.matched.length - 2].path
-			);
-		},
-		keyup(event: Event) {
-			switch (
-				(constants.shortcuts as Record<string, string>)
-					[(event as KeyboardEvent).keyCode]
-			) {
-				case 'close' :
-					this.close(event);
-					break;
-			}
-		},
-	},
+export interface IPlacesPopupExportProps {
+	mime?: string;
+}
+const props = withDefaults(defineProps<IPlacesPopupExportProps>(), {
+	mime: '',
 });
+
+const popuped = ref(false);
+let selectedToExport = inject('selectedToExport');
+const router = useRouter();
+const route = useRoute();
+
+onMounted(() => {
+	popuped.value = true;
+	selectedToExport = {};
+	for (
+		const f of
+		document.getElementById('popup-export__tree')!
+			.getElementsByClassName('folder')
+	) {
+		f.classList.add('folder_closed');
+		f.classList.remove('folder_opened');
+	}
+	document.addEventListener('keyup', keyup, false);
+});
+onBeforeUpdate(() => {
+	popuped.value = true;
+});
+onBeforeUnmount(() => {
+	selectedToExport = {};
+	document.removeEventListener('keyup', keyup, false);
+});
+const close = (event?: Event): void => {
+	if (event) event.stopPropagation();
+	router.replace(route.matched[route.matched.length - 2].path);
+};
+const keyup = (event: Event): void => {
+	switch (
+		(constants.shortcuts as Record<string, string>)
+			[(event as KeyboardEvent).keyCode]
+	) {
+		case 'close' :
+			close(event);
+			break;
+	}
+};
 </script>

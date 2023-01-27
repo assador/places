@@ -12,6 +12,7 @@
 				name="folderCheckbox"
 				type="checkbox"
 				class="folder-checkbox"
+				:checked="foldersCheckedIds.includes(folder.id)"
 				@change="selectUnselectFolder(folder.id, $event.target.checked);"
 			>
 			<a
@@ -111,7 +112,8 @@
 					name="placeCheckbox"
 					type="checkbox"
 					class="to-export-place-checkbox"
-					@change="selectUnselect(place, $event.target.checked);"
+					:checked="selectedToExport.hasOwnProperty(place.id)"
+					@change="selectUnselect(place, $event.target.checked); foldersCheckedIds = formFoldersCheckedIds();"
 				>
 				<span
 					class="place-button__text"
@@ -163,95 +165,73 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+export default {
+	name: 'PlacesFolder',
+};
+</script>
+
+<script setup lang="ts">
+import {
+	ref,
+	inject,
+	computed,
+	watch,
+} from 'vue';
 import _ from 'lodash';
 import { emitter } from '../shared/bus';
-import { mapState } from 'vuex';
+import { useStore } from 'vuex';
 import { Place, Folder } from '@/store/types';
+import { formFoldersCheckedIds } from '../shared/common';
 
-export default defineComponent({
-	name: 'PlacesFolder',
-	props: {
-		instanceid: {
-			type: String,
-			default: '',
-		},
-		folder: {
-			type: Object as PropType<Folder>,
-			default() {return {};},
-		},
-		parent: {
-			type: Object as PropType<Folder>,
-			default() {return {};},
-		},
-	},
-	data() {
-		return {
-			children: [] as Array<Folder>,
-			places: [] as Array<Place>,
-		};
-	},
-	computed: {
-		...mapState(['currentPlace']),
-		stateFolderChildren(): Record<string, Folder> {
-			return this.folder.children;
-		},
-		statePlaces(): Record<string, Place> {
-			return this.$store.state.places;
-		},
-	},
-	watch: {
-		stateFolderChildren: {
-			deep: true,
-			immediate: true,
-			handler(stateFolderChildren: Record<string, Folder>) {
-				this.children = _.sortBy(stateFolderChildren, 'srt');
-			},
-		},
-		statePlaces: {
-			deep: true,
-			immediate: true,
-			handler(statePlaces: Record<string, Place>) {
-				this.places =
-					_.chain(statePlaces)
-					.filter(p => p.folderid === this.folder.id && p.show)
-					.sortBy('srt')
-					.value()
-				;
-			},
-		},
-	},
-	methods: {
-		setCurrentPlace(place: Place) {
-			emitter.emit('setCurrentPlace', {place: place});
-		},
-		selectUnselect(place: Place, checked: boolean) {
-			if (checked) {
-				this.$root.selectedToExport[place.id] = place;
-			} else {
-				delete this.$root.selectedToExport[place.id];
-			}
-		},
-		selectUnselectFolder(folderid: string, checked: boolean) {
-			for (const placeButton of
-				document
-					.getElementById('to-export-places-menu-folder-' + folderid)!
-						.getElementsByClassName('place-button')
-			) {
-				if (checked != (
-					placeButton.getElementsByClassName('to-export-place-checkbox')[0] as HTMLInputElement
-				).checked) {
-					(placeButton as HTMLElement).click();
-				}
-			}
-			for (const folderCheckbox of
-				document
-					.getElementById('to-export-places-menu-folder-' + folderid)!
-						.getElementsByClassName('folder-checkbox')
-			) {
-				(folderCheckbox as HTMLInputElement).checked = checked ? true : false;
-			}
-		},
-	},
+export interface IPlacesTreeNodeProps {
+	instanceid?: string;
+	folder?: Folder;
+	parent?: Folder;
+}
+const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
+	instanceid: '',
+	folder: {},
+	parent: {},
 });
+const store = useStore();
+const selectedToExport = inject('selectedToExport');
+const foldersCheckedIds = inject('foldersCheckedIds');
+
+const currentPlace = computed(() => store.state.currentPlace);
+const children = computed(() => _.sortBy(props.folder.children, 'srt'));
+const places = computed(() =>
+	_.chain(store.state.places)
+	.filter(p => p.folderid === props.folder.id && p.show)
+	.sortBy('srt')
+	.value()
+);
+
+const setCurrentPlace = (place: Place): void => {
+	emitter.emit('setCurrentPlace', {place: place});
+};
+const selectUnselect = (place: Place, checked: boolean): void => {
+	if (checked) {
+		selectedToExport.value[place.id] = place;
+	} else {
+		delete selectedToExport.value[place.id];
+	}
+};
+const selectUnselectFolder = (folderid: string, checked: boolean): void => {
+	for (const placeButton of
+		document.getElementById('to-export-places-menu-folder-' + folderid)!
+			.getElementsByClassName('place-button')
+	) {
+		if (checked != (
+			placeButton.getElementsByClassName('to-export-place-checkbox')[0] as HTMLInputElement
+		).checked) {
+			(placeButton as HTMLElement).click();
+		}
+	}
+	for (const folderCheckbox of
+		document.getElementById('to-export-places-menu-folder-' + folderid)!
+			.getElementsByClassName('folder-checkbox')
+	) {
+		(folderCheckbox as HTMLInputElement).checked = checked ? true : false;
+	}
+};
 </script>

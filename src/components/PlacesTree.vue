@@ -3,25 +3,28 @@
 		<places-tree-node
 			:instanceid="instanceid"
 			:folder="$store.state.tree"
+			:folders-checked-ids="foldersCheckedIds"
 			class="folder_root"
 		/>
 	</ul>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script setup lang="ts">
+import { ref, provide, onMounted } from 'vue';
 import PlacesTreeNode from './PlacesTreeNode.vue';
 import { Folder } from '@/store/types';
+import { formFoldersCheckedIds } from '../shared/common';
 
-export default defineComponent({
-	components: {
-		PlacesTreeNode,
-	},
-	props: {
-		instanceid: {
-			type: String,
-			default: '',
-		},
-	},
+export interface IPlacesTreeNodeProps {
+	instanceid?: string;
+}
+const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
+	instanceid: '',
+});
+const foldersCheckedIds = ref([]);
+provide('foldersCheckedIds', foldersCheckedIds);
+
+onMounted(() => {
+	foldersCheckedIds.value = formFoldersCheckedIds();
 });
 </script>

@@ -665,7 +665,7 @@ table.table_wopadd :is(th, td) {
 	margin: -1px -1px -1px -1.5em;
 }
 .folder-checkbox {
-	margin: 2px 0 0 -1.5em;
+	margin-left: -1.5em;
 }
 .folder-checkbox + .folder-button {
 	margin-left: 0.7em;
@@ -1016,7 +1016,7 @@ span.folder-button {
 	.popup-export__form,
 	.place-delete__form
 ) label input:is([type="radio"], [type="checkbox"]) {
-	margin: 0.3em 0.5em 0 0;
+	margin-right: 0.5em;
 }
 .popup-export__form {
 	max-width: 600px;

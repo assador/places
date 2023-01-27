@@ -35,7 +35,7 @@ import {
 	watch,
 	onMounted,
 	onBeforeUnmount,
-	onBeforeUpdate
+	onBeforeUpdate,
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useStore } from 'vuex';
@@ -44,10 +44,10 @@ import { constants } from '@/shared/constants';
 import { Place, Image } from '@/store/types';
 
 export interface IPlacesPopupImageProps {
-  imageId?: string;
+	imageId?: string;
 }
 const props = withDefaults(defineProps<IPlacesPopupImageProps>(), {
-  imageId: '',
+	imageId: '',
 });
 const popuped = ref(false);
 const images = ref([] as Array<Image>);
