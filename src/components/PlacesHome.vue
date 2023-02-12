@@ -532,7 +532,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { mapState } from 'vuex';
 import { constants } from '@/shared/constants';
-import { commonFunctions } from '@/shared/common';
+import { generateRandomString, sortObjects } from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
 import PlacesDashboard from './PlacesDashboard.vue';
@@ -841,7 +841,7 @@ export default defineComponent({
 					lng = this.$refs.extmap.map.getCenter().lng.toFixed(7);
 				}
 				const newWaypoint: Waypoint = {
-					id: commonFunctions.generateRandomString(32),
+					id: generateRandomString(32),
 					latitude:
 						Number(lat) ||
 						Number(constants.map.initial.latitude) ||
@@ -867,7 +867,7 @@ export default defineComponent({
 					waypoint: newWaypoint.id,
 					link: '',
 					time: new Date().toISOString().slice(0, -5),
-					id: commonFunctions.generateRandomString(32),
+					id: generateRandomString(32),
 					folderid:
 						this.currentPlace
 							? this.currentPlace.folderid
@@ -998,7 +998,7 @@ export default defineComponent({
 					Object.keys(this.currentPlace.images).length
 				) {
 					const storeImages = Object.values(this.currentPlace.images);
-					srt = Number(commonFunctions.sortObjects(storeImages, 'srt').pop().srt) || 0;
+					srt = Number(sortObjects(storeImages, 'srt').pop().srt) || 0;
 				} else {
 					srt = 0;
 				}
@@ -1016,7 +1016,7 @@ export default defineComponent({
 							' ' + this.$store.state.t.m.popup.fileTooLarge
 						);
 					} else {
-						const rndname = commonFunctions.generateRandomString(32);
+						const rndname = generateRandomString(32);
 						data.append(rndname, files![i]);
 						filesArray.push({
 							id: rndname,

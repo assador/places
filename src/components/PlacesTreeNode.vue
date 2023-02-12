@@ -51,7 +51,6 @@
 				v-if="$root.foldersEditMode && folder.id !== 'root'"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folder.id"
 				class="folder-button"
-				@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			>
 				<input
 					:value="folder.name"
@@ -150,14 +149,12 @@
 		<div
 			v-if="folder.id !== 'root'"
 			class="dragenter-area dragenter-area_top"
-			@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
 		/>
 		<div
 			v-if="folder.id !== 'root'"
 			class="dragenter-area dragenter-area_bottom"
-			@click="$store.dispatch('folderOpenClose', {folder: folder, opened: folder.opened ? false : true});"
 			@dragenter="$root.handleDragEnter"
 			@dragleave="$root.handleDragLeave"
 		/>
@@ -193,7 +190,9 @@ const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 	folder: {},
 	parent: {},
 });
+
 const store = useStore();
+
 const selectedToExport = inject('selectedToExport');
 const foldersCheckedIds = inject('foldersCheckedIds');
 

@@ -49,13 +49,16 @@ export interface IPlacesPopupImageProps {
 const props = withDefaults(defineProps<IPlacesPopupImageProps>(), {
 	imageId: '',
 });
+
 const popuped = ref(false);
 const images = ref([] as Array<Image>);
 const image = ref({} as Image);
+
+const currentPlaceCommon = inject('currentPlaceCommon');
+
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
-const currentPlaceCommon = inject('currentPlaceCommon');
 
 const close = (event?: Event): void => {
 	if (event) event.stopPropagation();

@@ -21,6 +21,7 @@ export interface IPlacesTreeNodeProps {
 const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 	instanceid: '',
 });
+
 const foldersCheckedIds = ref([]);
 provide('foldersCheckedIds', foldersCheckedIds);
 

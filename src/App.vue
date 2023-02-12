@@ -13,7 +13,7 @@ import axios from 'axios';
 import store from '@/store';
 import { mapState } from 'vuex'
 import { emitter } from '@/shared/bus'
-import { commonFunctions } from '@/shared/common';
+import { isParentInTree } from '@/shared/common';
 import { Place, Image, Folder, Waypoint } from '@/store/types';
 
 export default defineComponent({
@@ -631,7 +631,7 @@ export default defineComponent({
 						.id.replace(/^.*-([^-]*)/, "$1")
 				) &&
 				changes.folder.id !== changes.folder.parent &&
-				!commonFunctions.isParentInTree(
+				!isParentInTree(
 					this.$store.state.tree,
 					'children',
 					changes.folder.id,
@@ -687,7 +687,7 @@ export default defineComponent({
 					!this.$store.getters.treeFlat[changes.folder.parent].children ||
 					!this.$store.getters.treeFlat[changes.folder.parent].children[changes.folder.id]
 				) &&
-				!commonFunctions.isParentInTree(
+				!isParentInTree(
 					this.$store.state.tree,
 					'children',
 					changes.folder.id,

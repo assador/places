@@ -10,10 +10,10 @@
 		@wheel="updateState();"
 	>
 		<ymap-marker
-			markerId="centerMarker"
 			ref="centerMarker"
+			marker-id="centerMarker"
 			:coords="mapCenter.coords"
-			:hintContent="$store.state.t.i.maps.center"
+			:hint-content="$store.state.t.i.maps.center"
 			:balloon="{body: $store.state.t.i.maps.centerExt}"
 			:options="{
 				visible: centerPlacemarkShow,
@@ -30,12 +30,12 @@
 		<ymap-marker
 			v-for="(place, id) in places"
 			:key="id"
-			:markerId="place.id"
+			:marker-id="place.id"
 			:coords="[
 				waypoints[place.waypoint] ? waypoints[place.waypoint].latitude : 0,
 				waypoints[place.waypoint] ? waypoints[place.waypoint].longitude : 0,
 			]"
-			:hintContent="place.name"
+			:hint-content="place.name"
 			:balloon="{body: place.description}"
 			:options="{
 				visible: placemarksShow && place.show && place.geomark,
@@ -53,9 +53,9 @@
 		<ymap-marker
 			v-for="(place, id) in commonPlaces"
 			:key="id"
-			:markerId="place.id"
+			:marker-id="place.id"
 			:coords="[waypoints[place.waypoint].latitude, waypoints[place.waypoint].longitude]"
-			:hintContent="place.name"
+			:hint-content="place.name"
 			:balloon="{body: place.description}"
 			:options="{
 				visible: commonPlacemarksShow && place.show && place.geomark,
@@ -107,13 +107,13 @@ export default defineComponent({
 					draggable: true,
 				},
 				icon_04: {
-					iconImageHref: '../img/markers/marker_04.svg',
+					iconImageHref: '/img/markers/marker_04.svg',
 				},
 				icon_05: {
-					iconImageHref: '../img/markers/marker_05.svg',
+					iconImageHref: '/img/markers/marker_05.svg',
 				},
 				icon_06: {
-					iconImageHref: '../img/markers/marker_06.svg',
+					iconImageHref: '/img/markers/marker_06.svg',
 				},
 			},
 			updatingMap: false,

@@ -97,9 +97,26 @@ const props = withDefaults(defineProps<IPlacesPopupExportProps>(), {
 });
 
 const popuped = ref(false);
+
 let selectedToExport = inject('selectedToExport');
+
 const router = useRouter();
 const route = useRoute();
+
+const close = (event?: Event): void => {
+	if (event) event.stopPropagation();
+	router.replace(route.matched[route.matched.length - 2].path);
+};
+const keyup = (event: Event): void => {
+	switch (
+		(constants.shortcuts as Record<string, string>)
+			[(event as KeyboardEvent).keyCode]
+	) {
+		case 'close' :
+			close(event);
+			break;
+	}
+};
 
 onMounted(() => {
 	popuped.value = true;
@@ -121,18 +138,4 @@ onBeforeUnmount(() => {
 	selectedToExport = {};
 	document.removeEventListener('keyup', keyup, false);
 });
-const close = (event?: Event): void => {
-	if (event) event.stopPropagation();
-	router.replace(route.matched[route.matched.length - 2].path);
-};
-const keyup = (event: Event): void => {
-	switch (
-		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).keyCode]
-	) {
-		case 'close' :
-			close(event);
-			break;
-	}
-};
 </script>

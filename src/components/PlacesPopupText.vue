@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<IPlacesPopupTextProps>(), {
 
 const content = ref('');
 const popuped = ref(false);
+
 const router = useRouter();
 const route = useRoute();
 

@@ -1,6 +1,11 @@
 import { constants } from '@/shared/constants';
 import { emitter } from '@/shared/bus';
-import { commonFunctions } from '@/shared/common';
+import {
+	generateRandomString,
+	treeToLivePlain,
+	plainToTree,
+	formFolderForImported,
+} from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import axios from 'axios';
 import { Store, Plugin, MutationPayload, createStore } from 'vuex';
@@ -290,7 +295,7 @@ const store = createStore({
 				payload.folders[id].updated = updated;
 				payload.folders[id].opened = false;
 			}
-			state.folders = commonFunctions.plainToTree(state.folders);
+			state.folders = plainToTree(state.folders);
 			state.tree.name = state.t.i.captions.rootFolder;
 			state.tree.userid = state.user ? state.user.id : null;
 			state.tree.children = state.folders;
@@ -579,7 +584,7 @@ const store = createStore({
 					Updating the tree branch of folders for imported places
 					and get an ID of a folder for the importing place
 					*/
-					importedPlaceFolder = commonFunctions.formFolderForImported(
+					importedPlaceFolder = formFolderForImported(
 						time.slice(0, 10),
 						importedFolder
 					);
@@ -618,8 +623,8 @@ const store = createStore({
 						}
 					}
 					// Forming an importing place as an object and pushing it in a structure
-					const newWaypointId = commonFunctions.generateRandomString(32);
-					const newPlaceId = commonFunctions.generateRandomString(32);
+					const newWaypointId = generateRandomString(32);
+					const newPlaceId = generateRandomString(32);
 					const newWaypoint = {
 						id: newWaypointId,
 						latitude:
@@ -1426,7 +1431,7 @@ const store = createStore({
 		},
 		treeFlat(state, getters) {
 			const treeFlat: Record<string, Folder> = {};
-			commonFunctions.treeToLivePlain(state.tree, 'children', treeFlat);
+			treeToLivePlain(state.tree, 'children', treeFlat);
 			return treeFlat;
 		},
 	},

@@ -1,6 +1,6 @@
 import { tree } from './_tree';
 import { treeSorted } from './_tree_sorted';
-import { commonFunctions } from '@/shared/common';
+import { findInTree, sortObjects } from '@/shared/common';
 
 const folder = {
 	id: '2jmi6ciMRxs0pSVUSUBxwdROjAfeWBcf',
@@ -20,9 +20,9 @@ const folder = {
 
 describe('Common shared functions', () => {
 	it('finds an object in the object tree by property value', () => {
-		expect(commonFunctions.findInTree(tree, 'children', 'name', 'Хибины')).toEqual(folder);
+		expect(findInTree(tree, 'children', 'name', 'Хибины')).toEqual(folder);
 	});
 	it('sort objects in array of objects by property value', () => {
-		expect(commonFunctions.sortObjects(Object.values(tree.children), 'name')).toEqual(treeSorted);
+		expect(sortObjects(Object.values(tree.children), 'name')).toEqual(treeSorted);
 	});
 });

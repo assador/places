@@ -70,108 +70,102 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapState } from 'vuex';
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount, onUpdated } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter, useRoute } from 'vue-router';
 import { constants } from '../shared/constants';
-import { commonFunctions } from '../shared/common';
+import { generateRandomString } from '../shared/common';
 import { makeFieldsValidatable } from '../shared/fields_validate';
 import { Folder } from '@/store/types';
 
-export default defineComponent({
-	data() {
-		return {
-			folderName: '',
-			folderDescription: '',
-			message: '',
-			popuped: false,
+const folderName = ref('');
+const folderDescription = ref('');
+const message = ref('');
+const popuped = ref(false);
+
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
+
+const currentPlace = computed(() => store.state.currentPlace);
+
+const close = (event: Event): void => {
+	if (event) event.stopPropagation();
+	router.replace(route.matched[route.matched.length - 2].path);
+};
+const keyup = (event: Event): void => {
+	if (
+		(constants.shortcuts as Record<string, string>)
+			[(event as KeyboardEvent).keyCode] === 'close'
+	) close(event);
+};
+const appendFolder = (name: string, description: string): void => {
+	const treeFlat = store.getters.treeFlat;
+	if (
+		store.state.serverConfig.rights.folderscount < 0 ||
+		store.state.serverConfig.rights.folderscount > treeFlat.length - 1 ||
+		// length - 1 because there is a root folder too
+		store.state.user.testaccount
+	) {
+		let srt = 1;
+		if (
+			Object.keys(
+				treeFlat[
+					currentPlace.value ? currentPlace.value.folderid : 'root'
+				].children || []
+			).length
+		) {
+			srt = Math.ceil(Math.max(
+				...Object.keys(
+					treeFlat[
+						currentPlace.value ? currentPlace.value.folderid : 'root'
+					].children
+				).map(
+					(id: string) =>
+						treeFlat[
+							currentPlace.value ? currentPlace.value.folderid : 'root'
+						].children[id].srt
+				)
+			)) + 1;
+		}
+		const newFolder: Folder = {
+			id: generateRandomString(32) as string,
+			parent: currentPlace.value
+				? currentPlace.value.folderid
+				: 'root',
+			name: name,
+			description: description,
+			srt: Number(srt) || 0,
+			geomarks: 1,
+			builded: false,
+			type: 'folder',
+			added: true,
+			deleted: false,
+			updated: false,
+			opened: false,
+			userid: sessionStorage.getItem('places-userid'),
 		};
-	},
-	computed: {
-		...mapState(['currentPlace']),
-	},
-	mounted() {
-		this.popuped = true;
-		this.$nextTick(() => {
-			makeFieldsValidatable();
-			document.getElementById('folderName')!.focus();
-			document.addEventListener('keyup', this.keyup, false);
-		});
-	},
-	updated() {
-		makeFieldsValidatable();
-	},
-	beforeUnmount() {
-		document.removeEventListener('keyup', this.keyup, false);
-	},
-	methods: {
-		close(event: Event) {
-			if (event) event.stopPropagation();
-			this.$router.replace(
-				this.$route.matched[this.$route.matched.length - 2].path
-			);
-		},
-		appendFolder(folderName: string, folderDescription: string) {
-			if (
-				this.$store.state.serverConfig.rights.folderscount < 0 ||
-				this.$store.state.serverConfig.rights.folderscount
-					// length - 1 because there is a root folder too
-					> Object.keys(this.$store.getters.treeFlat).length - 1 ||
-				this.$store.state.user.testaccount
-			) {
-				let srt = 1;
-				if (
-					Object.keys(
-						this.$store.getters.treeFlat[
-							this.currentPlace ? this.currentPlace.folderid : 'root'
-						].children
-					).length
-				) {
-					srt = Math.ceil(Math.max(
-						...Object.keys(
-							this.$store.getters.treeFlat[
-								this.currentPlace ? this.currentPlace.folderid : 'root'
-							].children
-						).map(
-							(id: string) =>
-								this.$store.getters.treeFlat[
-									this.currentPlace ? this.currentPlace.folderid : 'root'
-								].children[id].srt
-						)
-					)) + 1;
-				}
-				const newFolder: Folder = {
-					id: commonFunctions.generateRandomString(32) as string,
-					parent: this.currentPlace
-						? this.currentPlace.folderid
-						: 'root',
-					name: folderName,
-					description: folderDescription,
-					srt: Number(srt) || 0,
-					geomarks: 1,
-					builded: false,
-					type: 'folder',
-					added: true,
-					deleted: false,
-					updated: false,
-					opened: false,
-					userid: sessionStorage.getItem('places-userid'),
-				};
-				this.$store.dispatch('addFolder', {folder: newFolder});
-				this.message = this.$store.state.t.m.paged.folderCreated;
-				this.folderName = '';
-				this.folderDescription = '';
-				document.getElementById('folderName')!.focus();
-			} else {
-				this.message = this.$store.state.t.m.paged.foldersCountExceeded;
-			}
-		},
-		keyup(event: Event) {
-			if (
-				(constants.shortcuts as Record<string, string>)
-					[(event as KeyboardEvent).keyCode] === 'close'
-			)  this.close(event);
-		},
-	},
+		store.dispatch('addFolder', {folder: newFolder});
+		message.value = store.state.t.m.paged.folderCreated;
+		folderName.value = '';
+		folderDescription.value = '';
+		document.getElementById('folderName')!.focus();
+	} else {
+		message.value = store.state.t.m.paged.foldersCountExceeded;
+	}
+};
+
+onMounted(() => {
+	popuped.value = true;
+	makeFieldsValidatable();
+	document.getElementById('folderName')!.focus();
+	document.addEventListener('keyup', keyup, false);
+});
+onBeforeUnmount(() => {
+	document.removeEventListener('keyup', keyup, false);
+});
+onUpdated(() => {
+	makeFieldsValidatable();
 });
 </script>
