@@ -1262,7 +1262,7 @@ const store = createStore({
 							commit('setObjectSaved', getters.treeFlat[id]);
 						}
 					}
-					
+
 			}
 			commit('setSaved');
 		},

@@ -1,10 +1,10 @@
 .DS_Store
 dist
 node_modules
-public/uploads/images/big/*
-public/uploads/images/big/orphaned/*
-public/uploads/images/small/*
-public/uploads/images/small/orphaned/*
+uploads/images/big/*
+uploads/images/big/orphaned/*
+uploads/images/small/*
+uploads/images/small/orphaned/*
 
 ~*
 *~

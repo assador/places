@@ -102,6 +102,7 @@
 				:title="place.description"
 				:class="'place-button block_01 draggable' + (currentPlace && place.id == currentPlace.id ? ' active' : '')"
 				:draggable="true"
+				data-place-button
 				@click="instanceid !== 'popupexporttree' ? setCurrentPlace(place) : '';"
 				@dragstart="$root.handleDragStart"
 			>
