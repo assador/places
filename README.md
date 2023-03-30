@@ -13,8 +13,8 @@ The service allows to add and edit geo placemarks with names, descriptions, 
 2. Inside cloned: npm install && npm run build
 2. Configure the web server. Specify /dist as the root directory.
 3. Create a database and import into it tables from the dump file /mezzanine/db_places.sql.
-4. Edit /src/shared/constants.js and /public/backend/config.php files according to your preferencies.
-5. In the same /public/backend/config.php specify the test account ID, if you need it.
+4. Edit /src/shared/constants.js and /backend/config.php files according to your preferencies.
+5. In the same /backend/config.php specify the test account ID, if you need it.
 6. Configure permissions of directories: /dist/uploads/images/big, /dist/uploads/images/big/orphaned, /dist/uploads/images/small, /dist/uploads/images/small/orphaned
 7. Add a cron job that runs /backend/dist/cron.php, a script that deletes sometimes orphan images and waypoints.
 
