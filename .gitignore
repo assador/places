@@ -28,6 +28,7 @@ pnpm-debug.log*
 # Editor directories and files
 *.geany
 *.cuda-proj
+.kateconfig
 .idea
 .vscode
 *.suo

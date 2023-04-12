@@ -76,7 +76,6 @@
 import { defineComponent, PropType } from 'vue';
 import { mapState } from 'vuex';
 import { emitter } from '@/shared/bus';
-import { constants } from '@/shared/constants';
 import {
 	LMap,
 	LTileLayer,
@@ -210,7 +209,7 @@ export default defineComponent({
 		},
 	},
 	methods: {
-		placemarkClick(place, e) {
+		placemarkClick(place) {
 			emitter.emit('setCurrentPlace', {place: place});
 			if (place.common) {
 				const inPaginator =

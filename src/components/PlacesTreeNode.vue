@@ -169,13 +169,8 @@ export default {
 </script>
 
 <script setup lang="ts">
-import {
-	ref,
-	inject,
-	computed,
-	watch,
-} from 'vue';
 import _ from 'lodash';
+import { inject, computed } from 'vue';
 import { emitter } from '../shared/bus';
 import { useStore } from 'vuex';
 import { Place, Folder } from '@/store/types';

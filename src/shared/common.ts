@@ -63,7 +63,7 @@ export const plainToTree = (plain: Record<string, any>): Record<string, any> => 
 							ready = false;
 							break;
 						}
-						
+
 					}
 				}
 			}

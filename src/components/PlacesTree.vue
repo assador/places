@@ -12,7 +12,6 @@
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue';
 import PlacesTreeNode from './PlacesTreeNode.vue';
-import { Folder } from '@/store/types';
 import { formFoldersCheckedIds } from '../shared/common';
 
 export interface IPlacesTreeNodeProps {

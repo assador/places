@@ -199,29 +199,30 @@ export default defineComponent({
 			});
 		},
 		authRegSubmit() {
-			if (!document.querySelector('.value_wrong')) {
-				const {
-					regLogin,
-					regPassword,
-					regPasswordRepeat,
-					regName,
-					regEmail,
-					regPhone,
-				} = this;
-				if (regPassword === regPasswordRepeat) {
-					regRoutine({
-						regLogin,
-						regPassword,
-						regName,
-						regEmail,
-						regPhone,
-					});
-				} else {
-					reg.message = this.$store.state.t.m.paged.passwordsNotMatch;
-				}
-			} else {
+			if (document.querySelector('.value_wrong')) {
 				reg.message = this.$store.state.t.m.paged.incorrectFields;
+				return false;
 			}
+			const {
+				regLogin,
+				regPassword,
+				regPasswordRepeat,
+				regName,
+				regEmail,
+				regPhone,
+			} = this;
+			if (regPassword !== regPasswordRepeat) {
+				reg.message = this.$store.state.t.m.paged.passwordsNotMatch;
+				return false;
+			}
+			regRoutine({
+				regLogin,
+				regPassword,
+				regName,
+				regEmail,
+				regPhone,
+			});
+			return true;
 		},
 		authForgot() {
 			const {forgotEmail} = this;

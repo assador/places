@@ -76,8 +76,7 @@ import { defineComponent, PropType, ref } from 'vue';
 import { emitter } from '@/shared/bus';
 import { ResizeSensor } from 'css-element-queries'
 import { mapState } from 'vuex';
-import { constants } from '@/shared/constants';
-import { YmapPlugin, loadYmap, yandexMap, ymapMarker } from 'vue-yandex-maps';
+import { yandexMap, ymapMarker } from 'vue-yandex-maps';
 import { Place, Waypoint } from '@/store/types';
 
 export default defineComponent({

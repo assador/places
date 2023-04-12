@@ -418,16 +418,16 @@ const store = createStore({
 		},
 	},
 	actions: {
-		changeLang({state, commit}, lang) {
+		changeLang({commit}, lang) {
 			const getLang = () => import(`@/lang/${lang}.ts`);
 			getLang().then(l => {
 				commit('changeLang', {lang: lang, dict: l.t});
 			});
 		},
-		changeMap({state, commit}, index) {
+		changeMap({commit}, index) {
 			commit('changeMap', index);
 		},
-		changeColortheme({state, commit}, colortheme) {
+		changeColortheme({commit}, colortheme) {
 			commit('changeColortheme', colortheme);
 		},
 		restoreState({commit, dispatch}, backupIndex) {
