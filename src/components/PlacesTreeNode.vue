@@ -16,7 +16,11 @@
 				@change="selectUnselectFolder(folder.id, $event.target.checked);"
 			>
 			<a
-				v-if="!$root.foldersEditMode || folder.id === 'root'"
+				v-if="
+					!$root.foldersEditMode ||
+					props.instanceid === 'popupexporttree' ||
+					folder.id === 'root'
+				"
 				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folder.id"
 				data-folder-button
 				href="javascript: void(0);"
@@ -48,7 +52,7 @@
 				</span>
 			</a>
 			<span
-				v-if="$root.foldersEditMode && folder.id !== 'root'"
+				v-else
 				:id="(instanceid === 'popupexporttree' ? 'to-export-' : '') + 'places-menu-folder-link-' + folder.id"
 				class="folder-button"
 			>

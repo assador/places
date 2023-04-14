@@ -14,8 +14,14 @@
 			</p>
 			<form
 				class="popup-export__form"
-				@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
-				@submit.prevent="$root.exportPlaces($root.selectedToExport, $event.target.elements['mime'].value)"
+				@click="
+					$event.stopPropagation();
+					$store.commit('setIdleTime', 0);
+				"
+				@submit.prevent="$root.exportPlaces(
+					$root.selectedToExport,
+					$event.target.elements['mime'].value
+				)"
 			>
 				<fieldset class="margin_bottom">
 					<label>
@@ -47,7 +53,10 @@
 				</fieldset>
 				<p>{{ $store.state.t.i.text.specifyPlacesToExport }}:</p>
 				<div
-					v-if="Object.keys($store.state.places).length > 0 || Object.keys($store.state.folders).length > 0"
+					v-if="
+						Object.keys($store.state.places).length > 0 ||
+						Object.keys($store.state.folders).length > 0
+					"
 					id="popup-export__tree"
 					class="menu"
 					@click="$event.stopPropagation();"
