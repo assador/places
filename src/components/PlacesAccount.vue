@@ -104,7 +104,9 @@
 							<td style="padding-top: 18px; vertical-align: top; text-align: right;">
 								<button
 									type="button"
-									@click="$router.push({name: 'PlacesAccountDelete'}).catch(e => {console.error(e);})"
+									@click="$router.push(
+										{name: 'PlacesAccountDelete'}
+									).catch(e => {console.error(e);})"
 								>
 									{{ $store.state.t.i.buttons.deleteAccount }}
 								</button>

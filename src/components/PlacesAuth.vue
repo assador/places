@@ -142,7 +142,7 @@
 				:title="store.state.t.i.hints.about"
 				@click="router.push(
 					{name: 'PlacesAuthText', params: {what: 'about'}}
-				)"
+				).catch(e => {console.error(e);})"
 			>
 				{{ store.state.t.i.buttons.whatIsIt }}
 			</button>

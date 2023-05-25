@@ -32,12 +32,11 @@ export const sortObjects = (
 export const num2deg = (num: number, lat = false): number => {
 	const n = num % 360;
 	if (Math.abs(n) <= (lat ? 90 : 180)) return n;
-	return (
-		(lat ? -1 : 1) * (n % 180 + (
-			lat ? 90 * (n > 0 ? -1 : 1) : 0
-		) + (lat ? 90 : 180) * (n > 0 ? -1 : 1))
-	);
-}
+	if (lat && Math.abs(n) < 180) return -n % 90 + 90 * (n < 0 ? -1 : 1);
+	if (lat && Math.abs(n) < 270) return -n % 90;
+	if (lat) return n % 90 + 90 * (n < 0 ? 1 : -1);
+	return n % 180 + 180 * (n < 0 ? 1 : -1);
+};
 export const deg2degMinSec = (frac: number): number[] => {
 	const deg = Math.trunc(frac);
 	const minFrac = Math.abs(frac - deg) * 60;
