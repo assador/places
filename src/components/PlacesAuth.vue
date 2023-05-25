@@ -42,7 +42,9 @@
 					</div>
 					<button
 						type="button"
-						onclick="let f = document.querySelector('.auth__forgot'); if (f.classList.contains('hidden')) {f.classList.remove('hidden');} else {f.classList.add('hidden');}"
+						onclick="document.querySelector('.auth__forgot')
+							.classList.toggle('hidden');
+						"
 					>
 						{{ store.state.t.i.buttons.forgot }}
 					</button>
@@ -138,7 +140,9 @@
 		<div>
 			<button
 				:title="store.state.t.i.hints.about"
-				@click="router.push({name: 'PlacesAuthText', params: {what: 'about'}}).catch(() => {})"
+				@click="router.push(
+					{name: 'PlacesAuthText', params: {what: 'about'}}
+				)"
 			>
 				{{ store.state.t.i.buttons.whatIsIt }}
 			</button>

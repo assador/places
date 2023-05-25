@@ -421,6 +421,14 @@ input[type="hidden"] {
 	vertical-align: middle;
 	text-align: center;
 }
+.aligned-children {
+	display: flex;
+	gap: 8px;
+	> * {
+		box-sizing: border-box;
+		width: 100%;
+	}
+}
 .cw_g1 {padding-right: 19.1%; padding-left: 19.1%;}
 .cw_g2 {padding-right: 30.8%; padding-left: 30.8%;}
 .indent_right_1 {margin-right: 20px;}

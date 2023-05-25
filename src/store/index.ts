@@ -2,6 +2,7 @@ import { constants } from '@/shared/constants';
 import { emitter } from '@/shared/bus';
 import {
 	generateRandomString,
+	num2deg,
 	treeToLivePlain,
 	plainToTree,
 	formFolderForImported,
@@ -475,7 +476,8 @@ const store = createStore({
 					commit('setUser', response.data);
 					dispatch('setServerConfig');
 				})
-				.catch(() => {
+				.catch(e => {
+					console.error(e);
 					dispatch('setMessage', state.t.m.popup.cannotGetData);
 					commit('setUser', null);
 				})
@@ -490,7 +492,8 @@ const store = createStore({
 				.then(response => {
 					commit('setServerConfig', response.data);
 				})
-				.catch(() => {
+				.catch(e => {
+					console.error(e);
 					dispatch('setMessage', state.t.m.popup.cannotGetData);
 					commit('setServerConfig', null);
 				})
@@ -518,7 +521,8 @@ const store = createStore({
 						));
 						commit('stateReady', true);
 					})
-					.catch(reject => {
+					.catch(e => {
+						console.error(e);
 						dispatch('setMessage',
 							state.t.m.popup.cannotGetDataFromDb
 						);
@@ -545,6 +549,7 @@ const store = createStore({
 					;
 					return result;
 				} catch (e) {
+					console.error(e);
 					dispatch('setMessage',
 						state.t.m.popup.parsingImportError + ': ' + e
 					);
@@ -564,6 +569,7 @@ const store = createStore({
 						text, 'text/xml'
 					);
 				} catch (e) {
+					console.error(e);
 					dispatch('setMessage',
 						state.t.m.popup.parsingImportError + ': ' + e
 					);
@@ -619,7 +625,7 @@ const store = createStore({
 										}
 										break;
 								}
-							} catch (e) {}
+							} catch (e) {console.error(e);}
 						}
 					}
 					// Forming an importing place as an object and pushing it in a structure
@@ -825,6 +831,7 @@ const store = createStore({
 					}
 					emitter.emit('toDBCompletely');
 				} catch (e) {
+					console.error(e);
 					dispatch('setMessage',
 						state.t.m.popup.parsingImportError + ': ' + e
 					);
@@ -1074,14 +1081,14 @@ const store = createStore({
 				'altitudecapability' in payload.change
 			) {
 				const
-					lat = ('latitude' in payload.change
+					lat = num2deg(('latitude' in payload.change
 						? payload.change.latitude
 						: state.waypoints[payload.place.waypoint].latitude
-					),
-					lng = ('longitude' in payload.change
+					), true),
+					lng = num2deg(('longitude' in payload.change
 						? payload.change.longitude
 						: state.waypoints[payload.place.waypoint].longitude
-					),
+					)),
 					alt = ('altitudecapability' in payload.change
 						? payload.change.altitudecapability
 						: ('altitudecapability' in state.waypoints[payload.place.waypoint]
@@ -1093,9 +1100,9 @@ const store = createStore({
 				dispatch('changeWaypoint', {
 					waypoint: state.waypoints[payload.place.waypoint],
 					change: {
-						latitude: Number(lat) || Number(constants.map.initial.latitude) || null,
-						longitude: Number(lng) || Number(constants.map.initial.longitude) || null,
-						altitudecapability: Number(alt) || null,
+						latitude: Number(lat),
+						longitude: Number(lng),
+						altitudecapability: Number(alt),
 					},
 					from: payload.place,
 				});

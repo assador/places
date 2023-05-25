@@ -66,7 +66,7 @@
 				<a
 					class="folder-button__delete"
 					:title="$store.state.t.i.buttons.deleteFolder"
-					@click="$event.stopPropagation(); $router.push({name: 'PlacesHomeDeleteFolder', params: {folderId: folder.id}}).catch(() => {})"
+					@click="$event.stopPropagation(); $router.push({name: 'PlacesHomeDeleteFolder', params: {folderId: folder.id}}).catch(e => {console.error(e);})"
 				>
 					×
 				</a>

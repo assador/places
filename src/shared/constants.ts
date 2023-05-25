@@ -35,8 +35,8 @@ export const constants = {
 	commonplacesonpagecount: 5,
 	map: {
 		initial: {
-			latitude  : 51.4778883,
-			longitude : -0.0014822,
+			latitude  : 0,
+			longitude : 0,
 			zoom      : 15,
 		},
 	},

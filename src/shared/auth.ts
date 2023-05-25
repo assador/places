@@ -23,7 +23,8 @@ export const loginRoutine = (user: {authLogin: string, authPassword: string}) =>
 					}
 			}
 		})
-		.catch(() => {
+		.catch(e => {
+			console.error(e);
 			sessionStorage.removeItem('places-userid');
 			sessionStorage.removeItem('places-session');
 		})

@@ -38,7 +38,7 @@
 							id="actions-append-folder"
 							class="actions-button"
 							:title="$store.state.t.i.hints.addFolder"
-							@click="$router.push({name: 'PlacesHomeFolder'}).catch(() => {});"
+							@click="$router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
 						>
 							<span>↧</span>
 							<span>{{ $store.state.t.i.buttons.newFolder }}</span>
@@ -155,7 +155,7 @@
 							id="actions-export"
 							class="actions-button"
 							:title="$store.state.t.i.hints.exportPlaces"
-							@click="$router.push({name: 'PlacesHomeExport', params: {mime: 'application/gpx+xml'}}).catch(() => {})"
+							@click="$router.push({name: 'PlacesHomeExport', params: {mime: 'application/gpx+xml'}}).catch(e => {console.error(e);})"
 						>
 							<span>↱</span>
 							<span>{{ $store.state.t.i.buttons.export }}</span>
@@ -164,7 +164,7 @@
 							id="actions-about"
 							class="actions-button"
 							:title="$store.state.t.i.hints.about"
-							@click="$router.push({name: 'PlacesHomeText', params: {what: 'about'}}).catch(() => {}); $refs.extmap.center = $refs.extmap.mapCenter;"
+							@click="$router.push({name: 'PlacesHomeText', params: {what: 'about'}}).catch(e => {console.error(e);}); $refs.extmap.center = $refs.extmap.mapCenter;"
 						>
 							<span>?</span>
 							<span>{{ $store.state.t.i.buttons.help }}</span>
@@ -286,24 +286,61 @@
 									{{ $store.getters.placeFields[field] }}:
 								</dt>
 								<div v-if="field === 'waypoint'">
-									<div
-										v-for="coord in orderedCurrentWaypointFields"
-										:key="coord"
-									>
-										<dt>
-											{{ $store.getters.placeFields[coord] }}
-										</dt>
-										<dd>
-											<input
-												:id="'detailed-' + coord"
-												v-model.number.trim="$store.state.waypoints[currentPlace.waypoint][coord]"
-												type="number"
-												:disabled="$root.currentPlaceCommon"
-												class="fieldwidth_100"
-												@change="$store.dispatch('changePlace', {place: currentPlace, change: {[coord]: $store.state.waypoints[currentPlace.waypoint][coord]}});"
-											>
-										</dd>
+									<div class="aligned-children">
+										<div>
+											<dt>
+												{{ $store.getters.placeFields['latitude'] }}
+											</dt>
+											<dd>
+												<input
+													id="detailed-latitude"
+													:value="currentPlaceLat"
+													type="number"
+													:disabled="$root.currentPlaceCommon"
+													class="fieldwidth_100"
+													@change="e => $store.dispatch('changePlace', {place: currentPlace, change: {latitude: e.target.value.trim()}})"
+												>
+											</dd>
+										</div>
+										<div>
+											<dt>
+												{{ $store.getters.placeFields['longitude'] }}
+											</dt>
+											<dd>
+												<input
+													id="detailed-longitude"
+													:value="currentPlaceLon"
+													type="number"
+													:disabled="$root.currentPlaceCommon"
+													class="fieldwidth_100"
+													@change="e => $store.dispatch('changePlace', {place: currentPlace, change: {longitude: e.target.value.trim()}})"
+												>
+											</dd>
+										</div>
 									</div>
+									<div>
+										<input
+											id="detailed-coordinates"
+											:value="currentDegMinSec"
+											type="text"
+											:disabled="$root.currentPlaceCommon"
+											class="fieldwidth_100"
+											@change="e => {const coords = string2coords(e.target.value.trim()); if (coords === null) return; $store.dispatch('changePlace', {place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
+										>
+									</div>
+									<dt>
+										{{ $store.getters.placeFields['altitudecapability'] }}
+									</dt>
+									<dd>
+										<input
+											id="detailed-altitudecapability"
+											:value="$store.state.waypoints[currentPlace.waypoint].altitudecapability"
+											type="number"
+											:disabled="$root.currentPlaceCommon"
+											class="fieldwidth_100"
+											@change="e => $store.dispatch('changePlace', {place: currentPlace, change: {altitudecapability: e.target.value.trim()}})"
+										>
+									</dd>
 								</div>
 								<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
 									{{ $store.getters.placeFields[field] }}:
@@ -355,7 +392,7 @@
 											data-image
 											:class="'place-image' + ($root.currentPlaceCommon ? '' : ' draggable')"
 											:draggable="$root.currentPlaceCommon ? false : true"
-											@click="$router.push({name: 'PlacesHomeImages', params: {imageId: image.id}}).catch(() => {})"
+											@click="$router.push({name: 'PlacesHomeImages', params: {imageId: image.id}}).catch(e => {console.error(e);})"
 											@dragstart="$root.handleDragStart"
 											@dragenter="$root.handleDragEnter"
 										>
@@ -532,7 +569,13 @@ import axios from 'axios';
 import _ from 'lodash';
 import { mapState } from 'vuex';
 import { constants } from '@/shared/constants';
-import { generateRandomString, sortObjects } from '@/shared/common';
+import {
+	generateRandomString,
+	sortObjects,
+	deg2degMinSec,
+	coords2string,
+	string2coords,
+} from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
 import PlacesDashboard from './PlacesDashboard.vue';
@@ -572,6 +615,8 @@ export default defineComponent({
 			root,
 			...toRefs(state),
 			options,
+			deg2degMinSec,
+			string2coords,
 		};
 	},
 	data() {
@@ -608,7 +653,7 @@ export default defineComponent({
 		};
 	},
 	computed: {
-		...mapState(['currentPlace', 'colortheme']),
+		...mapState(['currentPlace', 'waypoints', 'colortheme']),
 		commonPlaces(): Record<string, Place> {
 			const commonPlaces: Record<string, Place> = {};
 			for (const id in this.$store.state.commonPlaces) {
@@ -640,20 +685,17 @@ export default defineComponent({
 		stateReady(): boolean {
 			return this.$store.state.ready;
 		},
+		currentPlaceLat(): number {
+			return this.waypoints[this.currentPlace.waypoint].latitude;
+		},
+		currentPlaceLon(): number {
+			return this.waypoints[this.currentPlace.waypoint].longitude;
+		},
+		currentDegMinSec(): string {
+			return coords2string([this.currentPlaceLat, this.currentPlaceLon]);
+		},
 	},
 	watch: {
-		getCurrentPlace: {
-			deep: true,
-			immediate: true,
-			handler(place) {
-				if (place) {
-					this.$store.commit('setCurrentPlace', {
-						...place,
-						images: place.images,
-					});
-				}
-			},
-		},
 		stateReady() {
 			this.stateReadyChanged();
 		},
@@ -689,7 +731,9 @@ export default defineComponent({
 						window.clearInterval(this.$root.idleTimeInterval);
 						this.$root.idleTimeInterval = undefined;
 						this.$store.dispatch('unload');
-						this.$router.push({name: 'PlacesAuth'}).catch(() => {});
+						this.$router.push({name: 'PlacesAuth'})
+							.catch(e => {console.error(e);})
+						;
 					}
 				}, 1000);
 		}
@@ -720,12 +764,12 @@ export default defineComponent({
 		blur() {
 			const el = this.$el.querySelector(':focus');
 			if (el) {
-				try {(el as HTMLElement).blur();} catch(e) {}
+				try {(el as HTMLElement).blur();} catch(e) {console.error(e);}
 			}
 		},
 		exit() {
 			this.$store.dispatch('unload');
-			this.$router.push({name: 'PlacesAuth'}).catch(() => {});
+			this.$router.push({name: 'PlacesAuth'}).catch(e => {console.error(e);});
 		},
 		stateReadyChanged() {
 			if (this.stateReady) {
@@ -1146,7 +1190,9 @@ export default defineComponent({
 						}
 						break;
 					case 'add folder' :
-						this.$router.push({name: 'PlacesHomeFolder'}).catch(() => {});
+						this.$router.push({name: 'PlacesHomeFolder'})
+							.catch(e => {console.error(e);})
+						;
 						break;
 					case 'edit mode' :
 						this.$root.foldersEditMode = !this.$root.foldersEditMode;
@@ -1170,7 +1216,7 @@ export default defineComponent({
 						this.$router.push({
 							name: 'PlacesHomeExport',
 							params: {mime: 'application/gpx+xml'},
-						}).catch(() => {});
+						}).catch(e => {console.error(e);});
 						break;
 					case 'save' :
 						emitter.emit('toDBCompletely');
