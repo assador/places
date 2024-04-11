@@ -5,7 +5,7 @@
 			v-model="lang"
 		>
 			<option
-				v-for="(l, i) in $store.state.langs"
+				v-for="(l, i) in store.state.langs"
 				:key="i"
 				:value="l.value"
 			>
@@ -17,7 +17,7 @@
 			v-model="colortheme"
 		>
 			<option
-				v-for="(c, i) in $root.colorthemes"
+				v-for="(c, i) in colorthemes"
 				:key="i"
 				:value="c.value"
 			>
@@ -27,23 +27,21 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref, watch, inject } from 'vue';
+import { useStore } from 'vuex';
 
-export default defineComponent({
-	data() {
-		return {
-			lang: this.$store.state.lang,
-			colortheme: this.$store.state.colortheme,
-		};
-	},
-	watch: {
-		lang() {
-			this.$store.dispatch('changeLang', this.lang);
-		},
-		colortheme() {
-			this.$store.dispatch('changeColortheme', this.colortheme);
-		},
-	},
+const store = useStore();
+
+const lang = ref(store.state.lang);
+const colortheme = ref(store.state.colortheme);
+
+const colorthemes = inject('colorthemes');
+
+watch(() => lang.value, () => {
+	store.dispatch('changeLang', lang.value);
+});
+watch(() => colortheme.value, () => {
+	store.dispatch('changeColortheme', colortheme.value);
 });
 </script>

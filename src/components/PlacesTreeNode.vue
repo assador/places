@@ -13,11 +13,11 @@
 				type="checkbox"
 				class="folder-checkbox"
 				:checked="foldersCheckedIds.includes(folder.id)"
-				@change="selectUnselectFolder(folder.id, $event.target.checked);"
+				@change="e => selectUnselectFolder(folder.id, e.target.checked)"
 			>
 			<a
 				v-if="
-					!$root.foldersEditMode ||
+					!foldersEditMode ||
 					props.instanceid === 'popupexporttree' ||
 					folder.id === 'root'
 				"
@@ -26,11 +26,11 @@
 				href="javascript: void(0);"
 				class="folder-button"
 				:draggable="true"
-				@click="$store.dispatch('folderOpenClose', instanceid === 'popupexporttree' ? {target: $event.target.parentNode.parentNode} : {folder: folder, opened: !folder.opened});"
-				@dragstart="$root.handleDragStart"
-				@dragenter="$root.handleDragEnter"
-				@dragleave="$root.handleDragLeave"
-				@drop="$root.handleDrop"
+				@click="e => {store.dispatch('folderOpenClose', instanceid === 'popupexporttree' ? {target: e.target.parentNode.parentNode} : {folder: folder, opened: !folder.opened});}"
+				@dragstart="handleDragStart"
+				@dragenter="handleDragEnter"
+				@dragleave="handleDragLeave"
+				@drop="handleDrop"
 			>
 				<span
 					class="folder-button__text"
@@ -39,14 +39,14 @@
 				</span>
 				<span
 					class="folder-button__geomarks"
-					:title="(folder.geomarks === 1 ? $store.state.t.i.hints.hide : $store.state.t.i.hints.show) + ' ' + $store.state.t.i.hints.placemarksOnMap"
-					@click="
-						$event.stopPropagation();
-						$store.dispatch('showHideGeomarks', {
-							object: (folder.id === 'root' ? $store.state.tree : folder),
+					:title="(folder.geomarks === 1 ? store.state.t.i.hints.hide : store.state.t.i.hints.show) + ' ' + store.state.t.i.hints.placemarksOnMap"
+					@click="e => {
+						e.stopPropagation();
+						store.dispatch('showHideGeomarks', {
+							object: (folder.id === 'root' ? store.state.tree : folder),
 							show: (folder.geomarks === 1 ? 0 : 1),
 						});
-					"
+					}"
 				>
 					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
 				</span>
@@ -58,25 +58,30 @@
 			>
 				<input
 					:value="folder.name"
-					:placeholder="$store.state.t.i.captions.name"
+					:placeholder="store.state.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
-					@change="$store.dispatch('changeFolder', {folder: folder, change: {name: folder.name}});"
-					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+					@change="store.dispatch('changeFolder', {folder: folder, change: {name: folder.name}});"
+					@click="e => {e.stopPropagation(); store.commit('setIdleTime', 0);}"
 				>
 				<a
 					class="folder-button__delete"
-					:title="$store.state.t.i.buttons.deleteFolder"
-					@click="$event.stopPropagation(); $router.push({name: 'PlacesHomeDeleteFolder', params: {folderId: folder.id}}).catch(e => {console.error(e);})"
+					:title="store.state.t.i.buttons.deleteFolder"
+					@click="e => {
+						e.stopPropagation();
+						router.push({name: 'PlacesHomeDeleteFolder', params: {folderId: folder.id}})
+							.catch(err => {console.error(err);})
+						;
+					}"
 				>
 					×
 				</a>
 				<textarea
 					:value="folder.description"
 					rows="2"
-					:placeholder="$store.state.t.i.captions.description"
+					:placeholder="store.state.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
-					@change="$store.dispatch('changeFolder', {folder: folder, change: {description: folder.description}});"
-					@click="$event.stopPropagation(); $store.commit('setIdleTime', 0);"
+					@change="store.dispatch('changeFolder', {folder: folder, change: {description: folder.description}});"
+					@click="e => {e.stopPropagation(); store.commit('setIdleTime', 0);}"
 				/>
 			</span>
 		</div>
@@ -108,7 +113,7 @@
 				:draggable="true"
 				data-place-button
 				@click="instanceid !== 'popupexporttree' ? setCurrentPlace(place) : '';"
-				@dragstart="$root.handleDragStart"
+				@dragstart="handleDragStart"
 			>
 				<input
 					v-if="instanceid === 'popupexporttree'"
@@ -117,7 +122,10 @@
 					type="checkbox"
 					class="to-export-place-checkbox"
 					:checked="selectedToExport.hasOwnProperty(place.id)"
-					@change="selectUnselect(place, $event.target.checked); foldersCheckedIds = formFoldersCheckedIds();"
+					@change="e => {
+						selectUnselect(place, e.target.checked);
+						foldersCheckedIds = formFoldersCheckedIds();
+					}"
 				>
 				<span
 					class="place-button__text"
@@ -126,42 +134,42 @@
 				</span>
 				<a
 					class="place-button__geomark"
-					:title="(!place.geomark ? $store.state.t.i.hints.show : $store.state.t.i.hints.hide) + ' ' + $store.state.t.i.hints.placemarkOnMap"
-					@click="
-						$event.stopPropagation();
-						$store.dispatch('showHideGeomarks', {
+					:title="(!place.geomark ? store.state.t.i.hints.show : store.state.t.i.hints.hide) + ' ' + store.state.t.i.hints.placemarkOnMap"
+					@click="e => {
+						e.stopPropagation();
+						store.dispatch('showHideGeomarks', {
 							object: place,
 							show: !place.geomark,
 						});
-					"
+					}"
 				>
 					{{ !place.geomark ? '⚇' : '⚉' }}
 				</a>
 				<span
 					data-place-button-dragenter-area-top
 					class="dragenter-area dragenter-area_top"
-					@dragenter="$root.handleDragEnter"
-					@dragleave="$root.handleDragLeave"
+					@dragenter="handleDragEnter"
+					@dragleave="handleDragLeave"
 				/>
 				<span
 					data-place-button-dragenter-area-bottom
 					class="dragenter-area dragenter-area_bottom"
-					@dragenter="$root.handleDragEnter"
-					@dragleave="$root.handleDragLeave"
+					@dragenter="handleDragEnter"
+					@dragleave="handleDragLeave"
 				/>
 			</label>
 		</div>
 		<div
 			v-if="folder.id !== 'root'"
 			class="dragenter-area dragenter-area_top"
-			@dragenter="$root.handleDragEnter"
-			@dragleave="$root.handleDragLeave"
+			@dragenter="handleDragEnter"
+			@dragleave="handleDragLeave"
 		/>
 		<div
 			v-if="folder.id !== 'root'"
 			class="dragenter-area dragenter-area_bottom"
-			@dragenter="$root.handleDragEnter"
-			@dragleave="$root.handleDragLeave"
+			@dragenter="handleDragEnter"
+			@dragleave="handleDragLeave"
 		/>
 	</li>
 </template>
@@ -177,6 +185,7 @@ import _ from 'lodash';
 import { inject, computed } from 'vue';
 import { emitter } from '../shared/bus';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import { Place, Folder } from '@/store/types';
 import { formFoldersCheckedIds } from '../shared/common';
 
@@ -192,9 +201,15 @@ const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 });
 
 const store = useStore();
+const router = useRouter();
 
 const selectedToExport = inject('selectedToExport');
 const foldersCheckedIds = inject('foldersCheckedIds');
+const foldersEditMode = inject('foldersEditMode');
+const handleDragStart = inject('handleDragStart');
+const handleDragEnter = inject('handleDragEnter');
+const handleDragLeave = inject('handleDragLeave');
+const handleDrop = inject('handleDrop');
 
 const currentPlace = computed(() => store.state.currentPlace);
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));

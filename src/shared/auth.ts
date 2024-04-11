@@ -11,8 +11,7 @@ export const loginRoutine = (user: {authLogin: string, authPassword: string}) =>
 		.then(response => {
 			switch (response.data) {
 				case 0 :
-					sessionStorage.removeItem('places-userid');
-					sessionStorage.removeItem('places-session');
+					sessionStorage.clear();
 					login.message = store.state.t.m.paged.wrongLoginPassword;
 					break;
 				default :
@@ -25,8 +24,7 @@ export const loginRoutine = (user: {authLogin: string, authPassword: string}) =>
 		})
 		.catch(e => {
 			console.error(e);
-			sessionStorage.removeItem('places-userid');
-			sessionStorage.removeItem('places-session');
+			sessionStorage.clear();
 		})
 	;
 };

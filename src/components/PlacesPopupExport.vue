@@ -1,26 +1,26 @@
 <template>
 	<div
 		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="close($event)"
+		@click="e => close(e)"
 	>
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					{{ $store.state.t.i.captions.exportPlaces }}
+					{{ store.state.t.i.captions.exportPlaces }}
 				</h1>
 			</div>
 			<p class="margin_bottom_0">
-				{{ $store.state.t.i.text.specifyFormatToExport }}:
+				{{ store.state.t.i.text.specifyFormatToExport }}:
 			</p>
 			<form
 				class="popup-export__form"
-				@click="
-					$event.stopPropagation();
-					$store.commit('setIdleTime', 0);
-				"
-				@submit.prevent="$root.exportPlaces(
-					$root.selectedToExport,
-					$event.target.elements['mime'].value
+				@click="e => {
+					e.stopPropagation();
+					store.commit('setIdleTime', 0);
+				}"
+				@submit.prevent="e => exportPlaces(
+					selectedToExport,
+					e.target.elements['mime'].value
 				)"
 			>
 				<fieldset class="margin_bottom">
@@ -35,7 +35,7 @@
 						<span>GPX</span>
 					</label>
 					<p>
-						{{ $store.state.t.i.text.descGpx }}
+						{{ store.state.t.i.text.descGpx }}
 					</p>
 					<label>
 						<input
@@ -48,35 +48,35 @@
 						<span>JSON</span>
 					</label>
 					<p>
-						{{ $store.state.t.i.text.descJson }}
+						{{ store.state.t.i.text.descJson }}
 					</p>
 				</fieldset>
-				<p>{{ $store.state.t.i.text.specifyPlacesToExport }}:</p>
+				<p>{{ store.state.t.i.text.specifyPlacesToExport }}:</p>
 				<div
 					v-if="
-						Object.keys($store.state.places).length > 0 ||
-						Object.keys($store.state.folders).length > 0
+						Object.keys(store.state.places).length > 0 ||
+						Object.keys(store.state.folders).length > 0
 					"
 					id="popup-export__tree"
 					class="menu"
-					@click="$event.stopPropagation();"
+					@click="e => e.stopPropagation()"
 				>
 					<places-tree
 						instanceid="popupexporttree"
-						:data="$store.state.tree || {}"
+						:data="store.state.tree || {}"
 					/>
 				</div>
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">
-							{{ $store.state.t.i.buttons.export }}
+							{{ store.state.t.i.buttons.export }}
 						</button>
 						&#160;
 						<button
 							type="button"
-							@click="close($event)"
+							@click="e => close(e)"
 						>
-							{{ $store.state.t.i.buttons.cancel }}
+							{{ store.state.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
 				</div>
@@ -84,7 +84,7 @@
 			<a
 				href="javascript:void(0);"
 				class="close"
-				@click="close($event)"
+				@click="e => close(e)"
 			>
 				×
 			</a>
@@ -94,6 +94,7 @@
 
 <script setup lang="ts">
 import { ref, inject, onMounted, onBeforeUnmount, onBeforeUpdate } from 'vue';
+import { useStore } from 'vuex';
 import { useRouter, useRoute } from 'vue-router';
 import PlacesTree from './PlacesTree.vue';
 import { constants } from '../shared/constants';
@@ -102,15 +103,17 @@ export interface IPlacesPopupExportProps {
 	mime?: string;
 }
 const props = withDefaults(defineProps<IPlacesPopupExportProps>(), {
-	mime: '',
+	mime: 'application/json',
 });
+
+const store = useStore();
+const router = useRouter();
+const route = useRoute();
 
 const popuped = ref(false);
 
-let selectedToExport = inject('selectedToExport');
-
-const router = useRouter();
-const route = useRoute();
+const selectedToExport = inject('selectedToExport');
+const exportPlaces = inject('exportPlaces');
 
 const close = (event?: Event): void => {
 	if (event) event.stopPropagation();
@@ -129,7 +132,6 @@ const keyup = (event: Event): void => {
 
 onMounted(() => {
 	popuped.value = true;
-	selectedToExport = {};
 	for (
 		const f of
 		document.getElementById('popup-export__tree')!
@@ -144,7 +146,6 @@ onBeforeUpdate(() => {
 	popuped.value = true;
 });
 onBeforeUnmount(() => {
-	selectedToExport = {};
 	document.removeEventListener('keyup', keyup, false);
 });
 </script>

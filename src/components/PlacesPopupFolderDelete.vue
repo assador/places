@@ -1,24 +1,24 @@
 <template>
 	<div
 		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="close($event)"
+		@click="e => close(e)"
 	>
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					{{ $store.state.t.i.captions.deletingFolder }}
+					{{ store.state.t.i.captions.deletingFolder }}
 				</h1>
 				<p class="margin_bottom_0">
 					«{{ folder ? folder.name : '' }}»
 				</p>
 			</div>
 			<p class="margin_bottom_0">
-				{{ $store.state.t.i.text.whatToDoWithFolder }}:
+				{{ store.state.t.i.text.whatToDoWithFolder }}:
 			</p>
 			<form
 				class="folder-delete__form margin_bottom_0"
-				@click="$event.stopPropagation();"
-				@submit.prevent="deleteFolder($event)"
+				@click="e => e.stopPropagation()"
+				@submit.prevent="e => deleteFolder(e)"
 			>
 				<fieldset class="margin_bottom">
 					<label>
@@ -28,7 +28,7 @@
 							type="radio"
 							value="keep"
 						>
-						<span>{{ $store.state.t.i.inputs.leaveContentInRoot }}</span>
+						<span>{{ store.state.t.i.inputs.leaveContentInRoot }}</span>
 					</label>
 					<label>
 						<input
@@ -37,20 +37,20 @@
 							type="radio"
 							value="delete"
 						>
-						<span>{{ $store.state.t.i.inputs.deleteContent }}</span>
+						<span>{{ store.state.t.i.inputs.deleteContent }}</span>
 					</label>
 				</fieldset>
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">
-							{{ $store.state.t.i.buttons.deleteFolder }}
+							{{ store.state.t.i.buttons.deleteFolder }}
 						</button>
 						&#160;
 						<button
 							type="button"
-							@click="close($event);"
+							@click="e => close(e)"
 						>
-							{{ $store.state.t.i.buttons.cancel }}
+							{{ store.state.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
 				</div>
@@ -58,7 +58,7 @@
 			<a
 				href="javascript:void(0);"
 				class="close"
-				@click="close($event);"
+				@click="e => close(e)"
 			>
 				×
 			</a>
@@ -94,9 +94,9 @@ const folder = ref({} as Folder);
 const places = ref({} as Record<string, Place>);
 const folders = ref({} as Record<string, Folder>);
 
+const store = useStore();
 const router = useRouter();
 const route = useRoute();
-const store = useStore();
 
 const currentPlace = computed(() => store.state.currentPlace);
 

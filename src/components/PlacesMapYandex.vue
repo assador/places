@@ -6,26 +6,26 @@
 		:center="mapCenter.coords"
 		:zoom="mapCenter.zoom"
 		@map-was-initialized="mapHandler"
-		@mouseup="updateState()"
-		@wheel="updateState();"
+		@mouseup="updateState"
+		@wheel="updateState"
 	>
 		<ymap-marker
 			ref="centerMarker"
 			marker-id="centerMarker"
 			:coords="mapCenter.coords"
-			:hint-content="$store.state.t.i.maps.center"
-			:balloon="{body: $store.state.t.i.maps.centerExt}"
+			:hint-content="store.state.t.i.maps.center"
+			:balloon="{body: store.state.t.i.maps.centerExt}"
 			:options="{
 				visible: centerPlacemarkShow,
 				...placemarksOptions.basic,
 				...placemarksOptions.center,
 				...placemarksOptions.icon_06,
 			}"
-			@dragend="
+			@dragend="e => {
 				updateState({
-					coords: $event.originalEvent.target.geometry._coordinates,
+					coords: e.originalEvent.target.geometry._coordinates,
 				});
-			"
+			}"
 		/>
 		<ymap-marker
 			v-for="(place, id) in places"
@@ -46,9 +46,9 @@
 			:properties="{
 				place: place,
 			}"
-			@click="placemarkClick($event);"
-			@dragstart="placemarkDragStart($event);"
-			@dragend="placemarkDragEnd($event);"
+			@click="e => {placemarkClick(e);}"
+			@dragstart="e => {placemarkDragStart(e);}"
+			@dragend="e => {placemarkDragEnd(e);}"
 		/>
 		<ymap-marker
 			v-for="(place, id) in commonPlaces"
@@ -66,191 +66,163 @@
 			:properties="{
 				place: place,
 			}"
-			@click="placemarkClick($event);"
+			@click="e => {placemarkClick(e);}"
 		/>
 	</yandex-map>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, inject } from 'vue';
+import { useStore } from 'vuex';
 import { emitter } from '@/shared/bus';
 import { ResizeSensor } from 'css-element-queries'
-import { mapState } from 'vuex';
 import { yandexMap, ymapMarker } from 'vue-yandex-maps';
 import { Place, Waypoint } from '@/store/types';
 
-export default defineComponent({
-	components: {
-		yandexMap,
-		ymapMarker,
+const store = useStore();
+
+const map = inject('extmap');
+const placemarksOptions = ref({
+	basic: {
+		iconLayout: 'default#image',
+		iconImageSize: [25, 38],
+		iconImageOffset: [0, -34],
 	},
-	data() {
-		return {
-			map: null as unknown as yandexMap,
-			placemarksOptions: {
-				basic: {
-					iconLayout: 'default#image',
-					iconImageSize: [25, 38],
-					iconImageOffset: [0, -34],
-				},
-				private: {
-					draggable: true,
-				},
-				common: {
-					draggable: false,
-				},
-				active: {
-					draggable: true,
-				},
-				center: {
-					draggable: true,
-				},
-				icon_04: {
-					iconImageHref: '/img/markers/marker_04.svg',
-				},
-				icon_05: {
-					iconImageHref: '/img/markers/marker_05.svg',
-				},
-				icon_06: {
-					iconImageHref: '/img/markers/marker_06.svg',
-				},
-			},
-			updatingMap: false,
-		};
+	private: {
+		draggable: true,
 	},
-	computed: {
-		...mapState([
-			'currentPlace',
-			'placemarksShow',
-			'commonPlacemarksShow',
-			'centerPlacemarkShow',
-			'places',
-			'commonPlaces',
-			'waypoints',
-		]),
-		mapCenter(): Record<string, Array<number> | number> {
-			return {
-				coords: [
-					this.$store.state.center.latitude,
-					this.$store.state.center.longitude,
-				],
-				zoom: this.$store.state.zoom,
-			};
-		},
+	common: {
+		draggable: false,
 	},
-	watch: {
-		placemarksShow() {
-			if (this.placemarksShow) {
-				this.placemarksOptions.private.visible = true;
-			} else {
-				this.placemarksOptions.private.visible = false;
-			}
-		},
-		commonPlacemarksShow() {
-			if (this.commonPlacemarksShow) {
-				this.placemarksOptions.common.visible = true;
-			} else {
-				this.placemarksOptions.common.visible = false;
-			}
-		},
-		centerPlacemarkShow() {
-			if (this.centerPlacemarkShow) {
-				this.placemarksOptions.center.visible = true;
-			} else {
-				this.placemarksOptions.center.visible = false;
-			}
-		},
+	active: {
+		draggable: true,
 	},
-	mounted() {
-		new ResizeSensor(document.getElementById('basic-basic') as HTMLElement, () => {
-			this.fitMap();
-		});
+	center: {
+		draggable: true,
 	},
-	methods: {
-		mapHandler(map) {
-			this.map = map;
-			this.map.controls.add('routeButtonControl', {});
-			this.map.behaviors.enable('scrollZoom');
-			this.$parent.commonPlacesShowHide(
-				this.$store.state.commonPlacemarksShow
-			);
-		},
-		placemarkClick(e) {
-			e.get('target').options.set(
-				'draggable',
-				e.get('target').properties.get('place.common') ? false : true
-			);
-			emitter.emit(
-				'setCurrentPlace',
-				{place: e.get('target').properties.get('place')}
-			);
-			if (e.get('target').properties.get('place.common')) {
-				const inPaginator =
-					Object.keys(this.commonPlaces)
-						.indexOf(e.get('target').properties.get('place.id')) /
-						this.$parent.commonPlacesOnPageCount
-				;
-				this.$parent.commonPlacesPage = (
-					Number.isInteger(inPaginator)
-						? inPaginator + 1
-						: Math.ceil(inPaginator)
-				);
-			}
-		},
-		placemarkDragStart(e) {
-			if (e.get('target').properties.get('place.id') !== this.currentPlace.id) {
-				e.get('target').options.set({draggable: false});
-				this.$store.dispatch('setMessage',
-					this.$store.state.t.m.popup.needToChoosePlacemark
-				);
-			}
-		},
-		placemarkDragEnd(e) {
-			e.get('target').options.set({draggable: true});
-			if (e.get('target').properties.get('place.id') === this.currentPlace.id) {
-				const coordinates = e.get('target').geometry.getCoordinates();
-				this.$store.dispatch('changePlace', {
-					place: e.get('target').properties.get('place'),
-					change: {
-						latitude: Number(coordinates[0].toFixed(7)),
-						longitude: Number(coordinates[1].toFixed(7)),
-					},
-				});
-				this.updateState({coords: coordinates});
-			}
-		},
-		updateState(payload?: {coords: Array<number>, zoom: number}) {
-			this.$store.dispatch('updateMap', {
-				latitude: Number(
-					payload && payload.coords
-						? payload.coords[0].toFixed(7)
-						: this.map.getCenter()[0].toFixed(7)
-				),
-				longitude: Number(
-					payload && payload.coords
-						? payload.coords[1].toFixed(7)
-						: this.map.getCenter()[1].toFixed(7)
-				),
-				zoom: Number(
-					payload && payload.zoom
-						? payload.zoom
-						: this.map.getZoom()
-				),
-			});
-		},
-		fitMap() {
-			if (this.map !== null) {
-				const mapblock = document.getElementById('mapblock') as HTMLElement;
-				mapblock.style.right = '100%';
-				this.map.container.fitToViewport();
-				if (!this.$parent.compact) {
-					mapblock.style.right = '12px';
-				} else {
-					mapblock.style.right = '0';
-				}
-				this.map.container.fitToViewport();
-			}
-		},
+	icon_04: {
+		iconImageHref: '/img/markers/marker_04.svg',
+	},
+	icon_05: {
+		iconImageHref: '/img/markers/marker_05.svg',
+	},
+	icon_06: {
+		iconImageHref: '/img/markers/marker_06.svg',
 	},
 });
+const updatingMap = ref(false);
+
+const currentPlace = computed(() => store.state.currentPlace);
+const placemarksShow = computed(() => store.state.placemarksShow);
+const commonPlacemarksShow = computed(() => store.state.commonPlacemarksShow);
+const centerPlacemarkShow = computed(() => store.state.centerPlacemarkShow);
+const places = computed(() => store.state.places);
+const commonPlaces = computed(() => store.state.commonPlaces);
+const waypoints = computed(() => store.state.waypoints);
+const mapCenter = computed(() => ({
+	coords: [
+		store.state.center.latitude,
+		store.state.center.longitude,
+	],
+	zoom: store.state.zoom,
+}));
+
+watch(() => placemarksShow.value, () => {
+	if (placemarksShow.value) {
+		placemarksOptions.value.private.visible = true;
+	} else {
+		placemarksOptions.value.private.visible = false;
+	}
+});
+watch(() => commonPlacemarksShow.value, () => {
+	if (commonPlacemarksShow.value) {
+		placemarksOptions.value.common.visible = true;
+	} else {
+		placemarksOptions.value.common.visible = false;
+	}
+});
+watch(() => centerPlacemarkShow.value, () => {
+	if (centerPlacemarkShow.value) {
+		placemarksOptions.value.center.visible = true;
+	} else {
+		placemarksOptions.value.center.visible = false;
+	}
+});
+
+const commonPlacesShowHide = inject('commonPlacesShowHide');
+const commonPlacesPage = inject('commonPlacesPage');
+const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
+const compact = inject('compact');
+
+const mapHandler = (map): void => {
+	map.value = map;
+	map.value.controls.add('routeButtonControl', {});
+	map.value.behaviors.enable('scrollZoom');
+	commonPlacesShowHide(
+		store.state.commonPlacemarksShow
+	);
+};
+const placemarkClick = (e): void => {
+	e.get('target').options.set(
+		'draggable',
+		e.get('target').properties.get('place.common') ? false : true
+	);
+	emitter.emit(
+		'setCurrentPlace',
+		{place: e.get('target').properties.get('place')}
+	);
+	if (e.get('target').properties.get('place.common')) {
+		const inPaginator =
+			Object.keys(commonPlaces.value)
+				.indexOf(e.get('target').properties.get('place.id')) /
+				commonPlacesOnPageCount.value
+		;
+		commonPlacesPage.value = (
+			Number.isInteger(inPaginator)
+				? inPaginator + 1
+				: Math.ceil(inPaginator)
+		);
+	}
+};
+const placemarkDragStart = (e): void => {
+	if (e.get('target').properties.get('place.id') !== currentPlace.value.id) {
+		e.get('target').options.set({draggable: false});
+		store.dispatch('setMessage',
+			store.state.t.m.popup.needToChoosePlacemark
+		);
+	}
+};
+const placemarkDragEnd = (e): void => {
+	e.get('target').options.set({draggable: true});
+	if (e.get('target').properties.get('place.id') === currentPlace.value.id) {
+		const coordinates = e.get('target').geometry.getCoordinates();
+		store.dispatch('changePlace', {
+			place: e.get('target').properties.get('place'),
+			change: {
+				latitude: Number(coordinates[0].toFixed(7)),
+				longitude: Number(coordinates[1].toFixed(7)),
+			},
+		});
+		updateState({coords: coordinates});
+	}
+};
+const updateState = (payload?: {coords: Array<number>, zoom: number}): void => {
+	store.dispatch('updateMap', {
+		latitude: Number(
+			payload && payload.coords
+				? payload.coords[0].toFixed(7)
+				: map.value.myMap.getCenter()[0].toFixed(7)
+		),
+		longitude: Number(
+			payload && payload.coords
+				? payload.coords[1].toFixed(7)
+				: map.value.myMap.getCenter()[1].toFixed(7)
+		),
+		zoom: Number(
+			payload && payload.zoom
+				? payload.zoom
+				: map.value.myMap.getZoom()
+		),
+	});
+};
 </script>

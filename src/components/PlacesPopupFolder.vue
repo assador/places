@@ -1,23 +1,23 @@
 <template>
 	<div
 		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="close($event)"
+		@click="e => close(e)"
 	>
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					{{ $store.state.t.i.captions.newFolder }}
+					{{ store.state.t.i.captions.newFolder }}
 				</h1>
 			</div>
 			<form
 				class="folder-new__form margin_bottom_0"
-				@click="$event.stopPropagation();"
+				@click="e => e.stopPropagation()"
 				@submit.prevent="appendFolder(folderName ? folderName : '', folderDescription ? folderDescription : '');"
 			>
 				<table class="table_form">
 					<tbody>
 						<tr>
-							<th>{{ $store.state.t.i.captions.name }}:</th>
+							<th>{{ store.state.t.i.captions.name }}:</th>
 							<td>
 								<input
 									id="folderName"
@@ -29,7 +29,7 @@
 							</td>
 						</tr>
 						<tr>
-							<th>{{ $store.state.t.i.captions.description }}:</th>
+							<th>{{ store.state.t.i.captions.description }}:</th>
 							<td>
 								<textarea
 									id="folderDescription"
@@ -42,11 +42,11 @@
 							<th />
 							<td style="padding-top: 18px; vertical-align: top;">
 								<button type="submit">
-									{{ $store.state.t.i.buttons.createFolder }}
+									{{ store.state.t.i.buttons.createFolder }}
 								</button>
 								&#160;
-								<button @click="close($event);">
-									{{ $store.state.t.i.buttons.cancel }}
+								<button @click="e => close(e)">
+									{{ store.state.t.i.buttons.cancel }}
 								</button>
 							</td>
 						</tr>
@@ -62,7 +62,7 @@
 			<a
 				href="javascript:void(0)"
 				class="close"
-				@click="close($event)"
+				@click="e => close(e)"
 			>
 				×
 			</a>
@@ -84,9 +84,9 @@ const folderDescription = ref('');
 const message = ref('');
 const popuped = ref(false);
 
+const store = useStore();
 const router = useRouter();
 const route = useRoute();
-const store = useStore();
 
 const currentPlace = computed(() => store.state.currentPlace);
 

@@ -1,29 +1,29 @@
 <template>
 	<div
 		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="close($event)"
+		@click="e => close(e)"
 	>
 		<img
 			v-if="image"
 			class="popup-image border_1"
 			:src="constants.dirs.uploads.images.big + image.file"
 			:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedbig + image.file + '\''"
-			@click="showImage(1, $event);"
+			@click="e => showImage(1, e)"
 		>
 		<a
 			href="javascript:void(0);"
 			class="prev"
-			@click="showImage(-1, $event);"
+			@click="e => showImage(-1, e)"
 		>◀</a>
 		<a
 			href="javascript:void(0);"
 			class="next"
-			@click="showImage(1, $event);"
+			@click="e => showImage(1, e)"
 		>▶</a>
 		<a
 			href="javascript:void(0);"
 			class="close"
-			@click="close($event)"
+			@click="e => close(e)"
 		>×</a>
 	</div>
 </template>
@@ -56,9 +56,9 @@ const image = ref({} as Image);
 
 const currentPlaceCommon = inject('currentPlaceCommon');
 
+const store = useStore();
 const router = useRouter();
 const route = useRoute();
-const store = useStore();
 
 const close = (event?: Event): void => {
 	if (event) event.stopPropagation();

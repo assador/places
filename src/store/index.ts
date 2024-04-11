@@ -26,44 +26,44 @@ const tracking: Plugin<State> = (store: Store<State>) => {
 		'swapImages',
 		'setHomePlace',
 		'setCurrentPlace',
+		'setServerConfig',
 		'placesReady',
 		'stateReady',
 		'changeLang',
 		'changeColortheme',
 	];
 	store.subscribe((mutation: MutationPayload, state: State) => {
-		if (trackingMutations.includes(mutation.type)) {
-			if (!state.refreshing) {
-				sessionStorage.setItem('places-store-state', JSON.stringify(state));
-			}
-			if (
-				mutation.payload &&
-				mutation.type !== 'setHomePlace' &&
-				mutation.type !== 'setCurrentPlace' &&
-				mutation.type !== 'placesReady' &&
-				mutation.type !== 'stateReady' &&
-				mutation.type !== 'changeLang' &&
-				mutation.type !== 'changeColortheme' &&
-				(
-					mutation.payload.hasOwnProperty('backup') &&
-					!!mutation.payload.backup ||
-					!mutation.payload.hasOwnProperty('backup')
-				) && !(
-					mutation.payload.key && (
-						mutation.payload.key === 'added' ||
-						mutation.payload.key === 'deleted' ||
-						mutation.payload.key === 'updated'
-					)
-				) && !(
-					mutation.payload.change && (
-						'added' in mutation.payload.change  ||
-						'deleted' in mutation.payload.change  ||
-						'updated' in mutation.payload.change
-					)
+		if (!trackingMutations.includes(mutation.type)) return;
+		if (!state.refreshing) {
+			sessionStorage.setItem('places-store-state', JSON.stringify(state));
+		}
+		if (
+			mutation.payload &&
+			mutation.type !== 'setHomePlace' &&
+			mutation.type !== 'setCurrentPlace' &&
+			mutation.type !== 'placesReady' &&
+			mutation.type !== 'stateReady' &&
+			mutation.type !== 'changeLang' &&
+			mutation.type !== 'changeColortheme' &&
+			(
+				mutation.payload.hasOwnProperty('backup') &&
+				!!mutation.payload.backup ||
+				!mutation.payload.hasOwnProperty('backup')
+			) && !(
+				mutation.payload.key && (
+					mutation.payload.key === 'added' ||
+					mutation.payload.key === 'deleted' ||
+					mutation.payload.key === 'updated'
 				)
-			) {
-				store.commit('backupState');
-			}
+			) && !(
+				mutation.payload.change && (
+					'added' in mutation.payload.change  ||
+					'deleted' in mutation.payload.change  ||
+					'updated' in mutation.payload.change
+				)
+			)
+		) {
+			store.commit('backupState');
 		}
 	});
 	store.watch(
@@ -102,13 +102,6 @@ const store = createStore({
 		mouseOverMessages: false,
 		serverConfig: null,
 		activeMapIndex: 0,
-		maps: [{
-			name: 'OpenStreetMap',
-			component: 'PlacesMapOpenStreetMap',
-		}, {
-			name: 'Яндекс.Карты',
-			component: 'PlacesMapYandex',
-		}],
 		lang: 'ru',
 		langs: [{
 			value: 'ru',
@@ -855,10 +848,10 @@ const store = createStore({
 			}
 			addImported(payload.mime, parsed);
 		},
-		replaceState({state, commit, dispatch}, payload) {
+		async replaceState({state, commit, dispatch}, payload) {
 			commit('replaceState', payload.state);
 			dispatch('changeLang', state.lang);
-			dispatch('restoreObjectsAsLinks');
+			await dispatch('restoreObjectsAsLinks');
 			if (state.currentPlace) {
 				dispatch('updateMap', {
 					latitude: state.waypoints[state.currentPlace.waypoint].latitude,
@@ -887,7 +880,7 @@ const store = createStore({
 				? getters.treeFlat[payload.folder.parent]
 				: state.tree
 			;
-			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			const saveToDB = ('todb' in payload && payload.todb === false ? false : true);
 			if (saveToDB && !state.user.testaccount) {
 				if (!state.inUndoRedo) {
 					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
@@ -908,27 +901,27 @@ const store = createStore({
 			commit('setHomePlace', place);
 			if (!place) emitter.emit('homeToDB', null);
 		},
-		async deletePlacesMarkedAsDeleted({state, dispatch}) {
+		deletePlacesMarkedAsDeleted({state, dispatch}) {
 			const places: Record<string, Place> = {};
 			for (const id in state.places) {
 				if (state.places[id].deleted) {
 					places[id] = state.places[id];
 				}
 			}
-			await dispatch('deletePlaces', {places: places});
+			dispatch('deletePlaces', {places: places});
 		},
-		async deleteFoldersMarkedAsDeleted({dispatch, getters}) {
+		deleteFoldersMarkedAsDeleted({dispatch, getters}) {
 			const folders: Record<string, Folder> = {};
 			for (const id in getters.treeFlat) {
 				if (getters.treeFlat[id].deleted) {
 					folders[id] = getters.treeFlat[id];
 				}
 			}
-			await dispatch('deleteFolders', {folders: folders});
+			dispatch('deleteFolders', {folders: folders});
 		},
 		async deletePlaces({state, commit}, payload) {
 			const
-				saveToDB = 'todb' in payload && payload.todb === false ? false : true,
+				saveToDB = ('todb' in payload && payload.todb === false ? false : true),
 				waypoints: Array<Waypoint> = [],
 				places: Array<Place> = [],
 				images: Array<Image> = []
@@ -986,7 +979,7 @@ const store = createStore({
 		},
 		async deleteFolders({state, commit, getters}, payload) {
 			const
-				saveToDB = 'todb' in payload && payload.todb === false ? false : true,
+				saveToDB = ('todb' in payload && payload.todb === false ? false : true),
 				folders: Array<Folder> = []
 			;
 			for (const payloadFolderId in payload.folders) {
@@ -1006,7 +999,7 @@ const store = createStore({
 			}
 		},
 		async addWaypoint({state, commit}, payload) {
-			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			const saveToDB = ('todb' in payload && payload.todb === false ? false : true);
 			if (saveToDB && !state.user.testaccount) {
 				if (!state.inUndoRedo) {
 					emitter.emit('toDB', {
@@ -1025,7 +1018,7 @@ const store = createStore({
 			commit('addWaypoint', payload.waypoint);
 		},
 		async addPlace({state, commit}, payload) {
-			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			const saveToDB = ('todb' in payload && payload.todb === false ? false : true);
 			if (saveToDB && !state.user.testaccount) {
 				if (!state.inUndoRedo) {
 					emitter.emit('toDB', {what: 'places', data: [payload.place]});
@@ -1038,7 +1031,7 @@ const store = createStore({
 			commit('addPlace', payload.place);
 		},
 		async changeWaypoint({state, commit}, payload) {
-			let saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			let saveToDB = ('todb' in payload && payload.todb === false ? false : true);
 			for (const key in payload.change) {
 				commit('changeWaypoint', {
 					waypoint: payload.waypoint,
@@ -1073,8 +1066,8 @@ const store = createStore({
 				}
 			}
 		},
-		async changePlace({state, commit, dispatch}, payload) {
-			let saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+		changePlace({state, commit, dispatch}, payload) {
+			let saveToDB = ('todb' in payload && payload.todb === false ? false : true);
 			if (
 				'latitude' in payload.change ||
 				'longitude' in payload.change ||
@@ -1152,7 +1145,7 @@ const store = createStore({
 					value: payload.change[key],
 				});
 			}
-			const saveToDB = 'todb' in payload && payload.todb === false ? false : true;
+			const saveToDB = ('todb' in payload && payload.todb === false ? false : true);
 			if (saveToDB && !state.user.testaccount) {
 				commit('changeFolder', {
 					folder: payload.folder,
@@ -1167,7 +1160,7 @@ const store = createStore({
 				}
 			}
 		},
-		async moveFolder({state, commit, dispatch, getters}, payload) {
+		moveFolder({state, commit, dispatch, getters}, payload) {
 			let source;
 			const folder = ('folder' in payload)
 				? payload.folder
@@ -1210,7 +1203,7 @@ const store = createStore({
 				changeFolderPayload.todb = false;
 				changeFolderPayload.change.updated = true;
 			}
-			await dispatch('changeFolder', changeFolderPayload);
+			dispatch('changeFolder', changeFolderPayload);
 		},
 		savedToDB({state, commit, getters}, payload) {
 			switch (payload.what) {

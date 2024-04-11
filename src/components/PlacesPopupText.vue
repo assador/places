@@ -1,13 +1,13 @@
 <template>
 	<div
 		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="close($event)"
+		@click="e => close(e)"
 	>
 		<div v-html="content" />
 		<a
 			href="javascript:void(0)"
 			class="close"
-			@click="close($event)"
+			@click="e => close(e)"
 		>
 			×
 		</a>
@@ -24,7 +24,7 @@ export interface IPlacesPopupTextProps {
 	what?: string;
 }
 const props = withDefaults(defineProps<IPlacesPopupTextProps>(), {
-	what: '',
+	what: 'about',
 });
 
 const content = ref('');
