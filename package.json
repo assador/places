@@ -1,7 +1,7 @@
 {
 	"name": "places",
 	"description": "Yet another geo placemarks viewer and editor service",
-	"version": "5.0.0",
+	"version": "5.0.1",
 	"author": "Dmitry Sokolov <assador@gmail.com>",
 	"license": "MIT",
 	"private": true,
@@ -12,18 +12,17 @@
 		"test:unit": "jest"
 	},
 	"dependencies": {
-		"core-js": "latest",
-		"css-element-queries": "latest",
-		"mitt": "latest",
-		"register-service-worker": "latest",
-		"sass": "latest",
-		"sass-loader": "latest",
-		"vue": "latest",
-		"vue-fullscreen": "latest",
-		"vue-router": "latest",
-		"vue-template-compiler": "latest",
-		"vue-yandex-maps": "latest",
-		"vuex": "latest"
+		"core-js": "^3.37.0",
+		"css-element-queries": "^1.2.3",
+		"mitt": "^3.0.1",
+		"register-service-worker": "^1.7.2",
+		"sass": "^1.75.0",
+		"sass-loader": "^14.2.1",
+		"vue": "^3.4.23",
+		"vue-fullscreen": "^3.1.1",
+		"vue-router": "^4.3.0",
+		"vue-yandex-maps": "^2.1.1",
+		"vuex": "^4.1.0"
 	},
 	"devDependencies": {
 		"@types/jest": "latest",

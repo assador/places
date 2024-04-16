@@ -1,14 +1,20 @@
 <template>
 	<yandex-map
 		id="mapblock"
-		ref="map"
-		:coords="mapCenter.coords"
-		:center="mapCenter.coords"
-		:zoom="mapCenter.zoom"
+		v-model="map"
+		:settings="{
+			location: {
+				center: mapCenter.coords,
+				zoom: mapCenter.zoom,
+			},
+		}"
 		@map-was-initialized="mapHandler"
 		@mouseup="updateState"
 		@wheel="updateState"
 	>
+		<yandex-map-default-features-layer />
+		<yandex-map-default-scheme-layer />
+<!--
 		<ymap-marker
 			ref="centerMarker"
 			marker-id="centerMarker"
@@ -68,15 +74,17 @@
 			}"
 			@click="e => {placemarkClick(e);}"
 		/>
+-->
 	</yandex-map>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, inject } from 'vue';
+import { ref, shallowRef, computed, watch, onMounted, inject } from 'vue';
 import { useStore } from 'vuex';
 import { emitter } from '@/shared/bus';
-import { ResizeSensor } from 'css-element-queries'
-import { yandexMap, ymapMarker } from 'vue-yandex-maps';
+import { ResizeSensor } from 'css-element-queries';
+import type { YMap } from '@yandex/ymaps3-types';
+import { YandexMap, YandexMapDefaultSchemeLayer, YandexMapDefaultFeaturesLayer, YandexMapMarker } from 'vue-yandex-maps';
 import { Place, Waypoint } from '@/store/types';
 
 const store = useStore();
@@ -154,6 +162,7 @@ const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 const compact = inject('compact');
 
+map.value = shallowRef<null | YMap>(null);
 const mapHandler = (map): void => {
 	map.value = map;
 	map.value.controls.add('routeButtonControl', {});

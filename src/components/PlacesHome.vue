@@ -579,7 +579,7 @@ import {
 	nextTick,
 	defineAsyncComponent,
 } from 'vue';
-import { directive as fullscreen } from 'vue-fullscreen'
+import { directive as fullscreen } from 'vue-fullscreen';
 import axios from 'axios';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';

@@ -4,7 +4,6 @@ include "newpdo.php";
 include "common.php";
 
 $_POST = json_decode(file_get_contents("php://input"), true);
-file_put_contents("/media/data/1.txt", json_encode($_POST));
 $faults = [];
 /*
  * 1: Something’s wrong
