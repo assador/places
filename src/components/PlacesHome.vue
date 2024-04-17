@@ -725,10 +725,8 @@ const currentDegMinSec = computed((): string => {
 watch(() => stateReady.value, () => {
 	stateReadyChanged();
 });
-watch(() => fullscreen, () => {
-	if (fullscreen) {
-		document.querySelector('.fullscreen-wrapper').classList.add('colortheme-' + colortheme.value);
-	}
+watch(() => state.value.fullscreen, () => {
+	updateColorthemeInFullscreen();
 });
 watch(() => colortheme.value, () => {
 	updateColorthemeInFullscreen();
@@ -771,7 +769,7 @@ onBeforeUnmount(() => {
 onUpdated(() => makeFieldsValidatable());
 
 const updateColorthemeInFullscreen = (): void => {
-	if (fullscreen) {
+	if (state.value.fullscreen) {
 		const fullscreenWrapper = document.querySelector('.fullscreen-wrapper');
 		for (const theme of colorthemes.value) {
 			fullscreenWrapper.classList.remove('colortheme-' + theme.value);

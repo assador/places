@@ -3,12 +3,12 @@
 		id="mapblock"
 		v-model="map"
 		:settings="{
+			apikey: '264f4333-26ea-4342-af02-67c24d0533e7',
 			location: {
 				center: mapCenter.coords,
 				zoom: mapCenter.zoom,
 			},
 		}"
-		@map-was-initialized="mapHandler"
 		@mouseup="updateState"
 		@wheel="updateState"
 	>
@@ -162,7 +162,7 @@ const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 const compact = inject('compact');
 
-map.value = shallowRef<null | YMap>(null);
+map.value = shallowRef<YMap | null>(null);
 const mapHandler = (map): void => {
 	map.value = map;
 	map.value.controls.add('routeButtonControl', {});
