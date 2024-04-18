@@ -388,9 +388,15 @@ const store = createStore({
 			changes.place.updated = true;
 		},
 		updateMap(state, payload) {
-			if (payload.latitude) state.center.latitude = payload.latitude;
-			if (payload.longitude) state.center.longitude = payload.longitude;
-			if (payload.zoom) state.zoom = payload.zoom;
+			if (typeof payload.latitude === 'number') {
+				state.center.latitude = payload.latitude;
+			}
+			if (typeof payload.longitude === 'number') {
+				state.center.longitude = payload.longitude;
+			}
+			if (typeof payload.zoom === 'number') {
+				state.zoom = payload.zoom;
+			}
 		},
 		placemarksShowHide(state, show) {
 			state.placemarksShow = show;

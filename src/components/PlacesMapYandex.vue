@@ -1,12 +1,14 @@
 <template>
 	<yandex-map
-		id="mapblock"
 		v-model="map"
 		:settings="{
 			apikey: '264f4333-26ea-4342-af02-67c24d0533e7',
 			location: {
-				center: mapCenter.coords,
-				zoom: mapCenter.zoom,
+				center: [
+					store.state.center.longitude,
+					store.state.center.latitude,
+				],
+				zoom: store.state.zoom,
 			},
 		}"
 		@mouseup="updateState"
@@ -14,67 +16,72 @@
 	>
 		<yandex-map-default-features-layer />
 		<yandex-map-default-scheme-layer />
-<!--
-		<ymap-marker
-			ref="centerMarker"
-			marker-id="centerMarker"
-			:coords="mapCenter.coords"
-			:hint-content="store.state.t.i.maps.center"
-			:balloon="{body: store.state.t.i.maps.centerExt}"
-			:options="{
-				visible: centerPlacemarkShow,
-				...placemarksOptions.basic,
-				...placemarksOptions.center,
-				...placemarksOptions.icon_06,
+		<yandex-map-marker
+			v-if="store.state.centerPlacemarkShow"
+			v-model="markerCenter"
+			:settings="{
+				coordinates: [
+					store.state.center.longitude,
+					store.state.center.latitude,
+				],
+				draggable: true,
 			}"
-			@dragend="e => {
+			position="top-center left-center"
+			@mouseup="e => {
+				e.stopPropagation();
 				updateState({
-					coords: e.originalEvent.target.geometry._coordinates,
+					coords: markerCenter.coordinates.slice().reverse(),
 				});
 			}"
-		/>
-		<ymap-marker
-			v-for="(place, id) in places"
+		>
+			<img
+class="marker"
+:src="placemarksOptions.icon_06.iconImageHref"
+>
+		</yandex-map-marker>
+		<yandex-map-marker
+			v-for="(place, id) in store.state.places"
+			v-if="store.state.placemarksShow"
 			:key="id"
-			:marker-id="place.id"
-			:coords="[
-				waypoints[place.waypoint] ? waypoints[place.waypoint].latitude : 0,
-				waypoints[place.waypoint] ? waypoints[place.waypoint].longitude : 0,
-			]"
-			:hint-content="place.name"
-			:balloon="{body: place.description}"
-			:options="{
-				visible: placemarksShow && place.show && place.geomark,
-				...placemarksOptions.basic,
-				...placemarksOptions.private,
-				...placemarksOptions[currentPlace && id === currentPlace.id ? 'icon_06' : 'icon_04'],
+			v-model="markers[place.id]"
+			:settings="{
+				coordinates: [
+					store.state.waypoints[place.waypoint] ? store.state.waypoints[place.waypoint].longitude : 0,
+					store.state.waypoints[place.waypoint] ? store.state.waypoints[place.waypoint].latitude : 0,
+				],
+				draggable: true,
 			}"
-			:properties="{
-				place: place,
-			}"
-			@click="e => {placemarkClick(e);}"
-			@dragstart="e => {placemarkDragStart(e);}"
-			@dragend="e => {placemarkDragEnd(e);}"
-		/>
-		<ymap-marker
-			v-for="(place, id) in commonPlaces"
+			position="top-center left-center"
+			@click="placemarkClick(place.id)"
+			@mouseup="placemarkDragEnd(place.id)"
+		>
+			<img
+				v-if="place.show && place.geomark"
+				class="marker"
+				:src="placemarksOptions[store.state.currentPlace && id === store.state.currentPlace.id ? 'icon_06' : 'icon_04'].iconImageHref"
+			>
+		</yandex-map-marker>
+		<yandex-map-marker
+			v-for="(place, id) in store.state.commonPlaces"
+			v-if="store.state.commonPlacemarksShow"
 			:key="id"
-			:marker-id="place.id"
-			:coords="[waypoints[place.waypoint].latitude, waypoints[place.waypoint].longitude]"
-			:hint-content="place.name"
-			:balloon="{body: place.description}"
-			:options="{
-				visible: commonPlacemarksShow && place.show && place.geomark,
-				...placemarksOptions.basic,
-				...placemarksOptions.common,
-				...placemarksOptions[currentPlace && id === currentPlace.id ? 'icon_06' : 'icon_05'],
+			v-model="markers[place.id]"
+			:settings="{
+				coordinates: [
+					store.state.waypoints[place.waypoint] ? store.state.waypoints[place.waypoint].longitude : 0,
+					store.state.waypoints[place.waypoint] ? store.state.waypoints[place.waypoint].latitude : 0,
+				],
+				draggable: false,
 			}"
-			:properties="{
-				place: place,
-			}"
-			@click="e => {placemarkClick(e);}"
-		/>
--->
+			position="top-center left-center"
+			@click="placemarkClick(place.id)"
+		>
+			<img
+				v-if="place.geomark"
+				class="marker"
+				:src="placemarksOptions[store.state.currentPlace && id === store.state.currentPlace.id ? 'icon_06' : 'icon_05'].iconImageHref"
+			>
+		</yandex-map-marker>
 	</yandex-map>
 </template>
 
@@ -83,13 +90,24 @@ import { ref, shallowRef, computed, watch, onMounted, inject } from 'vue';
 import { useStore } from 'vuex';
 import { emitter } from '@/shared/bus';
 import { ResizeSensor } from 'css-element-queries';
+import {
+	YandexMap,
+	YandexMapMarker,
+	YandexMapDefaultSchemeLayer,
+	YandexMapDefaultFeaturesLayer,
+	createYmapsOptions,
+} from 'vue-yandex-maps';
 import type { YMap } from '@yandex/ymaps3-types';
-import { YandexMap, YandexMapDefaultSchemeLayer, YandexMapDefaultFeaturesLayer, YandexMapMarker } from 'vue-yandex-maps';
+import type { LngLat } from '@yandex/ymaps3-types';
 import { Place, Waypoint } from '@/store/types';
 
 const store = useStore();
 
-const map = inject('extmap');
+const map = shallowRef<YMap | null>(null);
+const markers = shallowRef<Record<string, YandexMapMarker | null>>({});
+const markerCenter = shallowRef<YandexMapMarker | null>(null);
+createYmapsOptions({apikey: 'f81dd454-9378-4883-86ae-c84eb24d72d6'});
+
 const placemarksOptions = ref({
 	basic: {
 		iconLayout: 'default#image',
@@ -120,37 +138,22 @@ const placemarksOptions = ref({
 });
 const updatingMap = ref(false);
 
-const currentPlace = computed(() => store.state.currentPlace);
-const placemarksShow = computed(() => store.state.placemarksShow);
-const commonPlacemarksShow = computed(() => store.state.commonPlacemarksShow);
-const centerPlacemarkShow = computed(() => store.state.centerPlacemarkShow);
-const places = computed(() => store.state.places);
-const commonPlaces = computed(() => store.state.commonPlaces);
-const waypoints = computed(() => store.state.waypoints);
-const mapCenter = computed(() => ({
-	coords: [
-		store.state.center.latitude,
-		store.state.center.longitude,
-	],
-	zoom: store.state.zoom,
-}));
-
-watch(() => placemarksShow.value, () => {
-	if (placemarksShow.value) {
+watch(() => store.state.placemarksShow, () => {
+	if (store.state.placemarksShow) {
 		placemarksOptions.value.private.visible = true;
 	} else {
 		placemarksOptions.value.private.visible = false;
 	}
 });
-watch(() => commonPlacemarksShow.value, () => {
-	if (commonPlacemarksShow.value) {
+watch(() => store.state.commonPlacemarksShow, () => {
+	if (store.state.commonPlacemarksShow) {
 		placemarksOptions.value.common.visible = true;
 	} else {
 		placemarksOptions.value.common.visible = false;
 	}
 });
-watch(() => centerPlacemarkShow.value, () => {
-	if (centerPlacemarkShow.value) {
+watch(() => store.state.centerPlacemarkShow, () => {
+	if (store.state.centerPlacemarkShow) {
 		placemarksOptions.value.center.visible = true;
 	} else {
 		placemarksOptions.value.center.visible = false;
@@ -162,29 +165,18 @@ const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 const compact = inject('compact');
 
-map.value = shallowRef<YMap | null>(null);
-const mapHandler = (map): void => {
-	map.value = map;
-	map.value.controls.add('routeButtonControl', {});
-	map.value.behaviors.enable('scrollZoom');
-	commonPlacesShowHide(
-		store.state.commonPlacemarksShow
-	);
-};
-const placemarkClick = (e): void => {
-	e.get('target').options.set(
-		'draggable',
-		e.get('target').properties.get('place.common') ? false : true
-	);
+const placemarkClick = (id: string): void => {
+	let place = null;
+	if (store.state.places[id]) place = store.state.places[id];
+	if (store.state.commonPlaces[id]) place = store.state.commonPlaces[id];
 	emitter.emit(
 		'setCurrentPlace',
-		{place: e.get('target').properties.get('place')}
+		{place: place}
 	);
-	if (e.get('target').properties.get('place.common')) {
+	if (place.common) {
 		const inPaginator =
-			Object.keys(commonPlaces.value)
-				.indexOf(e.get('target').properties.get('place.id')) /
-				commonPlacesOnPageCount.value
+			Object.keys(store.state.commonPlaces).indexOf(id) /
+			commonPlacesOnPageCount.value
 		;
 		commonPlacesPage.value = (
 			Number.isInteger(inPaginator)
@@ -193,20 +185,12 @@ const placemarkClick = (e): void => {
 		);
 	}
 };
-const placemarkDragStart = (e): void => {
-	if (e.get('target').properties.get('place.id') !== currentPlace.value.id) {
-		e.get('target').options.set({draggable: false});
-		store.dispatch('setMessage',
-			store.state.t.m.popup.needToChoosePlacemark
-		);
-	}
-};
-const placemarkDragEnd = (e): void => {
-	e.get('target').options.set({draggable: true});
-	if (e.get('target').properties.get('place.id') === currentPlace.value.id) {
-		const coordinates = e.get('target').geometry.getCoordinates();
+const placemarkDragEnd = (id: string): void => {
+	placemarkClick(id);
+	if (id === store.state.currentPlace.id) {
+		const coordinates = markers.value[id].coordinates.slice().reverse();
 		store.dispatch('changePlace', {
-			place: e.get('target').properties.get('place'),
+			place: store.state.places[id],
 			change: {
 				latitude: Number(coordinates[0].toFixed(7)),
 				longitude: Number(coordinates[1].toFixed(7)),
@@ -220,18 +204,26 @@ const updateState = (payload?: {coords: Array<number>, zoom: number}): void => {
 		latitude: Number(
 			payload && payload.coords
 				? payload.coords[0].toFixed(7)
-				: map.value.myMap.getCenter()[0].toFixed(7)
+				: map.value.center[1].toFixed(7)
 		),
 		longitude: Number(
 			payload && payload.coords
 				? payload.coords[1].toFixed(7)
-				: map.value.myMap.getCenter()[1].toFixed(7)
+				: map.value.center[0].toFixed(7)
 		),
 		zoom: Number(
 			payload && payload.zoom
 				? payload.zoom
-				: map.value.myMap.getZoom()
+				: map.value.zoom
 		),
 	});
 };
 </script>
+<style scoped>
+.marker {
+	cursor: pointer;
+	max-width: unset;
+	width: 25px;
+	height: 38px;
+}
+</style>
