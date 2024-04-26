@@ -35,9 +35,9 @@
 			}"
 		>
 			<img
-class="marker"
-:src="placemarksOptions.icon_06.iconImageHref"
->
+				class="marker"
+				:src="placemarksOptions.icon_06.iconImageHref"
+			>
 		</yandex-map-marker>
 		<yandex-map-marker
 			v-for="(place, id) in store.state.places"
@@ -82,11 +82,29 @@ class="marker"
 				:src="placemarksOptions[store.state.currentPlace && id === store.state.currentPlace.id ? 'icon_06' : 'icon_05'].iconImageHref"
 			>
 		</yandex-map-marker>
+		<yandex-map-controls :settings="{position: 'top left'}">
+			<yandex-map-geolocation-control />
+			<yandex-map-zoom-control />
+			<yandex-map-scale-control />
+		</yandex-map-controls>
+		<yandex-map-controls :settings="{position: 'top right', orientation: 'vertical'}">
+			<yandex-map-control-button :settings="{onClick: toggleFullscreen}">
+				<div
+class="fullscreen"
+:class="{'exit-fullscreen': isFullscreen}"
+>
+⤧
+</div>
+			</yandex-map-control-button>
+		</yandex-map-controls>
+		<yandex-map-controls :settings="{position: 'bottom left', orientation: 'vertical'}">
+			<yandex-map-open-maps-button />
+		</yandex-map-controls>
 	</yandex-map>
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef, computed, watch, onMounted, inject } from 'vue';
+import { ref, shallowRef, isRef, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue';
 import { useStore } from 'vuex';
 import { emitter } from '@/shared/bus';
 import { ResizeSensor } from 'css-element-queries';
@@ -96,6 +114,14 @@ import {
 	YandexMapDefaultSchemeLayer,
 	YandexMapDefaultFeaturesLayer,
 	createYmapsOptions,
+	YandexMapControl,
+	YandexMapControlButton,
+	YandexMapControls,
+	YandexMapEntity,
+	YandexMapGeolocationControl,
+	YandexMapOpenMapsButton,
+	YandexMapScaleControl,
+	YandexMapZoomControl,
 } from 'vue-yandex-maps';
 import type { YMap } from '@yandex/ymaps3-types';
 import type { LngLat } from '@yandex/ymaps3-types';
@@ -218,7 +244,27 @@ const updateState = (payload?: {coords: Array<number>, zoom: number}): void => {
 		),
 	});
 };
+
+const isFullscreen = ref(false);
+
+const toggleFullscreen = () => {
+	if (isFullscreen.value) {
+		document.exitFullscreen();
+	} else {
+		map.value!.container.requestFullscreen();
+	}
+};
+onMounted(() => {
+	const handleFullscreenChange = () => {
+		isFullscreen.value = !!document.fullscreenElement;
+	};
+	document.addEventListener('fullscreenchange', handleFullscreenChange);
+	onBeforeUnmount(() => {
+		document.removeEventListener('fullscreenchange', handleFullscreenChange);
+	});
+});
 </script>
+
 <style scoped>
 .marker {
 	cursor: pointer;
