@@ -90,11 +90,11 @@
 		<yandex-map-controls :settings="{position: 'top right', orientation: 'vertical'}">
 			<yandex-map-control-button :settings="{onClick: toggleFullscreen}">
 				<div
-class="fullscreen"
-:class="{'exit-fullscreen': isFullscreen}"
->
-⤧
-</div>
+					class="fullscreen"
+					:class="{'exit-fullscreen': isFullscreen}"
+				>
+					⤧
+				</div>
 			</yandex-map-control-button>
 		</yandex-map-controls>
 		<yandex-map-controls :settings="{position: 'bottom left', orientation: 'vertical'}">
@@ -104,34 +104,29 @@ class="fullscreen"
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef, isRef, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue';
+import { ref, shallowRef, watch, onMounted, onBeforeUnmount, inject } from 'vue';
 import { useStore } from 'vuex';
 import { emitter } from '@/shared/bus';
-import { ResizeSensor } from 'css-element-queries';
 import {
 	YandexMap,
 	YandexMapMarker,
 	YandexMapDefaultSchemeLayer,
 	YandexMapDefaultFeaturesLayer,
 	createYmapsOptions,
-	YandexMapControl,
 	YandexMapControlButton,
 	YandexMapControls,
-	YandexMapEntity,
 	YandexMapGeolocationControl,
 	YandexMapOpenMapsButton,
 	YandexMapScaleControl,
 	YandexMapZoomControl,
 } from 'vue-yandex-maps';
 import type { YMap } from '@yandex/ymaps3-types';
-import type { LngLat } from '@yandex/ymaps3-types';
-import { Place, Waypoint } from '@/store/types';
 
 const store = useStore();
 
 const map = shallowRef<YMap | null>(null);
-const markers = shallowRef<Record<string, YandexMapMarker | null>>({});
-const markerCenter = shallowRef<YandexMapMarker | null>(null);
+const markers = shallowRef<Record<string, typeof YandexMapMarker | null>>({});
+const markerCenter = shallowRef<typeof YandexMapMarker | null>(null);
 createYmapsOptions({apikey: 'f81dd454-9378-4883-86ae-c84eb24d72d6'});
 
 const placemarksOptions = ref({
@@ -162,7 +157,6 @@ const placemarksOptions = ref({
 		iconImageHref: '/img/markers/marker_06.svg',
 	},
 });
-const updatingMap = ref(false);
 
 watch(() => store.state.placemarksShow, () => {
 	if (store.state.placemarksShow) {
@@ -186,10 +180,8 @@ watch(() => store.state.centerPlacemarkShow, () => {
 	}
 });
 
-const commonPlacesShowHide = inject('commonPlacesShowHide');
 const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
-const compact = inject('compact');
 
 const placemarkClick = (id: string): void => {
 	let place = null;
@@ -225,7 +217,7 @@ const placemarkDragEnd = (id: string): void => {
 		updateState({coords: coordinates});
 	}
 };
-const updateState = (payload?: {coords: Array<number>, zoom: number}): void => {
+const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
 	store.dispatch('updateMap', {
 		latitude: Number(
 			payload && payload.coords

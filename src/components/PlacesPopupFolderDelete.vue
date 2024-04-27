@@ -245,7 +245,7 @@ const deleteFolder = async (event: Event): Promise<void> => {
 	close(event);
 };
 
-watch(() => props.folderId, (newValue, oldValue) => {
+watch(() => props.folderId, () => {
 	open();
 });
 onMounted(() => {

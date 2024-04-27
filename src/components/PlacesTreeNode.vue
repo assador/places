@@ -60,7 +60,7 @@
 					:value="folder.name"
 					:placeholder="store.state.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
-					@change="store.dispatch('changeFolder', {folder: folder, change: {name: folder.name}});"
+					@change="e => {store.dispatch('changeFolder', {folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
 					@click="e => {e.stopPropagation(); store.commit('setIdleTime', 0);}"
 				>
 				<a

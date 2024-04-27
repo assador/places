@@ -98,7 +98,7 @@ const showImage = (step: number, event?: Event) => {
 const keyup = (event: Event): void => {
 	switch (
 		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).keyCode]
+			[(event as KeyboardEvent).code]
 	) {
 		case 'close' :
 			close(event);
@@ -112,7 +112,7 @@ const keyup = (event: Event): void => {
 	}
 };
 
-watch(() => props.imageId, (newValue, oldValue) => {
+watch(() => props.imageId, () => {
 	defineVars();
 });
 onMounted(() => {

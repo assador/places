@@ -132,7 +132,6 @@ const store = useStore();
 const router = useRouter();
 const route = useRoute();
 
-const userId = ref(sessionStorage.getItem('places-userid') as string);
 const leavePlaces = ref('none');
 const leaveImages = ref('none');
 const acc = ref(acc);

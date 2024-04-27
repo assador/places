@@ -89,23 +89,10 @@ import {
 */
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Place, Waypoint } from '@/store/types';
 
 const store = useStore();
 
 const map = inject('extmap');
-const placemarksOptions = ref({
-	private: {
-		draggable: true,
-	},
-	common: {
-		draggable: false,
-	},
-});
-const centerPlacemarkOptions = ref({
-	draggable: true,
-});
-const updatingMap = ref(false);
 const icon_01 = ref({
 	iconUrl: '/img/markers/marker_01.svg',
 	iconSize: [25, 38],
@@ -219,7 +206,7 @@ const placemarkDragEnd = (place, event): void => {
 	});
 	updateState(coordinates);
 };
-const updateState = (payload?: {coords: Array<number>, zoom: number}): void => {
+const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
 	store.dispatch('updateMap', {
 		latitude: Number(
 			payload && payload.coords

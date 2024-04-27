@@ -56,7 +56,7 @@ const keyup = (event: Event): void => {
 	) close(event);
 };
 
-watch(() => props.what, (newValue, oldValue) => {
+watch(() => props.what, () => {
 	open();
 });
 onMounted(() => {

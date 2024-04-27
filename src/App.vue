@@ -16,7 +16,6 @@ import { emitter } from '@/shared/bus'
 import { isParentInTree } from '@/shared/common';
 import { Place, Image, Folder, Waypoint } from '@/store/types';
 
-const refreshing = ref(false);
 const draggingElement = ref(null);
 const foldersEditMode = ref(false);
 provide('foldersEditMode', foldersEditMode);
@@ -144,9 +143,6 @@ onMounted(() => {
 	}, false);
 });
 
-const setCurrentPlace = (place: Place): void => {
-	emitter.emit('setCurrentPlace', {place});
-};
 const toDB = (
 	payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
 ): void => {

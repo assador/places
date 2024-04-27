@@ -68,7 +68,7 @@ const tracking: Plugin<State> = (store: Store<State>) => {
 	});
 	store.watch(
 		state => state.t,
-		l => makeFieldsValidatable(true)
+		() => makeFieldsValidatable(true)
 	);
 };
 
@@ -1435,7 +1435,7 @@ const store = createStore({
 			}
 			return placeFields;
 		},
-		treeFlat(state, getters) {
+		treeFlat(state) {
 			const treeFlat: Record<string, Folder> = {};
 			treeToLivePlain(state.tree, 'children', treeFlat);
 			return treeFlat;

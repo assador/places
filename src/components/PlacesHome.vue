@@ -173,7 +173,7 @@
 							id="actions-exit"
 							class="actions-button"
 							:title="store.state.t.i.hints.exit"
-							@click="toDBCompletely(); exit();"
+							@click="e => {toDBCompletely(); exit();}"
 						>
 							<span>↪</span>
 							<span>{{ store.state.t.i.buttons.exit }}</span>
@@ -248,7 +248,7 @@
 					/>
 					<div
 						id="sbs-left"
-						:style="'top: -' + (sidebarSize.top + (compact > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+						:style="'top: -' + (sidebarSize.top + (compact as number > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
 						@mousedown="e => sidebarDragStart(e, 'left')"
 						@touchstart="e => sidebarDragStart(e, 'left')"
 					/>
@@ -293,9 +293,9 @@
 													id="detailed-latitude"
 													:value="currentPlaceLat"
 													type="number"
-													:disabled="currentPlaceCommon"
+													:disabled="!!currentPlaceCommon"
 													class="fieldwidth_100"
-													@change="e => store.dispatch('changePlace', {place: currentPlace, change: {latitude: e.target.value.trim()}})"
+													@change="e => store.dispatch('changePlace', {place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
 												>
 											</dd>
 										</div>
@@ -308,9 +308,9 @@
 													id="detailed-longitude"
 													:value="currentPlaceLon"
 													type="number"
-													:disabled="currentPlaceCommon"
+													:disabled="!!currentPlaceCommon"
 													class="fieldwidth_100"
-													@change="e => store.dispatch('changePlace', {place: currentPlace, change: {longitude: e.target.value.trim()}})"
+													@change="e => store.dispatch('changePlace', {place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
 												>
 											</dd>
 										</div>
@@ -320,9 +320,9 @@
 											id="detailed-coordinates"
 											:value="currentDegMinSec"
 											type="text"
-											:disabled="currentPlaceCommon"
+											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
-											@change="e => {const coords = string2coords(e.target.value.trim()); if (coords === null) return; store.dispatch('changePlace', {place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
+											@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; store.dispatch('changePlace', {place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
 										>
 									</div>
 									<dt>
@@ -333,9 +333,9 @@
 											id="detailed-altitudecapability"
 											:value="store.state.waypoints[currentPlace.waypoint].altitudecapability"
 											type="number"
-											:disabled="currentPlaceCommon"
+											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
-											@change="e => store.dispatch('changePlace', {place: currentPlace, change: {altitudecapability: e.target.value.trim()}})"
+											@change="e => store.dispatch('changePlace', {place: currentPlace, change: {altitudecapability: (e.target as HTMLInputElement).value.trim()}})"
 										>
 									</dd>
 								</div>
@@ -347,7 +347,7 @@
 										:id="'detailed-' + field"
 										v-model.number.trim="currentPlace[field]"
 										:type="field === 'srt' ? 'number' : 'text'"
-										:disabled="currentPlaceCommon"
+										:disabled="!!currentPlaceCommon"
 										class="fieldwidth_100"
 										@change="store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 									>
@@ -357,7 +357,7 @@
 										:id="'detailed-' + field"
 										v-model="currentPlace[field]"
 										type="datetime-local"
-										:disabled="currentPlaceCommon"
+										:disabled="!!currentPlaceCommon"
 										class="fieldwidth_100"
 										@change="store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 									>
@@ -371,7 +371,7 @@
 											:id="'detailed-' + field"
 											v-model="currentPlace[field]"
 											type="checkbox"
-											:disabled="currentPlaceCommon"
+											:disabled="!!currentPlaceCommon"
 											@change="store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 										>
 										{{ store.state.t.i.inputs.checkboxCommon }}
@@ -423,7 +423,7 @@
 									<textarea
 										:id="'detailed-' + field"
 										v-model.trim="currentPlace[field]"
-										:disabled="currentPlaceCommon"
+										:disabled="!!currentPlaceCommon"
 										:placeholder="field === 'name' ? store.state.t.i.inputs.placeName : (field === 'description' ? store.state.t.i.inputs.placeDescription : '')"
 										class="fieldwidth_100"
 										@change="store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
@@ -460,7 +460,7 @@
 									id="checkbox-homeplace"
 									type="checkbox"
 									:checked="currentPlace === store.state.homePlace"
-									@change="e => store.dispatch('setHomePlace', (e.target.checked ? currentPlace.id : null))"
+									@change="e => store.dispatch('setHomePlace', ((e.target as HTMLInputElement).checked ? currentPlace.id : null))"
 								>
 								{{ store.state.t.i.inputs.checkboxHome }}
 							</label>
@@ -517,7 +517,7 @@
 					<div class="choose-map">
 						<select
 							id="choose-map-input"
-							@change="e => store.dispatch('changeMap', e.target.selectedIndex)"
+							@change="e => store.dispatch('changeMap', (e.target as HTMLSelectElement).selectedIndex)"
 						>
 							<option
 								v-for="(map, index) in maps"
@@ -566,9 +566,6 @@
 <script setup lang="ts">
 import {
 	ref,
-	toRefs,
-	reactive,
-	shallowRef,
 	computed,
 	watch,
 	onMounted,
@@ -588,7 +585,6 @@ import { constants } from '@/shared/constants';
 import {
 	generateRandomString,
 	sortObjects,
-	deg2degMinSec,
 	coords2string,
 	string2coords,
 } from '@/shared/common';
@@ -615,11 +611,11 @@ const handleDrop = inject('handleDrop');
 const maps = [
 	{
 		name: 'OpenStreetMap',
-		component: defineAsyncComponent(() => import('./PlacesMapOpenStreetMap')),
+		component: defineAsyncComponent(() => import('./PlacesMapOpenStreetMap.vue')),
 		componentName: 'PlacesMapOpenStreetMap',
 	}, {
 		name: 'Яндекс.Карты',
-		component: defineAsyncComponent(() => import('./PlacesMapYandex')),
+		component: defineAsyncComponent(() => import('./PlacesMapYandex.vue')),
 		componentName: 'PlacesMapYandex',
 	}
 ];
@@ -648,7 +644,7 @@ const sidebarSize = ref({
 	left: constants.sidebars.left,
 });
 const sidebarDrag = ref({what: null as unknown, x: 0, y: 0, w: 0, h: 0});
-const compact = ref(false as boolean);
+const compact = ref(false as boolean | number);
 provide('compact', compact);
 const linkEditing = ref(false);
 const orderedCurrentPlaceFields = ref([
@@ -660,11 +656,6 @@ const orderedCurrentPlaceFields = ref([
 	'srt',
 	'common',
 	'images',
-]);
-const orderedCurrentWaypointFields = ref([
-	'latitude',
-	'longitude',
-	'altitudecapability',
 ]);
 
 const currentPlace = computed(() => store.state.currentPlace);
@@ -701,13 +692,6 @@ const orderedImages = computed((): Array<Image> => {
 		? _.orderBy(currentPlace.value.images, 'srt')
 			: []
 	);
-});
-const geomarksVisibility = computed((): Record<string, boolean> => {
-	const visibility: Record<string, boolean> = {};
-	for (const id in store.state.places) {
-		visibility[id] = store.state.places[id].geomark;
-	}
-	return visibility;
 });
 const stateReady = computed((): boolean => {
 	return store.state.ready;
@@ -777,17 +761,21 @@ const updateColorthemeInFullscreen = (): void => {
 		fullscreenWrapper.classList.add('colortheme-' + colortheme.value);
 	}
 };
-const blur = (): void => {
-	const el = $el.querySelector(':focus');
+const blur = (el?: HTMLElement): void => {
 	if (el) {
-		try {(el as HTMLElement).blur();} catch(e) {console.error(e);}
+		try {(el as HTMLElement).blur();} catch(e) {}
+	} else {
+		const els = document.querySelectorAll(':focus');
+		for(const el of els) {
+			try {(el as HTMLElement).blur();} catch(e) {}
+		}
 	}
 };
-const exit = async (): void => {
+const exit = async (): Promise<void> => {
 	await store.dispatch('unload');
 	router.push({name: 'PlacesAuth'});
 };
-const stateReadyChanged = async (): void => {
+const stateReadyChanged = async (): Promise<void> => {
 	if (!stateReady.value) return;
 	await store.dispatch('restoreObjectsAsLinks');
 	if (!currentPlace.value) {
@@ -878,7 +866,7 @@ const setCurrentPlace = (place: Place | null): void => {
 		longitude: store.state.waypoints[currentPlace.value.waypoint].longitude,
 	});
 };
-const appendPlace = async (): void => {
+const appendPlace = async (): Promise<void | Place> => {
 	if (
 		store.state.serverConfig.rights.placescount < 0 ||
 		store.state.serverConfig.rights.placescount
@@ -1174,7 +1162,7 @@ const keyup = (event: Event): void => {
 	) {
 		if (
 			(constants.shortcuts as Record<string, string>)
-				[(event as KeyboardEvent).keyCode]
+				[(event as KeyboardEvent).code]
 		) {
 			blur();
 		}
