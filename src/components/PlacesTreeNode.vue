@@ -80,7 +80,7 @@
 					rows="2"
 					:placeholder="store.state.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
-					@change="store.dispatch('changeFolder', {folder: folder, change: {description: folder.description}});"
+					@change="e => {store.dispatch('changeFolder', {folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
 					@click="e => {e.stopPropagation(); store.commit('setIdleTime', 0);}"
 				/>
 			</span>
