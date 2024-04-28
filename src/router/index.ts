@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
 const PlacesAuth = () => import('@/components/PlacesAuth.vue');
 const PlacesHome = () => import('@/components/PlacesHome.vue');
+const PlacesAdmin = () => import('@/components/PlacesAdmin.vue');
 const PlacesAccount = () => import('@/components/PlacesAccount.vue');
 const PlacesAccountDelete = () => import('@/components/PlacesAccountDelete.vue');
 const PlacesPopupText = () => import('@/components/PlacesPopupText.vue');
@@ -69,6 +70,10 @@ const routes: RouteRecordRaw[] = [
 		path: '/about',
 		name: 'PlacesAbout',
 		component: PlacesPopupText,
+	}, {
+		path: '/admin',
+		name: 'PlacesAdmin',
+		component: PlacesAdmin,
 	}, {
 		path: '/:catchAll(.*)*',
 		redirect: '/home',

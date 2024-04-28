@@ -472,6 +472,7 @@ const store = createStore({
 					sessionStorage.getItem('places-userid')
 				)
 				.then(response => {
+					console.dir(response.data);
 					commit('setUser', response.data);
 					dispatch('setServerConfig');
 				})

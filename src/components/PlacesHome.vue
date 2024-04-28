@@ -71,6 +71,17 @@
 								<router-link to="/account">
 									{{ store.state.user ? store.state.user.login : 'o_O' }}
 								</router-link>
+								<router-link
+									v-if="
+										!!store.state.user &&
+										!!store.state.user.groups.find(
+											g => g.parent === 'management'
+										)
+									"
+									to="/admin"
+								>
+									 / админка /
+								</router-link>
 							</h1>
 							<div>{{ store.state.t.i.brand.slogan }}</div>
 						</div>

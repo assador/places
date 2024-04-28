@@ -118,7 +118,7 @@
 								colspan="2"
 								style="padding-top: 18px;"
 							>
-								{{ acc.message }}
+								{{ account.message }}
 							</td>
 						</tr>
 					</tbody>
@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUpdated, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onUpdated, onBeforeUnmount, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { constants } from '../shared/constants';
@@ -146,7 +146,7 @@ const accountNewPasswordRepeat = ref('');
 const accountName = ref(store.state.user.name);
 const accountEmail = ref(store.state.user.email);
 const accountPhone = ref(store.state.user.phone);
-const acc = ref(acc);
+const account = ref(acc);
 
 onMounted(async () => {
 	await nextTick();
@@ -172,7 +172,7 @@ const keyup = (event: Event): void => {
 };
 const accountSubmit = (): void => {
 	if (store.state.user.testaccount) {
-		acc.value.message = store.state.t.m.paged.taCannotBeChanged;
+		account.value.message = store.state.t.m.paged.taCannotBeChanged;
 	} else {
 		if (!document.querySelector('.value_wrong')) {
 			const {
@@ -194,10 +194,10 @@ const accountSubmit = (): void => {
 					accountPhone,
 				});
 			} else {
-				acc.value.message = store.state.t.m.paged.passwordsNotMatch;
+				account.value.message = store.state.t.m.paged.passwordsNotMatch;
 			}
 		} else {
-			acc.value.message = store.state.t.m.paged.incorrectFields;
+			account.value.message = store.state.t.m.paged.incorrectFields;
 		}
 	}
 };
