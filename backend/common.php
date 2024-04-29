@@ -5,6 +5,11 @@ function testAccountCheck($conn, $testaccountid, $id) {
 	$result = $query->fetchAll(PDO::FETCH_ASSOC);
 	return (count($result) > 0 && $result[0]["id"] == $testaccountid ? true : false);
 }
+function passwordHashCheck($conn, $id, $password) {
+	$query = $conn->query("SELECT `password` FROM `users` WHERE `id` = '" . $id . "'");
+	$result = $query->fetch(PDO::FETCH_ASSOC);
+	return (count($result) > 0 && $result["password"] == $password ? true : false);
+}
 function generateRandomString($length = 32) {
 	$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	$charactersLength = strlen($characters);

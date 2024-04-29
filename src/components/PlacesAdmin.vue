@@ -1,5 +1,12 @@
 <template>
-	<div ref="root">
+	<div
+		v-if="
+			!!store.state.user &&
+			!!store.state.user.groups.find(
+				g => g.parent === 'management'
+			)
+		"
+	>
 		<div class="fullscreen-wrapper">
 			<div
 				id="grid"
@@ -27,9 +34,6 @@
 								<router-link to="/account">
 									{{ store.state.user ? store.state.user.login : 'o_O' }}
 								</router-link>
-								<router-link to="/home">
-									 / из админки /
-								</router-link>
 							</h1>
 							<div>{{ store.state.t.i.brand.slogan }}</div>
 						</div>
@@ -56,7 +60,26 @@
 					id="top-right"
 					class="app-cell"
 				>
-					<div class="control-buttons" />
+					<div class="control-buttons">
+						<button
+							id="actions-home"
+							class="actions-button"
+							:title="store.state.t.i.hints.exit"
+							@click="router.push('/home')"
+						>
+							<span>⌂</span>
+							<span>{{ store.state.t.i.buttons.home }}</span>
+						</button>
+						<button
+							id="actions-exit"
+							class="actions-button"
+							:title="store.state.t.i.hints.exit"
+							@click="exit"
+						>
+							<span>↪</span>
+							<span>{{ store.state.t.i.buttons.exit }}</span>
+						</button>
+					</div>
 				</div>
 				<div
 					id="basic-left"
@@ -66,6 +89,9 @@
 					id="basic-basic"
 					class="app-cell"
 				>
+					<div id="admin-basic">
+						<component :is="components[component].component" />
+					</div>
 					<div
 						id="sbs-top"
 						:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
@@ -112,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject } from 'vue';
+import { ref, defineAsyncComponent } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { constants } from '@/shared/constants';
@@ -246,4 +272,29 @@ const sidebarDragStop = (): void => {
 		windowResize();
 	}
 };
+
+const exit = async (): Promise<void> => {
+	await store.dispatch('unload');
+	router.push({name: 'PlacesAuth'});
+};
+
+const component = ref('users');
+
+const components = {
+	users: {
+		name: 'AdminUsers',
+		component: defineAsyncComponent(() => import('./admin/AdminUsers.vue')),
+	},
+};
 </script>
+
+<style lang="scss" scoped>
+.control-buttons {
+	grid-template-columns: repeat(2, 1fr);
+}
+#admin-basic {
+	position: absolute;
+	top: 12px; right: 12px; bottom: 12px; left: 12px;
+	overflow: auto;
+}
+</style>

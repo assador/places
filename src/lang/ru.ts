@@ -58,6 +58,7 @@ export const t = {
 			export: 'Экспорт',
 			help: 'Справка',
 			exit: 'Выход',
+			home: 'Домой',
 			places: 'Метки',
 			commonPlaces: 'Чужие',
 			commonPlacemarks: 'Их метки',

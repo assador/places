@@ -563,6 +563,31 @@ table.table_form {
 table.table_form > * > tr > th {
 	width: 1%;
 }
+.table-2 {
+	& > * {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px 20px;
+		padding: 12px 0;
+		border-bottom: 1px solid $color-71;
+		&:last-child {
+			border-bottom: none;
+		}
+		& > * {
+			display: block;
+			&:first-child > :nth-child(2) {
+				font-size: 180%;
+			}
+			& > * {
+				display: block;
+				&:nth-child(1) {
+					color: $color-23;
+					font-size: 12px;
+				}
+			}
+		}
+	}
+}
 .fieldswidth_100 .field_parent {
 	position: relative;
 	white-space: nowrap;

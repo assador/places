@@ -21,6 +21,8 @@ module.exports = {
 		'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 		'vue/no-use-v-if-with-v-for': 'off',
 		"vue/no-v-model-argument": "off",
+		"vue/no-multiple-template-root": "off",
+		"vue/no-v-for-template-key": "off",
 	},
 	parserOptions: {
 		ecmaVersion: 2020,

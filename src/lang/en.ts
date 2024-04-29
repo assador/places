@@ -58,6 +58,7 @@ export const t = {
 			export: 'Export',
 			help: 'Help',
 			exit: 'Exit',
+			home: 'Home',
 			places: 'Marks',
 			commonPlaces: 'Others',
 			commonPlacemarks: 'O.marks',
