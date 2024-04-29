@@ -295,6 +295,5 @@ const components = {
 #admin-basic {
 	position: absolute;
 	top: 12px; right: 12px; bottom: 12px; left: 12px;
-	overflow: auto;
 }
 </style>

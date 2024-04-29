@@ -563,7 +563,50 @@ table.table_form {
 table.table_form > * > tr > th {
 	width: 1%;
 }
+.table-1 {
+	display: grid;
+	margin: -6px;
+	&_2 {grid-template-columns: auto auto;}
+	&_3 {grid-template-columns: auto auto auto;}
+	&_4 {grid-template-columns: auto auto auto auto;}
+	&_5 {grid-template-columns: auto auto auto auto auto;}
+	&_6 {grid-template-columns: auto auto auto auto auto auto;}
+	& > * {
+		display: contents;
+		border-bottom: 1px solid $color-71;
+		&:last-child {
+			border-bottom: none;
+		}
+		& > * {
+			display: block;
+			padding: 6px;
+			& > * {
+				display: block;
+			}
+		}
+	}
+}
 .table-2 {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	& > * {
+		padding: 0 0 12px 12px;
+		border-bottom: 1px solid $color-60;
+		border-left: 1px solid $color-60;
+		& > * {
+			display: block;
+			& > * {
+				display: block;
+				&:nth-child(1) {
+					color: $color-23;
+					font-size: 12px;
+				}
+			}
+		}
+	}
+}
+.table-3 {
 	& > * {
 		display: flex;
 		flex-wrap: wrap;
@@ -583,9 +626,6 @@ table.table_form > * > tr > th {
 				}
 			}
 		}
-	}
-	&__impvalue {
-		font-size: 180%;
 	}
 }
 .fieldswidth_100 .field_parent {
