@@ -289,6 +289,31 @@ const components = {
 </script>
 
 <style lang="scss" scoped>
+#grid {
+	grid-template-areas:
+		"top-basic     top-right"
+		"basic-basic   basic-basic"
+	!important;
+	grid-template-columns: 1fr auto !important;
+	grid-template-rows: auto 1fr !important;
+}
+#top-left, #basic-left, #bottom-left, #bottom-basic, #bottom-right, #basic-right {
+	display: none;
+}
+@media screen and (max-width: 850px) {
+	#grid {
+		grid-template-areas:
+			"top-basic"
+			"top-right"
+			"basic-basic"
+		!important;
+		grid-template-columns: 1fr !important;
+		grid-template-rows: auto auto 1fr !important;
+	}
+	#basic-left, #basic-right, #bottom-left, #bottom-basic {
+		display: none;
+	}
+}
 .control-buttons {
 	grid-template-columns: repeat(2, 1fr);
 }

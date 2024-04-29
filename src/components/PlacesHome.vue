@@ -71,7 +71,7 @@
 								<router-link to="/account">
 									{{ store.state.user ? store.state.user.login : 'o_O' }}
 								</router-link>
-								(<router-link
+								<router-link
 									v-if="
 										!!store.state.user &&
 										!!store.state.user.groups.find(
@@ -79,9 +79,10 @@
 										)
 									"
 									to="/admin"
+									class="admin-link"
 								>
-админка
-</router-link>)
+									админка
+								</router-link>
 							</h1>
 							<div>{{ store.state.t.i.brand.slogan }}</div>
 						</div>
@@ -1289,7 +1290,9 @@ const windowResize = (): void => {
 				document.getElementById('basic-left') as Element
 			).height) + 'px'
 		;
-		document.getElementById('sbs-bottom')!.style.marginBottom = sidebarSize.value.bottom + 'px';
+		if (!compact.value) {
+			document.getElementById('sbs-bottom')!.style.marginBottom = sidebarSize.value.bottom + 'px';
+		}
 		compact.value = true;
 	}
 	document.getElementById('grid')!.classList.remove('loading-grid');
@@ -1382,3 +1385,11 @@ const selectPlaces = (event: Event): void => {
 	}
 };
 </script>
+
+<style lang="scss" scoped>
+.admin-link {
+	position: relative;
+	top: -10px; left: 5px;
+	font-size: 55%;
+}
+</style>
