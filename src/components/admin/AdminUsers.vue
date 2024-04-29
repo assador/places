@@ -31,7 +31,9 @@
 					"
 				>
 					<div>{{ key }}</div>
-					<div>{{ value }}</div>
+					<div :class="{'table-2__impvalue': key as unknown as string === sortBy}">
+						{{ value }}
+					</div>
 				</div>
 			</template>
 		</div>

@@ -575,9 +575,6 @@ table.table_form > * > tr > th {
 		}
 		& > * {
 			display: block;
-			&:first-child > :nth-child(2) {
-				font-size: 180%;
-			}
 			& > * {
 				display: block;
 				&:nth-child(1) {
@@ -586,6 +583,9 @@ table.table_form > * > tr > th {
 				}
 			}
 		}
+	}
+	&__impvalue {
+		font-size: 180%;
 	}
 }
 .fieldswidth_100 .field_parent {
