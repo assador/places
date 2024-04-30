@@ -81,7 +81,7 @@
 									to="/admin"
 									class="admin-link"
 								>
-									админка
+									{{ store.state.t.i.captions.admin }}
 								</router-link>
 							</h1>
 							<div>{{ store.state.t.i.brand.slogan }}</div>
@@ -1391,5 +1391,6 @@ const selectPlaces = (event: Event): void => {
 	position: relative;
 	top: -10px; left: 5px;
 	font-size: 55%;
+	text-transform: lowercase;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-	<h1>{{ store.state.t.i.captions.users }}</h1>
+	<h1>{{ store.state.t.i.captions.groups }}</h1>
 	<div class="control-panel">
 		<div class="control-panel__sortby">
 			<span>{{ store.state.t.i.captions.srt }}:</span>
@@ -28,7 +28,7 @@
 			</button>
 		</div>
 	</div>
-	<div :class="'table table-' + tableMode + ' table-' + tableMode + '_6'">
+	<div :class="'table table-' + tableMode + ' table-' + tableMode + '_7'">
 		<div v-if="tableMode === 1">
 			<h3
 				v-for="(value, key) in sortKeys"
@@ -38,22 +38,14 @@
 			</h3>
 		</div>
 		<div
-			v-for="(user, index) in users"
+			v-for="(group, index) in groups"
 			:key="index"
 		>
 			<template
-				v-for="(value, key) in user"
+				v-for="(value, key) in group"
 				:key="key"
 			>
-				<div
-					v-if="
-						(value || tableMode === 1) &&
-						key as unknown as string !== 'id' &&
-						key as unknown as string !== 'password' &&
-						key as unknown as string !== 'token' &&
-						key as unknown as string !== 'homeplace'
-					"
-				>
+				<div v-if="value || tableMode === 1">
 					<div v-if="tableMode !== 1">
 						{{ sortKeys[key] }}
 					</div>
@@ -70,11 +62,11 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
-import { User } from '@/store/types';
+import { Group } from '@/store/types';
 
-export interface IAdminUsersProps {
+export interface IAdminGroupsProps {
 }
-const props = withDefaults(defineProps<IAdminUsersProps>(), {
+const props = withDefaults(defineProps<IAdminGroupsProps>(), {
 });
 
 const store = useStore();
@@ -82,20 +74,21 @@ const store = useStore();
 const tableMode = ref(1);
 
 const sortKeys = computed(() => ({
-	login: store.state.t.i.captions.login,
+	id: store.state.t.i.captions.id,
+	parent: store.state.t.i.captions.parent,
 	name: store.state.t.i.captions.name,
-	email: store.state.t.i.captions.email,
-	phone: store.state.t.i.captions.phone,
-	confirmed: store.state.t.i.captions.confirmed,
-	confirmbefore: store.state.t.i.captions.confirmbefore,
+	description: store.state.t.i.captions.description,
+	owner: store.state.t.i.captions.owner,
+	system: store.state.t.i.captions.system,
+	haschildren: store.state.t.i.captions.haschildren,
 }));
-const sortBy = ref('login');
+const sortBy = ref('id');
 
 watch(() => sortBy.value, () => {
-	sortUsers(users);
+	sortGroups(groups);
 });
 
-const sortUsers = (result) => {
+const sortGroups = (result) => {
 	result.value.sort((a, b) => {
 		const stringA = a[sortBy.value] ? a[sortBy.value].toString().toUpperCase() : '';
 		const stringB = b[sortBy.value] ? b[sortBy.value].toString().toUpperCase() : '';
@@ -104,8 +97,8 @@ const sortUsers = (result) => {
 		return 0;
 	});
 }
-const getUsers = async (result) => {
-	axios.post('/backend/get_users.php', {
+const getGroups = async (result) => {
+	axios.post('/backend/get_allgroups.php', {
 		user: {
 			id: sessionStorage.getItem('places-userid'),
 			password: store.state.user.password,
@@ -117,15 +110,15 @@ const getUsers = async (result) => {
 				throw new Error('Administrator’s password failed the verification');
 				return;
 			default :
-				result.value = response.data as User[];
-				sortUsers(result);
+				result.value = response.data as Group[];
+				sortGroups(result);
 			}
 		})
 	;
 }
-const users = ref([]);
+const groups = ref([]);
 onMounted(() => {
-	getUsers(users);
+	getGroups(groups);
 });
 </script>
 

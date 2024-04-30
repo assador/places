@@ -68,6 +68,15 @@ export interface User {
 	homeplace: string;
 	testaccount: boolean;
 }
+export interface Group {
+	id: string;
+	parent: string;
+	name: string;
+	description: string;
+	owner: string;
+	system: boolean;
+	haschildren: boolean;
+}
 export interface State {
 	refreshing: boolean;
 	saved: boolean;

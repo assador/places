@@ -120,7 +120,9 @@
 				<div
 					id="basic-right"
 					class="app-cell"
-				/>
+				>
+					<admin-navigation />
+				</div>
 				<div
 					id="bottom-left"
 					class="app-cell"
@@ -138,17 +140,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineAsyncComponent } from 'vue';
+import { ref, defineAsyncComponent, provide } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { constants } from '@/shared/constants';
 import PlacesDashboard from './PlacesDashboard.vue';
+import AdminNavigation from './admin/AdminNavigation.vue';
 
 export interface IPlacesAdminProps {
-	asd?: string;
 }
 const props = withDefaults(defineProps<IPlacesAdminProps>(), {
-	asd: '',
 });
 
 const store = useStore();
@@ -279,11 +280,16 @@ const exit = async (): Promise<void> => {
 };
 
 const component = ref('users');
+provide('component', component);
 
 const components = {
 	users: {
 		name: 'AdminUsers',
 		component: defineAsyncComponent(() => import('./admin/AdminUsers.vue')),
+	},
+	groups: {
+		name: 'AdminGroups',
+		component: defineAsyncComponent(() => import('./admin/AdminGroups.vue')),
 	},
 };
 </script>
@@ -292,26 +298,37 @@ const components = {
 #grid {
 	grid-template-areas:
 		"top-basic     top-right"
-		"basic-basic   basic-basic"
+		"basic-basic   basic-right"
 	!important;
 	grid-template-columns: 1fr auto !important;
 	grid-template-rows: auto 1fr !important;
 }
-#top-left, #basic-left, #bottom-left, #bottom-basic, #bottom-right, #basic-right {
+#top-left, #basic-left, #bottom-left, #bottom-basic, #bottom-right {
 	display: none;
 }
 @media screen and (max-width: 850px) {
 	#grid {
 		grid-template-areas:
-			"top-basic"
-			"top-right"
-			"basic-basic"
+			"top-basic   top-right"
+			"basic-right basic-right"
+			"basic-basic basic-basic"
 		!important;
-		grid-template-columns: 1fr !important;
+		grid-template-columns: 1fr auto !important;
 		grid-template-rows: auto auto 1fr !important;
 	}
-	#basic-left, #basic-right, #bottom-left, #bottom-basic {
+	#basic-left, #bottom-left, #bottom-basic {
 		display: none;
+	}
+}
+@media screen and (max-width: 570px) {
+	#grid {
+		grid-template-areas:
+			"top-basic   top-basic"
+			"basic-right top-right"
+			"basic-basic basic-basic"
+		!important;
+		grid-template-columns: 1fr auto !important;
+		grid-template-rows: auto auto 1fr !important;
 	}
 }
 .control-buttons {
