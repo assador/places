@@ -1,5 +1,3 @@
-import store from '@/store';
-
 export const validateField = (value: string, type: string): boolean => {
 	const re: Record<string, RegExp> = {
 		'integer'     : /^-?\d+$/,
@@ -18,31 +16,31 @@ export const validateField = (value: string, type: string): boolean => {
 	if (typeof value !== 'string' || typeof re[type] === 'undefined') {throw 'Illegal function attributes';}
 	return re[type].test(value);
 };
-export const makeFieldsValidatable = (anyway?: boolean): void => {
+export const makeFieldsValidatable = (voc, anyway?: boolean): void => {
 	const fields: Record<string, string[]> = {
-		'authLogin'                : ['login',       store.state.t.i.hints.fvNotMore24],
-		'forgotEmail'              : ['e-mail',      store.state.t.i.hints.fvEmailExample],
-		'regLogin'                 : ['login',       store.state.t.i.hints.fvNotMore24],
-		'accountLogin'             : ['login',       store.state.t.i.hints.fvNotMore24],
-		'authPassword'             : ['password',    store.state.t.i.hints.fvNotMore255],
-		'regPassword'              : ['password',    store.state.t.i.hints.fvNotMore255],
-		'regPasswordRepeat'        : ['password',    store.state.t.i.hints.fvNotMore255],
-		'accountPassword'          : ['password',    store.state.t.i.hints.fvNotMore255],
-		'accountNewPassword'       : ['password',    store.state.t.i.hints.fvNotMore255],
-		'accountNewPasswordRepeat' : ['password',    store.state.t.i.hints.fvNotMore255],
-		'regName'                  : ['name',        store.state.t.i.hints.fvNotMore100],
-		'accountName'              : ['name',        store.state.t.i.hints.fvNotMore100],
-		'folderName'               : ['longname',    store.state.t.i.hints.fvNotMore500],
-		'folderDescription'        : ['description', store.state.t.i.hints.fvNotMore2044],
-		'regPhone'                 : ['phone',       store.state.t.i.hints.fvPhoneExample],
-		'accountPhone'             : ['phone',       store.state.t.i.hints.fvPhoneExample],
-		'regEmail'                 : ['e-mail',      store.state.t.i.hints.fvEmailExample],
-		'accountEmail'             : ['e-mail',      store.state.t.i.hints.fvEmailExample],
-		'email'                    : ['e-mail',      store.state.t.i.hints.fvEmailExample],
-		'detailed-latitude'        : ['latlong',     store.state.t.i.hints.fvLatLonExample],
-		'detailed-longitude'       : ['latlong',     store.state.t.i.hints.fvLatLonExample],
-		'detailed-id'              : ['integerm',    store.state.t.i.hints.fvIdExample],
-		'detailed-srt'             : ['decimal',     store.state.t.i.hints.fvSrtExample],
+		'authLogin'                : ['login',       voc.i.hints.fvNotMore24],
+		'forgotEmail'              : ['e-mail',      voc.i.hints.fvEmailExample],
+		'regLogin'                 : ['login',       voc.i.hints.fvNotMore24],
+		'accountLogin'             : ['login',       voc.i.hints.fvNotMore24],
+		'authPassword'             : ['password',    voc.i.hints.fvNotMore255],
+		'regPassword'              : ['password',    voc.i.hints.fvNotMore255],
+		'regPasswordRepeat'        : ['password',    voc.i.hints.fvNotMore255],
+		'accountPassword'          : ['password',    voc.i.hints.fvNotMore255],
+		'accountNewPassword'       : ['password',    voc.i.hints.fvNotMore255],
+		'accountNewPasswordRepeat' : ['password',    voc.i.hints.fvNotMore255],
+		'regName'                  : ['name',        voc.i.hints.fvNotMore100],
+		'accountName'              : ['name',        voc.i.hints.fvNotMore100],
+		'folderName'               : ['longname',    voc.i.hints.fvNotMore500],
+		'folderDescription'        : ['description', voc.i.hints.fvNotMore2044],
+		'regPhone'                 : ['phone',       voc.i.hints.fvPhoneExample],
+		'accountPhone'             : ['phone',       voc.i.hints.fvPhoneExample],
+		'regEmail'                 : ['e-mail',      voc.i.hints.fvEmailExample],
+		'accountEmail'             : ['e-mail',      voc.i.hints.fvEmailExample],
+		'email'                    : ['e-mail',      voc.i.hints.fvEmailExample],
+		'detailed-latitude'        : ['latlong',     voc.i.hints.fvLatLonExample],
+		'detailed-longitude'       : ['latlong',     voc.i.hints.fvLatLonExample],
+		'detailed-id'              : ['integerm',    voc.i.hints.fvIdExample],
+		'detailed-srt'             : ['decimal',     voc.i.hints.fvSrtExample],
 	}
 	for (const id in fields) {
 		const field = document.getElementById(id);

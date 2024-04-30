@@ -1,5 +1,4 @@
 import axios from 'axios';
-import store from '@/store';
 import { constants } from '@/shared/constants';
 import { Folder } from '@/store/types';
 
@@ -240,7 +239,7 @@ export const treeNewIds = (
 		}
 	}
 };
-export const formFolderForImported = (time: string, imported?: Folder): any => {
+export const formFolderForImported = (voc, time: string, imported?: Folder): any => {
 	/**
 	 * Creation of a folder for the imported places
 	 * in the folder tree branch for imported places.
@@ -260,8 +259,8 @@ export const formFolderForImported = (time: string, imported?: Folder): any => {
 			updated: false,
 			id: 'imported',
 			parent: 'root',
-			name: store.state.t.o.importedFolderName,
-			description: store.state.t.o.importedFolderDescription,
+			name: voc.o.importedFolderName,
+			description: voc.o.importedFolderDescription,
 			srt: 99999,
 			userid: sessionStorage.getItem('places-userid') as string,
 			geomarks: 1,

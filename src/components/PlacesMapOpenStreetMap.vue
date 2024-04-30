@@ -30,7 +30,7 @@
 			>
 				<l-icon v-bind="icon_03" />
 				<l-tooltip>
-					{{ store.state.t.i.maps.center }}
+					{{ store.state.main.t.i.maps.center }}
 				</l-tooltip>
 			</l-marker>
 			<l-marker
@@ -121,52 +121,52 @@ const icon_03 = ref({
 	shadowAnchor: [2, 24],
 });
 const providers = ref([{
-	name: store.state.t.i.maps.osm,
+	name: store.state.main.t.i.maps.osm,
 	url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 	visible: true,
 }, {
-	name: store.state.t.i.maps.satellite,
+	name: store.state.main.t.i.maps.satellite,
 	url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
 	visible: false,
 }, {
-	name: store.state.t.i.maps.topography,
+	name: store.state.main.t.i.maps.topography,
 	url: 'https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
 	visible: false,
 }, {
-	name: store.state.t.i.maps.tourists,
+	name: store.state.main.t.i.maps.tourists,
 	url: 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
 	visible: false,
 }, {
-	name: store.state.t.i.maps.transport,
+	name: store.state.main.t.i.maps.transport,
 	url: 'https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
 	visible: false,
 }, {
-	name: store.state.t.i.maps.aero,
+	name: store.state.main.t.i.maps.aero,
 	url: 'https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png',
 	visible: false,
 }, {
-	name: store.state.t.i.maps.bicycles,
+	name: store.state.main.t.i.maps.bicycles,
 	url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
 	visible: false,
 }, {
-	name: store.state.t.i.maps.railroads,
+	name: store.state.main.t.i.maps.railroads,
 	url: 'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
 	visible: false,
 }]);
 
-const currentPlace = computed(() => store.state.currentPlace);
-const placemarksShow = computed(() => store.state.placemarksShow);
-const commonPlacemarksShow = computed(() => store.state.commonPlacemarksShow);
-const centerPlacemarkShow = computed(() => store.state.centerPlacemarkShow);
-const places = computed(() => store.state.places);
-const commonPlaces = computed(() => store.state.commonPlaces);
-const waypoints = computed(() => store.state.waypoints);
+const currentPlace = computed(() => store.state.main.currentPlace);
+const placemarksShow = computed(() => store.state.main.placemarksShow);
+const commonPlacemarksShow = computed(() => store.state.main.commonPlacemarksShow);
+const centerPlacemarkShow = computed(() => store.state.main.centerPlacemarkShow);
+const places = computed(() => store.state.main.places);
+const commonPlaces = computed(() => store.state.main.commonPlaces);
+const waypoints = computed(() => store.state.main.waypoints);
 const mapCenter = computed(() => ({
 	coords: [
-		store.state.center.latitude,
-		store.state.center.longitude,
+		store.state.main.center.latitude,
+		store.state.main.center.longitude,
 	],
-	zoom: store.state.zoom,
+	zoom: store.state.main.zoom,
 }));
 
 const commonPlacesPage = inject('commonPlacesPage');
@@ -176,7 +176,7 @@ const placemarkClick = (place): void => {
 	emitter.emit('setCurrentPlace', {place: place});
 	if (place.common) {
 		const inPaginator =
-			Object.keys(store.state.commonPlaces).indexOf(place.id) /
+			Object.keys(store.state.main.commonPlaces).indexOf(place.id) /
 			commonPlacesOnPageCount.value
 		;
 		commonPlacesPage.value = (
@@ -189,15 +189,15 @@ const placemarkClick = (place): void => {
 const placemarkDragStart = (place, event): void => {
 	if (place !== currentPlace.value) {
 		event.target.dragging.disable();
-		store.dispatch('setMessage',
-			store.state.t.m.popup.needToChoosePlacemark
+		store.dispatch('main/setMessage',
+			store.state.main.t.m.popup.needToChoosePlacemark
 		);
 	}
 };
 const placemarkDragEnd = (place, event): void => {
 	event.target.dragging.enable();
 	const coordinates = event.target.getLatLng();
-	store.dispatch('changePlace', {
+	store.dispatch('main/changePlace', {
 		place: place,
 		change: {
 			latitude: Number(coordinates.lat.toFixed(7)),
@@ -207,7 +207,7 @@ const placemarkDragEnd = (place, event): void => {
 	updateState(coordinates);
 };
 const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
-	store.dispatch('updateMap', {
+	store.dispatch('main/updateMap', {
 		latitude: Number(
 			payload && payload.coords
 				? payload.coords[0].toFixed(7)

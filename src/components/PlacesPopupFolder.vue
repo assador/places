@@ -6,7 +6,7 @@
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					{{ store.state.t.i.captions.newFolder }}
+					{{ store.state.main.t.i.captions.newFolder }}
 				</h1>
 			</div>
 			<form
@@ -17,7 +17,7 @@
 				<table class="table_form">
 					<tbody>
 						<tr>
-							<th>{{ store.state.t.i.captions.name }}:</th>
+							<th>{{ store.state.main.t.i.captions.name }}:</th>
 							<td>
 								<input
 									id="folderName"
@@ -29,7 +29,7 @@
 							</td>
 						</tr>
 						<tr>
-							<th>{{ store.state.t.i.captions.description }}:</th>
+							<th>{{ store.state.main.t.i.captions.description }}:</th>
 							<td>
 								<textarea
 									id="folderDescription"
@@ -42,11 +42,11 @@
 							<th />
 							<td style="padding-top: 18px; vertical-align: top;">
 								<button type="submit">
-									{{ store.state.t.i.buttons.createFolder }}
+									{{ store.state.main.t.i.buttons.createFolder }}
 								</button>
 								&#160;
 								<button @click="e => close(e)">
-									{{ store.state.t.i.buttons.cancel }}
+									{{ store.state.main.t.i.buttons.cancel }}
 								</button>
 							</td>
 						</tr>
@@ -88,7 +88,7 @@ const store = useStore();
 const router = useRouter();
 const route = useRoute();
 
-const currentPlace = computed(() => store.state.currentPlace);
+const currentPlace = computed(() => store.state.main.currentPlace);
 
 const close = (event: Event): void => {
 	if (event) event.stopPropagation();
@@ -101,12 +101,12 @@ const keyup = (event: Event): void => {
 	) close(event);
 };
 const appendFolder = (name: string, description: string): void => {
-	const treeFlat = store.getters.treeFlat;
+	const treeFlat = store.getters['main/treeFlat'];
 	if (
-		store.state.serverConfig.rights.folderscount < 0 ||
-		store.state.serverConfig.rights.folderscount > treeFlat.length - 1 ||
+		store.state.main.serverConfig.rights.folderscount < 0 ||
+		store.state.main.serverConfig.rights.folderscount > treeFlat.length - 1 ||
 		// length - 1 because there is a root folder too
-		store.state.user.testaccount
+		store.state.main.user.testaccount
 	) {
 		let srt = 1;
 		if (
@@ -146,19 +146,19 @@ const appendFolder = (name: string, description: string): void => {
 			opened: false,
 			userid: sessionStorage.getItem('places-userid'),
 		};
-		store.dispatch('addFolder', {folder: newFolder});
-		message.value = store.state.t.m.paged.folderCreated;
+		store.dispatch('main/addFolder', {folder: newFolder});
+		message.value = store.state.main.t.m.paged.folderCreated;
 		folderName.value = '';
 		folderDescription.value = '';
 		document.getElementById('folderName')!.focus();
 	} else {
-		message.value = store.state.t.m.paged.foldersCountExceeded;
+		message.value = store.state.main.t.m.paged.foldersCountExceeded;
 	}
 };
 
 onMounted(() => {
 	popuped.value = true;
-	makeFieldsValidatable();
+	makeFieldsValidatable(store.state.main.t);
 	document.getElementById('folderName')!.focus();
 	document.addEventListener('keyup', keyup, false);
 });
@@ -166,6 +166,6 @@ onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);
 });
 onUpdated(() => {
-	makeFieldsValidatable();
+	makeFieldsValidatable(store.state.main.t);
 });
 </script>

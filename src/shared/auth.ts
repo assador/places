@@ -1,18 +1,17 @@
 import { reactive } from 'vue';
 import axios from 'axios';
 import { emitter } from './bus';
-import store from '@/store';
 
 export const login = reactive({
 	message: '',
 });
-export const loginRoutine = (user: {authLogin: string, authPassword: string}) => {
+export const loginRoutine = (user: {authLogin: string, authPassword: string}, voc) => {
 	axios.post('/backend/auth.php', user)
 		.then(response => {
 			switch (response.data) {
 				case 0 :
 					sessionStorage.clear();
-					login.message = store.state.t.m.paged.wrongLoginPassword;
+					login.message = voc.paged.wrongLoginPassword;
 					break;
 				default :
 					if (typeof response.data === 'object') {

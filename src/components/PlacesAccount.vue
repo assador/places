@@ -3,9 +3,9 @@
 		<div class="narrower">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					{{ store.state.t.i.brand.header }}
+					{{ store.state.main.t.i.brand.header }}
 				</h1>
-				<p>{{ store.state.t.i.captions.accountPage }}</p>
+				<p>{{ store.state.main.t.i.captions.accountPage }}</p>
 			</div>
 			<form
 				class="account__form"
@@ -14,7 +14,7 @@
 				<table class="table_form">
 					<tbody>
 						<tr>
-							<th>{{ store.state.t.i.captions.login }}:</th>
+							<th>{{ store.state.main.t.i.captions.login }}:</th>
 							<td colspan="2">
 								<input
 									id="accountLogin"
@@ -22,43 +22,43 @@
 									class="fieldwidth_100"
 									required
 									type="text"
-									:placeholder="store.state.t.i.inputs.regLogin"
+									:placeholder="store.state.main.t.i.inputs.regLogin"
 								>
 							</td>
 						</tr>
 						<tr>
-							<th>{{ store.state.t.i.captions.newPassword }}:</th>
+							<th>{{ store.state.main.t.i.captions.newPassword }}:</th>
 							<td colspan="2">
 								<input
 									id="accountNewPassword"
 									v-model="accountNewPassword"
 									class="fieldwidth_100"
 									type="password"
-									:placeholder="store.state.t.i.inputs.needToChangePassword"
+									:placeholder="store.state.main.t.i.inputs.needToChangePassword"
 								>
 							</td>
 						</tr>
 						<tr>
-							<th>{{ store.state.t.i.captions.repeatNewPassword }}:</th>
+							<th>{{ store.state.main.t.i.captions.repeatNewPassword }}:</th>
 							<td colspan="2">
 								<input
 									id="accountNewPasswordRepeat"
 									v-model="accountNewPasswordRepeat"
 									class="fieldwidth_100"
 									type="password"
-									:placeholder="store.state.t.i.inputs.needToChangePassword"
+									:placeholder="store.state.main.t.i.inputs.needToChangePassword"
 								>
 							</td>
 						</tr>
 						<tr>
-							<th>{{ store.state.t.i.inputs.regAddressBy }}:</th>
+							<th>{{ store.state.main.t.i.inputs.regAddressBy }}:</th>
 							<td colspan="2">
 								<input
 									id="accountName"
 									v-model="accountName"
 									class="fieldwidth_100"
 									type="text"
-									:placeholder="store.state.t.i.inputs.regAddressBy"
+									:placeholder="store.state.main.t.i.inputs.regAddressBy"
 								>
 							</td>
 						</tr>
@@ -76,14 +76,14 @@
 							</td>
 						</tr>
 						<tr>
-							<th>{{ store.state.t.i.captions.phone }}:</th>
+							<th>{{ store.state.main.t.i.captions.phone }}:</th>
 							<td colspan="2">
 								<input
 									id="accountPhone"
 									v-model="accountPhone"
 									class="fieldwidth_100"
 									type="text"
-									:placeholder="store.state.t.i.captions.phone"
+									:placeholder="store.state.main.t.i.captions.phone"
 								>
 							</td>
 						</tr>
@@ -91,14 +91,14 @@
 							<th />
 							<td style="padding-top: 18px; vertical-align: top;">
 								<button type="submit">
-									{{ store.state.t.i.buttons.save }}
+									{{ store.state.main.t.i.buttons.save }}
 								</button>
 								&#160;
 								<button
 									type="button"
 									@click="e => close(e)"
 								>
-									{{ store.state.t.i.buttons.back }}
+									{{ store.state.main.t.i.buttons.back }}
 								</button>
 							</td>
 							<td style="padding-top: 18px; vertical-align: top; text-align: right;">
@@ -108,7 +108,7 @@
 										{name: 'PlacesAccountDelete'}
 									).catch(e => {console.error(e);})"
 								>
-									{{ store.state.t.i.buttons.deleteAccount }}
+									{{ store.state.main.t.i.buttons.deleteAccount }}
 								</button>
 							</td>
 						</tr>
@@ -140,21 +140,21 @@ import { accountSaveRoutine, acc } from '../shared/account';
 const store = useStore();
 const router = useRouter();
 
-const accountLogin = ref(store.state.user.login);
+const accountLogin = ref(store.state.main.user.login);
 const accountNewPassword = ref('');
 const accountNewPasswordRepeat = ref('');
-const accountName = ref(store.state.user.name);
-const accountEmail = ref(store.state.user.email);
-const accountPhone = ref(store.state.user.phone);
+const accountName = ref(store.state.main.user.name);
+const accountEmail = ref(store.state.main.user.email);
+const accountPhone = ref(store.state.main.user.phone);
 const account = ref(acc);
 
 onMounted(async () => {
 	await nextTick();
-	makeFieldsValidatable();
+	makeFieldsValidatable(store.state.main.t);
 	document.addEventListener('keyup', keyup, false);
 });
 onUpdated(() => {
-	makeFieldsValidatable();
+	makeFieldsValidatable(store.state.main.t);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);
@@ -171,8 +171,8 @@ const keyup = (event: Event): void => {
 	) close(event);
 };
 const accountSubmit = (): void => {
-	if (store.state.user.testaccount) {
-		account.value.message = store.state.t.m.paged.taCannotBeChanged;
+	if (store.state.main.user.testaccount) {
+		account.value.message = store.state.main.t.m.paged.taCannotBeChanged;
 	} else {
 		if (!document.querySelector('.value_wrong')) {
 			const {
@@ -192,12 +192,12 @@ const accountSubmit = (): void => {
 					accountName,
 					accountEmail,
 					accountPhone,
-				});
+				}, store.state.main.t);
 			} else {
-				account.value.message = store.state.t.m.paged.passwordsNotMatch;
+				account.value.message = store.state.main.t.m.paged.passwordsNotMatch;
 			}
 		} else {
-			account.value.message = store.state.t.m.paged.incorrectFields;
+			account.value.message = store.state.main.t.m.paged.incorrectFields;
 		}
 	}
 };

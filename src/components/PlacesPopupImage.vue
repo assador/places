@@ -69,8 +69,8 @@ const close = (event?: Event): void => {
 const defineVars = (): void => {
 	const places: Record<string, Place> = (
 		!currentPlaceCommon.value
-			? store.state.places
-			: store.state.commonPlaces
+			? store.state.main.places
+			: store.state.main.commonPlaces
 	);
 	for (const id in places) {
 		if (places[id].images && props.imageId in places[id].images) {

@@ -18,43 +18,43 @@
 						<button
 							id="actions-append"
 							class="actions-button"
-							:title="store.state.t.i.hints.addPlace"
+							:title="store.state.main.t.i.hints.addPlace"
 							@click="appendPlace();"
 						>
 							<span>+</span>
-							<span>{{ store.state.t.i.buttons.newPlace }}</span>
+							<span>{{ store.state.main.t.i.buttons.newPlace }}</span>
 						</button>
 						<button
 							id="actions-delete"
 							class="actions-button"
-							:title="store.state.t.i.hints.deletePlace"
-							:disabled="!(store.state.user && currentPlace && currentPlace.userid === store.state.user.id)"
-							@click="store.dispatch('deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
+							:title="store.state.main.t.i.hints.deletePlace"
+							:disabled="!(store.state.main.user && currentPlace && currentPlace.userid === store.state.main.user.id)"
+							@click="store.dispatch('main/deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
 						>
 							<span>-</span>
-							<span>{{ store.state.t.i.buttons.delete }}</span>
+							<span>{{ store.state.main.t.i.buttons.delete }}</span>
 						</button>
 						<button
 							id="actions-append-folder"
 							class="actions-button"
-							:title="store.state.t.i.hints.addFolder"
+							:title="store.state.main.t.i.hints.addFolder"
 							@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
 						>
 							<span>↧</span>
-							<span>{{ store.state.t.i.buttons.newFolder }}</span>
+							<span>{{ store.state.main.t.i.buttons.newFolder }}</span>
 						</button>
 						<button
 							id="actions-edit-folders"
 							:class="'actions-button' + (foldersEditMode ? ' button-pressed' : '')"
-							:title="store.state.t.i.hints.editFolders"
+							:title="store.state.main.t.i.hints.editFolders"
 							@click="foldersEditMode = !foldersEditMode;"
 						>
 							<span>⇆</span>
-							<span>{{ store.state.t.i.buttons.editFolders }}</span>
+							<span>{{ store.state.main.t.i.buttons.editFolders }}</span>
 						</button>
 						<input
-							:placeholder="store.state.t.i.inputs.searchPlaces"
-							:title="store.state.t.i.inputs.searchPlaces"
+							:placeholder="store.state.main.t.i.inputs.searchPlaces"
+							:title="store.state.main.t.i.inputs.searchPlaces"
 							class="find-places-input fontsize_n"
 							@keyup="selectPlaces"
 						>
@@ -67,41 +67,41 @@
 					<div id="top-basic-content">
 						<div class="brand">
 							<h1 class="basiccolor margin_bottom_0">
-								{{ store.state.t.i.brand.header }} —
+								{{ store.state.main.t.i.brand.header }} —
 								<router-link to="/account">
-									{{ store.state.user ? store.state.user.login : 'o_O' }}
+									{{ store.state.main.user ? store.state.main.user.login : 'o_O' }}
 								</router-link>
 								<router-link
 									v-if="
-										!!store.state.user &&
-										!!store.state.user.groups.find(
+										!!store.state.main.user &&
+										!!store.state.main.user.groups.find(
 											g => g.parent === 'management'
 										)
 									"
 									to="/admin"
 									class="admin-link"
 								>
-									{{ store.state.t.i.captions.admin }}
+									{{ store.state.main.t.i.captions.admin }}
 								</router-link>
 							</h1>
-							<div>{{ store.state.t.i.brand.slogan }}</div>
+							<div>{{ store.state.main.t.i.brand.slogan }}</div>
 						</div>
 						<places-dashboard />
 					</div>
 					<div
 						id="messages"
 						class="invisible"
-						@mouseover="store.commit('setMouseOverMessages', true)"
-						@mouseout="store.commit('setMouseOverMessages', false)"
-						@click="store.dispatch('clearMessages');"
+						@mouseover="store.commit('main/setMouseOverMessages', true)"
+						@mouseout="store.commit('main/setMouseOverMessages', false)"
+						@click="store.dispatch('main/clearMessages');"
 					>
 						<div
-							v-for="(message, index) in store.state.messages"
+							v-for="(message, index) in store.state.main.messages"
 							:id="'message-' + index"
 							:key="index"
 							class="message border_1"
 						>
-							{{ store.state.messages[index] }}
+							{{ store.state.main.messages[index] }}
 						</div>
 					</div>
 				</div>
@@ -122,73 +122,73 @@
 							id="actions-fullscreen"
 							v-fullscreen="options"
 							class="actions-button"
-							:title="store.state.t.i.buttons.fullscreen"
+							:title="store.state.main.t.i.buttons.fullscreen"
 						>
 							<span>⤧</span>
-							<span>{{ store.state.t.i.buttons.fullscreen }}</span>
+							<span>{{ store.state.main.t.i.buttons.fullscreen }}</span>
 						</button>
 						<button
 							id="actions-undo"
 							class="actions-button"
-							:title="store.state.t.i.buttons.undo"
-							@click="store.dispatch('undo');"
+							:title="store.state.main.t.i.buttons.undo"
+							@click="store.dispatch('main/undo');"
 						>
 							<span>↺</span>
-							<span>{{ store.state.t.i.buttons.undo }}</span>
+							<span>{{ store.state.main.t.i.buttons.undo }}</span>
 						</button>
 						<button
 							id="actions-redo"
 							class="actions-button"
-							:title="store.state.t.i.buttons.redo"
-							@click="store.dispatch('redo');"
+							:title="store.state.main.t.i.buttons.redo"
+							@click="store.dispatch('main/redo');"
 						>
 							<span>↻</span>
-							<span>{{ store.state.t.i.buttons.redo }}</span>
+							<span>{{ store.state.main.t.i.buttons.redo }}</span>
 						</button>
 						<button
 							id="actions-save"
-							:class="'actions-button' + (!store.state.saved ? ' button-pressed highlight' : '')"
-							:title="(!store.state.saved ? (store.state.t.i.hints.notSaved + '. ') : '') + store.state.t.i.hints.sabeToDb"
+							:class="'actions-button' + (!store.state.main.saved ? ' button-pressed highlight' : '')"
+							:title="(!store.state.main.saved ? (store.state.main.t.i.hints.notSaved + '. ') : '') + store.state.main.t.i.hints.sabeToDb"
 							@click="toDBCompletely"
 						>
 							<span>↸</span>
-							<span>{{ store.state.t.i.buttons.todb }}</span>
+							<span>{{ store.state.main.t.i.buttons.todb }}</span>
 						</button>
 						<button
 							id="actions-import"
 							class="actions-button"
-							:title="store.state.t.i.hints.importPlaces"
+							:title="store.state.main.t.i.hints.importPlaces"
 							onclick="document.getElementById('inputImportFromFile').click();"
 						>
 							<span>↲</span>
-							<span>{{ store.state.t.i.buttons.import }}</span>
+							<span>{{ store.state.main.t.i.buttons.import }}</span>
 						</button>
 						<button
 							id="actions-export"
 							class="actions-button"
-							:title="store.state.t.i.hints.exportPlaces"
+							:title="store.state.main.t.i.hints.exportPlaces"
 							@click="router.push({name: 'PlacesHomeExport'})"
 						>
 							<span>↱</span>
-							<span>{{ store.state.t.i.buttons.export }}</span>
+							<span>{{ store.state.main.t.i.buttons.export }}</span>
 						</button>
 						<button
 							id="actions-about"
 							class="actions-button"
-							:title="store.state.t.i.hints.about"
+							:title="store.state.main.t.i.hints.about"
 							@click="router.push({name: 'PlacesHomeText'}); extmap.center = extmap.mapCenter;"
 						>
 							<span>?</span>
-							<span>{{ store.state.t.i.buttons.help }}</span>
+							<span>{{ store.state.main.t.i.buttons.help }}</span>
 						</button>
 						<button
 							id="actions-exit"
 							class="actions-button"
-							:title="store.state.t.i.hints.exit"
+							:title="store.state.main.t.i.hints.exit"
 							@click="e => {toDBCompletely(); exit();}"
 						>
 							<span>↪</span>
-							<span>{{ store.state.t.i.buttons.exit }}</span>
+							<span>{{ store.state.main.t.i.buttons.exit }}</span>
 						</button>
 					</div>
 				</div>
@@ -198,7 +198,7 @@
 				>
 					<div id="basic-left__places">
 						<div
-							v-if="Object.keys(store.state.places).length > 0 || Object.keys(store.state.folders).length > 0"
+							v-if="Object.keys(store.state.main.places).length > 0 || Object.keys(store.state.main.folders).length > 0"
 							id="places-menu"
 							class="menu"
 						>
@@ -206,9 +206,9 @@
 								instanceid="placestree"
 							/>
 						</div>
-						<div v-if="Object.keys(store.state.commonPlaces).length > 0 && commonPlacesShow">
+						<div v-if="Object.keys(store.state.main.commonPlaces).length > 0 && commonPlacesShow">
 							<h2 class="basiccolor">
-								{{ store.state.t.i.captions.commonPlaces }}
+								{{ store.state.main.t.i.captions.commonPlaces }}
 							</h2>
 							<div class="margin_bottom">
 								<div
@@ -239,7 +239,7 @@
 					id="basic-basic"
 					class="app-cell"
 				>
-					<component :is="maps[store.state.activeMapIndex].component" />
+					<component :is="maps[store.state.main.activeMapIndex].component" />
 					<div
 						id="sbs-top"
 						:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
@@ -285,20 +285,20 @@
 										:href="currentPlace[field].trim()"
 										target="_blank"
 									>
-										{{ store.getters.placeFields[field] }}
+										{{ store.getters['main/placeFields'][field] }}
 									</a>
 									<span v-else>
-										{{ store.getters.placeFields[field] }}:
+										{{ store.getters['main/placeFields'][field] }}:
 									</span>
 								</dt>
 								<dt v-else-if="field === 'images' && orderedImages.length">
-									{{ store.getters.placeFields[field] }}:
+									{{ store.getters['main/placeFields'][field] }}:
 								</dt>
 								<div v-if="field === 'waypoint'">
 									<div class="aligned-children">
 										<div>
 											<dt>
-												{{ store.getters.placeFields['latitude'] }}
+												{{ store.getters['main/placeFields']['latitude'] }}
 											</dt>
 											<dd>
 												<input
@@ -307,13 +307,13 @@
 													type="number"
 													:disabled="!!currentPlaceCommon"
 													class="fieldwidth_100"
-													@change="e => store.dispatch('changePlace', {place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
+													@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
 												>
 											</dd>
 										</div>
 										<div>
 											<dt>
-												{{ store.getters.placeFields['longitude'] }}
+												{{ store.getters['main/placeFields']['longitude'] }}
 											</dt>
 											<dd>
 												<input
@@ -322,7 +322,7 @@
 													type="number"
 													:disabled="!!currentPlaceCommon"
 													class="fieldwidth_100"
-													@change="e => store.dispatch('changePlace', {place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
+													@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
 												>
 											</dd>
 										</div>
@@ -334,25 +334,25 @@
 											type="text"
 											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
-											@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; store.dispatch('changePlace', {place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
+											@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; store.dispatch('main/changePlace', {place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
 										>
 									</div>
 									<dt>
-										{{ store.getters.placeFields['altitudecapability'] }}
+										{{ store.getters['main/placeFields']['altitudecapability'] }}
 									</dt>
 									<dd>
 										<input
 											id="detailed-altitudecapability"
-											:value="store.state.waypoints[currentPlace.waypoint].altitudecapability"
+											:value="store.state.main.waypoints[currentPlace.waypoint].altitudecapability"
 											type="number"
 											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
-											@change="e => store.dispatch('changePlace', {place: currentPlace, change: {altitudecapability: (e.target as HTMLInputElement).value.trim()}})"
+											@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {altitudecapability: (e.target as HTMLInputElement).value.trim()}})"
 										>
 									</dd>
 								</div>
 								<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
-									{{ store.getters.placeFields[field] }}:
+									{{ store.getters['main/placeFields'][field] }}:
 								</dt>
 								<dd v-if="field === 'srt' || field === 'link'">
 									<input
@@ -361,7 +361,7 @@
 										:type="field === 'srt' ? 'number' : 'text'"
 										:disabled="!!currentPlaceCommon"
 										class="fieldwidth_100"
-										@change="store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+										@change="store.dispatch('main/changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 									>
 								</dd>
 								<dd v-else-if="field === 'time'">
@@ -371,7 +371,7 @@
 										type="datetime-local"
 										:disabled="!!currentPlaceCommon"
 										class="fieldwidth_100"
-										@change="store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+										@change="store.dispatch('main/changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 									>
 								</dd>
 								<dd
@@ -384,9 +384,9 @@
 											v-model="currentPlace[field]"
 											type="checkbox"
 											:disabled="!!currentPlaceCommon"
-											@change="store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+											@change="store.dispatch('main/changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 										>
-										{{ store.state.t.i.inputs.checkboxCommon }}
+										{{ store.state.main.t.i.inputs.checkboxCommon }}
 									</label>
 								</dd>
 								<dd
@@ -421,7 +421,7 @@
 													:draggable="false"
 													@click="e => {
 														e.stopPropagation();
-														store.commit('setIdleTime', 0);
+														store.commit('main/setIdleTime', 0);
 														deleteImages({[image.id]: image});
 													}"
 												>
@@ -436,9 +436,9 @@
 										:id="'detailed-' + field"
 										v-model.trim="currentPlace[field]"
 										:disabled="!!currentPlaceCommon"
-										:placeholder="field === 'name' ? store.state.t.i.inputs.placeName : (field === 'description' ? store.state.t.i.inputs.placeDescription : '')"
+										:placeholder="field === 'name' ? store.state.main.t.i.inputs.placeName : (field === 'description' ? store.state.main.t.i.inputs.placeDescription : '')"
 										class="fieldwidth_100"
-										@change="store.dispatch('changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+										@change="store.dispatch('main/changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
 									/>
 								</dd>
 							</dl>
@@ -448,7 +448,7 @@
 							class="images-add margin_bottom"
 						>
 							<div class="images-add__div button">
-								<span>{{ store.state.t.i.buttons.addPhotos }}</span>
+								<span>{{ store.state.main.t.i.buttons.addPhotos }}</span>
 								<input
 									id="images-add__input"
 									ref="inputUploadFiles"
@@ -464,17 +464,17 @@
 							id="images-uploading"
 							class="block_02 waiting hidden"
 						>
-							<span>… {{ store.state.t.i.buttons.loading }} …</span>
+							<span>… {{ store.state.main.t.i.buttons.loading }} …</span>
 						</div>
 						<div v-if="currentPlace && !currentPlaceCommon">
 							<label>
 								<input
 									id="checkbox-homeplace"
 									type="checkbox"
-									:checked="currentPlace === store.state.homePlace"
-									@change="e => store.dispatch('setHomePlace', ((e.target as HTMLInputElement).checked ? currentPlace.id : null))"
+									:checked="currentPlace === store.state.main.homePlace"
+									@change="e => store.dispatch('main/setHomePlace', ((e.target as HTMLInputElement).checked ? currentPlace.id : null))"
 								>
-								{{ store.state.t.i.inputs.checkboxHome }}
+								{{ store.state.main.t.i.inputs.checkboxHome }}
 							</label>
 						</div>
 					</div>
@@ -486,39 +486,39 @@
 					<div class="control-buttons">
 						<button
 							id="placemarksShowHideButton"
-							:class="'actions-button' + (store.state.placemarksShow ? ' button-pressed' : '')"
-							:title="store.state.t.i.hints.shPlacemarks"
-							@click="store.dispatch('placemarksShowHide')"
+							:class="'actions-button' + (store.state.main.placemarksShow ? ' button-pressed' : '')"
+							:title="store.state.main.t.i.hints.shPlacemarks"
+							@click="store.dispatch('main/placemarksShowHide')"
 						>
 							<span>◆</span>
-							<span>{{ store.state.t.i.buttons.places }}</span>
+							<span>{{ store.state.main.t.i.buttons.places }}</span>
 						</button>
 						<button
 							id="commonPlacesShowHideButton"
 							:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
-							:title="store.state.t.i.hints.shCommonPlaces"
+							:title="store.state.main.t.i.hints.shCommonPlaces"
 							@click="commonPlacesShowHide();"
 						>
 							<span>◇</span>
-							<span>{{ store.state.t.i.buttons.commonPlaces }}</span>
+							<span>{{ store.state.main.t.i.buttons.commonPlaces }}</span>
 						</button>
 						<button
 							id="commonPlacemarksShowHideButton"
-							:class="'actions-button' + (store.state.commonPlacemarksShow ? ' button-pressed' : '')"
-							:title="store.state.t.i.hints.shCommonPlacemarks"
-							@click="store.dispatch('commonPlacemarksShowHide')"
+							:class="'actions-button' + (store.state.main.commonPlacemarksShow ? ' button-pressed' : '')"
+							:title="store.state.main.t.i.hints.shCommonPlacemarks"
+							@click="store.dispatch('main/commonPlacemarksShowHide')"
 						>
 							<span>⬙</span>
-							<span>{{ store.state.t.i.buttons.commonPlacemarks }}</span>
+							<span>{{ store.state.main.t.i.buttons.commonPlacemarks }}</span>
 						</button>
 						<button
 							id="centerPlacemarkShowHideButton"
-							:class="'actions-button' + (store.state.centerPlacemarkShow ? ' button-pressed' : '')"
-							:title="store.state.t.i.hints.shCenter"
-							@click="store.dispatch('centerPlacemarkShowHide')"
+							:class="'actions-button' + (store.state.main.centerPlacemarkShow ? ' button-pressed' : '')"
+							:title="store.state.main.t.i.hints.shCenter"
+							@click="store.dispatch('main/centerPlacemarkShowHide')"
 						>
 							<span>◈</span>
-							<span>{{ store.state.t.i.buttons.center }}</span>
+							<span>{{ store.state.main.t.i.buttons.center }}</span>
 						</button>
 					</div>
 				</div>
@@ -529,13 +529,13 @@
 					<div class="choose-map">
 						<select
 							id="choose-map-input"
-							@change="e => store.dispatch('changeMap', (e.target as HTMLSelectElement).selectedIndex)"
+							@change="e => store.dispatch('main/changeMap', (e.target as HTMLSelectElement).selectedIndex)"
 						>
 							<option
 								v-for="(map, index) in maps"
 								:key="index"
 								:value="map.componentName"
-								:selected="map.componentName === maps[store.state.activeMapIndex].componentName"
+								:selected="map.componentName === maps[store.state.main.activeMapIndex].componentName"
 							>
 								{{ map.name }}
 							</option>
@@ -543,28 +543,28 @@
 					</div>
 					<div class="center-coordinates">
 						<span class="imp">
-							{{ store.state.t.i.buttons.center }}
+							{{ store.state.main.t.i.buttons.center }}
 						</span>
 						<span
 							class="nobr"
 							style="margin-left: 1em;"
 						>
-							{{ store.state.t.i.captions.latitude }}:
+							{{ store.state.main.t.i.captions.latitude }}:
 							<input
-								v-model.number.trim="store.state.center.latitude"
+								v-model.number.trim="store.state.main.center.latitude"
 								placeholder="latitude"
-								title="store.state.t.i.captions.latitude"
+								title="store.state.main.t.i.captions.latitude"
 							>
 						</span>
 						<span
 							class="nobr"
 							style="margin-left: 1em;"
 						>
-							{{ store.state.t.i.captions.longitude }}:
+							{{ store.state.main.t.i.captions.longitude }}:
 							<input
-								v-model.number.trim="store.state.center.longitude"
+								v-model.number.trim="store.state.main.center.longitude"
 								placeholder="longitude"
-								title="store.state.t.i.captions.longitude"
+								title="store.state.main.t.i.captions.longitude"
 							>
 						</span>
 					</div>
@@ -670,9 +670,9 @@ const orderedCurrentPlaceFields = ref([
 	'images',
 ]);
 
-const currentPlace = computed(() => store.state.currentPlace);
-const waypoints = computed(() => store.state.waypoints);
-const colortheme = computed(() => store.state.colortheme);
+const currentPlace = computed(() => store.state.main.currentPlace);
+const waypoints = computed(() => store.state.main.waypoints);
+const colortheme = computed(() => store.state.main.colortheme);
 
 const options = computed(() => {
 	return {
@@ -686,14 +686,14 @@ const options = computed(() => {
 });
 const commonPlaces = computed((): Record<string, Place> => {
 	const places: Record<string, Place> = {};
-	for (const id in store.state.commonPlaces) {
+	for (const id in store.state.main.commonPlaces) {
 		if (
-			Object.keys(store.state.commonPlaces).indexOf(id) >=
+			Object.keys(store.state.main.commonPlaces).indexOf(id) >=
 			commonPlacesOnPageCount.value * (commonPlacesPage.value - 1) &&
-			Object.keys(store.state.commonPlaces).indexOf(id) <
+			Object.keys(store.state.main.commonPlaces).indexOf(id) <
 			commonPlacesOnPageCount.value * commonPlacesPage.value
 		) {
-			places[id] = store.state.commonPlaces[id];
+			places[id] = store.state.main.commonPlaces[id];
 		}
 	}
 	return places;
@@ -706,7 +706,7 @@ const orderedImages = computed((): Array<Image> => {
 	);
 });
 const stateReady = computed((): boolean => {
-	return store.state.ready;
+	return store.state.main.ready;
 });
 const currentPlaceLat = computed((): number => {
 	return waypoints.value[currentPlace.value.waypoint].latitude;
@@ -739,21 +739,21 @@ onMounted(async () => {
 	if (stateReady.value) {
 		stateReadyChanged();
 	}
-	store.commit('setIdleTime', 0);
+	store.commit('main/setIdleTime', 0);
 	if (!idleTimeInterval.value) {
 		idleTimeInterval.value =
 			window.setInterval(() => {
-				if (store.state.idleTime < constants.sessionlifetime) {
-					store.commit('setIdleTime', store.state.idleTime + 1);
+				if (store.state.main.idleTime < constants.sessionlifetime) {
+					store.commit('main/setIdleTime', store.state.main.idleTime + 1);
 				} else {
 					window.clearInterval(idleTimeInterval.value);
 					idleTimeInterval.value = undefined;
-					store.dispatch('unload').then(() => router.push({name: 'PlacesAuth'}));
+					store.dispatch('main/unload').then(() => router.push({name: 'PlacesAuth'}));
 				}
 			}, 1000);
 	}
 	await nextTick();
-	makeFieldsValidatable();
+	makeFieldsValidatable(store.state.main.t);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('dragover', handleDragOver, false);
@@ -762,7 +762,7 @@ onBeforeUnmount(() => {
 	emitter.off('setCurrentPlace');
 	window.clearInterval(idleTimeInterval.value);
 });
-onUpdated(() => makeFieldsValidatable());
+onUpdated(() => makeFieldsValidatable(store.state.main.t));
 
 const updateColorthemeInFullscreen = (): void => {
 	if (state.value.fullscreen) {
@@ -784,20 +784,20 @@ const blur = (el?: HTMLElement): void => {
 	}
 };
 const exit = async (): Promise<void> => {
-	await store.dispatch('unload');
+	await store.dispatch('main/unload');
 	router.push({name: 'PlacesAuth'});
 };
 const stateReadyChanged = async (): Promise<void> => {
 	if (!stateReady.value) return;
-	await store.dispatch('restoreObjectsAsLinks');
+	await store.dispatch('main/restoreObjectsAsLinks');
 	if (!currentPlace.value) {
-		if (store.state.homePlace) {
-			setCurrentPlace(store.state.homePlace);
-		} else if (Object.keys(store.state.places).length) {
+		if (store.state.main.homePlace) {
+			setCurrentPlace(store.state.main.homePlace);
+		} else if (Object.keys(store.state.main.places).length) {
 			let firstPlaceInRoot: Place;
-			for (const id in store.state.places) {
-				if (store.state.places[id].folderid === 'root') {
-					firstPlaceInRoot = store.state.places[id];
+			for (const id in store.state.main.places) {
+				if (store.state.main.places[id].folderid === 'root') {
+					firstPlaceInRoot = store.state.main.places[id];
 					break;
 				}
 			}
@@ -805,8 +805,8 @@ const stateReadyChanged = async (): Promise<void> => {
 				setCurrentPlace(firstPlaceInRoot);
 			} else {
 				setCurrentPlace(
-					store.state.places[
-						Object.keys(store.state.places)[0]
+					store.state.main.places[
+						Object.keys(store.state.main.places)[0]
 					]
 				);
 			}
@@ -814,17 +814,17 @@ const stateReadyChanged = async (): Promise<void> => {
 	}
 	openTreeToCurrentPlace();
 	commonPlacesPagesCount.value = Math.ceil(
-		Object.keys(store.state.commonPlaces).length /
+		Object.keys(store.state.main.commonPlaces).length /
 		commonPlacesOnPageCount.value
 	);
 	currentPlaceCommon.value = false;
 	if (
 		currentPlace.value &&
 		currentPlace.value.common &&
-		currentPlace.value.userid !== store.state.user.id
+		currentPlace.value.userid !== store.state.main.user.id
 	) {
 		const inPaginator =
-			Object.keys(store.state.commonPlaces).indexOf(currentPlace.value.id) /
+			Object.keys(store.state.main.commonPlaces).indexOf(currentPlace.value.id) /
 				commonPlacesOnPageCount.value
 		;
 		commonPlacesPage.value = (Number.isInteger(inPaginator)
@@ -837,23 +837,23 @@ const stateReadyChanged = async (): Promise<void> => {
 	document.addEventListener('drop', handleDrop, false);
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
-	if (store.state.user.testaccount) {
+	if (store.state.main.user.testaccount) {
 		window.setTimeout(() => {
-			store.dispatch("setMessage",
-				store.state.t.m.popup.testAccount
+			store.dispatch('main/setMessage',
+				store.state.main.t.m.popup.testAccount
 			);
 		}, 3000);
 	}
 	windowResize();
-	store.commit('backupState');
+	store.commit('main/backupState');
 };
 const openTreeToCurrentPlace = (): void => {
 	if (currentPlaceCommon.value || !currentPlace.value) return;
 	let folder, folderid = currentPlace.value.folderid;
 	while (folderid) {
-		folder = store.getters.treeFlat[folderid];
+		folder = store.getters['main/treeFlat'][folderid];
 		if (!folder) break;
-		store.dispatch('folderOpenClose', {
+		store.dispatch('main/folderOpenClose', {
 			folder: folder,
 			opened: true,
 		});
@@ -863,30 +863,30 @@ const openTreeToCurrentPlace = (): void => {
 const setCurrentPlace = (place: Place | null): void => {
 	if (currentPlace.value && place === currentPlace.value) return;
 	if (!place) {
-		store.commit('setCurrentPlace', null);
+		store.commit('main/setCurrentPlace', null);
 		return;
 	}
-	store.commit('setCurrentPlace', place);
+	store.commit('main/setCurrentPlace', place);
 	currentPlaceCommon.value = (
-		currentPlace.value.userid !== store.state.user.id
+		currentPlace.value.userid !== store.state.main.user.id
 			? true
 			: false
 	);
 	openTreeToCurrentPlace();
-	store.dispatch('updateMap', {
-		latitude: store.state.waypoints[currentPlace.value.waypoint].latitude,
-		longitude: store.state.waypoints[currentPlace.value.waypoint].longitude,
+	store.dispatch('main/updateMap', {
+		latitude: store.state.main.waypoints[currentPlace.value.waypoint].latitude,
+		longitude: store.state.main.waypoints[currentPlace.value.waypoint].longitude,
 	});
 };
 const appendPlace = async (): Promise<void | Place> => {
 	if (
-		store.state.serverConfig.rights.placescount < 0 ||
-		store.state.serverConfig.rights.placescount
-			> Object.keys(store.state.places).length ||
-		store.state.user.testaccount
+		store.state.main.serverConfig.rights.placescount < 0 ||
+		store.state.main.serverConfig.rights.placescount
+			> Object.keys(store.state.main.places).length ||
+		store.state.main.user.testaccount
 	) {
 		let lat: number, lng: number;
-		if (maps[store.state.activeMapIndex].componentName === 'PlacesMapYandex') {
+		if (maps[store.state.main.activeMapIndex].componentName === 'PlacesMapYandex') {
 			lat = extmap.value.coordinates[0].toFixed(7);
 			lng = extmap.value.coordinates[1].toFixed(7);
 		} else {
@@ -927,9 +927,9 @@ const appendPlace = async (): Promise<void | Place> => {
 					: 'root'
 			,
 			srt: Number(
-				Object.keys(store.state.places).length > 0
+				Object.keys(store.state.main.places).length > 0
 					? Math.ceil(Math.max(
-						...Object.values(store.state.places).map(
+						...Object.values(store.state.main.places).map(
 							(place: Place) => place.srt
 						)
 					)) + 1
@@ -943,8 +943,8 @@ const appendPlace = async (): Promise<void | Place> => {
 			updated: false,
 			show: true,
 		};
-		await store.dispatch('addPlace', {place: newPlace});
-		store.dispatch('addWaypoint', {waypoint: newWaypoint, from: newPlace});
+		await store.dispatch('main/addPlace', {place: newPlace});
+		store.dispatch('main/addWaypoint', {waypoint: newWaypoint, from: newPlace});
 		setCurrentPlace(newPlace);
 		await nextTick();
 		document.getElementById('detailed-name')!.classList.add('highlight');
@@ -954,38 +954,38 @@ const appendPlace = async (): Promise<void | Place> => {
 		}, 500);
 		return newPlace;
 	} else {
-		store.dispatch('setMessage',
-			store.state.t.m.popup.placesCountExceeded
+		store.dispatch('main/setMessage',
+			store.state.main.t.m.popup.placesCountExceeded
 		);
 	}
 };
 const deletePlace = (place: Place): void => {
 	if (place === currentPlace.value) {
 		// Set current place
-		if (Object.keys(store.state.places).length > 1) {
+		if (Object.keys(store.state.main.places).length > 1) {
 			if (document.getElementById(place.id)!.nextElementSibling!) {
-				setCurrentPlace(store.state.places[
+				setCurrentPlace(store.state.main.places[
 					document.getElementById(place.id)!.nextElementSibling!.id
 				]);
 			} else if (document.getElementById(place.id)!.previousElementSibling!) {
-				setCurrentPlace(store.state.places[
+				setCurrentPlace(store.state.main.places[
 					document.getElementById(place.id)!.previousElementSibling!.id
 				]);
 			} else if (
-				store.state.homePlace &&
-				store.state.homePlace !== place
+				store.state.main.homePlace &&
+				store.state.main.homePlace !== place
 			) {
-				setCurrentPlace(store.state.homePlace);
+				setCurrentPlace(store.state.main.homePlace);
 			} else {
 				let firstPlaceInRoot: Place, inRoot = false;
-				for (const id in store.state.places) {
-					if (store.state.places[id].folderid === 'root') {
+				for (const id in store.state.main.places) {
+					if (store.state.main.places[id].folderid === 'root') {
 						if (firstPlaceInRoot) {
-							if (store.state.places[id].srt < firstPlaceInRoot.srt) {
-								firstPlaceInRoot = store.state.places[id];
+							if (store.state.main.places[id].srt < firstPlaceInRoot.srt) {
+								firstPlaceInRoot = store.state.main.places[id];
 							}
 						} else {
-							firstPlaceInRoot = store.state.places[id];
+							firstPlaceInRoot = store.state.main.places[id];
 						}
 						inRoot = true;
 					}
@@ -993,7 +993,7 @@ const deletePlace = (place: Place): void => {
 				if (inRoot) {
 					setCurrentPlace(firstPlaceInRoot);
 				} else {
-					setCurrentPlace(store.state.places[Object.keys(store.state.places)[0]]);
+					setCurrentPlace(store.state.main.places[Object.keys(store.state.main.places)[0]]);
 				}
 			}
 		} else {
@@ -1007,7 +1007,7 @@ const commonPlacesShowHide = (show = null): void => {
 			? !commonPlacesShow.value
 			: show
 	;
-	store.dispatch('commonPlacemarksShowHide', commonPlacesShow.value);
+	store.dispatch('main/commonPlacemarksShowHide', commonPlacesShow.value);
 };
 provide('commonPlacesShowHide', commonPlacesShowHide);
 
@@ -1016,7 +1016,7 @@ const importFromFile = (): void => {
 	const reader = new FileReader();
 	reader.onload = async (event: Event) => {
 		await nextTick();
-		store.dispatch('setPlaces', {
+		store.dispatch('main/setPlaces', {
 			text: (event.target as FileReader).result,
 			mime: mime,
 		});
@@ -1027,16 +1027,16 @@ const importFromFile = (): void => {
 			(inputImportFromFile.value as HTMLInputElement).files![0]
 		);
 	} else {
-		store.dispatch('setMessage',
-			store.state.t.m.popup.invalidImportFileType
+		store.dispatch('main/setMessage',
+			store.state.main.t.m.popup.invalidImportFileType
 		);
 	}
 };
 const uploadFiles = (event: Event): void => {
 	event.preventDefault();
-	if (store.state.user.testaccount) {
-		store.dispatch('setMessage',
-			store.state.t.m.popup.taNotAllowFileUploads
+	if (store.state.main.user.testaccount) {
+		store.dispatch('main/setMessage',
+			store.state.main.t.m.popup.taNotAllowFileUploads
 		);
 	} else {
 		const
@@ -1054,17 +1054,17 @@ const uploadFiles = (event: Event): void => {
 			srt = 0;
 		}
 		for (let i = 0; i < files.length; i++) {
-			if (!store.state.serverConfig.mimes[files![i].type]) {
-				store.dispatch('setMessage',
-					store.state.t.m.popup.file + ' ' +
+			if (!store.state.main.serverConfig.mimes[files![i].type]) {
+				store.dispatch('main/setMessage',
+					store.state.main.t.m.popup.file + ' ' +
 					files![i].name +
-					' ' + store.state.t.m.popup.fileNotImage
+					' ' + store.state.main.t.m.popup.fileNotImage
 				);
-			} else if (files![i].size > store.state.serverConfig.uploadsize) {
-				store.dispatch('setMessage',
-					store.state.t.m.popup.file + ' ' +
+			} else if (files![i].size > store.state.main.serverConfig.uploadsize) {
+				store.dispatch('main/setMessage',
+					store.state.main.t.m.popup.file + ' ' +
 					files![i].name +
-					' ' + store.state.t.m.popup.fileTooLarge
+					' ' + store.state.main.t.m.popup.fileTooLarge
 				);
 			} else {
 				const rndname = generateRandomString(32);
@@ -1074,7 +1074,7 @@ const uploadFiles = (event: Event): void => {
 					file:
 						rndname +
 						'.' +
-						store.state.serverConfig.mimes[files![i].type]
+						store.state.main.serverConfig.mimes[files![i].type]
 					,
 					size: Number(files![i].size) || null,
 					type: files![i].type,
@@ -1088,7 +1088,7 @@ const uploadFiles = (event: Event): void => {
 		}
 		if (filesArray.length) {
 			document.getElementById('images-uploading')!.classList.remove('hidden');
-			data.append('userid', store.state.user.id);
+			data.append('userid', store.state.main.user.id);
 			axios.post('/backend/upload.php', data)
 				.then(response => {
 					(document.getElementById('images-add__input') as HTMLInputElement).value = '';
@@ -1109,20 +1109,20 @@ const uploadFiles = (event: Event): void => {
 					response.data[0].forEach((code: number) => {
 						switch (code) {
 							case 2 :
-								store.dispatch('setMessage',
-									store.state.t.m.popup.taNotAllowFileUploads
+								store.dispatch('main/setMessage',
+									store.state.main.t.m.popup.taNotAllowFileUploads
 								);
 								break;
 							case 3 :
-								store.dispatch('setMessage',
-									store.state.t.m.popup.filesNotImages
+								store.dispatch('main/setMessage',
+									store.state.main.t.m.popup.filesNotImages
 								);
 								break;
 							case 4 :
-								store.dispatch('setMessage',
-									store.state.t.m.popup.filesTooLarge +
+								store.dispatch('main/setMessage',
+									store.state.main.t.m.popup.filesTooLarge +
 									' ' + (Number(
-										(store.state.serverConfig.rights.photosize
+										(store.state.main.serverConfig.rights.photosize
 										/ 1048576).toFixed(3)
 									) || 0) + ' Mb.'
 								);
@@ -1139,7 +1139,7 @@ const uploadFiles = (event: Event): void => {
 							for (const image of filesArray) {
 								newImagesObject[image.id] = image;
 							}
-							store.dispatch('changePlace', {
+							store.dispatch('main/changePlace', {
 								place: currentPlace.value,
 								change: {images: newImagesObject},
 							}).then(() => {
@@ -1153,14 +1153,14 @@ const uploadFiles = (event: Event): void => {
 							what: 'images_upload',
 							data: filesArray,
 						});
-						store.dispatch('setMessage',
-							store.state.t.m.popup.filesUploadedSuccessfully
+						store.dispatch('main/setMessage',
+							store.state.main.t.m.popup.filesUploadedSuccessfully
 						);
 					}
 				})
 				.catch(error => {
-					store.dispatch('setMessage',
-						store.state.t.m.popup.filesUploadError +
+					store.dispatch('main/setMessage',
+						store.state.main.t.m.popup.filesUploadError +
 						' ' + error
 					);
 				});
@@ -1189,9 +1189,9 @@ const keyup = (event: Event): void => {
 				if (
 					currentPlace.value &&
 						currentPlace.value.userid ===
-							store.state.user.id
+							store.state.main.user.id
 				) {
-					store.dispatch('deletePlaces', {
+					store.dispatch('main/deletePlaces', {
 						places: {[currentPlace.value.id]: currentPlace.value}
 					});
 				}
@@ -1239,19 +1239,19 @@ const keyup = (event: Event): void => {
 				commonPlacesShowHide();
 				break;
 			case 'placemarks' :
-				store.dispatch('placemarksShowHide');
+				store.dispatch('main/placemarksShowHide');
 				break;
 			case 'other placemarks' :
-				store.dispatch('commonPlacemarksShowHide');
+				store.dispatch('main/commonPlacemarksShowHide');
 				break;
 			case 'center' :
-				store.dispatch('centerPlacemarkShowHide');
+				store.dispatch('main/centerPlacemarkShowHide');
 				break;
 			case 'undo' :
-				store.dispatch('undo');
+				store.dispatch('main/undo');
 				break;
 			case 'redo' :
-				store.dispatch('redo');
+				store.dispatch('main/redo');
 				break;
 		}
 	}
@@ -1371,15 +1371,15 @@ const selectPlaces = (event: Event): void => {
 	if ((event as KeyboardEvent).keyCode === 27) {
 		(event.target as HTMLInputElement).value = '';
 	} else {
-		for (const id in store.state.places) {
+		for (const id in store.state.main.places) {
 			const regexp = new RegExp(
 				(event.target as HTMLInputElement).value, 'i'
 			);
 			if (
 				(event.target as HTMLInputElement).value.length > 1 &&
-				regexp.test(store.state.places[id].name)
+				regexp.test(store.state.main.places[id].name)
 			) {
-				setCurrentPlace(store.state.places[id]);
+				setCurrentPlace(store.state.main.places[id]);
 			}
 		}
 	}

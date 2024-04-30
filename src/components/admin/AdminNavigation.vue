@@ -26,8 +26,8 @@ const store = useStore();
 const component = inject('component');
 
 const sections = computed(() => ({
-	users: store.state.t.i.captions.users,
-	groups: store.state.t.i.captions.groups,
+	users: store.state.main.t.i.captions.users,
+	groups: store.state.main.t.i.captions.groups,
 }));
 const currentSection = ref(sections.value.users);
 

@@ -1,8 +1,8 @@
 <template>
 	<div
 		v-if="
-			!!store.state.user &&
-			!!store.state.user.groups.find(
+			!!store.state.main.user &&
+			!!store.state.main.user.groups.find(
 				g => g.parent === 'management'
 			)
 		"
@@ -30,29 +30,29 @@
 					<div id="top-basic-content">
 						<div class="brand">
 							<h1 class="basiccolor margin_bottom_0">
-								{{ store.state.t.i.brand.header }} —
+								{{ store.state.main.t.i.brand.header }} —
 								<router-link to="/account">
-									{{ store.state.user ? store.state.user.login : 'o_O' }}
+									{{ store.state.main.user ? store.state.main.user.login : 'o_O' }}
 								</router-link>
 							</h1>
-							<div>{{ store.state.t.i.brand.slogan }}</div>
+							<div>{{ store.state.main.t.i.brand.slogan }}</div>
 						</div>
 						<places-dashboard />
 					</div>
 					<div
 						id="messages"
 						class="invisible"
-						@mouseover="store.commit('setMouseOverMessages', true)"
-						@mouseout="store.commit('setMouseOverMessages', false)"
-						@click="store.dispatch('clearMessages');"
+						@mouseover="store.commit('main/setMouseOverMessages', true)"
+						@mouseout="store.commit('main/setMouseOverMessages', false)"
+						@click="store.dispatch('main/clearMessages');"
 					>
 						<div
-							v-for="(message, index) in store.state.messages"
+							v-for="(message, index) in store.state.main.messages"
 							:id="'message-' + index"
 							:key="index"
 							class="message border_1"
 						>
-							{{ store.state.messages[index] }}
+							{{ store.state.main.messages[index] }}
 						</div>
 					</div>
 				</div>
@@ -64,20 +64,20 @@
 						<button
 							id="actions-home"
 							class="actions-button"
-							:title="store.state.t.i.hints.exit"
+							:title="store.state.main.t.i.hints.exit"
 							@click="router.push('/home')"
 						>
 							<span>⌂</span>
-							<span>{{ store.state.t.i.buttons.home }}</span>
+							<span>{{ store.state.main.t.i.buttons.home }}</span>
 						</button>
 						<button
 							id="actions-exit"
 							class="actions-button"
-							:title="store.state.t.i.hints.exit"
+							:title="store.state.main.t.i.hints.exit"
 							@click="exit"
 						>
 							<span>↪</span>
-							<span>{{ store.state.t.i.buttons.exit }}</span>
+							<span>{{ store.state.main.t.i.buttons.exit }}</span>
 						</button>
 					</div>
 				</div>
@@ -275,7 +275,7 @@ const sidebarDragStop = (): void => {
 };
 
 const exit = async (): Promise<void> => {
-	await store.dispatch('unload');
+	await store.dispatch('main/unload');
 	router.push({name: 'PlacesAuth'});
 };
 

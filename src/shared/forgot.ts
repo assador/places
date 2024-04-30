@@ -1,22 +1,21 @@
 import { reactive } from 'vue';
 import axios from 'axios';
-import store from '@/store';
 
 export const forgot = reactive({
 	message: '',
 });
-export const forgotRoutine = (data: Record<string, string>) => {
+export const forgotRoutine = (data: Record<string, string>, voc) => {
 	axios.post('/backend/forgot.php', data)
 		.then(response => {
 			switch (response.data) {
 				case 0 :
-					forgot.message = store.state.t.m.paged.letterError;
+					forgot.message = voc.m.paged.letterError;
 					break;
 				case 1 :
-					forgot.message = store.state.t.m.paged.noUserWithEmail;
+					forgot.message = voc.m.paged.noUserWithEmail;
 					break;
 				default :
-					forgot.message = store.state.t.m.paged.forgotLetterSent;
+					forgot.message = voc.m.paged.forgotLetterSent;
 			}
 		})
 	;

@@ -26,7 +26,7 @@
 				href="javascript: void(0);"
 				class="folder-button"
 				:draggable="true"
-				@click="e => {store.dispatch('folderOpenClose', instanceid === 'popupexporttree' ? {target: e.target.parentNode.parentNode} : {folder: folder, opened: !folder.opened});}"
+				@click="e => {store.dispatch('main/folderOpenClose', instanceid === 'popupexporttree' ? {target: e.target.parentNode.parentNode} : {folder: folder, opened: !folder.opened});}"
 				@dragstart="handleDragStart"
 				@dragenter="handleDragEnter"
 				@dragleave="handleDragLeave"
@@ -39,11 +39,11 @@
 				</span>
 				<span
 					class="folder-button__geomarks"
-					:title="(folder.geomarks === 1 ? store.state.t.i.hints.hide : store.state.t.i.hints.show) + ' ' + store.state.t.i.hints.placemarksOnMap"
+					:title="(folder.geomarks === 1 ? store.state.main.t.i.hints.hide : store.state.main.t.i.hints.show) + ' ' + store.state.main.t.i.hints.placemarksOnMap"
 					@click="e => {
 						e.stopPropagation();
-						store.dispatch('showHideGeomarks', {
-							object: (folder.id === 'root' ? store.state.tree : folder),
+						store.dispatch('main/showHideGeomarks', {
+							object: (folder.id === 'root' ? store.state.main.tree : folder),
 							show: (folder.geomarks === 1 ? 0 : 1),
 						});
 					}"
@@ -58,14 +58,14 @@
 			>
 				<input
 					:value="folder.name"
-					:placeholder="store.state.t.i.captions.name"
+					:placeholder="store.state.main.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
-					@change="e => {store.dispatch('changeFolder', {folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
-					@click="e => {e.stopPropagation(); store.commit('setIdleTime', 0);}"
+					@change="e => {store.dispatch('main/changeFolder', {folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
+					@click="e => {e.stopPropagation(); store.commit('main/setIdleTime', 0);}"
 				>
 				<a
 					class="folder-button__delete"
-					:title="store.state.t.i.buttons.deleteFolder"
+					:title="store.state.main.t.i.buttons.deleteFolder"
 					@click="e => {
 						e.stopPropagation();
 						router.push({name: 'PlacesHomeDeleteFolder', params: {folderId: folder.id}})
@@ -78,10 +78,10 @@
 				<textarea
 					:value="folder.description"
 					rows="2"
-					:placeholder="store.state.t.i.captions.description"
+					:placeholder="store.state.main.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
-					@change="e => {store.dispatch('changeFolder', {folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
-					@click="e => {e.stopPropagation(); store.commit('setIdleTime', 0);}"
+					@change="e => {store.dispatch('main/changeFolder', {folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
+					@click="e => {e.stopPropagation(); store.commit('main/setIdleTime', 0);}"
 				/>
 			</span>
 		</div>
@@ -134,10 +134,10 @@
 				</span>
 				<a
 					class="place-button__geomark"
-					:title="(!place.geomark ? store.state.t.i.hints.show : store.state.t.i.hints.hide) + ' ' + store.state.t.i.hints.placemarkOnMap"
+					:title="(!place.geomark ? store.state.main.t.i.hints.show : store.state.main.t.i.hints.hide) + ' ' + store.state.main.t.i.hints.placemarkOnMap"
 					@click="e => {
 						e.stopPropagation();
-						store.dispatch('showHideGeomarks', {
+						store.dispatch('main/showHideGeomarks', {
 							object: place,
 							show: !place.geomark,
 						});
@@ -211,10 +211,10 @@ const handleDragEnter = inject('handleDragEnter');
 const handleDragLeave = inject('handleDragLeave');
 const handleDrop = inject('handleDrop');
 
-const currentPlace = computed(() => store.state.currentPlace);
+const currentPlace = computed(() => store.state.main.currentPlace);
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));
 const places = computed(() =>
-	_.chain(store.state.places)
+	_.chain(store.state.main.places)
 	.filter(p => p.folderid === props.folder.id && p.show)
 	.sortBy('srt')
 	.value()

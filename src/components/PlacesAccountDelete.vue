@@ -7,9 +7,9 @@
 			<div class="narrower">
 				<div class="brand">
 					<h1 class="margin_bottom_0">
-						{{ store.state.t.i.captions.deletingAccount }}
+						{{ store.state.main.t.i.captions.deletingAccount }}
 					</h1>
-					<p>{{ store.state.t.i.text.whatToDoWithAll }}</p>
+					<p>{{ store.state.main.t.i.text.whatToDoWithAll }}</p>
 				</div>
 				<form
 					@submit.prevent="accountDeletionSubmit();"
@@ -18,7 +18,7 @@
 					<div class="account__form margin_bottom">
 						<fieldset>
 							<h2>
-								{{ store.state.t.i.captions.places }}
+								{{ store.state.main.t.i.captions.places }}
 							</h2>
 							<label>
 								<input
@@ -30,7 +30,7 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.t.i.inputs.daDeletePlaces }}
+									{{ store.state.main.t.i.inputs.daDeletePlaces }}
 								</span>
 							</label>
 							<label>
@@ -43,7 +43,7 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.t.i.inputs.daLeaveOnlyCommonPlaces }}
+									{{ store.state.main.t.i.inputs.daLeaveOnlyCommonPlaces }}
 								</span>
 							</label>
 							<label>
@@ -56,13 +56,13 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.t.i.inputs.daLeaveAllPlaces }}
+									{{ store.state.main.t.i.inputs.daLeaveAllPlaces }}
 								</span>
 							</label>
 						</fieldset>
 						<fieldset>
 							<h2>
-								{{ store.state.t.i.captions.images }}
+								{{ store.state.main.t.i.captions.images }}
 							</h2>
 							<label>
 								<input
@@ -74,7 +74,7 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.t.i.inputs.daDeleteImages }}
+									{{ store.state.main.t.i.inputs.daDeleteImages }}
 								</span>
 							</label>
 							<label>
@@ -87,7 +87,7 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.t.i.inputs.daLeaveImages }}
+									{{ store.state.main.t.i.inputs.daLeaveImages }}
 								</span>
 							</label>
 						</fieldset>
@@ -95,14 +95,14 @@
 					<div style="text-align: center;">
 						<fieldset>
 							<button type="submit">
-								{{ store.state.t.i.buttons.deleteAccount }}
+								{{ store.state.main.t.i.buttons.deleteAccount }}
 							</button>
 							&#160;
 							<button
 								type="button"
 								@click="e => close(e)"
 							>
-								{{ store.state.t.i.buttons.cancel }}
+								{{ store.state.main.t.i.buttons.cancel }}
 							</button>
 						</fieldset>
 					</div>
@@ -149,8 +149,8 @@ const close = (event?: Event): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
 const accountDeletionSubmit = async (): void => {
-	if (store.state.user.testaccount) {
-		acc.value.message = store.state.t.m.paged.taCannotBeDeleted;
+	if (store.state.main.user.testaccount) {
+		acc.value.message = store.state.main.t.m.paged.taCannotBeDeleted;
 	} else {
 		const {
 			userId,
@@ -162,7 +162,7 @@ const accountDeletionSubmit = async (): void => {
 			leavePlaces,
 			leaveImages,
 		);
-		await store.dispatch('unload');
+		await store.dispatch('main/unload');
 		router.push({name: 'PlacesAuth'});
 	}
 };

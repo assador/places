@@ -6,17 +6,17 @@
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					{{ store.state.t.i.captions.exportPlaces }}
+					{{ store.state.main.t.i.captions.exportPlaces }}
 				</h1>
 			</div>
 			<p class="margin_bottom_0">
-				{{ store.state.t.i.text.specifyFormatToExport }}:
+				{{ store.state.main.t.i.text.specifyFormatToExport }}:
 			</p>
 			<form
 				class="popup-export__form"
 				@click="e => {
 					e.stopPropagation();
-					store.commit('setIdleTime', 0);
+					store.commit('main/setIdleTime', 0);
 				}"
 				@submit.prevent="e => exportPlaces(
 					selectedToExport,
@@ -35,7 +35,7 @@
 						<span>GPX</span>
 					</label>
 					<p>
-						{{ store.state.t.i.text.descGpx }}
+						{{ store.state.main.t.i.text.descGpx }}
 					</p>
 					<label>
 						<input
@@ -48,14 +48,14 @@
 						<span>JSON</span>
 					</label>
 					<p>
-						{{ store.state.t.i.text.descJson }}
+						{{ store.state.main.t.i.text.descJson }}
 					</p>
 				</fieldset>
-				<p>{{ store.state.t.i.text.specifyPlacesToExport }}:</p>
+				<p>{{ store.state.main.t.i.text.specifyPlacesToExport }}:</p>
 				<div
 					v-if="
-						Object.keys(store.state.places).length > 0 ||
-						Object.keys(store.state.folders).length > 0
+						Object.keys(store.state.main.places).length > 0 ||
+						Object.keys(store.state.main.folders).length > 0
 					"
 					id="popup-export__tree"
 					class="menu"
@@ -63,20 +63,20 @@
 				>
 					<places-tree
 						instanceid="popupexporttree"
-						:data="store.state.tree || {}"
+						:data="store.state.main.tree || {}"
 					/>
 				</div>
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">
-							{{ store.state.t.i.buttons.export }}
+							{{ store.state.main.t.i.buttons.export }}
 						</button>
 						&#160;
 						<button
 							type="button"
 							@click="e => close(e)"
 						>
-							{{ store.state.t.i.buttons.cancel }}
+							{{ store.state.main.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
 				</div>

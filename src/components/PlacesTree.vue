@@ -2,7 +2,7 @@
 	<ul>
 		<places-tree-node
 			:instanceid="instanceid"
-			:folder="store.state.tree"
+			:folder="store.state.main.tree"
 			:folders-checked-ids="foldersCheckedIds"
 			class="folder_root"
 		/>

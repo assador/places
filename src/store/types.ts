@@ -77,37 +77,3 @@ export interface Group {
 	system: boolean;
 	haschildren: boolean;
 }
-export interface State {
-	refreshing: boolean;
-	saved: boolean;
-	idleTime: number;
-	stateBackups?: Array<State>;
-	stateBackupsIndex: number;
-	inUndoRedo: boolean;
-	user: User | null;
-	currentPlace: Place | null;
-	homePlace: Place | null;
-	waypoints: Record<string, Waypoint>;
-	places: Record<string, Place>;
-	folders: Record<string, Folder>;
-	commonPlaces: Record<string, Place>;
-	center: {
-		latitude: number;
-		longitude: number;
-	};
-	zoom: number;
-	placemarksShow: boolean;
-	commonPlacemarksShow: boolean;
-	centerPlacemarkShow: boolean;
-	ready: boolean;
-	messages: Array<string>;
-	messageTimer: number;
-	mouseOverMessages: boolean;
-	serverConfig: Record<string, any> | null;
-	activeMapIndex: number;
-	lang: string;
-	langs: Array<Record<string, string>>;
-	colortheme: string;
-	t: any;
-	tree: Folder;
-}

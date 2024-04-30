@@ -1,8 +1,8 @@
 <template>
-	<h1>{{ store.state.t.i.captions.users }}</h1>
+	<h1>{{ store.state.main.t.i.captions.users }}</h1>
 	<div class="control-panel">
 		<div class="control-panel__sortby">
-			<span>{{ store.state.t.i.captions.srt }}:</span>
+			<span>{{ store.state.main.t.i.captions.srt }}:</span>
 			<select
 				id="sort"
 				v-model="sortBy"
@@ -47,7 +47,7 @@
 			>
 				<div
 					v-if="
-						(value || tableMode === 1) &&
+						(value !== '' || tableMode === 1) &&
 						key as unknown as string !== 'id' &&
 						key as unknown as string !== 'password' &&
 						key as unknown as string !== 'token' &&
@@ -82,12 +82,12 @@ const store = useStore();
 const tableMode = ref(1);
 
 const sortKeys = computed(() => ({
-	login: store.state.t.i.captions.login,
-	name: store.state.t.i.captions.name,
-	email: store.state.t.i.captions.email,
-	phone: store.state.t.i.captions.phone,
-	confirmed: store.state.t.i.captions.confirmed,
-	confirmbefore: store.state.t.i.captions.confirmbefore,
+	login: store.state.main.t.i.captions.login,
+	name: store.state.main.t.i.captions.name,
+	email: store.state.main.t.i.captions.email,
+	phone: store.state.main.t.i.captions.phone,
+	confirmed: store.state.main.t.i.captions.confirmed,
+	confirmbefore: store.state.main.t.i.captions.confirmbefore,
 }));
 const sortBy = ref('login');
 
@@ -108,7 +108,7 @@ const getUsers = async (result) => {
 	axios.post('/backend/get_users.php', {
 		user: {
 			id: sessionStorage.getItem('places-userid'),
-			password: store.state.user.password,
+			password: store.state.main.user.password,
 		},
 	})
 	.then(response => {

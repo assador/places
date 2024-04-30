@@ -1,8 +1,8 @@
 <template>
-	<h1>{{ store.state.t.i.captions.groups }}</h1>
+	<h1>{{ store.state.main.t.i.captions.groups }}</h1>
 	<div class="control-panel">
 		<div class="control-panel__sortby">
-			<span>{{ store.state.t.i.captions.srt }}:</span>
+			<span>{{ store.state.main.t.i.captions.srt }}:</span>
 			<select
 				id="sort"
 				v-model="sortBy"
@@ -45,7 +45,7 @@
 				v-for="(value, key) in group"
 				:key="key"
 			>
-				<div v-if="value || tableMode === 1">
+				<div v-if="value !== '' || tableMode === 1">
 					<div v-if="tableMode !== 1">
 						{{ sortKeys[key] }}
 					</div>
@@ -74,13 +74,13 @@ const store = useStore();
 const tableMode = ref(1);
 
 const sortKeys = computed(() => ({
-	id: store.state.t.i.captions.id,
-	parent: store.state.t.i.captions.parent,
-	name: store.state.t.i.captions.name,
-	description: store.state.t.i.captions.description,
-	owner: store.state.t.i.captions.owner,
-	system: store.state.t.i.captions.system,
-	haschildren: store.state.t.i.captions.haschildren,
+	id: store.state.main.t.i.captions.id,
+	parent: store.state.main.t.i.captions.parent,
+	name: store.state.main.t.i.captions.name,
+	description: store.state.main.t.i.captions.description,
+	owner: store.state.main.t.i.captions.owner,
+	system: store.state.main.t.i.captions.system,
+	haschildren: store.state.main.t.i.captions.haschildren,
 }));
 const sortBy = ref('id');
 
@@ -101,7 +101,7 @@ const getGroups = async (result) => {
 	axios.post('/backend/get_allgroups.php', {
 		user: {
 			id: sessionStorage.getItem('places-userid'),
-			password: store.state.user.password,
+			password: store.state.main.user.password,
 		},
 	})
 	.then(response => {
