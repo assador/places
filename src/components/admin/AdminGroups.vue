@@ -111,6 +111,7 @@ const getGroups = async (result) => {
 				return;
 			default :
 				result.value = response.data as Group[];
+				store.dispatch('admin/setGroups', response.data);
 				sortGroups(result);
 			}
 		})

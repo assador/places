@@ -70,7 +70,7 @@ const tracking = (store) => {
 		}
 	});
 	store.watch(
-		state => state.t,
+		state => state.main.t,
 		() => makeFieldsValidatable(store.state.main.t, true)
 	);
 };

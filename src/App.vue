@@ -132,7 +132,7 @@ onMounted(() => {
 	*/
 	if (sessionStorage.getItem('places-session')) {
 		store.dispatch('main/replaceState', {
-			state: JSON.parse(sessionStorage.getItem('places-store-state')),
+			state: JSON.parse(sessionStorage.getItem('places-store-state')).main,
 		});
 	}
 	document.addEventListener('mousedown', () => {
