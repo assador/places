@@ -5,7 +5,7 @@
 			:key="key"
 			class="place-button block_01"
 			:class="{' active': key === component}"
-			@click="currentSection = key"
+			@click="component = key"
 		>
 			{{ section }}
 		</div>
@@ -29,9 +29,4 @@ const sections = computed(() => ({
 	users: store.state.main.t.i.captions.users,
 	groups: store.state.main.t.i.captions.groups,
 }));
-const currentSection = ref(sections.value.users);
-
-watch(() => currentSection.value, () => {
-	component.value = currentSection.value;
-});
 </script>

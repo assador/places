@@ -123,6 +123,9 @@ a:hover,
 	border-color: $color-30 $color-32 $color-34 $color-36;
 	box-shadow: 0 0 8px $color-39;
 }
+.table .active {
+	background-color: $color-27;
+}
 
 /* Шрифты */
 

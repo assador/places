@@ -50,7 +50,14 @@
 						{{ sortKeys[key] }}
 					</div>
 					<div :class="{'impvalue': key as unknown as string === sortBy}">
-						{{ value }}
+						<a
+							v-if="key as unknown as string === 'owner'"
+							href="javascript:void(0)"
+							@click="e => {component = 'users'; componentActiveId = value;}"
+						>
+							{{ store.state.admin.users.find(u => u.id === value).login }}
+						</a>
+						<span v-else>{{ value }}</span>
 					</div>
 				</div>
 			</template>
@@ -59,18 +66,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, inject, onMounted } from 'vue';
 import { useStore } from 'vuex';
 
 export interface IAdminGroupsProps {
+	activeId: string | null,
 }
 const props = withDefaults(defineProps<IAdminGroupsProps>(), {
+	activeId: null,
 });
 
 const store = useStore();
 
 const tableMode = ref(1);
 const sortBy = ref('');
+
+const component = inject('component');
+const componentActiveId = inject('componentActiveId');
 
 const sortKeys = computed(() => ({
 	id: store.state.main.t.i.captions.id,

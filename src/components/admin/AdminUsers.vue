@@ -40,6 +40,7 @@
 		<div
 			v-for="(user, index) in users"
 			:key="index"
+			:class="{'active': tableMode !== 1 && user.id === props.activeId}"
 		>
 			<template
 				v-for="(value, key) in user"
@@ -53,6 +54,7 @@
 						key as unknown as string !== 'token' &&
 						key as unknown as string !== 'homeplace'
 					"
+					:class="{'active': tableMode === 1 && user.id === props.activeId}"
 				>
 					<div v-if="tableMode !== 1">
 						{{ sortKeys[key] }}
@@ -71,8 +73,10 @@ import { ref, watch, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 
 export interface IAdminUsersProps {
+	activeId: string | null,
 }
 const props = withDefaults(defineProps<IAdminUsersProps>(), {
+	activeId: null,
 });
 
 const store = useStore();

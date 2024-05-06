@@ -90,7 +90,10 @@
 					class="app-cell"
 				>
 					<div id="admin-basic">
-						<component :is="components[component].component" />
+						<component
+							:is="components[component].component"
+							:active-id="componentActiveId"
+						/>
 					</div>
 					<div
 						id="sbs-top"
@@ -327,6 +330,8 @@ const exit = async (): Promise<void> => {
 
 const component = ref('users');
 provide('component', component);
+const componentActiveId = ref(null);
+provide('componentActiveId', componentActiveId);
 
 const components = {
 	users: {

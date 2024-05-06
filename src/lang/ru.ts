@@ -26,7 +26,7 @@ export const t = {
 			places: 'Места',
 			commonPlaces: 'Другие места',
 			newFolder: 'Новая папка',
-			users: 'Ползователи',
+			users: 'Пользователи',
 			groups: 'Группы',
 			email: 'e-mail',
 			confirmed: 'Подтверждён',
