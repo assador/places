@@ -67,10 +67,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import axios from 'axios';
-import { User } from '@/store/types';
 
 export interface IAdminUsersProps {
 }
@@ -80,6 +78,7 @@ const props = withDefaults(defineProps<IAdminUsersProps>(), {
 const store = useStore();
 
 const tableMode = ref(1);
+const sortBy = ref('');
 
 const sortKeys = computed(() => ({
 	login: store.state.main.t.i.captions.login,
@@ -89,44 +88,16 @@ const sortKeys = computed(() => ({
 	confirmed: store.state.main.t.i.captions.confirmed,
 	confirmbefore: store.state.main.t.i.captions.confirmbefore,
 }));
-const sortBy = ref('login');
 
-watch(() => sortBy.value, () => {
-	sortUsers(users);
-});
-
-const sortUsers = (result) => {
-	result.value.sort((a, b) => {
-		const stringA = a[sortBy.value] ? a[sortBy.value].toString().toUpperCase() : '';
-		const stringB = b[sortBy.value] ? b[sortBy.value].toString().toUpperCase() : '';
-		if (stringA < stringB) return -1;
-		if (stringA > stringB) return 1;
-		return 0;
-	});
-}
-const getUsers = async (result) => {
-	axios.post('/backend/get_users.php', {
-		user: {
-			id: sessionStorage.getItem('places-userid'),
-			password: store.state.main.user.password,
-		},
-	})
-	.then(response => {
-		switch (response.data) {
-			case false :
-				throw new Error('Administrator’s password failed the verification');
-				return;
-			default :
-				result.value = response.data as User[];
-				sortUsers(result);
-			}
-		})
-	;
-}
-const users = ref([]);
 onMounted(() => {
-	getUsers(users);
+	watch(() => sortBy.value, () => {
+		store.dispatch('admin/setUsersSortBy', sortBy.value);
+		store.dispatch('admin/sort', {what: 'users', by: sortBy.value});
+	});
+	sortBy.value = store.state.admin.usersSortBy;
 });
+
+const users = computed(() => store.state.admin.users);
 </script>
 
 <style lang="scss" scoped>

@@ -140,10 +140,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineAsyncComponent, provide } from 'vue';
+import { ref, defineAsyncComponent, provide, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { constants } from '@/shared/constants';
+import { User, Group } from '@/store/types';
+import axios from 'axios';
 import PlacesDashboard from './PlacesDashboard.vue';
 import AdminNavigation from './admin/AdminNavigation.vue';
 
@@ -155,6 +157,50 @@ const props = withDefaults(defineProps<IPlacesAdminProps>(), {
 const store = useStore();
 const router = useRouter();
 
+const getUsers = async () => {
+	axios.post('/backend/get_users.php', {
+		user: {
+			id: sessionStorage.getItem('places-userid'),
+			password: store.state.main.user.password,
+		},
+	})
+	.then(response => {
+		switch (response.data) {
+			case false :
+				throw new Error('Administrator’s password failed the verification');
+				return;
+			default :
+				store.dispatch('admin/setUsers', response.data);
+			}
+		})
+	;
+};
+provide('getUsers', getUsers);
+
+const getGroups = async () => {
+	axios.post('/backend/get_allgroups.php', {
+		user: {
+			id: sessionStorage.getItem('places-userid'),
+			password: store.state.main.user.password,
+		},
+	})
+	.then(response => {
+		switch (response.data) {
+			case false :
+				throw new Error('Administrator’s password failed the verification');
+				return;
+			default :
+				store.dispatch('admin/setGroups', response.data);
+			}
+		})
+	;
+};
+provide('getGroups', getGroups);
+
+onMounted(() => {
+	getUsers();
+	getGroups();
+})
 const compact = ref(false as boolean | number);
 
 const sidebarSize = ref({

@@ -59,10 +59,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import axios from 'axios';
-import { Group } from '@/store/types';
 
 export interface IAdminGroupsProps {
 }
@@ -72,6 +70,7 @@ const props = withDefaults(defineProps<IAdminGroupsProps>(), {
 const store = useStore();
 
 const tableMode = ref(1);
+const sortBy = ref('');
 
 const sortKeys = computed(() => ({
 	id: store.state.main.t.i.captions.id,
@@ -82,44 +81,14 @@ const sortKeys = computed(() => ({
 	system: store.state.main.t.i.captions.system,
 	haschildren: store.state.main.t.i.captions.haschildren,
 }));
-const sortBy = ref('id');
+const groups = computed(() => store.state.admin.groups);
 
-watch(() => sortBy.value, () => {
-	sortGroups(groups);
-});
-
-const sortGroups = (result) => {
-	result.value.sort((a, b) => {
-		const stringA = a[sortBy.value] ? a[sortBy.value].toString().toUpperCase() : '';
-		const stringB = b[sortBy.value] ? b[sortBy.value].toString().toUpperCase() : '';
-		if (stringA < stringB) return -1;
-		if (stringA > stringB) return 1;
-		return 0;
-	});
-}
-const getGroups = async (result) => {
-	axios.post('/backend/get_allgroups.php', {
-		user: {
-			id: sessionStorage.getItem('places-userid'),
-			password: store.state.main.user.password,
-		},
-	})
-	.then(response => {
-		switch (response.data) {
-			case false :
-				throw new Error('Administrator’s password failed the verification');
-				return;
-			default :
-				result.value = response.data as Group[];
-				store.dispatch('admin/setGroups', response.data);
-				sortGroups(result);
-			}
-		})
-	;
-}
-const groups = ref([]);
 onMounted(() => {
-	getGroups(groups);
+	watch(() => sortBy.value, () => {
+		store.dispatch('admin/setGroupsSortBy', sortBy.value);
+		store.dispatch('admin/sort', {what: 'groups', by: sortBy.value});
+	});
+	sortBy.value = store.state.admin.groupsSortBy;
 });
 </script>
 
