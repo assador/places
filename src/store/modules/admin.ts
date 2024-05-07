@@ -44,9 +44,16 @@ export const mutations: MutationTree<IAdminState> = {
 
 export const actions: ActionTree<IAdminState, State> = {
 	setUsers({commit}, payload: User[]) {
+		for (const user of payload) {
+			user.confirmed = user.confirmed ? true : false;
+		}
 		commit('setUsers', payload);
 	},
 	setGroups({commit}, payload: Group[]) {
+		for (const group of payload) {
+			group.haschildren = group.haschildren ? true : false;
+			group.system = group.system ? true : false;
+		}
 		commit('setGroups', payload);
 	},
 	setUsersSortBy({commit}, sortBy: string) {

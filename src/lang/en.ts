@@ -38,6 +38,8 @@ export const t = {
 			haschildren: 'Has children',
 		},
 		text: {
+			yes: 'yes',
+			no: 'no',
 			emailToSendPassword: 'Enter the e-mail address you provided during registration. A link will be sent to create a new password.',
 			specifyFormatToExport: 'Specify the format of file to export places',
 			specifyPlacesToExport: 'Choose the places to export',

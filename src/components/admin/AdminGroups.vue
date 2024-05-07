@@ -57,7 +57,15 @@
 						>
 							{{ store.state.admin.users.find(u => u.id === value).login }}
 						</a>
-						<span v-else>{{ value }}</span>
+						<span v-else>
+							{{ (typeof value === 'boolean'
+								? (value === true
+									? store.state.main.t.i.text.yes
+									: store.state.main.t.i.text.no
+								)
+								: value
+							) }}
+						</span>
 					</div>
 				</div>
 			</template>

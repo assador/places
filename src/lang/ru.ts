@@ -38,6 +38,8 @@ export const t = {
 			haschildren: 'Есть потомки',
 		},
 		text: {
+			yes: 'да',
+			no: 'нет',
 			emailToSendPassword: 'Введите e-mail, указанный вами при регистрации. На него будет выслана ссылка для создания нового пароля.',
 			specifyFormatToExport: 'Укажите формат файла, в который будут экспортированы места',
 			specifyPlacesToExport: 'Выберите места для экспорта',

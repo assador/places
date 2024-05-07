@@ -60,7 +60,13 @@
 						{{ sortKeys[key] }}
 					</div>
 					<div :class="{'impvalue': key as unknown as string === sortBy}">
-						{{ value }}
+						{{ (typeof value === 'boolean'
+							? (value === true
+								? store.state.main.t.i.text.yes
+								: store.state.main.t.i.text.no
+							)
+							: value
+						) }}
 					</div>
 				</div>
 			</template>
