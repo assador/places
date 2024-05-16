@@ -45,7 +45,12 @@
 				v-for="(value, key) in group"
 				:key="key"
 			>
-				<div v-if="value !== '' || tableMode === 1">
+				<div
+					v-if="
+						(value !== '' || tableMode === 1) &&
+						key as unknown as string !== 'checked'
+					"
+				>
 					<div v-if="tableMode !== 1">
 						{{ sortKeys[key] }}
 					</div>
@@ -53,7 +58,7 @@
 						<a
 							v-if="key as unknown as string === 'owner'"
 							href="javascript:void(0)"
-							@click="e => {component = 'users'; componentActiveId = value;}"
+							@click="goToUser(value)"
 						>
 							{{ store.state.admin.users.find(u => u.id === value).login }}
 						</a>
@@ -76,12 +81,11 @@
 <script setup lang="ts">
 import { ref, watch, computed, inject, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import { User } from '@/store/types';
 
 export interface IAdminGroupsProps {
-	activeId: string | null,
 }
 const props = withDefaults(defineProps<IAdminGroupsProps>(), {
-	activeId: null,
 });
 
 const store = useStore();
@@ -90,7 +94,6 @@ const tableMode = ref(1);
 const sortBy = ref('');
 
 const component = inject('component');
-const componentActiveId = inject('componentActiveId');
 
 const sortKeys = computed(() => ({
 	id: store.state.main.t.i.captions.id,
@@ -110,6 +113,13 @@ onMounted(() => {
 	});
 	sortBy.value = store.state.admin.groupsSortBy;
 });
+
+const goToUser = (id: string): void => {
+	const user = store.state.admin.users.find((u: User) => u.id === id);
+	if(typeof user === 'undefined') return;
+	store.commit('admin/change', {where: user, what: 'checked', to: true});
+	component.value = 'users';
+}
 </script>
 
 <style lang="scss" scoped>

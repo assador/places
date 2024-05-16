@@ -67,6 +67,10 @@ export interface User {
 	token: string;
 	homeplace: string;
 	testaccount: boolean;
+	added?: boolean;
+	deleted?: boolean;
+	updated?: boolean;
+	checked?: boolean;
 }
 export interface Group {
 	id: string;
@@ -76,4 +80,8 @@ export interface Group {
 	owner: string;
 	system: boolean;
 	haschildren: boolean;
+	added?: boolean;
+	deleted?: boolean;
+	updated?: boolean;
+	checked?: boolean;
 }

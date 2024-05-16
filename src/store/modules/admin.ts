@@ -19,6 +19,9 @@ export const state: IAdminState = {
 };
 
 export const mutations: MutationTree<IAdminState> = {
+	change(state, payload) {
+		payload.where[payload.what] = payload.to;
+	},
 	setUsers(state, payload) {
 		state.users = payload;
 	},
@@ -46,6 +49,7 @@ export const actions: ActionTree<IAdminState, State> = {
 	setUsers({commit}, payload: User[]) {
 		for (const user of payload) {
 			user.confirmed = user.confirmed ? true : false;
+			user.checked = false;
 		}
 		commit('setUsers', payload);
 	},
@@ -53,6 +57,7 @@ export const actions: ActionTree<IAdminState, State> = {
 		for (const group of payload) {
 			group.haschildren = group.haschildren ? true : false;
 			group.system = group.system ? true : false;
+			group.checked = false;
 		}
 		commit('setGroups', payload);
 	},

@@ -92,7 +92,6 @@
 					<div id="admin-basic">
 						<component
 							:is="components[component].component"
-							:active-id="componentActiveId"
 						/>
 					</div>
 					<div
@@ -330,8 +329,6 @@ const exit = async (): Promise<void> => {
 
 const component = ref('users');
 provide('component', component);
-const componentActiveId = ref(null);
-provide('componentActiveId', componentActiveId);
 
 const components = {
 	users: {

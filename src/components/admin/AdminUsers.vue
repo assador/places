@@ -28,8 +28,9 @@
 			</button>
 		</div>
 	</div>
-	<div :class="'table table-' + tableMode + ' table-' + tableMode + '_6'">
+	<div :class="'table table-' + tableMode + ' table-' + tableMode + '_7'">
 		<div v-if="tableMode === 1">
+			<div />
 			<h3
 				v-for="(value, key) in sortKeys"
 				:key="key"
@@ -40,8 +41,21 @@
 		<div
 			v-for="(user, index) in users"
 			:key="index"
-			:class="{'active': tableMode !== 1 && user.id === props.activeId}"
+			:class="{'active': tableMode !== 1 && user.checked}"
 		>
+			<div class="user-actions">
+				<input
+					type="checkbox"
+					:checked="user.checked"
+					@change="e => {
+						store.commit('admin/change', {
+							where: user,
+							what: 'checked',
+							to: e.target.checked,
+						});
+					}"
+				>
+			</div>
 			<template
 				v-for="(value, key) in user"
 				:key="key"
@@ -52,9 +66,10 @@
 						key as unknown as string !== 'id' &&
 						key as unknown as string !== 'password' &&
 						key as unknown as string !== 'token' &&
-						key as unknown as string !== 'homeplace'
+						key as unknown as string !== 'homeplace' &&
+						key as unknown as string !== 'checked'
 					"
-					:class="{'active': tableMode === 1 && user.id === props.activeId}"
+					:class="{'active': tableMode === 1 && user.checked}"
 				>
 					<div v-if="tableMode !== 1">
 						{{ sortKeys[key] }}
@@ -79,10 +94,8 @@ import { ref, watch, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 
 export interface IAdminUsersProps {
-	activeId: string | null,
 }
 const props = withDefaults(defineProps<IAdminUsersProps>(), {
-	activeId: null,
 });
 
 const store = useStore();
@@ -134,5 +147,10 @@ const users = computed(() => store.state.admin.users);
 	&.table-1 {
 		top: 100px; right: 6px; bottom: 6px;
 	}
+}
+.user-actions {
+	display: flex;
+	align-items: center;
+	margin: 6px 0;
 }
 </style>

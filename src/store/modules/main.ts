@@ -447,7 +447,7 @@ export const actions: ActionTree<IMainState, State> = {
 		sessionStorage.removeItem('places-session');
 	},
 	setUser({state, commit, dispatch}) {
-		axios
+		return axios
 			.get(
 				'/backend/get_account.php?id=' +
 				sessionStorage.getItem('places-userid')
@@ -464,7 +464,7 @@ export const actions: ActionTree<IMainState, State> = {
 		;
 	},
 	setServerConfig({state, commit, dispatch}) {
-		axios
+		return axios
 			.get(
 				'/backend/get_config.php?userid=' +
 				sessionStorage.getItem('places-userid')
@@ -483,7 +483,7 @@ export const actions: ActionTree<IMainState, State> = {
 		commit('stateReady', false);
 		// If reading from database, not importing
 		if (!payload) {
-			axios
+			return axios
 				.get(
 					'/backend/get_places.php?id=' +
 					sessionStorage.getItem('places-userid')
@@ -514,7 +514,6 @@ export const actions: ActionTree<IMainState, State> = {
 					});
 				})
 			;
-			return;
 		}
 		/*
 		If importing from file.
