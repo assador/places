@@ -84,6 +84,11 @@ export const t = {
 			cancel: 'Cancel',
 			createFolder: 'Create folder',
 			fullscreen: 'Fullscreen',
+			checkAll: 'Check all',
+			uncheckAll: 'Uncheck all',
+			viewTable: 'Table view',
+			viewTiles: 'Tiles view',
+			viewHybrid: 'Hybrid view',
 		},
 		inputs: {
 			regLogin: 'Login *',

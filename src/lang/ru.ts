@@ -84,6 +84,11 @@ export const t = {
 			cancel: 'Отмена',
 			createFolder: 'Создать папку',
 			fullscreen: 'На экран',
+			checkAll: 'Отметить всё',
+			uncheckAll: 'Снять со всего отметки',
+			viewTable: 'Таблица',
+			viewTiles: 'Плитки',
+			viewHybrid: 'Гибрид',
 		},
 		inputs: {
 			regLogin: 'Логин *',

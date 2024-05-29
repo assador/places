@@ -16,14 +16,37 @@
 				</option>
 			</select>
 		</div>
+		<div class="control-panel__checkuncheck">
+			<button
+				:title="store.state.main.t.i.buttons.uncheckAll"
+				@click="checkAll(false)"
+			>
+				<img src="@/assets/icons/dark/uncheck.svg">
+			</button>
+			<button
+				:title="store.state.main.t.i.buttons.checkAll"
+				@click="checkAll(true)"
+			>
+				<img src="@/assets/icons/dark/check.svg">
+			</button>
+		</div>
 		<div class="control-panel__tablemode">
-			<button @click="tableMode = 1">
+			<button
+				:title="store.state.main.t.i.buttons.viewTable"
+				@click="tableMode = 1"
+				>
 				<img src="@/assets/icons/dark/list.svg">
 			</button>
-			<button @click="tableMode = 2">
+			<button
+				:title="store.state.main.t.i.buttons.viewTiles"
+				@click="tableMode = 2"
+				>
 				<img src="@/assets/icons/dark/tiles.svg">
 			</button>
-			<button @click="tableMode = 3">
+			<button
+				:title="store.state.main.t.i.buttons.viewHybrid"
+				@click="tableMode = 3"
+			>
 				<img src="@/assets/icons/dark/list_01.svg">
 			</button>
 		</div>
@@ -121,16 +144,29 @@ onMounted(() => {
 });
 
 const users = computed(() => store.state.admin.users);
+
+const checkAll = (check: boolean): void => {
+	for (const user of store.state.admin.users) {
+		store.commit('admin/change', {
+			where: user,
+			what: 'checked',
+			to: check,
+		});
+	}
+}
 </script>
 
 <style lang="scss" scoped>
 .control-panel {
 	display: grid;
-	grid-template-columns: 1fr auto;
+	grid-template-columns: 1fr auto auto;
 	& > * {
 		display: flex;
 		gap: 12px;
 		align-items: center;
+	}
+	&__checkuncheck {
+		padding-right: 24px;
 	}
 }
 .table {
@@ -150,7 +186,7 @@ const users = computed(() => store.state.admin.users);
 }
 .user-actions {
 	display: flex;
-	align-items: center;
+	align-items: baseline;
 	margin: 6px 0;
 }
 </style>
