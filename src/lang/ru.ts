@@ -36,6 +36,7 @@ export const t = {
 			owner: 'Владелец',
 			system: 'Системн.',
 			haschildren: 'Есть потомки',
+			actions: 'Действия',
 		},
 		text: {
 			yes: 'да',
@@ -60,6 +61,8 @@ export const t = {
 			whatIsIt: 'Что это такое? Описание, мануал',
 			newPlace: 'Новое',
 			delete: 'Удалить',
+			freeze: 'Заморозить',
+			unfreeze: 'Разморозить',
 			deletePlace: 'Удалить место',
 			deleteFolder: 'Удалить папку',
 			newFolder: 'Папка',

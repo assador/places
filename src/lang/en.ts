@@ -36,6 +36,7 @@ export const t = {
 			owner: 'Owner',
 			system: 'System',
 			haschildren: 'Has children',
+			actions: 'Actions',
 		},
 		text: {
 			yes: 'yes',
@@ -60,6 +61,8 @@ export const t = {
 			whatIsIt: 'What is it? Description, manual',
 			newPlace: 'New',
 			delete: 'Delete',
+			freeze: 'Freeze',
+			unfreeze: 'Unfreeze',
 			deletePlace: 'Delete place',
 			deleteFolder: 'Delete folder',
 			newFolder: 'Folder',

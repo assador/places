@@ -1,21 +1,6 @@
 <template>
 	<h1>{{ store.state.main.t.i.captions.users }}</h1>
 	<div class="control-panel">
-		<div class="control-panel__sortby">
-			<span>{{ store.state.main.t.i.captions.srt }}:</span>
-			<select
-				id="sort"
-				v-model="sortBy"
-			>
-				<option
-					v-for="(value, key) in sortKeys"
-					:key="key"
-					:value="key"
-				>
-					{{ value }}
-				</option>
-			</select>
-		</div>
 		<div class="control-panel__checkuncheck">
 			<button
 				:title="store.state.main.t.i.buttons.uncheckAll"
@@ -48,6 +33,30 @@
 				@click="tableMode = 3"
 			>
 				<img src="@/assets/icons/dark/list_01.svg">
+			</button>
+		</div>
+		<div class="control-panel__sortby">
+			<span>{{ store.state.main.t.i.captions.srt }}:</span>
+			<select
+				id="sort"
+				v-model="sortBy"
+			>
+				<option
+					v-for="(value, key) in sortKeys"
+					:key="key"
+					:value="key"
+				>
+					{{ value }}
+				</option>
+			</select>
+		</div>
+		<div class="control-panel__actions">
+			<span>{{ store.state.main.t.i.captions.actions }}:</span>
+			<button
+				:title="store.state.main.t.i.buttons.uncheckAll"
+				@click="checkAll(false)"
+			>
+				<img src="@/assets/icons/dark/uncheck.svg">
 			</button>
 		</div>
 	</div>
@@ -158,15 +167,13 @@ const checkAll = (check: boolean): void => {
 
 <style lang="scss" scoped>
 .control-panel {
-	display: grid;
-	grid-template-columns: 1fr auto auto;
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
 	& > * {
 		display: flex;
 		gap: 12px;
 		align-items: center;
-	}
-	&__checkuncheck {
-		padding-right: 24px;
 	}
 }
 .table {
