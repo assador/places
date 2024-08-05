@@ -39,10 +39,10 @@ $message = '
 			Здравствуйте' . ($name != "" && $name != null ? ', ' . $name : '') . '!
 		<p>
 			Ваш e-mail был указан для восстановления пароля пользователя
-			<a href="' . $host . '">сервиса просмотра и редактирования библиотек
+			<a href="/">сервиса просмотра и редактирования библиотек
 			геометок «Места»</a>. Если вы этого не делали, просто проигнорируйте это письмо.
 			В противном случае для создания нового пароля вашего аккаунта перейдите по ссылке: 
-			<a href="' . $host . '/backend/change_password.php?token=' . $token . '">' . $host . '/backend/change_password.php?token=' . $token . '</a>
+			<a href="/backend/change_password.php?token=' . $token . '">/backend/change_password.php?token=' . $token . '</a>
 		</p>
 	</body>
 	</html>

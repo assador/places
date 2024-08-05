@@ -1,5 +1,4 @@
 <?php
-$host = "http://places.scrofa-tridens.ru";
 $from = "service@places.scrofa-tridens.ru";
 $dirs = array(
 	"uploads" => array(
