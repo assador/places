@@ -1,5 +1,5 @@
 <?php
-$from = "service@places.scrofa-tridens.ru";
+$from = "places@gmail.com";
 $dirs = array(
 	"uploads" => array(
 		"images" => array(

@@ -1366,21 +1366,30 @@ const sidebarDragStop = (): void => {
 		windowResize();
 	}
 };
-// Search and select a place by name
+// Search places by name
 const selectPlaces = (event: Event): void => {
-	if ((event as KeyboardEvent).keyCode === 27) {
+	if ((event as KeyboardEvent).code === "Escape") {
 		(event.target as HTMLInputElement).value = '';
-	} else {
-		for (const id in store.state.main.places) {
-			const regexp = new RegExp(
-				(event.target as HTMLInputElement).value, 'i'
-			);
-			if (
-				(event.target as HTMLInputElement).value.length > 1 &&
-				regexp.test(store.state.main.places[id].name)
-			) {
-				setCurrentPlace(store.state.main.places[id]);
-			}
+	}
+	const regexp = new RegExp((event.target as HTMLInputElement).value, 'i');
+	const folders = store.getters['main/treeFlat'];
+	for (const place of Object.values(store.state.main.places)) {
+		store.commit('main/changePlace', {
+			place: (place as Place),
+			key: 'show',
+			value: (
+				(event.target as HTMLInputElement).value.length === 0 ||
+				regexp.test((place as Place).name)
+			) ? true : false
+		});
+		if (
+			(event.target as HTMLInputElement).value.length !== 0 &&
+			!folders[(place as Place).folderid].opened
+		) {
+			store.dispatch('main/folderOpenClose', {
+				folder: folders[(place as Place).folderid],
+				opened: true,
+			});
 		}
 	}
 };
