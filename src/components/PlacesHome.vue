@@ -52,12 +52,21 @@
 							<span>⇆</span>
 							<span>{{ store.state.main.t.i.buttons.editFolders }}</span>
 						</button>
-						<input
-							:placeholder="store.state.main.t.i.inputs.searchPlaces"
-							:title="store.state.main.t.i.inputs.searchPlaces"
-							class="find-places-input fontsize_n"
-							@keyup="selectPlaces"
-						>
+						<div class="control-search">
+							<input
+								ref="searchInput"
+								:placeholder="store.state.main.t.i.inputs.searchPlaces"
+								:title="store.state.main.t.i.inputs.searchPlaces"
+								class="find-places-input fontsize_n"
+								@keyup="searchInputEvent"
+							>
+							<button
+								class="actions-button"
+								@click="selectPlaces(searchInput.value)"
+							>
+								<span>🔍</span>
+							</button>
+						</div>
 					</div>
 				</div>
 				<div
@@ -1367,25 +1376,31 @@ const sidebarDragStop = (): void => {
 	}
 };
 // Search places by name
-const selectPlaces = (event: Event): void => {
+const searchInput = ref(null);
+const searchInputEvent = (event: Event): void => {
 	if ((event as KeyboardEvent).code === "Escape") {
 		(event.target as HTMLInputElement).value = '';
 	}
-	const regexp = new RegExp((event.target as HTMLInputElement).value, 'i');
+	if (
+		(event as KeyboardEvent).code === "Escape" ||
+		(event as KeyboardEvent).code === "Enter"
+	) {
+		selectPlaces((event.target as HTMLInputElement).value);
+	}
+}
+const selectPlaces = (text: string): void => {
+	const regexp = new RegExp(text, 'i');
 	const folders = store.getters['main/treeFlat'];
 	for (const place of Object.values(store.state.main.places)) {
 		store.commit('main/changePlace', {
 			place: (place as Place),
 			key: 'show',
 			value: (
-				(event.target as HTMLInputElement).value.length === 0 ||
+				text.length === 0 ||
 				regexp.test((place as Place).name)
 			) ? true : false
 		});
-		if (
-			(event.target as HTMLInputElement).value.length !== 0 &&
-			!folders[(place as Place).folderid].opened
-		) {
+		if (text.length !== 0 && !folders[(place as Place).folderid].opened) {
 			store.dispatch('main/folderOpenClose', {
 				folder: folders[(place as Place).folderid],
 				opened: true,
@@ -1401,5 +1416,27 @@ const selectPlaces = (event: Event): void => {
 	top: -10px; left: 5px;
 	font-size: 55%;
 	text-transform: lowercase;
+}
+.control-buttons {
+	position: absolute;
+	top: 8px; right: 8px; bottom: 8px; left: 8px;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	text-align: center;
+}
+.control-search {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	grid-column-start: 1;
+	grid-column-end: 5;
+	gap: 8px;
+	align-items: center;
+	margin: 8px 4px 4px 4px;
+	input {
+		width: 100%;
+	}
+	.actions-button {
+		margin: 0;
+	}
 }
 </style>

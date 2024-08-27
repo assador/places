@@ -3,8 +3,6 @@ import {
 	createStore,
 	useStore as baseUseStore,
 	StoreOptions,
-	Store,
-	Plugin,
 	MutationPayload,
 } from 'vuex';
 import { main } from './modules/main';

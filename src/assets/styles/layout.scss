@@ -135,7 +135,7 @@ body {
 #top-left h3 {
 	margin: -8px 0 4px 0;
 }
-#top-right, #bottom-left, .control-buttons {
+#top-right, #bottom-left {
 	text-align: center;
 }
 #top-basic > *:first-child {
@@ -195,17 +195,6 @@ body {
 	top: 0; right: 0; bottom: 0; left: 0;
 	padding: 12px;
 	overflow: auto;
-}
-.control-buttons {
-	position: absolute;
-	top: 8px; right: 8px; bottom: 8px; left: 8px;
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-}
-.find-places-input {
-	margin: 8px 4px 4px 4px;
-	grid-column-start: 1;
-	grid-column-end: 5;
 }
 #sbs-top, #sbs-right, #sbs-bottom, #sbs-left {
 	position: absolute;

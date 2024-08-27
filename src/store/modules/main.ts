@@ -15,7 +15,6 @@ import {
 	plainToTree,
 	formFolderForImported,
 } from '@/shared/common';
-import { makeFieldsValidatable } from '@/shared/fields_validate';
 import axios from 'axios';
 import { store } from '../index';
 
