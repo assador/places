@@ -17,8 +17,10 @@ import { ref, computed, watch, inject } from 'vue';
 import { useStore } from 'vuex';
 
 export interface IAdminNavigationProps {
+	prop: 0,
 }
 const props = withDefaults(defineProps<IAdminNavigationProps>(), {
+	prop: 0,
 });
 
 const store = useStore();

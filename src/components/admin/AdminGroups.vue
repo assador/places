@@ -84,8 +84,10 @@ import { useStore } from 'vuex';
 import { User } from '@/store/types';
 
 export interface IAdminGroupsProps {
+	prop: 0,
 }
 const props = withDefaults(defineProps<IAdminGroupsProps>(), {
+	prop: 0,
 });
 
 const store = useStore();

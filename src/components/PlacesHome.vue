@@ -1417,13 +1417,6 @@ const selectPlaces = (text: string): void => {
 	font-size: 55%;
 	text-transform: lowercase;
 }
-.control-buttons {
-	position: absolute;
-	top: 8px; right: 8px; bottom: 8px; left: 8px;
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	text-align: center;
-}
 .control-search {
 	display: grid;
 	grid-template-columns: 1fr auto;

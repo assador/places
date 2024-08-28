@@ -152,8 +152,10 @@ import PlacesDashboard from './PlacesDashboard.vue';
 import AdminNavigation from './admin/AdminNavigation.vue';
 
 export interface IPlacesAdminProps {
+	prop: 0,
 }
 const props = withDefaults(defineProps<IPlacesAdminProps>(), {
+	prop: 0,
 });
 
 const store = useStore();

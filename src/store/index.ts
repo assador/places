@@ -9,7 +9,9 @@ import { main } from './modules/main';
 import { admin } from './modules/admin';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 
-export interface State {};
+export interface State {
+	prop: 0,
+};
 
 export const key: InjectionKey<StoreOptions<State>> = Symbol();
 

@@ -265,6 +265,13 @@ body {
 .centered {
 	flex-direction: column;
 }
+.control-buttons {
+	position: absolute;
+	top: 8px; right: 8px; bottom: 8px; left: 8px;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	text-align: center;
+}
 
 @media screen and (max-width: 1600px) {
 	.narrower, .auth_forms, .account__form {
