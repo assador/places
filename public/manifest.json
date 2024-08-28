@@ -1,0 +1,26 @@
+{
+    "short_name": "Места",
+    "name": "Сервис просмотра и редактирования библиотек геометок «Места»",
+    "start_url":"/",
+    "display": "standalone",
+    "orientation": "landscape",
+    "icons": [{
+        "src": "/logo.svg",
+        "type": "image/svg+xml",
+        "sizes": "any"
+    }, {
+        "src": "/logo.png",
+        "type": "image/png",
+        "sizes": "512x512"
+    }],
+    "screenshots" : [{
+        "src": "/screenshot.png",
+        "sizes": "1280x960",
+        "type": "image/png",
+        "form_factor": "wide"
+    }, {
+        "src": "screenshot.png",
+        "sizes": "1280x960",
+        "type": "image/png"
+    }]
+}
