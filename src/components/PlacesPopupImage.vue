@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import {
-	ref,
+	ref, Ref,
 	inject,
 	watch,
 	onMounted,
@@ -54,7 +54,7 @@ const popuped = ref(false);
 const images = ref([] as Array<Image>);
 const image = ref({} as Image);
 
-const currentPlaceCommon = inject('currentPlaceCommon');
+const currentPlaceCommon = inject<Ref<boolean>>('currentPlaceCommon');
 
 const store = useStore();
 const router = useRouter();
@@ -96,17 +96,14 @@ const showImage = (step: number, event?: Event) => {
 	}
 };
 const keyup = (event: Event): void => {
-	switch (
-		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).code]
-	) {
-		case 'close' :
+	switch ((event as KeyboardEvent).key) {
+		case 'Escape' :
 			close(event);
 			break;
-		case 'left' :
+		case 'ArrowLeft' :
 			showImage(-1, event);
 			break;
-		case 'right' :
+		case 'ArrowRight' :
 			showImage(1, event);
 			break;
 	}

@@ -8,11 +8,8 @@ body {
 	position: relative;
 	min-height: 100%;
 }
-#basic-left, .brand, .app-cell, .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
+.brand, .app-cell, .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	position: relative;
-}
-#main {
-	height: 100%;
 }
 .auth_forms, .account__form {
 	display: flex;

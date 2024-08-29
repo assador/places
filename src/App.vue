@@ -143,16 +143,16 @@ onMounted(() => {
 	}, false);
 });
 
-const toDB = (
+const toDB = async (
 	payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
-): void => {
+): Promise<void> => {
 	if (store.state.main.user.testaccount) return;
 	if (document.querySelector('.value_wrong')) {
 		store.dispatch('main/setMessage', store.state.main.t.m.paged.incorrectFields);
 		return;
 	}
 	payload.id = sessionStorage.getItem('places-userid');
-	axios.post(
+	return axios.post(
 		'/backend/set_' +
 		(payload.what === 'waypoints' ? 'waypoints' : 'places') +
 		'.php',
@@ -228,26 +228,9 @@ const toDB = (
 			);
 		});
 };
-const homeToDB = (id: string): void => {
-	if (!store.state.main.user.testaccount) {
-		axios.post(
-			'/backend/set_home.php',
-			{id: sessionStorage.getItem('places-userid'), data: id}
-		)
-			.then(() => {
-				store.commit('main/setSaved', true);
-				store.dispatch('main/setMessage',
-					store.state.main.t.m.popup.savedToDb
-				);
-			})
-			.catch(error => {
-				store.dispatch('main/setMessage',
-					store.state.main.t.m.popup.cannotSendDataToDb + ': ' + error
-				);
-			});
-	}
-};
-const toDBCompletely = (): void => {
+provide('toDB', toDB);
+
+const toDBCompletely = async (): Promise<void> => {
 	if (!store.state.main.user.testaccount) {
 		const
 			waypoints: Array<Waypoint> = [],
@@ -281,13 +264,32 @@ const toDBCompletely = (): void => {
 				folders.push(folder as Folder);
 			}
 		}
-		toDB({what: 'waypoints', data: waypoints});
-		toDB({what: 'places', data: places});
-		toDB({what: 'folders', data: folders});
+		await toDB({what: 'waypoints', data: waypoints});
+		await toDB({what: 'places', data: places});
+		await toDB({what: 'folders', data: folders});
 	}
 };
 provide('toDBCompletely', toDBCompletely);
 
+const homeToDB = async (id: string): Promise<void> => {
+	if (!store.state.main.user.testaccount) {
+		return axios.post(
+			'/backend/set_home.php',
+			{id: sessionStorage.getItem('places-userid'), data: id}
+		)
+			.then(() => {
+				store.commit('main/setSaved', true);
+				store.dispatch('main/setMessage',
+					store.state.main.t.m.popup.savedToDb
+				);
+			})
+			.catch(error => {
+				store.dispatch('main/setMessage',
+					store.state.main.t.m.popup.cannotSendDataToDb + ': ' + error
+				);
+			});
+	}
+};
 const deleteImages = (images: Record<string, Image>, family?: boolean): void => {
 	const data = new FormData();
 	for (const [id, image] of Object.entries(images)) {

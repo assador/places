@@ -445,7 +445,7 @@ export const actions: ActionTree<IMainState, State> = {
 		sessionStorage.removeItem('places-userid');
 		sessionStorage.removeItem('places-session');
 	},
-	setUser({state, commit, dispatch}) {
+	async setUser({state, commit, dispatch}) {
 		return axios
 			.get(
 				'/backend/get_account.php?id=' +
@@ -462,7 +462,7 @@ export const actions: ActionTree<IMainState, State> = {
 			})
 		;
 	},
-	setServerConfig({state, commit, dispatch}) {
+	async setServerConfig({state, commit, dispatch}) {
 		return axios
 			.get(
 				'/backend/get_config.php?userid=' +

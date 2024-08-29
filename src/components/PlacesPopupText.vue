@@ -17,7 +17,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, onBeforeUpdate } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { constants } from '@/shared/constants';
 import { getAbout } from '@/shared/common';
 
 export interface IPlacesPopupTextProps {
@@ -50,10 +49,7 @@ const close = (event: Event): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
 const keyup = (event: Event): void => {
-	if (
-		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).keyCode] === 'close'
-	) close(event);
+	if ((event as KeyboardEvent).code === 'Escape') close(event);
 };
 
 watch(() => props.what, () => {
