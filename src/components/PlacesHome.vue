@@ -255,6 +255,12 @@ class="fullscreen-wrapper"
 				id="basic-basic"
 				class="app-cell"
 			>
+				<div
+					class="basic-on-full button"
+					@click="basicOnFull"
+				>
+					⤧
+				</div>
 				<component :is="maps[store.state.main.activeMapIndex].component" />
 				<div
 					id="sbs-top"
@@ -649,6 +655,9 @@ const maps = [
 ];
 
 const root = ref(null);
+const basicOnFull = (): void => {
+root.value.classList.toggle('basic-fulled');
+}
 const extmap = ref(null);
 provide('extmap', extmap);
 const inputImportFromFile = ref(null);
@@ -777,7 +786,6 @@ onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);
 	emitter.off('setCurrentPlace');
 	window.clearInterval(idleTimeInterval.value);
-	store.dispatch('main/unload');
 });
 onUpdated(() => makeFieldsValidatable(store.state.main.t));
 

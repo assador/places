@@ -147,6 +147,7 @@
 				{{ store.state.main.t.i.buttons.whatIsIt }}
 			</button>
 		</div>
+		<p-w-a-prompt />
 		<router-view />
 	</div>
 </template>
@@ -155,11 +156,12 @@
 import { ref, onMounted, onUpdated } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import PlacesDashboard from './PlacesDashboard.vue';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { loginRoutine, login } from '@/shared/auth';
 import { regRoutine, reg } from '@/shared/reg';
 import { forgotRoutine, forgot } from '@/shared/forgot';
+import PlacesDashboard from './PlacesDashboard.vue';
+import PWAPrompt from './PWAPrompt.vue';
 
 const authLogin = ref('test');
 const authPassword = ref('test');
@@ -180,7 +182,7 @@ const authLoginSubmit = (): void => {
 		authPassword: authPassword.value,
 	}, store.state.main.t);
 };
-const authRegSubmit = (): void => {
+const authRegSubmit = (): boolean => {
 	if (document.querySelector('.value_wrong')) {
 		reg.message = store.state.main.t.m.paged.incorrectFields;
 		return false;

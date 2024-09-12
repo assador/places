@@ -385,7 +385,11 @@ input[type="button"][disabled]:hover {
 :is(
 	.button, button,
 	input:is([type="button"], [type="submit"], [type="reset"])
-):hover, .button-pressed {
+):hover,
+.button-pressed,
+input.important:is([type="button"], [type="reset"], [type="submit"]),
+.button.important,
+button.important {
 	background-color: $color-29;
 	border-color: $color-31 $color-33 $color-35 $color-37;
 	box-shadow: 0 0 8px $color-40;

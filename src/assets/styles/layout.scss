@@ -71,13 +71,6 @@ body {
 #basic-basic {
 	overflow: visible;
 }
-#bottom-right, #bottom-basic, #bottom-left {
-	vertical-align: middle;
-}
-#top-left, #top-right, #basic-right {
-	min-width: 180px;
-	min-height: 90px !important;
-}
 #top-left {
 	grid-area: top-left;
 }
@@ -99,13 +92,34 @@ body {
 }
 #basic-basic {
 	grid-area: basic-basic;
+	.basic-on-full {
+		position: absolute;
+		top: 24px; right: 80px;
+		z-index: 1000;
+	}
+}
+.basic-fulled {
+	#top-left, #top-basic, #top-right, #basic-left, #basic-right, #bottom-left, #bottom-center, #bottom-right {
+		display: none;
+	}
+	#grid {
+		grid-template-rows: 0 1fr 0 !important;
+		grid-template-columns: 0 1fr 0 !important;
+	}
 }
 #basic-right {
 	grid-area: basic-right;
 }
+#top-left, #top-right {
+	.control-buttons {
+		min-height: 80px;
+	}
+}
+#bottom-left, #bottom-center, #bottom-right {
+	min-height: 50px;
+}
 #bottom-left {
 	grid-area: bottom-left;
-	min-height: 50px;
 }
 #bottom-basic {
 	display: flex;
@@ -138,9 +152,6 @@ body {
 #top-basic > *:first-child {
 	display: grid;
 	grid-template-columns: minmax(120px, 1fr) auto;
-}
-.brand + #dashboard {
-	margin-left: 12px;
 }
 #dashboard {
 	display: grid;
@@ -304,6 +315,17 @@ body {
 		grid-template-columns: 1fr 1fr !important;
 		grid-template-rows: auto auto 2fr 3fr auto !important;
 	}
+	#basic-basic {
+		.basic-on-full {
+			top: 12px; right: 80px;
+		}
+	}
+	.basic-fulled {
+		#grid {
+			grid-template-rows: 0 0 0 1fr 0 !important;
+			grid-template-columns: 1fr 1fr !important;
+		}
+	}
 	#sbs-top, #sbs-right, #bottom-basic .center-coordinates {
 		display: none;
 	}
@@ -341,5 +363,24 @@ body {
 @media screen and (max-width: 450px) {
 	#top-basic .brand > *:first-child + * {
 		display: none;
+	}
+}
+@media screen and (max-height: 450px) {
+	.auth {
+		#dashboard {
+			grid-template-rows: auto;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+			margin: 0;
+		}
+		.auth__login, .auth__registration {
+			margin-bottom: 12px !important;
+		}
+		#prompt-button {
+			margin-top: 12px !important;
+		}
+	}
+	.auth .brand, .account .brand, .popup-content .brand  {
+		top: 0;
 	}
 }

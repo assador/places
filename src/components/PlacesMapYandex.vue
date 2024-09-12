@@ -87,16 +87,6 @@
 			<yandex-map-zoom-control />
 			<yandex-map-scale-control />
 		</yandex-map-controls>
-		<yandex-map-controls :settings="{position: 'top right', orientation: 'vertical'}">
-			<yandex-map-control-button :settings="{onClick: toggleFullscreen}">
-				<div
-					class="fullscreen"
-					:class="{'exit-fullscreen': isFullscreen}"
-				>
-					⤧
-				</div>
-			</yandex-map-control-button>
-		</yandex-map-controls>
 		<yandex-map-controls :settings="{position: 'bottom left', orientation: 'vertical'}">
 			<yandex-map-open-maps-button />
 		</yandex-map-controls>
@@ -236,25 +226,6 @@ const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void =>
 		),
 	});
 };
-
-const isFullscreen = ref(false);
-
-const toggleFullscreen = () => {
-	if (isFullscreen.value) {
-		document.exitFullscreen();
-	} else {
-		map.value!.container.requestFullscreen();
-	}
-};
-onMounted(() => {
-	const handleFullscreenChange = () => {
-		isFullscreen.value = !!document.fullscreenElement;
-	};
-	document.addEventListener('fullscreenchange', handleFullscreenChange);
-	onBeforeUnmount(() => {
-		document.removeEventListener('fullscreenchange', handleFullscreenChange);
-	});
-});
 </script>
 
 <style scoped>
