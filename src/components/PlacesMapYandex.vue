@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef, watch, onMounted, onBeforeUnmount, inject } from 'vue';
+import { ref, Ref, shallowRef, watch, onMounted, onBeforeUnmount, inject } from 'vue';
 import { useStore } from 'vuex';
 import { emitter } from '@/shared/bus';
 import {
@@ -127,15 +127,18 @@ const placemarksOptions = ref({
 	},
 	private: {
 		draggable: true,
+		visible: true,
 	},
 	common: {
 		draggable: false,
+		visible: true,
 	},
 	active: {
 		draggable: true,
 	},
 	center: {
 		draggable: true,
+		visible: true,
 	},
 	icon_04: {
 		iconImageHref: '/img/markers/marker_04.svg',
@@ -184,9 +187,9 @@ const placemarkClick = (id: string): void => {
 	if (place.common) {
 		const inPaginator =
 			Object.keys(store.state.main.commonPlaces).indexOf(id) /
-			commonPlacesOnPageCount.value
+			(commonPlacesOnPageCount as Ref).value
 		;
-		commonPlacesPage.value = (
+		(commonPlacesPage as Ref).value = (
 			Number.isInteger(inPaginator)
 				? inPaginator + 1
 				: Math.ceil(inPaginator)

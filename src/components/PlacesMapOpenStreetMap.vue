@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, Ref, computed, inject } from 'vue';
 import { useStore } from 'vuex';
 import { emitter } from '@/shared/bus';
 import {
@@ -177,9 +177,9 @@ const placemarkClick = (place): void => {
 	if (place.common) {
 		const inPaginator =
 			Object.keys(store.state.main.commonPlaces).indexOf(place.id) /
-			commonPlacesOnPageCount.value
+			(commonPlacesOnPageCount as Ref).value
 		;
-		commonPlacesPage.value = (
+		(commonPlacesPage as Ref).value = (
 			Number.isInteger(inPaginator)
 				? inPaginator + 1
 				: Math.ceil(inPaginator)
@@ -211,21 +211,21 @@ const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void =>
 		latitude: Number(
 			payload && payload.coords
 				? payload.coords[0].toFixed(7)
-				: map.value.leafletObject.getCenter().lat.toFixed(7)
+				: (map as Ref).value.leafletObject.getCenter().lat.toFixed(7)
 		),
 		longitude: Number(
 			payload && payload.coords
 				? payload.coords[1].toFixed(7)
-				: map.value.leafletObject.getCenter().lng.toFixed(7)
+				: (map as Ref).value.leafletObject.getCenter().lng.toFixed(7)
 		),
 		zoom: Number(
 			payload && payload.zoom
 				? payload.zoom
-				: map.value.leafletObject.getZoom()
+				: (map as Ref).value.leafletObject.getZoom()
 		),
 	});
 };
 const ready = (): void => {
-	map.value.leafletObject.panTo(mapCenter.value.coords);
+	(map as Ref).value.leafletObject.panTo(mapCenter.value.coords);
 };
 </script>

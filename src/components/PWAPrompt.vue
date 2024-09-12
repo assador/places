@@ -16,7 +16,7 @@ import {
 } from 'vue';
 
 const shown = ref(false);
-const installEvent = ref<BeforeInstallPromptEvent | null>(null);
+const installEvent = ref<any>(null);
 
 onBeforeMount(() => {
 	window.addEventListener('beforeinstallprompt', e => {

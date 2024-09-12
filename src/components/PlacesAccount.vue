@@ -168,7 +168,7 @@ const keyup = (event: Event): void => {
 			[(event as KeyboardEvent).keyCode] === 'close'
 	) close(event);
 };
-const accountSubmit = (): void => {
+const accountSubmit = function(): void {
 	if (store.state.main.user.testaccount) {
 		account.value.message = store.state.main.t.m.paged.taCannotBeChanged;
 	} else {

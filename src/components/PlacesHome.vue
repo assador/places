@@ -793,7 +793,7 @@ const updateColorthemeInFullscreen = (): void => {
 	if (state.value.fullscreen) {
 		const fullscreenWrapper = document.querySelector('.fullscreen-wrapper');
 		for (const theme of colorthemes.value) {
-			fullscreenWrapper.classList.remove('colortheme-' + theme.value);
+			fullscreenWrapper.classList.remove('colortheme-' + theme['value']);
 		}
 		fullscreenWrapper.classList.add('colortheme-' + colortheme.value);
 	}
