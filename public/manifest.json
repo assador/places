@@ -3,7 +3,7 @@
     "name": "Сервис просмотра и редактирования библиотек геометок «Места»",
     "start_url":"/",
     "display": "standalone",
-    "orientation": "landscape",
+    "orientation": "any",
     "icons": [{
         "src": "/logo.svg",
         "type": "image/svg+xml",
