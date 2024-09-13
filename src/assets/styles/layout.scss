@@ -99,12 +99,10 @@ body {
 	}
 }
 .basic-fulled {
+	grid-template-rows: 0 1fr 0 !important;
+	grid-template-columns: 0 1fr 0 !important;
 	#top-left, #top-basic, #top-right, #basic-left, #basic-right, #bottom-left, #bottom-center, #bottom-right {
 		display: none;
-	}
-	#grid {
-		grid-template-rows: 0 1fr 0 !important;
-		grid-template-columns: 0 1fr 0 !important;
 	}
 }
 #basic-right {
@@ -321,10 +319,8 @@ body {
 		}
 	}
 	.basic-fulled {
-		#grid {
-			grid-template-rows: 0 0 0 1fr 0 !important;
-			grid-template-columns: 1fr 1fr !important;
-		}
+		grid-template-rows: 0 0 0 1fr 0 !important;
+		grid-template-columns: 1fr 1fr !important;
 	}
 	#sbs-top, #sbs-right, #bottom-basic .center-coordinates {
 		display: none;

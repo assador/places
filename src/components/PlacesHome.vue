@@ -1,6 +1,7 @@
 <template>
 	<div
 		id="grid"
+		ref="root"
 		class="loading-grid"
 		:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
 		@mousemove="e => documentMouseOver(e)"
@@ -650,7 +651,7 @@ const maps = [
 
 const root = ref(null);
 const basicOnFull = (): void => {
-root.value.classList.toggle('basic-fulled');
+	root.value.classList.toggle('basic-fulled');
 }
 const extmap = ref(null);
 provide('extmap', extmap);
