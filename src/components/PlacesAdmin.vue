@@ -7,136 +7,134 @@
 			)
 		"
 	>
-		<div class="fullscreen-wrapper">
+		<div
+			id="grid"
+			class="loading-grid"
+			:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
+			@mousemove="e => documentMouseOver(e)"
+			@touchmove="e => documentMouseOver(e)"
+			@mouseup="sidebarDragStop"
+			@touchend="sidebarDragStop"
+		>
 			<div
-				id="grid"
-				class="loading-grid"
-				:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
-				@mousemove="e => documentMouseOver(e)"
-				@touchmove="e => documentMouseOver(e)"
-				@mouseup="sidebarDragStop"
-				@touchend="sidebarDragStop"
+				id="top-left"
+				class="app-cell fieldwidth_100"
 			>
-				<div
-					id="top-left"
-					class="app-cell fieldwidth_100"
-				>
-					<div class="control-buttons" />
-				</div>
-				<div
-					id="top-basic"
-					class="app-cell"
-				>
-					<div id="top-basic-content">
-						<div class="brand">
-							<h1 class="basiccolor margin_bottom_0">
-								{{ store.state.main.t.i.brand.header }} —
-								<router-link to="/account">
-									{{ store.state.main.user ? store.state.main.user.login : 'o_O' }}
-								</router-link>
-							</h1>
-							<div>{{ store.state.main.t.i.brand.slogan }}</div>
-						</div>
-						<places-dashboard />
-					</div>
-					<div
-						id="messages"
-						class="invisible"
-						@mouseover="store.commit('main/setMouseOverMessages', true)"
-						@mouseout="store.commit('main/setMouseOverMessages', false)"
-						@click="store.dispatch('main/clearMessages');"
-					>
-						<div
-							v-for="(message, index) in store.state.main.messages"
-							:id="'message-' + index"
-							:key="index"
-							class="message border_1"
-						>
-							{{ store.state.main.messages[index] }}
-						</div>
-					</div>
-				</div>
-				<div
-					id="top-right"
-					class="app-cell"
-				>
-					<div class="control-buttons">
-						<button
-							id="actions-home"
-							class="actions-button"
-							:title="store.state.main.t.i.hints.exit"
-							@click="router.push('/home')"
-						>
-							<span>⌂</span>
-							<span>{{ store.state.main.t.i.buttons.home }}</span>
-						</button>
-						<button
-							id="actions-exit"
-							class="actions-button"
-							:title="store.state.main.t.i.hints.exit"
-							@click="exit"
-						>
-							<span>↪</span>
-							<span>{{ store.state.main.t.i.buttons.exit }}</span>
-						</button>
-					</div>
-				</div>
-				<div
-					id="basic-left"
-					class="app-cell"
-				/>
-				<div
-					id="basic-basic"
-					class="app-cell"
-				>
-					<div id="admin-basic">
-						<component
-							:is="components[component].component"
-						/>
-					</div>
-					<div
-						id="sbs-top"
-						:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-						@mousedown="e => sidebarDragStart(e, 'top')"
-						@touchstart="e => sidebarDragStart(e, 'top')"
-					/>
-					<div
-						id="sbs-right"
-						:style="'top: -' + (sidebarSize.top + (compact ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-						@mousedown="e => sidebarDragStart(e, 'right')"
-						@touchstart="e => sidebarDragStart(e, 'right')"
-					/>
-					<div
-						id="sbs-bottom"
-						:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-						@mousedown="e => sidebarDragStart(e, 'bottom')"
-						@touchstart="e => sidebarDragStart(e, 'bottom')"
-					/>
-					<div
-						id="sbs-left"
-						:style="'top: -' + (sidebarSize.top + (compact as number > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-						@mousedown="e => sidebarDragStart(e, 'left')"
-						@touchstart="e => sidebarDragStart(e, 'left')"
-					/>
-				</div>
-				<div
-					id="basic-right"
-					class="app-cell"
-				>
-					<admin-navigation />
-				</div>
-				<div
-					id="bottom-left"
-					class="app-cell"
-				>
-					<div class="control-buttons" />
-				</div>
-				<div
-					id="bottom-basic"
-					class="app-cell"
-				/>
-				<router-view />
+				<div class="control-buttons" />
 			</div>
+			<div
+				id="top-basic"
+				class="app-cell"
+			>
+				<div id="top-basic-content">
+					<div class="brand">
+						<h1 class="basiccolor margin_bottom_0">
+							{{ store.state.main.t.i.brand.header }} —
+							<router-link to="/account">
+								{{ store.state.main.user ? store.state.main.user.login : 'o_O' }}
+							</router-link>
+						</h1>
+						<div>{{ store.state.main.t.i.brand.slogan }}</div>
+					</div>
+					<places-dashboard />
+				</div>
+				<div
+					id="messages"
+					class="invisible"
+					@mouseover="store.commit('main/setMouseOverMessages', true)"
+					@mouseout="store.commit('main/setMouseOverMessages', false)"
+					@click="store.dispatch('main/clearMessages');"
+				>
+					<div
+						v-for="(message, index) in store.state.main.messages"
+						:id="'message-' + index"
+						:key="index"
+						class="message border_1"
+					>
+						{{ store.state.main.messages[index] }}
+					</div>
+				</div>
+			</div>
+			<div
+				id="top-right"
+				class="app-cell"
+			>
+				<div class="control-buttons">
+					<button
+						id="actions-home"
+						class="actions-button"
+						:title="store.state.main.t.i.hints.exit"
+						@click="router.push('/home')"
+					>
+						<span>⌂</span>
+						<span>{{ store.state.main.t.i.buttons.home }}</span>
+					</button>
+					<button
+						id="actions-exit"
+						class="actions-button"
+						:title="store.state.main.t.i.hints.exit"
+						@click="exit"
+					>
+						<span>↪</span>
+						<span>{{ store.state.main.t.i.buttons.exit }}</span>
+					</button>
+				</div>
+			</div>
+			<div
+				id="basic-left"
+				class="app-cell"
+			/>
+			<div
+				id="basic-basic"
+				class="app-cell"
+			>
+				<div id="admin-basic">
+					<component
+						:is="components[component].component"
+					/>
+				</div>
+				<div
+					id="sbs-top"
+					:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+					@mousedown="e => sidebarDragStart(e, 'top')"
+					@touchstart="e => sidebarDragStart(e, 'top')"
+				/>
+				<div
+					id="sbs-right"
+					:style="'top: -' + (sidebarSize.top + (compact ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+					@mousedown="e => sidebarDragStart(e, 'right')"
+					@touchstart="e => sidebarDragStart(e, 'right')"
+				/>
+				<div
+					id="sbs-bottom"
+					:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+					@mousedown="e => sidebarDragStart(e, 'bottom')"
+					@touchstart="e => sidebarDragStart(e, 'bottom')"
+				/>
+				<div
+					id="sbs-left"
+					:style="'top: -' + (sidebarSize.top + (compact as number > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+					@mousedown="e => sidebarDragStart(e, 'left')"
+					@touchstart="e => sidebarDragStart(e, 'left')"
+				/>
+			</div>
+			<div
+				id="basic-right"
+				class="app-cell"
+			>
+				<admin-navigation />
+			</div>
+			<div
+				id="bottom-left"
+				class="app-cell"
+			>
+				<div class="control-buttons" />
+			</div>
+			<div
+				id="bottom-basic"
+				class="app-cell"
+			/>
+			<router-view />
 		</div>
 	</div>
 </template>

@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, shallowRef, watch, onMounted, onBeforeUnmount, inject } from 'vue';
+import { ref, Ref, shallowRef, watch, inject } from 'vue';
 import { useStore } from 'vuex';
 import { emitter } from '@/shared/bus';
 import {
@@ -103,7 +103,6 @@ import {
 	YandexMapDefaultSchemeLayer,
 	YandexMapDefaultFeaturesLayer,
 	createYmapsOptions,
-	YandexMapControlButton,
 	YandexMapControls,
 	YandexMapGeolocationControl,
 	YandexMapOpenMapsButton,

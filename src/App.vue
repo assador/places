@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, onMounted } from 'vue'
+import { ref, computed, provide, onMounted, onBeforeMount } from 'vue'
 import axios from 'axios';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
@@ -25,6 +25,15 @@ const currentPlaceCommon = ref(false);
 provide('currentPlaceCommon', currentPlaceCommon);
 const selectedToExport = ref({});
 provide('selectedToExport', selectedToExport);
+
+const installEvent = ref<any>(null);
+provide('installEvent', installEvent);
+onBeforeMount(() => {
+	window.addEventListener('beforeinstallprompt', e => {
+		e.preventDefault();
+		installEvent.value = e;
+	});
+});
 
 const store = useStore();
 const router = useRouter();

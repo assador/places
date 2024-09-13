@@ -1,10 +1,10 @@
 <template>
 	<button
-v-if="shown"
-id="prompt-button"
-class="important"
-@click="installPWA"
->
+		v-if="shown"
+		id="prompt-button"
+		class="important"
+		@click="installPWA"
+	>
 		Установить как приложение
 	</button>
 </template>
@@ -12,19 +12,16 @@ class="important"
 <script setup lang="ts">
 import {
 	ref,
-	onBeforeMount,
+	inject,
+	watch,
 } from 'vue';
 
+const installEvent = inject<typeof installEvent>('installEvent');
 const shown = ref(false);
-const installEvent = ref<any>(null);
-
-onBeforeMount(() => {
-	window.addEventListener('beforeinstallprompt', e => {
-		e.preventDefault();
-		installEvent.value = e;
-		shown.value = true;
-	});
+watch(() => installEvent.value, () => {
+	shown.value = !!installEvent.value;
 });
+
 const dismissPrompt = (): void => {
 	shown.value = false;
 };
@@ -33,9 +30,7 @@ const installPWA = (): void => {
 	installEvent.value.userChoice.then(choice => {
 		dismissPrompt();
 		if (choice.outcome === 'accepted') {
-			// Do something additional if the user chose to install
 		} else {
-			// Do something additional if the user declined
 		}
 	});
 };
