@@ -455,3 +455,27 @@ export const getAbout = async (): Promise<void> => {
 		.catch(error => new Error(error))
 	;
 };
+export const maxNumbers = (array: number[], count: number): number[] => {
+	const result = array.slice(0, count).sort((a, b) => a - b);
+	const insertNew = (el: number): number => {
+		for (let idx = 0; idx < result.length; idx++) {
+			if (result[idx] === el) return idx;
+			if (result[idx] > el) {
+				result.shift();
+				result.splice(idx - 1, 0, el);
+				return idx;
+			}
+			if (result[idx] < el && idx === result.length - 1) {
+				result.shift();
+				result.push(el);
+				return idx;
+			}
+		}
+		return -1;
+	}
+	for (let i = count; i < array.length; i++) {
+		if (array[i] <= result[0]) continue;
+		insertNew(array[i]);
+	}
+	return result;
+}

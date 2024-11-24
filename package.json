@@ -1,12 +1,12 @@
 {
 	"name": "places",
 	"description": "Yet another geo placemarks viewer and editor service",
-	"version": "5.3.11",
+	"version": "5.3.12",
 	"author": "Dmitry Sokolov <assador@gmail.com>",
 	"license": "MIT",
 	"private": true,
 	"scripts": {
-		"serve": "vue-cli-service serve",
+		"serve": "NODE_OPTIONS='--max-http-header-size=100000' vue-cli-service serve",
 		"build": "vue-cli-service build",
 		"lint": "vue-cli-service lint",
 		"test:unit": "jest"
