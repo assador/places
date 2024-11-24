@@ -9,6 +9,7 @@ export const t = {
 			latitude: 'Latitude',
 			longitude: 'Longitude',
 			altitudecapability: 'Altitudecapability (m)',
+			range: 'Show in the range from and to',
 			time: 'Geotag creation time (UTC)',
 			srt: 'Sorting',
 			common: 'Privacy',

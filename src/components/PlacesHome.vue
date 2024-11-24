@@ -63,7 +63,7 @@
 						class="actions-button"
 						@click="selectPlaces(searchInput.value)"
 					>
-						<span>🔍</span>
+						<span>&#128269;</span>
 					</button>
 				</div>
 			</div>
@@ -315,8 +315,59 @@
 							{{ store.getters['main/placeFields'][field] }}:
 						</dt>
 						<div v-if="field === 'waypoint'">
-							<div class="aligned-children">
+							<div class="two-fields">
 								<div>
+									<dt>
+										{{ store.getters['main/placeFields']['latitude'] }}
+										<input
+											id="showmore-detailed-latitude"
+											v-model="detailedShow.latitude"
+											type="checkbox"
+											@change="e => store.dispatch('main/showDetailed', {what: 'latitude', to: detailedShow.latitude})"
+										>
+									</dt>
+									<dd>
+										<input
+											id="detailed-latitude"
+											:value="currentPlaceLat"
+											type="number"
+											:disabled="!!currentPlaceCommon"
+											class="fieldwidth_100"
+											@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
+										>
+									</dd>
+								</div>
+								<div>
+									<dt>
+										{{ store.getters['main/placeFields']['longitude'] }}
+										<input
+											id="showmore-detailed-longitude"
+											v-model="detailedShow.longitude"
+											type="checkbox"
+											@change="e => store.dispatch('main/showDetailed', {what: 'longitude', to: detailedShow.longitude})"
+										>
+									</dt>
+									<dd>
+										<input
+											id="detailed-longitude"
+											:value="currentPlaceLon"
+											type="number"
+											:disabled="!!currentPlaceCommon"
+											class="fieldwidth_100"
+											@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
+										>
+									</dd>
+								</div>
+								<h4
+									class="two-fields__detailed_combined"
+									:style="'display: ' + (detailedShow.latitude || detailedShow.longitude ? 'block' : 'none')"
+								>
+									{{ store.getters['main/placeFields']['range'] }}:
+								</h4>
+								<div
+									class="two-fields__detailed"
+									:style="'display: ' + (detailedShow.latitude ? 'block' : 'none')"
+								>
 									<dt>
 										{{ store.getters['main/placeFields']['latitude'] }}
 									</dt>
@@ -331,7 +382,10 @@
 										>
 									</dd>
 								</div>
-								<div>
+								<div
+									class="two-fields__detailed"
+									:style="'display: ' + (detailedShow.longitude ? 'block' : 'none')"
+								>
 									<dt>
 										{{ store.getters['main/placeFields']['longitude'] }}
 									</dt>
@@ -359,6 +413,12 @@
 							</div>
 							<dt>
 								{{ store.getters['main/placeFields']['altitudecapability'] }}
+								<input
+									:id="'showmore-detailed-altitudecapability'"
+									v-model="detailedShow.altitudecapability"
+									type="checkbox"
+									@change="e => store.dispatch('main/showDetailed', {what: 'altitudecapability', to: detailedShow.altitudecapability})"
+								>
 							</dt>
 							<dd>
 								<input
@@ -710,6 +770,9 @@ const orderedImages = computed((): Array<Image> => {
 });
 const stateReady = computed((): boolean => {
 	return store.state.main.ready;
+});
+const detailedShow = computed((): Record<string, boolean> => {
+	return store.state.main.detailedShow;
 });
 const currentPlaceLat = computed((): number => {
 	return waypoints.value[currentPlace.value.waypoint].latitude;
@@ -1427,6 +1490,29 @@ const selectPlaces = (text: string): void => {
 	}
 	.actions-button {
 		margin: 0;
+	}
+}
+.two-fields {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 8px;
+	margin-bottom: 8px;
+	&__detailed_combined {
+		grid-column: 1 / 3;
+	}
+	h4 {
+		margin-bottom: -0.5rem;
+	}
+	> * {
+		box-sizing: border-box;
+		width: 100%;
+	}
+	input:is(:not([type="checkbox"])) {
+		margin-bottom: 0 !important;
+	}
+	dd {
+		display: flex;
+		gap: 8px;
 	}
 }
 </style>

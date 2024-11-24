@@ -322,6 +322,30 @@ input:is(
 input[type="color"] {
 	height: 22px;
 }
+input:is([type="checkbox"], [type="radio"]) {
+	display: inline-block;
+	position: relative;
+	width: 0; height: 0;
+	margin: 12px;
+	vertical-align: middle;
+	&::after {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		top: -12px; left: -12px;
+		width: 24px; height: 24px;
+		font-size: 20px;
+		color: $col-05;
+		cursor: pointer;
+	}
+	&:checked::after {
+		content: '🗹';
+	}
+	&:not(:checked)::after {
+		content: '🗷';
+	}
+}
 select {
 	padding-right: 10px; padding-left: 4px;
 }
@@ -434,6 +458,10 @@ input[type="hidden"] {
 	> * {
 		box-sizing: border-box;
 		width: 100%;
+	}
+	dd {
+		display: flex;
+		gap: 8px;
 	}
 }
 .cw_g1 {padding-right: 19.1%; padding-left: 19.1%;}

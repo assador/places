@@ -9,6 +9,7 @@ export const t = {
 			latitude: 'Широта',
 			longitude: 'Долгота',
 			altitudecapability: 'Высота над уровнем моря (м)',
+			range: 'Показывать в диапазоне от и до',
 			time: 'Время создания геометки (UTC)',
 			srt: 'Сортировка',
 			common: 'Приватность',

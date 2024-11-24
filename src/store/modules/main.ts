@@ -37,6 +37,7 @@ export interface IMainState {
 	placemarksShow: boolean,
 	commonPlacemarksShow: boolean,
 	centerPlacemarkShow: boolean,
+	detailedShow: Record<string, boolean>,
 	ready: boolean,
 	messages: string[],
 	messageTimer: number,
@@ -74,6 +75,11 @@ export const state: IMainState = {
 	placemarksShow: true,
 	commonPlacemarksShow: false,
 	centerPlacemarkShow: false,
+	detailedShow: {
+		latitude: false,
+		longitude: false,
+		altitudecapability: false,
+	},
 	ready: false,
 	messages: [],
 	messageTimer: 0,
@@ -385,6 +391,9 @@ export const mutations: MutationTree<IMainState> = {
 	},
 	centerPlacemarkShowHide(state, show) {
 		state.centerPlacemarkShow = show;
+	},
+	showDetailed(state, payload) {
+		state.detailedShow[payload.what] = payload.to;
 	},
 	showHidePlaceGeomark(state, payload) {
 		payload.place.geomark = payload.show;
@@ -1286,6 +1295,9 @@ export const actions: ActionTree<IMainState, State> = {
 	centerPlacemarkShowHide({state, commit}, show) {
 		commit('centerPlacemarkShowHide', show === undefined ? !state.centerPlacemarkShow : show);
 	},
+	showDetailed({commit}, payload) {
+		commit('showDetailed', payload);
+	},
 	showHideGeomarks({state, commit, getters}, payload) {
 		let visibility: number;
 		const showHideSubGeomarks = (object: any, show: number | boolean) => {
@@ -1410,6 +1422,7 @@ export const getters: GetterTree<IMainState, State> = {
 			latitude           : state.t.i.captions.latitude,
 			longitude          : state.t.i.captions.longitude,
 			altitudecapability : state.t.i.captions.altitudecapability,
+			range              : state.t.i.captions.range,
 			time               : state.t.i.captions.time,
 			srt                : state.t.i.captions.srt,
 			common             : state.t.i.captions.common,
