@@ -340,10 +340,10 @@ input:is([type="checkbox"], [type="radio"]) {
 		cursor: pointer;
 	}
 	&:checked::after {
-		content: '🗹';
+		content: '\1f5f9';
 	}
 	&:not(:checked)::after {
-		content: '🗷';
+		content: '\1f78f';
 	}
 }
 select {

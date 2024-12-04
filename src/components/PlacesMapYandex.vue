@@ -2,7 +2,6 @@
 	<yandex-map
 		v-model="map"
 		:settings="{
-			apikey: '264f4333-26ea-4342-af02-67c24d0533e7',
 			location: {
 				center: [
 					store.state.main.center.longitude,
