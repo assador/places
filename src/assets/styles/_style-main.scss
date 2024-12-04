@@ -831,11 +831,10 @@ span.folder-button {
 	cursor: pointer;
 }
 .folder_closed > * > .folder-button::before {
-	content: '\25b6';
-	font-size: 93%;
+	content: '\25e2';
 }
 .folder_opened > * > .folder-button::before {
-	content: '\25bc';
+	content: '\25e4';
 }
 .folder_closed > .folder-places {
 	display: none !important;
@@ -928,13 +927,12 @@ span.folder-button {
 .draggable .dd-images__delete, .menu .dragenter-area, span.folder-button * {
 	pointer-events: all;
 }
-#top-left, #top-right, #bottom-left {
+#top-right, #bottom-left {
 	font-size: 0 !important;
 }
 .actions-button {
 	display: flex;
 	flex-direction: column;
-	margin: 4px;
 	padding: 4px 0 1px 0;
 	line-height: 0.7;
 	font-size: 11px !important;

@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   class="icon"
-   width="16"
-   height="16"
-   viewBox="0 0 16 16"
-   version="1.1"
-   id="svg1"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+	class="icon"
+	width="16"
+	height="16"
+	viewBox="0 0 16 16"
+	version="1.1"
+	id="svg1"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:svg="http://www.w3.org/2000/svg">
   <g
-     id="layer1">
-    <rect
-       style="fill:none;stroke:#462816;stroke-width:1.51182;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       id="rect2"
-       width="14.488184"
-       height="14.488184"
-       x="0.75590533"
-       y="0.75590533" />
+	  id="layer1">
+	 <rect
+		 style="fill:none;stroke:#462816;stroke-width:1.51182;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+		 id="rect2"
+		 width="14.488184"
+		 height="14.488184"
+		 x="0.75590533"
+		 y="0.75590533" />
   </g>
 </svg>

@@ -10,65 +10,6 @@
 		@touchend="sidebarDragStop"
 	>
 		<div
-			id="top-left"
-			class="app-cell fieldwidth_100"
-		>
-			<div class="control-buttons">
-				<button
-					id="actions-append"
-					class="actions-button"
-					:title="store.state.main.t.i.hints.addPlace"
-					@click="appendPlace();"
-				>
-					<span>+</span>
-					<span>{{ store.state.main.t.i.buttons.newPlace }}</span>
-				</button>
-				<button
-					id="actions-delete"
-					class="actions-button"
-					:title="store.state.main.t.i.hints.deletePlace"
-					:disabled="!(store.state.main.user && currentPlace && currentPlace.userid === store.state.main.user.id)"
-					@click="store.dispatch('main/deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
-				>
-					<span>-</span>
-					<span>{{ store.state.main.t.i.buttons.delete }}</span>
-				</button>
-				<button
-					id="actions-append-folder"
-					class="actions-button"
-					:title="store.state.main.t.i.hints.addFolder"
-					@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
-				>
-					<span>↧</span>
-					<span>{{ store.state.main.t.i.buttons.newFolder }}</span>
-				</button>
-				<button
-					id="actions-edit-folders"
-					:class="'actions-button' + (foldersEditMode ? ' button-pressed' : '')"
-					:title="store.state.main.t.i.hints.editFolders"
-					@click="foldersEditMode = !foldersEditMode;"
-				>
-					<span>⇆</span>
-					<span>{{ store.state.main.t.i.buttons.editFolders }}</span>
-				</button>
-				<div class="control-search">
-					<input
-						ref="searchInput"
-						:placeholder="store.state.main.t.i.inputs.searchPlaces"
-						:title="store.state.main.t.i.inputs.searchPlaces"
-						class="find-places-input fontsize_n"
-						@keyup="searchInputEvent"
-					>
-					<button
-						class="actions-button"
-						@click="selectPlaces(searchInput.value)"
-					>
-						<span>&#128269;</span>
-					</button>
-				</div>
-			</div>
-		</div>
-		<div
 			id="top-basic"
 			class="app-cell"
 		>
@@ -210,6 +151,60 @@
 			id="basic-left"
 			class="app-cell"
 		>
+		<div class="control-buttons">
+				<button
+					id="actions-append"
+					class="actions-button"
+					:title="store.state.main.t.i.hints.addPlace"
+					@click="appendPlace();"
+				>
+					<span>+</span>
+					<span>{{ store.state.main.t.i.buttons.newPlace }}</span>
+				</button>
+				<button
+					id="actions-delete"
+					class="actions-button"
+					:title="store.state.main.t.i.hints.deletePlace"
+					:disabled="!(store.state.main.user && currentPlace && currentPlace.userid === store.state.main.user.id)"
+					@click="store.dispatch('main/deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
+				>
+					<span>-</span>
+					<span>{{ store.state.main.t.i.buttons.delete }}</span>
+				</button>
+				<button
+					id="actions-append-folder"
+					class="actions-button"
+					:title="store.state.main.t.i.hints.addFolder"
+					@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
+				>
+					<span>↧</span>
+					<span>{{ store.state.main.t.i.buttons.newFolder }}</span>
+				</button>
+				<button
+					id="actions-edit-folders"
+					:class="'actions-button' + (foldersEditMode ? ' button-pressed' : '')"
+					:title="store.state.main.t.i.hints.editFolders"
+					@click="foldersEditMode = !foldersEditMode;"
+				>
+					<span>⇆</span>
+					<span>{{ store.state.main.t.i.buttons.editFolders }}</span>
+				</button>
+				<div class="control-search">
+					<input
+						ref="searchInput"
+						:placeholder="store.state.main.t.i.inputs.searchPlaces"
+						:title="store.state.main.t.i.inputs.searchPlaces"
+						class="find-places-input fontsize_n"
+						@keyup="searchInputEvent"
+					>
+					<button
+						class="actions-button"
+						@click="selectPlaces(searchInput.value)"
+					>
+						<span>&#128269;</span>
+					</button>
+				</div>
+			</div>
 			<div id="basic-left__places">
 				<div
 					v-if="Object.keys(store.state.main.places).length > 0 || Object.keys(store.state.main.folders).length > 0"
@@ -1338,7 +1333,7 @@ const windowResize = (): void => {
 	} else {
 		if (compact.value) {
 			sidebarSize.value.top = parseInt(window.getComputedStyle(
-				document.getElementById('top-left') as Element
+				document.getElementById('top-basic') as Element
 			).height);
 		}
 		sidebarSize.value.right = parseInt(window.getComputedStyle(
@@ -1351,7 +1346,7 @@ const windowResize = (): void => {
 			: '1fr'
 		);
 		sidebarSize.value.left = parseInt(window.getComputedStyle(
-			document.getElementById('top-left') as Element
+			document.getElementById('basic-left') as Element
 		).width);
 		document.getElementById('sbs-left')!.style.marginLeft = sidebarSize.value.left + 'px';
 		document.getElementById('sbs-top')!.style.marginTop =
@@ -1491,6 +1486,9 @@ const selectPlaces = (text: string): void => {
 	.actions-button {
 		margin: 0;
 	}
+}
+#basic-left__places {
+	margin-top: 1rem;
 }
 .two-fields {
 	display: grid;

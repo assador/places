@@ -62,7 +62,7 @@ body {
 	top: 0; right: 0; bottom: 0; left: 0;
 	display: grid;
 	grid-template-areas:
-		"top-left     top-basic     top-right"
+		"basic-left   top-basic     top-right"
 		"basic-left   basic-basic   basic-right"
 		"bottom-left  bottom-basic  bottom-basic"
 	;
@@ -81,7 +81,7 @@ body {
 	grid-area: top-left;
 	container: topleft / size;
 }
-#top-left, #top-right, #bottom-left {
+/*#top-left, */#top-right, #bottom-left {
 	min-width: 90px;
 	@container (width < 180px) {
 		.control-buttons {
@@ -136,7 +136,7 @@ body {
 }
 #top-left, #top-right {
 	.control-buttons {
-		min-height: 80px;
+		min-height: 70px;
 	}
 }
 #bottom-left, #bottom-center, #bottom-right {
@@ -299,13 +299,11 @@ body {
 	flex-direction: column;
 }
 .control-buttons {
-	position: absolute;
-	top: 8px; right: 8px; bottom: 8px; left: 8px;
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
+	gap: 8px;
 	text-align: center;
 }
-
 @media screen and (max-width: 1600px) {
 	.narrower, .auth_forms, .account__form {
 		width: 75%;
@@ -328,7 +326,7 @@ body {
 	#grid {
 		grid-template-areas:
 			"top-basic    top-basic"
-			"top-left     top-right"
+			"basic-left   top-right"
 			"basic-left   basic-right"
 			"basic-basic  basic-basic"
 			"bottom-left  bottom-basic"

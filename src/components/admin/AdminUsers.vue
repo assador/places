@@ -171,11 +171,14 @@ const checkAll = (check: boolean): void => {
 .control-panel {
 	display: flex;
 	gap: 24px;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	& > * {
 		display: flex;
 		gap: 12px;
 		align-items: center;
+	}
+	button {
+		min-width: 32px;
 	}
 }
 .table {

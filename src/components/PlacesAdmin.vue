@@ -19,9 +19,7 @@
 			<div
 				id="top-left"
 				class="app-cell fieldwidth_100"
-			>
-				<div class="control-buttons" />
-			</div>
+			/>
 			<div
 				id="top-basic"
 				class="app-cell"
@@ -83,7 +81,9 @@
 			<div
 				id="basic-left"
 				class="app-cell"
-			/>
+			>
+				<div class="control-buttons" />
+			</div>
 			<div
 				id="basic-basic"
 				class="app-cell"
@@ -226,7 +226,7 @@ const windowResize = (): void => {
 	} else {
 		if (compact.value) {
 			sidebarSize.value.top = parseInt(window.getComputedStyle(
-				document.getElementById('top-left') as Element
+				document.getElementById('top-right') as Element
 			).height);
 		}
 		sidebarSize.value.right = parseInt(window.getComputedStyle(
@@ -239,12 +239,12 @@ const windowResize = (): void => {
 			: '1fr'
 		);
 		sidebarSize.value.left = parseInt(window.getComputedStyle(
-			document.getElementById('top-left') as Element
+			document.getElementById('basic-left') as Element
 		).width);
 		document.getElementById('sbs-left')!.style.marginLeft = sidebarSize.value.left + 'px';
 		document.getElementById('sbs-top')!.style.marginTop =
 			-parseInt(window.getComputedStyle(
-				document.getElementById('basic-left') as Element
+				document.getElementById('top-right') as Element
 			).height) + 'px'
 		;
 		document.getElementById('sbs-bottom')!.style.marginBottom = sidebarSize.value.bottom + 'px';
@@ -354,6 +354,9 @@ const components = {
 #top-left, #basic-left, #bottom-left, #bottom-basic, #bottom-right {
 	display: none;
 }
+#top-right {
+	min-height: 100px;
+}
 @media screen and (max-width: 850px) {
 	#grid {
 		grid-template-areas:
@@ -380,6 +383,8 @@ const components = {
 	}
 }
 .control-buttons {
+	position: relative;
+	margin: -4px;
 	grid-template-columns: repeat(2, 1fr);
 }
 #admin-basic {

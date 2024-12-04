@@ -41,7 +41,7 @@ export const constants = {
 		},
 	},
 	sidebars: {
-		top    : 90,
+		top    : 100,
 		right  : 250,
 		bottom : 54,
 		left   : 250,
