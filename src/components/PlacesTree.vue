@@ -18,10 +18,11 @@ import { formFoldersCheckedIds } from '../shared/common';
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;
 }
+/*
 const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 	instanceid: '',
 });
-
+*/
 const store = useStore();
 
 const foldersCheckedIds = ref([]);

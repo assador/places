@@ -1,36 +1,42 @@
-$col-01: rgb(255, 255, 255);  /* Highlighting */
-$col-02: rgb(72, 86, 63);     /* Basic text color */
-$col-03: rgb(245, 249, 241);  /* Basic left and right cells shading */
-$col-04: rgb(201, 219, 181);  /* Basic background */
-$col-05: rgb(105, 153, 0);    /* Headers */
-$col-06: rgb(253, 255, 250);  /* Button pressed */
-$col-07: rgb(116, 168, 0);    /* Links */
-$col-08: rgb(66, 107, 0);     /* Links hover */
-$col-09: rgb(107, 160, 64);   /* Inputs and place buttons hover shading */
-$col-10: rgb(112, 144, 96);   /* Active place button border-top */
-$col-11: rgb(201, 227, 176);  /* Active place button border-right */
-$col-12: rgb(201, 227, 176);  /* Active place buttons and buttons border-bottom */
-$col-13: rgb(138, 167, 123);  /* Active place buttons and buttons border-left */
-$col-14: rgb(201, 225, 173);  /* Active place buttons shadow */
-$col-15: rgb(180, 198, 161);  /* Select options background */
-$col-16: rgb(158, 182, 137);  /* Buttons background */
-$col-17: rgb(145, 167, 135);  /* Buttons border-top */
-$col-18: rgb(202, 221, 183);  /* Buttons border-right */
-$col-19: rgb(202, 221, 183);  /* Buttons border-bottom */
-$col-20: rgb(151, 171, 142);  /* Buttons border-left */
-$col-21: rgb(123, 156, 97);   /* Submit and reset background */
-$col-22: rgb(109, 136, 97);   /* Submit and reset border-top */
-$col-23: rgb(202, 221, 183);  /* Submit and reset border-right */
-$col-24: rgb(202, 221, 183);  /* Submit and reset border-bottom */
-$col-25: rgb(109, 136, 97);   /* Submit and reset border-left */
-$col-26: rgb(139, 170, 125);  /* Place buttons and block_01 box-shadow */
-$col-27: rgb(250, 254, 246);  /* Top cells border-bottom and top, basic, bottom center border-left */
-$col-28: rgb(201, 218, 182);  /* Angular cells background */
-$col-29: rgb(183, 205, 160);  /* Top and bottom basic cells background */
-$col-30: rgb(250, 254, 246);  /* Highlighted border-color */
-$col-31: rgb(255, 255, 255);  /* Highlighted text */
-$col-32: rgb(180, 203, 154);  /* Correct */
-$col-33: rgb(203, 154, 180);  /* Wrong */
-$col-34: rgb(250, 254, 246);  /* Buttons text color */
-$col-35: rgb(129, 141, 120);  /* Buttons border-color */
-$col-36: rgb(246, 250, 254);  /* Popups */
+@use "style-main" as s;
+
+s.$col-01: rgb(255, 255, 255);  /* Highlighting */
+s.$col-02: rgb(72, 86, 63);     /* Basic text color */
+s.$col-03: rgb(245, 249, 241);  /* Basic left and right cells shading */
+s.$col-04: rgb(201, 219, 181);  /* Basic background */
+s.$col-05: rgb(105, 153, 0);    /* Headers */
+s.$col-06: rgb(253, 255, 250);  /* Button pressed */
+s.$col-07: rgb(116, 168, 0);    /* Links */
+s.$col-08: rgb(66, 107, 0);     /* Links hover */
+s.$col-09: rgb(107, 160, 64);   /* Inputs and place buttons hover shading */
+s.$col-10: rgb(112, 144, 96);   /* Active place button border-top */
+s.$col-11: rgb(201, 227, 176);  /* Active place button border-right */
+s.$col-12: rgb(201, 227, 176);  /* Active place buttons and buttons border-bottom */
+s.$col-13: rgb(138, 167, 123);  /* Active place buttons and buttons border-left */
+s.$col-14: rgb(201, 225, 173);  /* Active place buttons shadow */
+s.$col-15: rgb(180, 198, 161);  /* Select options background */
+s.$col-16: rgb(158, 182, 137);  /* Buttons background */
+s.$col-17: rgb(145, 167, 135);  /* Buttons border-top */
+s.$col-18: rgb(202, 221, 183);  /* Buttons border-right */
+s.$col-19: rgb(202, 221, 183);  /* Buttons border-bottom */
+s.$col-20: rgb(151, 171, 142);  /* Buttons border-left */
+s.$col-21: rgb(123, 156, 97);   /* Submit and reset background */
+s.$col-22: rgb(109, 136, 97);   /* Submit and reset border-top */
+s.$col-23: rgb(202, 221, 183);  /* Submit and reset border-right */
+s.$col-24: rgb(202, 221, 183);  /* Submit and reset border-bottom */
+s.$col-25: rgb(109, 136, 97);   /* Submit and reset border-left */
+s.$col-26: rgb(139, 170, 125);  /* Place buttons and block_01 box-shadow */
+s.$col-27: rgb(250, 254, 246);  /* Top cells border-bottom and top, basic, bottom center border-left */
+s.$col-28: rgb(201, 218, 182);  /* Angular cells background */
+s.$col-29: rgb(183, 205, 160);  /* Top and bottom basic cells background */
+s.$col-30: rgb(250, 254, 246);  /* Highlighted border-color */
+s.$col-31: rgb(255, 255, 255);  /* Highlighted text */
+s.$col-32: rgb(180, 203, 154);  /* Correct */
+s.$col-33: rgb(203, 154, 180);  /* Wrong */
+s.$col-34: rgb(250, 254, 246);  /* Buttons text color */
+s.$col-35: rgb(129, 141, 120);  /* Buttons border-color */
+s.$col-36: rgb(246, 250, 254);   /* Popups */
+
+.colortheme-green-light {
+	@include s.theme;
+}

@@ -13,16 +13,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, inject } from 'vue';
+import { computed, inject } from 'vue';
 import { useStore } from 'vuex';
 
 export interface IAdminNavigationProps {
 	prop: 0,
 }
+/*
 const props = withDefaults(defineProps<IAdminNavigationProps>(), {
 	prop: 0,
 });
-
+*/
 const store = useStore();
 
 const component = inject('component');

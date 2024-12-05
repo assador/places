@@ -102,10 +102,11 @@ import { constants } from '../shared/constants';
 export interface IPlacesPopupExportProps {
 	mime?: string;
 }
+/*
 const props = withDefaults(defineProps<IPlacesPopupExportProps>(), {
 	mime: 'application/json',
 });
-
+*/
 const store = useStore();
 const router = useRouter();
 const route = useRoute();

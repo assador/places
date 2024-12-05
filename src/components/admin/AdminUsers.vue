@@ -124,14 +124,14 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-
+/*
 export interface IAdminUsersProps {
 	prop: 0,
 }
 const props = withDefaults(defineProps<IAdminUsersProps>(), {
 	prop: 0,
 });
-
+*/
 const store = useStore();
 
 const tableMode = ref(1);

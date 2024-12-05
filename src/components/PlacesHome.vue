@@ -840,11 +840,11 @@ const installPWA = (): void => {
 
 const blur = (el?: HTMLElement): void => {
 	if (el) {
-		try {(el as HTMLElement).blur();} catch(e) {}
+		try {(el as HTMLElement).blur();} finally {}
 	} else {
 		const els = document.querySelectorAll(':focus');
 		for(const el of els) {
-			try {(el as HTMLElement).blur();} catch(e) {}
+			try {(el as HTMLElement).blur();} finally {}
 		}
 	}
 };

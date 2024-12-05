@@ -732,6 +732,6 @@ provide('handleDrop', handleDrop);
 </script>
 
 <style lang="scss">
-@import '@/assets/styles/style.scss';
-@import '@/assets/styles/layout.scss';
+@use '@/assets/styles/style.scss';
+@use '@/assets/styles/layout.scss';
 </style>

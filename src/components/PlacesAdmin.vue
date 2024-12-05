@@ -89,9 +89,7 @@
 				class="app-cell"
 			>
 				<div id="admin-basic">
-					<component
-						:is="components[component].component"
-					/>
+					<component :is="components[component].component" />
 				</div>
 				<div
 					id="sbs-top"
@@ -144,18 +142,18 @@ import { ref, defineAsyncComponent, provide, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { constants } from '@/shared/constants';
-import { User, Group } from '@/store/types';
+//import { User, Group } from '@/store/types';
 import axios from 'axios';
 import PlacesDashboard from './PlacesDashboard.vue';
 import AdminNavigation from './admin/AdminNavigation.vue';
-
+/*
 export interface IPlacesAdminProps {
 	prop: 0,
 }
 const props = withDefaults(defineProps<IPlacesAdminProps>(), {
 	prop: 0,
 });
-
+*/
 const store = useStore();
 const router = useRouter();
 
