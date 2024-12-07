@@ -313,11 +313,12 @@
 							<div class="two-fields">
 								<div>
 									<dt>
-										{{ store.getters['main/placeFields']['latitude'] }}
+										{{ store.getters['main/placeFields']['latitude'] }} °
 										<input
 											id="showmore-detailed-latitude"
 											v-model="detailedShow.latitude"
 											type="checkbox"
+											:title="store.getters['main/placeFields']['range']"
 											@change="e => store.dispatch('main/showDetailed', {what: 'latitude', to: detailedShow.latitude})"
 										>
 									</dt>
@@ -334,11 +335,12 @@
 								</div>
 								<div>
 									<dt>
-										{{ store.getters['main/placeFields']['longitude'] }}
+										{{ store.getters['main/placeFields']['longitude'] }} °
 										<input
 											id="showmore-detailed-longitude"
 											v-model="detailedShow.longitude"
 											type="checkbox"
+											:title="store.getters['main/placeFields']['range']"
 											@change="e => store.dispatch('main/showDetailed', {what: 'longitude', to: detailedShow.longitude})"
 										>
 									</dt>
@@ -375,7 +377,7 @@
 									:style="'display: ' + (detailedShow.latitude ? 'block' : 'none')"
 								>
 									<dt>
-										{{ store.getters['main/placeFields']['latitude'] }}
+										{{ store.getters['main/placeFields']['latitude'] }} °
 									</dt>
 									<dd>
 										<input
@@ -395,7 +397,7 @@
 									:style="'display: ' + (detailedShow.longitude ? 'block' : 'none')"
 								>
 									<dt>
-										{{ store.getters['main/placeFields']['longitude'] }}
+										{{ store.getters['main/placeFields']['longitude'] }} °
 									</dt>
 									<dd>
 										<input
@@ -416,6 +418,7 @@
 									:id="'showmore-detailed-altitudecapability'"
 									v-model="detailedShow.altitudecapability"
 									type="checkbox"
+									:title="store.getters['main/placeFields']['range']"
 									@change="e => store.dispatch('main/showDetailed', {what: 'altitudecapability', to: detailedShow.altitudecapability})"
 								>
 							</dt>
@@ -628,7 +631,7 @@
 					class="nobr"
 					style="margin-left: 1em;"
 				>
-					{{ store.state.main.t.i.captions.latitude }}:
+					{{ store.state.main.t.i.captions.latitude }} °:
 					<input
 						v-model.number.trim="store.state.main.center.latitude"
 						placeholder="latitude"
@@ -639,7 +642,7 @@
 					class="nobr"
 					style="margin-left: 1em;"
 				>
-					{{ store.state.main.t.i.captions.longitude }}:
+					{{ store.state.main.t.i.captions.longitude }} °:
 					<input
 						v-model.number.trim="store.state.main.center.longitude"
 						placeholder="longitude"
@@ -675,6 +678,7 @@ import {
 	sortObjects,
 	coords2string,
 	string2coords,
+	numbersMinMax,
 } from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
