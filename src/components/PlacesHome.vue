@@ -353,12 +353,23 @@
 										>
 									</dd>
 								</div>
+								<div class="two-fields__combined">
+									<input
+										id="detailed-coordinates"
+										:value="currentDegMinSec"
+										type="text"
+										:disabled="!!currentPlaceCommon"
+										class="fieldwidth_100"
+										@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; store.dispatch('main/changePlace', {place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
+									>
+								</div>
 								<h4
 									class="two-fields__detailed_combined"
 									:style="'display: ' + (detailedShow.latitude || detailedShow.longitude ? 'block' : 'none')"
 								>
 									{{ store.getters['main/placeFields']['range'] }}:
 								</h4>
+								<div>
 								<div
 									class="two-fields__detailed"
 									:style="'display: ' + (detailedShow.latitude ? 'block' : 'none')"
@@ -377,6 +388,8 @@
 										>
 									</dd>
 								</div>
+								</div>
+								<div>
 								<div
 									class="two-fields__detailed"
 									:style="'display: ' + (detailedShow.longitude ? 'block' : 'none')"
@@ -395,16 +408,7 @@
 										>
 									</dd>
 								</div>
-							</div>
-							<div>
-								<input
-									id="detailed-coordinates"
-									:value="currentDegMinSec"
-									type="text"
-									:disabled="!!currentPlaceCommon"
-									class="fieldwidth_100"
-									@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; store.dispatch('main/changePlace', {place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
-								>
+								</div>
 							</div>
 							<dt>
 								{{ store.getters['main/placeFields']['altitudecapability'] }}
@@ -949,23 +953,13 @@ const appendPlace = async (): Promise<void | Place> => {
 			> Object.keys(store.state.main.places).length ||
 		store.state.main.user.testaccount
 	) {
-		let lat: number, lng: number;
-		if (maps[store.state.main.activeMapIndex].componentName === 'PlacesMapYandex') {
-			lat = extmap.value.coordinates[0].toFixed(7);
-			lng = extmap.value.coordinates[1].toFixed(7);
-		} else {
-			lat = extmap.value.center[0].toFixed(7);
-			lng = extmap.value.center[1].toFixed(7);
-		}
 		const newWaypoint: Waypoint = {
 			id: generateRandomString(32),
 			latitude:
-				Number(lat) ||
-				Number(constants.map.initial.latitude) ||
+				store.state.main.center.latitude ||
 				null,
 			longitude:
-				Number(lng) ||
-				Number(constants.map.initial.longitude) ||
+				store.state.main.center.longitude ||
 				null,
 			altitudecapability: null,
 			time: new Date().toISOString().slice(0, -5),
@@ -1511,6 +1505,9 @@ const selectPlaces = (text: string): void => {
 	dd {
 		display: flex;
 		gap: 8px;
+	}
+	.two-fields__combined {
+		grid-column: 1 / 3;
 	}
 }
 </style>

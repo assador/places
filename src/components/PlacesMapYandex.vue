@@ -113,8 +113,8 @@ import type { YMap } from '@yandex/ymaps3-types';
 const store = useStore();
 
 const map = shallowRef<YMap | null>(null);
-const markers = shallowRef<Record<string, typeof YandexMapMarker | null>>({});
-const markerCenter = shallowRef<typeof YandexMapMarker | null>(null);
+const markers = shallowRef({});
+const markerCenter = shallowRef(null);
 createYmapsOptions({apikey: 'f81dd454-9378-4883-86ae-c84eb24d72d6'});
 
 const placemarksOptions = ref({
