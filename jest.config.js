@@ -1,6 +1,4 @@
-const {
-	defaults
-} = require('jest-config');
+import { defaults } from 'jest-config';
 
 module.exports = {
 	preset: 'ts-jest',
@@ -11,6 +9,7 @@ module.exports = {
 	],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
+		axios: 'axios/dist/node/axios.cjs',
 	},
 	transform: {
 		".*\\.(vue)$": "vue3-jest",
