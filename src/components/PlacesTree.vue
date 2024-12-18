@@ -15,14 +15,12 @@ import { useStore } from 'vuex';
 import PlacesTreeNode from './PlacesTreeNode.vue';
 import { formFoldersCheckedIds } from '../shared/common';
 
-export interface IPlacesTreeNodeProps {
+export interface IPlacesTreeProps {
 	instanceid?: string;
 }
-/*
-const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
+const props = withDefaults(defineProps<IPlacesTreeProps>(), {
 	instanceid: '',
 });
-*/
 const store = useStore();
 
 const foldersCheckedIds = ref([]);

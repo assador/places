@@ -12,7 +12,7 @@
 					<p>{{ store.state.main.t.i.text.whatToDoWithAll }}</p>
 				</div>
 				<form
-					@submit.prevent="accountDeletionSubmit();"
+					@submit.prevent="accountDeletionSubmit()"
 					@click="e => e.stopPropagation()"
 				>
 					<div class="account__form margin_bottom">
@@ -134,7 +134,6 @@ const route = useRoute();
 
 const leavePlaces = ref('none');
 const leaveImages = ref('none');
-const acc = ref(acc);
 const popuped = ref(false);
 
 onMounted(() => {
@@ -148,19 +147,14 @@ const close = (event?: Event): void => {
 	if (event) event.stopPropagation();
 	router.replace(route.matched[route.matched.length - 2].path);
 };
-const accountDeletionSubmit = async (): void => {
+const accountDeletionSubmit = async () => {
 	if (store.state.main.user.testaccount) {
-		acc.value.message = store.state.main.t.m.paged.taCannotBeDeleted;
+		acc.message = store.state.main.t.m.paged.taCannotBeDeleted;
 	} else {
-		const {
-			userId,
-			leavePlaces,
-			leaveImages,
-		} = this;
 		accountDeletionRoutine(
-			userId,
-			leavePlaces,
-			leaveImages,
+			store.state.user.id,
+			leavePlaces.value,
+			leaveImages.value,
 		);
 		await store.dispatch('main/unload');
 		router.push({name: 'PlacesAuth'});

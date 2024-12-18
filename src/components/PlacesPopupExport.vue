@@ -20,7 +20,7 @@
 				}"
 				@submit.prevent="e => exportPlaces(
 					selectedToExport,
-					e.target.elements['mime'].value
+					(e.target as HTMLFormElement).elements['mime'].value
 				)"
 			>
 				<fieldset class="margin_bottom">
@@ -28,7 +28,7 @@
 						<input
 							name="mime"
 							type="radio"
-							:checked="mime === 'application/gpx+xml'"
+							:checked="true"
 							value="application/gpx+xml"
 						>
 						&#160;
@@ -41,7 +41,6 @@
 						<input
 							name="mime"
 							type="radio"
-							:checked="mime === 'application/json'"
 							value="application/json"
 						>
 						&#160;
@@ -114,7 +113,7 @@ const route = useRoute();
 const popuped = ref(false);
 
 const selectedToExport = inject('selectedToExport');
-const exportPlaces = inject('exportPlaces');
+const exportPlaces = inject<typeof exportPlaces>('exportPlaces');
 
 const close = (event?: Event): void => {
 	if (event) event.stopPropagation();

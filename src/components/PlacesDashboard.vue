@@ -36,7 +36,7 @@ const store = useStore();
 const lang = ref(store.state.main.lang);
 const colortheme = ref(store.state.main.colortheme);
 
-const colorthemes = inject('colorthemes');
+const colorthemes = inject<typeof colorthemes>('colorthemes');
 
 watch(() => lang.value, () => {
 	store.dispatch('main/changeLang', lang.value);

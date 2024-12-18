@@ -13,7 +13,7 @@
 				type="checkbox"
 				class="folder-checkbox"
 				:checked="foldersCheckedIds.includes(folder.id)"
-				@change="e => selectUnselectFolder(folder.id, e.target.checked)"
+				@change="e => selectUnselectFolder(folder.id, (e.target as HTMLInputElement).checked)"
 			>
 			<a
 				v-if="
@@ -26,7 +26,7 @@
 				href="javascript: void(0);"
 				class="folder-button"
 				:draggable="true"
-				@click="e => {store.dispatch('main/folderOpenClose', instanceid === 'popupexporttree' ? {target: e.target.parentNode.parentNode} : {folder: folder, opened: !folder.opened});}"
+				@click="e => {store.dispatch('main/folderOpenClose', instanceid === 'popupexporttree' ? {target: (e.target as Node).parentNode.parentNode} : {folder: folder, opened: !folder.opened});}"
 				@dragstart="handleDragStart"
 				@dragenter="handleDragEnter"
 				@dragleave="handleDragLeave"
@@ -123,7 +123,7 @@
 					class="to-export-place-checkbox"
 					:checked="selectedToExport.hasOwnProperty(place.id)"
 					@change="e => {
-						selectUnselect(place, e.target.checked);
+						selectUnselect(place, (e.target as HTMLInputElement).checked);
 						foldersCheckedIds = formFoldersCheckedIds();
 					}"
 				>
@@ -195,21 +195,21 @@ export interface IPlacesTreeNodeProps {
 	parent?: Folder;
 }
 const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
-	instanceid: '',
-	folder: {},
-	parent: {},
+	instanceid: null,
+	folder: null,
+	parent: null,
 });
 
 const store = useStore();
 const router = useRouter();
 
-const selectedToExport = inject('selectedToExport');
-const foldersCheckedIds = inject('foldersCheckedIds');
+const selectedToExport = inject<typeof selectedToExport>('selectedToExport');
+const foldersCheckedIds: string[] = inject('foldersCheckedIds');
 const foldersEditMode = inject('foldersEditMode');
-const handleDragStart = inject('handleDragStart');
-const handleDragEnter = inject('handleDragEnter');
-const handleDragLeave = inject('handleDragLeave');
-const handleDrop = inject('handleDrop');
+const handleDragStart = inject<typeof handleDragStart>('handleDragStart');
+const handleDragEnter = inject<typeof handleDragEnter>('handleDragEnter');
+const handleDragLeave = inject<typeof handleDragLeave >('handleDragLeave');
+const handleDrop = inject<typeof handleDrop>('handleDrop');
 
 const currentPlace = computed(() => store.state.main.currentPlace);
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));

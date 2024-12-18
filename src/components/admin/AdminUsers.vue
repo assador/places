@@ -83,7 +83,7 @@
 						store.commit('admin/change', {
 							where: user,
 							what: 'checked',
-							to: e.target.checked,
+							to: (e.target as HTMLInputElement).checked,
 						});
 					}"
 				>

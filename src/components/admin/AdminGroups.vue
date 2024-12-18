@@ -96,7 +96,7 @@ const store = useStore();
 const tableMode = ref(1);
 const sortBy = ref('');
 
-const component = inject('component');
+const component = inject<typeof component>('component');
 
 const sortKeys = computed(() => ({
 	id: store.state.main.t.i.captions.id,
