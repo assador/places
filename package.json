@@ -21,8 +21,7 @@
 		"sass-loader": "^16.0.4",
 		"vue": "^3.5.4",
 		"vue-router": "^4.5.0",
-		"vue-yandex-maps": "^2.1.4",
-		"vuex": "^4.1.0"
+		"vue-yandex-maps": "^2.1.4"
 	},
 	"devDependencies": {
 		"@types/jest": "^27.5.2",
@@ -33,7 +32,6 @@
 		"@vue/cli-plugin-eslint": "^5.0.8",
 		"@vue/cli-plugin-router": "^5.0.8",
 		"@vue/cli-plugin-typescript": "^5.0.8",
-		"@vue/cli-plugin-vuex": "^5.0.8",
 		"@vue/cli-service": "^5.0.8",
 		"@vue/compiler-sfc": "*",
 		"@vue/eslint-config-standard": "^8.0.1",
