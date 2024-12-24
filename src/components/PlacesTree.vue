@@ -2,7 +2,7 @@
 	<ul>
 		<places-tree-node
 			:instanceid="instanceid"
-			:folder="store.state.main.tree"
+			:folder="mainStore.tree"
 			:folders-checked-ids="foldersCheckedIds"
 			class="folder_root"
 		/>
@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import PlacesTreeNode from './PlacesTreeNode.vue';
 import { formFoldersCheckedIds } from '../shared/common';
 
@@ -21,7 +21,7 @@ export interface IPlacesTreeProps {
 const props = withDefaults(defineProps<IPlacesTreeProps>(), {
 	instanceid: '',
 });
-const store = useStore();
+const mainStore = useMainStore();
 
 const foldersCheckedIds = ref([]);
 provide('foldersCheckedIds', foldersCheckedIds);

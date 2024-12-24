@@ -1,6 +1,6 @@
 # places
 
-v5.3.14  
+v5.4.0  
 A Vue.js project  
 “The Places” — yet another geo placemarks viewer and editor service  
 Testing address: <http://places.assador.website>

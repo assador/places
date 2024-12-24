@@ -26,7 +26,7 @@
 				href="javascript: void(0);"
 				class="folder-button"
 				:draggable="true"
-				@click="e => {store.dispatch('main/folderOpenClose', instanceid === 'popupexporttree' ? {target: (e.target as Node).parentNode.parentNode} : {folder: folder, opened: !folder.opened});}"
+				@click="e => {mainStore.folderOpenClose(instanceid === 'popupexporttree' ? {target: (e.target as Node).parentNode.parentNode} : {folder: folder, opened: !folder.opened});}"
 				@dragstart="handleDragStart"
 				@dragenter="handleDragEnter"
 				@dragleave="handleDragLeave"
@@ -39,11 +39,11 @@
 				</span>
 				<span
 					class="folder-button__geomarks"
-					:title="(folder.geomarks === 1 ? store.state.main.t.i.hints.hide : store.state.main.t.i.hints.show) + ' ' + store.state.main.t.i.hints.placemarksOnMap"
+					:title="(folder.geomarks === 1 ? mainStore.t.i.hints.hide : mainStore.t.i.hints.show) + ' ' + mainStore.t.i.hints.placemarksOnMap"
 					@click="e => {
 						e.stopPropagation();
-						store.dispatch('main/showHideGeomarks', {
-							object: (folder.id === 'root' ? store.state.main.tree : folder),
+						mainStore.showHideGeomarks({
+							object: (folder.id === 'root' ? mainStore.tree : folder),
 							show: (folder.geomarks === 1 ? 0 : 1),
 						});
 					}"
@@ -58,14 +58,14 @@
 			>
 				<input
 					:value="folder.name"
-					:placeholder="store.state.main.t.i.captions.name"
+					:placeholder="mainStore.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
-					@change="e => {store.dispatch('main/changeFolder', {folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
-					@click="e => {e.stopPropagation(); store.commit('main/setIdleTime', 0);}"
+					@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
+					@click="e => {e.stopPropagation(); mainStore.setIdleTime(0);}"
 				>
 				<a
 					class="folder-button__delete"
-					:title="store.state.main.t.i.buttons.deleteFolder"
+					:title="mainStore.t.i.buttons.deleteFolder"
 					@click="e => {
 						e.stopPropagation();
 						router.push({name: 'PlacesHomeDeleteFolder', params: {folderId: folder.id}})
@@ -78,10 +78,10 @@
 				<textarea
 					:value="folder.description"
 					rows="2"
-					:placeholder="store.state.main.t.i.captions.description"
+					:placeholder="mainStore.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
-					@change="e => {store.dispatch('main/changeFolder', {folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
-					@click="e => {e.stopPropagation(); store.commit('main/setIdleTime', 0);}"
+					@change="e => {mainStore.changeFolder({folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
+					@click="e => {e.stopPropagation(); mainStore.setIdleTime(0);}"
 				/>
 			</span>
 		</div>
@@ -134,10 +134,10 @@
 				</span>
 				<a
 					class="place-button__geomark"
-					:title="(!place.geomark ? store.state.main.t.i.hints.show : store.state.main.t.i.hints.hide) + ' ' + store.state.main.t.i.hints.placemarkOnMap"
+					:title="(!place.geomark ? mainStore.t.i.hints.show : mainStore.t.i.hints.hide) + ' ' + mainStore.t.i.hints.placemarkOnMap"
 					@click="e => {
 						e.stopPropagation();
-						store.dispatch('main/showHideGeomarks', {
+						mainStore.showHideGeomarks({
 							object: place,
 							show: !place.geomark,
 						});
@@ -184,9 +184,9 @@ export default {
 import _ from 'lodash';
 import { inject, computed } from 'vue';
 import { emitter } from '../shared/bus';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import { useRouter } from 'vue-router';
-import { Place, Folder } from '@/store/types';
+import { Place, Folder } from '@/stores/types';
 import { formFoldersCheckedIds } from '../shared/common';
 
 export interface IPlacesTreeNodeProps {
@@ -200,7 +200,7 @@ const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 	parent: null,
 });
 
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 
 const selectedToExport = inject<typeof selectedToExport>('selectedToExport');
@@ -211,10 +211,10 @@ const handleDragEnter = inject<typeof handleDragEnter>('handleDragEnter');
 const handleDragLeave = inject<typeof handleDragLeave >('handleDragLeave');
 const handleDrop = inject<typeof handleDrop>('handleDrop');
 
-const currentPlace = computed(() => store.state.main.currentPlace);
+const currentPlace = computed(() => mainStore.currentPlace);
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));
 const places = computed(() =>
-	_.chain(store.state.main.places)
+	_.chain(mainStore.places)
 	.filter(p => p.folderid === props.folder.id && p.show)
 	.sortBy('srt')
 	.value()

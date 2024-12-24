@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { constants } from '@/shared/constants';
-import { Folder } from '@/store/types';
+import { Folder } from '@/stores/types';
 
 let resultForRecursive: unknown;
 

@@ -30,7 +30,7 @@
 			>
 				<l-icon v-bind="icon_03" />
 				<l-tooltip>
-					{{ store.state.main.t.i.maps.center }}
+					{{ mainStore.t.i.maps.center }}
 				</l-tooltip>
 			</l-marker>
 			<l-marker
@@ -72,7 +72,7 @@
 
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import { emitter } from '@/shared/bus';
 import {
 	LMap,
@@ -90,7 +90,7 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 
-const store = useStore();
+const mainStore = useMainStore();
 
 const map = inject('extmap');
 const icon_01 = ref({
@@ -121,52 +121,52 @@ const icon_03 = ref({
 	shadowAnchor: [2, 24],
 });
 const providers = ref([{
-	name: store.state.main.t.i.maps.osm,
+	name: mainStore.t.i.maps.osm,
 	url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 	visible: true,
 }, {
-	name: store.state.main.t.i.maps.satellite,
+	name: mainStore.t.i.maps.satellite,
 	url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
 	visible: false,
 }, {
-	name: store.state.main.t.i.maps.topography,
+	name: mainStore.t.i.maps.topography,
 	url: 'https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
 	visible: false,
 }, {
-	name: store.state.main.t.i.maps.tourists,
+	name: mainStore.t.i.maps.tourists,
 	url: 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
 	visible: false,
 }, {
-	name: store.state.main.t.i.maps.transport,
+	name: mainStore.t.i.maps.transport,
 	url: 'https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=4857a14b2e4941b6a587f313a2ae6144',
 	visible: false,
 }, {
-	name: store.state.main.t.i.maps.aero,
+	name: mainStore.t.i.maps.aero,
 	url: 'https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png',
 	visible: false,
 }, {
-	name: store.state.main.t.i.maps.bicycles,
+	name: mainStore.t.i.maps.bicycles,
 	url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
 	visible: false,
 }, {
-	name: store.state.main.t.i.maps.railroads,
+	name: mainStore.t.i.maps.railroads,
 	url: 'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
 	visible: false,
 }]);
 
-const currentPlace = computed(() => store.state.main.currentPlace);
-const placemarksShow = computed(() => store.state.main.placemarksShow);
-const commonPlacemarksShow = computed(() => store.state.main.commonPlacemarksShow);
-const centerPlacemarkShow = computed(() => store.state.main.centerPlacemarkShow);
-const places = computed(() => store.state.main.places);
-const commonPlaces = computed(() => store.state.main.commonPlaces);
-const waypoints = computed(() => store.state.main.waypoints);
+const currentPlace = computed(() => mainStore.currentPlace);
+const placemarksShow = computed(() => mainStore.placemarksShow);
+const commonPlacemarksShow = computed(() => mainStore.commonPlacemarksShow);
+const centerPlacemarkShow = computed(() => mainStore.centerPlacemarkShow);
+const places = computed(() => mainStore.places);
+const commonPlaces = computed(() => mainStore.commonPlaces);
+const waypoints = computed(() => mainStore.waypoints);
 const mapCenter = computed(() => ({
 	coords: [
-		store.state.main.center.latitude,
-		store.state.main.center.longitude,
+		mainStore.center.latitude,
+		mainStore.center.longitude,
 	],
-	zoom: store.state.main.zoom,
+	zoom: mainStore.zoom,
 }));
 
 const commonPlacesPage = inject('commonPlacesPage');
@@ -176,7 +176,7 @@ const placemarkClick = (place): void => {
 	emitter.emit('setCurrentPlace', {place: place});
 	if (place.common) {
 		const inPaginator =
-			Object.keys(store.state.main.commonPlaces).indexOf(place.id) /
+			Object.keys(mainStore.commonPlaces).indexOf(place.id) /
 			(commonPlacesOnPageCount as Ref).value
 		;
 		(commonPlacesPage as Ref).value = (
@@ -189,15 +189,13 @@ const placemarkClick = (place): void => {
 const placemarkDragStart = (place, event): void => {
 	if (place !== currentPlace.value) {
 		event.target.dragging.disable();
-		store.dispatch('main/setMessage',
-			store.state.main.t.m.popup.needToChoosePlacemark
-		);
+		mainStore.setMessage(mainStore.t.m.popup.needToChoosePlacemark);
 	}
 };
 const placemarkDragEnd = (place, event): void => {
 	event.target.dragging.enable();
 	const coordinates = event.target.getLatLng();
-	store.dispatch('main/changePlace', {
+	mainStore.changePlace({
 		place: place,
 		change: {
 			latitude: Number(coordinates.lat.toFixed(7)),
@@ -207,7 +205,7 @@ const placemarkDragEnd = (place, event): void => {
 	updateState(coordinates);
 };
 const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
-	store.dispatch('main/updateMap', {
+	mainStore.updateMap({
 		latitude: Number(
 			payload && payload.coords
 				? payload.coords[0].toFixed(7)

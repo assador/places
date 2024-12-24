@@ -6,7 +6,7 @@
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					{{ store.state.main.t.i.captions.newFolder }}
+					{{ mainStore.t.i.captions.newFolder }}
 				</h1>
 			</div>
 			<form
@@ -17,7 +17,7 @@
 				<table class="table_form">
 					<tbody>
 						<tr>
-							<th>{{ store.state.main.t.i.captions.name }}:</th>
+							<th>{{ mainStore.t.i.captions.name }}:</th>
 							<td>
 								<input
 									id="folderName"
@@ -29,7 +29,7 @@
 							</td>
 						</tr>
 						<tr>
-							<th>{{ store.state.main.t.i.captions.description }}:</th>
+							<th>{{ mainStore.t.i.captions.description }}:</th>
 							<td>
 								<textarea
 									id="folderDescription"
@@ -42,11 +42,11 @@
 							<th />
 							<td style="padding-top: 18px; vertical-align: top;">
 								<button type="submit">
-									{{ store.state.main.t.i.buttons.createFolder }}
+									{{ mainStore.t.i.buttons.createFolder }}
 								</button>
 								&#160;
 								<button @click="e => close(e)">
-									{{ store.state.main.t.i.buttons.cancel }}
+									{{ mainStore.t.i.buttons.cancel }}
 								</button>
 							</td>
 						</tr>
@@ -72,23 +72,23 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, onUpdated } from 'vue';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
 import { constants } from '../shared/constants';
 import { generateRandomString } from '../shared/common';
 import { makeFieldsValidatable } from '../shared/fields_validate';
-import { Folder } from '@/store/types';
+import { Folder } from '@/stores/types';
 
 const folderName = ref('');
 const folderDescription = ref('');
 const message = ref('');
 const popuped = ref(false);
 
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
-const currentPlace = computed(() => store.state.main.currentPlace);
+const currentPlace = computed(() => mainStore.currentPlace);
 
 const close = (event: Event): void => {
 	if (event) event.stopPropagation();
@@ -101,12 +101,12 @@ const keyup = (event: Event): void => {
 	) close(event);
 };
 const appendFolder = (name: string, description: string): void => {
-	const treeFlat = store.getters['main/treeFlat'];
+	const treeFlat = mainStore.treeFlat;
 	if (
-		store.state.main.serverConfig.rights.folderscount < 0 ||
-		store.state.main.serverConfig.rights.folderscount > treeFlat.length - 1 ||
+		mainStore.serverConfig.rights.folderscount < 0 ||
+		mainStore.serverConfig.rights.folderscount > treeFlat.length - 1 ||
 		// length - 1 because there is a root folder too
-		store.state.main.user.testaccount
+		mainStore.user.testaccount
 	) {
 		let srt = 1;
 		if (
@@ -146,19 +146,19 @@ const appendFolder = (name: string, description: string): void => {
 			opened: false,
 			userid: sessionStorage.getItem('places-userid'),
 		};
-		store.dispatch('main/addFolder', {folder: newFolder});
-		message.value = store.state.main.t.m.paged.folderCreated;
+		mainStore.addFolder({folder: newFolder});
+		message.value = mainStore.t.m.paged.folderCreated;
 		folderName.value = '';
 		folderDescription.value = '';
 		document.getElementById('folderName')!.focus();
 	} else {
-		message.value = store.state.main.t.m.paged.foldersCountExceeded;
+		message.value = mainStore.t.m.paged.foldersCountExceeded;
 	}
 };
 
 onMounted(() => {
 	popuped.value = true;
-	makeFieldsValidatable(store.state.main.t);
+	makeFieldsValidatable(mainStore.t);
 	document.getElementById('folderName')!.focus();
 	document.addEventListener('keyup', keyup, false);
 });
@@ -166,6 +166,6 @@ onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);
 });
 onUpdated(() => {
-	makeFieldsValidatable(store.state.main.t);
+	makeFieldsValidatable(mainStore.t);
 });
 </script>

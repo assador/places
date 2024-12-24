@@ -5,7 +5,7 @@
 			v-model="lang"
 		>
 			<option
-				v-for="(l, i) in store.state.main.langs"
+				v-for="(l, i) in mainStore.langs"
 				:key="i"
 				:value="l.value"
 			>
@@ -29,19 +29,19 @@
 
 <script setup lang="ts">
 import { ref, watch, inject } from 'vue';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 
-const store = useStore();
+const mainStore = useMainStore();
 
-const lang = ref(store.state.main.lang);
-const colortheme = ref(store.state.main.colortheme);
+const lang = ref(mainStore.lang);
+const colortheme = ref(mainStore.colortheme);
 
 const colorthemes = inject<typeof colorthemes>('colorthemes');
 
 watch(() => lang.value, () => {
-	store.dispatch('main/changeLang', lang.value);
+	mainStore.changeLang(lang.value);
 });
 watch(() => colortheme.value, () => {
-	store.dispatch('main/changeColortheme', colortheme.value);
+	mainStore.changeColorTheme(colortheme.value);
 });
 </script>

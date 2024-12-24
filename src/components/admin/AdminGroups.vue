@@ -1,8 +1,8 @@
 <template>
-	<h1>{{ store.state.main.t.i.captions.groups }}</h1>
+	<h1>{{ mainStore.t.i.captions.groups }}</h1>
 	<div class="control-panel">
 		<div class="control-panel__sortby">
-			<span>{{ store.state.main.t.i.captions.srt }}:</span>
+			<span>{{ mainStore.t.i.captions.srt }}:</span>
 			<select
 				id="sort"
 				v-model="sortBy"
@@ -60,13 +60,13 @@
 							href="javascript:void(0)"
 							@click="goToUser(value)"
 						>
-							{{ store.state.admin.users.find(u => u.id === value).login }}
+							{{ adminStore.users.find(u => u.id === value).login }}
 						</a>
 						<span v-else>
 							{{ (typeof value === 'boolean'
 								? (value === true
-									? store.state.main.t.i.text.yes
-									: store.state.main.t.i.text.no
+									? mainStore.t.i.text.yes
+									: mainStore.t.i.text.no
 								)
 								: value
 							) }}
@@ -80,8 +80,9 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, inject, onMounted } from 'vue';
-import { useStore } from 'vuex';
-import { User } from '@/store/types';
+import { useMainStore } from '@/stores/main';
+import { useAdminStore } from '@/stores/admin';
+import { User } from '@/stores/types';
 
 export interface IAdminGroupsProps {
 	prop: 0,
@@ -91,7 +92,8 @@ const props = withDefaults(defineProps<IAdminGroupsProps>(), {
 	prop: 0,
 });
 */
-const store = useStore();
+const mainStore = useMainStore();
+const adminStore = useAdminStore();
 
 const tableMode = ref(1);
 const sortBy = ref('');
@@ -99,28 +101,28 @@ const sortBy = ref('');
 const component = inject<typeof component>('component');
 
 const sortKeys = computed(() => ({
-	id: store.state.main.t.i.captions.id,
-	parent: store.state.main.t.i.captions.parent,
-	name: store.state.main.t.i.captions.name,
-	description: store.state.main.t.i.captions.description,
-	owner: store.state.main.t.i.captions.owner,
-	system: store.state.main.t.i.captions.system,
-	haschildren: store.state.main.t.i.captions.haschildren,
+	id: mainStore.t.i.captions.id,
+	parent: mainStore.t.i.captions.parent,
+	name: mainStore.t.i.captions.name,
+	description: mainStore.t.i.captions.description,
+	owner: mainStore.t.i.captions.owner,
+	system: mainStore.t.i.captions.system,
+	haschildren: mainStore.t.i.captions.haschildren,
 }));
-const groups = computed(() => store.state.admin.groups);
+const groups = computed(() => adminStore.groups);
 
 onMounted(() => {
 	watch(() => sortBy.value, () => {
-		store.dispatch('admin/setGroupsSortBy', sortBy.value);
-		store.dispatch('admin/sort', {what: 'groups', by: sortBy.value});
+		adminStore.setGroupsSortBy(sortBy.value);
+		adminStore.sort({what: 'groups', by: sortBy.value});
 	});
-	sortBy.value = store.state.admin.groupsSortBy;
+	sortBy.value = adminStore.groupsSortBy;
 });
 
 const goToUser = (id: string): void => {
-	const user = store.state.admin.users.find((u: User) => u.id === id);
+	const user = adminStore.users.find((u: User) => u.id === id);
 	if(typeof user === 'undefined') return;
-	store.commit('admin/change', {where: user, what: 'checked', to: true});
+	adminStore.change({where: user, what: 'checked', to: true});
 	component.value = 'users';
 }
 </script>

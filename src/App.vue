@@ -10,11 +10,11 @@
 <script setup lang="ts">
 import { ref, computed, provide, onMounted, onBeforeMount } from 'vue'
 import axios from 'axios';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { emitter } from '@/shared/bus'
 import { isParentInTree } from '@/shared/common';
-import { Place, Image, Folder, Waypoint } from '@/store/types';
+import { Place, Image, Folder, Waypoint } from '@/stores/types';
 
 const draggingElement = ref(null);
 const foldersEditMode = ref(false);
@@ -35,43 +35,43 @@ onBeforeMount(() => {
 	});
 });
 
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 
-const currentPlace = computed(() => store.state.main.currentPlace);
-const colortheme = computed(() => store.state.main.colortheme);
+const currentPlace = computed(() => mainStore.currentPlace);
+const colortheme = computed(() => mainStore.colortheme);
 const colorthemes = computed(() => [
 	{
 		value: 'brown',
-		title: store.state.main.t.i.inputs.colorthemeBrown,
+		title: mainStore.t.i.inputs.colorthemeBrown,
 	}, {
 		value: 'blue',
-		title: store.state.main.t.i.inputs.colorthemeBlue,
+		title: mainStore.t.i.inputs.colorthemeBlue,
 	}, {
 		value: 'pink',
-		title: store.state.main.t.i.inputs.colorthemePink,
+		title: mainStore.t.i.inputs.colorthemePink,
 	}, {
 		value: 'green',
-		title: store.state.main.t.i.inputs.colorthemeGreen,
+		title: mainStore.t.i.inputs.colorthemeGreen,
 	}, {
 		value: 'pink-light',
-		title: store.state.main.t.i.inputs.colorthemePinkLight,
+		title: mainStore.t.i.inputs.colorthemePinkLight,
 	}, {
 		value: 'blue-light',
-		title: store.state.main.t.i.inputs.colorthemeBlueLight,
+		title: mainStore.t.i.inputs.colorthemeBlueLight,
 	}, {
 		value: 'purple-light',
-		title: store.state.main.t.i.inputs.colorthemePurpleLight,
+		title: mainStore.t.i.inputs.colorthemePurpleLight,
 	}, {
 		value: 'green-light',
-		title: store.state.main.t.i.inputs.colorthemeGreenLight,
+		title: mainStore.t.i.inputs.colorthemeGreenLight,
 	},
 ]);
 provide('colorthemes', colorthemes);
 
 emitter.on('logged', async () => {
-	await store.dispatch('main/setUser');
-	await store.dispatch('main/setPlaces', false);
+	await mainStore.setUser();
+	await mainStore.setPlaces(false);
 	router.push({name: 'PlacesHome'});
 });
 emitter.on('toDB', (
@@ -83,7 +83,7 @@ emitter.on('toDB', (
 				what: payload.what,
 				data: payload.data
 					? payload.data
-					: Object.values(store.state.main.waypoints)
+					: Object.values(mainStore.waypoints)
 				,
 			});
 			break;
@@ -92,7 +92,7 @@ emitter.on('toDB', (
 				what: payload.what,
 				data: payload.data
 					? payload.data
-					: Object.values(store.state.main.places)
+					: Object.values(mainStore.places)
 				,
 			});
 			break;
@@ -101,22 +101,22 @@ emitter.on('toDB', (
 				what: payload.what,
 				data: payload.data
 					? payload.data
-					: Object.values(store.getters['main/treeFlat'])
+					: Object.values(mainStore.treeFlat)
 				,
 			});
 			break;
 		case undefined :
 			toDB({
 				what: 'waypoints',
-				data: Object.values(store.state.main.waypoints),
+				data: Object.values(mainStore.waypoints),
 			});
 			toDB({
 				what: 'places',
-				data: Object.values(store.state.main.places),
+				data: Object.values(mainStore.places),
 			});
 			toDB({
 				what: 'folders',
-				data: Object.values(store.getters['main/treeFlat']),
+				data: Object.values(mainStore.treeFlat),
 			});
 			break;
 		default :
@@ -130,34 +130,34 @@ emitter.on('toDBCompletely', () => {
 	toDBCompletely();
 });
 emitter.on('getFolderById', (id: string) => {
-	return store.getters['main/treeFlat'][id];
+	return mainStore.treeFlat[id];
 });
-store.dispatch('main/changeLang', store.state.main.lang);
+mainStore.changeLang(mainStore.lang);
 
 onMounted(() => {
 	/*
 	If the App is mounted during the session (for example, when the page
 	is reloaded), the store state is restored from sessionStorage.
 	*/
-	if (sessionStorage.getItem('places-session')) {
-		store.dispatch('main/replaceState', {
-			state: JSON.parse(sessionStorage.getItem('places-store-state')).main,
+	if (sessionStorage.getItem('places-store-state')) {
+		mainStore.replaceState({
+			state: JSON.parse(sessionStorage.getItem('places-store-state')),
 		});
 	}
 	document.addEventListener('mousedown', () => {
-		store.commit('main/setIdleTime', 0);
+		mainStore.setIdleTime(0);
 	}, false);
 	document.addEventListener('keyup', () => {
-		store.commit('main/setIdleTime', 0);
+		mainStore.setIdleTime(0);
 	}, false);
 });
 
 const toDB = async (
 	payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
 ): Promise<void> => {
-	if (store.state.main.user.testaccount) return;
+	if (mainStore.user.testaccount) return;
 	if (document.querySelector('.value_wrong')) {
-		store.dispatch('main/setMessage', store.state.main.t.m.paged.incorrectFields);
+		mainStore.setMessage(mainStore.t.m.paged.incorrectFields);
 		return;
 	}
 	payload.id = sessionStorage.getItem('places-userid');
@@ -181,19 +181,20 @@ const toDB = async (
 			Then we update the waypoint key of the corresponding places.
 			*/
 				for (const rec of response.data) {
-					if (!store.state.main.waypoints[rec.waypoint.id]) {
-						store.dispatch('main/addWaypoint', {
+					if (!mainStore.waypoints[rec.waypoint.id]) {
+						mainStore.addWaypoint({
 							'waypoint': rec.waypoint,
 							'todb': false,
 						});
 					}
-					store.dispatch(
+					mainStore[
 						'change' +
 							rec.waypointof.type.charAt(0).toUpperCase() +
-							rec.waypointof.type.slice(1),
+							rec.waypointof.type.slice(1)
+					](
 						{
 							[rec.waypointof.type]:
-								store.state
+								mainStore
 									[rec.waypointof.type + 's']
 									[rec.waypointof.id]
 							,
@@ -207,46 +208,46 @@ const toDB = async (
 				for (const fault of response.data) {
 					switch (fault) {
 						case 1 :
-							store.dispatch('main/setMessage',
-								store.state.main.t.m.popup.cannotSendDataToDb
+							mainStore.setMessage(
+								mainStore.t.m.popup.cannotSendDataToDb
 							);
 							return;
 						case 2 :
 							return;
 						case 3 :
-							store.dispatch('main/setMessage',
-								store.state.main.t.m.popup.placesCountExceeded
+							mainStore.setMessage(
+								mainStore.t.m.popup.placesCountExceeded
 							);
 							return;
 						case 4 :
-							store.dispatch('main/setMessage',
-								store.state.main.t.m.paged.foldersCountExceeded
+							mainStore.setMessage(
+								mainStore.t.m.paged.foldersCountExceeded
 							);
 							return;
 					}
 				}
 			}
-			store.dispatch('main/savedToDB', payload);
-			store.dispatch('main/setMessage',
-				store.state.main.t.m.popup.savedToDb
+			mainStore.savedToDB(payload);
+			mainStore.setMessage(
+				mainStore.t.m.popup.savedToDb
 			);
 		})
 		.catch(error => {
-			store.dispatch('main/setMessage',
-				store.state.main.t.m.popup.cannotSendDataToDb + ': ' + error
+			mainStore.setMessage(
+				mainStore.t.m.popup.cannotSendDataToDb + ': ' + error
 			);
 		});
 };
 provide('toDB', toDB);
 
 const toDBCompletely = async (): Promise<void> => {
-	if (!store.state.main.user.testaccount) {
+	if (!mainStore.user.testaccount) {
 		const
 			waypoints: Array<Waypoint> = [],
 			places: Array<Place> = [],
 			folders: Array<Folder> = []
 		;
-		for (const waypoint of Object.values(store.state.main.waypoints)) {
+		for (const waypoint of Object.values(mainStore.waypoints)) {
 			if (
 				(waypoint as Waypoint).added ||
 				(waypoint as Waypoint).deleted ||
@@ -255,7 +256,7 @@ const toDBCompletely = async (): Promise<void> => {
 				waypoints.push(waypoint as Waypoint);
 			}
 		}
-		for (const place of Object.values(store.state.main.places)) {
+		for (const place of Object.values(mainStore.places)) {
 			if (
 				(place as Place).added ||
 				(place as Place).deleted ||
@@ -264,7 +265,7 @@ const toDBCompletely = async (): Promise<void> => {
 				places.push(place as Place);
 			}
 		}
-		for (const folder of Object.values(store.getters['main/treeFlat'])) {
+		for (const folder of Object.values(mainStore.treeFlat)) {
 			if (
 				(folder as Folder).added ||
 				(folder as Folder).deleted ||
@@ -281,20 +282,20 @@ const toDBCompletely = async (): Promise<void> => {
 provide('toDBCompletely', toDBCompletely);
 
 const homeToDB = async (id: string): Promise<void> => {
-	if (!store.state.main.user.testaccount) {
+	if (!mainStore.user.testaccount) {
 		return axios.post(
 			'/backend/set_home.php',
 			{id: sessionStorage.getItem('places-userid'), data: id}
 		)
 			.then(() => {
-				store.commit('main/setSaved', true);
-				store.dispatch('main/setMessage',
-					store.state.main.t.m.popup.savedToDb
+				mainStore.setSaved(true);
+				mainStore.setMessage(
+					mainStore.t.m.popup.savedToDb
 				);
 			})
 			.catch(error => {
-				store.dispatch('main/setMessage',
-					store.state.main.t.m.popup.cannotSendDataToDb + ': ' + error
+				mainStore.setMessage(
+					mainStore.t.m.popup.cannotSendDataToDb + ': ' + error
 				);
 			});
 	}
@@ -304,8 +305,8 @@ const deleteImages = (images: Record<string, Image>, family?: boolean): void => 
 	for (const [id, image] of Object.entries(images)) {
 		data.append('file_' + id, image.file);
 	}
-	data.append('userid', store.state.main.user.id);
-	if (!store.state.main.user.testaccount) {
+	data.append('userid', mainStore.user.id);
+	if (!mainStore.user.testaccount) {
 		axios.post('/backend/delete.php', data)
 			.then(() => {
 				toDB({
@@ -314,7 +315,7 @@ const deleteImages = (images: Record<string, Image>, family?: boolean): void => 
 				});
 			});
 	}
-	store.commit('main/deleteImages', {images: images, family: family});
+	mainStore.deleteImages({images: images, family: family});
 };
 provide('deleteImages', deleteImages);
 
@@ -336,16 +337,16 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 			for (const p of Object.values(places)) {
 				content +=
 					'<wpt lat="' +
-					store.state.main.waypoints[p.waypoint].latitude +
+					mainStore.waypoints[p.waypoint].latitude +
 					'" lon="' +
-					store.state.main.waypoints[p.waypoint].longitude +
+					mainStore.waypoints[p.waypoint].longitude +
 					'">'
 				;
 				content +=
-					store.state.main.waypoints[p.waypoint].altitudecapability
+					mainStore.waypoints[p.waypoint].altitudecapability
 						? (
 							'<ele>' +
-							store.state.main.waypoints[p.waypoint].altitudecapability +
+							mainStore.waypoints[p.waypoint].altitudecapability +
 							'</ele>'
 						)
 						: ''
@@ -365,15 +366,15 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 			const waypoints: Array<Waypoint> = [], folders: Array<Folder> = [];
 			let parentFolder: Folder;
 			for (const p of Object.values(places)) {
-				waypoints.push(Object.assign({}, store.state.main.waypoints[p.waypoint]));
+				waypoints.push(Object.assign({}, mainStore.waypoints[p.waypoint]));
 				if (!folders.find(f => f.id === p.folderid)) {
-					parentFolder = store.getters['main/treeFlat'][p.folderid];
+					parentFolder = mainStore.treeFlat[p.folderid];
 					while (
 						parentFolder.id !== 'root' &&
 						!folders.find(f => f.id === parentFolder.id)
 					) {
 						folders.push(Object.assign({}, parentFolder));
-						parentFolder = store.getters['main/treeFlat'][parentFolder.parent];
+						parentFolder = mainStore.treeFlat[parentFolder.parent];
 					}
 				}
 			}
@@ -419,7 +420,7 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 provide('exportPlaces', exportPlaces);
 
 const handleDragStart = (event: Event): void => {
-	store.commit('main/setIdleTime', 0);
+	mainStore.setIdleTime(0);
 	(event as any).dataTransfer.setData('text/plain', null);
 	(draggingElement.value as Element) = (event.target as Element);
 };
@@ -486,7 +487,7 @@ const handleDragEnter = (event: Event): void => {
 			}
 			if (ids.length === 2) break;
 		}
-		store.dispatch('main/swapImages', {
+		mainStore.swapImages({
 			place: currentPlace.value,
 			ids: ids,
 		});
@@ -530,15 +531,15 @@ const handleDrop = (event: Event): void => {
 	let newContainer: any;
 	const change = () => {
 		if (Object.keys(changes.place).length) {
-			store.dispatch('main/changePlace', {
-				place: store.state.main.places[
+			mainStore.changePlace({
+				place: mainStore.places[
 						(draggingElement.value as Element).id.match(/[\d\w]+$/)![0]
 				],
 				change: changes.place,
 			});
 		}
 		if (Object.keys(changes.folder).length) {
-			store.dispatch('main/moveFolder', {
+			mainStore.moveFolder({
 				folderId: changes.folder.id,
 				targetId: changes.folder.parent,
 				srt: Number(changes.folder.srt) || 0,
@@ -555,14 +556,14 @@ const handleDrop = (event: Event): void => {
 		(draggingElement.value as any).dataset.placeButton !== undefined &&
 		(event.target as any).dataset.folderButton !== undefined &&
 		(event.target as Element).id.replace(/^.*-([^-]*)/, "$1") !==
-			store.state.main.places[
+			mainStore.places[
 				(draggingElement.value as Element).id
 			].folderid
 	) {
 		newContainer =
 			((event.target as Element).parentElement as Element).nextElementSibling!.nextElementSibling;
 		if (newContainer.lastElementChild) {
-			changes.place.srt = store.state.main.places[
+			changes.place.srt = mainStore.places[
 				newContainer.lastElementChild.id
 			].srt + 1;
 		} else {
@@ -641,7 +642,7 @@ const handleDrop = (event: Event): void => {
 		) &&
 		changes.folder.id !== changes.folder.parent &&
 		!isParentInTree(
-			store.state.main.tree,
+			mainStore.tree,
 			'children',
 			changes.folder.id,
 			changes.folder.parent
@@ -693,11 +694,11 @@ const handleDrop = (event: Event): void => {
 			(event.target as Element).id.replace(/^.*-([^-]*)/, "$1")
 		) &&
 		changes.folder.id !== changes.folder.parent && (
-			!store.getters['main/treeFlat'][changes.folder.parent].children ||
-			!store.getters['main/treeFlat'][changes.folder.parent].children[changes.folder.id]
+			!mainStore.treeFlat[changes.folder.parent].children ||
+			!mainStore.treeFlat[changes.folder.parent].children[changes.folder.id]
 		) &&
 		!isParentInTree(
-			store.state.main.tree,
+			mainStore.tree,
 			'children',
 			changes.folder.id,
 			changes.folder.parent
@@ -706,7 +707,7 @@ const handleDrop = (event: Event): void => {
 		newContainer =
 			((event.target as Element).parentElement as Element).nextElementSibling!.firstElementChild;
 		if (newContainer && newContainer.lastElementChild) {
-			changes.folder.srt = store.getters['main/treeFlat'][
+			changes.folder.srt = mainStore.treeFlat[
 				newContainer.lastElementChild.id.replace(/^.*-([^-]*)/, "$1")
 			].srt + 1;
 		} else {
@@ -718,7 +719,7 @@ const handleDrop = (event: Event): void => {
 	}
 	// Image thumbnail dropped
 	if ((draggingElement.value as any).dataset.image !== undefined) {
-		store.dispatch('main/changePlace', {
+		mainStore.changePlace({
 			place: currentPlace.value,
 			change: {updated: true},
 		});

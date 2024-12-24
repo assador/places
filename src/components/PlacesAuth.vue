@@ -2,9 +2,9 @@
 	<div class="auth centered">
 		<div class="brand">
 			<h1 class="margin_bottom_0">
-				{{ store.state.main.t.i.brand.header }}
+				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ store.state.main.t.i.brand.slogan }}</p>
+			<p>{{ mainStore.t.i.brand.slogan }}</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
@@ -13,7 +13,7 @@
 					class="margin_bottom"
 					@submit.prevent="authLoginSubmit"
 				>
-					<h2>{{ store.state.main.t.i.captions.auth }}</h2>
+					<h2>{{ mainStore.t.i.captions.auth }}</h2>
 					<div class="auth__login__fields margin_bottom">
 						<input
 							id="authLogin"
@@ -21,7 +21,7 @@
 							class="fieldwidth_100"
 							required
 							type="text"
-							:placeholder="store.state.main.t.i.inputs.regLogin"
+							:placeholder="mainStore.t.i.inputs.regLogin"
 						>
 						<input
 							id="authPassword"
@@ -29,12 +29,12 @@
 							class="fieldwidth_100"
 							required
 							type="password"
-							:placeholder="store.state.main.t.i.inputs.regPassword"
+							:placeholder="mainStore.t.i.inputs.regPassword"
 						>
 					</div>
 					<div class="margin_bottom">
 						<button type="submit">
-							{{ store.state.main.t.i.buttons.login }}
+							{{ mainStore.t.i.buttons.login }}
 						</button>
 					</div>
 					<div class="margin_bottom">
@@ -46,14 +46,14 @@
 							.classList.toggle('hidden');
 						"
 					>
-						{{ store.state.main.t.i.buttons.forgot }}
+						{{ mainStore.t.i.buttons.forgot }}
 					</button>
 				</form>
 				<form
 					class="auth__forgot hidden"
 					@submit.prevent="authForgot"
 				>
-					<p>{{ store.state.main.t.i.text.emailToSendPassword }}</p>
+					<p>{{ mainStore.t.i.text.emailToSendPassword }}</p>
 					<input
 						id="forgotEmail"
 						v-model.trim="forgotEmail"
@@ -66,7 +66,7 @@
 						type="submit"
 						class="margin_bottom"
 					>
-						{{ store.state.main.t.i.buttons.sendPassword }}
+						{{ mainStore.t.i.buttons.sendPassword }}
 					</button>
 					<div>
 						{{ forgot.message }}
@@ -77,7 +77,7 @@
 				class="auth__registration"
 				@submit.prevent="authRegSubmit"
 			>
-				<h2>{{ store.state.main.t.i.captions.reg }}</h2>
+				<h2>{{ mainStore.t.i.captions.reg }}</h2>
 				<div class="auth__registration__fields margin_bottom">
 					<input
 						id="regLogin"
@@ -85,14 +85,14 @@
 						class="fieldwidth_100"
 						required
 						type="text"
-						:placeholder="store.state.main.t.i.inputs.regLogin"
+						:placeholder="mainStore.t.i.inputs.regLogin"
 					>
 					<input
 						id="regName"
 						v-model.trim="regName"
 						class="fieldwidth_100"
 						type="text"
-						:placeholder="store.state.main.t.i.inputs.regAddressBy"
+						:placeholder="mainStore.t.i.inputs.regAddressBy"
 					>
 					<input
 						id="regPassword"
@@ -100,7 +100,7 @@
 						class="fieldwidth_100"
 						required
 						type="password"
-						:placeholder="store.state.main.t.i.inputs.regPassword"
+						:placeholder="mainStore.t.i.inputs.regPassword"
 					>
 					<input
 						id="regPasswordRepeat"
@@ -108,7 +108,7 @@
 						class="fieldwidth_100"
 						required
 						type="password"
-						:placeholder="store.state.main.t.i.inputs.regRepeatPassword"
+						:placeholder="mainStore.t.i.inputs.regRepeatPassword"
 					>
 					<input
 						id="regEmail"
@@ -123,14 +123,14 @@
 						v-model.trim="regPhone"
 						class="fieldwidth_100"
 						type="text"
-						:placeholder="store.state.main.t.i.inputs.regPhone"
+						:placeholder="mainStore.t.i.inputs.regPhone"
 					>
 				</div>
 				<button
 					type="submit"
 					class="margin_bottom"
 				>
-					{{ store.state.main.t.i.buttons.register }}
+					{{ mainStore.t.i.buttons.register }}
 				</button>
 				<div>
 					{{ reg.message }}
@@ -139,12 +139,12 @@
 		</div>
 		<div>
 			<button
-				:title="store.state.main.t.i.hints.about"
+				:title="mainStore.t.i.hints.about"
 				@click="router.push(
 					{name: 'PlacesAuthText', params: {what: 'about'}}
 				).catch(e => {console.error(e);})"
 			>
-				{{ store.state.main.t.i.buttons.whatIsIt }}
+				{{ mainStore.t.i.buttons.whatIsIt }}
 			</button>
 		</div>
 		<p-w-a-prompt />
@@ -154,7 +154,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUpdated } from 'vue';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import { useRouter } from 'vue-router';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { loginRoutine, login } from '@/shared/auth';
@@ -173,22 +173,22 @@ const regEmail = ref('');
 const regPhone = ref('');
 const forgotEmail = ref('');
 
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 
 const authLoginSubmit = (): void => {
 	loginRoutine({
 		authLogin: authLogin.value,
 		authPassword: authPassword.value,
-	}, store.state.main.t);
+	}, mainStore.t);
 };
 const authRegSubmit = (): boolean => {
 	if (document.querySelector('.value_wrong')) {
-		reg.message = store.state.main.t.m.paged.incorrectFields;
+		reg.message = mainStore.t.m.paged.incorrectFields;
 		return false;
 	}
 	if (regPassword.value !== regPasswordRepeat.value) {
-		reg.message = store.state.main.t.m.paged.passwordsNotMatch;
+		reg.message = mainStore.t.m.paged.passwordsNotMatch;
 		return false;
 	}
 	regRoutine({
@@ -197,21 +197,21 @@ const authRegSubmit = (): boolean => {
 		regName: regName.value,
 		regEmail: regEmail.value,
 		regPhone: regPhone.value,
-	}, store.state.main.t);
+	}, mainStore.t);
 	return true;
 };
 const authForgot = (): void => {
 	if (!document.getElementById('forgotEmail')!.classList.contains('value_wrong')) {
-		forgotRoutine({forgotEmail: forgotEmail.value}, store.state.main.t);
+		forgotRoutine({forgotEmail: forgotEmail.value}, mainStore.t);
 	} else {
-		forgot.message = store.state.main.t.m.paged.incorrectEmail;
+		forgot.message = mainStore.t.m.paged.incorrectEmail;
 	}
 };
 
 onMounted(() => {
-	makeFieldsValidatable(store.state.main.t);
+	makeFieldsValidatable(mainStore.t);
 });
 onUpdated(() => {
-	makeFieldsValidatable(store.state.main.t);
+	makeFieldsValidatable(mainStore.t);
 });
 </script>

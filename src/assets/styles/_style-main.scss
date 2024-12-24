@@ -1016,10 +1016,6 @@ $col-36: rgb(0, 0, 0);
 		opacity: 0;
 		z-index: 20;
 	}
-	.to-export-place-checkbox {
-		margin-right: 0.5em;
-		vertical-align: middle;
-	}
 	.folder-checkbox,
 	#popup-export__tree .place-button,
 	#popup-export__tree .place-button * {
@@ -1269,7 +1265,7 @@ $col-36: rgb(0, 0, 0);
 		.popup-export__form,
 		.place-delete__form
 	) label input:is([type="radio"], [type="checkbox"]) {
-		margin-right: 0.5em;
+		margin-right: 1.5em;
 	}
 	.popup-export__form {
 		max-width: 600px;

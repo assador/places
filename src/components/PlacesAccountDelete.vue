@@ -7,9 +7,9 @@
 			<div class="narrower">
 				<div class="brand">
 					<h1 class="margin_bottom_0">
-						{{ store.state.main.t.i.captions.deletingAccount }}
+						{{ mainStore.t.i.captions.deletingAccount }}
 					</h1>
-					<p>{{ store.state.main.t.i.text.whatToDoWithAll }}</p>
+					<p>{{ mainStore.t.i.text.whatToDoWithAll }}</p>
 				</div>
 				<form
 					@submit.prevent="accountDeletionSubmit()"
@@ -18,7 +18,7 @@
 					<div class="account__form margin_bottom">
 						<fieldset>
 							<h2>
-								{{ store.state.main.t.i.captions.places }}
+								{{ mainStore.t.i.captions.places }}
 							</h2>
 							<label>
 								<input
@@ -30,7 +30,7 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.main.t.i.inputs.daDeletePlaces }}
+									{{ mainStore.t.i.inputs.daDeletePlaces }}
 								</span>
 							</label>
 							<label>
@@ -43,7 +43,7 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.main.t.i.inputs.daLeaveOnlyCommonPlaces }}
+									{{ mainStore.t.i.inputs.daLeaveOnlyCommonPlaces }}
 								</span>
 							</label>
 							<label>
@@ -56,13 +56,13 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.main.t.i.inputs.daLeaveAllPlaces }}
+									{{ mainStore.t.i.inputs.daLeaveAllPlaces }}
 								</span>
 							</label>
 						</fieldset>
 						<fieldset>
 							<h2>
-								{{ store.state.main.t.i.captions.images }}
+								{{ mainStore.t.i.captions.images }}
 							</h2>
 							<label>
 								<input
@@ -74,7 +74,7 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.main.t.i.inputs.daDeleteImages }}
+									{{ mainStore.t.i.inputs.daDeleteImages }}
 								</span>
 							</label>
 							<label>
@@ -87,7 +87,7 @@
 									@change="e => accountDeletionConditionsChange(e)"
 								>
 								<span>
-									{{ store.state.main.t.i.inputs.daLeaveImages }}
+									{{ mainStore.t.i.inputs.daLeaveImages }}
 								</span>
 							</label>
 						</fieldset>
@@ -95,14 +95,14 @@
 					<div style="text-align: center;">
 						<fieldset>
 							<button type="submit">
-								{{ store.state.main.t.i.buttons.deleteAccount }}
+								{{ mainStore.t.i.buttons.deleteAccount }}
 							</button>
 							&#160;
 							<button
 								type="button"
 								@click="e => close(e)"
 							>
-								{{ store.state.main.t.i.buttons.cancel }}
+								{{ mainStore.t.i.buttons.cancel }}
 							</button>
 						</fieldset>
 					</div>
@@ -124,11 +124,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUpdate } from 'vue';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
 import { accountDeletionRoutine, acc } from '../shared/account';
 
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -148,15 +148,15 @@ const close = (event?: Event): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
 const accountDeletionSubmit = async () => {
-	if (store.state.main.user.testaccount) {
-		acc.message = store.state.main.t.m.paged.taCannotBeDeleted;
+	if (mainStore.user.testaccount) {
+		acc.message = mainStore.t.m.paged.taCannotBeDeleted;
 	} else {
 		accountDeletionRoutine(
 			store.state.user.id,
 			leavePlaces.value,
 			leaveImages.value,
 		);
-		await store.dispatch('main/unload');
+		await mainStore.unload();
 		router.push({name: 'PlacesAuth'});
 	}
 };

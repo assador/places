@@ -38,10 +38,10 @@ import {
 	onBeforeUpdate,
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import _ from 'lodash';
 import { constants } from '@/shared/constants';
-import { Place, Image } from '@/store/types';
+import { Place, Image } from '@/stores/types';
 
 export interface IPlacesPopupImageProps {
 	imageId?: string;
@@ -56,7 +56,7 @@ const image = ref({} as Image);
 
 const currentPlaceCommon = inject<Ref<boolean>>('currentPlaceCommon');
 
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -69,8 +69,8 @@ const close = (event?: Event): void => {
 const defineVars = (): void => {
 	const places: Record<string, Place> = (
 		!currentPlaceCommon.value
-			? store.state.main.places
-			: store.state.main.commonPlaces
+			? mainStore.places
+			: mainStore.commonPlaces
 	);
 	for (const id in places) {
 		if (places[id].images && props.imageId in places[id].images) {

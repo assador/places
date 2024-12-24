@@ -16,41 +16,42 @@
 			<div id="top-basic-content">
 				<div class="brand">
 					<h1 class="basiccolor margin_bottom_0">
-						{{ store.state.main.t.i.brand.header }} —
+						{{ mainStore.t.i.brand.header }} —
 						<router-link to="/account">
-							{{ store.state.main.user ? store.state.main.user.login : 'o_O' }}
+							{{ mainStore.user ? mainStore.user.login : 'o_O' }}
 						</router-link>
 						<router-link
 							v-if="
-								!!store.state.main.user &&
-								!!store.state.main.user.groups.find(
+								!!mainStore['user'] &&
+								!!mainStore.user['groups'] &&
+								!!mainStore.user['groups'].find(
 									g => g.parent === 'management'
 								)
 							"
 							to="/admin"
 							class="admin-link"
 						>
-							{{ store.state.main.t.i.captions.admin }}
+							{{ mainStore.t.i.captions.admin }}
 						</router-link>
 					</h1>
-					<div>{{ store.state.main.t.i.brand.slogan }}</div>
+					<div>{{ mainStore.t.i.brand.slogan }}</div>
 				</div>
 				<places-dashboard />
 			</div>
 			<div
 				id="messages"
 				class="invisible"
-				@mouseover="store.commit('main/setMouseOverMessages', true)"
-				@mouseout="store.commit('main/setMouseOverMessages', false)"
-				@click="store.dispatch('main/clearMessages');"
+				@mouseover="mainStore.setMouseOverMessages(true)"
+				@mouseout="mainStore.setMouseOverMessages(false)"
+				@click="mainStore.clearMessages();"
 			>
 				<div
-					v-for="(message, index) in store.state.main.messages"
+					v-for="(message, index) in mainStore.messages"
 					:id="'message-' + index"
 					:key="index"
 					class="message border_1"
 				>
-					{{ store.state.main.messages[index] }}
+					{{ mainStore.messages[index] }}
 				</div>
 			</div>
 		</div>
@@ -70,62 +71,62 @@
 				<button
 					id="actions-undo"
 					class="actions-button"
-					:title="store.state.main.t.i.buttons.undo"
-					@click="store.dispatch('main/undo');"
+					:title="mainStore.t.i.buttons.undo"
+					@click="mainStore.undo();"
 				>
 					<span>↺</span>
-					<span>{{ store.state.main.t.i.buttons.undo }}</span>
+					<span>{{ mainStore.t.i.buttons.undo }}</span>
 				</button>
 				<button
 					id="actions-redo"
 					class="actions-button"
-					:title="store.state.main.t.i.buttons.redo"
-					@click="store.dispatch('main/redo');"
+					:title="mainStore.t.i.buttons.redo"
+					@click="mainStore.redo();"
 				>
 					<span>↻</span>
-					<span>{{ store.state.main.t.i.buttons.redo }}</span>
+					<span>{{ mainStore.t.i.buttons.redo }}</span>
 				</button>
 				<button
 					id="actions-save"
-					:class="'actions-button' + (!store.state.main.saved ? ' button-pressed highlight' : '')"
-					:title="(!store.state.main.saved ? (store.state.main.t.i.hints.notSaved + '. ') : '') + store.state.main.t.i.hints.sabeToDb"
+					:class="'actions-button' + (!mainStore.saved ? ' button-pressed highlight' : '')"
+					:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
 					@click="toDBCompletely"
 				>
 					<span>↸</span>
-					<span>{{ store.state.main.t.i.buttons.todb }}</span>
+					<span>{{ mainStore.t.i.buttons.todb }}</span>
 				</button>
 				<button
 					id="actions-install"
 					class="actions-button"
-					:title="store.state.main.t.i.hints.install"
+					:title="mainStore.t.i.hints.install"
 					:disabled="installButtonEnabled"
 					@click="installPWA"
 				>
 					<span>⤓</span>
-					<span>{{ store.state.main.t.i.buttons.install }}</span>
+					<span>{{ mainStore.t.i.buttons.install }}</span>
 				</button>
 				<button
 					id="actions-import"
 					class="actions-button"
-					:title="store.state.main.t.i.hints.importPlaces"
+					:title="mainStore.t.i.hints.importPlaces"
 					@click="inputImportFromFile.click()"
 				>
 					<span>↲</span>
-					<span>{{ store.state.main.t.i.buttons.import }}</span>
+					<span>{{ mainStore.t.i.buttons.import }}</span>
 				</button>
 				<button
 					id="actions-export"
 					class="actions-button"
-					:title="store.state.main.t.i.hints.exportPlaces"
+					:title="mainStore.t.i.hints.exportPlaces"
 					@click="router.push({name: 'PlacesHomeExport'})"
 				>
 					<span>↱</span>
-					<span>{{ store.state.main.t.i.buttons.export }}</span>
+					<span>{{ mainStore.t.i.buttons.export }}</span>
 				</button>
 				<button
 					id="actions-about"
 					class="actions-button"
-					:title="store.state.main.t.i.hints.about"
+					:title="mainStore.t.i.hints.about"
 					@click="
 						router.push({
 							name: 'PlacesHomeText',
@@ -134,16 +135,16 @@
 					"
 				>
 					<span>?</span>
-					<span>{{ store.state.main.t.i.buttons.help }}</span>
+					<span>{{ mainStore.t.i.buttons.help }}</span>
 				</button>
 				<button
 					id="actions-exit"
 					class="actions-button"
-					:title="store.state.main.t.i.hints.exit"
+					:title="mainStore.t.i.hints.exit"
 					@click="e => {toDBCompletely(); exit();}"
 				>
 					<span>↪</span>
-					<span>{{ store.state.main.t.i.buttons.exit }}</span>
+					<span>{{ mainStore.t.i.buttons.exit }}</span>
 				</button>
 			</div>
 		</div>
@@ -151,49 +152,49 @@
 			id="basic-left"
 			class="app-cell"
 		>
-		<div class="control-buttons">
+			<div class="control-buttons">
 				<button
 					id="actions-append"
 					class="actions-button"
-					:title="store.state.main.t.i.hints.addPlace"
+					:title="mainStore.t.i.hints.addPlace"
 					@click="appendPlace();"
 				>
 					<span>+</span>
-					<span>{{ store.state.main.t.i.buttons.newPlace }}</span>
+					<span>{{ mainStore.t.i.buttons.newPlace }}</span>
 				</button>
 				<button
 					id="actions-delete"
 					class="actions-button"
-					:title="store.state.main.t.i.hints.deletePlace"
-					:disabled="!(store.state.main.user && currentPlace && currentPlace.userid === store.state.main.user.id)"
-					@click="store.dispatch('main/deletePlaces', {places: {[currentPlace.id]: currentPlace}});"
+					:title="mainStore.t.i.hints.deletePlace"
+					:disabled="!(mainStore.user && currentPlace && currentPlace.userid === mainStore.user.id)"
+					@click="mainStore.deletePlaces({places: {[currentPlace.id]: currentPlace}});"
 				>
 					<span>-</span>
-					<span>{{ store.state.main.t.i.buttons.delete }}</span>
+					<span>{{ mainStore.t.i.buttons.delete }}</span>
 				</button>
 				<button
 					id="actions-append-folder"
 					class="actions-button"
-					:title="store.state.main.t.i.hints.addFolder"
+					:title="mainStore.t.i.hints.addFolder"
 					@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
 				>
-					<span>↧</span>
-					<span>{{ store.state.main.t.i.buttons.newFolder }}</span>
+					<span>+</span>
+					<span>{{ mainStore.t.i.buttons.newFolder }}</span>
 				</button>
 				<button
 					id="actions-edit-folders"
 					:class="'actions-button' + (foldersEditMode ? ' button-pressed' : '')"
-					:title="store.state.main.t.i.hints.editFolders"
+					:title="mainStore.t.i.hints.editFolders"
 					@click="foldersEditMode = !foldersEditMode;"
 				>
-					<span>⇆</span>
-					<span>{{ store.state.main.t.i.buttons.editFolders }}</span>
+					<span>#</span>
+					<span>{{ mainStore.t.i.buttons.editFolders }}</span>
 				</button>
 				<div class="control-search">
 					<input
 						ref="searchInput"
-						:placeholder="store.state.main.t.i.inputs.searchPlaces"
-						:title="store.state.main.t.i.inputs.searchPlaces"
+						:placeholder="mainStore.t.i.inputs.searchPlaces"
+						:title="mainStore.t.i.inputs.searchPlaces"
 						class="find-places-input fontsize_n"
 						@keyup="searchInputEvent"
 					>
@@ -207,7 +208,7 @@
 			</div>
 			<div id="basic-left__places">
 				<div
-					v-if="Object.keys(store.state.main.places).length > 0 || Object.keys(store.state.main.folders).length > 0"
+					v-if="Object.keys(mainStore.places).length > 0 || Object.keys(mainStore.folders).length > 0"
 					id="places-menu"
 					class="menu"
 				>
@@ -215,9 +216,9 @@
 						instanceid="placestree"
 					/>
 				</div>
-				<div v-if="Object.keys(store.state.main.commonPlaces).length > 0 && commonPlacesShow">
+				<div v-if="Object.keys(mainStore.commonPlaces).length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">
-						{{ store.state.main.t.i.captions.commonPlaces }}
+						{{ mainStore.t.i.captions.commonPlaces }}
 					</h2>
 					<div class="margin_bottom">
 						<div
@@ -254,7 +255,7 @@
 			>
 				⤧
 			</div>
-			<component :is="maps[store.state.main.activeMapIndex].component" />
+			<component :is="maps[mainStore.activeMapIndex].component" />
 			<div
 				id="sbs-top"
 				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
@@ -300,26 +301,26 @@
 								:href="currentPlace[field].trim()"
 								target="_blank"
 							>
-								{{ store.getters['main/placeFields'][field] }}
+								{{ mainStore.placeFields[field] }}
 							</a>
 							<span v-else>
-								{{ store.getters['main/placeFields'][field] }}:
+								{{ mainStore.placeFields[field] }}:
 							</span>
 						</dt>
 						<dt v-else-if="field === 'images' && orderedImages.length">
-							{{ store.getters['main/placeFields'][field] }}:
+							{{ mainStore.placeFields[field] }}:
 						</dt>
 						<div v-if="field === 'waypoint'">
 							<div class="two-fields">
 								<div>
 									<dt>
-										{{ store.getters['main/placeFields']['latitude'] }} °
+										{{ mainStore.placeFields['latitude'] }} °
 										<input
 											id="showmore-detailed-latitude"
 											v-model="detailedShow.latitude"
 											type="checkbox"
-											:title="store.getters['main/placeFields']['range']"
-											@change="e => store.dispatch('main/showDetailed', {what: 'latitude', to: detailedShow.latitude})"
+											:title="mainStore.placeFields['range']"
+											@change="e => mainStore.showDetailed({what: 'latitude', to: detailedShow.latitude})"
 										>
 									</dt>
 									<dd>
@@ -329,19 +330,19 @@
 											type="number"
 											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
-											@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
+											@change="e => mainStore.changePlace({place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
 										>
 									</dd>
 								</div>
 								<div>
 									<dt>
-										{{ store.getters['main/placeFields']['longitude'] }} °
+										{{ mainStore.placeFields['longitude'] }} °
 										<input
 											id="showmore-detailed-longitude"
 											v-model="detailedShow.longitude"
 											type="checkbox"
-											:title="store.getters['main/placeFields']['range']"
-											@change="e => store.dispatch('main/showDetailed', {what: 'longitude', to: detailedShow.longitude})"
+											:title="mainStore.placeFields['range']"
+											@change="e => mainStore.showDetailed({what: 'longitude', to: detailedShow.longitude})"
 										>
 									</dt>
 									<dd>
@@ -351,7 +352,7 @@
 											type="number"
 											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
-											@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
+											@change="e => mainStore.changePlace({place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
 										>
 									</dd>
 								</div>
@@ -362,14 +363,14 @@
 										type="text"
 										:disabled="!!currentPlaceCommon"
 										class="fieldwidth_100"
-										@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; store.dispatch('main/changePlace', {place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
+										@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; mainStore.changePlace({place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
 									>
 								</div>
 								<h4
 									class="two-fields__detailed_combined"
 									:style="'display: ' + (detailedShow.latitude || detailedShow.longitude ? 'block' : 'none')"
 								>
-									{{ store.getters['main/placeFields']['range'] }}:
+									{{ mainStore.placeFields['range'] }}:
 								</h4>
 								<div>
 								<div
@@ -377,7 +378,7 @@
 									:style="'display: ' + (detailedShow.latitude ? 'block' : 'none')"
 								>
 									<dt>
-										{{ store.getters['main/placeFields']['latitude'] }} °
+										{{ mainStore.placeFields['latitude'] }} °
 									</dt>
 									<dd>
 										<input
@@ -386,7 +387,7 @@
 											type="number"
 											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
-											@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
+											@change="e => mainStore.changePlace({place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
 										>
 									</dd>
 								</div>
@@ -397,7 +398,7 @@
 									:style="'display: ' + (detailedShow.longitude ? 'block' : 'none')"
 								>
 									<dt>
-										{{ store.getters['main/placeFields']['longitude'] }} °
+										{{ mainStore.placeFields['longitude'] }} °
 									</dt>
 									<dd>
 										<input
@@ -406,35 +407,35 @@
 											type="number"
 											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
-											@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
+											@change="e => mainStore.changePlace({place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
 										>
 									</dd>
 								</div>
 								</div>
 							</div>
 							<dt>
-								{{ store.getters['main/placeFields']['altitudecapability'] }}
+								{{ mainStore.placeFields['altitudecapability'] }}
 								<input
 									:id="'showmore-detailed-altitudecapability'"
 									v-model="detailedShow.altitudecapability"
 									type="checkbox"
-									:title="store.getters['main/placeFields']['range']"
-									@change="e => store.dispatch('main/showDetailed', {what: 'altitudecapability', to: detailedShow.altitudecapability})"
+									:title="mainStore.placeFields['range']"
+									@change="e => mainStore.showDetailed({what: 'altitudecapability', to: detailedShow.altitudecapability})"
 								>
 							</dt>
 							<dd>
 								<input
 									id="detailed-altitudecapability"
-									:value="store.state.main.waypoints[currentPlace.waypoint].altitudecapability"
+									:value="mainStore.waypoints[currentPlace.waypoint].altitudecapability"
 									type="number"
 									:disabled="!!currentPlaceCommon"
 									class="fieldwidth_100"
-									@change="e => store.dispatch('main/changePlace', {place: currentPlace, change: {altitudecapability: (e.target as HTMLInputElement).value.trim()}})"
+									@change="e => mainStore.changePlace({place: currentPlace, change: {altitudecapability: (e.target as HTMLInputElement).value.trim()}})"
 								>
 							</dd>
 						</div>
 						<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
-							{{ store.getters['main/placeFields'][field] }}:
+							{{ mainStore.placeFields[field] }}:
 						</dt>
 						<dd v-if="field === 'srt' || field === 'link'">
 							<input
@@ -443,7 +444,7 @@
 								:type="field === 'srt' ? 'number' : 'text'"
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="store.dispatch('main/changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+								@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
 							>
 						</dd>
 						<dd v-else-if="field === 'time'">
@@ -453,7 +454,7 @@
 								type="datetime-local"
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="store.dispatch('main/changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+								@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
 							>
 						</dd>
 						<dd
@@ -466,9 +467,9 @@
 									v-model="currentPlace[field]"
 									type="checkbox"
 									:disabled="!!currentPlaceCommon"
-									@change="store.dispatch('main/changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+									@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
 								>
-								{{ store.state.main.t.i.inputs.checkboxCommon }}
+								{{ mainStore.t.i.inputs.checkboxCommon }}
 							</label>
 						</dd>
 						<dd
@@ -503,7 +504,7 @@
 											:draggable="false"
 											@click="e => {
 												e.stopPropagation();
-												store.commit('main/setIdleTime', 0);
+												mainStore.setIdleTime(0);
 												deleteImages({[image.id]: image});
 											}"
 										>
@@ -518,9 +519,9 @@
 								:id="'detailed-' + field"
 								v-model.trim="currentPlace[field]"
 								:disabled="!!currentPlaceCommon"
-								:placeholder="field === 'name' ? store.state.main.t.i.inputs.placeName : (field === 'description' ? store.state.main.t.i.inputs.placeDescription : '')"
+								:placeholder="field === 'name' ? mainStore.t.i.inputs.placeName : (field === 'description' ? mainStore.t.i.inputs.placeDescription : '')"
 								class="fieldwidth_100"
-								@change="store.dispatch('main/changePlace', {place: currentPlace, change: {[field]: currentPlace[field]}});"
+								@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
 							/>
 						</dd>
 					</dl>
@@ -530,7 +531,7 @@
 					class="images-add margin_bottom"
 				>
 					<div class="images-add__div button">
-						<span>{{ store.state.main.t.i.buttons.addPhotos }}</span>
+						<span>{{ mainStore.t.i.buttons.addPhotos }}</span>
 						<input
 							id="images-add__input"
 							ref="inputUploadFiles"
@@ -546,17 +547,17 @@
 					id="images-uploading"
 					class="block_02 waiting hidden"
 				>
-					<span>… {{ store.state.main.t.i.buttons.loading }} …</span>
+					<span>… {{ mainStore.t.i.buttons.loading }} …</span>
 				</div>
 				<div v-if="currentPlace && !currentPlaceCommon">
 					<label>
 						<input
 							id="checkbox-homeplace"
 							type="checkbox"
-							:checked="currentPlace === store.state.main.homePlace"
-							@change="e => store.dispatch('main/setHomePlace', ((e.target as HTMLInputElement).checked ? currentPlace.id : null))"
+							:checked="currentPlace === mainStore.homePlace"
+							@change="e => mainStore.setHomePlace((e.target as HTMLInputElement).checked ? currentPlace.id : null)"
 						>
-						{{ store.state.main.t.i.inputs.checkboxHome }}
+						{{ mainStore.t.i.inputs.checkboxHome }}
 					</label>
 				</div>
 			</div>
@@ -568,39 +569,39 @@
 			<div class="control-buttons">
 				<button
 					id="placemarksShowHideButton"
-					:class="'actions-button' + (store.state.main.placemarksShow ? ' button-pressed' : '')"
-					:title="store.state.main.t.i.hints.shPlacemarks"
-					@click="store.dispatch('main/placemarksShowHide')"
+					:class="'actions-button' + (mainStore.placemarksShow ? ' button-pressed' : '')"
+					:title="mainStore.t.i.hints.shPlacemarks"
+					@click="mainStore.placemarksShowHide()"
 				>
 					<span>◆</span>
-					<span>{{ store.state.main.t.i.buttons.places }}</span>
+					<span>{{ mainStore.t.i.buttons.places }}</span>
 				</button>
 				<button
 					id="commonPlacesShowHideButton"
 					:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
-					:title="store.state.main.t.i.hints.shCommonPlaces"
+					:title="mainStore.t.i.hints.shCommonPlaces"
 					@click="commonPlacesShowHide();"
 				>
 					<span>◇</span>
-					<span>{{ store.state.main.t.i.buttons.commonPlaces }}</span>
+					<span>{{ mainStore.t.i.buttons.commonPlaces }}</span>
 				</button>
 				<button
 					id="commonPlacemarksShowHideButton"
-					:class="'actions-button' + (store.state.main.commonPlacemarksShow ? ' button-pressed' : '')"
-					:title="store.state.main.t.i.hints.shCommonPlacemarks"
-					@click="store.dispatch('main/commonPlacemarksShowHide')"
+					:class="'actions-button' + (mainStore.commonPlacemarksShow ? ' button-pressed' : '')"
+					:title="mainStore.t.i.hints.shCommonPlacemarks"
+					@click="mainStore.commonPlacemarksShowHide()"
 				>
 					<span>⬙</span>
-					<span>{{ store.state.main.t.i.buttons.commonPlacemarks }}</span>
+					<span>{{ mainStore.t.i.buttons.commonPlacemarks }}</span>
 				</button>
 				<button
 					id="centerPlacemarkShowHideButton"
-					:class="'actions-button' + (store.state.main.centerPlacemarkShow ? ' button-pressed' : '')"
-					:title="store.state.main.t.i.hints.shCenter"
-					@click="store.dispatch('main/centerPlacemarkShowHide')"
+					:class="'actions-button' + (mainStore.centerPlacemarkShow ? ' button-pressed' : '')"
+					:title="mainStore.t.i.hints.shCenter"
+					@click="mainStore.centerPlacemarkShowHide()"
 				>
 					<span>◈</span>
-					<span>{{ store.state.main.t.i.buttons.center }}</span>
+					<span>{{ mainStore.t.i.buttons.center }}</span>
 				</button>
 			</div>
 		</div>
@@ -611,13 +612,13 @@
 			<div class="choose-map">
 				<select
 					id="choose-map-input"
-					@change="e => store.dispatch('main/changeMap', (e.target as HTMLSelectElement).selectedIndex)"
+					@change="e => mainStore.changeMap((e.target as HTMLSelectElement).selectedIndex)"
 				>
 					<option
 						v-for="(map, index) in maps"
 						:key="index"
 						:value="map.componentName"
-						:selected="map.componentName === maps[store.state.main.activeMapIndex].componentName"
+						:selected="map.componentName === maps[mainStore.activeMapIndex].componentName"
 					>
 						{{ map.name }}
 					</option>
@@ -625,28 +626,28 @@
 			</div>
 			<div class="center-coordinates">
 				<span class="imp">
-					{{ store.state.main.t.i.buttons.center }}
+					{{ mainStore.t.i.buttons.center }}
 				</span>
 				<span
 					class="nobr"
 					style="margin-left: 1em;"
 				>
-					{{ store.state.main.t.i.captions.latitude }} °:
+					{{ mainStore.t.i.captions.latitude }} °:
 					<input
-						v-model.number.trim="store.state.main.center.latitude"
+						v-model.number.trim="mainStore.center.latitude"
 						placeholder="latitude"
-						title="store.state.main.t.i.captions.latitude"
+						title="mainStore.t.i.captions.latitude"
 					>
 				</span>
 				<span
 					class="nobr"
 					style="margin-left: 1em;"
 				>
-					{{ store.state.main.t.i.captions.longitude }} °:
+					{{ mainStore.t.i.captions.longitude }} °:
 					<input
-						v-model.number.trim="store.state.main.center.longitude"
+						v-model.number.trim="mainStore.center.longitude"
 						placeholder="longitude"
-						title="store.state.main.t.i.captions.longitude"
+						title="mainStore.t.i.captions.longitude"
 					>
 				</span>
 			</div>
@@ -669,7 +670,7 @@ import {
 	defineAsyncComponent,
 } from 'vue';
 import axios from 'axios';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import { constants } from '@/shared/constants';
@@ -684,9 +685,9 @@ import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
 import PlacesDashboard from './PlacesDashboard.vue';
 import PlacesTree from './PlacesTree.vue';
-import { Waypoint, Place, Image } from '@/store/types';
+import { Waypoint, Place, Image } from '@/stores/types';
 
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 
 const idleTimeInterval = inject<typeof idleTimeInterval>('idleTimeInterval');
@@ -748,18 +749,18 @@ const orderedCurrentPlaceFields = ref([
 	'images',
 ]);
 
-const currentPlace = computed(() => store.state.main.currentPlace);
-const waypoints = computed(() => store.state.main.waypoints);
+const currentPlace = computed(() => mainStore.currentPlace);
+const waypoints = computed(() => mainStore.waypoints);
 const commonPlaces = computed((): Record<string, Place> => {
 	const places: Record<string, Place> = {};
-	for (const id in store.state.main.commonPlaces) {
+	for (const id in mainStore.commonPlaces) {
 		if (
-			Object.keys(store.state.main.commonPlaces).indexOf(id) >=
+			Object.keys(mainStore.commonPlaces).indexOf(id) >=
 			commonPlacesOnPageCount.value * (commonPlacesPage.value - 1) &&
-			Object.keys(store.state.main.commonPlaces).indexOf(id) <
+			Object.keys(mainStore.commonPlaces).indexOf(id) <
 			commonPlacesOnPageCount.value * commonPlacesPage.value
 		) {
-			places[id] = store.state.main.commonPlaces[id];
+			places[id] = mainStore.commonPlaces[id];
 		}
 	}
 	return places;
@@ -772,10 +773,10 @@ const orderedImages = computed((): Array<Image> => {
 	);
 });
 const stateReady = computed((): boolean => {
-	return store.state.main.ready;
+	return mainStore.ready;
 });
 const detailedShow = computed((): Record<string, boolean> => {
-	return store.state.main.detailedShow;
+	return mainStore.detailedShow;
 });
 const currentPlaceLat = computed((): number => {
 	return waypoints.value[currentPlace.value.waypoint].latitude;
@@ -791,6 +792,12 @@ watch(() => stateReady.value, () => {
 	stateReadyChanged();
 });
 
+watch(mainStore, changedStore => {
+	if (!mainStore.refreshing) {
+		sessionStorage.setItem('places-store-state', JSON.stringify(mainStore.$state));
+	}
+});
+
 emitter.on('setCurrentPlace', (payload: {place: Place}) => {
 	setCurrentPlace(payload.place);
 });
@@ -802,21 +809,21 @@ onMounted(async () => {
 	if (stateReady.value) {
 		stateReadyChanged();
 	}
-	store.commit('main/setIdleTime', 0);
+	mainStore.setIdleTime(0);
 	if (!idleTimeInterval.value) {
 		idleTimeInterval.value =
 			window.setInterval(() => {
-				if (store.state.main.idleTime < constants.sessionlifetime) {
-					store.commit('main/setIdleTime', store.state.main.idleTime + 1);
+				if (mainStore.idleTime < constants.sessionlifetime) {
+					mainStore.setIdleTime(mainStore.idleTime + 1);
 				} else {
 					window.clearInterval(idleTimeInterval.value);
 					idleTimeInterval.value = undefined;
-					store.dispatch('main/unload').then(() => router.push({name: 'PlacesAuth'}));
+					mainStore.unload().then(() => router.push({name: 'PlacesAuth'}));
 				}
 			}, 1000);
 	}
 	await nextTick();
-	makeFieldsValidatable(store.state.main.t);
+	makeFieldsValidatable(mainStore.t);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('dragover', handleDragOver, false);
@@ -825,7 +832,7 @@ onBeforeUnmount(() => {
 	emitter.off('setCurrentPlace');
 	window.clearInterval(idleTimeInterval.value);
 });
-onUpdated(() => makeFieldsValidatable(store.state.main.t));
+onUpdated(() => makeFieldsValidatable(mainStore.t));
 
 const installEvent = inject<typeof installEvent>('installEvent');
 const installButtonEnabled = ref(false);
@@ -861,15 +868,15 @@ const exit = (): void => {
 };
 const stateReadyChanged = async (): Promise<void> => {
 	if (!stateReady.value) return;
-	await store.dispatch('main/restoreObjectsAsLinks');
+	await mainStore.restoreObjectsAsLinks();
 	if (!currentPlace.value) {
-		if (store.state.main.homePlace) {
-			setCurrentPlace(store.state.main.homePlace);
-		} else if (Object.keys(store.state.main.places).length) {
+		if (mainStore.homePlace) {
+			setCurrentPlace(mainStore.homePlace);
+		} else if (Object.keys(mainStore.places).length) {
 			let firstPlaceInRoot: Place;
-			for (const id in store.state.main.places) {
-				if (store.state.main.places[id].folderid === 'root') {
-					firstPlaceInRoot = store.state.main.places[id];
+			for (const id in mainStore.places) {
+				if (mainStore.places[id].folderid === 'root') {
+					firstPlaceInRoot = mainStore.places[id];
 					break;
 				}
 			}
@@ -877,8 +884,8 @@ const stateReadyChanged = async (): Promise<void> => {
 				setCurrentPlace(firstPlaceInRoot);
 			} else {
 				setCurrentPlace(
-					store.state.main.places[
-						Object.keys(store.state.main.places)[0]
+					mainStore.places[
+						Object.keys(mainStore.places)[0]
 					]
 				);
 			}
@@ -886,17 +893,17 @@ const stateReadyChanged = async (): Promise<void> => {
 	}
 	openTreeToCurrentPlace();
 	commonPlacesPagesCount.value = Math.ceil(
-		Object.keys(store.state.main.commonPlaces).length /
+		Object.keys(mainStore.commonPlaces).length /
 		commonPlacesOnPageCount.value
 	);
 	currentPlaceCommon.value = false;
 	if (
 		currentPlace.value &&
 		currentPlace.value.common &&
-		currentPlace.value.userid !== store.state.main.user.id
+		currentPlace.value.userid !== mainStore.user.id
 	) {
 		const inPaginator =
-			Object.keys(store.state.main.commonPlaces).indexOf(currentPlace.value.id) /
+			Object.keys(mainStore.commonPlaces).indexOf(currentPlace.value.id) /
 				commonPlacesOnPageCount.value
 		;
 		commonPlacesPage.value = (Number.isInteger(inPaginator)
@@ -909,23 +916,22 @@ const stateReadyChanged = async (): Promise<void> => {
 	document.addEventListener('drop', handleDrop, false);
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
-	if (store.state.main.user.testaccount) {
+	if (mainStore.user.testaccount) {
 		window.setTimeout(() => {
-			store.dispatch('main/setMessage',
-				store.state.main.t.m.popup.testAccount
+			mainStore.setMessage(
+				mainStore.t.m.popup.testAccount
 			);
 		}, 3000);
 	}
 	windowResize();
-	store.commit('main/backupState');
 };
 const openTreeToCurrentPlace = (): void => {
 	if (currentPlaceCommon.value || !currentPlace.value) return;
 	let folder, folderid = currentPlace.value.folderid;
 	while (folderid) {
-		folder = store.getters['main/treeFlat'][folderid];
+		folder = mainStore.treeFlat[folderid];
 		if (!folder) break;
-		store.dispatch('main/folderOpenClose', {
+		mainStore.folderOpenClose({
 			folder: folder,
 			opened: true,
 		});
@@ -935,35 +941,35 @@ const openTreeToCurrentPlace = (): void => {
 const setCurrentPlace = (place: Place | null): void => {
 	if (currentPlace.value && place === currentPlace.value) return;
 	if (!place) {
-		store.commit('main/setCurrentPlace', null);
+		mainStore.setCurrentPlace(null);
 		return;
 	}
-	store.commit('main/setCurrentPlace', place);
+	mainStore.setCurrentPlace(place);
 	currentPlaceCommon.value = (
-		currentPlace.value.userid !== store.state.main.user.id
+		currentPlace.value.userid !== mainStore.user.id
 			? true
 			: false
 	);
 	openTreeToCurrentPlace();
-	store.dispatch('main/updateMap', {
-		latitude: store.state.main.waypoints[currentPlace.value.waypoint].latitude,
-		longitude: store.state.main.waypoints[currentPlace.value.waypoint].longitude,
+	mainStore.updateMap({
+		latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
+		longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
 	});
 };
 const appendPlace = async (): Promise<void | Place> => {
 	if (
-		store.state.main.serverConfig.rights.placescount < 0 ||
-		store.state.main.serverConfig.rights.placescount
-			> Object.keys(store.state.main.places).length ||
-		store.state.main.user.testaccount
+		mainStore.serverConfig.rights.placescount < 0 ||
+		mainStore.serverConfig.rights.placescount
+			> Object.keys(mainStore.places).length ||
+		mainStore.user.testaccount
 	) {
 		const newWaypoint: Waypoint = {
 			id: generateRandomString(32),
 			latitude:
-				store.state.main.center.latitude ||
+				mainStore.center.latitude ||
 				null,
 			longitude:
-				store.state.main.center.longitude ||
+				mainStore.center.longitude ||
 				null,
 			altitudecapability: null,
 			time: new Date().toISOString().slice(0, -5),
@@ -989,9 +995,9 @@ const appendPlace = async (): Promise<void | Place> => {
 					: 'root'
 			,
 			srt: Number(
-				Object.keys(store.state.main.places).length > 0
+				Object.keys(mainStore.places).length > 0
 					? Math.ceil(Math.max(
-						...Object.values(store.state.main.places).map(
+						...Object.values(mainStore.places).map(
 							(place: Place) => place.srt
 						)
 					)) + 1
@@ -1005,8 +1011,8 @@ const appendPlace = async (): Promise<void | Place> => {
 			updated: false,
 			show: true,
 		};
-		await store.dispatch('main/addPlace', {place: newPlace});
-		store.dispatch('main/addWaypoint', {waypoint: newWaypoint, from: newPlace});
+		await mainStore.addPlace({place: newPlace});
+		mainStore.addWaypoint({waypoint: newWaypoint, from: newPlace});
 		setCurrentPlace(newPlace);
 		await nextTick();
 		document.getElementById('detailed-name')!.classList.add('highlight');
@@ -1016,38 +1022,38 @@ const appendPlace = async (): Promise<void | Place> => {
 		}, 500);
 		return newPlace;
 	} else {
-		store.dispatch('main/setMessage',
-			store.state.main.t.m.popup.placesCountExceeded
+		mainStore.setMessage(
+			mainStore.t.m.popup.placesCountExceeded
 		);
 	}
 };
 const deletePlace = (place: Place): void => {
 	if (place === currentPlace.value) {
 		// Set current place
-		if (Object.keys(store.state.main.places).length > 1) {
+		if (Object.keys(mainStore.places).length > 1) {
 			if (document.getElementById(place.id)!.nextElementSibling!) {
-				setCurrentPlace(store.state.main.places[
+				setCurrentPlace(mainStore.places[
 					document.getElementById(place.id)!.nextElementSibling!.id
 				]);
 			} else if (document.getElementById(place.id)!.previousElementSibling!) {
-				setCurrentPlace(store.state.main.places[
+				setCurrentPlace(mainStore.places[
 					document.getElementById(place.id)!.previousElementSibling!.id
 				]);
 			} else if (
-				store.state.main.homePlace &&
-				store.state.main.homePlace !== place
+				mainStore.homePlace &&
+				mainStore.homePlace !== place
 			) {
-				setCurrentPlace(store.state.main.homePlace);
+				setCurrentPlace(mainStore.homePlace);
 			} else {
 				let firstPlaceInRoot: Place, inRoot = false;
-				for (const id in store.state.main.places) {
-					if (store.state.main.places[id].folderid === 'root') {
+				for (const id in mainStore.places) {
+					if (mainStore.places[id].folderid === 'root') {
 						if (firstPlaceInRoot) {
-							if (store.state.main.places[id].srt < firstPlaceInRoot.srt) {
-								firstPlaceInRoot = store.state.main.places[id];
+							if (mainStore.places[id].srt < firstPlaceInRoot.srt) {
+								firstPlaceInRoot = mainStore.places[id];
 							}
 						} else {
-							firstPlaceInRoot = store.state.main.places[id];
+							firstPlaceInRoot = mainStore.places[id];
 						}
 						inRoot = true;
 					}
@@ -1055,7 +1061,7 @@ const deletePlace = (place: Place): void => {
 				if (inRoot) {
 					setCurrentPlace(firstPlaceInRoot);
 				} else {
-					setCurrentPlace(store.state.main.places[Object.keys(store.state.main.places)[0]]);
+					setCurrentPlace(mainStore.places[Object.keys(mainStore.places)[0]]);
 				}
 			}
 		} else {
@@ -1069,7 +1075,7 @@ const commonPlacesShowHide = (show = null): void => {
 			? !commonPlacesShow.value
 			: show
 	;
-	store.dispatch('main/commonPlacemarksShowHide', commonPlacesShow.value);
+	mainStore.commonPlacemarksShowHide(commonPlacesShow.value);
 };
 provide('commonPlacesShowHide', commonPlacesShowHide);
 
@@ -1078,7 +1084,7 @@ const importFromFile = (): void => {
 	const reader = new FileReader();
 	reader.onload = async (event: Event) => {
 		await nextTick();
-		store.dispatch('main/setPlaces', {
+		mainStore.setPlaces({
 			text: (event.target as FileReader).result,
 			mime: mime,
 		});
@@ -1089,16 +1095,16 @@ const importFromFile = (): void => {
 			(inputImportFromFile.value as HTMLInputElement).files![0]
 		);
 	} else {
-		store.dispatch('main/setMessage',
-			store.state.main.t.m.popup.invalidImportFileType
+		mainStore.setMessage(
+			mainStore.t.m.popup.invalidImportFileType
 		);
 	}
 };
 const uploadFiles = (event: Event): void => {
 	event.preventDefault();
-	if (store.state.main.user.testaccount) {
-		store.dispatch('main/setMessage',
-			store.state.main.t.m.popup.taNotAllowFileUploads
+	if (mainStore.user.testaccount) {
+		mainStore.setMessage(
+			mainStore.t.m.popup.taNotAllowFileUploads
 		);
 	} else {
 		const
@@ -1116,17 +1122,17 @@ const uploadFiles = (event: Event): void => {
 			srt = 0;
 		}
 		for (let i = 0; i < files.length; i++) {
-			if (!store.state.main.serverConfig.mimes[files![i].type]) {
-				store.dispatch('main/setMessage',
-					store.state.main.t.m.popup.file + ' ' +
+			if (!mainStore.serverConfig.mimes[files![i].type]) {
+				mainStore.setMessage(
+					mainStore.t.m.popup.file + ' ' +
 					files![i].name +
-					' ' + store.state.main.t.m.popup.fileNotImage
+					' ' + mainStore.t.m.popup.fileNotImage
 				);
-			} else if (files![i].size > store.state.main.serverConfig.uploadsize) {
-				store.dispatch('main/setMessage',
-					store.state.main.t.m.popup.file + ' ' +
+			} else if (files![i].size > mainStore.serverConfig.uploadsize) {
+				mainStore.setMessage(
+					mainStore.t.m.popup.file + ' ' +
 					files![i].name +
-					' ' + store.state.main.t.m.popup.fileTooLarge
+					' ' + mainStore.t.m.popup.fileTooLarge
 				);
 			} else {
 				const rndname = generateRandomString(32);
@@ -1136,7 +1142,7 @@ const uploadFiles = (event: Event): void => {
 					file:
 						rndname +
 						'.' +
-						store.state.main.serverConfig.mimes[files![i].type]
+						mainStore.serverConfig.mimes[files![i].type]
 					,
 					size: Number(files![i].size) || null,
 					type: files![i].type,
@@ -1150,7 +1156,7 @@ const uploadFiles = (event: Event): void => {
 		}
 		if (filesArray.length) {
 			document.getElementById('images-uploading')!.classList.remove('hidden');
-			data.append('userid', store.state.main.user.id);
+			data.append('userid', mainStore.user.id);
 			axios.post('/backend/upload.php', data)
 				.then(response => {
 					(document.getElementById('images-add__input') as HTMLInputElement).value = '';
@@ -1171,20 +1177,20 @@ const uploadFiles = (event: Event): void => {
 					response.data[0].forEach((code: number) => {
 						switch (code) {
 							case 2 :
-								store.dispatch('main/setMessage',
-									store.state.main.t.m.popup.taNotAllowFileUploads
+								mainStore.setMessage(
+									mainStore.t.m.popup.taNotAllowFileUploads
 								);
 								break;
 							case 3 :
-								store.dispatch('main/setMessage',
-									store.state.main.t.m.popup.filesNotImages
+								mainStore.setMessage(
+									mainStore.t.m.popup.filesNotImages
 								);
 								break;
 							case 4 :
-								store.dispatch('main/setMessage',
-									store.state.main.t.m.popup.filesTooLarge +
+							mainStore.setMessage(
+									mainStore.t.m.popup.filesTooLarge +
 									' ' + (Number(
-										(store.state.main.serverConfig.rights.photosize
+										(mainStore.serverConfig.rights.photosize
 										/ 1048576).toFixed(3)
 									) || 0) + ' Mb.'
 								);
@@ -1201,7 +1207,7 @@ const uploadFiles = (event: Event): void => {
 							for (const image of filesArray) {
 								newImagesObject[image.id] = image;
 							}
-							store.dispatch('main/changePlace', {
+							mainStore.changePlace({
 								place: currentPlace.value,
 								change: {images: newImagesObject},
 							}).then(() => {
@@ -1215,14 +1221,14 @@ const uploadFiles = (event: Event): void => {
 							what: 'images_upload',
 							data: filesArray,
 						});
-						store.dispatch('main/setMessage',
-							store.state.main.t.m.popup.filesUploadedSuccessfully
+						mainStore.setMessage(
+							mainStore.t.m.popup.filesUploadedSuccessfully
 						);
 					}
 				})
 				.catch(error => {
-					store.dispatch('main/setMessage',
-						store.state.main.t.m.popup.filesUploadError +
+					mainStore.setMessage(
+						mainStore.t.m.popup.filesUploadError +
 						' ' + error
 					);
 				});
@@ -1251,9 +1257,9 @@ const keyup = (event: Event): void => {
 				if (
 					currentPlace.value &&
 						currentPlace.value.userid ===
-							store.state.main.user.id
+							mainStore.user.id
 				) {
-					store.dispatch('main/deletePlaces', {
+					mainStore.deletePlaces({
 						places: {[currentPlace.value.id]: currentPlace.value}
 					});
 				}
@@ -1301,19 +1307,19 @@ const keyup = (event: Event): void => {
 				commonPlacesShowHide();
 				break;
 			case 'placemarks' :
-				store.dispatch('main/placemarksShowHide');
+				mainStore.placemarksShowHide();
 				break;
 			case 'other placemarks' :
-				store.dispatch('main/commonPlacemarksShowHide');
+				mainStore.commonPlacemarksShowHide();
 				break;
 			case 'center' :
-				store.dispatch('main/centerPlacemarkShowHide');
+				mainStore.centerPlacemarkShowHide();
 				break;
 			case 'undo' :
-				store.dispatch('main/undo');
+				mainStore.undo();
 				break;
 			case 'redo' :
-				store.dispatch('main/redo');
+				mainStore.redo();
 				break;
 		}
 	}
@@ -1443,9 +1449,9 @@ const searchInputEvent = (event: Event): void => {
 }
 const selectPlaces = (text: string): void => {
 	const regexp = new RegExp(text, 'i');
-	const folders = store.getters['main/treeFlat'];
-	for (const place of Object.values(store.state.main.places)) {
-		store.commit('main/changePlace', {
+	const folders = mainStore.treeFlat;
+	for (const place of Object.values(mainStore.places)) {
+		mainStore.changePlaceMut({
 			place: (place as Place),
 			key: 'show',
 			value: (
@@ -1454,7 +1460,7 @@ const selectPlaces = (text: string): void => {
 			) ? true : false
 		});
 		if (text.length !== 0 && !folders[(place as Place).folderid].opened) {
-			store.dispatch('main/folderOpenClose', {
+			mainStore.folderOpenClose({
 				folder: folders[(place as Place).folderid],
 				opened: true,
 			});

@@ -1,8 +1,8 @@
 <template>
 	<div
 		v-if="
-			!!store.state.main.user &&
-			!!store.state.main.user.groups.find(
+			!!mainStore.user &&
+			!!mainStore.user.groups.find(
 				g => g.parent === 'management'
 			)
 		"
@@ -27,29 +27,29 @@
 				<div id="top-basic-content">
 					<div class="brand">
 						<h1 class="basiccolor margin_bottom_0">
-							{{ store.state.main.t.i.brand.header }} —
+							{{ mainStore.t.i.brand.header }} —
 							<router-link to="/account">
-								{{ store.state.main.user ? store.state.main.user.login : 'o_O' }}
+								{{ mainStore.user ? mainStore.user.login : 'o_O' }}
 							</router-link>
 						</h1>
-						<div>{{ store.state.main.t.i.brand.slogan }}</div>
+						<div>{{ mainStore.t.i.brand.slogan }}</div>
 					</div>
 					<places-dashboard />
 				</div>
 				<div
 					id="messages"
 					class="invisible"
-					@mouseover="store.commit('main/setMouseOverMessages', true)"
-					@mouseout="store.commit('main/setMouseOverMessages', false)"
-					@click="store.dispatch('main/clearMessages');"
+					@mouseover="mainStore.setMouseOverMessages(true)"
+					@mouseout="mainStore.setMouseOverMessages(false)"
+					@click="mainStore.clearMessages();"
 				>
 					<div
-						v-for="(message, index) in store.state.main.messages"
+						v-for="(message, index) in mainStore.messages"
 						:id="'message-' + index"
 						:key="index"
 						class="message border_1"
 					>
-						{{ store.state.main.messages[index] }}
+						{{ mainStore.messages[index] }}
 					</div>
 				</div>
 			</div>
@@ -61,20 +61,20 @@
 					<button
 						id="actions-home"
 						class="actions-button"
-						:title="store.state.main.t.i.hints.exit"
+						:title="mainStore.t.i.hints.exit"
 						@click="router.push('/home')"
 					>
 						<span>⌂</span>
-						<span>{{ store.state.main.t.i.buttons.home }}</span>
+						<span>{{ mainStore.t.i.buttons.home }}</span>
 					</button>
 					<button
 						id="actions-exit"
 						class="actions-button"
-						:title="store.state.main.t.i.hints.exit"
+						:title="mainStore.t.i.hints.exit"
 						@click="exit"
 					>
 						<span>↪</span>
-						<span>{{ store.state.main.t.i.buttons.exit }}</span>
+						<span>{{ mainStore.t.i.buttons.exit }}</span>
 					</button>
 				</div>
 			</div>
@@ -139,7 +139,7 @@
 
 <script setup lang="ts">
 import { ref, defineAsyncComponent, provide, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import { useRouter } from 'vue-router';
 import { constants } from '@/shared/constants';
 //import { User, Group } from '@/store/types';
@@ -154,14 +154,14 @@ const props = withDefaults(defineProps<IPlacesAdminProps>(), {
 	prop: 0,
 });
 */
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 
 const getUsers = async () => {
 	axios.post('/backend/get_users.php', {
 		user: {
 			id: sessionStorage.getItem('places-userid'),
-			password: store.state.main.user.password,
+			password: mainStore.user.password,
 		},
 	})
 	.then(response => {
@@ -170,7 +170,7 @@ const getUsers = async () => {
 				throw new Error('Administrator’s password failed the verification');
 				return;
 			default :
-				store.dispatch('admin/setUsers', response.data);
+				adminStore.setUsers(response.data);
 			}
 		})
 	;
@@ -181,7 +181,7 @@ const getGroups = async () => {
 	axios.post('/backend/get_allgroups.php', {
 		user: {
 			id: sessionStorage.getItem('places-userid'),
-			password: store.state.main.user.password,
+			password: mainStore.user.password,
 		},
 	})
 	.then(response => {
@@ -190,7 +190,7 @@ const getGroups = async () => {
 				throw new Error('Administrator’s password failed the verification');
 				return;
 			default :
-				store.dispatch('admin/setGroups', response.data);
+				adminStore.setGroups(response.data);
 			}
 		})
 	;
@@ -321,7 +321,7 @@ const sidebarDragStop = (): void => {
 };
 
 const exit = async (): Promise<void> => {
-	await store.dispatch('main/unload');
+	await mainStore.unload();
 	router.push({name: 'PlacesAuth'});
 };
 

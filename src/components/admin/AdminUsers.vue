@@ -1,15 +1,15 @@
 <template>
-	<h1>{{ store.state.main.t.i.captions.users }}</h1>
+	<h1>{{ mainStore.t.i.captions.users }}</h1>
 	<div class="control-panel">
 		<div class="control-panel__checkuncheck">
 			<button
-				:title="store.state.main.t.i.buttons.uncheckAll"
+				:title="mainStore.t.i.buttons.uncheckAll"
 				@click="checkAll(false)"
 			>
 				<img src="@/assets/icons/dark/uncheck.svg">
 			</button>
 			<button
-				:title="store.state.main.t.i.buttons.checkAll"
+				:title="mainStore.t.i.buttons.checkAll"
 				@click="checkAll(true)"
 			>
 				<img src="@/assets/icons/dark/check.svg">
@@ -17,26 +17,26 @@
 		</div>
 		<div class="control-panel__tablemode">
 			<button
-				:title="store.state.main.t.i.buttons.viewTable"
+				:title="mainStore.t.i.buttons.viewTable"
 				@click="tableMode = 1"
 				>
 				<img src="@/assets/icons/dark/list.svg">
 			</button>
 			<button
-				:title="store.state.main.t.i.buttons.viewTiles"
+				:title="mainStore.t.i.buttons.viewTiles"
 				@click="tableMode = 2"
 				>
 				<img src="@/assets/icons/dark/tiles.svg">
 			</button>
 			<button
-				:title="store.state.main.t.i.buttons.viewHybrid"
+				:title="mainStore.t.i.buttons.viewHybrid"
 				@click="tableMode = 3"
 			>
 				<img src="@/assets/icons/dark/list_01.svg">
 			</button>
 		</div>
 		<div class="control-panel__sortby">
-			<span>{{ store.state.main.t.i.captions.srt }}:</span>
+			<span>{{ mainStore.t.i.captions.srt }}:</span>
 			<select
 				id="sort"
 				v-model="sortBy"
@@ -51,9 +51,9 @@
 			</select>
 		</div>
 		<div class="control-panel__actions">
-			<span>{{ store.state.main.t.i.captions.actions }}:</span>
+			<span>{{ mainStore.t.i.captions.actions }}:</span>
 			<button
-				:title="store.state.main.t.i.buttons.uncheckAll"
+				:title="mainStore.t.i.buttons.uncheckAll"
 				@click="checkAll(false)"
 			>
 				<img src="@/assets/icons/dark/uncheck.svg">
@@ -80,7 +80,7 @@
 					type="checkbox"
 					:checked="user.checked"
 					@change="e => {
-						store.commit('admin/change', {
+						adminStore.change({
 							where: user,
 							what: 'checked',
 							to: (e.target as HTMLInputElement).checked,
@@ -109,8 +109,8 @@
 					<div :class="{'impvalue': key as unknown as string === sortBy}">
 						{{ (typeof value === 'boolean'
 							? (value === true
-								? store.state.main.t.i.text.yes
-								: store.state.main.t.i.text.no
+								? mainStore.t.i.text.yes
+								: mainStore.t.i.text.no
 							)
 							: value
 						) }}
@@ -123,7 +123,8 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';
+import { useAdminStore } from '@/stores/admin';
 /*
 export interface IAdminUsersProps {
 	prop: 0,
@@ -132,33 +133,34 @@ const props = withDefaults(defineProps<IAdminUsersProps>(), {
 	prop: 0,
 });
 */
-const store = useStore();
+const mainStore = useMainStore();
+const adminStore = useAdminStore();
 
 const tableMode = ref(1);
 const sortBy = ref('');
 
 const sortKeys = computed(() => ({
-	login: store.state.main.t.i.captions.login,
-	name: store.state.main.t.i.captions.name,
-	email: store.state.main.t.i.captions.email,
-	phone: store.state.main.t.i.captions.phone,
-	confirmed: store.state.main.t.i.captions.confirmed,
-	confirmbefore: store.state.main.t.i.captions.confirmbefore,
+	login: mainStore.t.i.captions.login,
+	name: mainStore.t.i.captions.name,
+	email: mainStore.t.i.captions.email,
+	phone: mainStore.t.i.captions.phone,
+	confirmed: mainStore.t.i.captions.confirmed,
+	confirmbefore: mainStore.t.i.captions.confirmbefore,
 }));
 
 onMounted(() => {
 	watch(() => sortBy.value, () => {
-		store.dispatch('admin/setUsersSortBy', sortBy.value);
-		store.dispatch('admin/sort', {what: 'users', by: sortBy.value});
+		adminStore.setUsersSortBy(sortBy.value);
+		adminStore.sort({what: 'users', by: sortBy.value});
 	});
-	sortBy.value = store.state.admin.usersSortBy;
+	sortBy.value = adminStore.usersSortBy;
 });
 
-const users = computed(() => store.state.admin.users);
+const users = computed(() => adminStore.users);
 
 const checkAll = (check: boolean): void => {
-	for (const user of store.state.admin.users) {
-		store.commit('admin/change', {
+	for (const user of adminStore.users) {
+		adminStore.change({
 			where: user,
 			what: 'checked',
 			to: check,

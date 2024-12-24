@@ -6,14 +6,14 @@
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
-					{{ store.state.main.t.i.captions.deletingFolder }}
+					{{ mainStore.t.i.captions.deletingFolder }}
 				</h1>
 				<p class="margin_bottom_0">
 					«{{ folder ? folder.name : '' }}»
 				</p>
 			</div>
 			<p class="margin_bottom_0">
-				{{ store.state.main.t.i.text.whatToDoWithFolder }}:
+				{{ mainStore.t.i.text.whatToDoWithFolder }}:
 			</p>
 			<form
 				class="folder-delete__form margin_bottom_0"
@@ -28,7 +28,7 @@
 							type="radio"
 							value="keep"
 						>
-						<span>{{ store.state.main.t.i.inputs.leaveContentInRoot }}</span>
+						<span>{{ mainStore.t.i.inputs.leaveContentInRoot }}</span>
 					</label>
 					<label>
 						<input
@@ -37,20 +37,20 @@
 							type="radio"
 							value="delete"
 						>
-						<span>{{ store.state.main.t.i.inputs.deleteContent }}</span>
+						<span>{{ mainStore.t.i.inputs.deleteContent }}</span>
 					</label>
 				</fieldset>
 				<div style="text-align: center;">
 					<fieldset>
 						<button type="submit">
-							{{ store.state.main.t.i.buttons.deleteFolder }}
+							{{ mainStore.t.i.buttons.deleteFolder }}
 						</button>
 						&#160;
 						<button
 							type="button"
 							@click="e => close(e)"
 						>
-							{{ store.state.main.t.i.buttons.cancel }}
+							{{ mainStore.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
 				</div>
@@ -76,10 +76,10 @@ import {
 	onBeforeUpdate,
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useStore } from 'vuex';
+import { useMainStore } from '@/stores/main';;
 import { emitter } from '../shared/bus';
 import { constants } from '../shared/constants';
-import { Place, Folder } from '@/store/types';
+import { Place, Folder } from '@/stores/types';
 
 export interface IPlacesPopupFolderDeleteProps {
 	folderId?: string;
@@ -94,15 +94,15 @@ const folder = ref({} as Folder);
 const places = ref({} as Record<string, Place>);
 const folders = ref({} as Record<string, Folder>);
 
-const store = useStore();
+const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
-const currentPlace = computed(() => store.state.main.currentPlace);
+const currentPlace = computed(() => mainStore.currentPlace);
 
 const open = (event?: Event): void => {
 	if (event) event.stopPropagation();
-	folder.value = store.getters['main/treeFlat'][props.folderId];
+	folder.value = mainStore.treeFlat[props.folderId];
 	if (!folder.value) {
 		router.back();
 	}
@@ -119,19 +119,19 @@ const keyup = (event: Event): void => {
 };
 const markNestedAsDeleted = (folderCont: Folder): void => {
 	// Mark places and folders in the currently deleted folder as deleted
-	for (const id in store.state.main.places) {
-		if (store.state.main.places[id].folderid === folderCont.id) {
-			store.commit('main/changePlace', {
-				place: store.state.main.places[id],
+	for (const id in mainStore.places) {
+		if (mainStore.places[id].folderid === folderCont.id) {
+			mainStore.changePlaceMut({
+				place: mainStore.places[id],
 				key: 'deleted',
 				value: true,
 			});
-			places.value[id] = store.state.main.places[id];
+			places.value[id] = mainStore.places[id];
 		}
 	}
 	if (folderCont.children) {
 		for (const id in folderCont.children) {
-			store.commit('main/changeFolder', {
+			mainStore.changeFolderMut({
 				folder: folderCont.children[id],
 				key: 'deleted',
 				value: true,
@@ -142,31 +142,28 @@ const markNestedAsDeleted = (folderCont: Folder): void => {
 	}
 };
 const deleteFolder = async (event: Event): Promise<void> => {
-	if (keepContent.value !== 'delete') {
-		store.commit('main/backupState');
-	}
 	if (keepContent.value === 'delete') {
 		markNestedAsDeleted(folder.value);
-		if (store.state.main.homePlace && store.state.main.homePlace.deleted) {
-			await store.dispatch('main/setHomePlace', null);
+		if (mainStore.homePlace && mainStore.homePlace.deleted) {
+			await mainStore.setHomePlace(null);
 		}
 		if (currentPlace.value && currentPlace.value.deleted) {
-			if (Object.keys(store.state.main.places).length) {
-				if (store.state.main.homePlace && !store.state.main.homePlace.deleted) {
+			if (Object.keys(mainStore.places).length) {
+				if (mainStore.homePlace && !mainStore.homePlace.deleted) {
 					emitter.emit(
 						'setCurrentPlace',
-						{place: store.state.main.homePlace}
+						{place: mainStore.homePlace}
 					);
 				} else {
 					let firstPlaceInRoot: Place;
-					for (const id in store.state.main.places) {
-						if (store.state.main.places[id].folderid === 'root') {
+					for (const id in mainStore.places) {
+						if (mainStore.places[id].folderid === 'root') {
 							if (firstPlaceInRoot) {
-								if (store.state.main.places[id].srt < firstPlaceInRoot.srt) {
-									firstPlaceInRoot = store.state.main.places[id];
+								if (mainStore.places[id].srt < firstPlaceInRoot.srt) {
+									firstPlaceInRoot = mainStore.places[id];
 								}
 							} else {
-								firstPlaceInRoot = store.state.main.places[id];
+								firstPlaceInRoot = mainStore.places[id];
 							}
 						}
 					}
@@ -176,14 +173,14 @@ const deleteFolder = async (event: Event): Promise<void> => {
 							{place: firstPlaceInRoot}
 						);
 					} else if (
-						!store.state.main.places[
-							Object.keys(store.state.main.places)[0]
+						!mainStore.places[
+							Object.keys(mainStore.places)[0]
 						].deleted
 					) {
 						emitter.emit(
 							'setCurrentPlace',
-							{place: store.state.main.places[
-								Object.keys(store.state.main.places)[0]
+							{place: mainStore.places[
+								Object.keys(mainStore.places)[0]
 							]}
 						);
 					} else {
@@ -194,20 +191,20 @@ const deleteFolder = async (event: Event): Promise<void> => {
 				emitter.emit('setCurrentPlace', {place: null});
 			}
 		}
-		await store.dispatch('main/deletePlaces', {places: places.value});
-		await store.dispatch('main/deleteFolders', {folders: folders.value});
+		await mainStore.deletePlaces({places: places.value});
+		await mainStore.deleteFolders({folders: folders.value});
 	} else if (keepContent.value === 'keep') {
 		// Move subplaces and subfolders to the root
-		for (const id in store.state.main.places) {
-			if (store.state.main.places[id].folderid === folder.value.id) {
-				await store.dispatch('main/changePlace', {
-					place: store.state.main.places[id],
+		for (const id in mainStore.places) {
+			if (mainStore.places[id].folderid === folder.value.id) {
+				await mainStore.changePlace({
+					place: mainStore.places[id],
 					change: {
 						folderid: 'root',
 						updated: true,
 					},
 				});
-				places.value[id] = store.state.main.places[id];
+				places.value[id] = mainStore.places[id];
 			}
 		}
 		if (folder.value.children) {
@@ -217,7 +214,7 @@ const deleteFolder = async (event: Event): Promise<void> => {
 						Object.keys(folder.value.children)[0]
 					]
 				;
-				await store.dispatch('main/moveFolder', {
+				await mainStore.moveFolder({
 					folder: folder.value.children[
 						Object.keys(folder.value.children)[0]
 					],
@@ -226,7 +223,7 @@ const deleteFolder = async (event: Event): Promise<void> => {
 				})
 			}
 		}
-		if (!store.state.main.inUndoRedo) {
+		if (!mainStore.inUndoRedo) {
 			emitter.emit('toDB', {
 				what: 'places',
 				data: Object.values(places.value),
@@ -237,10 +234,10 @@ const deleteFolder = async (event: Event): Promise<void> => {
 			});
 		} else {
 			emitter.emit('toDBCompletely');
-			store.commit('main/outUndoRedo');
+			mainStore.inUndoRedo = false;
 		}
 	}
-	store.dispatch('main/deleteFolders', {folders: {[folder.value.id]: folder.value}});
+	mainStore.deleteFolders({folders: {[folder.value.id]: folder.value}});
 	emitter.emit('refreshMapMarks');
 	close(event);
 };
