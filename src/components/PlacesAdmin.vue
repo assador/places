@@ -2,14 +2,13 @@
 	<div
 		v-if="
 			!!mainStore.user &&
-			!!mainStore.user.groups.find(
+			!!adminStore.groups.find(
 				g => g.parent === 'management'
 			)
 		"
 	>
 		<div
 			id="grid"
-			class="loading-grid"
 			:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
 			@mousemove="e => documentMouseOver(e)"
 			@touchmove="e => documentMouseOver(e)"
@@ -140,6 +139,7 @@
 <script setup lang="ts">
 import { ref, defineAsyncComponent, provide, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';;
+import { useAdminStore } from '@/stores/admin';;
 import { useRouter } from 'vue-router';
 import { constants } from '@/shared/constants';
 //import { User, Group } from '@/store/types';
@@ -155,6 +155,7 @@ const props = withDefaults(defineProps<IPlacesAdminProps>(), {
 });
 */
 const mainStore = useMainStore();
+const adminStore = useAdminStore();
 const router = useRouter();
 
 const getUsers = async () => {
@@ -248,7 +249,6 @@ const windowResize = (): void => {
 		document.getElementById('sbs-bottom')!.style.marginBottom = sidebarSize.value.bottom + 'px';
 		compact.value = true;
 	}
-	document.getElementById('grid')!.classList.remove('loading-grid');
 };
 const sidebarDragStart = (event: Event, what: string): void => {
 	event.preventDefault();

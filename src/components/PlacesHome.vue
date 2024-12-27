@@ -2,8 +2,8 @@
 	<div
 		id="grid"
 		ref="root"
-		class="loading-grid"
-		:style="compact ? ('grid-template-columns: ' + sidebarSize.left + 'px auto; grid-template-rows: auto ' + sidebarSize.top + 'px 1fr ' + (compact === -1 ? '1fr' : (sidebarSize.bottom + (typeof(sidebarSize.bottom) === 'number' ? 'px' : ''))) + ' auto;') : ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;')"
+		:class="`sbs_${sbs}`"
+		:style="!compact ? ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;') : ''"
 		@mousemove="e => documentMouseOver(e)"
 		@touchmove="e => documentMouseOver(e)"
 		@mouseup="sidebarDragStop"
@@ -264,7 +264,7 @@
 			/>
 			<div
 				id="sbs-right"
-				:style="'top: -' + (sidebarSize.top + (compact ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+				:style="'top: -' + (sidebarSize.top + sidebarSize.left) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
 				@mousedown="e => sidebarDragStart(e, 'right')"
 				@touchstart="e => sidebarDragStart(e, 'right')"
 			/>
@@ -276,7 +276,7 @@
 			/>
 			<div
 				id="sbs-left"
-				:style="'top: -' + (sidebarSize.top + (compact as number > 500 ? 0 : sidebarSize.left)) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
+				:style="'top: -' + (sidebarSize.top + sidebarSize.left) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
 				@mousedown="e => sidebarDragStart(e, 'left')"
 				@touchstart="e => sidebarDragStart(e, 'left')"
 			/>
@@ -652,6 +652,22 @@
 				</span>
 			</div>
 		</div>
+		<div
+			v-if="compact"
+			id="sbs-up"
+			class="button"
+			@click="sbsTo('up')"
+			>
+			🞁
+		</div>
+		<div
+			v-if="compact"
+			id="sbs-down"
+			class="button"
+			@click="sbsTo('down')"
+		>
+			🞃
+		</div>
 		<router-view />
 	</div>
 </template>
@@ -735,6 +751,7 @@ const sidebarSize = ref({
 	left: constants.sidebars.left,
 });
 const sidebarDrag = ref({what: null as unknown, x: 0, y: 0, w: 0, h: 0});
+const sbs = ref('all');
 const compact = ref(false as boolean | number);
 provide('compact', compact);
 const linkEditing = ref(false);
@@ -1324,46 +1341,27 @@ const keyup = (event: Event): void => {
 		}
 	}
 };
+const sbsTo = (to?: string): void => {
+	switch (sbs.value) {
+		case 'upper':
+			if (to === 'up') sbs.value = 'all';
+			break;
+		case 'lower':
+			if (to === 'down') sbs.value = 'all';
+			break;
+		case 'all':
+		default :
+			if (to === 'up') sbs.value = 'lower';
+			if (to === 'down') sbs.value = 'upper';
+			break;
+	}
+}
 const windowResize = (): void => {
 	if (window.innerWidth > constants.compactWidth) {
-		sidebarSize.value.top = constants.sidebars.top;
-		sidebarSize.value.right = constants.sidebars.right;
-		sidebarSize.value.bottom = constants.sidebars.bottom;
-		sidebarSize.value.left = constants.sidebars.left;
-		document.getElementById('sbs-left')!.style.marginLeft = '0';
-		document.getElementById('sbs-top')!.style.marginTop = '0';
-		document.getElementById('sbs-bottom')!.style.marginBottom = '0';
 		compact.value = false;
 	} else {
-		if (compact.value) {
-			sidebarSize.value.top = parseInt(window.getComputedStyle(
-				document.getElementById('top-basic') as Element
-			).height);
-		}
-		sidebarSize.value.right = parseInt(window.getComputedStyle(
-			document.getElementById('top-right') as Element
-		).width);
-		(sidebarSize.value.bottom as unknown) = (compact.value
-			? parseInt(window.getComputedStyle(
-				document.getElementById('basic-basic') as Element
-			).height)
-			: '1fr'
-		);
-		sidebarSize.value.left = parseInt(window.getComputedStyle(
-			document.getElementById('basic-left') as Element
-		).width);
-		document.getElementById('sbs-left')!.style.marginLeft = sidebarSize.value.left + 'px';
-		document.getElementById('sbs-top')!.style.marginTop =
-			-parseInt(window.getComputedStyle(
-				document.getElementById('basic-left') as Element
-			).height) + 'px'
-		;
-		if (!compact.value) {
-			document.getElementById('sbs-bottom')!.style.marginBottom = sidebarSize.value.bottom + 'px';
-		}
 		compact.value = true;
 	}
-	document.getElementById('grid')!.classList.remove('loading-grid');
 };
 const sidebarDragStart = (event: Event, what: string): void => {
 	event.preventDefault();
@@ -1391,48 +1389,56 @@ const sidebarDragStart = (event: Event, what: string): void => {
 	}
 };
 const documentMouseOver = (event: Event): void => {
-	if (sidebarDrag.value.what !== null) {
-		switch (sidebarDrag.value.what) {
-			case 'top' :
-				sidebarSize.value.top =
-					sidebarDrag.value.h - sidebarDrag.value.y +
-					((event as TouchEvent).changedTouches
-						? (event as TouchEvent).changedTouches[0].pageY
-						: (event as MouseEvent).screenY
-					);
-				break;
-			case 'bottom' :
-				sidebarSize.value.bottom =
-					sidebarDrag.value.h + sidebarDrag.value.y -
-					((event as TouchEvent).changedTouches
-						? (event as TouchEvent).changedTouches[0].pageY
-						: (event as MouseEvent).screenY
-					);
-				break;
-			case 'left' :
-				sidebarSize.value.left =
-					sidebarDrag.value.w - sidebarDrag.value.x +
-					((event as TouchEvent).changedTouches
-						? (event as TouchEvent).changedTouches[0].pageX
-						: (event as MouseEvent).screenX
-					);
-				break;
-			case 'right' :
-				sidebarSize.value.right =
-					sidebarDrag.value.w + sidebarDrag.value.x -
-					((event as TouchEvent).changedTouches
-						? (event as TouchEvent).changedTouches[0].pageX
-						: (event as MouseEvent).screenX
-					);
-				break;
-		}
+	if (sidebarDrag.value.what === null) return;
+	switch (sidebarDrag.value.what) {
+		case 'top' :
+			sidebarSize.value.top = (
+				sidebarDrag.value.h - sidebarDrag.value.y +
+				((event as TouchEvent).changedTouches
+					? (event as TouchEvent).changedTouches[0].pageY
+					: (event as MouseEvent).screenY
+				));
+			if (sidebarSize.value.top < constants.sidebars.top) {
+				sidebarSize.value.top = 0;
+			}
+			break;
+		case 'bottom' :
+			sidebarSize.value.bottom =
+				sidebarDrag.value.h + sidebarDrag.value.y -
+				((event as TouchEvent).changedTouches
+					? (event as TouchEvent).changedTouches[0].pageY
+					: (event as MouseEvent).screenY
+				);
+			if (sidebarSize.value.bottom < constants.sidebars.bottom) {
+				sidebarSize.value.bottom = 0;
+			}
+			break;
+		case 'left' :
+			sidebarSize.value.left =
+				sidebarDrag.value.w - sidebarDrag.value.x +
+				((event as TouchEvent).changedTouches
+					? (event as TouchEvent).changedTouches[0].pageX
+					: (event as MouseEvent).screenX
+				);
+			if (sidebarSize.value.left < constants.sidebars.top) {
+				sidebarSize.value.left = 0;
+			}
+			break;
+		case 'right' :
+			sidebarSize.value.right =
+				sidebarDrag.value.w + sidebarDrag.value.x -
+				((event as TouchEvent).changedTouches
+					? (event as TouchEvent).changedTouches[0].pageX
+					: (event as MouseEvent).screenX
+				);
+			if (sidebarSize.value.right < constants.sidebars.top) {
+				sidebarSize.value.right = 0;
+			}
+			break;
 	}
 };
 const sidebarDragStop = (): void => {
 	sidebarDrag.value.what = null;
-	if (compact.value) {
-		windowResize();
-	}
 };
 // Search places by name
 const searchInput = ref(null);
