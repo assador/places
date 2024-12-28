@@ -21,6 +21,7 @@ export interface IMainState {
 	user: User | null,
 	currentPlace: Place | null,
 	homePlace: Place | null,
+	range: number,
 	waypoints: Record<string, Waypoint> | null,
 	places: Record<string, Place>,
 	folders: Record<string, Folder>,
@@ -30,7 +31,7 @@ export interface IMainState {
 	placemarksShow: boolean,
 	commonPlacemarksShow: boolean,
 	centerPlacemarkShow: boolean,
-	detailedShow: Record<string, boolean>,
+	rangeShow: boolean,
 	ready: boolean,
 	messages: string[],
 	messageTimer: number,
@@ -55,6 +56,7 @@ export const useMainStore = defineStore('main', {
 		user: null,
 		currentPlace: null,
 		homePlace: null,
+		range: 100,
 		waypoints: {},
 		places: {},
 		folders: {},
@@ -67,11 +69,7 @@ export const useMainStore = defineStore('main', {
 		placemarksShow: true,
 		commonPlacemarksShow: false,
 		centerPlacemarkShow: false,
-		detailedShow: {
-			latitude: false,
-			longitude: false,
-			altitudecapability: false,
-		},
+		rangeShow: false,
 		ready: false,
 		messages: [],
 		messageTimer: 0,
@@ -381,8 +379,11 @@ export const useMainStore = defineStore('main', {
 		centerPlacemarkShowHideMut(show) {
 			this.centerPlacemarkShow = show;
 		},
-		showDetailedMut(payload) {
-			this.detailedShow[payload.what] = payload.to;
+		showInRange(range: number | null) {
+			if (range <= 0 || range === null) {
+				for (const id in this.places) this.places['id'].show = true;
+			}
+			this.range = range;
 		},
 		showHidePlaceGeomark(payload) {
 			payload.place.geomark = payload.show;
@@ -1292,9 +1293,6 @@ export const useMainStore = defineStore('main', {
 			this.centerPlacemarkShowHideMut(
 				show === undefined ? !this.centerPlacemarkShow : show
 			);
-		},
-		showDetailed(payload) {
-			this.showDetailedMut(payload);
 		},
 		showHideGeomarks(payload) {
 			let visibility: number;

@@ -193,18 +193,33 @@
 					<span>#</span>
 					<span>{{ mainStore.t.i.buttons.editFolders }}</span>
 				</button>
-				<div class="control-search">
-					<input
-						ref="searchInput"
-						:placeholder="mainStore.t.i.inputs.searchPlaces"
-						:title="mainStore.t.i.inputs.searchPlaces"
-						class="find-places-input fontsize_n"
-						@keyup="searchInputEvent"
-					>
-					<button @click="selectPlaces(searchInput.value)">
-						<span>&#128269;</span>
-					</button>
-				</div>
+			</div>
+			<div class="control-search">
+				<input
+					ref="searchInput"
+					:placeholder="mainStore.t.i.inputs.searchPlaces"
+					:title="mainStore.t.i.inputs.searchPlaces"
+					class="find-places-input fontsize_n"
+					@keyup="searchInputEvent"
+				>
+				<button @click="selectPlaces(searchInput.value)">
+					<span>&#128269;</span>
+				</button>
+			</div>
+			<div class="control-range">
+				<input
+					v-model="mainStore.rangeShow"
+					type="checkbox"
+					:title="mainStore.placeFields['range']"
+				>
+				<input
+					id="detailed-range"
+					type="number"
+					:value="mainStore.range"
+					:disabled="!mainStore.rangeShow"
+					class="fieldwidth_100"
+					@change="e => mainStore.showInRange(Number((e.target as HTMLInputElement).value.trim()))"
+				>
 			</div>
 			<div id="basic-left__places">
 				<div
@@ -258,7 +273,7 @@
 			<component :is="maps[mainStore.activeMapIndex].component" />
 			<div
 				id="sbs-top"
-				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
+				:style="'left: 0; right: -' + sidebarSize.right + 'px;'"
 				@mousedown="e => sidebarDragStart(e, 'top')"
 				@touchstart="e => sidebarDragStart(e, 'top')"
 			/>
@@ -316,13 +331,6 @@
 								<div>
 									<dt>
 										{{ mainStore.placeFields['latitude'] }} °
-										<input
-											id="showmore-detailed-latitude"
-											v-model="detailedShow.latitude"
-											type="checkbox"
-											:title="mainStore.placeFields['range']"
-											@change="e => mainStore.showDetailed({what: 'latitude', to: detailedShow.latitude})"
-										>
 									</dt>
 									<dd>
 										<input
@@ -338,13 +346,6 @@
 								<div>
 									<dt>
 										{{ mainStore.placeFields['longitude'] }} °
-										<input
-											id="showmore-detailed-longitude"
-											v-model="detailedShow.longitude"
-											type="checkbox"
-											:title="mainStore.placeFields['range']"
-											@change="e => mainStore.showDetailed({what: 'longitude', to: detailedShow.longitude})"
-										>
 									</dt>
 									<dd>
 										<input
@@ -367,62 +368,9 @@
 										@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; mainStore.changePlace({place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
 									>
 								</div>
-								<h4
-									class="two-fields__detailed_combined"
-									:style="'display: ' + (detailedShow.latitude || detailedShow.longitude ? 'block' : 'none')"
-								>
-									{{ mainStore.placeFields['range'] }}:
-								</h4>
-								<div>
-								<div
-									class="two-fields__detailed"
-									:style="'display: ' + (detailedShow.latitude ? 'block' : 'none')"
-								>
-									<dt>
-										{{ mainStore.placeFields['latitude'] }} °
-									</dt>
-									<dd>
-										<input
-											id="detailed-latitude"
-											:value="currentPlaceLat"
-											type="number"
-											:disabled="!!currentPlaceCommon"
-											class="fieldwidth_100"
-											@change="e => mainStore.changePlace({place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
-										>
-									</dd>
-								</div>
-								</div>
-								<div>
-								<div
-									class="two-fields__detailed"
-									:style="'display: ' + (detailedShow.longitude ? 'block' : 'none')"
-								>
-									<dt>
-										{{ mainStore.placeFields['longitude'] }} °
-									</dt>
-									<dd>
-										<input
-											id="detailed-longitude"
-											:value="currentPlaceLon"
-											type="number"
-											:disabled="!!currentPlaceCommon"
-											class="fieldwidth_100"
-											@change="e => mainStore.changePlace({place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
-										>
-									</dd>
-								</div>
-								</div>
 							</div>
 							<dt>
 								{{ mainStore.placeFields['altitudecapability'] }}
-								<input
-									:id="'showmore-detailed-altitudecapability'"
-									v-model="detailedShow.altitudecapability"
-									type="checkbox"
-									:title="mainStore.placeFields['range']"
-									@change="e => mainStore.showDetailed({what: 'altitudecapability', to: detailedShow.altitudecapability})"
-								>
 							</dt>
 							<dd>
 								<input
@@ -794,9 +742,6 @@ const orderedImages = computed((): Array<Image> => {
 });
 const stateReady = computed((): boolean => {
 	return mainStore.ready;
-});
-const detailedShow = computed((): Record<string, boolean> => {
-	return mainStore.detailedShow;
 });
 const currentPlaceLat = computed((): number => {
 	return waypoints.value[currentPlace.value.waypoint].latitude;
@@ -1488,16 +1433,24 @@ const selectPlaces = (text: string): void => {
 .control-search {
 	display: grid;
 	grid-template-columns: 1fr auto;
-	grid-column-start: 1;
-	grid-column-end: 5;
 	gap: 8px;
 	align-items: center;
-	margin: 8px 4px 4px 4px;
+	margin-top: 8px;
 	input {
 		width: 100%;
 	}
 	.actions-button {
 		margin: 0;
+	}
+}
+.control-range {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 8px;
+	align-items: center;
+	margin-top: 8px;
+	input:not([type="checkbox"]) {
+		width: 100%;
 	}
 }
 #basic-left__places {
@@ -1528,5 +1481,8 @@ const selectPlaces = (text: string): void => {
 	.two-fields__combined {
 		grid-column: 1 / 3;
 	}
+}
+.control-range {
+	display: none;
 }
 </style>
