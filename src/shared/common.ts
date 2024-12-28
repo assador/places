@@ -491,3 +491,20 @@ export const numbersMinMax = (
 	}
 	return result.reverse();
 }
+export const distanceOnSphere = (
+	lat1: number, lon1: number,
+	lat2: number, lon2: number,
+	radius: number
+): number => {
+	/**
+	 * Distance in kilometers between points on a sphere with coordinates in degrees.
+	 */
+	const a = Math.abs(90 - lat1) * Math.PI / 180;
+	const b = Math.abs(90 - lat2) * Math.PI / 180;
+	const c = Math.abs(lon1 - lon2) * Math.PI / 180;
+	const ang = Math.acos(
+		Math.cos(a) * Math.cos(b) + Math.sin(a) * Math.sin(b) * Math.cos(c)
+	);
+	const distance = radius * ang;
+	return distance;
+}

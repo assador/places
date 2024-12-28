@@ -101,6 +101,7 @@ export const t = {
 			regRepeatPassword: 'Повторите пароль *',
 			regPhone: 'Телефон',
 			searchPlaces: 'Поиск по названиям мест',
+			range: 'В заданном радиусе',
 			checkboxCommon: 'Место видимо другим',
 			checkboxHome: 'Домашнее место',
 			needToChangePassword: 'Если нужно сменить пароль',

@@ -47,4 +47,5 @@ export const constants = {
 		left   : 250,
 	},
 	compactWidth: 850,
+	earthRadius: 6371,
 };

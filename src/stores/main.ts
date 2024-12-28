@@ -8,6 +8,7 @@ import {
 	treeToLivePlain,
 	plainToTree,
 	formFolderForImported,
+	distanceOnSphere,
 } from '@/shared/common';
 import axios from 'axios';
 
@@ -21,7 +22,7 @@ export interface IMainState {
 	user: User | null,
 	currentPlace: Place | null,
 	homePlace: Place | null,
-	range: number,
+	range: number | null,
 	waypoints: Record<string, Waypoint> | null,
 	places: Record<string, Place>,
 	folders: Record<string, Folder>,
@@ -56,7 +57,7 @@ export const useMainStore = defineStore('main', {
 		user: null,
 		currentPlace: null,
 		homePlace: null,
-		range: 100,
+		range: null,
 		waypoints: {},
 		places: {},
 		folders: {},
@@ -381,9 +382,22 @@ export const useMainStore = defineStore('main', {
 		},
 		showInRange(range: number | null) {
 			if (range <= 0 || range === null) {
-				for (const id in this.places) this.places['id'].show = true;
+				for (const id in this.places) this.places[id].show = true;
+				return;
 			}
-			this.range = range;
+			for (const id in this.places) {
+				if (distanceOnSphere(
+					this.waypoints[this.places[id].waypoint].latitude,
+					this.waypoints[this.places[id].waypoint].longitude,
+					this.waypoints[this.currentPlace.waypoint].latitude,
+					this.waypoints[this.currentPlace.waypoint].longitude,
+					constants.earthRadius
+				) > range) {
+					this.places[id].show = false;
+				} else {
+					this.places[id].show = true;
+				}
+			}
 		},
 		showHidePlaceGeomark(payload) {
 			payload.place.geomark = payload.show;

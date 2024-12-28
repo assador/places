@@ -203,7 +203,7 @@
 					@keyup="searchInputEvent"
 				>
 				<button @click="selectPlaces(searchInput.value)">
-					<span>&#128269;</span>
+					<span>↪</span>
 				</button>
 			</div>
 			<div class="control-range">
@@ -211,15 +211,31 @@
 					v-model="mainStore.rangeShow"
 					type="checkbox"
 					:title="mainStore.placeFields['range']"
+					@click="e =>
+						!(e.target as HTMLInputElement).checked
+							? mainStore.showInRange(null)
+							: mainStore.showInRange(mainStore.range)
+					"
 				>
 				<input
 					id="detailed-range"
+					v-model="mainStore.range"
 					type="number"
-					:value="mainStore.range"
+min="0"
+					max="6378136.6"
 					:disabled="!mainStore.rangeShow"
+					:placeholder="mainStore.t.i.inputs.range"
+					:title="mainStore.placeFields['range']"
 					class="fieldwidth_100"
-					@change="e => mainStore.showInRange(Number((e.target as HTMLInputElement).value.trim()))"
+					@change="mainStore.showInRange(mainStore.range)"
 				>
+				<button
+					:disabled="!mainStore.rangeShow"
+					:title="mainStore.placeFields['range']"
+					@click="mainStore.showInRange(mainStore.range)"
+				>
+					<span>↪</span>
+				</button>
 			</div>
 			<div id="basic-left__places">
 				<div
@@ -646,7 +662,7 @@ import {
 	sortObjects,
 	coords2string,
 	string2coords,
-	numbersMinMax,
+	distanceOnSphere,
 } from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
@@ -1445,7 +1461,7 @@ const selectPlaces = (text: string): void => {
 }
 .control-range {
 	display: grid;
-	grid-template-columns: auto 1fr;
+	grid-template-columns: auto 1fr auto;
 	gap: 8px;
 	align-items: center;
 	margin-top: 8px;
@@ -1481,8 +1497,5 @@ const selectPlaces = (text: string): void => {
 	.two-fields__combined {
 		grid-column: 1 / 3;
 	}
-}
-.control-range {
-	display: none;
 }
 </style>
