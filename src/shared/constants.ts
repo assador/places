@@ -43,7 +43,7 @@ export const constants = {
 	sidebars: {
 		top    : 100,
 		right  : 250,
-		bottom : 54,
+		bottom : 60,
 		left   : 250,
 	},
 	compactWidth: 850,

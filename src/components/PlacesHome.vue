@@ -12,6 +12,7 @@
 		<div
 			id="top-basic"
 			class="app-cell"
+			:style="sidebarSize.top === 0 ? 'display: none' : ''"
 		>
 			<div id="top-basic-content">
 				<div class="brand">
@@ -58,6 +59,7 @@
 		<div
 			id="top-right"
 			class="app-cell"
+			:style="sidebarSize.top === 0 || sidebarSize.right === 0 ? 'display: none' : ''"
 		>
 			<div class="control-buttons">
 				<input
@@ -151,6 +153,7 @@
 		<div
 			id="basic-left"
 			class="app-cell"
+			:style="sidebarSize.left === 0 ? 'display: none' : ''"
 		>
 			<div class="control-buttons">
 				<button
@@ -198,10 +201,7 @@
 						class="find-places-input fontsize_n"
 						@keyup="searchInputEvent"
 					>
-					<button
-						class="actions-button"
-						@click="selectPlaces(searchInput.value)"
-					>
+					<button @click="selectPlaces(searchInput.value)">
 						<span>&#128269;</span>
 					</button>
 				</div>
@@ -284,6 +284,7 @@
 		<div
 			id="basic-right"
 			class="app-cell"
+			:style="sidebarSize.right === 0 ? 'display: none' : ''"
 		>
 			<div>
 				<div v-if="currentPlace">
@@ -565,6 +566,7 @@
 		<div
 			id="bottom-left"
 			class="app-cell"
+			:style="sidebarSize.bottom === 0 || sidebarSize.left === 0 ? 'display: none' : ''"
 		>
 			<div class="control-buttons">
 				<button
@@ -608,6 +610,7 @@
 		<div
 			id="bottom-basic"
 			class="app-cell"
+			:style="sidebarSize.bottom === 0 ? 'display: none' : ''"
 		>
 			<div class="choose-map">
 				<select

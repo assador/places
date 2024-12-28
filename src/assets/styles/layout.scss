@@ -110,16 +110,15 @@ body {
 #basic-right {
 	grid-area: basic-right;
 }
-#top-left, #top-right {
-	.control-buttons {
-		min-height: 70px;
-	}
-}
 #bottom-left, #bottom-center, #bottom-right {
 	min-height: 50px;
 }
 #bottom-left {
 	grid-area: bottom-left;
+	.control-buttons {
+		height: 100%;
+		align-items: center;
+	}
 }
 #bottom-basic {
 	display: flex;
@@ -161,7 +160,9 @@ body {
 	margin-bottom: 12px;
 }
 .brand {
+	box-sizing: border-box;
 	min-width: 38.2%;
+	padding-right: 12px;
 }
 #messages {
 	box-sizing: border-box;
@@ -274,6 +275,9 @@ body {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
 	gap: 8px;
+	.actions-button {
+		min-height: 30px;
+	}
 	text-align: center;
 }
 @media screen and (max-width: 1600px) {
@@ -307,6 +311,9 @@ body {
 		;
 		grid-template-columns: 1fr 1fr;
 		grid-template-rows: auto auto 1fr auto auto 1fr auto;
+		&.basic-fulled {
+			grid-template-rows: 0 0 0 0 0 1fr 0 !important;
+		}
 		&.sbs_upper {
 			grid-template-areas:
 				"top-basic    top-basic"
@@ -328,6 +335,9 @@ body {
 				"bottom-left  bottom-basic"
 			;
 			grid-template-rows: auto auto 1fr auto;
+			&.basic-fulled {
+				grid-template-rows: 0 0 1fr 0 !important;
+			}
 			#sbs-up, #basic-left, #top-right, #basic-right {
 				display: none;
 			}
@@ -343,10 +353,6 @@ body {
 		.basic-on-full {
 			top: 12px; right: 80px;
 		}
-	}
-	.basic-fulled {
-		grid-template-rows: 0 0 0 1fr 0 !important;
-		grid-template-columns: 1fr 1fr !important;
 	}
 	#sbs-top, #sbs-right, #sbs-bottom, #sbs-left, #bottom-basic .center-coordinates {
 		display: none;
