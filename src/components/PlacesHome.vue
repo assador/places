@@ -162,7 +162,7 @@
 					:title="mainStore.t.i.hints.addPlace"
 					@click="appendPlace();"
 				>
-					<span>+</span>
+					<span>⊕</span>
 					<span>{{ mainStore.t.i.buttons.newPlace }}</span>
 				</button>
 				<button
@@ -172,7 +172,7 @@
 					:disabled="!(mainStore.user && currentPlace && currentPlace.userid === mainStore.user.id)"
 					@click="mainStore.deletePlaces({places: {[currentPlace.id]: currentPlace}});"
 				>
-					<span>-</span>
+					<span>⊖</span>
 					<span>{{ mainStore.t.i.buttons.delete }}</span>
 				</button>
 				<button
@@ -181,7 +181,7 @@
 					:title="mainStore.t.i.hints.addFolder"
 					@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
 				>
-					<span>+</span>
+					<span>⊕</span>
 					<span>{{ mainStore.t.i.buttons.newFolder }}</span>
 				</button>
 				<button
@@ -190,10 +190,43 @@
 					:title="mainStore.t.i.hints.editFolders"
 					@click="foldersEditMode = !foldersEditMode;"
 				>
-					<span>#</span>
+					<span>🖉</span>
 					<span>{{ mainStore.t.i.buttons.editFolders }}</span>
 				</button>
+				<button
+					id="actions-range"
+					:class="'actions-button' + (mainStore.rangeShow ? ' button-pressed' : '')"
+					:title="mainStore.t.i.captions.range"
+					@click="e => {
+						mainStore.rangeShow = !mainStore.rangeShow;
+						mainStore.rangeShow
+						? mainStore.showInRange(mainStore.range)
+						: mainStore.showInRange(null)
+					}"
+				>
+					<span>⊘</span>
+					<span>{{ mainStore.t.i.buttons.range }}</span>
+				</button>
 			</div>
+			<form
+				v-if="mainStore.rangeShow"
+				action="javascript:void(0)"
+				class="control-range"
+				@submit="mainStore.showInRange(mainStore.range)"
+			>
+				<input
+					v-model="mainStore.range"
+					type="number"
+					min="0"
+max="6378136.6"
+					:placeholder="mainStore.t.i.buttons.range"
+					:title="mainStore.t.i.captions.range"
+					class="fieldwidth_100"
+>
+				<button @click="mainStore.showInRange(mainStore.range)">
+					<span>↪</span>
+				</button>
+			</form>
 			<div class="control-search">
 				<input
 					ref="searchInput"
@@ -203,37 +236,6 @@
 					@keyup="searchInputEvent"
 				>
 				<button @click="selectPlaces(searchInput.value)">
-					<span>↪</span>
-				</button>
-			</div>
-			<div class="control-range">
-				<input
-					v-model="mainStore.rangeShow"
-					type="checkbox"
-					:title="mainStore.placeFields['range']"
-					@click="e =>
-						!(e.target as HTMLInputElement).checked
-							? mainStore.showInRange(null)
-							: mainStore.showInRange(mainStore.range)
-					"
-				>
-				<input
-					id="detailed-range"
-					v-model="mainStore.range"
-					type="number"
-min="0"
-					max="6378136.6"
-					:disabled="!mainStore.rangeShow"
-					:placeholder="mainStore.t.i.inputs.range"
-					:title="mainStore.placeFields['range']"
-					class="fieldwidth_100"
-					@change="mainStore.showInRange(mainStore.range)"
-				>
-				<button
-					:disabled="!mainStore.rangeShow"
-					:title="mainStore.placeFields['range']"
-					@click="mainStore.showInRange(mainStore.range)"
-				>
 					<span>↪</span>
 				</button>
 			</div>
@@ -1461,13 +1463,10 @@ const selectPlaces = (text: string): void => {
 }
 .control-range {
 	display: grid;
-	grid-template-columns: auto 1fr auto;
+	grid-template-columns: 1fr auto;
 	gap: 8px;
 	align-items: center;
-	margin-top: 8px;
-	input:not([type="checkbox"]) {
-		width: 100%;
-	}
+	margin: 8px 0 0 0;
 }
 #basic-left__places {
 	margin-top: 1rem;
