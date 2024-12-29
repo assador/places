@@ -207,6 +207,18 @@
 					<span>⊘</span>
 					<span>{{ mainStore.t.i.buttons.range }}</span>
 				</button>
+				<button
+					id="actions-measure"
+					:class="'actions-button' + (mainStore.measure.show ? ' button-pressed' : '')"
+					:title="mainStore.t.i.captions.measure"
+					@click="e => {
+						mainStore.measure.show = !mainStore.measure.show;
+						mainStore.measure.choosing = null;
+					}"
+				>
+					<span>123</span>
+					<span>{{ mainStore.t.i.buttons.measure }}</span>
+				</button>
 			</div>
 			<form
 				v-if="mainStore.rangeShow"
@@ -227,6 +239,41 @@ max="6378136.6"
 					<span>↪</span>
 				</button>
 			</form>
+			<div
+v-if="mainStore.measure.show"
+class="control-measure"
+>
+				<dt>
+					{{ mainStore.t.i.captions.measure }}:
+					<span class="imp_02">{{ mainStore.measure.distance }}</span> {{ mainStore.measure.distance ? mainStore.t.i.text.km : '' }}
+				</dt>
+				<dd
+v-for="(id, index) in mainStore.measure.places"
+:key="index"
+>
+					<span>{{ id !== null ? mainStore.places[id].name : `${mainStore.t.i.captions.measureChoose}:` }}</span>
+					<button
+						:class="mainStore.measure.choosing === index ? 'button-pressed' : ''"
+						@click="
+							mainStore.measure.choosing =
+								mainStore.measure.choosing === index ? null : index
+						"
+					>
+						<span>⊕</span>
+					</button>
+					<button
+@click="
+						mainStore.measure.places[index] = null;
+						mainStore.measure.distance = null;
+						if (mainStore.measure.choosing === index) {
+							mainStore.measure.choosing = null;
+						}
+					"
+>
+						<span>⊖</span>
+					</button>
+				</dd>
+			</div>
 			<div class="control-search">
 				<input
 					ref="searchInput"
@@ -922,11 +969,15 @@ const openTreeToCurrentPlace = (): void => {
 	}
 };
 const setCurrentPlace = (place: Place | null): void => {
-	if (currentPlace.value && place === currentPlace.value) return;
 	if (!place) {
 		mainStore.setCurrentPlace(null);
 		return;
 	}
+	if (mainStore.measure.choosing !== null) {
+		mainStore.measure.places[mainStore.measure.choosing] = place.id;
+		mainStore.measureDistance();
+	}
+	if (currentPlace.value && place === currentPlace.value) return;
 	mainStore.setCurrentPlace(place);
 	currentPlaceCommon.value = (
 		currentPlace.value.userid !== mainStore.user.id
@@ -1461,12 +1512,23 @@ const selectPlaces = (text: string): void => {
 		margin: 0;
 	}
 }
-.control-range {
+.control-range, .control-measure dd {
 	display: grid;
-	grid-template-columns: 1fr auto;
 	gap: 8px;
 	align-items: center;
-	margin: 8px 0 0 0;
+}
+.control-range {
+	grid-template-columns: 1fr auto;
+}
+.control-measure dd {
+	grid-template-columns: 1fr auto auto;
+}
+.control-measure, .control-measure dd {
+	margin-top: 8px;
+	padding-left: 0;
+}
+.control-measure {
+	padding-bottom: 8px;
 }
 #basic-left__places {
 	margin-top: 1rem;
