@@ -227,32 +227,45 @@
 				@submit="mainStore.showInRange(mainStore.range)"
 			>
 				<input
+					ref="rangeInput"
 					v-model="mainStore.range"
 					type="number"
 					min="0"
-max="6378136.6"
+					max="6378136.6"
 					:placeholder="mainStore.t.i.buttons.range"
 					:title="mainStore.t.i.captions.range"
 					class="fieldwidth_100"
->
+				>
 				<button @click="mainStore.showInRange(mainStore.range)">
 					<span>↪</span>
 				</button>
+				<button
+					:title="mainStore.t.i.buttons.clear"
+					@click="
+						if (mainStore.range !== null) {
+							mainStore.range = null;
+							mainStore.showInRange(null);
+						}
+					"
+				>
+					<span>⊗</span>
+				</button>
 			</form>
 			<div
-v-if="mainStore.measure.show"
-class="control-measure"
->
+				v-if="mainStore.measure.show"
+				class="control-measure"
+			>
 				<dt>
 					{{ mainStore.t.i.captions.measure }}:
 					<span class="imp_02">{{ mainStore.measure.distance }}</span> {{ mainStore.measure.distance ? mainStore.t.i.text.km : '' }}
 				</dt>
 				<dd
-v-for="(id, index) in mainStore.measure.places"
-:key="index"
->
+					v-for="(id, index) in mainStore.measure.places"
+					:key="index"
+				>
 					<span>{{ id !== null ? mainStore.places[id].name : `${mainStore.t.i.captions.measureChoose}:` }}</span>
 					<button
+						:title="mainStore.t.i.buttons.specify"
 						:class="mainStore.measure.choosing === index ? 'button-pressed' : ''"
 						@click="
 							mainStore.measure.choosing =
@@ -262,15 +275,16 @@ v-for="(id, index) in mainStore.measure.places"
 						<span>⊕</span>
 					</button>
 					<button
-@click="
-						mainStore.measure.places[index] = null;
-						mainStore.measure.distance = null;
-						if (mainStore.measure.choosing === index) {
-							mainStore.measure.choosing = null;
-						}
-					"
->
-						<span>⊖</span>
+						:title="mainStore.t.i.buttons.clear"
+						@click="
+							mainStore.measure.places[index] = null;
+							mainStore.measure.distance = null;
+							if (mainStore.measure.choosing === index) {
+								mainStore.measure.choosing = null;
+							}
+						"
+					>
+						<span>⊗</span>
 					</button>
 				</dd>
 			</div>
@@ -282,8 +296,22 @@ v-for="(id, index) in mainStore.measure.places"
 					class="find-places-input fontsize_n"
 					@keyup="searchInputEvent"
 				>
-				<button @click="selectPlaces(searchInput.value)">
+				<button
+					:title="mainStore.t.i.buttons.find"
+					@click="selectPlaces(searchInput.value)"
+				>
 					<span>↪</span>
+				</button>
+				<button
+					:title="mainStore.t.i.buttons.clear"
+					@click="
+						if (searchInput.value !== '') {
+							searchInput.value = '';
+							selectPlaces(searchInput.value);
+						}
+					"
+				>
+					<span>⊗</span>
 				</button>
 			</div>
 			<div id="basic-left__places">
@@ -292,9 +320,7 @@ v-for="(id, index) in mainStore.measure.places"
 					id="places-menu"
 					class="menu"
 				>
-					<places-tree
-						instanceid="placestree"
-					/>
+					<places-tree instanceid="placestree" />
 				</div>
 				<div v-if="Object.keys(mainStore.commonPlaces).length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">
@@ -1458,6 +1484,7 @@ const sidebarDragStop = (): void => {
 	sidebarDrag.value.what = null;
 };
 // Search places by name
+const rangeInput = ref(null);
 const searchInput = ref(null);
 const searchInputEvent = (event: Event): void => {
 	if ((event as KeyboardEvent).code === "Escape") {
@@ -1473,20 +1500,20 @@ const searchInputEvent = (event: Event): void => {
 const selectPlaces = (text: string): void => {
 	const regexp = new RegExp(text, 'i');
 	const folders = mainStore.treeFlat;
-	for (const place of Object.values(mainStore.places)) {
-		mainStore.changePlaceMut({
-			place: (place as Place),
-			key: 'show',
-			value: (
-				text.length === 0 ||
-				regexp.test((place as Place).name)
-			) ? true : false
-		});
-		if (text.length !== 0 && !folders[(place as Place).folderid].opened) {
-			mainStore.folderOpenClose({
-				folder: folders[(place as Place).folderid],
-				opened: true,
-			});
+	for (const id in mainStore.places) {
+		if (regexp.test(mainStore.places[id].name)) {
+			mainStore.places[id].show = true;
+			if (
+				text.length !== 0 &&
+				!folders[mainStore.places[id].folderid].opened
+			) {
+				mainStore.folderOpenClose({
+					folder: folders[mainStore.places[id].folderid],
+					opened: true,
+				});
+			}
+		} else {
+			mainStore.places[id].show = false;
 		}
 	}
 };
@@ -1501,7 +1528,7 @@ const selectPlaces = (text: string): void => {
 }
 .control-search {
 	display: grid;
-	grid-template-columns: 1fr auto;
+	grid-template-columns: 1fr auto auto;
 	gap: 8px;
 	align-items: center;
 	margin-top: 8px;
@@ -1518,13 +1545,13 @@ const selectPlaces = (text: string): void => {
 	align-items: center;
 }
 .control-range {
-	grid-template-columns: 1fr auto;
+	grid-template-columns: 1fr auto auto;
 }
 .control-measure dd {
 	grid-template-columns: 1fr auto auto;
 }
-.control-measure, .control-measure dd {
-	margin-top: 8px;
+.control-range, .control-measure, .control-measure dd {
+	margin: 8px 0 0 0;
 	padding-left: 0;
 }
 .control-measure {
