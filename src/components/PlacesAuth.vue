@@ -209,6 +209,7 @@ const authForgot = (): void => {
 };
 
 onMounted(() => {
+	mainStore.unload();
 	makeFieldsValidatable(mainStore.t);
 });
 onUpdated(() => {

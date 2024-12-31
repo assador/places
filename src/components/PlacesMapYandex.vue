@@ -195,18 +195,15 @@ const placemarkClick = (id: string): void => {
 	}
 };
 const placemarkDragEnd = (id: string): void => {
-	placemarkClick(id);
-	if (id === mainStore.currentPlace.id) {
-		const coordinates = markers.value[id].coordinates.slice().reverse();
-		mainStore.changePlace({
-			place: mainStore.places[id],
-			change: {
-				latitude: Number(coordinates[0].toFixed(7)),
-				longitude: Number(coordinates[1].toFixed(7)),
-			},
-		});
-		updateState({coords: coordinates});
-	}
+	const coordinates = markers.value[id].coordinates.slice().reverse();
+	mainStore.changePlace({
+		place: mainStore.places[id],
+		change: {
+			latitude: Number(coordinates[0].toFixed(7)),
+			longitude: Number(coordinates[1].toFixed(7)),
+		},
+	});
+//	updateState({coords: coordinates});
 };
 const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
 	mainStore.updateMap({

@@ -143,7 +143,7 @@
 					id="actions-exit"
 					class="actions-button"
 					:title="mainStore.t.i.hints.exit"
-					@click="e => {toDBCompletely(); exit();}"
+					@click="e => {toDBCompletely().then(() => exit())}"
 				>
 					<span>↪</span>
 					<span>{{ mainStore.t.i.buttons.exit }}</span>
@@ -874,7 +874,8 @@ onMounted(async () => {
 				} else {
 					window.clearInterval(idleTimeInterval.value);
 					idleTimeInterval.value = undefined;
-					mainStore.unload().then(() => router.push({name: 'PlacesAuth'}));
+					mainStore.unload();
+					router.push({name: 'PlacesAuth'});
 				}
 			}, 1000);
 	}

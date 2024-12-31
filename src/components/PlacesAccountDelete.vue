@@ -156,7 +156,7 @@ const accountDeletionSubmit = async () => {
 			leavePlaces.value,
 			leaveImages.value,
 		);
-		await mainStore.unload();
+		mainStore.unload();
 		router.push({name: 'PlacesAuth'});
 	}
 };

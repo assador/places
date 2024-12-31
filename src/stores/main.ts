@@ -186,7 +186,6 @@ export const useMainStore = defineStore('main', {
 			this.stateBackupsIndex = this.stateBackupsIndex + delta;
 		},
 		reset() {
-			this.refreshing = false;
 			this.saved = true;
 			this.idleTime = 0;
 			this.stateBackups = [];
@@ -471,11 +470,10 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 		},
-		async unload() {
+		unload() {
+			this.refreshing = true;
 			this.reset();
-			sessionStorage.removeItem('places-store-state');
-			sessionStorage.removeItem('places-userid');
-			sessionStorage.removeItem('places-session');
+			sessionStorage.clear();
 		},
 		async setUser() {
 			return axios

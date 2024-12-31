@@ -321,7 +321,7 @@ const sidebarDragStop = (): void => {
 };
 
 const exit = async (): Promise<void> => {
-	await mainStore.unload();
+	mainStore.unload();
 	router.push({name: 'PlacesAuth'});
 };
 

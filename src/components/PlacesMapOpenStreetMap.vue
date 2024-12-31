@@ -43,10 +43,15 @@
 				draggable
 				:visible="placemarksShow && place.show && place.geomark ? true : false"
 				@click="placemarkClick(place)"
-				@mousedown="e => placemarkDragStart(place, e)"
-				@mouseup="e => placemarkDragEnd(place, e)"
+				@moveend="e => placemarkDragEnd(place, e)"
 			>
-				<l-icon v-bind="place === currentPlace ? icon_03 : icon_01" />
+				<l-icon
+					v-bind="
+						mainStore.measure.places.includes(id)
+							? icon_01_blue
+							: (place === currentPlace ? icon_03 : icon_01)
+					"
+				/>
 				<l-tooltip>
 					{{ place.name }}
 				</l-tooltip>
@@ -72,7 +77,7 @@
 
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { emitter } from '@/shared/bus';
 import {
 	LMap,
@@ -95,6 +100,15 @@ const mainStore = useMainStore();
 const map = inject('extmap');
 const icon_01 = ref({
 	iconUrl: '/img/markers/marker_01.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_01_blue = ref({
+	iconUrl: '/img/markers/marker_01_blue.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
 	popupAnchor: [0, -34],
@@ -186,14 +200,7 @@ const placemarkClick = (place): void => {
 		);
 	}
 };
-const placemarkDragStart = (place, event): void => {
-	if (place !== currentPlace.value) {
-		event.target.dragging.disable();
-		mainStore.setMessage(mainStore.t.m.popup.needToChoosePlacemark);
-	}
-};
 const placemarkDragEnd = (place, event): void => {
-	event.target.dragging.enable();
 	const coordinates = event.target.getLatLng();
 	mainStore.changePlace({
 		place: place,
@@ -202,7 +209,7 @@ const placemarkDragEnd = (place, event): void => {
 			longitude: Number(coordinates.lng.toFixed(7)),
 		},
 	});
-	updateState(coordinates);
+//	updateState(coordinates);
 };
 const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
 	mainStore.updateMap({
