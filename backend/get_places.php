@@ -8,7 +8,6 @@ $query = $conn->query("
 		`w`.`id`,
 		`w`.`latitude`,
 		`w`.`longitude`,
-		`w`.`altitudecapability`,
 		`w`.`time`,
 		`w`.`common`
 	FROM `waypoints` `w`

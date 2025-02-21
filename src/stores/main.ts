@@ -650,10 +650,6 @@ export const useMainStore = defineStore('main', {
 							Number(wpt.getAttribute('lon')) ||
 							Number(constants.map.initial.longitude) ||
 							null,
-						altitudecapability: (wpt.getElementsByTagName('ele').length
-							? (Number(wpt.getElementsByTagName('ele')[0].textContent.trim()) || null)
-							: null
-						),
 						time: time,
 						type: 'waypoint',
 						common: false,
@@ -794,9 +790,6 @@ export const useMainStore = defineStore('main', {
 									longitude:
 										Number(parsedWaypoint.longitude) ||
 										Number(constants.map.initial.longitude) ||
-										null,
-									altitudecapability:
-										Number(parsedWaypoint.altitudecapability) ||
 										null,
 									time: parsedWaypoint.time,
 									common: parsedWaypoint.common,
@@ -1090,11 +1083,7 @@ export const useMainStore = defineStore('main', {
 		async changePlace(payload) {
 			this.backupState();
 			let saveToDB = ('todb' in payload && payload.todb === false ? false : true);
-			if (
-				'latitude' in payload.change ||
-				'longitude' in payload.change ||
-				'altitudecapability' in payload.change
-			) {
+			if ('latitude' in payload.change || 'longitude' in payload.change) {
 				const
 					lat = num2deg(('latitude' in payload.change
 						? payload.change.latitude
@@ -1103,33 +1092,19 @@ export const useMainStore = defineStore('main', {
 					lng = num2deg(('longitude' in payload.change
 						? payload.change.longitude
 						: this.waypoints[payload.place.waypoint].longitude
-					)),
-					alt = ('altitudecapability' in payload.change
-						? payload.change.altitudecapability
-						: ('altitudecapability' in this.waypoints[payload.place.waypoint]
-							? this.waypoints[payload.place.waypoint].altitudecapability
-							: null
-						)
-					)
+					))
 				;
 				this.changeWaypoint({
 					waypoint: this.waypoints[payload.place.waypoint],
 					change: {
 						latitude: Number(lat),
 						longitude: Number(lng),
-						altitudecapability: Number(alt),
 					},
 					from: payload.place,
 				});
 			}
 			for (const key in payload.change) {
-				if (
-					key === 'latitude' ||
-					key === 'longitude' ||
-					key === 'altitudecapability'
-				) {
-					continue;
-				}
+				if (key === 'latitude' || key === 'longitude') continue;
 				this.changePlaceMut({
 					place: payload.place,
 					key: key,

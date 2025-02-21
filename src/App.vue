@@ -342,15 +342,6 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 					mainStore.waypoints[p.waypoint].longitude +
 					'">'
 				;
-				content +=
-					mainStore.waypoints[p.waypoint].altitudecapability
-						? (
-							'<ele>' +
-							mainStore.waypoints[p.waypoint].altitudecapability +
-							'</ele>'
-						)
-						: ''
-					;
 				content += p.name ? ('<name>' + p.name + '</name>') : '';
 				content += p.description ? ('<desc>' + p.description + '</desc>') : '';
 				content += p.link ? ('<link href="' + p.link + '"></link>') : '';

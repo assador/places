@@ -8,14 +8,12 @@ $waypoint = $conn->prepare("
 		`id`                 ,
 		`latitude`           ,
 		`longitude`          ,
-		`altitudecapability` ,
 		`time`               ,
 		`common`
 	) VALUES (
 		:id                 ,
 		:latitude           ,
 		:longitude          ,
-		:altitudecapability ,
 		:time               ,
 		0
 	)
@@ -28,7 +26,6 @@ $query = $conn->prepare("
 		`id` VARCHAR (32) NOT NULL,
 		`latitude` DOUBLE NOT NULL,
 		`longitude` DOUBLE NOT NULL,
-		`altitudecapability` DOUBLE DEFAULT NULL,
 		`time` VARCHAR (24) NOT NULL DEFAULT '',
 		`common` BOOLEAN NOT NULL DEFAULT 0,
 		PRIMARY KEY (`id`),
@@ -54,7 +51,6 @@ foreach ($places as $row) {
 	$waypoint->bindParam( ":id"                 , $new                        );
 	$waypoint->bindParam( ":latitude"           , $row[ "latitude"           ]);
 	$waypoint->bindParam( ":longitude"          , $row[ "longitude"          ]);
-	$waypoint->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
 	$waypoint->bindParam( ":time"               , $row[ "time"               ]);
 	$waypoint->execute();
 }
@@ -62,7 +58,6 @@ $query = $conn->prepare("
 	ALTER TABLE `places`
 	DROP COLUMN `latitude`,
 	DROP COLUMN `longitude`,
-	DROP COLUMN `altitudecapability`
 ");
 $query->execute();
 exit;

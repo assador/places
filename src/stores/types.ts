@@ -2,7 +2,6 @@ export interface Waypoint {
 	id: string;
 	latitude: number;
 	longitude: number;
-	altitudecapability?: number | null;
 	time?: string;
 	common: boolean;
 	type: string;

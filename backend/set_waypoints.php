@@ -19,14 +19,12 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			`id`                 ,
 			`latitude`           ,
 			`longitude`          ,
-			`altitudecapability` ,
 			`time`               ,
 			`common`
 		) VALUES (
 			:id                 ,
 			:latitude           ,
 			:longitude          ,
-			:altitudecapability ,
 			:time               ,
 			:common
 		)
@@ -36,7 +34,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 			`id`                 = :id                 ,
 			`latitude`           = :latitude           ,
 			`longitude`          = :longitude          ,
-			`altitudecapability` = :altitudecapability ,
 			`time`               = :time               ,
 			`common`             = :common
 		WHERE `id` = :id
@@ -74,9 +71,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 						AND
 						`w`.`longitude`
 							" . ($row["longitude"] ? ("= " . $row["longitude"]) : "IS NULL") . "
-						AND
-						`w`.`altitudecapability`
-							" . ($row["altitudecapability"] ? ("= " . $row["altitudecapability"]) : "IS NULL") . "
 					LIMIT 1
 				");
 				$query->execute();
@@ -85,7 +79,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					$append->bindParam( ":id"                 , $row[ "id"                 ]);
 					$append->bindParam( ":latitude"           , $row[ "latitude"           ]);
 					$append->bindParam( ":longitude"          , $row[ "longitude"          ]);
-					$append->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
 					$append->bindParam( ":time"               , $row[ "time"               ]);
 					$append->bindParam( ":common"             , $common                     );
 					try {
@@ -99,7 +92,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					$update->bindParam( ":id"                 , $same_waypoint[ "id"                 ]);
 					$update->bindParam( ":latitude"           , $same_waypoint[ "latitude"           ]);
 					$update->bindParam( ":longitude"          , $same_waypoint[ "longitude"          ]);
-					$update->bindParam( ":altitudecapability" , $same_waypoint[ "altitudecapability" ]);
 					$update->bindParam( ":time"               , $same_waypoint[ "time"               ]);
 					$update->bindParam( ":common"             , $common                               );
 					try {
@@ -127,7 +119,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$update->bindParam( ":id"                 , $row[ "id"                 ]);
 				$update->bindParam( ":latitude"           , $row[ "latitude"           ]);
 				$update->bindParam( ":longitude"          , $row[ "longitude"          ]);
-				$update->bindParam( ":altitudecapability" , $row[ "altitudecapability" ]);
 				$update->bindParam( ":time"               , $row[ "time"               ]);
 				$update->bindParam( ":common"             , $common                     );
 				try {
@@ -145,7 +136,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 					"id"                 => generateRandomString(32)    ,
 					"latitude"           => $row[ "latitude"           ],
 					"longitude"          => $row[ "longitude"          ],
-					"altitudecapability" => $row[ "altitudecapability" ],
 					"time"               => gmdate("Y-m-d\TH:i:s")      ,
 					"common"             => $common                     ,
 					"type"               => 'waypoint'                  ,
@@ -157,7 +147,6 @@ if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
 				$append->bindParam( ":id"                 , $new_waypoint[ "id"                 ]);
 				$append->bindParam( ":latitude"           , $new_waypoint[ "latitude"           ]);
 				$append->bindParam( ":longitude"          , $new_waypoint[ "longitude"          ]);
-				$append->bindParam( ":altitudecapability" , $new_waypoint[ "altitudecapability" ]);
 				$append->bindParam( ":time"               , $new_waypoint[ "time"               ]);
 				$append->bindParam( ":common"             , $new_waypoint[ "common"             ]);
 				try {

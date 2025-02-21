@@ -460,19 +460,10 @@
 									>
 								</div>
 							</div>
-							<dt>
-								{{ mainStore.placeFields['altitudecapability'] }}
-							</dt>
-							<dd>
-								<input
-									id="detailed-altitudecapability"
-									:value="mainStore.waypoints[currentPlace.waypoint].altitudecapability"
-									type="number"
-									:disabled="!!currentPlaceCommon"
-									class="fieldwidth_100"
-									@change="e => mainStore.changePlace({place: currentPlace, change: {altitudecapability: (e.target as HTMLInputElement).value.trim()}})"
-								>
-							</dd>
+							<div class="margin_bottom_1">
+								<strong>{{ mainStore.placeFields['altitudecapability'] }}:</strong>
+								{{ currentPlaceEle === null ? '?' : currentPlaceEle }}
+							</div>
 						</div>
 						<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
 							{{ mainStore.placeFields[field] }}:
@@ -840,6 +831,24 @@ const currentPlaceLat = computed((): number => {
 const currentPlaceLon = computed((): number => {
 	return waypoints.value[currentPlace.value.waypoint].longitude;
 });
+const currentPlaceEle = ref<number | null>(null);
+
+const getCurrentPlaceEle = (): void => {
+	axios
+		.get(`https://api.open-meteo.com/v1/elevation?latitude=${currentPlaceLat.value}&longitude=${currentPlaceLon.value}`)
+		.then(response => {
+			currentPlaceEle.value = Number(response.data.elevation);
+			if (isNaN(currentPlaceEle.value)) currentPlaceEle.value = null;
+		})
+		.catch(e => {
+			currentPlaceEle.value = null;
+		})
+	;
+}
+
+watch(currentPlace, (): void => {
+	getCurrentPlaceEle();
+});
 const currentDegMinSec = computed((): string => {
 	return coords2string([currentPlaceLat.value, currentPlaceLon.value]);
 });
@@ -881,6 +890,7 @@ onMounted(async () => {
 	}
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
+	getCurrentPlaceEle(currentPlaceLat.value, currentPlaceLon.value);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('dragover', handleDragOver, false);
@@ -1032,7 +1042,6 @@ const appendPlace = async (): Promise<void | Place> => {
 			longitude:
 				mainStore.center.longitude ||
 				null,
-			altitudecapability: null,
 			time: new Date().toISOString().slice(0, -5),
 			common: false,
 			type: 'waypoint',
