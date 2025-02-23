@@ -152,7 +152,7 @@ const accountDeletionSubmit = async () => {
 		acc.message = mainStore.t.m.paged.taCannotBeDeleted;
 	} else {
 		accountDeletionRoutine(
-			store.state.user.id,
+			mainStore.user.id,
 			leavePlaces.value,
 			leaveImages.value,
 		);

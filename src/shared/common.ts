@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { constants } from '@/shared/constants';
 import { Folder } from '@/stores/types';
 
@@ -448,12 +447,6 @@ export const changeByKeyValue = (
 			}
 		}
 	}
-};
-export const getAbout = async (): Promise<void> => {
-	return await axios.get('/about.html')
-		.then(response => response.data)
-		.catch(error => new Error(error))
-	;
 };
 export const numbersMinMax = (
 	array: number[], count: number, order?: number

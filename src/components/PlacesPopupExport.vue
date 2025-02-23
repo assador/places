@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onBeforeUnmount, onBeforeUpdate } from 'vue';
+import { ref, inject, onMounted, onBeforeUnmount } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
 import PlacesTree from './PlacesTree.vue';
@@ -131,7 +131,9 @@ const keyup = (event: Event): void => {
 };
 
 onMounted(() => {
-	popuped.value = true;
+	window.setTimeout(() => {
+		popuped.value = true;
+	}, 1);
 	for (
 		const f of
 		document.getElementById('popup-export__tree')!
@@ -141,9 +143,6 @@ onMounted(() => {
 		f.classList.remove('folder_opened');
 	}
 	document.addEventListener('keyup', keyup, false);
-});
-onBeforeUpdate(() => {
-	popuped.value = true;
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);

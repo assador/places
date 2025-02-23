@@ -35,7 +35,6 @@ import {
 	watch,
 	onMounted,
 	onBeforeUnmount,
-	onBeforeUpdate,
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMainStore } from '@/stores/main';;
@@ -113,12 +112,11 @@ watch(() => props.imageId, () => {
 	defineVars();
 });
 onMounted(() => {
-	popuped.value = true;
+	window.setTimeout(() => {
+		popuped.value = true;
+	}, 1);
 	defineVars();
 	document.addEventListener('keyup', keyup, false);
-});
-onBeforeUpdate(() => {
-	popuped.value = true;
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);

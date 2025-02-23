@@ -728,7 +728,6 @@ import {
 	sortObjects,
 	coords2string,
 	string2coords,
-	distanceOnSphere,
 } from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
@@ -840,7 +839,7 @@ const getCurrentPlaceEle = (): void => {
 			currentPlaceEle.value = Number(response.data.elevation);
 			if (isNaN(currentPlaceEle.value)) currentPlaceEle.value = null;
 		})
-		.catch(e => {
+		.catch(() => {
 			currentPlaceEle.value = null;
 		})
 	;
@@ -858,8 +857,8 @@ watch(() => stateReady.value, () => {
 });
 
 watch(mainStore, changedStore => {
-	if (!mainStore.refreshing) {
-		sessionStorage.setItem('places-store-state', JSON.stringify(mainStore.$state));
+	if (!changedStore.refreshing) {
+		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
 	}
 });
 
@@ -890,7 +889,7 @@ onMounted(async () => {
 	}
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
-	getCurrentPlaceEle(currentPlaceLat.value, currentPlaceLon.value);
+	getCurrentPlaceEle();
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('dragover', handleDragOver, false);

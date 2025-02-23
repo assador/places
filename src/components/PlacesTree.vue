@@ -1,7 +1,7 @@
 <template>
 	<ul>
 		<places-tree-node
-			:instanceid="instanceid"
+			:instanceid="props.instanceid"
 			:folder="mainStore.tree"
 			:folders-checked-ids="foldersCheckedIds"
 			class="folder_root"

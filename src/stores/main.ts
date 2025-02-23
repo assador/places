@@ -49,7 +49,7 @@ export interface IMainState {
 	langs: Record<string, string>[],
 	colortheme: string,
 	t: any,
-	tree: Record<string, any>,
+	tree: Folder,
 }
 
 export const useMainStore = defineStore('main', {
@@ -921,7 +921,7 @@ export const useMainStore = defineStore('main', {
 			}
 			this.deletePlaces({places: places});
 		},
-		deleteFoldersMarkedAsDeleted({ getters }) {
+		deleteFoldersMarkedAsDeleted() {
 			const folders: Record<string, Folder> = {};
 			for (const id in this.treeFlat) {
 				if (this.treeFlat[id].deleted) {
@@ -950,7 +950,6 @@ export const useMainStore = defineStore('main', {
 						break;
 					}
 				}
-				emitter.emit('deletePlace', payload.places[payloadPlaceId]);
 				if (!commonWaypoint) {
 					waypoints.push(
 						this.waypoints[payload.places[payloadPlaceId].waypoint]
@@ -968,6 +967,7 @@ export const useMainStore = defineStore('main', {
 				}
 				places[places.length - 1].deleted = true;
 				this.deletePlace(this.places[payloadPlaceId]);
+				emitter.emit('deletePlace', payload.places[payloadPlaceId]);
 				commonWaypoint = false;
 			}
 			if (saveToDB && !this.user.testaccount) {

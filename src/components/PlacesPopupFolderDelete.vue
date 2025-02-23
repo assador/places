@@ -250,7 +250,9 @@ onMounted(() => {
 	document.addEventListener('keyup', keyup, false);
 });
 onBeforeUpdate(() => {
-	popuped.value = true;
+	window.setTimeout(() => {
+		popuped.value = true;
+	}, 1);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);
