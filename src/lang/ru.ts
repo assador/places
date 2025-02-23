@@ -40,6 +40,7 @@ export const t = {
 			system: 'Системн.',
 			haschildren: 'Есть потомки',
 			actions: 'Действия',
+			add: 'Добавить',
 		},
 		text: {
 			yes: 'да',

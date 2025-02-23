@@ -27,7 +27,7 @@ export interface IMainState {
 	measure: {
 		places: (string | null)[],
 		choosing: number | null,
-		distance: number | null,
+		distance: number,
 		show: boolean,
 	},
 	waypoints: Record<string, Waypoint> | null,
@@ -67,7 +67,7 @@ export const useMainStore = defineStore('main', {
 		range: null,
 		measure: {
 			places: [null, null],
-			distance: null,
+			distance: 0,
 			choosing: null,
 			show: false,
 		},
@@ -411,14 +411,24 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 		measureDistance() {
-			if (this.measure.places.includes(null)) return;
-			this.measure.distance = distanceOnSphere(
-				this.waypoints[this.places[this.measure.places[0]].waypoint].latitude,
-				this.waypoints[this.places[this.measure.places[0]].waypoint].longitude,
-				this.waypoints[this.places[this.measure.places[1]].waypoint].latitude,
-				this.waypoints[this.places[this.measure.places[1]].waypoint].longitude,
-				constants.earthRadius
-			).toFixed(3);
+			let lastIdx: number | null = null;
+			this.measure.distance = 0;
+			if (this.measure.places.length < 2) return;
+			for (let i = 0; i < this.measure.places.length; i++) {
+				if (this.measure.places[i] === null) continue;
+				if (lastIdx === null) {
+					lastIdx = i;
+					continue;
+				}
+				this.measure.distance += distanceOnSphere(
+					this.waypoints[this.places[this.measure.places[lastIdx]].waypoint].latitude,
+					this.waypoints[this.places[this.measure.places[lastIdx]].waypoint].longitude,
+					this.waypoints[this.places[this.measure.places[i]].waypoint].latitude,
+					this.waypoints[this.places[this.measure.places[i]].waypoint].longitude,
+					constants.earthRadius
+				);
+				lastIdx = i;
+			}
 		},
 		showHidePlaceGeomark(payload) {
 			payload.place.geomark = payload.show;

@@ -257,7 +257,7 @@
 			>
 				<dt>
 					{{ mainStore.t.i.captions.measure }}:
-					<span class="imp_02">{{ mainStore.measure.distance }}</span> {{ mainStore.measure.distance ? mainStore.t.i.text.km : '' }}
+					<span class="imp_02">{{ mainStore.measure.distance.toFixed(3) }}</span> {{ mainStore.t.i.text.km }}
 				</dt>
 				<dd
 					v-for="(id, index) in mainStore.measure.places"
@@ -272,19 +272,26 @@
 								mainStore.measure.choosing === index ? null : index
 						"
 					>
-						<span>⊕</span>
+						<span>↪</span>
 					</button>
 					<button
 						:title="mainStore.t.i.buttons.clear"
-						@click="
-							mainStore.measure.places[index] = null;
-							mainStore.measure.distance = null;
-							if (mainStore.measure.choosing === index) {
-								mainStore.measure.choosing = null;
-							}
-						"
+						@click="mainStore.measure.places.splice(index, 1)"
 					>
 						<span>⊗</span>
+					</button>
+				</dd>
+				<dd>
+					<div />
+					<div />
+					<button
+						:title="mainStore.t.i.captions.add"
+						@click="
+							mainStore.measure.places.push(null);
+							mainStore.measure.choosing = mainStore.measure.places.length - 1;
+						"
+					>
+						<span>⊕</span>
 					</button>
 				</dd>
 			</div>
@@ -861,6 +868,9 @@ watch(mainStore, changedStore => {
 		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
 	}
 });
+watch(mainStore.measure.places, () => {
+	mainStore.measureDistance();
+}, {deep: true});
 
 emitter.on('setCurrentPlace', (payload: {place: Place}) => {
 	setCurrentPlace(payload.place);
@@ -1011,6 +1021,7 @@ const setCurrentPlace = (place: Place | null): void => {
 	}
 	if (mainStore.measure.choosing !== null) {
 		mainStore.measure.places[mainStore.measure.choosing] = place.id;
+		mainStore.measure.choosing = null;
 		mainStore.measureDistance();
 	}
 	if (currentPlace.value && place === currentPlace.value) return;
