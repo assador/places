@@ -559,7 +559,7 @@ export const useMainStore = defineStore('main', {
 			A payload parameter is present and is an object:
 			{text: <file’s content as a text>, type: <file’s MIME-type>}
 			*/
-			function parseJSON(text: string) {
+			const parseJSON = (text: string) => {
 				try {
 					const result =
 						<Record<string, Array<Place | Waypoint | Folder>>>
@@ -574,7 +574,7 @@ export const useMainStore = defineStore('main', {
 					return null;
 				}
 			}
-			function parseGPX(text: string) {
+			const parseGPX = (text: string) => {
 				const result = {
 					waypoints: [] as Array<Waypoint>,
 					places: [] as Array<Place>,
@@ -702,14 +702,14 @@ export const useMainStore = defineStore('main', {
 				result.tree = importedPlaceFolder.imported;
 				return result;
 			}
-			function addImported(
+			const addImported = (
 				mime: string,
 				parsed:
 					Record<string,
 						Array<Waypoint | Place | Folder> |
 						Record<string, Array<Waypoint | Place> | Folder>
 					> | null
-			) {
+			) => {
 				try {
 					switch (mime) {
 						case 'application/json' :
