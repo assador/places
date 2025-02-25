@@ -474,23 +474,20 @@ $col-36: rgb(0, 0, 0);
 		width: 0; height: 0;
 		margin: 12px;
 		vertical-align: middle;
-		&::after {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			position: relative;
-			top: -12px; left: -12px;
-			width: 24px; height: 24px;
-			font-size: 20px;
-			color: $color-23;
-			cursor: pointer;
-		}
-		&:checked::after {
-			content: '\1f5f9';
-		}
-		&:not(:checked)::after {
-			content: '\1f790';
-		}
+	}
+	label:has(input:is([type="checkbox"], [type="radio"]))::before {
+		display: inline-block;
+		margin: -1px -20px 0 0;
+		vertical-align: middle;
+		font-size: 20px;
+		color: $color-23;
+		cursor: pointer;
+	}
+	label:has(input:is([type="checkbox"]:checked, [type="radio"]:checked))::before {
+		content: '\1f5f9';
+	}
+	label:has(input:is([type="checkbox"]:not(:checked), [type="radio"]:not(:checked)))::before {
+		content: '\1f790';
 	}
 	select {
 		padding-right: 10px; padding-left: 4px;
