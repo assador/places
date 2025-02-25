@@ -470,23 +470,25 @@ $col-36: rgb(0, 0, 0);
 	}
 	input:is([type="checkbox"], [type="radio"]) {
 		display: inline-block;
-		position: relative;
-		width: 0; height: 0;
-		margin: 12px;
 		vertical-align: middle;
+		opacity: 0;
+		cursor: pointer;
 	}
-	label:has(input:is([type="checkbox"], [type="radio"]))::before {
+	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"]))::before {
 		display: inline-block;
-		margin: -1px -20px 0 0;
+		margin: -1px -10px 0 0;
 		vertical-align: middle;
 		font-size: 20px;
 		color: $color-23;
 		cursor: pointer;
 	}
-	label:has(input:is([type="checkbox"]:checked, [type="radio"]:checked))::before {
+	.has-checks-radios:has(input:is([type="checkbox"], [type="radio"]))::before {
+		margin: -3px 10px 0 0;
+	}
+	:is(label, .has-checks-radios):has(input:is([type="checkbox"]:checked, [type="radio"]:checked))::before {
 		content: '\1f5f9';
 	}
-	label:has(input:is([type="checkbox"]:not(:checked), [type="radio"]:not(:checked)))::before {
+	:is(label, .has-checks-radios):has(input:is([type="checkbox"]:not(:checked), [type="radio"]:not(:checked)))::before {
 		content: '\1f790';
 	}
 	select {

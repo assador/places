@@ -5,7 +5,7 @@
 		:title="folder.description"
 		:class="'folder ' + (folder.opened ? 'folder_opened' : 'folder_closed')"
 	>
-		<div>
+		<div :class="instanceid === 'popupexporttree' ? 'has-checks-radios' : undefined">
 			<input
 				v-if="instanceid === 'popupexporttree'"
 				:id="'to-export-places-menu-folder-checkbox-' + folder.id"
