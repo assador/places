@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, inject, onBeforeUnmount, onMounted } from 'vue';
+import { ref, Ref, inject, onMounted } from 'vue';
 import { constants } from '../shared/constants';
 import { useMainStore } from '@/stores/main';
 

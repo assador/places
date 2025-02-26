@@ -72,6 +72,7 @@
 				>
 				<button
 					id="actions-undo"
+					:disabled="mainStore.stateBackupsIndex === 0"
 					class="actions-button"
 					:title="mainStore.t.i.buttons.undo"
 					@click="mainStore.undo();"
@@ -81,6 +82,10 @@
 				</button>
 				<button
 					id="actions-redo"
+					:disabled="
+						!mainStore.stateBackups ||
+						mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1
+					"
 					class="actions-button"
 					:title="mainStore.t.i.buttons.redo"
 					@click="mainStore.redo();"
@@ -90,6 +95,7 @@
 				</button>
 				<button
 					id="actions-save"
+					:disabled="mainStore.saved"
 					:class="'actions-button' + (!mainStore.saved ? ' button-pressed' : '')"
 					:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
 					@click="toDBCompletely"
@@ -596,6 +602,16 @@
 						>
 						{{ mainStore.t.i.inputs.checkboxHome }}
 					</label>
+				</div>
+				<div>
+					<button
+						:disabled="mainStore.saved"
+						:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
+						class="save-button"
+						@click="toDBCompletely"
+					>
+						{{ mainStore.t.i.buttons.save }}
+					</button>
 				</div>
 			</div>
 		</div>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="138.298"
+   height="78.480003"
+   viewBox="0 0 129.65438 73.575004"
+   id="svg4136"
+   version="1.1"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4138">
+    <linearGradient
+       id="linearGradient4672">
+      <stop
+         style="stop-color:#344617;stop-opacity:0.56470591;"
+         offset="0"
+         id="stop4668" />
+      <stop
+         style="stop-color:#344617;stop-opacity:0;"
+         offset="1"
+         id="stop4670" />
+    </linearGradient>
+    <color-profile
+       xlink:href="file:///usr/share/color/icc/colord/FOGRA39L_coated.icc"
+       id="color-profile2"
+       name="FOGRA39L-Coated" />
+    <radialGradient
+       xlink:href="#linearGradient4672"
+       id="radialGradient4676"
+       cx="375"
+       cy="711.77191"
+       fx="375"
+       fy="711.77191"
+       r="64.827118"
+       gradientTransform="matrix(2.4371114,0,0,1.4731229,-908.03091,-974.95273)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <metadata
+     id="metadata4141">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path
+     id="path4604"
+     d="M 129.00685,25.39221 C 117.72282,59.08522 26.648862,37.37758 5.885872,73.57475 -6.405658,51.62412 1.712342,35.00231 19.525442,21.79564 37.338542,8.58898 56.786012,0 87.639202,0 118.49238,0 132.99325,13.48919 129.00685,25.39221 Z"
+     style="fill:url(#radialGradient4676);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.330156;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+</svg>

@@ -28,7 +28,7 @@
 					],
 				})"
 			>
-				<l-icon v-bind="icon_03" />
+				<l-icon v-bind="icon_01_blue" />
 				<l-tooltip>
 					{{ mainStore.t.i.maps.center }}
 				</l-tooltip>
@@ -49,7 +49,7 @@
 					v-bind="
 						mainStore.measure.places.includes(id)
 							? icon_01_blue
-							: (place === currentPlace ? icon_03 : icon_01)
+							: (place === currentPlace ? icon_01_green : icon_01)
 					"
 				/>
 				<l-tooltip>
@@ -66,7 +66,7 @@
 				:visible="commonPlacemarksShow && place.geomark ? true : false"
 				@click="placemarkClick(place);"
 			>
-				<l-icon v-bind="place === currentPlace ? icon_03 : icon_02" />
+				<l-icon v-bind="place === currentPlace ? icon_01_green : icon_02" />
 				<l-tooltip>
 					{{ place.name }}
 				</l-tooltip>
@@ -112,21 +112,21 @@ const icon_01_blue = ref({
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
 	popupAnchor: [0, -34],
-	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowUrl: '/img/markers/marker_01_shadow_blue.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_01_green = ref({
+	iconUrl: '/img/markers/marker_01_green.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow_green.svg',
 	shadowSize: [25, 38],
 	shadowAnchor: [2, 24],
 });
 const icon_02 = ref({
 	iconUrl: '/img/markers/marker_02.svg',
-	iconSize: [25, 38],
-	iconAnchor: [13, 38],
-	popupAnchor: [0, -34],
-	shadowUrl: '/img/markers/marker_01_shadow.svg',
-	shadowSize: [25, 38],
-	shadowAnchor: [2, 24],
-});
-const icon_03 = ref({
-	iconUrl: '/img/markers/marker_01_green.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
 	popupAnchor: [0, -34],

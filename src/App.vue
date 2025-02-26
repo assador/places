@@ -150,6 +150,25 @@ onMounted(() => {
 	document.addEventListener('keyup', () => {
 		mainStore.setIdleTime(0);
 	}, false);
+	mainStore.$onAction((action): void => {
+		if (!mainStore.user || mainStore.user.testaccount) return;
+		switch (action.name) {
+			case 'addPlace':
+			case 'addFolder':
+			case 'deletePlace':
+			case 'deleteFolder':
+			case 'changePlace':
+			case 'changeFolder':
+			case 'changeWaypoint':
+			case 'moveFolder':
+			case 'setHomePlace':
+			case 'swapImages':
+			case 'undo':
+			case 'redo':
+				mainStore.setSaved(false);
+				break;
+		}
+	});
 });
 
 const toDB = async (

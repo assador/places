@@ -109,7 +109,7 @@
 				:key="place.id"
 				:srt="place.srt"
 				:title="place.description"
-				:class="'place-button block_01 draggable' + (currentPlace && place.id == currentPlace.id ? ' active' : '')"
+				:class="'place-button block_01 draggable has-checks-radios' + (currentPlace && place.id == currentPlace.id ? ' active' : '')"
 				:draggable="true"
 				data-place-button
 				@click="instanceid !== 'popupexporttree' ? setCurrentPlace(place) : '';"
@@ -120,7 +120,7 @@
 					:id="'to-export-place-checkbox-' + place.id"
 					name="placeCheckbox"
 					type="checkbox"
-					class="to-export-place-checkbox"
+					class="to-export-place-checkbox folder-checkbox"
 					:checked="selectedToExport.hasOwnProperty(place.id)"
 					@change="e => {
 						selectUnselect(place, (e.target as HTMLInputElement).checked);
