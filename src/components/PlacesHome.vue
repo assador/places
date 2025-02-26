@@ -90,12 +90,12 @@
 				</button>
 				<button
 					id="actions-save"
-					:class="'actions-button' + (!mainStore.saved ? ' button-pressed highlight' : '')"
+					:class="'actions-button' + (!mainStore.saved ? ' button-pressed' : '')"
 					:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
 					@click="toDBCompletely"
 				>
 					<span>↸</span>
-					<span>{{ mainStore.t.i.buttons.todb }}</span>
+					<span>{{ mainStore.t.i.buttons.save }}</span>
 				</button>
 				<button
 					id="actions-install"
@@ -542,8 +542,7 @@
 											:draggable="false"
 											@click="e => {
 												e.stopPropagation();
-												mainStore.setIdleTime(0);
-												deleteImages({[image.id]: image});
+												confirm(deleteImages, [{[image.id]: image}]);
 											}"
 										>
 											×
@@ -709,6 +708,11 @@
 			🞃
 		</div>
 		<router-view />
+		<places-popup-confirm
+			v-if="confirmPopup"
+			:callback="confirmCallback"
+			:arguments="confirmCallbackArgs"
+		/>
 	</div>
 </template>
 
@@ -726,7 +730,7 @@ import {
 	defineAsyncComponent,
 } from 'vue';
 import axios from 'axios';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import { constants } from '@/shared/constants';
@@ -740,6 +744,7 @@ import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
 import PlacesDashboard from './PlacesDashboard.vue';
 import PlacesTree from './PlacesTree.vue';
+import PlacesPopupConfirm from './PlacesPopupConfirm.vue';
 import { Waypoint, Place, Image } from '@/stores/types';
 
 const mainStore = useMainStore();
@@ -878,6 +883,17 @@ emitter.on('setCurrentPlace', (payload: {place: Place}) => {
 emitter.on('deletePlace', (place: Place) => {
 	deletePlace(place);
 });
+
+const confirmPopup = ref(false);
+provide('confirmPopup', confirmPopup);
+const confirmCallback = ref(null);
+const confirmCallbackArgs = ref(null);
+const confirm = (func, args): boolean => {
+	confirmPopup.value = true;
+	confirmCallback.value = func;
+	confirmCallbackArgs.value = args;
+	return true;
+}
 
 onMounted(async () => {
 	if (stateReady.value) {

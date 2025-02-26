@@ -464,7 +464,6 @@ export const useMainStore = defineStore('main', {
 				this.stateBackupsIndexChange(-1);
 				this.restoreStateMut(this.stateBackupsIndex);
 				this.inUndoRedo = true;
-				this.setSaved(false);
 			}
 		},
 		redo() {
@@ -476,7 +475,6 @@ export const useMainStore = defineStore('main', {
 				this.restoreStateMut(this.stateBackupsIndex);
 				if (this.stateBackupsIndex === this.stateBackups.length - 1) {
 					this.outUndoRedo = false;
-					this.setSaved(true);
 				}
 			}
 		},

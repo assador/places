@@ -37,6 +37,7 @@ export const t = {
 			id: 'ID',
 			parent: 'Родитель',
 			owner: 'Владелец',
+			sure: 'Вы уверены?',
 			system: 'Системн.',
 			haschildren: 'Есть потомки',
 			actions: 'Действия',
@@ -59,6 +60,8 @@ export const t = {
 			slogan: 'Сервис просмотра и редактирования библиотек мест',
 		},
 		buttons: {
+			yes: 'Да',
+			no: 'Нет',
 			login: 'Войти',
 			forgot: 'Не помню логин / пароль',
 			sendPassword: 'Прислать',

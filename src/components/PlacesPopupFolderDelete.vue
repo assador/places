@@ -114,7 +114,7 @@ const close = (event: Event): void => {
 const keyup = (event: Event): void => {
 	if (
 		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).keyCode] === 'close'
+			[(event as KeyboardEvent).code] === 'close'
 	) close(event);
 };
 const markNestedAsDeleted = (folderCont: Folder): void => {

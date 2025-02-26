@@ -37,6 +37,7 @@ export const t = {
 			id: 'ID',
 			parent: 'Parent',
 			owner: 'Owner',
+			sure: 'Are you sure?',
 			system: 'System',
 			haschildren: 'Has children',
 			actions: 'Actions',
@@ -59,6 +60,8 @@ export const t = {
 			slogan: 'Geo placemarks viewer and editor service',
 		},
 		buttons: {
+			yes: 'Yes',
+			no: 'No',
 			login: 'Log in',
 			forgot: 'I forgot login / password',
 			sendPassword: 'Send',

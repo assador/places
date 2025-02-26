@@ -122,7 +122,7 @@ const close = (event?: Event): void => {
 const keyup = (event: Event): void => {
 	switch (
 		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).keyCode]
+			[(event as KeyboardEvent).code]
 	) {
 		case 'close' :
 			close(event);
