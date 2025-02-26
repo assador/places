@@ -126,7 +126,7 @@ const icon_02 = ref({
 	shadowAnchor: [2, 24],
 });
 const icon_03 = ref({
-	iconUrl: '/img/markers/marker_03.svg',
+	iconUrl: '/img/markers/marker_01_green.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
 	popupAnchor: [0, -34],

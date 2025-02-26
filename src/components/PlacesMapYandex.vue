@@ -145,7 +145,7 @@ const placemarksOptions = ref({
 		iconImageHref: '/img/markers/marker_05.svg',
 	},
 	icon_06: {
-		iconImageHref: '/img/markers/marker_06.svg',
+		iconImageHref: '/img/markers/marker_01_green.svg',
 	},
 });
 
