@@ -1140,13 +1140,12 @@ $col-36: rgb(0, 0, 0);
 	.images-add__div {
 		position: relative;
 		width: 100%;
-		cursor: pointer;
+		cursor: default;
 	}
 	.images-add__input {
 		display: block;
 		position: absolute;
-		top: 0; bottom: 0; left: 0;
-		width: 100%;
+		top: 0; right: 0; bottom: 0; left: 0;
 		height: auto !important;
 		opacity: 0;
 	}

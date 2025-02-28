@@ -1343,6 +1343,8 @@ const uploadFiles = (event: Event): void => {
 						mainStore.t.m.popup.filesUploadError +
 						' ' + error
 					);
+					(document.getElementById('images-add__input') as HTMLInputElement).value = '';
+					document.getElementById('images-uploading')!.classList.add('hidden');
 				});
 		}
 	}

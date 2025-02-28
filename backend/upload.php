@@ -103,7 +103,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 				} else {
 					move_uploaded_file(
 						$file["tmp_name"],
-						$dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]
+						".." . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]
 					);
 					push_file($key, $size, $mime);
 				}
@@ -112,7 +112,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 					$images["small"]["height"],
 					Imagick::FILTER_LANCZOS, 1, true
 				);
-				$imagick->writeImage($dirs["uploads"]["images"]["small"] . $key . "." . $mimes[$mime]);
+				$imagick->writeImage(".." . $dirs["uploads"]["images"]["small"] . $key . "." . $mimes[$mime]);
 				$imagick->destroy();
 			}
 		} else {
