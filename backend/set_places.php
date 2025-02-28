@@ -2,8 +2,12 @@
 include "config.php";
 include "newpdo.php";
 include "common.php";
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 $_POST = json_decode(file_get_contents("php://input"), true);
+file_put_contents('/media/data/1.txt', $_POST["data"][2]);
 $faults = [];
 /*
  * 1: Something’s wrong

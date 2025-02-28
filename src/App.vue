@@ -731,7 +731,7 @@ const handleDrop = (event: Event): void => {
 	if ((draggingElement.value as any).dataset.image !== undefined) {
 		mainStore.changePlace({
 			place: currentPlace.value,
-			change: {updated: true},
+			change: {},
 		});
 		toDB({what: 'places', data: [currentPlace.value]});
 		cleanup();
