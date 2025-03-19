@@ -219,7 +219,12 @@
 					:title="mainStore.t.i.captions.measure"
 					@click="e => {
 						mainStore.measure.show = !mainStore.measure.show;
-						mainStore.measure.choosing = null;
+						mainStore.measure.places = [];
+						mainStore.measure.distance = 0;
+						mainStore.measure.choosing = mainStore.measure.show
+							? mainStore.measure.places.length
+							: null
+						;
 					}"
 				>
 					<span>123</span>
@@ -275,29 +280,21 @@
 						:class="mainStore.measure.choosing === index ? 'button-pressed' : ''"
 						@click="
 							mainStore.measure.choosing =
-								mainStore.measure.choosing === index ? null : index
+								mainStore.measure.choosing === index
+									? mainStore.measure.places.length
+									: index
 						"
 					>
 						<span>↪</span>
 					</button>
 					<button
 						:title="mainStore.t.i.buttons.clear"
-						@click="mainStore.measure.places.splice(index, 1)"
-					>
-						<span>⊗</span>
-					</button>
-				</dd>
-				<dd>
-					<div />
-					<div />
-					<button
-						:title="mainStore.t.i.captions.add"
 						@click="
-							mainStore.measure.places.push(null);
-							mainStore.measure.choosing = mainStore.measure.places.length - 1;
+							mainStore.measure.places.splice(index, 1);
+							mainStore.measure.choosing = mainStore.measure.places.length;
 						"
 					>
-						<span>⊕</span>
+						<span>⊗</span>
 					</button>
 				</dd>
 			</div>
@@ -1052,22 +1049,32 @@ const setCurrentPlace = (place: Place | null): void => {
 		return;
 	}
 	if (mainStore.measure.choosing !== null) {
-		mainStore.measure.places[mainStore.measure.choosing] = place.id;
-		mainStore.measure.choosing = null;
+		const index = mainStore.measure.places.indexOf(place.id);
+		if (index === -1) {
+			if (mainStore.measure.choosing === mainStore.measure.places.length) {
+				mainStore.measure.places.push(place.id);
+			} else {
+				(mainStore.measure.places[mainStore.measure.choosing] = place.id);
+			}
+		} else {
+			mainStore.measure.places.splice(index, 1);
+		}
+		mainStore.measure.choosing = mainStore.measure.places.length;
 		mainStore.measureDistance();
+	} else {
+		if (currentPlace.value && place === currentPlace.value) return;
+		mainStore.setCurrentPlace(place);
+		currentPlaceCommon.value = (
+			currentPlace.value.userid !== mainStore.user.id
+				? true
+				: false
+		);
+		openTreeToCurrentPlace();
+		mainStore.updateMap({
+			latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
+			longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
+		});
 	}
-	if (currentPlace.value && place === currentPlace.value) return;
-	mainStore.setCurrentPlace(place);
-	currentPlaceCommon.value = (
-		currentPlace.value.userid !== mainStore.user.id
-			? true
-			: false
-	);
-	openTreeToCurrentPlace();
-	mainStore.updateMap({
-		latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
-		longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
-	});
 };
 const appendPlace = async (): Promise<void | Place> => {
 	if (

@@ -66,7 +66,7 @@ export const useMainStore = defineStore('main', {
 		rangeShow: false,
 		range: null,
 		measure: {
-			places: [null, null],
+			places: [],
 			distance: 0,
 			choosing: null,
 			show: false,
@@ -146,7 +146,7 @@ export const useMainStore = defineStore('main', {
 			this.saved = saved;
 		},
 		setObjectSaved(object) {
-			object.added = false;
+//			object.added = false;
 			object.deleted = false;
 			object.updated = false;
 		},
