@@ -179,7 +179,7 @@ const placemarkClick = (id: string): void => {
 	if (mainStore.places[id]) place = mainStore.places[id];
 	if (mainStore.commonPlaces[id]) place = mainStore.commonPlaces[id];
 	emitter.emit(
-		'setCurrentPlace',
+		'choosePlace',
 		{place: place}
 	);
 	if (place.common) {

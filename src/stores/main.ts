@@ -13,6 +13,7 @@ import {
 import axios from 'axios';
 
 export interface IMainState {
+	mode: string,
 	refreshing: boolean,
 	saved: boolean,
 	idleTime: number,
@@ -25,8 +26,8 @@ export interface IMainState {
 	rangeShow: boolean,
 	range: number | null,
 	measure: {
-		places: (string | null)[],
-		choosing: number | null,
+		places: string[],
+		choosing: number,
 		distance: number,
 		show: boolean,
 	},
@@ -54,6 +55,7 @@ export interface IMainState {
 
 export const useMainStore = defineStore('main', {
 	state: (): IMainState => ({
+		mode: 'normal',
 		refreshing: false,
 		saved: true,
 		idleTime: 0,
@@ -68,7 +70,7 @@ export const useMainStore = defineStore('main', {
 		measure: {
 			places: [],
 			distance: 0,
-			choosing: null,
+			choosing: 0,
 			show: false,
 		},
 		waypoints: {},
@@ -217,9 +219,6 @@ export const useMainStore = defineStore('main', {
 		},
 		setServerConfigMut(config) {
 			this.serverConfig = config;
-		},
-		setCurrentPlace(place) {
-			this.currentPlace = place;
 		},
 		setHomePlaceMut(place) {
 			this.homePlace = place;
@@ -885,7 +884,7 @@ export const useMainStore = defineStore('main', {
 					place = this.commonPlaces[this.currentPlace.id];
 				if (this.places[this.currentPlace.id])
 					place = this.places[this.currentPlace.id];
-				this.setCurrentPlace(place);
+				this.currentPlace = place;
 			}
 			this.setRefreshing(false);
 		},

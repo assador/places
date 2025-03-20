@@ -187,7 +187,7 @@ const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 
 const placemarkClick = (place): void => {
-	emitter.emit('setCurrentPlace', {place: place});
+	emitter.emit('choosePlace', {place: place});
 	if (place.common) {
 		const inPaginator =
 			Object.keys(mainStore.commonPlaces).indexOf(place.id) /

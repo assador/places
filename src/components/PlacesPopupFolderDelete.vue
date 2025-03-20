@@ -151,7 +151,7 @@ const deleteFolder = async (event: Event): Promise<void> => {
 			if (Object.keys(mainStore.places).length) {
 				if (mainStore.homePlace && !mainStore.homePlace.deleted) {
 					emitter.emit(
-						'setCurrentPlace',
+						'choosePlace',
 						{place: mainStore.homePlace}
 					);
 				} else {
@@ -169,7 +169,7 @@ const deleteFolder = async (event: Event): Promise<void> => {
 					}
 					if (firstPlaceInRoot && !firstPlaceInRoot.deleted) {
 						emitter.emit(
-							'setCurrentPlace',
+							'choosePlace',
 							{place: firstPlaceInRoot}
 						);
 					} else if (
@@ -178,17 +178,17 @@ const deleteFolder = async (event: Event): Promise<void> => {
 						].deleted
 					) {
 						emitter.emit(
-							'setCurrentPlace',
+							'choosePlace',
 							{place: mainStore.places[
 								Object.keys(mainStore.places)[0]
 							]}
 						);
 					} else {
-						emitter.emit('setCurrentPlace', {place: null});
+						emitter.emit('choosePlace', {place: null});
 					}
 				}
 			} else {
-				emitter.emit('setCurrentPlace', {place: null});
+				emitter.emit('choosePlace', {place: null});
 			}
 		}
 		await mainStore.deletePlaces({places: places.value});

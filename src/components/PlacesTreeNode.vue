@@ -112,7 +112,7 @@
 				:class="'place-button block_01 draggable has-checks-radios' + (currentPlace && place.id == currentPlace.id ? ' active' : '')"
 				:draggable="true"
 				data-place-button
-				@click="instanceid !== 'popupexporttree' ? setCurrentPlace(place) : '';"
+				@click="instanceid !== 'popupexporttree' ? choosePlace(place) : '';"
 				@dragstart="handleDragStart"
 			>
 				<input
@@ -220,8 +220,8 @@ const places = computed(() =>
 	.value()
 );
 
-const setCurrentPlace = (place: Place): void => {
-	emitter.emit('setCurrentPlace', {place: place});
+const choosePlace = (place: Place): void => {
+	emitter.emit('choosePlace', {place: place});
 };
 const selectUnselect = (place: Place, checked: boolean): void => {
 	if (checked) {

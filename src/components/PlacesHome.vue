@@ -221,10 +221,8 @@
 						mainStore.measure.show = !mainStore.measure.show;
 						mainStore.measure.places = [];
 						mainStore.measure.distance = 0;
-						mainStore.measure.choosing = mainStore.measure.show
-							? mainStore.measure.places.length
-							: null
-						;
+						mainStore.measure.choosing = 0;
+						mainStore.mode = mainStore.measure.show ? 'measure' : 'normal';
 					}"
 				>
 					<span>123</span>
@@ -342,7 +340,7 @@
 							:id="commonPlace.id"
 							:key="commonPlace.id"
 							:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
-							@click="setCurrentPlace(commonPlace)"
+							@click="choosePlace(commonPlace)"
 						>
 							{{ commonPlace.name }}
 						</div>
@@ -890,8 +888,8 @@ watch(mainStore.measure.places, () => {
 	mainStore.measureDistance();
 }, {deep: true});
 
-emitter.on('setCurrentPlace', (payload: {place: Place}) => {
-	setCurrentPlace(payload.place);
+emitter.on('choosePlace', (payload: {place: Place}) => {
+	choosePlace(payload.place);
 });
 emitter.on('deletePlace', (place: Place) => {
 	deletePlace(place);
@@ -934,7 +932,7 @@ onBeforeUnmount(() => {
 	document.removeEventListener('dragover', handleDragOver, false);
 	document.removeEventListener('drop', handleDrop, false);
 	document.removeEventListener('keyup', keyup, false);
-	emitter.off('setCurrentPlace');
+	emitter.off('choosePlace');
 	window.clearInterval(idleTimeInterval.value);
 });
 onUpdated(() => makeFieldsValidatable(mainStore.t));
@@ -976,7 +974,7 @@ const stateReadyChanged = async (): Promise<void> => {
 	await mainStore.restoreObjectsAsLinks();
 	if (!currentPlace.value) {
 		if (mainStore.homePlace) {
-			setCurrentPlace(mainStore.homePlace);
+			choosePlace(mainStore.homePlace);
 		} else if (Object.keys(mainStore.places).length) {
 			let firstPlaceInRoot: Place;
 			for (const id in mainStore.places) {
@@ -986,9 +984,9 @@ const stateReadyChanged = async (): Promise<void> => {
 				}
 			}
 			if (firstPlaceInRoot) {
-				setCurrentPlace(firstPlaceInRoot);
+				choosePlace(firstPlaceInRoot);
 			} else {
-				setCurrentPlace(
+				choosePlace(
 					mainStore.places[
 						Object.keys(mainStore.places)[0]
 					]
@@ -1043,37 +1041,40 @@ const openTreeToCurrentPlace = (): void => {
 		folderid = folder.parent;
 	}
 };
-const setCurrentPlace = (place: Place | null): void => {
+const choosePlace = (place: Place | null): void => {
 	if (!place) {
-		mainStore.setCurrentPlace(null);
+		mainStore.currentPlace = null;
 		return;
 	}
-	if (mainStore.measure.choosing !== null) {
-		const index = mainStore.measure.places.indexOf(place.id);
-		if (index === -1) {
-			if (mainStore.measure.choosing === mainStore.measure.places.length) {
-				mainStore.measure.places.push(place.id);
+	switch (mainStore.mode) {
+		case 'measure':
+			const index = mainStore.measure.places.indexOf(place.id);
+			if (index === -1) {
+				if (mainStore.measure.choosing === mainStore.measure.places.length) {
+					mainStore.measure.places.push(place.id);
+				} else {
+					(mainStore.measure.places[mainStore.measure.choosing] = place.id);
+				}
 			} else {
-				(mainStore.measure.places[mainStore.measure.choosing] = place.id);
+				mainStore.measure.places.splice(index, 1);
 			}
-		} else {
-			mainStore.measure.places.splice(index, 1);
-		}
-		mainStore.measure.choosing = mainStore.measure.places.length;
-		mainStore.measureDistance();
-	} else {
-		if (currentPlace.value && place === currentPlace.value) return;
-		mainStore.setCurrentPlace(place);
-		currentPlaceCommon.value = (
-			currentPlace.value.userid !== mainStore.user.id
-				? true
-				: false
-		);
-		openTreeToCurrentPlace();
-		mainStore.updateMap({
-			latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
-			longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
-		});
+			mainStore.measure.choosing = mainStore.measure.places.length;
+			mainStore.measureDistance();
+			break;
+		default:
+			if (currentPlace.value && place === currentPlace.value) return;
+			mainStore.currentPlace = place;
+			currentPlaceCommon.value = (
+				currentPlace.value.userid !== mainStore.user.id
+					? true
+					: false
+			);
+			openTreeToCurrentPlace();
+			mainStore.updateMap({
+				latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
+				longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
+			});
+			break;
 	}
 };
 const appendPlace = async (): Promise<void | Place> => {
@@ -1132,7 +1133,7 @@ const appendPlace = async (): Promise<void | Place> => {
 		};
 		await mainStore.addPlace({place: newPlace});
 		mainStore.addWaypoint({waypoint: newWaypoint, from: newPlace});
-		setCurrentPlace(newPlace);
+		choosePlace(newPlace);
 		await nextTick();
 		document.getElementById('detailed-name')!.classList.add('highlight');
 		window.setTimeout(function() {
@@ -1151,18 +1152,18 @@ const deletePlace = (place: Place): void => {
 		// Set current place
 		if (Object.keys(mainStore.places).length > 1) {
 			if (document.getElementById(place.id)!.nextElementSibling!) {
-				setCurrentPlace(mainStore.places[
+				choosePlace(mainStore.places[
 					document.getElementById(place.id)!.nextElementSibling!.id
 				]);
 			} else if (document.getElementById(place.id)!.previousElementSibling!) {
-				setCurrentPlace(mainStore.places[
+				choosePlace(mainStore.places[
 					document.getElementById(place.id)!.previousElementSibling!.id
 				]);
 			} else if (
 				mainStore.homePlace &&
 				mainStore.homePlace !== place
 			) {
-				setCurrentPlace(mainStore.homePlace);
+				choosePlace(mainStore.homePlace);
 			} else {
 				let firstPlaceInRoot: Place, inRoot = false;
 				for (const id in mainStore.places) {
@@ -1178,13 +1179,13 @@ const deletePlace = (place: Place): void => {
 					}
 				}
 				if (inRoot) {
-					setCurrentPlace(firstPlaceInRoot);
+					choosePlace(firstPlaceInRoot);
 				} else {
-					setCurrentPlace(mainStore.places[Object.keys(mainStore.places)[0]]);
+					choosePlace(mainStore.places[Object.keys(mainStore.places)[0]]);
 				}
 			}
 		} else {
-			setCurrentPlace(null);
+			choosePlace(null);
 		}
 	}
 };
