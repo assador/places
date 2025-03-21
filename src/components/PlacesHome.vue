@@ -271,6 +271,12 @@
 				<dd
 					v-for="(id, index) in mainStore.measure.places"
 					:key="index"
+					:measureitem="id"
+					:draggable="true"
+					class="draggable"
+					@dragstart="e => handleDragStart(e, 'measure')"
+					@dragenter="handleDragEnter"
+					@drop="handleDrop"
 				>
 					<span>{{ id !== null ? mainStore.places[id].name : `${mainStore.t.i.captions.measureChoose}:` }}</span>
 					<button
@@ -524,8 +530,9 @@
 									:class="'place-image' + (currentPlaceCommon ? '' : ' draggable')"
 									:draggable="currentPlaceCommon ? false : true"
 									@click="router.push({name: 'PlacesHomeImages', params: {imageId: image.id}}).catch(e => {console.error(e);})"
-									@dragstart="handleDragStart"
+									@dragstart="e => handleDragStart(e, 'images')"
 									@dragenter="handleDragEnter"
+									@drop="handleDrop"
 								>
 									<div
 										class="block_02"

@@ -1036,16 +1036,16 @@ $col-36: rgb(0, 0, 0);
 	.folder > * {
 		display: flex;
 	}
-	.menu .dragenter-area {
+	.dragenter-area {
 		position: absolute;
 		right: 0; left: 0;
 		z-index: 10;
 		cursor: pointer;
 	}
-	.place-button .dragenter-area_top {
+	.dragenter-area_top {
 		top: 0; bottom: 50%;
 	}
-	.place-button .dragenter-area_bottom {
+	.dragenter-area_bottom {
 		top: 50%; bottom: 0;
 	}
 	.folder > .dragenter-area_top {
@@ -1063,10 +1063,14 @@ $col-36: rgb(0, 0, 0);
 	.place-button[class*="block_"] .dragenter-area_bottom {
 		bottom: -7px;
 	}
+	.draggable {
+		position: relative;
+		cursor: move;
+	}
 	.draggable *, .folder-button * {
 		pointer-events: none;
 	}
-	.draggable .dd-images__delete, .menu .dragenter-area, span.folder-button * {
+	.draggable .dd-images__delete, .dragenter-area, span.folder-button * {
 		pointer-events: all;
 	}
 	#top-right, #bottom-left {

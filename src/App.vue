@@ -17,6 +17,7 @@ import { isParentInTree } from '@/shared/common';
 import { Place, Image, Folder, Waypoint } from '@/stores/types';
 
 const draggingElement = ref(null);
+const draggingType = ref(null);
 const foldersEditMode = ref(false);
 provide('foldersEditMode', foldersEditMode);
 const idleTimeInterval = ref(null);
@@ -429,10 +430,11 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 };
 provide('exportPlaces', exportPlaces);
 
-const handleDragStart = (event: Event): void => {
+const handleDragStart = (event: Event, type?: string): void => {
 	mainStore.setIdleTime(0);
 	(event as any).dataTransfer.setData('text/plain', null);
 	(draggingElement.value as Element) = (event.target as Element);
+	if (type) draggingType.value = type;
 };
 provide('handleDragStart', handleDragStart);
 
@@ -444,63 +446,77 @@ const handleDragEnter = (event: Event): void => {
 		(event.target as Node).nodeType !== 1 ||
 		draggingElement.value === (event.target as Element)
 	) return;
-	const draggingElementPP = (draggingElement.value as Element)!.parentElement!.parentElement!;
-	if (
-		(event.target as any).dataset.folderButton !== undefined &&
-		(
-			(draggingElement.value as any).dataset.folderButton !== undefined ||
-			(draggingElement.value as any).dataset.placeButton !== undefined
-		)
-	) {
-		(event.target as Element).classList.add('highlighted');
-	}
-	if (
-		(draggingElement.value as any).dataset.placeButton !== undefined &&
-		(event.target as any).dataset.placeButtonDragenterAreaTop !== undefined &&
-		(event.target as Element).parentElement !== draggingElement.value &&
-		(event.target as Element).parentElement !== (draggingElement.value as Element).nextElementSibling
-	) {
-		(event.target as Element).classList.add('dragenter-area_top_border');
-	} else if (
-		(draggingElement.value as any).dataset.placeButton !== undefined &&
-		(event.target as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
-		(event.target as Element).parentElement !== draggingElement.value &&
-		(event.target as Element).parentElement !== (draggingElement.value as Element).previousElementSibling
-	) {
-		(event.target as Element).classList.add('dragenter-area_bottom_border');
-	} else if (
-		(draggingElement.value as any).dataset.folderButton !== undefined &&
-		(event.target as any).dataset.folderDragenterAreaTop !== undefined &&
-		(event.target as Element).parentElement !== draggingElementPP! &&
-		(event.target as Element).parentElement !== draggingElementPP!.nextElementSibling
-	) {
-		(event.target as Element).classList.add('dragenter-area_top_border');
-	} else if (
-		(draggingElement.value as any).dataset.folderButton !== undefined &&
-		(event.target as any).dataset.folderDragenterAreaBottom !== undefined &&
-		(event.target as Element).parentElement !== draggingElementPP! &&
-		(event.target as Element).parentElement !== draggingElementPP!.previousElementSibling
-	) {
-		(event.target as Element).classList.add('dragenter-area_bottom_border');
-	} else if (
-		currentPlace.value &&
-		(draggingElement.value as any).dataset.image !== undefined &&
-		(event.target as any).dataset.image !== undefined
-	) {
-		const ids: string[] = [];
-		for (const id in currentPlace.value.images) {
-			if (id === (draggingElement.value as Element).id) {
-				ids.push(id);
+	switch (draggingType.value) {
+		case 'measure':
+			const measureId1 = (draggingElement.value as Element).getAttribute('measureitem');
+			const measureId2 = (event.target as Element).getAttribute('measureitem');
+			if (!measureId1 || !measureId2) return;
+			const measureIds = mainStore.measure.places;
+			const measureIdx1 = measureIds.indexOf(measureId1);
+			const measureIdx2 = measureIds.indexOf(measureId2);
+			[measureIds[measureIdx1], measureIds[measureIdx2]] =
+				[measureIds[measureIdx2], measureIds[measureIdx1]];
+			mainStore.measure.places = measureIds;
+			mainStore.measureDistance();
+			(draggingElement.value as Element) = (event.target as Element);
+			return;
+		case 'images':
+			const ids: string[] = [];
+			for (const id in currentPlace.value.images) {
+				if (id === (draggingElement.value as Element).id) {
+					ids.push(id);
+				}
+				if (id === (event.target as Element).id) {
+					ids.push(id);
+				}
+				if (ids.length === 2) break;
 			}
-			if (id === (event.target as Element).id) {
-				ids.push(id);
+			mainStore.swapImages({
+				place: currentPlace.value,
+				ids: ids,
+			});
+			return;
+		default:
+			const draggingElementPP = (draggingElement.value as Element)!.parentElement!.parentElement!;
+			if (
+				(event.target as any).dataset.folderButton !== undefined &&
+				(
+					(draggingElement.value as any).dataset.folderButton !== undefined ||
+					(draggingElement.value as any).dataset.placeButton !== undefined
+				)
+			) {
+				(event.target as Element).classList.add('highlighted');
 			}
-			if (ids.length === 2) break;
-		}
-		mainStore.swapImages({
-			place: currentPlace.value,
-			ids: ids,
-		});
+			if (
+				(draggingElement.value as any).dataset.placeButton !== undefined &&
+				(event.target as any).dataset.placeButtonDragenterAreaTop !== undefined &&
+				(event.target as Element).parentElement !== draggingElement.value &&
+				(event.target as Element).parentElement !== (draggingElement.value as Element).nextElementSibling
+			) {
+				(event.target as Element).classList.add('dragenter-area_top_border');
+			} else if (
+				(draggingElement.value as any).dataset.placeButton !== undefined &&
+				(event.target as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
+				(event.target as Element).parentElement !== draggingElement.value &&
+				(event.target as Element).parentElement !== (draggingElement.value as Element).previousElementSibling
+			) {
+				(event.target as Element).classList.add('dragenter-area_bottom_border');
+			} else if (
+				(draggingElement.value as any).dataset.folderButton !== undefined &&
+				(event.target as any).dataset.folderDragenterAreaTop !== undefined &&
+				(event.target as Element).parentElement !== draggingElementPP! &&
+				(event.target as Element).parentElement !== draggingElementPP!.nextElementSibling
+			) {
+				(event.target as Element).classList.add('dragenter-area_top_border');
+			} else if (
+				(draggingElement.value as any).dataset.folderButton !== undefined &&
+				(event.target as any).dataset.folderDragenterAreaBottom !== undefined &&
+				(event.target as Element).parentElement !== draggingElementPP! &&
+				(event.target as Element).parentElement !== draggingElementPP!.previousElementSibling
+			) {
+				(event.target as Element).classList.add('dragenter-area_bottom_border');
+			}
+			break;
 	}
 };
 provide('handleDragEnter', handleDragEnter);
@@ -523,6 +539,7 @@ const handleDragOver = (event: Event): void => {
 provide('handleDragOver', handleDragOver);
 
 const handleDrop = (event: Event): void => {
+	draggingType.value = null;
 	if (draggingElement.value === null) return;
 	event.preventDefault();
 	event.stopPropagation();
