@@ -1070,7 +1070,7 @@ $col-36: rgb(0, 0, 0);
 	.draggable *, .folder-button * {
 		pointer-events: none;
 	}
-	.draggable .dd-images__delete, .dragenter-area, span.folder-button * {
+	.control-measure .draggable button, .draggable .dd-images__delete, .dragenter-area, span.folder-button * {
 		pointer-events: all;
 	}
 	#top-right, #bottom-left {
