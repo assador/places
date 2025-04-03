@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br>v5.6.17</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
@@ -153,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUpdated } from 'vue';
+import { ref, nextTick, onMounted, onUpdated } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter } from 'vue-router';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
@@ -208,7 +208,8 @@ const authForgot = (): void => {
 	}
 };
 
-onMounted(() => {
+onMounted(async () => {
+	await nextTick();
 	makeFieldsValidatable(mainStore.t);
 });
 onUpdated(() => {

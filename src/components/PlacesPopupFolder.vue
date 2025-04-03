@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, onUpdated } from 'vue';
+import { ref, computed, nextTick, onMounted, onBeforeUnmount, onUpdated } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
 import { constants } from '../shared/constants';
@@ -156,8 +156,9 @@ const appendFolder = (name: string, description: string): void => {
 	}
 };
 
-onMounted(() => {
+onMounted(async () => {
 	popuped.value = true;
+	await nextTick();
 	makeFieldsValidatable(mainStore.t);
 	document.getElementById('folderName')!.focus();
 	document.addEventListener('keyup', keyup, false);

@@ -4,7 +4,7 @@
 		onclick="event.stopPropagation();"
 	>
 		<h1 class="margin_bottom_0">Места</h1>
-		<p>v5.6.16</p>
+		<p>v5.6.17</p>
 		<p>Сервис просмотра и редактирования библиотек геометок</p>
 		<h2>Оглавление</h2>
 		<ul>
