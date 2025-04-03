@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br>v5.6.20</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br>v5.6.21</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
@@ -208,10 +208,11 @@ const authForgot = (): void => {
 	}
 };
 
-onMounted(() => {
+onMounted(async () => {
+	await nextTick();
 	makeFieldsValidatable(mainStore.t);
 });
-onUpdated(() => {
+onUpdated(async () => {
 	makeFieldsValidatable(mainStore.t);
 });
 </script>
