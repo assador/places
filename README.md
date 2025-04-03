@@ -1,6 +1,6 @@
 # places
 
-v5.6.18  
+v5.6.19
 A Vue.js project  
 “The Places” — yet another geo placemarks viewer and editor service  
 Testing address: <http://places.scrofa-tridens.ru>
@@ -10,12 +10,11 @@ The service allows to add and edit geo placemarks with names, descriptions, 
 ## Installation
 
 1. Clone repository.
-2. Inside cloned: npm install && npm run build
-2. Configure the web server. Specify /dist as the root directory.
-3. Create a database and import into it tables from the dump file /mezzanine/db_places.sql.
-4. Edit /src/shared/constants.js and /backend/config.php files according to your preferencies.
-5. In the same /backend/config.php specify the test account ID, if you need it.
-6. Configure permissions of directories: /dist/uploads/images/big, /dist/uploads/images/big/orphaned, /dist/uploads/images/small, /dist/uploads/images/small/orphaned
-7. Add a cron job that runs /backend/dist/cron.php, a script that deletes sometimes orphan images and waypoints.
+2. Create a database and import into it tables from the dump file /mezzanine/db_places.sql.
+3. Edit /src/shared/constants.js and /backend/config.php files according to your preferencies. In the same /backend/config.php specify the test account ID, if you need it.
+4. Configure permissions of directories: /dist/uploads/images/big, /dist/uploads/images/big/orphaned, /dist/uploads/images/small, /dist/uploads/images/small/orphaned
+5. Add a cron job that runs /backend/dist/cron.php, a script that deletes sometimes orphan images and waypoints.
+6. Inside cloned directory: npm install && npm run build
+7. Configure the web server. Specify /dist as the root directory.
 
 If you suddenly have a foolish desire to donate, disinterestedly or selfishly, you can do it here: <https://www.paypal.me/niaouveas>. Self-interest, if any, can be expressed by writing a letter to [assador@gmail.com](mailto:assador@gmail.com).
