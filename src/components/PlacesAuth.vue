@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br>v5.6.17</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br>v5.6.18</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
@@ -163,6 +163,9 @@ import { forgotRoutine, forgot } from '@/shared/forgot';
 import PlacesDashboard from './PlacesDashboard.vue';
 import PWAPrompt from './PWAPrompt.vue';
 
+const mainStore = useMainStore();
+const router = useRouter();
+
 const authLogin = ref('test');
 const authPassword = ref('test');
 const regLogin = ref('');
@@ -172,9 +175,6 @@ const regPasswordRepeat = ref('');
 const regEmail = ref('');
 const regPhone = ref('');
 const forgotEmail = ref('');
-
-const mainStore = useMainStore();
-const router = useRouter();
 
 const authLoginSubmit = (): void => {
 	loginRoutine({
@@ -208,8 +208,7 @@ const authForgot = (): void => {
 	}
 };
 
-onMounted(async () => {
-	await nextTick();
+onMounted(() => {
 	makeFieldsValidatable(mainStore.t);
 });
 onUpdated(() => {

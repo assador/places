@@ -128,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUpdated, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, onUpdated, onBeforeUnmount } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter } from 'vue-router';
 import { constants } from '../shared/constants';
@@ -146,8 +146,7 @@ const accountEmail = ref(mainStore.user.email);
 const accountPhone = ref(mainStore.user.phone);
 const account = ref(acc);
 
-onMounted(async () => {
-	await nextTick();
+onMounted(() => {
 	makeFieldsValidatable(mainStore.t);
 	document.addEventListener('keyup', keyup, false);
 });

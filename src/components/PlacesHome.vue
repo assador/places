@@ -913,7 +913,7 @@ const confirm = (func, args): boolean => {
 	return true;
 }
 
-onMounted(async () => {
+onMounted(() => {
 	if (stateReady.value) {
 		stateReadyChanged();
 	}
@@ -931,7 +931,6 @@ onMounted(async () => {
 				}
 			}, 1000);
 	}
-	await nextTick();
 	makeFieldsValidatable(mainStore.t);
 	getCurrentPlaceEle();
 });
