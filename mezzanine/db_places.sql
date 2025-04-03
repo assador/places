@@ -47,6 +47,8 @@ CREATE TABLE `waypoints` (
 	`id` VARCHAR (32) NOT NULL,
 	`latitude` DOUBLE NOT NULL,
 	`longitude` DOUBLE NOT NULL,
+	`longitude` DOUBLE NOT NULL,
+	`altitudecapability` DOUBLE DEFAULT NULL,
 	`time` VARCHAR (24) NOT NULL DEFAULT '',
 	`common` BOOLEAN NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`),
