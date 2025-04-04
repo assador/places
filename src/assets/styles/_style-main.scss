@@ -1032,9 +1032,13 @@ $col-36: rgb(0, 0, 0);
 		display: flex;
 		flex-direction: column;
 		position: relative;
-	}
-	.folder > * {
-		display: flex;
+		> * {
+			display: flex;
+			z-index: 10;
+		}
+		> .folder-subs {
+			z-index: 20;
+		}
 	}
 	.dragenter-area {
 		position: absolute;
