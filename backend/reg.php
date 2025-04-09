@@ -70,14 +70,14 @@ $message = '
 	<body>
 		<h1>Подтверждение регистрации в сервисе «Места»</h1>
 		<p>
-			Ваш e-mail был указан при регистрации в <a href="/">
+			Ваш e-mail был указан при регистрации в <a href="' . $host . '">
 			сервисе просмотра и редактирования библиотек геометок «Места»</a>.
 			Если вы этого не делали, просто проигнорируйте это письмо.
 		</p>
 		<p>
 			Для подтверждения регистрации в сервисе перейдите по ссылке:<br />
-			<a href="/backend/confirm.php?token=' . $token . '">
-				/backend/confirm.php?token=' . $token . '
+			<a href="' . $host . '/backend/confirm.php?token=' . $token . '">
+				' . $host . '/backend/confirm.php?token=' . $token . '
 			</a>
 		</p>
 	</body>
