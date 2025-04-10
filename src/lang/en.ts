@@ -80,7 +80,7 @@ export const t = {
 			undo: 'Undo',
 			redo: 'Redo',
 			todb: 'Save',
-			install: 'Install',
+			install: 'App',
 			import: 'Import',
 			export: 'Export',
 			help: 'Help',

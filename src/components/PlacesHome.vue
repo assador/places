@@ -1628,6 +1628,9 @@ const selectPlaces = (text: string): void => {
 }
 #basic-left__places {
 	margin-top: 1rem;
+	.place-button {
+		cursor: pointer;
+	}
 }
 .two-fields {
 	display: grid;

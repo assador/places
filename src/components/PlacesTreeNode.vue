@@ -150,23 +150,25 @@
 					class="dragenter-area dragenter-area_top"
 					@dragenter="handleDragEnter"
 					@dragleave="handleDragLeave"
-				/>
-				<span
+					/>
+					<span
 					data-place-button-dragenter-area-bottom
 					class="dragenter-area dragenter-area_bottom"
 					@dragenter="handleDragEnter"
 					@dragleave="handleDragLeave"
-				/>
-			</label>
-		</div>
-		<div
+					/>
+				</label>
+			</div>
+			<div
 			v-if="folder.id !== 'root'"
+			data-folder-dragenter-area-top
 			class="dragenter-area dragenter-area_top"
 			@dragenter="handleDragEnter"
 			@dragleave="handleDragLeave"
-		/>
-		<div
+			/>
+			<div
 			v-if="folder.id !== 'root'"
+			data-folder-dragenter-area-bottom
 			class="dragenter-area dragenter-area_bottom"
 			@dragenter="handleDragEnter"
 			@dragleave="handleDragLeave"

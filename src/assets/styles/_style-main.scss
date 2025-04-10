@@ -1000,7 +1000,7 @@ $col-36: rgb(0, 0, 0);
 	.place-button {
 		display: flex !important;
 		text-align: left;
-		cursor: pointer;
+		cursor: pointer !important;
 		transition: all 0.3s;
 	}
 	.place-button:hover .place-button__geomark,
@@ -1044,7 +1044,6 @@ $col-36: rgb(0, 0, 0);
 		position: absolute;
 		right: 0; left: 0;
 		z-index: 10;
-		cursor: pointer;
 	}
 	.dragenter-area_top {
 		top: 0; bottom: 50%;
@@ -1052,11 +1051,15 @@ $col-36: rgb(0, 0, 0);
 	.dragenter-area_bottom {
 		top: 50%; bottom: 0;
 	}
+	.folder > .dragenter-area_top, .folder > .dragenter-area_bottom {
+		height: 4px;
+		z-index: 1000;
+	}
 	.folder > .dragenter-area_top {
-		top: 0; height: 4px;
+		top: 0; bottom: auto;
 	}
 	.folder > .dragenter-area_bottom {
-		height: 4px; bottom: -1px;
+		top: auto; bottom: -1px;
 	}
 	.folder-button.over {
 		text-shadow: 0 0 3px $color-65;

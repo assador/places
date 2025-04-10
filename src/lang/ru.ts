@@ -80,7 +80,7 @@ export const t = {
 			undo: 'Отменить',
 			redo: 'Вернуть',
 			todb: 'В базу',
-			install: 'Установить',
+			install: 'Прилож',
 			import: 'Импорт',
 			export: 'Экспорт',
 			help: 'Справка',
