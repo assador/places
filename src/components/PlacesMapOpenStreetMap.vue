@@ -20,7 +20,7 @@
 				ref="centerMarker"
 				:lat-lng="mapCenter.coords"
 				draggable
-				:visible="centerPlacemarkShow ? true : false"
+				:visible="mainStore.centerPlacemarkShow ? true : false"
 				@moveend="e => updateState({
 					coords: [
 						e.target.getLatLng().lat,
@@ -34,22 +34,23 @@
 				</l-tooltip>
 			</l-marker>
 			<l-marker
-				v-for="(place, id) in places"
+				v-for="(place, id) in mainStore.places"
 				:key="id"
 				:lat-lng="[
-					waypoints[place.waypoint] ? waypoints[place.waypoint].latitude : 0,
-					waypoints[place.waypoint] ? waypoints[place.waypoint].longitude : 0,
+					mainStore.waypoints[place.waypoint] ? mainStore.waypoints[place.waypoint].latitude : 0,
+					mainStore.waypoints[place.waypoint] ? mainStore.waypoints[place.waypoint].longitude : 0,
 				]"
-				draggable
-				:visible="placemarksShow && place.show && place.geomark ? true : false"
+				:draggable="id === mainStore.currentPlace.id"
+				:visible="mainStore.placemarksShow && place.show && place.geomark ? true : false"
 				@click="placemarkClick(place)"
-				@moveend="e => placemarkDragEnd(place, e)"
+				@mousedown="() => placemarkDragStart(place)"
+				@mouseup="e => placemarkDragEnd(place, e)"
 			>
 				<l-icon
 					v-bind="
 						mainStore.measure.places.includes(id)
 							? icon_01_blue
-							: (place === currentPlace ? icon_01_green : icon_01)
+							: (place === mainStore.currentPlace ? icon_01_green : icon_01)
 					"
 				/>
 				<l-tooltip>
@@ -57,16 +58,16 @@
 				</l-tooltip>
 			</l-marker>
 			<l-marker
-				v-for="(place, id) in commonPlaces"
+				v-for="(place, id) in mainStore.commonPlaces"
 				:key="id"
 				:lat-lng="[
-					waypoints[place.waypoint].latitude,
-					waypoints[place.waypoint].longitude,
+					mainStore.waypoints[place.waypoint].latitude,
+					mainStore.waypoints[place.waypoint].longitude,
 				]"
-				:visible="commonPlacemarksShow && place.geomark ? true : false"
+				:visible="mainStore.commonPlacemarksShow && place.geomark ? true : false"
 				@click="placemarkClick(place);"
 			>
-				<l-icon v-bind="place === currentPlace ? icon_01_green : icon_02" />
+				<l-icon v-bind="place === mainStore.currentPlace ? icon_01_green : icon_02" />
 				<l-tooltip>
 					{{ place.name }}
 				</l-tooltip>
@@ -168,13 +169,6 @@ const providers = ref([{
 	visible: false,
 }]);
 
-const currentPlace = computed(() => mainStore.currentPlace);
-const placemarksShow = computed(() => mainStore.placemarksShow);
-const commonPlacemarksShow = computed(() => mainStore.commonPlacemarksShow);
-const centerPlacemarkShow = computed(() => mainStore.centerPlacemarkShow);
-const places = computed(() => mainStore.places);
-const commonPlaces = computed(() => mainStore.commonPlaces);
-const waypoints = computed(() => mainStore.waypoints);
 const mapCenter = computed(() => ({
 	coords: [
 		mainStore.center.latitude,
@@ -197,6 +191,13 @@ const placemarkClick = (place): void => {
 			Number.isInteger(inPaginator)
 				? inPaginator + 1
 				: Math.ceil(inPaginator)
+		);
+	}
+};
+const placemarkDragStart = (place): void => {
+	if (place !== mainStore.currentPlace) {
+		mainStore.setMessage(
+			mainStore.t.m.popup.needToChoosePlacemark
 		);
 	}
 };

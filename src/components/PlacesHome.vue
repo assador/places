@@ -296,6 +296,7 @@
 						@click="
 							mainStore.measure.places.splice(index, 1);
 							mainStore.measure.choosing = mainStore.measure.places.length;
+							mainStore.measureDistance();
 						"
 					>
 						<span>⊗</span>
@@ -975,6 +976,7 @@ const blur = (el?: HTMLElement): void => {
 };
 const exit = (): void => {
 	router.push({name: 'PlacesAuth'});
+	sessionStorage.clear();
 };
 const stateReadyChanged = async (): Promise<void> => {
 	if (!stateReady.value) return;

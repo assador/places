@@ -48,16 +48,21 @@
 					mainStore.waypoints[place.waypoint] ? mainStore.waypoints[place.waypoint].longitude : 0,
 					mainStore.waypoints[place.waypoint] ? mainStore.waypoints[place.waypoint].latitude : 0,
 				],
-				draggable: true,
+				draggable: id === mainStore.currentPlace.id,
 			}"
 			position="top-center left-center"
-			@click="placemarkClick(place.id)"
-			@mouseup="placemarkDragEnd(place.id)"
+			@click="() => {placemarkClick(id);}"
+			@dragstart="() => {placemarkDragStart(id);}"
+			@dragend="() => {placemarkDragEnd(id);}"
 		>
 			<img
 				v-if="place.show && place.geomark"
 				class="marker"
-				:src="placemarksOptions[mainStore.currentPlace && id === mainStore.currentPlace.id ? 'icon_06' : 'icon_04'].iconImageHref"
+				:src="placemarksOptions[
+					mainStore.measure.places.includes(id)
+						? 'icon_01_blue'
+						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01')
+				].iconImageHref"
 			>
 		</yandex-map-marker>
 		<yandex-map-marker
@@ -73,12 +78,12 @@
 				draggable: false,
 			}"
 			position="top-center left-center"
-			@click="placemarkClick(place.id)"
+			@click="() => {placemarkClick(id);}"
 		>
 			<img
 				v-if="place.geomark"
 				class="marker"
-				:src="placemarksOptions[mainStore.currentPlace && id === mainStore.currentPlace.id ? 'icon_06' : 'icon_05'].iconImageHref"
+				:src="placemarksOptions[mainStore.currentPlace && id === mainStore.currentPlace.id ? 'icon_01_green' : 'icon_02'].iconImageHref"
 			>
 		</yandex-map-marker>
 		<yandex-map-controls :settings="{position: 'top left'}">
@@ -94,7 +99,7 @@
 
 <script setup lang="ts">
 import { ref, Ref, shallowRef, watch, inject } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { emitter } from '@/shared/bus';
 import {
 	YandexMap,
@@ -138,14 +143,17 @@ const placemarksOptions = ref({
 		draggable: true,
 		visible: true,
 	},
-	icon_04: {
-		iconImageHref: '/img/markers/marker_04.svg',
+	icon_01: {
+		iconImageHref: '/img/markers/marker_01.svg',
 	},
-	icon_05: {
-		iconImageHref: '/img/markers/marker_05.svg',
-	},
-	icon_06: {
+	icon_01_green: {
 		iconImageHref: '/img/markers/marker_01_green.svg',
+	},
+	icon_01_blue: {
+		iconImageHref: '/img/markers/marker_01_blue.svg',
+	},
+	icon_02: {
+		iconImageHref: '/img/markers/marker_02.svg',
 	},
 });
 
@@ -175,14 +183,13 @@ const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 
 const placemarkClick = (id: string): void => {
-	let place = null;
-	if (mainStore.places[id]) place = mainStore.places[id];
-	if (mainStore.commonPlaces[id]) place = mainStore.commonPlaces[id];
-	emitter.emit(
-		'choosePlace',
-		{place: place}
-	);
-	if (place.common) {
+	if (mainStore.places[id]) {
+		emitter.emit(
+			'choosePlace',
+			{place: mainStore.places[id]}
+		);
+	}
+	if (mainStore.commonPlaces[id]) {
 		const inPaginator =
 			Object.keys(mainStore.commonPlaces).indexOf(id) /
 			(commonPlacesOnPageCount as Ref).value
@@ -191,6 +198,13 @@ const placemarkClick = (id: string): void => {
 			Number.isInteger(inPaginator)
 				? inPaginator + 1
 				: Math.ceil(inPaginator)
+		);
+	}
+};
+const placemarkDragStart = (id: string): void => {
+	if (id !== mainStore.currentPlace.id) {
+		mainStore.setMessage(
+			mainStore.t.m.popup.needToChoosePlacemark
 		);
 	}
 };
