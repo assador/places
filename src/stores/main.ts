@@ -84,7 +84,7 @@ export const useMainStore = defineStore('main', {
 		zoom: Number(constants.map.initial.zoom),
 		placemarksShow: true,
 		commonPlacemarksShow: false,
-		centerPlacemarkShow: false,
+		centerPlacemarkShow: true,
 		ready: false,
 		messages: [],
 		messageTimer: 0,

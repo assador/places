@@ -28,7 +28,7 @@
 					],
 				})"
 			>
-				<l-icon v-bind="icon_01_blue" />
+				<l-icon v-bind="icon_center" />
 				<l-tooltip>
 					{{ mainStore.t.i.maps.center }}
 				</l-tooltip>
@@ -134,6 +134,12 @@ const icon_02 = ref({
 	shadowUrl: '/img/markers/marker_01_shadow.svg',
 	shadowSize: [25, 38],
 	shadowAnchor: [2, 24],
+});
+const icon_center = ref({
+	iconUrl: '/img/markers/marker_center.svg',
+	iconSize: [50, 50],
+	iconAnchor: [25, 25],
+	popupAnchor: [25, -25],
 });
 const providers = ref([{
 	name: mainStore.t.i.maps.osm,

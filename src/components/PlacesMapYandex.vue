@@ -34,8 +34,9 @@
 			}"
 		>
 			<img
-				class="marker"
-				:src="placemarksOptions.icon_06.iconImageHref"
+				class="marker-center"
+				:src="placemarksOptions.icon_center.iconImageHref"
+				:title="mainStore.t.i.maps.center"
 			>
 		</yandex-map-marker>
 		<yandex-map-marker
@@ -63,6 +64,7 @@
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01')
 				].iconImageHref"
+				:title="place.name"
 			>
 		</yandex-map-marker>
 		<yandex-map-marker
@@ -84,6 +86,7 @@
 				v-if="place.geomark"
 				class="marker"
 				:src="placemarksOptions[mainStore.currentPlace && id === mainStore.currentPlace.id ? 'icon_01_green' : 'icon_02'].iconImageHref"
+				:title="place.name"
 			>
 		</yandex-map-marker>
 		<yandex-map-controls :settings="{position: 'top left'}">
@@ -126,7 +129,7 @@ const placemarksOptions = ref({
 	basic: {
 		iconLayout: 'default#image',
 		iconImageSize: [25, 38],
-		iconImageOffset: [0, -34],
+		iconImageOffset: [0, 0],
 	},
 	private: {
 		draggable: true,
@@ -154,6 +157,9 @@ const placemarksOptions = ref({
 	},
 	icon_02: {
 		iconImageHref: '/img/markers/marker_02.svg',
+	},
+	icon_center: {
+		iconImageHref: '/img/markers/marker_center.svg',
 	},
 });
 
@@ -246,5 +252,13 @@ const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void =>
 	max-width: unset;
 	width: 25px;
 	height: 38px;
+	margin: -63px 0 0 -23px;
+}
+.marker-center {
+	cursor: pointer;
+	max-width: unset;
+	width: 50px;
+	height: 50px;
+	margin: -25px 0 0 -25px;
 }
 </style>

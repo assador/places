@@ -19,7 +19,7 @@
         "type": "image/png",
         "form_factor": "wide"
     }, {
-        "src": "screenshot.png",
+        "src": "/screenshot.png",
         "sizes": "1366x1024",
         "type": "image/png"
     }]

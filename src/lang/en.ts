@@ -175,7 +175,7 @@ export const t = {
 			bicycles: 'For cyclists',
 			osm: 'Primary map',
 			railroads: 'Railroads',
-			center: 'Map center placemark',
+			center: 'Map center for new placemark',
 			centerExt: 'Placemark with the current coordinates of the map center. A new place will be created here.',
 		},
 	},
