@@ -86,7 +86,11 @@
 				v-if="place.geomark"
 				class="marker"
 				:src="placemarksOptions[mainStore.currentPlace && id === mainStore.currentPlace.id ? 'icon_01_green' : 'icon_02'].iconImageHref"
-				:title="place.name"
+				:title="place.name + '\n' + mainStore.t.i.captions.user + ': ' + (
+					mainStore.users[place.userid].name
+						? mainStore.users[place.userid].name
+						: mainStore.users[place.userid].login
+				)"
 			>
 		</yandex-map-marker>
 		<yandex-map-controls :settings="{position: 'top left'}">

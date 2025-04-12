@@ -70,7 +70,7 @@
 				<l-icon v-bind="place === mainStore.currentPlace ? icon_01_green : icon_02" />
 				<l-tooltip>
 					{{ place.name }}<br>
-					Пользователь: {{
+					{{ mainStore.t.i.captions.user }}: {{
 						mainStore.users[place.userid].name
 							? mainStore.users[place.userid].name
 							: mainStore.users[place.userid].login
