@@ -455,24 +455,29 @@
 									</dt>
 									<dd>
 										<input
-											id="detailed-longitude"
-											:value="currentPlaceLon"
-											type="number"
-											:disabled="!!currentPlaceCommon"
-											class="fieldwidth_100"
-											@change="e => mainStore.changePlace({place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
+										id="detailed-longitude"
+										:value="currentPlaceLon"
+										type="number"
+										:disabled="!!currentPlaceCommon"
+										class="fieldwidth_100"
+										@change="e => mainStore.changePlace({place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
 										>
 									</dd>
 								</div>
 								<div class="two-fields__combined">
-									<input
-										id="detailed-coordinates"
-										:value="currentDegMinSec"
-										type="text"
-										:disabled="!!currentPlaceCommon"
-										class="fieldwidth_100"
-										@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; mainStore.changePlace({place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
-									>
+									<dt>
+										{{ mainStore.placeFields['coordsMinSec'] }}
+									</dt>
+									<dd>
+										<input
+											id="detailed-coordinates"
+											:value="currentDegMinSec"
+											type="text"
+											:disabled="!!currentPlaceCommon"
+											class="fieldwidth_100"
+											@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; mainStore.changePlace({place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
+										>
+									</dd>
 								</div>
 							</div>
 							<div class="margin_bottom_1">

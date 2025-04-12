@@ -13,84 +13,63 @@ import {
 import axios from 'axios';
 
 export interface IMainState {
-	mode: string,
-	refreshing: boolean,
-	saved: boolean,
-	idleTime: number,
-	stateBackups: any[],
-	stateBackupsIndex: number,
-	inUndoRedo: boolean,
-	user: User | null,
-	currentPlace: Place | null,
-	homePlace: Place | null,
-	rangeShow: boolean,
-	range: number | null,
-	measure: {
-		places: string[],
-		choosing: number,
-		distance: number,
-		show: boolean,
-	},
-	waypoints: Record<string, Waypoint> | null,
-	places: Record<string, Place>,
-	folders: Record<string, Folder>,
-	commonPlaces: Record<string, Place>,
-	center: Record<string, number>,
-	zoom: number,
-	placemarksShow: boolean,
-	commonPlacemarksShow: boolean,
-	centerPlacemarkShow: boolean,
-	ready: boolean,
-	messages: string[],
-	messageTimer: number,
-	mouseOverMessages: boolean,
-	serverConfig: any | null,
 	activeMapIndex: number,
+	center: Record<string, number>,
+	centerPlacemarkShow: boolean,
+	colortheme: string,
+	commonPlacemarksShow: boolean,
+	commonPlaces: Record<string, Place>,
+	currentPlace: Place | null,
+	folders: Record<string, Folder>,
+	homePlace: Place | null,
+	idleTime: number,
+	inUndoRedo: boolean,
 	lang: string,
 	langs: Record<string, string>[],
-	colortheme: string,
+	measure: {
+		choosing: number,
+		distance: number,
+		places: string[],
+		show: boolean,
+	},
+	messages: string[],
+	messageTimer: number,
+	mode: string,
+	mouseOverMessages: boolean,
+	placemarksShow: boolean,
+	places: Record<string, Place>,
+	range: number | null,
+	rangeShow: boolean,
+	ready: boolean,
+	refreshing: boolean,
+	saved: boolean,
+	serverConfig: any | null,
+	stateBackups: any[],
+	stateBackupsIndex: number,
 	t: any,
 	tree: Folder,
+	user: User | null,
+	users: Record<string, User>,
+	waypoints: Record<string, Waypoint> | null,
+	zoom: number,
 }
 
 export const useMainStore = defineStore('main', {
 	state: (): IMainState => ({
-		mode: 'normal',
-		refreshing: false,
-		saved: true,
-		idleTime: 0,
-		stateBackups: [],
-		stateBackupsIndex: -1,
-		inUndoRedo: false,
-		user: null,
-		currentPlace: null,
-		homePlace: null,
-		rangeShow: false,
-		range: null,
-		measure: {
-			places: [],
-			distance: 0,
-			choosing: 0,
-			show: false,
-		},
-		waypoints: {},
-		places: {},
-		folders: {},
-		commonPlaces: {},
+		activeMapIndex: 0,
 		center: {
 			latitude: Number(constants.map.initial.latitude),
 			longitude: Number(constants.map.initial.longitude),
 		},
-		zoom: Number(constants.map.initial.zoom),
-		placemarksShow: true,
-		commonPlacemarksShow: false,
 		centerPlacemarkShow: true,
-		ready: false,
-		messages: [],
-		messageTimer: 0,
-		mouseOverMessages: false,
-		serverConfig: null,
-		activeMapIndex: 0,
+		colortheme: 'brown',
+		commonPlacemarksShow: false,
+		commonPlaces: {},
+		currentPlace: null,
+		folders: {},
+		homePlace: null,
+		idleTime: 0,
+		inUndoRedo: false,
 		lang: 'ru',
 		langs: [{
 			value: 'ru',
@@ -99,7 +78,26 @@ export const useMainStore = defineStore('main', {
 			value: 'en',
 			title: 'English',
 		}],
-		colortheme: 'brown',
+		measure: {
+			places: [],
+			distance: 0,
+			choosing: 0,
+			show: false,
+		},
+		messages: [],
+		messageTimer: 0,
+		mode: 'normal',
+		mouseOverMessages: false,
+		placemarksShow: true,
+		places: {},
+		range: null,
+		rangeShow: false,
+		ready: false,
+		refreshing: false,
+		saved: true,
+		serverConfig: null,
+		stateBackups: [],
+		stateBackupsIndex: -1,
 		t: {},
 		tree: {
 			id: 'root',
@@ -116,6 +114,10 @@ export const useMainStore = defineStore('main', {
 			userid: '',
 			children: {},
 		},
+		user: null,
+		users: {},
+		waypoints: {},
+		zoom: Number(constants.map.initial.zoom),
 	}),
 	actions: {
 		changeLangMut(payload) {
@@ -513,7 +515,6 @@ export const useMainStore = defineStore('main', {
 			;
 		},
 		async setPlaces(payload) {
-			this.stateReady(false);
 			// If reading from database, not importing
 			if (!payload) {
 				return axios
@@ -532,7 +533,6 @@ export const useMainStore = defineStore('main', {
 							? this.places[this.user.homeplace]
 							: null
 						));
-						this.stateReady(true);
 					})
 					.catch(e => {
 						console.error(e);
@@ -860,6 +860,34 @@ export const useMainStore = defineStore('main', {
 					return false;
 			}
 			addImported(payload.mime, parsed);
+		},
+		async setUsers(payload?: string) {
+			let ids = null;
+			switch (payload) {
+				case 'common':
+					ids = [];
+					for (const place in this.commonPlaces) {
+						ids.push(this.commonPlaces[place].userid);
+					}
+					break;
+				default:
+					break;
+			}
+			return axios
+				.post(
+					'/backend/get_users.php',
+					Array.isArray(ids) ? {users: ids} : null
+				)
+				.then(response => {
+					for (let idx = 0; idx < response.data.length; idx++) {
+						this.users[response.data[idx].id] = {
+							login: response.data[idx].login,
+							name: response.data[idx].name,
+						};
+					}
+				})
+				.catch(e => console.error(e))
+			;
 		},
 		async replaceState(payload) {
 			this.replaceStateMut(payload.state);
@@ -1418,6 +1446,7 @@ export const useMainStore = defineStore('main', {
 				link               : this.t.i.captions.link,
 				latitude           : this.t.i.captions.latitude,
 				longitude          : this.t.i.captions.longitude,
+				coordsMinSec       : this.t.i.captions.coordsMinSec,
 				altitudecapability : this.t.i.captions.altitudecapability,
 				range              : this.t.i.captions.range,
 				time               : this.t.i.captions.time,

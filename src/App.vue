@@ -73,6 +73,8 @@ provide('colorthemes', colorthemes);
 emitter.on('logged', async () => {
 	await mainStore.setUser();
 	await mainStore.setPlaces(false);
+	await mainStore.setUsers('common');
+	mainStore.stateReady(true);
 	router.push({name: 'PlacesHome'});
 });
 emitter.on('toDB', (

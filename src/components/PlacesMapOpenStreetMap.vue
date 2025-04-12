@@ -69,7 +69,12 @@
 			>
 				<l-icon v-bind="place === mainStore.currentPlace ? icon_01_green : icon_02" />
 				<l-tooltip>
-					{{ place.name }}
+					{{ place.name }}<br>
+					Пользователь: {{
+						mainStore.users[place.userid].name
+							? mainStore.users[place.userid].name
+							: mainStore.users[place.userid].login
+					}}
 				</l-tooltip>
 			</l-marker>
 		</l-map>
