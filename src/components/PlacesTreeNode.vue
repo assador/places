@@ -109,7 +109,14 @@
 				:key="place.id"
 				:srt="place.srt"
 				:title="place.description"
-				:class="'place-button block_01 draggable has-checks-radios' + (currentPlace && place.id == currentPlace.id ? ' active' : '')"
+				:class="
+					'place-button block_01 draggable has-checks-radios' +
+					(
+						currentPlace && place.id == currentPlace.id ||
+						mainStore.measure.places.includes(place.id)
+							? ' active' : ''
+					)
+				"
 				:draggable="true"
 				data-place-button
 				@click="instanceid !== 'popupexporttree' ? choosePlace(place) : '';"

@@ -71,12 +71,12 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 					if(
 						move_uploaded_file(
 							$file["tmp_name"],
-							$dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]
+							".." . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]
 						)
 					) {
 						copy(
 							$dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime],
-							$dirs["uploads"]["images"]["small"] . $key . "." . $mimes[$mime]
+							".." . $dirs["uploads"]["images"]["small"] . $key . "." . $mimes[$mime]
 						);
 						push_file($key, $size, $mime);
 					}
@@ -97,7 +97,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 						if(!in_array(4, $fault)) {$fault[] = 4;}
 						continue;
 					} else {
-						$imagick->writeImage($dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]);
+						$imagick->writeImage(".." . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]);
 						push_file($key, $size, $mime);
 					}
 				} else {

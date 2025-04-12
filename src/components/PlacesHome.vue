@@ -67,14 +67,14 @@
 					ref="inputImportFromFile"
 					name="jsonFile"
 					type="file"
-					accept=".json, .gpx"
+					accept=".json,.gpx,text/xml,application/json"
 					@change="importFromFile();"
 				>
 				<button
 					id="actions-undo"
 					:disabled="mainStore.stateBackupsIndex === 0"
 					class="actions-button"
-					:title="mainStore.t.i.buttons.undo"
+					:title="mainStore.t.i.hints.undo"
 					@click="mainStore.undo();"
 				>
 					<span>↺</span>
@@ -87,7 +87,7 @@
 						mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1
 					"
 					class="actions-button"
-					:title="mainStore.t.i.buttons.redo"
+					:title="mainStore.t.i.hints.redo"
 					@click="mainStore.redo();"
 				>
 					<span>↻</span>
@@ -372,6 +372,7 @@
 		>
 			<div
 				class="basic-on-full button"
+				:title="mainStore.t.i.hints.fullscreen"
 				@click="basicOnFull"
 			>
 				⤧
@@ -675,6 +676,7 @@
 			<div class="choose-map">
 				<select
 					id="choose-map-input"
+					:title="mainStore.t.i.hints.mapProvider"
 					@change="e => mainStore.changeMap((e.target as HTMLSelectElement).selectedIndex)"
 				>
 					<option
