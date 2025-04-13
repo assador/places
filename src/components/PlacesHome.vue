@@ -1139,7 +1139,7 @@ const appendPlace = async (): Promise<void | Place> => {
 			time: new Date().toISOString().slice(0, -5),
 			id: generateRandomString(32),
 			folderid:
-				currentPlace.value
+				currentPlace.value && !currentPlace.value.common
 					? currentPlace.value.folderid
 					: 'root'
 			,
