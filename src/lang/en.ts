@@ -5,7 +5,7 @@ export const t = {
 			actions: 'Actions',
 			add: 'Add',
 			admin: 'admin',
-			altitudecapability: 'Altitudecapability (m)',
+			altitudecapability: 'Altitude capability (m)',
 			auth: 'Authorization',
 			common: 'Privacy',
 			commonPlaces: 'Places of others',

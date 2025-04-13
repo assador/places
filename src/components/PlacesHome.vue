@@ -896,7 +896,10 @@ const getCurrentPlaceEle = (): void => {
 	;
 }
 
-watch(currentPlace, (): void => {
+watch(currentPlaceLat, (): void => {
+	getCurrentPlaceEle();
+});
+watch(currentPlaceLon, (): void => {
 	getCurrentPlaceEle();
 });
 const currentDegMinSec = computed((): string => {
