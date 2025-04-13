@@ -11,7 +11,7 @@ export const loginRoutine = (user: {authLogin: string, authPassword: string}, vo
 			switch (response.data) {
 				case 0 :
 					sessionStorage.clear();
-					login.message = voc.paged.wrongLoginPassword;
+					login.message = voc.m.paged.wrongLoginPassword;
 					break;
 				default :
 					if (typeof response.data === 'object') {
