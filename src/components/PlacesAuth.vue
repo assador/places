@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br>v5.7.2</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.8.0</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
@@ -22,7 +22,7 @@
 							required
 							type="text"
 							:placeholder="mainStore.t.i.inputs.regLogin"
-						>
+						/>
 						<input
 							id="authPassword"
 							v-model.trim="authPassword"
@@ -30,7 +30,7 @@
 							required
 							type="password"
 							:placeholder="mainStore.t.i.inputs.regPassword"
-						>
+						/>
 					</div>
 					<div class="margin_bottom">
 						<button type="submit">
@@ -61,7 +61,7 @@
 						required
 						type="text"
 						placeholder="e-mail *"
-					>
+					/>
 					<button
 						type="submit"
 						class="margin_bottom"
@@ -86,14 +86,14 @@
 						required
 						type="text"
 						:placeholder="mainStore.t.i.inputs.regLogin"
-					>
+					/>
 					<input
 						id="regName"
 						v-model.trim="regName"
 						class="fieldwidth_100"
 						type="text"
 						:placeholder="mainStore.t.i.inputs.regAddressBy"
-					>
+					/>
 					<input
 						id="regPassword"
 						v-model.trim="regPassword"
@@ -101,7 +101,7 @@
 						required
 						type="password"
 						:placeholder="mainStore.t.i.inputs.regPassword"
-					>
+					/>
 					<input
 						id="regPasswordRepeat"
 						v-model.trim="regPasswordRepeat"
@@ -109,7 +109,7 @@
 						required
 						type="password"
 						:placeholder="mainStore.t.i.inputs.regRepeatPassword"
-					>
+					/>
 					<input
 						id="regEmail"
 						v-model.trim="regEmail"
@@ -117,14 +117,14 @@
 						required
 						type="text"
 						placeholder="e-mail *"
-					>
+					/>
 					<input
 						id="regPhone"
 						v-model.trim="regPhone"
 						class="fieldwidth_100"
 						type="text"
 						:placeholder="mainStore.t.i.inputs.regPhone"
-					>
+					/>
 				</div>
 				<button
 					type="submit"

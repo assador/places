@@ -22,7 +22,7 @@
 								required
 								type="text"
 								:placeholder="mainStore.t.i.inputs.regLogin"
-							>
+							/>
 						</td>
 					</tr>
 					<tr>
@@ -34,7 +34,7 @@
 								class="fieldwidth_100"
 								type="password"
 								:placeholder="mainStore.t.i.inputs.needToChangePassword"
-							>
+							/>
 						</td>
 					</tr>
 					<tr>
@@ -46,7 +46,7 @@
 								class="fieldwidth_100"
 								type="password"
 								:placeholder="mainStore.t.i.inputs.needToChangePassword"
-							>
+							/>
 						</td>
 					</tr>
 					<tr>
@@ -58,7 +58,7 @@
 								class="fieldwidth_100"
 								type="text"
 								:placeholder="mainStore.t.i.inputs.regAddressBy"
-							>
+							/>
 						</td>
 					</tr>
 					<tr>
@@ -71,7 +71,7 @@
 								required
 								type="text"
 								placeholder="e-mail *"
-							>
+							/>
 						</td>
 					</tr>
 					<tr>
@@ -83,7 +83,7 @@
 								class="fieldwidth_100"
 								type="text"
 								:placeholder="mainStore.t.i.captions.phone"
-							>
+							/>
 						</td>
 					</tr>
 					<tr class="back_0">

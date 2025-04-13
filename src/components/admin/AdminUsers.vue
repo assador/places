@@ -6,13 +6,13 @@
 				:title="mainStore.t.i.buttons.uncheckAll"
 				@click="checkAll(false)"
 			>
-				<img src="@/assets/icons/dark/uncheck.svg">
+				<img src="@/assets/icons/dark/uncheck.svg" />
 			</button>
 			<button
 				:title="mainStore.t.i.buttons.checkAll"
 				@click="checkAll(true)"
 			>
-				<img src="@/assets/icons/dark/check.svg">
+				<img src="@/assets/icons/dark/check.svg" />
 			</button>
 		</div>
 		<div class="control-panel__tablemode">
@@ -20,19 +20,19 @@
 				:title="mainStore.t.i.buttons.viewTable"
 				@click="tableMode = 1"
 				>
-				<img src="@/assets/icons/dark/list.svg">
+				<img src="@/assets/icons/dark/list.svg" />
 			</button>
 			<button
 				:title="mainStore.t.i.buttons.viewTiles"
 				@click="tableMode = 2"
 				>
-				<img src="@/assets/icons/dark/tiles.svg">
+				<img src="@/assets/icons/dark/tiles.svg" />
 			</button>
 			<button
 				:title="mainStore.t.i.buttons.viewHybrid"
 				@click="tableMode = 3"
 			>
-				<img src="@/assets/icons/dark/list_01.svg">
+				<img src="@/assets/icons/dark/list_01.svg" />
 			</button>
 		</div>
 		<div class="control-panel__sortby">
@@ -56,7 +56,7 @@
 				:title="mainStore.t.i.buttons.uncheckAll"
 				@click="checkAll(false)"
 			>
-				<img src="@/assets/icons/dark/uncheck.svg">
+				<img src="@/assets/icons/dark/uncheck.svg" />
 			</button>
 		</div>
 	</div>
@@ -86,7 +86,7 @@
 							to: (e.target as HTMLInputElement).checked,
 						});
 					}"
-				>
+				/>
 			</div>
 			<template
 				v-for="(value, key) in user"

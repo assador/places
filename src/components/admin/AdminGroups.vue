@@ -18,13 +18,13 @@
 		</div>
 		<div class="control-panel__tablemode">
 			<button @click="tableMode = 1">
-				<img src="@/assets/icons/dark/list.svg">
+				<img src="@/assets/icons/dark/list.svg" />
 			</button>
 			<button @click="tableMode = 2">
-				<img src="@/assets/icons/dark/tiles.svg">
+				<img src="@/assets/icons/dark/tiles.svg" />
 			</button>
 			<button @click="tableMode = 3">
-				<img src="@/assets/icons/dark/list_01.svg">
+				<img src="@/assets/icons/dark/list_01.svg" />
 			</button>
 		</div>
 	</div>

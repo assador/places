@@ -71,12 +71,12 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 					if(
 						move_uploaded_file(
 							$file["tmp_name"],
-							".." . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]
+							$_SERVER['DOCUMENT_ROOT'] . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]
 						)
 					) {
 						copy(
 							$dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime],
-							".." . $dirs["uploads"]["images"]["small"] . $key . "." . $mimes[$mime]
+							$_SERVER['DOCUMENT_ROOT'] . $dirs["uploads"]["images"]["small"] . $key . "." . $mimes[$mime]
 						);
 						push_file($key, $size, $mime);
 					}
@@ -97,13 +97,13 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 						if(!in_array(4, $fault)) {$fault[] = 4;}
 						continue;
 					} else {
-						$imagick->writeImage(".." . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]);
+						$imagick->writeImage($_SERVER['DOCUMENT_ROOT'] . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]);
 						push_file($key, $size, $mime);
 					}
 				} else {
 					move_uploaded_file(
 						$file["tmp_name"],
-						".." . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]
+						$_SERVER['DOCUMENT_ROOT'] . $dirs["uploads"]["images"]["big"] . $key . "." . $mimes[$mime]
 					);
 					push_file($key, $size, $mime);
 				}
@@ -112,7 +112,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 					$images["small"]["height"],
 					Imagick::FILTER_LANCZOS, 1, true
 				);
-				$imagick->writeImage(".." . $dirs["uploads"]["images"]["small"] . $key . "." . $mimes[$mime]);
+				$imagick->writeImage($_SERVER['DOCUMENT_ROOT'] . $dirs["uploads"]["images"]["small"] . $key . "." . $mimes[$mime]);
 				$imagick->destroy();
 			}
 		} else {

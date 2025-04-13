@@ -28,7 +28,7 @@
 									type="radio"
 									value="none"
 									@change="e => accountDeletionConditionsChange(e)"
-								>
+								/>
 								<span>
 									{{ mainStore.t.i.inputs.daDeletePlaces }}
 								</span>
@@ -41,7 +41,7 @@
 									type="radio"
 									value="common"
 									@change="e => accountDeletionConditionsChange(e)"
-								>
+								/>
 								<span>
 									{{ mainStore.t.i.inputs.daLeaveOnlyCommonPlaces }}
 								</span>
@@ -54,7 +54,7 @@
 									type="radio"
 									value="all"
 									@change="e => accountDeletionConditionsChange(e)"
-								>
+								/>
 								<span>
 									{{ mainStore.t.i.inputs.daLeaveAllPlaces }}
 								</span>
@@ -72,7 +72,7 @@
 									type="radio"
 									value="none"
 									@change="e => accountDeletionConditionsChange(e)"
-								>
+								/>
 								<span>
 									{{ mainStore.t.i.inputs.daDeleteImages }}
 								</span>
@@ -85,7 +85,7 @@
 									type="radio"
 									value="all"
 									@change="e => accountDeletionConditionsChange(e)"
-								>
+								/>
 								<span>
 									{{ mainStore.t.i.inputs.daLeaveImages }}
 								</span>

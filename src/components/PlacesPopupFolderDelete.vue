@@ -27,7 +27,7 @@
 							name="content"
 							type="radio"
 							value="keep"
-						>
+						/>
 						<span>{{ mainStore.t.i.inputs.leaveContentInRoot }}</span>
 					</label>
 					<label>
@@ -36,7 +36,7 @@
 							name="content"
 							type="radio"
 							value="delete"
-						>
+						/>
 						<span>{{ mainStore.t.i.inputs.deleteContent }}</span>
 					</label>
 				</fieldset>

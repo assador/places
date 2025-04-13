@@ -869,6 +869,9 @@ $col-36: rgb(0, 0, 0);
 	.popup-image, .image-thumbnail {
 		image-orientation: from-image;
 	}
+	.popup-text {
+		padding-right: 20px;
+	}
 	.popup-image {
 		cursor: pointer;
 	}

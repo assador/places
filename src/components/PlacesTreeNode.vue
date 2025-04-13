@@ -14,7 +14,7 @@
 				class="folder-checkbox"
 				:checked="foldersCheckedIds.includes(folder.id)"
 				@change="e => selectUnselectFolder(folder.id, (e.target as HTMLInputElement).checked)"
-			>
+			/>
 			<a
 				v-if="
 					!foldersEditMode ||
@@ -62,7 +62,7 @@
 					class="folder-button__name fieldwidth_100"
 					@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
 					@click="e => {e.stopPropagation(); mainStore.setIdleTime(0);}"
-				>
+				/>
 				<a
 					class="folder-button__delete"
 					:title="mainStore.t.i.buttons.deleteFolder"
@@ -133,7 +133,7 @@
 						selectUnselect(place, (e.target as HTMLInputElement).checked);
 						foldersCheckedIds = formFoldersCheckedIds();
 					}"
-				>
+				/>
 				<span
 					class="place-button__text"
 				>

@@ -30,7 +30,7 @@
 							type="radio"
 							:checked="true"
 							value="application/gpx+xml"
-						>
+						/>
 						&#160;
 						<span>GPX</span>
 					</label>
@@ -42,7 +42,7 @@
 							name="mime"
 							type="radio"
 							value="application/json"
-						>
+						/>
 						&#160;
 						<span>JSON</span>
 					</label>

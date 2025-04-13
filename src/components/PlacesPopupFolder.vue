@@ -25,7 +25,7 @@
 									class="fieldwidth_100"
 									required
 									type="text"
-								>
+								/>
 							</td>
 						</tr>
 						<tr>

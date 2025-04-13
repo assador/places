@@ -69,12 +69,13 @@
 					type="file"
 					accept=".json,.gpx,text/xml,application/json"
 					@change="importFromFile();"
-				>
+				/>
 				<button
 					id="actions-undo"
 					:disabled="mainStore.stateBackupsIndex === 0"
 					class="actions-button"
 					:title="mainStore.t.i.hints.undo"
+					accesskey="z"
 					@click="mainStore.undo();"
 				>
 					<span>↺</span>
@@ -88,6 +89,7 @@
 					"
 					class="actions-button"
 					:title="mainStore.t.i.hints.redo"
+					accesskey="y"
 					@click="mainStore.redo();"
 				>
 					<span>↻</span>
@@ -98,6 +100,7 @@
 					:disabled="mainStore.saved"
 					:class="'actions-button' + (!mainStore.saved ? ' button-pressed' : '')"
 					:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
+					accesskey="s"
 					@click="toDBCompletely"
 				>
 					<span>↸</span>
@@ -117,6 +120,7 @@
 					id="actions-import"
 					class="actions-button"
 					:title="mainStore.t.i.hints.importPlaces"
+					accesskey="i"
 					@click="inputImportFromFile.click()"
 				>
 					<span>↲</span>
@@ -126,6 +130,7 @@
 					id="actions-export"
 					class="actions-button"
 					:title="mainStore.t.i.hints.exportPlaces"
+					accesskey="e"
 					@click="router.push({name: 'PlacesHomeExport'})"
 				>
 					<span>↱</span>
@@ -135,6 +140,7 @@
 					id="actions-about"
 					class="actions-button"
 					:title="mainStore.t.i.hints.about"
+					accesskey="h"
 					@click="
 						router.push({
 							name: 'PlacesHomeText',
@@ -149,6 +155,7 @@
 					id="actions-exit"
 					class="actions-button"
 					:title="mainStore.t.i.hints.exit"
+					accesskey="q"
 					@click="e => {toDBCompletely().then(() => exit())}"
 				>
 					<span>↪</span>
@@ -166,6 +173,7 @@
 					id="actions-append"
 					class="actions-button"
 					:title="mainStore.t.i.hints.addPlace"
+					accesskey="a"
 					@click="appendPlace();"
 				>
 					<span>⊕</span>
@@ -176,6 +184,7 @@
 					class="actions-button"
 					:title="mainStore.t.i.hints.deletePlace"
 					:disabled="!(mainStore.user && currentPlace && currentPlace.userid === mainStore.user.id)"
+					accesskey="d"
 					@click="mainStore.deletePlaces({places: {[currentPlace.id]: currentPlace}});"
 				>
 					<span>⊖</span>
@@ -185,6 +194,7 @@
 					id="actions-append-folder"
 					class="actions-button"
 					:title="mainStore.t.i.hints.addFolder"
+					accesskey="f"
 					@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
 				>
 					<span>⊕</span>
@@ -194,6 +204,7 @@
 					id="actions-edit-folders"
 					:class="'actions-button' + (foldersEditMode ? ' button-pressed' : '')"
 					:title="mainStore.t.i.hints.editFolders"
+					accesskey="c"
 					@click="foldersEditMode = !foldersEditMode;"
 				>
 					<span>🖉</span>
@@ -203,6 +214,7 @@
 					id="actions-range"
 					:class="'actions-button' + (mainStore.rangeShow ? ' button-pressed' : '')"
 					:title="mainStore.t.i.captions.range"
+					accesskey="r"
 					@click="e => {
 						mainStore.rangeShow = !mainStore.rangeShow;
 						mainStore.rangeShow
@@ -217,6 +229,7 @@
 					id="actions-measure"
 					:class="'actions-button' + (mainStore.measure.show ? ' button-pressed' : '')"
 					:title="mainStore.t.i.captions.measure"
+					accesskey="m"
 					@click="e => {
 						mainStore.measure.show = !mainStore.measure.show;
 						mainStore.measure.places = [];
@@ -244,7 +257,7 @@
 					:placeholder="mainStore.t.i.buttons.range"
 					:title="mainStore.t.i.captions.range"
 					class="fieldwidth_100"
-				>
+				/>
 				<button @click="mainStore.showInRange(mainStore.range)">
 					<span>↪</span>
 				</button>
@@ -310,7 +323,7 @@
 					:title="mainStore.t.i.inputs.searchPlaces"
 					class="find-places-input fontsize_n"
 					@keyup="searchInputEvent"
-				>
+				/>
 				<button
 					:title="mainStore.t.i.buttons.find"
 					@click="selectPlaces(searchInput.value)"
@@ -447,7 +460,7 @@
 											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
 											@change="e => mainStore.changePlace({place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
-										>
+										/>
 									</dd>
 								</div>
 								<div>
@@ -456,13 +469,13 @@
 									</dt>
 									<dd>
 										<input
-										id="detailed-longitude"
-										:value="currentPlaceLon"
-										type="number"
-										:disabled="!!currentPlaceCommon"
-										class="fieldwidth_100"
-										@change="e => mainStore.changePlace({place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
-										>
+											id="detailed-longitude"
+											:value="currentPlaceLon"
+											type="number"
+											:disabled="!!currentPlaceCommon"
+											class="fieldwidth_100"
+											@change="e => mainStore.changePlace({place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
+										/>
 									</dd>
 								</div>
 								<div class="two-fields__combined">
@@ -477,7 +490,7 @@
 											:disabled="!!currentPlaceCommon"
 											class="fieldwidth_100"
 											@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; mainStore.changePlace({place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
-										>
+										/>
 									</dd>
 								</div>
 							</div>
@@ -497,7 +510,7 @@
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
 								@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
-							>
+							/>
 						</dd>
 						<dd v-else-if="field === 'time'">
 							<input
@@ -507,7 +520,7 @@
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
 								@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
-							>
+							/>
 						</dd>
 						<dd
 							v-else-if="field === 'common'"
@@ -520,7 +533,7 @@
 									type="checkbox"
 									:disabled="!!currentPlaceCommon"
 									@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
-								>
+								/>
 								{{ mainStore.t.i.inputs.checkboxCommon }}
 							</label>
 						</dd>
@@ -550,7 +563,7 @@
 											:src="constants.dirs.uploads.images.small + image.file"
 											:alt="currentPlace.name"
 											:title="currentPlace.name"
-										>
+										/>
 										<div
 											v-if="!currentPlaceCommon"
 											class="dd-images__delete button"
@@ -592,7 +605,7 @@
 							multiple
 							class="images-add__input"
 							@change="e => uploadFiles(e)"
-						>
+						/>
 					</div>
 				</div>
 				<div
@@ -608,7 +621,7 @@
 							type="checkbox"
 							:checked="currentPlace === mainStore.homePlace"
 							@change="e => mainStore.setHomePlace((e.target as HTMLInputElement).checked ? currentPlace.id : null)"
-						>
+						/>
 						{{ mainStore.t.i.inputs.checkboxHome }}
 					</label>
 				</div>
@@ -702,7 +715,7 @@
 						v-model.number.trim="mainStore.center.latitude"
 						placeholder="latitude"
 						title="mainStore.t.i.captions.latitude"
-					>
+					/>
 				</span>
 				<span
 					class="nobr"
@@ -713,7 +726,7 @@
 						v-model.number.trim="mainStore.center.longitude"
 						placeholder="longitude"
 						title="mainStore.t.i.captions.longitude"
-					>
+					/>
 				</span>
 			</div>
 		</div>

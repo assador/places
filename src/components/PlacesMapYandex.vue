@@ -37,7 +37,7 @@
 				class="marker-center"
 				:src="placemarksOptions.icon_center.iconImageHref"
 				:title="mainStore.t.i.maps.center"
-			>
+			/>
 		</yandex-map-marker>
 		<yandex-map-marker
 			v-for="(place, id) in mainStore.places"
@@ -65,7 +65,7 @@
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01')
 				].iconImageHref"
 				:title="place.name"
-			>
+			/>
 		</yandex-map-marker>
 		<yandex-map-marker
 			v-for="(place, id) in mainStore.commonPlaces"
@@ -91,7 +91,7 @@
 						? mainStore.users[place.userid].name
 						: mainStore.users[place.userid].login
 				)"
-			>
+			/>
 		</yandex-map-marker>
 		<yandex-map-controls :settings="{position: 'top left'}">
 			<yandex-map-geolocation-control />

@@ -9,7 +9,7 @@
 			:src="constants.dirs.uploads.images.big + image.file"
 			:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedbig + image.file + '\''"
 			@click="e => showImage(1, e)"
-		>
+		/>
 		<a
 			href="javascript:void(0);"
 			class="prev"
