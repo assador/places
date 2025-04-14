@@ -884,8 +884,10 @@ const currentPlaceLon = computed((): number => {
 const currentPlaceEle = ref<number | null>(null);
 
 const getCurrentPlaceEle = (): void => {
+	const lat = currentPlaceLat.value ? currentPlaceLat.value : 0;
+	const lon = currentPlaceLon.value ? currentPlaceLon.value : 0;
 	axios
-		.get(`https://api.open-meteo.com/v1/elevation?latitude=${currentPlaceLat.value}&longitude=${currentPlaceLon.value}`)
+		.get(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`)
 		.then(response => {
 			currentPlaceEle.value = Number(response.data.elevation);
 			if (isNaN(currentPlaceEle.value)) currentPlaceEle.value = null;
