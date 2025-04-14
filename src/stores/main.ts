@@ -533,6 +533,7 @@ export const useMainStore = defineStore('main', {
 							? this.places[this.user.homeplace]
 							: null
 						));
+						this.currentPlace = this.homePlace;
 					})
 					.catch(e => {
 						console.error(e);
