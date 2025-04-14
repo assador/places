@@ -534,6 +534,10 @@ export const useMainStore = defineStore('main', {
 							: null
 						));
 						this.currentPlace = this.homePlace;
+						this.updateMap({
+							latitude: this.waypoints[this.currentPlace.waypoint].latitude,
+							longitude: this.waypoints[this.currentPlace.waypoint].longitude,
+						});
 					})
 					.catch(e => {
 						console.error(e);
