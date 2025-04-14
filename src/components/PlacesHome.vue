@@ -872,17 +872,17 @@ const orderedImages = computed((): Array<Image> => {
 			: []
 	);
 });
-const stateReady = computed((): boolean => {
-	return mainStore.ready;
-});
 const currentPlaceLat = computed((): number => {
 	return waypoints.value[currentPlace.value.waypoint].latitude;
 });
 const currentPlaceLon = computed((): number => {
 	return waypoints.value[currentPlace.value.waypoint].longitude;
 });
-const currentPlaceEle = ref<number | null>(null);
+const currentDegMinSec = computed((): string => {
+	return coords2string([currentPlaceLat.value, currentPlaceLon.value]);
+});
 
+const currentPlaceEle = ref<number | null>(null);
 const getCurrentPlaceEle = (): void => {
 	const lat = currentPlaceLat.value ? currentPlaceLat.value : 0;
 	const lon = currentPlaceLon.value ? currentPlaceLon.value : 0;
@@ -904,12 +904,9 @@ watch(currentPlaceLat, (): void => {
 watch(currentPlaceLon, (): void => {
 	getCurrentPlaceEle();
 });
-const currentDegMinSec = computed((): string => {
-	return coords2string([currentPlaceLat.value, currentPlaceLon.value]);
+watch(() => mainStore.ready, () => {
+	stateReadyChanged();
 });
-
-watch(() => stateReady.value, () => stateReadyChanged());
-
 watch(mainStore, changedStore => {
 	if (!changedStore.refreshing) {
 		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
@@ -938,7 +935,7 @@ const confirm = (func, args): boolean => {
 }
 
 onMounted(async () => {
-	if (stateReady.value) stateReadyChanged();
+	if (mainStore.ready) stateReadyChanged();
 	mainStore.setIdleTime(0);
 	if (!idleTimeInterval.value) {
 		idleTimeInterval.value =
@@ -999,9 +996,9 @@ const exit = (): void => {
 	router.push({name: 'PlacesAuth'});
 	sessionStorage.clear();
 };
-const stateReadyChanged = async (): Promise<void> => {
-	if (!stateReady.value) return;
-	await mainStore.restoreObjectsAsLinks();
+const stateReadyChanged = (): void => {
+	if (!mainStore.ready) return;
+	mainStore.restoreObjectsAsLinks();
 	if (!currentPlace.value) mainStore.setFirstCurrentPlace();
 	openTreeToCurrentPlace();
 	commonPlacesPagesCount.value = Math.ceil(

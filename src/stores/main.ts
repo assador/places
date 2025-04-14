@@ -270,14 +270,6 @@ export const useMainStore = defineStore('main', {
 			this.tree.userid = this.user ? this.user.id : null;
 			this.tree.children = this.folders;
 		},
-		stateReady(ready) {
-			this.ready = ready;
-		},
-		replaceStateMut(newState) {
-			for (const prop in newState) {
-				this[prop] = newState[prop];
-			}
-		},
 		show(id) {
 			this.places[id].show = true;
 		},
@@ -897,8 +889,10 @@ export const useMainStore = defineStore('main', {
 				.catch(e => console.error(e))
 			;
 		},
-		async replaceState(payload) {
-			this.replaceStateMut(payload.state);
+		async replaceState(payload: IMainState) {
+			for (const prop in payload) {
+				this[prop] = payload[prop];
+			}
 			this.changeLang(this.lang);
 			await this.restoreObjectsAsLinks();
 			if (this.currentPlace) {

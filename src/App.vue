@@ -75,7 +75,7 @@ emitter.on('logged', async () => {
 	await mainStore.setServerConfig();
 	await mainStore.setPlaces(false);
 	await mainStore.setUsers('common');
-	mainStore.stateReady(true);
+	mainStore.ready = true;
 	router.push({name: 'PlacesHome'});
 });
 emitter.on('toDB', (
@@ -144,16 +144,10 @@ onMounted(() => {
 	is reloaded), the store state is restored from sessionStorage.
 	*/
 	if (sessionStorage.getItem('places-store-state')) {
-		mainStore.replaceState({
-			state: JSON.parse(sessionStorage.getItem('places-store-state')),
-		});
+		mainStore.replaceState(JSON.parse(sessionStorage.getItem('places-store-state')));
 	}
-	document.addEventListener('mousedown', () => {
-		mainStore.setIdleTime(0);
-	}, false);
-	document.addEventListener('keyup', () => {
-		mainStore.setIdleTime(0);
-	}, false);
+	document.addEventListener('mousedown', () => {mainStore.setIdleTime(0);}, false);
+	document.addEventListener('keyup', () => {mainStore.setIdleTime(0);}, false);
 	mainStore.$onAction((action): void => {
 		if (!mainStore.user || mainStore.user.testaccount) return;
 		switch (action.name) {
