@@ -72,6 +72,7 @@ provide('colorthemes', colorthemes);
 
 emitter.on('logged', async () => {
 	await mainStore.setUser();
+	await mainStore.setServerConfig();
 	await mainStore.setPlaces(false);
 	await mainStore.setUsers('common');
 	mainStore.stateReady(true);

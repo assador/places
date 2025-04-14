@@ -216,17 +216,8 @@ export const useMainStore = defineStore('main', {
 			this.mouseOverMessages = false;
 			this.serverConfig = null;
 		},
-		setUserMut(user) {
-			this.user = user;
-		},
 		setServerConfigMut(config) {
 			this.serverConfig = config;
-		},
-		setHomePlaceMut(place) {
-			this.homePlace = place;
-			if (this.user) {
-				this.user.homeplace = !place ? null : place.id;
-			}
 		},
 		placesReady(payload) {
 			if (payload.waypoints) {
@@ -488,13 +479,12 @@ export const useMainStore = defineStore('main', {
 					sessionStorage.getItem('places-userid')
 				)
 				.then(response => {
-					this.setUserMut(response.data);
-					this.setServerConfig();
+					this.user = response.data;
 				})
 				.catch(e => {
 					console.error(e);
 					this.setMessage(this.t.m.popup.cannotGetData);
-					this.setUserMut(null);
+					this.user = null;
 				})
 			;
 		},
@@ -514,6 +504,21 @@ export const useMainStore = defineStore('main', {
 				})
 			;
 		},
+		setFirstCurrentPlace() {
+			this.currentPlace = null;
+			if (this.homePlace) this.currentPlace = this.homePlace;
+			else if (Object.keys(this.places).length) {
+				let firstPlaceInRoot: Place = null;
+				for (const id in this.places) {
+					if (this.places[id].folderid === 'root') {
+						firstPlaceInRoot = this.places[id];
+						break;
+					}
+				}
+				if (firstPlaceInRoot) this.currentPlace = firstPlaceInRoot;
+				else this.currentPlace = this.places[Object.keys(this.places)[0]];
+			}
+		},
 		async setPlaces(payload) {
 			// If reading from database, not importing
 			if (!payload) {
@@ -529,11 +534,11 @@ export const useMainStore = defineStore('main', {
 							commonPlaces: Object.assign({}, response.data.common_places),
 							folders: Object.assign({}, response.data.folders),
 						});
-						this.setHomePlaceMut((this.user.homeplace
-							? this.places[this.user.homeplace]
+						this.setHomePlace(this.user.homeplace
+							? this.user.homeplace
 							: null
-						));
-						this.currentPlace = this.homePlace;
+						);
+						this.setFirstCurrentPlace();
 						this.updateMap({
 							latitude: this.waypoints[this.currentPlace.waypoint].latitude,
 							longitude: this.waypoints[this.currentPlace.waypoint].longitude,
@@ -541,9 +546,7 @@ export const useMainStore = defineStore('main', {
 					})
 					.catch(e => {
 						console.error(e);
-						this.setMessage(
-							this.t.m.popup.cannotGetDataFromDb
-						);
+						this.setMessage(this.t.m.popup.cannotGetDataFromDb);
 						this.placesReady({
 							waypoints: {},
 							places: {},
@@ -907,10 +910,7 @@ export const useMainStore = defineStore('main', {
 		},
 		restoreObjectsAsLinks() {
 			this.setRefreshing(true);
-			this.setHomePlaceMut((this.user.homeplace
-				? this.places[this.user.homeplace]
-				: null
-			));
+			this.setHomePlace(this.user.homeplace ? this.user.homeplace : null);
 			if (this.currentPlace) {
 				let place: Place = null;
 				if (this.commonPlaces[this.currentPlace.id])
@@ -937,15 +937,17 @@ export const useMainStore = defineStore('main', {
 			}
 			this.addFolderMut({folder: payload.folder, parent: parent});
 		},
-		setHomePlace(id) {
+		setHomePlace(id: string) {
 			this.backupState();
-			let place = null;
 			if (this.places[id]) {
-				place = this.places[id];
+				this.homePlace = this.places[id];
+				this.user.homeplace = id;
 				emitter.emit('homeToDB', id);
+			} else {
+				this.homePlace = null;
+				this.user.homeplace = null;
+				emitter.emit('homeToDB', null);
 			}
-			this.setHomePlaceMut(place);
-			if (!place) emitter.emit('homeToDB', null);
 		},
 		deletePlacesMarkedAsDeleted() {
 			const places: Record<string, Place> = {};

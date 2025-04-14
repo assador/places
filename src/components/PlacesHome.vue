@@ -908,9 +908,7 @@ const currentDegMinSec = computed((): string => {
 	return coords2string([currentPlaceLat.value, currentPlaceLon.value]);
 });
 
-watch(() => stateReady.value, () => {
-	stateReadyChanged();
-});
+watch(() => stateReady.value, () => stateReadyChanged());
 
 watch(mainStore, changedStore => {
 	if (!changedStore.refreshing) {
@@ -940,9 +938,7 @@ const confirm = (func, args): boolean => {
 }
 
 onMounted(async () => {
-	if (stateReady.value) {
-		stateReadyChanged();
-	}
+	if (stateReady.value) stateReadyChanged();
 	mainStore.setIdleTime(0);
 	if (!idleTimeInterval.value) {
 		idleTimeInterval.value =
@@ -1006,28 +1002,7 @@ const exit = (): void => {
 const stateReadyChanged = async (): Promise<void> => {
 	if (!stateReady.value) return;
 	await mainStore.restoreObjectsAsLinks();
-	if (!currentPlace.value) {
-		if (mainStore.homePlace) {
-			choosePlace(mainStore.homePlace);
-		} else if (Object.keys(mainStore.places).length) {
-			let firstPlaceInRoot: Place;
-			for (const id in mainStore.places) {
-				if (mainStore.places[id].folderid === 'root') {
-					firstPlaceInRoot = mainStore.places[id];
-					break;
-				}
-			}
-			if (firstPlaceInRoot) {
-				choosePlace(firstPlaceInRoot);
-			} else {
-				choosePlace(
-					mainStore.places[
-						Object.keys(mainStore.places)[0]
-					]
-				);
-			}
-		}
-	}
+	if (!currentPlace.value) mainStore.setFirstCurrentPlace();
 	openTreeToCurrentPlace();
 	commonPlacesPagesCount.value = Math.ceil(
 		Object.keys(mainStore.commonPlaces).length /
