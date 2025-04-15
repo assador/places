@@ -61,8 +61,8 @@
 			<l-polyline
 				v-if="mainStore.measure.places.length"
 				:lat-lngs="getMeasurePolylineCoords()"
-				color="rgba(0, 0, 0, 0.7)"
-				weight="0.5"
+				color="rgba(0, 0, 0, 1)"
+				:weight="0.5"
 			>
 			</l-polyline>
 			<l-marker

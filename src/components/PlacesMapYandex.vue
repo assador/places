@@ -67,7 +67,7 @@
 				:title="place.name"
 			/>
 			<div
-				v-if="mainStore.measure.places.indexOf(place.id) >= 0"
+				v-if="mainStore.measure.places.includes(place.id)"
 				class="marker-caption"
 			>
 				{{ mainStore.measure.places.indexOf(place.id) + 1 }}

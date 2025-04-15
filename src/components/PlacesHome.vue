@@ -1066,6 +1066,10 @@ const choosePlace = (place: Place | null): void => {
 			}
 			mainStore.measure.choosing = mainStore.measure.places.length;
 			mainStore.measureDistance();
+			mainStore.updateMap({
+				latitude: mainStore.waypoints[place.waypoint].latitude,
+				longitude: mainStore.waypoints[place.waypoint].longitude,
+			});
 			break;
 		default:
 			if (currentPlace.value && place === currentPlace.value) return;
