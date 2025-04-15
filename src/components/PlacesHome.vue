@@ -1052,40 +1052,32 @@ const choosePlace = (place: Place | null): void => {
 		mainStore.currentPlace = null;
 		return;
 	}
-	switch (mainStore.mode) {
-		case 'measure':
-			const index = mainStore.measure.places.indexOf(place.id);
-			if (index === -1) {
-				if (mainStore.measure.choosing === mainStore.measure.places.length) {
-					mainStore.measure.places.push(place.id);
-				} else {
-					(mainStore.measure.places[mainStore.measure.choosing] = place.id);
-				}
+	if (mainStore.mode === 'measure') {
+		const index = mainStore.measure.places.indexOf(place.id);
+		if (index === -1) {
+			if (mainStore.measure.choosing === mainStore.measure.places.length) {
+				mainStore.measure.places.push(place.id);
 			} else {
-				mainStore.measure.places.splice(index, 1);
+				(mainStore.measure.places[mainStore.measure.choosing] = place.id);
 			}
-			mainStore.measure.choosing = mainStore.measure.places.length;
-			mainStore.measureDistance();
-			mainStore.updateMap({
-				latitude: mainStore.waypoints[place.waypoint].latitude,
-				longitude: mainStore.waypoints[place.waypoint].longitude,
-			});
-			break;
-		default:
-			if (currentPlace.value && place === currentPlace.value) return;
-			mainStore.currentPlace = place;
-			currentPlaceCommon.value = (
-				currentPlace.value.userid !== mainStore.user.id
-					? true
-					: false
-			);
-			openTreeToCurrentPlace();
-			mainStore.updateMap({
-				latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
-				longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
-			});
-			break;
+		} else {
+			mainStore.measure.places.splice(index, 1);
+		}
+		mainStore.measure.choosing = mainStore.measure.places.length;
+		mainStore.measureDistance();
 	}
+	if (currentPlace.value && place === currentPlace.value) return;
+	mainStore.currentPlace = place;
+	currentPlaceCommon.value = (
+		currentPlace.value.userid !== mainStore.user.id
+			? true
+			: false
+	);
+	openTreeToCurrentPlace();
+	mainStore.updateMap({
+		latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
+		longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
+	});
 };
 const appendPlace = async (): Promise<void | Place> => {
 	if (
