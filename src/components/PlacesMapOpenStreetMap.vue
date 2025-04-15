@@ -45,18 +45,26 @@
 				@click="placemarkClick(place)"
 				@mousedown="() => placemarkDragStart(place)"
 				@mouseup="e => placemarkDragEnd(place, e)"
-			>
+				>
 				<l-icon
+					label="asdfa"
 					v-bind="
 						mainStore.measure.places.includes(id)
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_01)
 					"
 				/>
-				<l-tooltip>
+				<l-tooltip permanent="true">
 					{{ place.name }}
 				</l-tooltip>
 			</l-marker>
+			<l-polyline
+				v-if="mainStore.measure.places.length"
+				:lat-lngs="getMeasurePolylineCoords()"
+				color="rgba(0, 0, 0, 0.7)"
+				weight="0.5"
+			>
+			</l-polyline>
 			<l-marker
 				v-for="(place, id) in mainStore.commonPlaces"
 				:key="id"
@@ -92,9 +100,9 @@ import {
 	LTooltip,
 	LIcon,
 	LControlLayers,
+	LPolyline,
 /*
 	LPopup,
-	LPolyline,
 	LPolygon,
 	LRectangle,
 */
@@ -191,6 +199,16 @@ const mapCenter = computed(() => ({
 const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 
+const getMeasurePolylineCoords = (): number[][] => {
+	const coords: number[][] = [];
+	for (const idx in mainStore.measure.places) {
+		coords.push([
+			mainStore.waypoints[mainStore.places[mainStore.measure.places[idx]].waypoint].latitude,
+			mainStore.waypoints[mainStore.places[mainStore.measure.places[idx]].waypoint].longitude,
+		]);
+	}
+	return coords;
+}
 const placemarkClick = (place): void => {
 	emitter.emit('choosePlace', {place: place});
 	if (place.common) {

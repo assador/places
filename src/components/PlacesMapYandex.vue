@@ -66,6 +66,12 @@
 				].iconImageHref"
 				:title="place.name"
 			/>
+			<div
+				v-if="mainStore.measure.places.indexOf(place.id) >= 0"
+				class="marker-caption"
+			>
+				{{ mainStore.measure.places.indexOf(place.id) + 1 }}
+			</div>
 		</yandex-map-marker>
 		<yandex-map-marker
 			v-for="(place, id) in mainStore.commonPlaces"
@@ -264,5 +270,9 @@ const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void =>
 	width: 50px;
 	height: 50px;
 	margin: -25px 0 0 -25px;
+}
+.marker-caption {
+	position: absolute;
+	top: -15px; left: -7px;
 }
 </style>
