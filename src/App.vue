@@ -148,6 +148,12 @@ onMounted(() => {
 	}
 	document.addEventListener('mousedown', () => {mainStore.setIdleTime(0);}, false);
 	document.addEventListener('keyup', () => {mainStore.setIdleTime(0);}, false);
+/*
+	mainStore.$subscribe((mutation, state) => {
+		console.log(mutation);
+		console.log(state);
+	});
+*/
 	mainStore.$onAction((action): void => {
 		if (!mainStore.user || mainStore.user.testaccount) return;
 		switch (action.name) {

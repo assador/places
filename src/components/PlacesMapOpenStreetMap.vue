@@ -49,7 +49,7 @@
 				>
 				<l-icon
 					v-bind="
-						mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+						mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_01)
 					"
@@ -59,7 +59,7 @@
 				</l-tooltip>
 			</l-marker>
 			<l-polyline
-				v-if="mainStore.measure.places.length"
+				v-if="mainStore.mode === 'measure' && mainStore.measure.places.length"
 				:lat-lngs="getMeasurePolylineCoords()"
 				color="rgba(0, 0, 0, 1)"
 				:weight="0.5"
@@ -78,7 +78,7 @@
 			>
 				<l-icon
 					v-bind="
-						mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+						mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_02)
 					"

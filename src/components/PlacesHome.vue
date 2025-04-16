@@ -232,9 +232,6 @@
 					accesskey="m"
 					@click="e => {
 						mainStore.measure.show = !mainStore.measure.show;
-						mainStore.measure.places = [];
-						mainStore.measure.distance = 0;
-						mainStore.measure.choosing = 0;
 						mainStore.mode = mainStore.measure.show ? 'measure' : 'normal';
 					}"
 				>
@@ -318,7 +315,6 @@
 						@click="
 							mainStore.measure.places.splice(index, 1);
 							mainStore.measure.choosing = mainStore.measure.places.length;
-							mainStore.measureDistance();
 						"
 					>
 						<span>⊗</span>
@@ -932,9 +928,8 @@ watch(mainStore, changedStore => {
 		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
 	}
 });
-watch(mainStore.measure.places, () => {
-	mainStore.measureDistance();
-}, {deep: true});
+watch(mainStore.measure.places, () => mainStore.measureDistance());
+watch(mainStore.waypoints, () => mainStore.measureDistance());
 
 emitter.on('choosePlace', (payload: {place: Place, mode?: string}) => {
 	choosePlace(payload);
@@ -1086,7 +1081,6 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 					mainStore.measure.places.splice(index, 1);
 				}
 				mainStore.measure.choosing = mainStore.measure.places.length;
-				mainStore.measureDistance();
 			}
 		default:
 			if (!payload.mode || payload.mode !== 'measure') {
@@ -1162,7 +1156,7 @@ const appendPlace = async (): Promise<void | Place> => {
 		};
 		await mainStore.addPlace({place: newPlace});
 		mainStore.addWaypoint({waypoint: newWaypoint, from: newPlace});
-		choosePlace(newPlace);
+		choosePlace({place: newPlace});
 		await nextTick();
 		document.getElementById('detailed-name')!.classList.add('highlight');
 		window.setTimeout(function() {
@@ -1181,18 +1175,18 @@ const deletePlace = (place: Place): void => {
 		// Set current place
 		if (Object.keys(mainStore.places).length > 1) {
 			if (document.getElementById(place.id)!.nextElementSibling!) {
-				choosePlace(mainStore.places[
+				choosePlace({place: mainStore.places[
 					document.getElementById(place.id)!.nextElementSibling!.id
-				]);
+				]});
 			} else if (document.getElementById(place.id)!.previousElementSibling!) {
-				choosePlace(mainStore.places[
+				choosePlace({place: mainStore.places[
 					document.getElementById(place.id)!.previousElementSibling!.id
-				]);
+				]});
 			} else if (
 				mainStore.homePlace &&
 				mainStore.homePlace !== place
 			) {
-				choosePlace(mainStore.homePlace);
+				choosePlace({place: mainStore.homePlace});
 			} else {
 				let firstPlaceInRoot: Place, inRoot = false;
 				for (const id in mainStore.places) {
@@ -1208,9 +1202,9 @@ const deletePlace = (place: Place): void => {
 					}
 				}
 				if (inRoot) {
-					choosePlace(firstPlaceInRoot);
+					choosePlace({place: firstPlaceInRoot});
 				} else {
-					choosePlace(mainStore.places[Object.keys(mainStore.places)[0]]);
+					choosePlace({place: mainStore.places[Object.keys(mainStore.places)[0]]});
 				}
 			}
 		} else {

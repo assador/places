@@ -61,14 +61,14 @@
 				v-if="place.show && place.geomark"
 				class="marker"
 				:src="placemarksOptions[
-					mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+					mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01')
 				].iconImageHref"
 				:title="place.name"
 			/>
 			<div
-				v-if="mainStore.measure.places.includes(place.id)"
+				v-if="mainStore.mode === 'measure' && mainStore.measure.places.includes(place.id)"
 				class="marker-caption"
 			>
 				{{ mainStore.measure.places.indexOf(place.id) + 1 }}
@@ -94,7 +94,7 @@
 				v-if="place.geomark"
 				class="marker"
 				:src="placemarksOptions[
-					mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+					mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_02')
 				].iconImageHref"
@@ -105,7 +105,7 @@
 				)"
 			/>
 			<div
-				v-if="mainStore.measure.places.includes(place.id)"
+				v-if="mainStore.mode === 'measure' && mainStore.measure.places.includes(place.id)"
 				class="marker-caption"
 			>
 				{{ mainStore.measure.places.indexOf(place.id) + 1 }}
