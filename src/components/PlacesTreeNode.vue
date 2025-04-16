@@ -119,7 +119,13 @@
 				"
 				:draggable="true"
 				data-place-button
-				@click="instanceid !== 'popupexporttree' ? choosePlace(place) : '';"
+				@click="e => {
+					instanceid !== 'popupexporttree' ? choosePlace(place, e) : '';
+				}"
+				@contextmenu="e => {
+					e.preventDefault();
+					instanceid !== 'popupexporttree' ? choosePlace(place, e) : '';
+				}"
 				@dragstart="handleDragStart"
 			>
 				<input
@@ -229,8 +235,14 @@ const places = computed(() =>
 	.value()
 );
 
-const choosePlace = (place: Place): void => {
-	emitter.emit('choosePlace', {place: place});
+const choosePlace = (place: Place, e: Event): void => {
+	emitter.emit('choosePlace', {
+		place: place,
+		mode: (
+			mainStore.mode === 'measure' && e.type === 'contextmenu'
+				? 'measure' : 'normal'
+		),
+	});
 };
 const selectUnselect = (place: Place, checked: boolean): void => {
 	if (checked) {

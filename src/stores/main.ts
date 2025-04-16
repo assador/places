@@ -393,6 +393,7 @@ export const useMainStore = defineStore('main', {
 		},
 		measureDistance() {
 			let lastIdx: number | null = null;
+			let place: Place, lastPlace: Place;
 			this.measure.distance = 0;
 			if (this.measure.places.length < 2) return;
 			for (let i = 0; i < this.measure.places.length; i++) {
@@ -401,11 +402,21 @@ export const useMainStore = defineStore('main', {
 					lastIdx = i;
 					continue;
 				}
+				if (this.places[this.measure.places[i]]) {
+					place = this.places[this.measure.places[i]];
+				} else {
+					place = this.commonPlaces[this.measure.places[i]];
+				}
+				if (this.places[this.measure.places[lastIdx]]) {
+					lastPlace = this.places[this.measure.places[lastIdx]];
+				} else {
+					lastPlace = this.commonPlaces[this.measure.places[lastIdx]];
+				}
 				this.measure.distance += distanceOnSphere(
-					this.waypoints[this.places[this.measure.places[lastIdx]].waypoint].latitude,
-					this.waypoints[this.places[this.measure.places[lastIdx]].waypoint].longitude,
-					this.waypoints[this.places[this.measure.places[i]].waypoint].latitude,
-					this.waypoints[this.places[this.measure.places[i]].waypoint].longitude,
+					this.waypoints[lastPlace.waypoint].latitude,
+					this.waypoints[lastPlace.waypoint].longitude,
+					this.waypoints[place.waypoint].latitude,
+					this.waypoints[place.waypoint].longitude,
 					constants.earthRadius
 				);
 				lastIdx = i;

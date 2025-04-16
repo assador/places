@@ -42,14 +42,14 @@
 				]"
 				:draggable="id === mainStore.currentPlace.id"
 				:visible="mainStore.placemarksShow && place.show && place.geomark ? true : false"
-				@click="placemarkClick(place)"
+				@click="e => placemarkClick(place, e.originalEvent)"
+				@contextmenu="e => placemarkClick(place, e.originalEvent)"
 				@mousedown="() => placemarkDragStart(place)"
 				@mouseup="e => placemarkDragEnd(place, e)"
 				>
 				<l-icon
-					label="asdfa"
 					v-bind="
-						mainStore.measure.places.includes(id)
+						mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_01)
 					"
@@ -73,9 +73,16 @@
 					mainStore.waypoints[place.waypoint].longitude,
 				]"
 				:visible="mainStore.commonPlacemarksShow && place.geomark ? true : false"
-				@click="placemarkClick(place);"
+				@click="e => placemarkClick(place, e.originalEvent)"
+				@contextmenu="e => placemarkClick(place, e.originalEvent)"
 			>
-				<l-icon v-bind="place === mainStore.currentPlace ? icon_01_green : icon_02" />
+				<l-icon
+					v-bind="
+						mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+							? icon_01_blue
+							: (place === mainStore.currentPlace ? icon_01_green : icon_02)
+					"
+				/>
 				<l-tooltip>
 					{{ place.name }}<br />
 					{{ mainStore.t.i.captions.user }}: {{
@@ -108,6 +115,7 @@ import {
 */
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
+import { Place } from '@/stores/types';
 
 const mainStore = useMainStore();
 
@@ -201,16 +209,29 @@ const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 
 const getMeasurePolylineCoords = (): number[][] => {
 	const coords: number[][] = [];
+	let place: Place;
 	for (const idx in mainStore.measure.places) {
+		if (mainStore.places[mainStore.measure.places[idx]]) {
+			place = mainStore.places[mainStore.measure.places[idx]];
+		} else {
+			place = mainStore.commonPlaces[mainStore.measure.places[idx]];
+		}
 		coords.push([
-			mainStore.waypoints[mainStore.places[mainStore.measure.places[idx]].waypoint].latitude,
-			mainStore.waypoints[mainStore.places[mainStore.measure.places[idx]].waypoint].longitude,
+			mainStore.waypoints[place.waypoint].latitude,
+			mainStore.waypoints[place.waypoint].longitude,
 		]);
 	}
 	return coords;
 }
-const placemarkClick = (place): void => {
-	emitter.emit('choosePlace', {place: place});
+const placemarkClick = (place: Place, e: Event): void => {
+	e.preventDefault();
+	emitter.emit('choosePlace', {
+		place: place,
+		mode: (
+			mainStore.mode === 'measure' && e.type === 'contextmenu'
+				? 'measure' : 'normal'
+		),
+	});
 	if (place.common) {
 		const inPaginator =
 			Object.keys(mainStore.commonPlaces).indexOf(place.id) /
@@ -230,7 +251,7 @@ const placemarkDragStart = (place): void => {
 		);
 	}
 };
-const placemarkDragEnd = (place, event): void => {
+const placemarkDragEnd = (place: Place, event: any): void => {
 	const coordinates = event.target.getLatLng();
 	mainStore.changePlace({
 		place: place,

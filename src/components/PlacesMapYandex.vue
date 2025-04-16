@@ -52,15 +52,16 @@
 				draggable: id === mainStore.currentPlace.id,
 			}"
 			position="top-center left-center"
-			@click="() => {placemarkClick(id);}"
-			@dragstart="() => {placemarkDragStart(id);}"
-			@dragend="() => {placemarkDragEnd(id);}"
+			@click="(e: Event) => placemarkClick(id, e)"
+			@contextmenu="(e: Event) => placemarkClick(id, e)"
+			@dragstart="() => placemarkDragStart(id)"
+			@dragend="() => placemarkDragEnd(id)"
 		>
 			<img
 				v-if="place.show && place.geomark"
 				class="marker"
 				:src="placemarksOptions[
-					mainStore.measure.places.includes(id)
+					mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01')
 				].iconImageHref"
@@ -86,18 +87,29 @@
 				draggable: false,
 			}"
 			position="top-center left-center"
-			@click="() => {placemarkClick(id);}"
+			@click="(e: Event) => placemarkClick(id, e)"
+			@contextmenu="(e: Event) => placemarkClick(id, e)"
 		>
 			<img
 				v-if="place.geomark"
 				class="marker"
-				:src="placemarksOptions[mainStore.currentPlace && id === mainStore.currentPlace.id ? 'icon_01_green' : 'icon_02'].iconImageHref"
+				:src="placemarksOptions[
+					mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+						? 'icon_01_blue'
+						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_02')
+				].iconImageHref"
 				:title="place.name + '\n' + mainStore.t.i.captions.user + ': ' + (
 					mainStore.users[place.userid].name
 						? mainStore.users[place.userid].name
 						: mainStore.users[place.userid].login
 				)"
 			/>
+			<div
+				v-if="mainStore.measure.places.includes(place.id)"
+				class="marker-caption"
+			>
+				{{ mainStore.measure.places.indexOf(place.id) + 1 }}
+			</div>
 		</yandex-map-marker>
 		<yandex-map-controls :settings="{position: 'top left'}">
 			<yandex-map-geolocation-control />
@@ -198,13 +210,15 @@ watch(() => mainStore.centerPlacemarkShow, () => {
 const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 
-const placemarkClick = (id: string): void => {
-	if (mainStore.places[id]) {
-		emitter.emit(
-			'choosePlace',
-			{place: mainStore.places[id]}
-		);
-	}
+const placemarkClick = (id: string, e: Event): void => {
+	e.preventDefault();
+	emitter.emit('choosePlace', {
+		place: mainStore.places[id] ? mainStore.places[id] : mainStore.commonPlaces[id],
+		mode: (
+			mainStore.mode === 'measure' && e.type === 'contextmenu'
+				? 'measure' : 'normal'
+		),
+	});
 	if (mainStore.commonPlaces[id]) {
 		const inPaginator =
 			Object.keys(mainStore.commonPlaces).indexOf(id) /

@@ -291,7 +291,16 @@
 					@dragenter="handleDragEnter"
 					@drop="handleDrop"
 				>
-					<span>{{ id !== null ? mainStore.places[id].name : `${mainStore.t.i.captions.measureChoose}:` }}</span>
+					<span>
+						{{
+							id !== null
+								? (mainStore.places[id]
+									? mainStore.places[id]
+									: mainStore.commonPlaces[id]
+								).name
+								: `${mainStore.t.i.captions.measureChoose}:`
+						}}
+					</span>
 					<button
 						:title="mainStore.t.i.buttons.specify"
 						:class="mainStore.measure.choosing === index ? 'button-pressed' : ''"
@@ -359,8 +368,19 @@
 							v-for="commonPlace in commonPlaces"
 							:id="commonPlace.id"
 							:key="commonPlace.id"
-							:class="'place-button block_01' + (commonPlace === currentPlace ? ' active' : '')"
-							@click="choosePlace(commonPlace)"
+							:class="'place-button block_01' + (
+								commonPlace === currentPlace ||
+								mainStore.measure.places.includes(commonPlace.id)
+									? ' active' : ''
+							)"
+							@click="choosePlace({place: commonPlace})"
+							@contextmenu="e => {
+								e.preventDefault();
+								choosePlace({
+									place: commonPlace,
+									mode: (mainStore.mode === 'measure' ? 'measure' : 'normal'),
+								});
+							}"
 						>
 							{{ commonPlace.name }}
 						</div>
@@ -916,8 +936,8 @@ watch(mainStore.measure.places, () => {
 	mainStore.measureDistance();
 }, {deep: true});
 
-emitter.on('choosePlace', (payload: {place: Place}) => {
-	choosePlace(payload.place);
+emitter.on('choosePlace', (payload: {place: Place, mode?: string}) => {
+	choosePlace(payload);
 });
 emitter.on('deletePlace', (place: Place) => {
 	deletePlace(place);
@@ -1047,37 +1067,44 @@ const openTreeToCurrentPlace = (): void => {
 		folderid = folder.parent;
 	}
 };
-const choosePlace = (place: Place | null): void => {
-	if (!place) {
+const choosePlace = (payload: {place: Place, mode?: string}): void => {
+	if (!payload.place) {
 		mainStore.currentPlace = null;
 		return;
 	}
-	if (mainStore.mode === 'measure') {
-		const index = mainStore.measure.places.indexOf(place.id);
-		if (index === -1) {
-			if (mainStore.measure.choosing === mainStore.measure.places.length) {
-				mainStore.measure.places.push(place.id);
-			} else {
-				(mainStore.measure.places[mainStore.measure.choosing] = place.id);
+	switch (mainStore.mode) {
+		case 'measure':
+			if (payload.mode && payload.mode === 'measure') {
+				const index = mainStore.measure.places.indexOf(payload.place.id);
+				if (index === -1) {
+					if (mainStore.measure.choosing === mainStore.measure.places.length) {
+						mainStore.measure.places.push(payload.place.id);
+					} else {
+						(mainStore.measure.places[mainStore.measure.choosing] = payload.place.id);
+					}
+				} else {
+					mainStore.measure.places.splice(index, 1);
+				}
+				mainStore.measure.choosing = mainStore.measure.places.length;
+				mainStore.measureDistance();
 			}
-		} else {
-			mainStore.measure.places.splice(index, 1);
-		}
-		mainStore.measure.choosing = mainStore.measure.places.length;
-		mainStore.measureDistance();
+		default:
+			if (!payload.mode || payload.mode !== 'measure') {
+				if (currentPlace.value && payload.place === currentPlace.value) return;
+				mainStore.currentPlace = payload.place;
+				currentPlaceCommon.value = (
+					currentPlace.value.userid !== mainStore.user.id
+						? true
+						: false
+				);
+				openTreeToCurrentPlace();
+				mainStore.updateMap({
+					latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
+					longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
+				});
+				break;
+			}
 	}
-	if (currentPlace.value && place === currentPlace.value) return;
-	mainStore.currentPlace = place;
-	currentPlaceCommon.value = (
-		currentPlace.value.userid !== mainStore.user.id
-			? true
-			: false
-	);
-	openTreeToCurrentPlace();
-	mainStore.updateMap({
-		latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
-		longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
-	});
 };
 const appendPlace = async (): Promise<void | Place> => {
 	if (
