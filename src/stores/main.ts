@@ -1400,7 +1400,7 @@ export const useMainStore = defineStore('main', {
 			showHideSubGeomarks(payload.object, payload.show);
 			showHideParentsGeomarks(payload.object);
 		},
-		setMessage(message: string) {
+		setMessage(message: string, freeze?: boolean) {
 			message = message.replace(/[\t\n]/g, ' ');
 			message = message.replace(/[ ]{2,}/g, ' ').trim();
 			const messagesContainer = document.getElementById('messages');
@@ -1425,7 +1425,7 @@ export const useMainStore = defineStore('main', {
 			}
 			this.setMessageTimer(
 				window.setInterval(() => {
-					if (!this.mouseOverMessages) {
+					if (!this.mouseOverMessages && !freeze) {
 						if (this.messages.length === 1) {
 							this.clearMessages();
 						}

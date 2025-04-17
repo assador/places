@@ -111,11 +111,8 @@
 				:title="place.description"
 				:class="
 					'place-button block_01 draggable has-checks-radios' +
-					(
-						currentPlace && place.id == currentPlace.id ||
-						mainStore.measure.places.includes(place.id)
-							? ' active' : ''
-					)
+					(currentPlace && place.id == currentPlace.id ? ' active' : '') +
+					(mainStore.mode === 'measure' && mainStore.measure.places.includes(place.id) ? ' chosen' : '')
 				"
 				:draggable="true"
 				data-place-button

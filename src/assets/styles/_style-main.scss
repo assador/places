@@ -46,7 +46,7 @@ $col-36: rgb(0, 0, 0);
 	
 	$color-05: rgba($col-01, 0);
 	$color-06: rgba($col-01, $opacity-05);
-	$color-07: rgba($col-01, 1);
+	$color-07: rgba($col-01, 0.5);
 	
 	$color-08: rgba($col-02, $opacity-01);
 	$color-09: rgba($col-02, $opacity-02);
@@ -73,6 +73,7 @@ $col-36: rgb(0, 0, 0);
 	
 	$color-27: rgba($col-09, $opacity-14);
 	$color-28: rgba($col-09, $opacity-06);
+	$color-73: rgba($col-09, $opacity-09);
 	$color-29: rgba($col-09, 1);
 	
 	$color-30: rgba($col-10, $opacity-06);
@@ -262,12 +263,16 @@ $col-36: rgb(0, 0, 0);
 		color: $color-26;
 	}
 	.place-button.active,
+	.place-button.chosen,
 	.place-button:hover,
 	.place-button.activated-by-function,
 	::-webkit-scrollbar-thumb {
 		background-color: $color-28;
 		border-color: $color-30 $color-32 $color-34 $color-36;
 		box-shadow: 0 0 8px $color-39;
+	}
+	.place-button.active {
+		background-color: $color-73;
 	}
 	.table .active {
 		background-color: $color-27;

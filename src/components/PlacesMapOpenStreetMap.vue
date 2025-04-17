@@ -44,9 +44,11 @@
 				:visible="mainStore.placemarksShow && place.show && place.geomark ? true : false"
 				@click="e => placemarkClick(place, e.originalEvent)"
 				@contextmenu="e => placemarkClick(place, e.originalEvent)"
-				@mousedown="() => placemarkDragStart(place)"
-				@mouseup="e => placemarkDragEnd(place, e)"
-				>
+				@mousedown="() => dragging = true"
+				@mouseup="() => dragging = false"
+				@mousemove="e => {if (dragging) placemarkDragStart(place);}"
+				@drop="e => placemarkDragEnd(place, e)"
+			>
 				<l-icon
 					v-bind="
 						mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
@@ -207,6 +209,8 @@ const mapCenter = computed(() => ({
 const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 
+const dragging = ref(false);
+
 const getMeasurePolylineCoords = (): number[][] => {
 	const coords: number[][] = [];
 	let place: Place;
@@ -225,13 +229,21 @@ const getMeasurePolylineCoords = (): number[][] => {
 }
 const placemarkClick = (place: Place, e: Event): void => {
 	e.preventDefault();
-	emitter.emit('choosePlace', {
-		place: place,
-		mode: (
-			mainStore.mode === 'measure' && e.type === 'contextmenu'
-				? 'measure' : 'normal'
-		),
-	});
+	switch (mainStore.mode) {
+		case 'measure':
+			emitter.emit('choosePlace', {
+				place: place,
+				mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
+			});
+			break;
+		default:
+			if (e.type === 'contextmenu') {
+				mainStore.setMessage(place.description, true);
+			} else {
+				emitter.emit('choosePlace', {place: place});
+			}
+			break;
+	}
 	if (place.common) {
 		const inPaginator =
 			Object.keys(mainStore.commonPlaces).indexOf(place.id) /
@@ -244,7 +256,7 @@ const placemarkClick = (place: Place, e: Event): void => {
 		);
 	}
 };
-const placemarkDragStart = (place): void => {
+const placemarkDragStart = (place: Place): void => {
 	if (place !== mainStore.currentPlace) {
 		mainStore.setMessage(
 			mainStore.t.m.popup.needToChoosePlacemark
@@ -260,7 +272,6 @@ const placemarkDragEnd = (place: Place, event: any): void => {
 			longitude: Number(coordinates.lng.toFixed(7)),
 		},
 	});
-//	updateState(coordinates);
 };
 const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
 	mainStore.updateMap({

@@ -54,8 +54,10 @@
 			position="top-center left-center"
 			@click="(e: Event) => placemarkClick(id, e)"
 			@contextmenu="(e: Event) => placemarkClick(id, e)"
-			@dragstart="() => placemarkDragStart(id)"
-			@dragend="() => placemarkDragEnd(id)"
+			@mousedown="() => dragging = true"
+			@mouseup="() => dragging = false"
+			@mousemove="() => {if (dragging) placemarkDragStart(id);}"
+			@drop="() => placemarkDragEnd(id)"
 		>
 			<img
 				v-if="place.show && place.geomark"
@@ -139,8 +141,11 @@ import {
 	YandexMapZoomControl,
 } from 'vue-yandex-maps';
 import type { YMap } from '@yandex/ymaps3-types';
+import { coords2string } from '@/shared/common';
 
 const mainStore = useMainStore();
+
+const dragging = ref(false);
 
 const map = shallowRef<YMap | null>(null);
 const markers = shallowRef({});
@@ -211,14 +216,36 @@ const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 
 const placemarkClick = (id: string, e: Event): void => {
+	const place = mainStore.places[id]
+		? mainStore.places[id]
+		: mainStore.commonPlaces[id]
+	;
 	e.preventDefault();
-	emitter.emit('choosePlace', {
-		place: mainStore.places[id] ? mainStore.places[id] : mainStore.commonPlaces[id],
-		mode: (
-			mainStore.mode === 'measure' && e.type === 'contextmenu'
-				? 'measure' : 'normal'
-		),
-	});
+	switch (mainStore.mode) {
+		case 'measure':
+			emitter.emit('choosePlace', {
+				place: place,
+				mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
+			});
+			break;
+		default:
+			if (e.type === 'contextmenu') {
+				mainStore.setMessage(
+					coords2string([
+						mainStore.waypoints[place.waypoint].latitude,
+						mainStore.waypoints[place.waypoint].longitude
+					]),
+					true
+				);
+				mainStore.setMessage(
+					place.description,
+					true
+				);
+			} else {
+				emitter.emit('choosePlace', {place: place});
+			}
+			break;
+	}
 	if (mainStore.commonPlaces[id]) {
 		const inPaginator =
 			Object.keys(mainStore.commonPlaces).indexOf(id) /
