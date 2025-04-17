@@ -237,10 +237,7 @@ const placemarkClick = (id: string, e: Event): void => {
 					]),
 					true
 				);
-				mainStore.setMessage(
-					place.description,
-					true
-				);
+				mainStore.setMessage(place.description, true);
 			} else {
 				emitter.emit('choosePlace', {place: place});
 			}

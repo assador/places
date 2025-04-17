@@ -118,6 +118,7 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place } from '@/stores/types';
+import { coords2string } from '@/shared/common';
 
 const mainStore = useMainStore();
 
@@ -238,6 +239,13 @@ const placemarkClick = (place: Place, e: Event): void => {
 			break;
 		default:
 			if (e.type === 'contextmenu') {
+				mainStore.setMessage(
+					coords2string([
+						mainStore.waypoints[place.waypoint].latitude,
+						mainStore.waypoints[place.waypoint].longitude
+					]),
+					true
+				);
 				mainStore.setMessage(place.description, true);
 			} else {
 				emitter.emit('choosePlace', {place: place});
