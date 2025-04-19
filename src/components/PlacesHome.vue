@@ -744,6 +744,13 @@
 						title="mainStore.t.i.captions.longitude"
 					/>
 				</span>
+				<span
+					class="nobr"
+					style="margin-left: 1em;"
+				>
+					{{ mainStore.t.i.captions.altitude }}:
+					{{ centerAltitude }}
+				</span>
 			</div>
 		</div>
 		<div
@@ -783,6 +790,7 @@ import {
 	inject,
 	nextTick,
 	defineAsyncComponent,
+	watchEffect,
 } from 'vue';
 import axios from 'axios';
 import { useMainStore } from '@/stores/main';
@@ -897,28 +905,29 @@ const currentPlaceLon = computed((): number => {
 const currentDegMinSec = computed((): string => {
 	return coords2string([currentPlaceLat.value, currentPlaceLon.value]);
 });
-
 const currentPlaceEle = ref<number | null>(null);
-const getCurrentPlaceEle = (): void => {
-	const lat = currentPlaceLat.value ? currentPlaceLat.value : 0;
-	const lon = currentPlaceLon.value ? currentPlaceLon.value : 0;
+const centerAltitude = ref<number | null>(null);
+
+const getAltitude = async (lat: number, lon: number, alt: Ref) => {
 	axios
 		.get(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`)
 		.then(response => {
-			currentPlaceEle.value = Number(response.data.elevation);
-			if (isNaN(currentPlaceEle.value)) currentPlaceEle.value = null;
+			if (isNaN(Number(response.data.elevation))) alt.value = null;
+			else alt.value = Number(response.data.elevation);
 		})
-		.catch(() => {
-			currentPlaceEle.value = null;
-		})
+		.catch(() => alt.value = null)
 	;
 }
 
-watch(currentPlaceLat, (): void => {
-	getCurrentPlaceEle();
+watchEffect((): void => {
+	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceEle);
 });
-watch(currentPlaceLon, (): void => {
-	getCurrentPlaceEle();
+watchEffect((): void => {
+	getAltitude(
+		mainStore.center.latitude,
+		mainStore.center.longitude,
+		centerAltitude
+	);
 });
 watch(() => mainStore.ready, () => {
 	stateReadyChanged();
@@ -967,7 +976,7 @@ onMounted(async () => {
 	}
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
-	getCurrentPlaceEle();
+	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceEle);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('dragover', handleDragOver, false);

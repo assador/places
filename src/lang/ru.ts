@@ -5,6 +5,7 @@ export const t = {
 			actions: 'Действия',
 			add: 'Добавить',
 			admin: 'Админка',
+			altitude: 'Высота (м)',
 			altitudecapability: 'Высота над уровнем моря (м)',
 			auth: 'Авторизация',
 			common: 'Приватность',

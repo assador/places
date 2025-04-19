@@ -239,6 +239,7 @@ const placemarkClick = (place: Place, e: Event): void => {
 			break;
 		default:
 			if (e.type === 'contextmenu') {
+				mainStore.setMessage(place.name, true);
 				mainStore.setMessage(
 					coords2string([
 						mainStore.waypoints[place.waypoint].latitude,

@@ -901,9 +901,7 @@ export const useMainStore = defineStore('main', {
 			;
 		},
 		async replaceState(payload: IMainState) {
-			for (const prop in payload) {
-				this[prop] = payload[prop];
-			}
+			this.$state = payload;
 			this.changeLang(this.lang);
 			await this.restoreObjectsAsLinks();
 			if (this.currentPlace) {
