@@ -320,6 +320,23 @@
 						<span>⊗</span>
 					</button>
 				</dd>
+				<dd
+					v-if="mainStore.measure.places.length > 0"
+					class="control-measure-clearall"
+				>
+					<strong>
+						{{ mainStore.t.i.buttons.clearAll }}
+					</strong>
+					<button
+						:title="mainStore.t.i.buttons.clearAll"
+						@click="
+							mainStore.measure.places.length = 0;
+							mainStore.measure.choosing = 0;
+						"
+					>
+						<span>⊗</span>
+					</button>
+				</dd>
 			</div>
 			<div class="control-search">
 				<input
@@ -1635,21 +1652,22 @@ const selectPlaces = (text: string): void => {
 }
 .control-range, .control-measure dd {
 	display: grid;
+	grid-template-columns: 1fr auto auto;
 	gap: 8px;
 	align-items: center;
 }
-.control-range {
-	grid-template-columns: 1fr auto auto;
-}
-.control-measure dd {
-	grid-template-columns: 1fr auto auto;
+.control-measure {
+	padding-bottom: 8px;
+	dd.control-measure-clearall {
+		grid-template-columns: 1fr auto;
+		strong {
+			text-align: right;
+		}
+	}
 }
 .control-range, .control-measure, .control-measure dd {
 	margin: 8px 0 0 0;
 	padding-left: 0;
-}
-.control-measure {
-	padding-bottom: 8px;
 }
 #basic-left__places {
 	margin-top: 1rem;
