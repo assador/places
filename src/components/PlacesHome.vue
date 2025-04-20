@@ -529,7 +529,7 @@
 							</div>
 							<div class="margin_bottom_1">
 								<strong>{{ mainStore.placeFields['altitudecapability'] }}:</strong>
-								{{ currentPlaceEle === null ? '?' : currentPlaceEle }}
+								{{ currentPlaceAltitude === null ? '?' : currentPlaceAltitude }}
 							</div>
 						</div>
 						<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
@@ -922,7 +922,7 @@ const currentPlaceLon = computed((): number => {
 const currentDegMinSec = computed((): string => {
 	return coords2string([currentPlaceLat.value, currentPlaceLon.value]);
 });
-const currentPlaceEle = ref<number | null>(null);
+const currentPlaceAltitude = ref<number | null>(null);
 const centerAltitude = ref<number | null>(null);
 
 const getAltitude = async (lat: number, lon: number, alt: Ref) => {
@@ -937,7 +937,7 @@ const getAltitude = async (lat: number, lon: number, alt: Ref) => {
 }
 
 watchEffect((): void => {
-	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceEle);
+	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceAltitude);
 });
 watchEffect((): void => {
 	getAltitude(
@@ -993,7 +993,7 @@ onMounted(async () => {
 	}
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
-	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceEle);
+	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceAltitude);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('dragover', handleDragOver, false);

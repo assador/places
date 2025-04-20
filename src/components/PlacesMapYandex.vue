@@ -57,7 +57,7 @@
 			@mousedown="() => dragging = true"
 			@mouseup="() => dragging = false"
 			@mousemove="() => {if (dragging) placemarkDragStart(id);}"
-			@drop="() => placemarkDragEnd(id)"
+			@moveend="() => placemarkDragEnd(id)"
 		>
 			<img
 				v-if="place.show && place.geomark"

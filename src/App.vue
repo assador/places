@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, onMounted, onBeforeMount } from 'vue'
+import { ref, computed, provide, onMounted, onBeforeMount, reactive } from 'vue'
 import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
@@ -39,8 +39,8 @@ onBeforeMount(() => {
 const mainStore = useMainStore();
 const router = useRouter();
 
-const currentPlace = computed(() => mainStore.currentPlace);
-const colortheme = computed(() => mainStore.colortheme);
+const currentPlace = ref(mainStore.currentPlace);
+const colortheme = ref(mainStore.colortheme);
 const colorthemes = computed(() => [
 	{
 		value: 'brown',

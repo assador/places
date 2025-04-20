@@ -47,7 +47,7 @@
 				@mousedown="() => dragging = true"
 				@mouseup="() => dragging = false"
 				@mousemove="e => {if (dragging) placemarkDragStart(place);}"
-				@drop="e => placemarkDragEnd(place, e)"
+				@moveend="e => placemarkDragEnd(place, e)"
 			>
 				<l-icon
 					v-bind="
