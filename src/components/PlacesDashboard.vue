@@ -42,6 +42,6 @@ watch(() => lang.value, () => {
 	mainStore.changeLang(lang.value);
 });
 watch(() => colortheme.value, () => {
-	mainStore.changeColorTheme(colortheme.value);
+	mainStore.colortheme = colortheme.value;
 });
 </script>

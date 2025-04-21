@@ -104,7 +104,7 @@ const appendFolder = (name: string, description: string): void => {
 	const treeFlat = mainStore.treeFlat;
 	if (
 		mainStore.serverConfig.rights.folderscount < 0 ||
-		mainStore.serverConfig.rights.folderscount > treeFlat.length - 1 ||
+		mainStore.serverConfig.rights.folderscount > Object.keys(treeFlat).length - 1 ||
 		// length - 1 because there is a root folder too
 		mainStore.user.testaccount
 	) {

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { Waypoint, Place, Folder, Image, User } from './types';
+import { User, Group, Waypoint, Place, Folder, Image } from './types';
 import { constants } from '@/shared/constants';
 import { emitter } from '@/shared/bus';
 import {
@@ -14,6 +14,7 @@ import axios from 'axios';
 
 export interface IMainState {
 	activeMapIndex: number,
+	backup: boolean,
 	center: Record<string, number>,
 	centerPlacemarkShow: boolean,
 	colortheme: string,
@@ -57,6 +58,7 @@ export interface IMainState {
 export const useMainStore = defineStore('main', {
 	state: (): IMainState => ({
 		activeMapIndex: 0,
+		backup: true,
 		center: {
 			latitude: Number(constants.map.initial.latitude),
 			longitude: Number(constants.map.initial.longitude),
@@ -120,73 +122,26 @@ export const useMainStore = defineStore('main', {
 		zoom: Number(constants.map.initial.zoom),
 	}),
 	actions: {
-		changeLangMut(payload) {
-			this.lang = payload.lang;
-			this.t = payload.dict;
-			this.tree.name = this.t.i.captions.rootFolder;
-		},
-		changeMapMut(index) {
-			this.activeMapIndex = index;
-		},
-		changeColorThemeMut(colortheme) {
-			this.colortheme = colortheme;
-		},
-		setMessageMut(message) {
-			this.messages.push(message);
-		},
-		clearMessagesMut() {
-			this.messages = [];
-		},
 		deleteMessage(index) {
 			this.messages.splice(index, 1);
 		},
-		setMouseOverMessages(over) {
+		setMouseOverMessages(over?: boolean) {
 			this.mouseOverMessages = (over === false ? false : true);
 		},
-		setRefreshing(refreshing) {
-			this.refreshing = refreshing;
-		},
-		setSaved(saved: boolean) {
-			this.saved = saved;
-		},
-		setObjectSaved(object) {
+		setObjectSaved(object: User | Group | Waypoint | Place | Folder) {
 //			object.added = false;
 			object.deleted = false;
 			object.updated = false;
 		},
-		setIdleTime(time) {
-			this.idleTime = time;
-		},
 		backupState() {
-			if (this.stateBackups) {
-				if (this.stateBackups.length === constants.backupscount) return;
-				this.stateBackups.splice(++this.stateBackupsIndex);
-				this.stateBackups.push(
-					Object.assign({}, JSON.parse(JSON.stringify(this.$state)))
-				);
-				delete this.stateBackups[this.stateBackups.length - 1].stateBackups
-			}
+			if (!this.backup || this.stateBackups.length >= constants.backupscount)  return;
+			this.stateBackups.splice(++this.stateBackupsIndex);
+			this.stateBackups.push(
+				Object.assign({}, JSON.parse(JSON.stringify(this.$state)))
+			);
+			delete this.stateBackups[this.stateBackups.length - 1].stateBackups
 		},
-		restoreStateMut(index) {
-			if (this.stateBackups) {
-				for (const key in Object(this.stateBackups[index])) {
-					if (
-						key !== 'stateBackups' &&
-						key !== 'placeFields' &&
-						key !== 'treeFlat'
-					) {
-						this[key] =
-							JSON.parse(
-								JSON.stringify(
-									this.stateBackups[index][key]
-								)
-							)
-						;
-					}
-				}
-			}
-		},
-		stateBackupsIndexChange(delta) {
+		stateBackupsIndexChange(delta: number) {
 			this.stateBackupsIndex = this.stateBackupsIndex + delta;
 		},
 		reset() {
@@ -216,10 +171,7 @@ export const useMainStore = defineStore('main', {
 			this.mouseOverMessages = false;
 			this.serverConfig = null;
 		},
-		setServerConfigMut(config) {
-			this.serverConfig = config;
-		},
-		placesReady(payload) {
+		placesReady(payload: Record<string, any>) {
 			if (payload.waypoints) {
 				this.waypoints = payload.waypoints;
 			}
@@ -285,16 +237,13 @@ export const useMainStore = defineStore('main', {
 		modifyCommonPlaces(commonPlaces) {
 			this.commonPlaces = commonPlaces;
 		},
-		addWaypointMut(waypoint) {
-			this.waypoints[waypoint.id] = waypoint;
-		},
 		deleteWaypoint(waypoint) {
 			delete this.waypoints[waypoint.id];
 		},
 		deletePlace(place) {
 			delete this.places[place.id];
 		},
-		addFolderMut(payload) {
+		addFolderMut(payload: {folder: Folder, parent : Record<string, any>}) {
 			if (!payload.parent) {
 				this.folders[payload.folder.id] = payload.folder;
 			} else {
@@ -307,7 +256,7 @@ export const useMainStore = defineStore('main', {
 				payload.parent.children[payload.folder.id] = payload.folder;
 			}
 		},
-		deleteFolder(payload) {
+		deleteFolder(payload: Record<string, any>) {
 			if (!payload.source) {
 				payload.source = this.treeFlat[payload.folder.parent];
 			}
@@ -315,16 +264,7 @@ export const useMainStore = defineStore('main', {
 			payload.source.needToRefreshTreeSorry = null;
 			delete payload.source.needToRefreshTreeSorry;
 		},
-		changeWaypointMut(payload) {
-			payload.waypoint[payload.key] = payload.value;
-		},
-		changePlaceMut(payload) {
-			payload.place[payload.key] = payload.value;
-		},
-		changeFolderMut(payload) {
-			payload.folder[payload.key] = payload.value;
-		},
-		deleteImages(payload) {
+		deleteImages(payload: Record<string, any>) {
 			if (!payload.images || !Object.keys(payload.images).length) return;
 			for (const id in payload.images) {
 				if (
@@ -334,43 +274,6 @@ export const useMainStore = defineStore('main', {
 					delete this.places[payload.images[id].placeid].images[id];
 				}
 			}
-		},
-		folderOpenCloseMut(payload) {
-			payload.folder.opened =
-				payload.hasOwnProperty('opened')
-					? payload.opened
-					: !payload.folder.opened
-			;
-		},
-		swapImagesMut(changes) {
-			changes.place.images[changes.ids[0]].srt =
-				[
-					changes.place.images[changes.ids[1]].srt,
-					changes.place.images[changes.ids[1]].srt =
-						changes.place.images[changes.ids[0]].srt
-				][0]
-			;
-			changes.place.updated = true;
-		},
-		updateMapMut(payload) {
-			if (typeof payload.latitude === 'number') {
-				this.center.latitude = payload.latitude;
-			}
-			if (typeof payload.longitude === 'number') {
-				this.center.longitude = payload.longitude;
-			}
-			if (typeof payload.zoom === 'number') {
-				this.zoom = payload.zoom;
-			}
-		},
-		placemarksShowHideMut(show) {
-			this.placemarksShow = show;
-		},
-		commonPlacemarksShowHideMut(show) {
-			this.commonPlacemarksShow = show;
-		},
-		centerPlacemarkShowHideMut(show) {
-			this.centerPlacemarkShow = show;
 		},
 		showInRange(range: number | null) {
 			if (range <= 0 || range === null) {
@@ -422,52 +325,54 @@ export const useMainStore = defineStore('main', {
 				lastIdx = i;
 			}
 		},
-		showHidePlaceGeomark(payload) {
+		showHidePlaceGeomark(payload: Record<string, any>) {
 			payload.place.geomark = payload.show;
 		},
-		showHideFolderGeomarks(payload) {
+		showHideFolderGeomarks(payload: Record<string, any>) {
 			payload.folder.geomarks = payload.show;
-		},
-		setMessageTimer(messageTimer) {
-			this.messageTimer = messageTimer;
 		},
 		changeLang(lang) {
 			const getLang = () => import(`@/lang/${lang}.ts`);
 			getLang().then(l => {
-				this.changeLangMut({lang: lang, dict: l.t});
+				this.lang = lang;
+				this.t = l.t;
+				this.tree.name = this.t.i.captions.rootFolder;
 			});
 		},
-		changeMap(index) {
-			this.changeMapMut(index);
-		},
-		changeColorTheme(colortheme) {
-			this.changeColorThemeMut(colortheme);
-		},
-		restoreState(backupIndex) {
-			this.restoreStateMut(backupIndex);
-			this.restoreObjectsAsLinks()
-				.then(() => {
-					emitter.emit('refreshMapOpenStreetMapMarks');
-					emitter.emit('refreshMapYandexMarks');
-				});
+		restoreState(backupIndex: number) {
+			if (!this.stateBackups) return;
+			for (const key in this.stateBackups[backupIndex]) {
+				if (
+					key !== 'inUndoRedo' &&
+					key !== 'stateBackups' &&
+					key !== 'placeFields' &&
+					key !== 'treeFlat'
+				) {
+					this[key] =
+						JSON.parse(
+							JSON.stringify(
+								this.stateBackups[backupIndex][key]
+							)
+						)
+					;
+				}
+			}
+			this.restoreObjectsAsLinks();
 		},
 		undo() {
-			if (this.stateBackupsIndex > 0) {
-				this.stateBackupsIndexChange(-1);
-				this.restoreStateMut(this.stateBackupsIndex);
-				this.inUndoRedo = true;
-			}
+			if (this.stateBackupsIndex < 0) return;
+			if (!this.inUndoRedo) {this.backupState(); --this.stateBackupsIndex;}
+			this.restoreState(this.stateBackupsIndex);
+			--this.stateBackupsIndex;
+			this.inUndoRedo = true;
 		},
 		redo() {
-			if (
-				this.stateBackups &&
-				this.stateBackupsIndex < this.stateBackups.length - 1
-			) {
-				this.stateBackupsIndexChange(1);
-				this.restoreStateMut(this.stateBackupsIndex);
-				if (this.stateBackupsIndex === this.stateBackups.length - 1) {
-					this.outUndoRedo = false;
-				}
+			if (!this.inUndoRedo) return;
+			++this.stateBackupsIndex;
+			this.restoreState(this.stateBackupsIndex + 1);
+			--this.stateBackupsIndex;
+			if (this.stateBackupsIndex > this.stateBackups.length - 2) {
+				this.inUndoRedo = false;
 			}
 		},
 		unload() {
@@ -498,12 +403,12 @@ export const useMainStore = defineStore('main', {
 					sessionStorage.getItem('places-userid')
 				)
 				.then(response => {
-					this.setServerConfigMut(response.data);
+					this.serverConfig = response.data;
 				})
 				.catch(e => {
 					console.error(e);
 					this.setMessage(this.t.m.popup.cannotGetData);
-					this.setServerConfigMut(null);
+					this.serverConfig = null;
 				})
 			;
 		},
@@ -522,7 +427,7 @@ export const useMainStore = defineStore('main', {
 				else this.currentPlace = this.places[Object.keys(this.places)[0]];
 			}
 		},
-		async setPlaces(payload) {
+		async setPlaces(payload?: {mime: string, text: string | ArrayBuffer}) {
 			// If reading from database, not importing
 			if (!payload) {
 				return axios
@@ -537,10 +442,12 @@ export const useMainStore = defineStore('main', {
 							commonPlaces: Object.assign({}, response.data.common_places),
 							folders: Object.assign({}, response.data.folders),
 						});
+						this.backup = false;
 						this.setHomePlace(this.user.homeplace
 							? this.user.homeplace
 							: null
 						);
+						this.backup = true;
 						this.setFirstCurrentPlace();
 						this.updateMap({
 							latitude: this.waypoints[this.currentPlace.waypoint].latitude,
@@ -856,13 +763,13 @@ export const useMainStore = defineStore('main', {
 				}
 				return true;
 			}
-			let parsed;
+			let parsed: Record<string, any>;
 			switch (payload.mime) {
 				case 'application/json' :
-					parsed = parseJSON(payload.text);
+					parsed = parseJSON(payload.text as string);
 					break;
 				case 'application/gpx+xml' :
-					parsed = parseGPX(payload.text);
+					parsed = parseGPX(payload.text as string);
 					break;
 				default :
 					this.setMessage(
@@ -912,8 +819,10 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 		restoreObjectsAsLinks() {
-			this.setRefreshing(true);
+			this.refreshing = true;
+			this.backup = false;
 			this.setHomePlace(this.user.homeplace ? this.user.homeplace : null);
+			this.backup = true;
 			if (this.currentPlace) {
 				let place: Place = null;
 				if (this.commonPlaces[this.currentPlace.id])
@@ -922,9 +831,9 @@ export const useMainStore = defineStore('main', {
 					place = this.places[this.currentPlace.id];
 				this.currentPlace = place;
 			}
-			this.setRefreshing(false);
+			this.refreshing = false;
 		},
-		async addFolder(payload) {
+		async addFolder(payload: {folder: Folder, todb?: boolean}) {
 			this.backupState();
 			const parent = this.treeFlat[payload.folder.parent]
 				? this.treeFlat[payload.folder.parent]
@@ -935,7 +844,7 @@ export const useMainStore = defineStore('main', {
 					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
 				} else {
 					emitter.emit('toDBCompletely');
-					this.outUndoRedo = false;
+					this.inUndoRedo = false;
 				}
 			}
 			this.addFolderMut({folder: payload.folder, parent: parent});
@@ -970,7 +879,7 @@ export const useMainStore = defineStore('main', {
 			}
 			this.deleteFolders({folders: folders});
 		},
-		async deletePlaces(payload) {
+		async deletePlaces(payload: {places: Record<string, Place>, todb?: boolean}) {
 			this.backupState();
 			const
 				waypoints: Array<Waypoint> = [],
@@ -1024,11 +933,11 @@ export const useMainStore = defineStore('main', {
 					emitter.emit('toDB', {what: 'places', data: places});
 				} else {
 					emitter.emit('toDBCompletely');
-					this.outUndoRedo = false;
+					this.inUndoRedo = false;
 				}
 			}
 		},
-		async deleteFolders(payload) {
+		async deleteFolders(payload: {folders: Record<string, Folder>, todb?: boolean}) {
 			this.backupState();
 			const
 				folders: Array<Folder> = []
@@ -1045,11 +954,11 @@ export const useMainStore = defineStore('main', {
 					emitter.emit('toDB', {what: 'folders', data: folders});
 				} else {
 					emitter.emit('toDBCompletely');
-					this.outUndoRedo = false;
+					this.inUndoRedo = false;
 				}
 			}
 		},
-		async addWaypoint(payload) {
+		async addWaypoint(payload: {waypoint: Waypoint, from?: Place, todb?: boolean}) {
 			if (!!payload.todb && !this.user.testaccount) {
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {
@@ -1061,10 +970,10 @@ export const useMainStore = defineStore('main', {
 					});
 				} else {
 					emitter.emit('toDBCompletely');
-					this.outUndoRedo = false;
+					this.inUndoRedo = false;
 				}
 			}
-			this.addWaypointMut(payload.waypoint);
+			this.waypoints[payload.waypoint.id] = payload.waypoint;
 		},
 		async addPlace(payload: {place: Place, todb?: boolean}) {
 			this.backupState();
@@ -1073,19 +982,15 @@ export const useMainStore = defineStore('main', {
 					emitter.emit('toDB', {what: 'places', data: [payload.place]});
 				} else {
 					emitter.emit('toDBCompletely');
-					this.outUndoRedo = false;
+					this.inUndoRedo = false;
 				}
 			}
 			this.places[payload.place.id] = payload.place;
 		},
-		async changeWaypoint(payload) {
+		async changeWaypoint(payload: Record<string, any>) {
 			let saveToDB = !!payload.todb;
 			for (const key in payload.change) {
-				this.changeWaypointMut({
-					waypoint: payload.waypoint,
-					key: key,
-					value: payload.change[key],
-				});
+				payload.waypoint[key] = payload.change[key];
 				if (
 					key === 'added' ||
 					key === 'deleted' ||
@@ -1095,11 +1000,7 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 			if (saveToDB && !this.user.testaccount) {
-				this.changeWaypointMut({
-					waypoint: payload.waypoint,
-					key: 'updated',
-					value: true,
-				});
+				payload.waypoint.updated = true;
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {
 						what: 'waypoints',
@@ -1110,11 +1011,11 @@ export const useMainStore = defineStore('main', {
 					});
 				} else {
 					emitter.emit('toDBCompletely');
-					this.outUndoRedo = false;
+					this.inUndoRedo = false;
 				}
 			}
 		},
-		async changePlace(payload) {
+		async changePlace(payload: Record<string, any>) {
 			this.backupState();
 			let saveToDB = !!payload.todb;
 			if ('latitude' in payload.change || 'longitude' in payload.change) {
@@ -1139,13 +1040,10 @@ export const useMainStore = defineStore('main', {
 			}
 			for (const key in payload.change) {
 				if (key === 'latitude' || key === 'longitude') continue;
-				this.changePlaceMut({
-					place: payload.place,
-					key: key,
-					value: key === 'srt'
-						? (Number(payload.change[key]) || 0)
-						: payload.change[key],
-				});
+				payload.place[key] = key === 'srt'
+					? (Number(payload.change[key]) || 0)
+					: payload.change[key]
+				;
 				if (
 					key === 'added' ||
 					key === 'deleted' ||
@@ -1155,43 +1053,31 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 			if (saveToDB && !this.user.testaccount) {
-				this.changePlaceMut({
-					place: payload.place,
-					key: 'updated',
-					value: true,
-				});
+				payload.place.updated = true;
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {what: 'places', data: [payload.place]});
 				} else {
 					emitter.emit('toDBCompletely');
-					this.outUndoRedo = false;
+					this.inUndoRedo = false;
 				}
 			}
 		},
-		changeFolder(payload) {
+		changeFolder(payload: Record<string, any>) {
 			this.backupState();
 			for (const key in payload.change) {
-				this.changeFolderMut({
-					folder: payload.folder,
-					key: key,
-					value: payload.change[key],
-				});
+				payload.folder[key] = payload.change[key];
 			}
 			if (!!payload.todb && !this.user.testaccount) {
-				this.changeFolderMut({
-					folder: payload.folder,
-					key: 'updated',
-					value: true,
-				});
+				payload.folder.updated = true;
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
 				} else {
 					emitter.emit('toDBCompletely');
-					this.outUndoRedo = false;
+					this.inUndoRedo = false;
 				}
 			}
 		},
-		moveFolder(payload) {
+		moveFolder(payload: Record<string, any>) {
 			let source;
 			const folder = ('folder' in payload)
 				? payload.folder
@@ -1236,7 +1122,9 @@ export const useMainStore = defineStore('main', {
 			}
 			this.changeFolder(changeFolderPayload);
 		},
-		savedToDB(payload) {
+		savedToDB(
+			payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
+		) {
 			switch (payload.what) {
 				case 'waypoints' :
 					if (payload.data) {
@@ -1295,11 +1183,15 @@ export const useMainStore = defineStore('main', {
 					}
 	
 			}
-			this.setSaved(true);
+			this.saved = true;
 		},
-		folderOpenClose(payload) {
+		folderOpenClose(payload: Record<string, any>) {
 			if (payload.folder) {
-				this.folderOpenCloseMut(payload);
+				payload.folder.opened =
+					payload.hasOwnProperty('opened')
+						? payload.opened
+						: !payload.folder.opened
+				;
 			}
 			if (payload.target) {
 				if (payload.opened) {
@@ -1315,28 +1207,46 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 		},
-		swapImages(payload) {
-			this.swapImagesMut(payload);
+		swapImages(payload: Record<string, any>) {
+			payload.place.images[payload.ids[0]].srt =
+				[
+					payload.place.images[payload.ids[1]].srt,
+					payload.place.images[payload.ids[1]].srt =
+						payload.place.images[payload.ids[0]].srt
+				][0]
+			;
+			payload.place.updated = true;
 		},
-		updateMap(payload) {
-			this.updateMapMut(payload);
+		updateMap(payload: Record<string, any>) {
+			if (typeof payload.latitude === 'number') {
+				this.center.latitude = payload.latitude;
+			}
+			if (typeof payload.longitude === 'number') {
+				this.center.longitude = payload.longitude;
+			}
+			if (typeof payload.zoom === 'number') {
+				this.zoom = payload.zoom;
+			}
 		},
-		placemarksShowHide(show?) {
-			this.placemarksShowHideMut(
-				show === undefined ? !this.placemarksShow : show
-			);
+		placemarksShowHide(show? : boolean) {
+			this.placemarksShow = show === undefined
+				? !this.placemarksShow
+				: show
+			;
 		},
-		commonPlacemarksShowHide(show?) {
-			this.commonPlacemarksShowHideMut(
-				show === undefined ? !this.commonPlacemarksShow : show
-			);
+		commonPlacemarksShowHide(show? : boolean) {
+			this.commonPlacemarksShow = show === undefined
+				? !this.commonPlacemarksShow
+				: show
+			;
 		},
-		centerPlacemarkShowHide(show?) {
-			this.centerPlacemarkShowHideMut(
-				show === undefined ? !this.centerPlacemarkShow : show
-			);
+		centerPlacemarkShowHide(show? : boolean) {
+			this.centerPlacemarkShow = show === undefined
+				? !this.centerPlacemarkShow
+				: show
+			;
 		},
-		showHideGeomarks(payload) {
+		showHideGeomarks(payload: Record<string, any>) {
 			let visibility: number;
 			const showHideSubGeomarks = (object: any, show: number | boolean) => {
 				if (object.type === 'place') {
@@ -1416,25 +1326,23 @@ export const useMainStore = defineStore('main', {
 					}, 500);
 				}
 			} else {
-				this.setMessageMut(message);
+				this.messages.push(message);
 			}
 			if (this.messageTimer) {
 				clearInterval(this.messageTimer);
 			}
-			this.setMessageTimer(
-				window.setInterval(() => {
-					if (!this.mouseOverMessages && !freeze) {
-						if (this.messages.length === 1) {
-							this.clearMessages();
-						}
-						window.setTimeout(() => {
-							this.deleteMessage(
-								this.messages[this.messages.length - 1]
-							);
-						}, 500);
+			this.messageTimer = window.setInterval(() => {
+				if (!this.mouseOverMessages && !freeze) {
+					if (this.messages.length === 1) {
+						this.clearMessages();
 					}
-				}, 3000)
-			);
+					window.setTimeout(() => {
+						this.deleteMessage(
+							this.messages[this.messages.length - 1]
+						);
+					}, 500);
+				}
+			}, 5000);
 		},
 		clearMessages() {
 			clearInterval(this.messageTimer);
@@ -1444,7 +1352,7 @@ export const useMainStore = defineStore('main', {
 				messagesContainer.classList.add('invisible');
 			}
 			window.setTimeout(() => {
-				this.clearMessagesMut();
+				this.messages = [];
 			}, 500);
 		},
 	},

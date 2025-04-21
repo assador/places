@@ -72,7 +72,7 @@
 				/>
 				<button
 					id="actions-undo"
-					:disabled="mainStore.stateBackupsIndex === 0"
+					:disabled="mainStore.stateBackupsIndex < 0"
 					class="actions-button"
 					:title="mainStore.t.i.hints.undo"
 					accesskey="z"
@@ -723,7 +723,7 @@
 				<select
 					id="choose-map-input"
 					:title="mainStore.t.i.hints.mapProvider"
-					@change="e => mainStore.changeMap((e.target as HTMLSelectElement).selectedIndex)"
+					@change="e => mainStore.activeMapIndex = (e.target as HTMLSelectElement).selectedIndex"
 				>
 					<option
 						v-for="(map, index) in maps"
@@ -977,12 +977,12 @@ const confirm = (func, args): boolean => {
 
 onMounted(async () => {
 	if (mainStore.ready) stateReadyChanged();
-	mainStore.setIdleTime(0);
+	mainStore.idleTime = 0;
 	if (!idleTimeInterval.value) {
 		idleTimeInterval.value =
 			window.setInterval(() => {
 				if (mainStore.idleTime < constants.sessionlifetime) {
-					mainStore.setIdleTime(mainStore.idleTime + 1);
+					mainStore.idleTime++;
 				} else {
 					window.clearInterval(idleTimeInterval.value);
 					idleTimeInterval.value = undefined;

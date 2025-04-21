@@ -16,7 +16,7 @@
 				class="popup-export__form"
 				@click="e => {
 					e.stopPropagation();
-					mainStore.setIdleTime(0);
+					mainStore.idleTime = 0;
 				}"
 				@submit.prevent="e => exportPlaces(
 					selectedToExport,

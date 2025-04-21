@@ -61,7 +61,7 @@
 					:placeholder="mainStore.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
 					@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
-					@click="e => {e.stopPropagation(); mainStore.setIdleTime(0);}"
+					@click="e => {e.stopPropagation(); mainStore.idleTime = 0;}"
 				/>
 				<a
 					class="folder-button__delete"
@@ -81,7 +81,7 @@
 					:placeholder="mainStore.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
 					@change="e => {mainStore.changeFolder({folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
-					@click="e => {e.stopPropagation(); mainStore.setIdleTime(0);}"
+					@click="e => {e.stopPropagation(); mainStore.idleTime = 0;}"
 				/>
 			</span>
 		</div>

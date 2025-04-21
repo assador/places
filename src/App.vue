@@ -39,8 +39,8 @@ onBeforeMount(() => {
 const mainStore = useMainStore();
 const router = useRouter();
 
-const currentPlace = ref(mainStore.currentPlace);
-const colortheme = ref(mainStore.colortheme);
+const currentPlace = computed(() => mainStore.currentPlace);
+const colortheme = computed(() => mainStore.colortheme);
 const colorthemes = computed(() => [
 	{
 		value: 'brown',
@@ -73,7 +73,7 @@ provide('colorthemes', colorthemes);
 emitter.on('logged', async () => {
 	await mainStore.setUser();
 	await mainStore.setServerConfig();
-	await mainStore.setPlaces(false);
+	await mainStore.setPlaces();
 	await mainStore.setUsers('common');
 	mainStore.ready = true;
 	router.push({name: 'PlacesHome'});
@@ -146,8 +146,8 @@ onMounted(() => {
 	if (sessionStorage.getItem('places-store-state')) {
 		mainStore.replaceState(JSON.parse(sessionStorage.getItem('places-store-state')));
 	}
-	document.addEventListener('mousedown', () => {mainStore.setIdleTime(0);}, false);
-	document.addEventListener('keyup', () => {mainStore.setIdleTime(0);}, false);
+	document.addEventListener('mousedown', () => {mainStore.idleTime = 0;}, false);
+	document.addEventListener('keyup', () => {mainStore.idleTime = 0;}, false);
 /*
 	mainStore.$subscribe((mutation, state) => {
 		console.log(mutation);
@@ -169,7 +169,7 @@ onMounted(() => {
 			case 'swapImages':
 			case 'undo':
 			case 'redo':
-				mainStore.setSaved(false);
+				mainStore.saved = false;
 				break;
 		}
 	});
@@ -264,64 +264,62 @@ const toDB = async (
 provide('toDB', toDB);
 
 const toDBCompletely = async (): Promise<void> => {
-	if (!mainStore.user.testaccount) {
-		const
-			waypoints: Array<Waypoint> = [],
-			places: Array<Place> = [],
-			folders: Array<Folder> = []
-		;
-		for (const waypoint of Object.values(mainStore.waypoints)) {
-			if (
-				(waypoint as Waypoint).added ||
-				(waypoint as Waypoint).deleted ||
-				(waypoint as Waypoint).updated
-			) {
-				waypoints.push(waypoint as Waypoint);
-			}
+	if (mainStore.user.testaccount) return;
+	const
+		waypoints: Array<Waypoint> = [],
+		places: Array<Place> = [],
+		folders: Array<Folder> = []
+	;
+	for (const waypoint of Object.values(mainStore.waypoints)) {
+		if (
+			(waypoint as Waypoint).added ||
+			(waypoint as Waypoint).deleted ||
+			(waypoint as Waypoint).updated
+		) {
+			waypoints.push(waypoint as Waypoint);
 		}
-		for (const place of Object.values(mainStore.places)) {
-			if (
-				(place as Place).added ||
-				(place as Place).deleted ||
-				(place as Place).updated
-			) {
-				places.push(place as Place);
-			}
-		}
-		for (const folder of Object.values(mainStore.treeFlat)) {
-			if (
-				(folder as Folder).added ||
-				(folder as Folder).deleted ||
-				(folder as Folder).updated
-			) {
-				folders.push(folder as Folder);
-			}
-		}
-		await toDB({what: 'waypoints', data: waypoints});
-		await toDB({what: 'places', data: places});
-		await toDB({what: 'folders', data: folders});
 	}
+	for (const place of Object.values(mainStore.places)) {
+		if (
+			(place as Place).added ||
+			(place as Place).deleted ||
+			(place as Place).updated
+		) {
+			places.push(place as Place);
+		}
+	}
+	for (const folder of Object.values(mainStore.treeFlat)) {
+		if (
+			(folder as Folder).added ||
+			(folder as Folder).deleted ||
+			(folder as Folder).updated
+		) {
+			folders.push(folder as Folder);
+		}
+	}
+	await toDB({what: 'waypoints', data: waypoints});
+	await toDB({what: 'places', data: places});
+	await toDB({what: 'folders', data: folders});
 };
 provide('toDBCompletely', toDBCompletely);
 
 const homeToDB = async (id: string): Promise<void> => {
-	if (!mainStore.user.testaccount) {
-		return axios.post(
-			'/backend/set_home.php',
-			{id: sessionStorage.getItem('places-userid'), data: id}
-		)
-			.then(() => {
-				mainStore.setSaved(true);
-				mainStore.setMessage(
-					mainStore.t.m.popup.savedToDb
-				);
-			})
-			.catch(error => {
-				mainStore.setMessage(
-					mainStore.t.m.popup.cannotSendDataToDb + ': ' + error
-				);
-			});
-	}
+	if (mainStore.user.testaccount) return;
+	return axios.post(
+		'/backend/set_home.php',
+		{id: sessionStorage.getItem('places-userid'), data: id}
+	)
+		.then(() => {
+			mainStore.saved = true;
+			mainStore.setMessage(
+				mainStore.t.m.popup.savedToDb
+			);
+		})
+		.catch(error => {
+			mainStore.setMessage(
+				mainStore.t.m.popup.cannotSendDataToDb + ': ' + error
+			);
+		});
 };
 const deleteImages = (images: Record<string, Image>, family?: boolean): void => {
 	const data = new FormData();
@@ -434,7 +432,7 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 provide('exportPlaces', exportPlaces);
 
 const handleDragStart = (event: Event, type?: string): void => {
-	mainStore.setIdleTime(0);
+	mainStore.idleTime = 0;
 	(event as any).dataTransfer.setData('text/plain', null);
 	(draggingElement.value as Element) = (event.target as Element);
 	if (type) draggingType.value = type;

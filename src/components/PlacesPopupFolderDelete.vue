@@ -121,21 +121,13 @@ const markNestedAsDeleted = (folderCont: Folder): void => {
 	// Mark places and folders in the currently deleted folder as deleted
 	for (const id in mainStore.places) {
 		if (mainStore.places[id].folderid === folderCont.id) {
-			mainStore.changePlaceMut({
-				place: mainStore.places[id],
-				key: 'deleted',
-				value: true,
-			});
+			mainStore.places[id].deleted = true;
 			places.value[id] = mainStore.places[id];
 		}
 	}
 	if (folderCont.children) {
 		for (const id in folderCont.children) {
-			mainStore.changeFolderMut({
-				folder: folderCont.children[id],
-				key: 'deleted',
-				value: true,
-			});
+			folderCont.children[id].deleted = true;
 			folders.value[id] = folderCont.children[id];
 			markNestedAsDeleted(folderCont.children[id]);
 		}
@@ -214,7 +206,7 @@ const deleteFolder = async (event: Event): Promise<void> => {
 						Object.keys(folder.value.children)[0]
 					]
 				;
-				await mainStore.moveFolder({
+				mainStore.moveFolder({
 					folder: folder.value.children[
 						Object.keys(folder.value.children)[0]
 					],
@@ -238,7 +230,6 @@ const deleteFolder = async (event: Event): Promise<void> => {
 		}
 	}
 	mainStore.deleteFolders({folders: {[folder.value.id]: folder.value}});
-	emitter.emit('refreshMapMarks');
 	close(event);
 };
 
