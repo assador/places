@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.10.6</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.10.7</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
@@ -21,16 +21,28 @@
 							class="fieldwidth_100"
 							required
 							type="text"
-							:placeholder="mainStore.t.i.inputs.regLogin"
+							:placeholder="
+								mainStore.t.i.inputs.regLogin + ' ' +
+								mainStore.t.i.inputs.authTest
+							"
+							autofocus
 						/>
-						<input
-							id="authPassword"
-							v-model.trim="authPassword"
-							class="fieldwidth_100"
-							required
-							type="password"
-							:placeholder="mainStore.t.i.inputs.regPassword"
-						/>
+						<div class="password nobr">
+							<input
+								id="authPassword"
+								v-model.trim="authPassword"
+								class="fieldwidth_100"
+								required
+								type="password"
+								:placeholder="
+									mainStore.t.i.inputs.regPassword + ' ' +
+									mainStore.t.i.inputs.authTest
+								"
+							/>
+							<button @click="e => passwordShowHide((e.target as Element).previousElementSibling as HTMLInputElement)">
+								👀
+							</button>
+						</div>
 					</div>
 					<div class="margin_bottom">
 						<button type="submit">
@@ -94,22 +106,32 @@
 						type="text"
 						:placeholder="mainStore.t.i.inputs.regAddressBy"
 					/>
-					<input
-						id="regPassword"
-						v-model.trim="regPassword"
-						class="fieldwidth_100"
-						required
-						type="password"
-						:placeholder="mainStore.t.i.inputs.regPassword"
-					/>
-					<input
-						id="regPasswordRepeat"
-						v-model.trim="regPasswordRepeat"
-						class="fieldwidth_100"
-						required
-						type="password"
-						:placeholder="mainStore.t.i.inputs.regRepeatPassword"
-					/>
+					<div class="password nobr">
+						<input
+							id="regPassword"
+							v-model.trim="regPassword"
+							class="fieldwidth_100"
+							required
+							type="password"
+							:placeholder="mainStore.t.i.inputs.regPassword"
+						/>
+						<button @click="e => passwordShowHide((e.target as Element).previousElementSibling as HTMLInputElement)">
+							👀
+						</button>
+					</div>
+					<div class="password nobr">
+						<input
+							id="regPasswordRepeat"
+							v-model.trim="regPasswordRepeat"
+							class="fieldwidth_100"
+							required
+							type="password"
+							:placeholder="mainStore.t.i.inputs.regRepeatPassword"
+						/>
+						<button @click="e => passwordShowHide((e.target as Element).previousElementSibling as HTMLInputElement)">
+							👀
+						</button>
+					</div>
 					<input
 						id="regEmail"
 						v-model.trim="regEmail"
@@ -166,8 +188,8 @@ import PWAPrompt from './PWAPrompt.vue';
 const mainStore = useMainStore();
 const router = useRouter();
 
-const authLogin = ref('test');
-const authPassword = ref('test');
+const authLogin = ref('');
+const authPassword = ref('');
 const regLogin = ref('');
 const regName = ref('');
 const regPassword = ref('');
@@ -176,6 +198,9 @@ const regEmail = ref('');
 const regPhone = ref('');
 const forgotEmail = ref('');
 
+const passwordShowHide = (input: HTMLInputElement): void => {
+	input.type = input.type === 'password' ? input.type = 'text' : 'password';
+}
 const authLoginSubmit = (): void => {
 	loginRoutine({
 		authLogin: authLogin.value,
@@ -216,3 +241,6 @@ onUpdated(async () => {
 	makeFieldsValidatable(mainStore.t);
 });
 </script>
+
+<style lang="scss" scoped>
+</style>

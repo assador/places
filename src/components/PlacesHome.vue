@@ -85,7 +85,7 @@
 					id="actions-redo"
 					:disabled="
 						!mainStore.stateBackups ||
-						mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1
+						mainStore.stateBackupsIndex >= mainStore.stateBackups.length - 2
 					"
 					class="actions-button"
 					:title="mainStore.t.i.hints.redo"
