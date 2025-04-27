@@ -298,27 +298,29 @@
 								: `${mainStore.t.i.captions.measureChoose}:`
 						}}
 					</span>
-					<button
-						:title="mainStore.t.i.buttons.specify"
-						:class="mainStore.measure.choosing === index ? 'button-pressed' : ''"
-						@click="
-							mainStore.measure.choosing =
-								mainStore.measure.choosing === index
-									? mainStore.measure.places.length
-									: index
-						"
-					>
-						<span>↪</span>
-					</button>
-					<button
-						:title="mainStore.t.i.buttons.clear"
-						@click="
-							mainStore.measure.places.splice(index, 1);
-							mainStore.measure.choosing = mainStore.measure.places.length;
-						"
-					>
-						<span>⊗</span>
-					</button>
+					<span class="control-buttons">
+						<button
+							:title="mainStore.t.i.buttons.specify"
+							:class="mainStore.measure.choosing === index ? 'button-pressed' : ''"
+							@click="
+								mainStore.measure.choosing =
+									mainStore.measure.choosing === index
+										? mainStore.measure.places.length
+										: index
+							"
+						>
+							<span>↪</span>
+						</button>
+						<button
+							:title="mainStore.t.i.buttons.clear"
+							@click="
+								mainStore.measure.places.splice(index, 1);
+								mainStore.measure.choosing = mainStore.measure.places.length;
+							"
+						>
+							<span>⊗</span>
+						</button>
+					</span>
 				</dd>
 				<dd
 					v-if="mainStore.measure.places.length > 0"
@@ -343,26 +345,27 @@
 					ref="searchInput"
 					:placeholder="mainStore.t.i.inputs.searchPlaces"
 					:title="mainStore.t.i.inputs.searchPlaces"
-					class="find-places-input fontsize_n"
 					@keyup="searchInputEvent"
 				/>
-				<button
-					:title="mainStore.t.i.buttons.find"
-					@click="selectPlaces(searchInput.value)"
-				>
-					<span>↪</span>
-				</button>
-				<button
-					:title="mainStore.t.i.buttons.clear"
-					@click="
-						if (searchInput.value !== '') {
-							searchInput.value = '';
-							selectPlaces(searchInput.value);
-						}
-					"
-				>
-					<span>⊗</span>
-				</button>
+				<span class="control-buttons">
+					<button
+						:title="mainStore.t.i.buttons.find"
+						@click="selectPlaces(searchInput.value)"
+					>
+						<span>↪</span>
+					</button>
+					<button
+						:title="mainStore.t.i.buttons.clear"
+						@click="
+							if (searchInput.value !== '') {
+								searchInput.value = '';
+								selectPlaces(searchInput.value);
+							}
+						"
+					>
+						<span>⊗</span>
+					</button>
+				</span>
 			</div>
 			<div id="basic-left__places">
 				<div
@@ -1637,37 +1640,30 @@ const selectPlaces = (text: string): void => {
 	font-size: 55%;
 	text-transform: lowercase;
 }
-.control-search {
-	display: grid;
-	grid-template-columns: 1fr auto auto;
+.control-search, .control-range, .control-measure dd {
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: flex-end;
 	gap: 8px;
-	align-items: center;
 	margin-top: 8px;
-	input {
-		width: 100%;
-	}
-	.actions-button {
-		margin: 0;
-	}
-}
-.control-range, .control-measure dd {
-	display: grid;
-	grid-template-columns: 1fr auto auto;
-	gap: 8px;
+	padding-left: 0;
 	align-items: center;
-}
-.control-measure {
-	padding-bottom: 8px;
-	dd.control-measure-clearall {
-		grid-template-columns: 1fr auto;
-		strong {
-			text-align: right;
+	> *, .actions-button {
+		flex: 0 1 auto;
+		&:first-child {
+			flex: 1 1 auto;
+			min-width: 3em;
 		}
 	}
 }
-.control-range, .control-measure, .control-measure dd {
-	margin: 8px 0 0 0;
-	padding-left: 0;
+.control-search > *:first-child {
+	flex-basis: 0;
+}
+.control-measure {
+	padding: 8px 0;
+	strong {
+		text-align: right;
+	}
 }
 #basic-left__places {
 	margin-top: 1rem;
