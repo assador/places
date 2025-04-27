@@ -3,29 +3,30 @@
 	<div class="control-panel">
 		<div class="control-panel__checkuncheck">
 			<button
-				:title="mainStore.t.i.buttons.uncheckAll"
-				@click="checkAll(false)"
+				:title="mainStore.t.i.buttons[checkedAll ? 'uncheckAll' : 'checkAll']"
+				@click="checkAll(checkedAll ? false : true)"
 			>
-				<img src="@/assets/icons/dark/uncheck.svg" />
-			</button>
-			<button
-				:title="mainStore.t.i.buttons.checkAll"
-				@click="checkAll(true)"
-			>
-				<img src="@/assets/icons/dark/check.svg" />
+				<img
+					v-if="checkedAll"
+					src="@/assets/icons/dark/uncheck.svg"
+				/>
+				<img
+					v-else
+					src="@/assets/icons/dark/check.svg"
+				/>
 			</button>
 		</div>
 		<div class="control-panel__tablemode">
 			<button
 				:title="mainStore.t.i.buttons.viewTable"
 				@click="tableMode = 1"
-				>
+			>
 				<img src="@/assets/icons/dark/list.svg" />
 			</button>
 			<button
 				:title="mainStore.t.i.buttons.viewTiles"
 				@click="tableMode = 2"
-				>
+			>
 				<img src="@/assets/icons/dark/tiles.svg" />
 			</button>
 			<button
@@ -76,17 +77,22 @@
 			:class="{'active': tableMode !== 1 && user.checked}"
 		>
 			<div class="user-actions">
-				<input
-					type="checkbox"
-					:checked="user.checked"
-					@change="e => {
-						adminStore.change({
-							where: user,
-							what: 'checked',
-							to: (e.target as HTMLInputElement).checked,
-						});
-					}"
-				/>
+				<label>
+					<input
+						type="checkbox"
+						:checked="user.checked"
+						@change="e => {
+							adminStore.change({
+								where: user,
+								what: 'checked',
+								to: (e.target as HTMLInputElement).checked,
+							});
+							if (!(e.target as HTMLInputElement).checked)
+								checkedAll = false
+							;
+						}"
+					/>
+				</label>
 			</div>
 			<template
 				v-for="(value, key) in user"
@@ -158,6 +164,7 @@ onMounted(() => {
 
 const users = computed(() => adminStore.users);
 
+const checkedAll = ref(false);
 const checkAll = (check: boolean): void => {
 	for (const user of adminStore.users) {
 		adminStore.change({
@@ -166,6 +173,7 @@ const checkAll = (check: boolean): void => {
 			to: check,
 		});
 	}
+	checkedAll.value = check;
 }
 </script>
 
@@ -200,7 +208,5 @@ const checkAll = (check: boolean): void => {
 }
 .user-actions {
 	display: flex;
-	align-items: baseline;
-	margin: 6px 0;
 }
 </style>

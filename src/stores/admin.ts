@@ -8,7 +8,7 @@ export interface IAdminState {
 	groupsSortBy: string,
 }
 
-export const useAdminStore = defineStore('main', {
+export const useAdminStore = defineStore('admin', {
 	state: (): IAdminState => ({
 		users: [],
 		groups: [],

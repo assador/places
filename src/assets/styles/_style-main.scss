@@ -761,6 +761,7 @@ $col-36: rgb(0, 0, 0);
 		& > * {
 			display: contents;
 			border-bottom: 1px solid $color-71;
+			min-height: 0;
 			&:last-child {
 				border-bottom: none;
 			}
