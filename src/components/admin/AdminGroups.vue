@@ -28,52 +28,54 @@
 			</button>
 		</div>
 	</div>
-	<div :class="'table table-' + tableMode + ' table-' + tableMode + '_7'">
-		<div v-if="tableMode === 1">
-			<h3
-				v-for="(value, key) in sortKeys"
-				:key="key"
-			>
-				{{ value }}
-			</h3>
-		</div>
-		<div
-			v-for="(group, index) in groups"
-			:key="index"
-		>
-			<template
-				v-for="(value, key) in group"
-				:key="key"
-			>
-				<div
-					v-if="
-						(value !== '' || tableMode === 1) &&
-						key as unknown as string !== 'checked'
-					"
+	<div class="table">
+		<div :class="`table-${tableMode} table-${tableMode}_7`">
+			<div v-if="tableMode === 1">
+				<h3
+					v-for="(value, key) in sortKeys"
+					:key="key"
 				>
-					<div v-if="tableMode !== 1">
-						{{ sortKeys[key] }}
+					{{ value }}
+				</h3>
+			</div>
+			<div
+				v-for="(group, index) in groups"
+				:key="index"
+			>
+				<template
+					v-for="(value, key) in group"
+					:key="key"
+				>
+					<div
+						v-if="
+							(value !== '' || tableMode === 1) &&
+							key as unknown as string !== 'checked'
+						"
+					>
+						<div v-if="tableMode !== 1">
+							{{ sortKeys[key] }}
+						</div>
+						<div :class="{'impvalue': key as unknown as string === sortBy}">
+							<a
+								v-if="key as unknown as string === 'owner'"
+								href="javascript:void(0)"
+								@click="goToUser(value)"
+							>
+								{{ adminStore.users.find(u => u.id === value).login }}
+							</a>
+							<span v-else>
+								{{ (typeof value === 'boolean'
+									? (value === true
+										? mainStore.t.i.text.yes
+										: mainStore.t.i.text.no
+									)
+									: value
+								) }}
+							</span>
+						</div>
 					</div>
-					<div :class="{'impvalue': key as unknown as string === sortBy}">
-						<a
-							v-if="key as unknown as string === 'owner'"
-							href="javascript:void(0)"
-							@click="goToUser(value)"
-						>
-							{{ adminStore.users.find(u => u.id === value).login }}
-						</a>
-						<span v-else>
-							{{ (typeof value === 'boolean'
-								? (value === true
-									? mainStore.t.i.text.yes
-									: mainStore.t.i.text.no
-								)
-								: value
-							) }}
-						</span>
-					</div>
-				</div>
-			</template>
+				</template>
+			</div>
 		</div>
 	</div>
 </template>
@@ -128,28 +130,32 @@ const goToUser = (id: string): void => {
 </script>
 
 <style lang="scss" scoped>
+h1, h3 {
+	margin: 0;
+}
 .control-panel {
-	display: grid;
-	grid-template-columns: 1fr auto;
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
 	& > * {
 		display: flex;
 		gap: 12px;
 		align-items: center;
 	}
+	button {
+		min-width: 32px;
+	}
 }
 .table {
-	position: absolute;
-	top: 80px; right: 0; bottom: 0; left: 0;
+	margin-top: 12px;
+	padding: 6px;
 	overflow: auto;
-	h3 {
-		margin: 0;
-	}
 	.impvalue {
-		margin-top: -5px;
-		font-size: 180%;
+		margin-top: -0.3rem;
+		font-size: 1.5rem;
 	}
-	&.table-1 {
-		top: 100px; right: 6px; bottom: 6px;
-	}
+}
+.user-actions {
+	display: flex;
 }
 </style>

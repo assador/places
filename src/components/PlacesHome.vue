@@ -3,7 +3,7 @@
 		id="grid"
 		ref="root"
 		:class="`sbs_${sbs}`"
-		:style="!compact ? ('grid-template-rows: ' + sidebarSize.top + 'px 1fr ' + sidebarSize.bottom + 'px; grid-template-columns: ' + sidebarSize.left + 'px 1fr ' + sidebarSize.right + 'px;') : ''"
+		:style="gridStyle"
 		@mousemove="e => documentMouseOver(e)"
 		@touchmove="e => documentMouseOver(e)"
 		@mouseup="sidebarDragStop"
@@ -427,30 +427,6 @@
 				⤧
 			</div>
 			<component :is="maps[mainStore.activeMapIndex].component" />
-			<div
-				id="sbs-top"
-				:style="'left: 0; right: -' + sidebarSize.right + 'px;'"
-				@mousedown="e => sidebarDragStart(e, 'top')"
-				@touchstart="e => sidebarDragStart(e, 'top')"
-			/>
-			<div
-				id="sbs-right"
-				:style="'top: -' + (sidebarSize.top + sidebarSize.left) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-				@mousedown="e => sidebarDragStart(e, 'right')"
-				@touchstart="e => sidebarDragStart(e, 'right')"
-			/>
-			<div
-				id="sbs-bottom"
-				:style="'left: -' + sidebarSize.left + 'px; right: -' + sidebarSize.right + 'px;'"
-				@mousedown="e => sidebarDragStart(e, 'bottom')"
-				@touchstart="e => sidebarDragStart(e, 'bottom')"
-			/>
-			<div
-				id="sbs-left"
-				:style="'top: -' + (sidebarSize.top + sidebarSize.left) + 'px; bottom: -' + sidebarSize.bottom + 'px;'"
-				@mousedown="e => sidebarDragStart(e, 'left')"
-				@touchstart="e => sidebarDragStart(e, 'left')"
-			/>
 		</div>
 		<div
 			id="basic-right"
@@ -773,27 +749,35 @@
 				</span>
 			</div>
 		</div>
-		<div
-			v-if="compact"
-			id="sbs-up"
-			class="button"
-			@click="sbsTo('up')"
-			>
-			🞁
-		</div>
-		<div
-			v-if="compact"
-			id="sbs-down"
-			class="button"
-			@click="sbsTo('down')"
-		>
-			🞃
-		</div>
 		<router-view />
 		<places-popup-confirm
 			v-if="confirmPopup"
 			:callback="confirmCallback"
 			:arguments="confirmCallbackArgs"
+		/>
+		<div
+			id="sbs-top"
+			:style="`top: ${sidebarSize.top - 11}px`"
+			@mousedown="e => sidebarDragStart(e, 'top')"
+			@touchstart="e => sidebarDragStart(e, 'top')"
+		/>
+		<div
+			id="sbs-right"
+			:style="`right: ${sidebarSize.right - 11}px`"
+			@mousedown="e => sidebarDragStart(e, 'right')"
+			@touchstart="e => sidebarDragStart(e, 'right')"
+		/>
+		<div
+			id="sbs-bottom"
+			:style="`bottom: ${sidebarSize.bottom - 11}px`"
+			@mousedown="e => sidebarDragStart(e, 'bottom')"
+			@touchstart="e => sidebarDragStart(e, 'bottom')"
+		/>
+		<div
+			id="sbs-left"
+			:style="`left: ${sidebarSize.left - 11}px`"
+			@mousedown="e => sidebarDragStart(e, 'left')"
+			@touchstart="e => sidebarDragStart(e, 'left')"
 		/>
 	</div>
 </template>
@@ -879,8 +863,32 @@ const sidebarSize = ref({
 });
 const sidebarDrag = ref({what: null as unknown, x: 0, y: 0, w: 0, h: 0});
 const sbs = ref('all');
-const compact = ref(false as boolean | number);
-provide('compact', compact);
+
+const compact = ref(0);
+watch(compact, () => {
+	let sidebars = constants.sidebars;
+	switch (compact.value) {
+		case 0:
+			sidebars = constants.sidebars;
+			break;
+		case 1:
+			sidebars = constants.sidebarsCompact;
+			break;
+		default:
+			sidebars = constants.sidebarsCompactUltra;
+			break;
+	}
+	sidebarSize.value.top = sidebars.top;
+	sidebarSize.value.right = sidebars.right;
+	sidebarSize.value.bottom = sidebars.bottom;
+	sidebarSize.value.left = sidebars.left;
+});
+const gridStyle = computed((): string => `
+	grid-template-rows:
+	${sidebarSize.value.top}px 1fr ${sidebarSize.value.bottom}px;
+	grid-template-columns:
+	${sidebarSize.value.left}px 1fr ${sidebarSize.value.right}px;
+`);
 const linkEditing = ref(false);
 const orderedCurrentPlaceFields = ref([
 	'name',
@@ -1514,10 +1522,12 @@ const sbsTo = (to?: string): void => {
 	}
 }
 const windowResize = (): void => {
-	if (window.innerWidth > constants.compactWidth) {
-		compact.value = false;
+	if (window.innerWidth > constants.compact) {
+		compact.value = 0;
+	} else if (window.innerWidth > constants.compactUltra) {
+		compact.value = 1;
 	} else {
-		compact.value = true;
+		compact.value = 2;
 	}
 };
 const sidebarDragStart = (event: Event, what: string): void => {

@@ -46,6 +46,19 @@ export const constants = {
 		bottom : 60,
 		left   : 250,
 	},
-	compactWidth: 850,
+	sidebarsCompact: {
+		top    : 100,
+		right  : 150,
+		bottom : 60,
+		left   : 150,
+	},
+	sidebarsCompactUltra: {
+		top    : 100,
+		right  : 0,
+		bottom : 60,
+		left   : 0,
+	},
+	compact: 850,
+	compactUltra: 500,
 	earthRadius: 6371,
 };

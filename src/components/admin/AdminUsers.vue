@@ -61,68 +61,70 @@
 			</button>
 		</div>
 	</div>
-	<div :class="'table table-' + tableMode + ' table-' + tableMode + '_7'">
-		<div v-if="tableMode === 1">
-			<div />
-			<h3
-				v-for="(value, key) in sortKeys"
-				:key="key"
-			>
-				{{ value }}
-			</h3>
-		</div>
-		<div
-			v-for="(user, index) in users"
-			:key="index"
-			:class="{'active': tableMode !== 1 && user.checked}"
-		>
-			<div class="user-actions">
-				<label>
-					<input
-						type="checkbox"
-						:checked="user.checked"
-						@change="e => {
-							adminStore.change({
-								where: user,
-								what: 'checked',
-								to: (e.target as HTMLInputElement).checked,
-							});
-							if (!(e.target as HTMLInputElement).checked)
-								checkedAll = false
-							;
-						}"
-					/>
-				</label>
-			</div>
-			<template
-				v-for="(value, key) in user"
-				:key="key"
-			>
-				<div
-					v-if="
-						(value !== '' || tableMode === 1) &&
-						key as unknown as string !== 'id' &&
-						key as unknown as string !== 'password' &&
-						key as unknown as string !== 'token' &&
-						key as unknown as string !== 'homeplace' &&
-						key as unknown as string !== 'checked'
-					"
-					:class="{'active': tableMode === 1 && user.checked}"
+	<div class="table">
+		<div :class="`table-${tableMode} table-${tableMode}_7`">
+			<div v-if="tableMode === 1">
+				<div />
+				<h3
+					v-for="(value, key) in sortKeys"
+					:key="key"
 				>
-					<div v-if="tableMode !== 1">
-						{{ sortKeys[key] }}
-					</div>
-					<div :class="{'impvalue': key as unknown as string === sortBy}">
-						{{ (typeof value === 'boolean'
-							? (value === true
-								? mainStore.t.i.text.yes
-								: mainStore.t.i.text.no
-							)
-							: value
-						) }}
-					</div>
+					{{ value }}
+				</h3>
+			</div>
+			<div
+				v-for="(user, index) in users"
+				:key="index"
+				:class="{'active': tableMode !== 1 && user.checked}"
+			>
+				<div class="user-actions">
+					<label>
+						<input
+							type="checkbox"
+							:checked="user.checked"
+							@change="e => {
+								adminStore.change({
+									where: user,
+									what: 'checked',
+									to: (e.target as HTMLInputElement).checked,
+								});
+								if (!(e.target as HTMLInputElement).checked)
+									checkedAll = false
+								;
+							}"
+						/>
+					</label>
 				</div>
-			</template>
+				<template
+					v-for="(value, key) in user"
+					:key="key"
+				>
+					<div
+						v-if="
+							(value !== '' || tableMode === 1) &&
+							key as unknown as string !== 'id' &&
+							key as unknown as string !== 'password' &&
+							key as unknown as string !== 'token' &&
+							key as unknown as string !== 'homeplace' &&
+							key as unknown as string !== 'checked'
+						"
+						:class="{'active': tableMode === 1 && user.checked}"
+					>
+						<div v-if="tableMode !== 1">
+							{{ sortKeys[key] }}
+						</div>
+						<div :class="{'impvalue': key as unknown as string === sortBy}">
+							{{ (typeof value === 'boolean'
+								? (value === true
+									? mainStore.t.i.text.yes
+									: mainStore.t.i.text.no
+								)
+								: value
+							) }}
+						</div>
+					</div>
+				</template>
+			</div>
 		</div>
 	</div>
 </template>
@@ -178,10 +180,13 @@ const checkAll = (check: boolean): void => {
 </script>
 
 <style lang="scss" scoped>
+h1, h3 {
+	margin: 0;
+}
 .control-panel {
 	display: flex;
-	gap: 24px;
-	flex-wrap: nowrap;
+	gap: 12px;
+	flex-wrap: wrap;
 	& > * {
 		display: flex;
 		gap: 12px;
@@ -192,18 +197,12 @@ const checkAll = (check: boolean): void => {
 	}
 }
 .table {
-	position: absolute;
-	top: 80px; right: 0; bottom: 0; left: 0;
+	margin-top: 12px;
+	padding: 6px;
 	overflow: auto;
-	h3 {
-		margin: 0;
-	}
 	.impvalue {
-		margin-top: -5px;
-		font-size: 180%;
-	}
-	&.table-1 {
-		top: 100px; right: 6px; bottom: 6px;
+		margin-top: -0.3rem;
+		font-size: 1.5rem;
 	}
 }
 .user-actions {
