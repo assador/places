@@ -5,7 +5,10 @@ import { emitter } from './bus';
 export const login = reactive({
 	message: '',
 });
-export const loginRoutine = (user: {authLogin: string, authPassword: string}, voc) => {
+export const loginRoutine = (
+	user: {authLogin: string, authPassword: string},
+	voc: Record<string, any>
+) => {
 	axios.post('/backend/auth.php', user)
 		.then(response => {
 			switch (response.data) {
@@ -20,6 +23,7 @@ export const loginRoutine = (user: {authLogin: string, authPassword: string}, vo
 						emitter.emit('logged');
 					}
 			}
+			console.log(response);
 		})
 		.catch(e => {
 			console.error(e);

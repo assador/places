@@ -57,9 +57,9 @@
 						</div>
 						<div :class="{'impvalue': key as unknown as string === sortBy}">
 							<a
-								v-if="key as unknown as string === 'owner'"
+								v-if="key === 'owner'"
 								href="javascript:void(0)"
-								@click="goToUser(value)"
+								@click="goToUser(value as string)"
 							>
 								{{ adminStore.users.find(u => u.id === value).login }}
 							</a>

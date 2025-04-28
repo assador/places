@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.10.11</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.11.0</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
@@ -39,7 +39,13 @@
 									mainStore.t.i.inputs.authTest
 								"
 							/>
-							<button @click="e => passwordShowHide((e.target as Element).previousElementSibling as HTMLInputElement)">
+							<button @click="e => {
+								e.preventDefault();
+								passwordShowHide(
+									(e.target as Element)
+										.previousElementSibling as HTMLInputElement
+								);
+							}">
 								👀
 							</button>
 						</div>
@@ -112,7 +118,13 @@
 							type="password"
 							:placeholder="mainStore.t.i.inputs.regPassword"
 						/>
-						<button @click="e => passwordShowHide((e.target as Element).previousElementSibling as HTMLInputElement)">
+						<button @click="e => {
+							e.preventDefault();
+							passwordShowHide(
+								(e.target as Element)
+									.previousElementSibling as HTMLInputElement
+							);
+						}">
 							👀
 						</button>
 					</div>
@@ -125,7 +137,13 @@
 							type="password"
 							:placeholder="mainStore.t.i.inputs.regRepeatPassword"
 						/>
-						<button @click="e => passwordShowHide((e.target as Element).previousElementSibling as HTMLInputElement)">
+						<button @click="e => {
+							e.preventDefault();
+							passwordShowHide(
+								(e.target as Element)
+									.previousElementSibling as HTMLInputElement
+							);
+						}">
 							👀
 						</button>
 					</div>
@@ -170,7 +188,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUpdated } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { loginRoutine, login } from '@/shared/auth';
