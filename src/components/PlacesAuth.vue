@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.10.10</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.10.11</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
@@ -74,10 +74,7 @@
 						type="text"
 						placeholder="e-mail *"
 					/>
-					<button
-						type="submit"
-						class="margin_bottom"
-					>
+					<button type="submit">
 						{{ mainStore.t.i.buttons.sendPassword }}
 					</button>
 					<div>
@@ -86,7 +83,7 @@
 				</form>
 			</div>
 			<form
-				class="auth__registration"
+				class="auth__registration margin_bottom"
 				@submit.prevent="authRegSubmit"
 			>
 				<h2>{{ mainStore.t.i.captions.reg }}</h2>
@@ -148,10 +145,7 @@
 						:placeholder="mainStore.t.i.inputs.regPhone"
 					/>
 				</div>
-				<button
-					type="submit"
-					class="margin_bottom"
-				>
+				<button type="submit">
 					{{ mainStore.t.i.buttons.register }}
 				</button>
 				<div>
@@ -243,4 +237,36 @@ onUpdated(async () => {
 </script>
 
 <style lang="scss" scoped>
+.margin_bottom {
+	margin-bottom: 12px !important;
+}
+.auth_forms {
+	display: flex;
+	margin-bottom: 12px;
+}
+.auth__login, .auth__registration {
+	width: 50%;
+}
+.auth__login {
+	padding-right: 20px;
+	text-align: right;
+}
+.auth__registration {
+	padding-left: 20px;
+}
+.auth__login__fields, .auth__registration__fields {
+	display: grid;
+	grid-gap: 12px;
+}
+.auth__registration__fields {
+	grid-template-columns: 1fr 1fr;
+}
+#dashboard {
+	margin: -40px 0 40px 0;
+}
+@media screen and (max-width: 720px) {
+	.auth {
+		padding: 20px;
+	}
+}
 </style>

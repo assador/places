@@ -11,32 +11,15 @@ body {
 .brand, .app-cell, .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	position: relative;
 }
-.auth_forms, .account__form {
+.account__form {
 	display: flex;
 }
-.narrower, .auth_forms, .auth__login, .auth__registration {
+.narrower, .auth_forms, .account__form {
 	width: 50%;
 }
 .auth .brand, .account .brand, .popup-content .brand  {
 	top: -50px;
 	text-align: center;
-}
-.auth__login {
-	padding-right: 25px;
-	text-align: right;
-}
-.auth__registration {
-	padding-left: 25px;
-}
-.auth__login__fields, .auth__registration__fields {
-	display: grid;
-	grid-gap: 18px;
-}
-.auth__registration__fields {
-	grid-template-columns: 1fr 1fr;
-}
-.auth #dashboard {
-	margin: -40px 0 40px 0;
 }
 #a {
 	position: absolute;
@@ -289,7 +272,7 @@ body {
 	}
 }
 @media screen and (max-width: 1000px) {
-	.half-width, .auth_forms, .account__form {
+	.narrower, .auth_forms, .account__form {
 		width: 100%;
 	}
 	#basic-left .scrollable, #basic-right .scrollable {
@@ -307,21 +290,7 @@ body {
 	}
 }
 @media screen and (max-height: 450px) {
-	.auth {
-		#dashboard {
-			grid-template-rows: auto;
-			grid-template-columns: 1fr 1fr;
-			gap: 12px;
-			margin: 0;
-		}
-		.auth__login, .auth__registration {
-			margin-bottom: 12px !important;
-		}
-		#prompt-button {
-			margin-top: 12px !important;
-		}
-	}
-	.auth .brand, .account .brand, .popup-content .brand  {
+	.account .brand, .popup-content .brand  {
 		top: 0;
 	}
 }
