@@ -19,7 +19,6 @@ export const loginRoutine = (user, voc) => {
                     emitter.emit('logged');
                 }
         }
-        console.log(response);
     })
         .catch(e => {
         console.error(e);

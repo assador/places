@@ -10,6 +10,7 @@ uploads/images/small/orphaned/*
 *~
 .htaccess
 package-lock.json
+*.map
 
 /tests/e2e/logs/
 
