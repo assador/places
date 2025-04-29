@@ -23,7 +23,6 @@ export const loginRoutine = (
 						emitter.emit('logged');
 					}
 			}
-			console.log(response);
 		})
 		.catch(e => {
 			console.error(e);

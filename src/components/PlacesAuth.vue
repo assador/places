@@ -4,19 +4,20 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.11.2</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.11.3</p>
 		</div>
 		<places-dashboard />
 		<div class="auth_forms">
 			<div class="auth__login margin_bottom">
 				<form
+					ref="authLoginForm"
 					class="margin_bottom"
 					@submit.prevent="authLoginSubmit"
 				>
 					<h2>{{ mainStore.t.i.captions.auth }}</h2>
 					<div class="auth__login__fields margin_bottom">
 						<input
-							id="authLogin"
+							id="auth-login-input"
 							v-model.trim="authLogin"
 							class="fieldwidth_100"
 							required
@@ -26,10 +27,11 @@
 								mainStore.t.i.inputs.authTest
 							"
 							autofocus
-						/>
+							@keyup.enter="authLoginSubmit"
+							/>
 						<div class="password nobr">
 							<input
-								id="authPassword"
+								id="auth-password-input"
 								v-model.trim="authPassword"
 								class="fieldwidth_100"
 								required
@@ -38,9 +40,9 @@
 									mainStore.t.i.inputs.regPassword + ' ' +
 									mainStore.t.i.inputs.authTest
 								"
+								@keyup.enter="authLoginSubmit"
 							/>
-							<button @click="e => {
-								e.preventDefault();
+							<button type="button" @click.prevent="e => {
 								passwordShowHide(
 									(e.target as Element)
 										.previousElementSibling as HTMLInputElement
@@ -73,7 +75,7 @@
 				>
 					<p>{{ mainStore.t.i.text.emailToSendPassword }}</p>
 					<input
-						id="forgotEmail"
+						id="forgot-email-input"
 						v-model.trim="forgotEmail"
 						class="fieldwidth_100 margin_bottom"
 						required
@@ -89,37 +91,40 @@
 				</form>
 			</div>
 			<form
+				ref="authRegForm"
 				class="auth__registration margin_bottom"
 				@submit.prevent="authRegSubmit"
 			>
 				<h2>{{ mainStore.t.i.captions.reg }}</h2>
 				<div class="auth__registration__fields margin_bottom">
 					<input
-						id="regLogin"
+						id="reg-login-input"
 						v-model.trim="regLogin"
 						class="fieldwidth_100"
 						required
 						type="text"
 						:placeholder="mainStore.t.i.inputs.regLogin"
-					/>
+						@keyup.enter="authRegSubmit"
+						/>
 					<input
-						id="regName"
+						id="reg-name-input"
 						v-model.trim="regName"
 						class="fieldwidth_100"
 						type="text"
 						:placeholder="mainStore.t.i.inputs.regAddressBy"
+						@keyup.enter="authRegSubmit"
 					/>
 					<div class="password nobr">
 						<input
-							id="regPassword"
+							id="reg-password-input"
 							v-model.trim="regPassword"
 							class="fieldwidth_100"
 							required
 							type="password"
 							:placeholder="mainStore.t.i.inputs.regPassword"
+							@keyup.enter="authRegSubmit"
 						/>
-						<button @click="e => {
-							e.preventDefault();
+						<button type="button" @click.prevent="e => {
 							passwordShowHide(
 								(e.target as Element)
 									.previousElementSibling as HTMLInputElement
@@ -130,15 +135,15 @@
 					</div>
 					<div class="password nobr">
 						<input
-							id="regPasswordRepeat"
+							id="reg-password-repeat-input"
 							v-model.trim="regPasswordRepeat"
 							class="fieldwidth_100"
 							required
 							type="password"
 							:placeholder="mainStore.t.i.inputs.regRepeatPassword"
+							@keyup.enter="authRegSubmit"
 						/>
-						<button @click="e => {
-							e.preventDefault();
+						<button type="button" @click.prevent="e => {
 							passwordShowHide(
 								(e.target as Element)
 									.previousElementSibling as HTMLInputElement
@@ -148,19 +153,21 @@
 						</button>
 					</div>
 					<input
-						id="regEmail"
+						id="reg-email-input"
 						v-model.trim="regEmail"
 						class="fieldwidth_100"
 						required
 						type="text"
 						placeholder="e-mail *"
+						@keyup.enter="authRegSubmit"
 					/>
 					<input
-						id="regPhone"
+						id="reg-phone-input"
 						v-model.trim="regPhone"
 						class="fieldwidth_100"
 						type="text"
 						:placeholder="mainStore.t.i.inputs.regPhone"
+						@keyup.enter="authRegSubmit"
 					/>
 				</div>
 				<button type="submit">
@@ -200,6 +207,8 @@ import PWAPrompt from './PWAPrompt.vue';
 const mainStore = useMainStore();
 const router = useRouter();
 
+const authLoginForm = ref(null);
+const authRegForm = ref(null);
 const authLogin = ref('');
 const authPassword = ref('');
 const regLogin = ref('');
@@ -213,13 +222,22 @@ const forgotEmail = ref('');
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
 }
-const authLoginSubmit = (): void => {
+const authLoginSubmit = (e: Event): void => {
+	if (!authLogin.value || !authPassword.value) return;
 	loginRoutine({
 		authLogin: authLogin.value,
 		authPassword: authPassword.value,
 	}, mainStore.t);
 };
 const authRegSubmit = (): boolean => {
+	if (
+		!regLogin.value ||
+		!regPassword.value ||
+		!regPasswordRepeat.value ||
+		!regEmail.value
+	) {
+		return false;
+	}
 	if (document.querySelector('.value_wrong')) {
 		reg.message = mainStore.t.m.paged.incorrectFields;
 		return false;
