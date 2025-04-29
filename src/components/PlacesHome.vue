@@ -63,8 +63,8 @@
 		>
 			<div class="control-buttons">
 				<input
-					id="inputImportFromFile"
-					ref="inputImportFromFile"
+					id="import-from-file-input"
+					ref="importFromFileInput"
 					name="jsonFile"
 					type="file"
 					accept=".json,.gpx,text/xml,application/json"
@@ -121,7 +121,7 @@
 					class="actions-button"
 					:title="mainStore.t.i.hints.importPlaces"
 					accesskey="i"
-					@click="inputImportFromFile.click()"
+					@click="importFromFileInput.click()"
 				>
 					<span>↲</span>
 					<span>{{ mainStore.t.i.buttons.import }}</span>
@@ -246,6 +246,7 @@
 				@submit="mainStore.showInRange(mainStore.range)"
 			>
 				<input
+					id="range-input"
 					ref="rangeInput"
 					v-model="mainStore.range"
 					type="number"
@@ -342,6 +343,7 @@
 			</div>
 			<div class="control-search">
 				<input
+					id="search-input"
 					ref="searchInput"
 					:placeholder="mainStore.t.i.inputs.searchPlaces"
 					:title="mainStore.t.i.inputs.searchPlaces"
@@ -724,6 +726,7 @@
 				>
 					{{ mainStore.t.i.captions.latitude }} °:
 					<input
+						id="center-coordinates-latitude"
 						v-model.number.trim="mainStore.center.latitude"
 						placeholder="latitude"
 						title="mainStore.t.i.captions.latitude"
@@ -735,6 +738,7 @@
 				>
 					{{ mainStore.t.i.captions.longitude }} °:
 					<input
+						id="center-coordinates-longitude"
 						v-model.number.trim="mainStore.center.longitude"
 						placeholder="longitude"
 						title="mainStore.t.i.captions.longitude"
@@ -846,7 +850,7 @@ const basicOnFull = (): void => {
 }
 const extmap = ref(null);
 provide('extmap', extmap);
-const inputImportFromFile = ref(null);
+const importFromFileInput = ref(null);
 const inputUploadFiles = ref(null);
 
 const commonPlacesPage = ref(1);
@@ -1260,7 +1264,7 @@ const commonPlacesShowHide = (show = null): void => {
 provide('commonPlacesShowHide', commonPlacesShowHide);
 
 const importFromFile = (): void => {
-	const mime = (inputImportFromFile.value as HTMLInputElement).files![0].type;
+	const mime = (importFromFileInput.value as HTMLInputElement).files![0].type;
 	const reader = new FileReader();
 	reader.onload = async (event: Event) => {
 		await nextTick();
@@ -1268,11 +1272,11 @@ const importFromFile = (): void => {
 			text: (event.target as FileReader).result,
 			mime: mime,
 		});
-		(inputImportFromFile.value as HTMLInputElement).value = '';
+		(importFromFileInput.value as HTMLInputElement).value = '';
 	};
 	if (mime === 'application/json' || mime === 'application/gpx+xml') {
 		reader.readAsText(
-			(inputImportFromFile.value as HTMLInputElement).files![0]
+			(importFromFileInput.value as HTMLInputElement).files![0]
 		);
 	} else {
 		mainStore.setMessage(
@@ -1465,7 +1469,7 @@ const keyup = (event: Event): void => {
 				}
 				break;
 			case 'import' :
-				inputImportFromFile.value.click();
+				importFromFileInput.value.click();
 				break;
 			case 'export' :
 				router.push({
@@ -1666,11 +1670,13 @@ const selectPlaces = (text: string): void => {
 		}
 	}
 }
-.control-search > *:first-child {
-	flex-basis: 0;
+.control-search, .control-range, .control-measure {
+	margin: 20px 0;
+	> *:first-child {
+		flex-basis: 0;
+	}
 }
 .control-measure {
-	padding: 8px 0;
 	strong {
 		text-align: right;
 	}

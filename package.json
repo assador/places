@@ -7,6 +7,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite",
+		"clean": "vite clobber",
 		"build": "vue-tsc -b && vite build",
 		"preview": "vite preview",
 		"test": "vitest"

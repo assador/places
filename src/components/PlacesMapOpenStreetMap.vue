@@ -102,6 +102,7 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { emitter } from '@/shared/bus';
+import { L } from "leaflet";
 import {
 	LMap,
 	LTileLayer,

@@ -9,6 +9,9 @@ uploads/images/small/orphaned/*
 ~*
 *~
 .htaccess
+src/*.js
+src/*.map
+!src/*service-worker.js
 
 # local env files
 .env.local
