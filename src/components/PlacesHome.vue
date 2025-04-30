@@ -10,6 +10,13 @@
 		@touchend="sidebarDragStop"
 	>
 		<div
+			id="top-left"
+			class="app-cell"
+			:style="sidebarSize.top === 0 || sidebarSize.left === 0 ? 'display: none' : ''"
+		>
+			<div id="top-left__control-buttons-left" />
+		</div>
+		<div
 			id="top-basic"
 			class="app-cell"
 			:style="sidebarSize.top === 0 ? 'display: none' : ''"
@@ -61,184 +68,14 @@
 			class="app-cell"
 			:style="sidebarSize.top === 0 || sidebarSize.right === 0 ? 'display: none' : ''"
 		>
-			<div class="control-buttons">
-				<input
-					id="import-from-file-input"
-					ref="importFromFileInput"
-					name="jsonFile"
-					type="file"
-					accept=".json,.gpx,text/xml,application/json"
-					@change="importFromFile();"
-				/>
-				<button
-					id="actions-undo"
-					:disabled="mainStore.stateBackupsIndex < 0"
-					class="actions-button"
-					:title="mainStore.t.i.hints.undo"
-					accesskey="z"
-					@click="mainStore.undo();"
-				>
-					<span>↺</span>
-					<span>{{ mainStore.t.i.buttons.undo }}</span>
-				</button>
-				<button
-					id="actions-redo"
-					:disabled="
-						!mainStore.stateBackups ||
-						mainStore.stateBackupsIndex >= mainStore.stateBackups.length - 2
-					"
-					class="actions-button"
-					:title="mainStore.t.i.hints.redo"
-					accesskey="y"
-					@click="mainStore.redo();"
-				>
-					<span>↻</span>
-					<span>{{ mainStore.t.i.buttons.redo }}</span>
-				</button>
-				<button
-					id="actions-save"
-					:disabled="mainStore.saved"
-					:class="'actions-button' + (!mainStore.saved ? ' button-pressed' : '')"
-					:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
-					accesskey="s"
-					@click="toDBCompletely"
-				>
-					<span>↸</span>
-					<span>{{ mainStore.t.i.buttons.save }}</span>
-				</button>
-				<button
-					id="actions-install"
-					class="actions-button"
-					:title="mainStore.t.i.hints.install"
-					:disabled="installButtonEnabled"
-					@click="installPWA"
-				>
-					<span>⤓</span>
-					<span>{{ mainStore.t.i.buttons.install }}</span>
-				</button>
-				<button
-					id="actions-import"
-					class="actions-button"
-					:title="mainStore.t.i.hints.importPlaces"
-					accesskey="i"
-					@click="importFromFileInput.click()"
-				>
-					<span>↲</span>
-					<span>{{ mainStore.t.i.buttons.import }}</span>
-				</button>
-				<button
-					id="actions-export"
-					class="actions-button"
-					:title="mainStore.t.i.hints.exportPlaces"
-					accesskey="e"
-					@click="router.push({name: 'PlacesHomeExport'})"
-				>
-					<span>↱</span>
-					<span>{{ mainStore.t.i.buttons.export }}</span>
-				</button>
-				<button
-					id="actions-about"
-					class="actions-button"
-					:title="mainStore.t.i.hints.about"
-					accesskey="h"
-					@click="
-						router.push({
-							name: 'PlacesHomeText',
-							params: {what: 'about'}
-						});
-					"
-				>
-					<span>?</span>
-					<span>{{ mainStore.t.i.buttons.help }}</span>
-				</button>
-				<button
-					id="actions-exit"
-					class="actions-button"
-					:title="mainStore.t.i.hints.exit"
-					accesskey="q"
-					@click="e => {toDBCompletely().then(() => exit())}"
-				>
-					<span>↪</span>
-					<span>{{ mainStore.t.i.buttons.exit }}</span>
-				</button>
-			</div>
+			<div id="top-right__control-buttons-right" />
 		</div>
 		<div
 			id="basic-left"
 			class="app-cell"
 			:style="sidebarSize.left === 0 ? 'display: none' : ''"
 		>
-			<div class="control-buttons">
-				<button
-					id="actions-append"
-					class="actions-button"
-					:title="mainStore.t.i.hints.addPlace"
-					accesskey="a"
-					@click="appendPlace();"
-				>
-					<span>⊕</span>
-					<span>{{ mainStore.t.i.buttons.newPlace }}</span>
-				</button>
-				<button
-					id="actions-delete"
-					class="actions-button"
-					:title="mainStore.t.i.hints.deletePlace"
-					:disabled="!(mainStore.user && currentPlace && currentPlace.userid === mainStore.user.id)"
-					accesskey="d"
-					@click="mainStore.deletePlaces({places: {[currentPlace.id]: currentPlace}});"
-				>
-					<span>⊖</span>
-					<span>{{ mainStore.t.i.buttons.delete }}</span>
-				</button>
-				<button
-					id="actions-append-folder"
-					class="actions-button"
-					:title="mainStore.t.i.hints.addFolder"
-					accesskey="f"
-					@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
-				>
-					<span>⊕</span>
-					<span>{{ mainStore.t.i.buttons.newFolder }}</span>
-				</button>
-				<button
-					id="actions-edit-folders"
-					:class="'actions-button' + (foldersEditMode ? ' button-pressed' : '')"
-					:title="mainStore.t.i.hints.editFolders"
-					accesskey="c"
-					@click="foldersEditMode = !foldersEditMode;"
-				>
-					<span>🖉</span>
-					<span>{{ mainStore.t.i.buttons.editFolders }}</span>
-				</button>
-				<button
-					id="actions-range"
-					:class="'actions-button' + (mainStore.rangeShow ? ' button-pressed' : '')"
-					:title="mainStore.t.i.captions.range"
-					accesskey="r"
-					@click="e => {
-						mainStore.rangeShow = !mainStore.rangeShow;
-						mainStore.rangeShow
-						? mainStore.showInRange(mainStore.range)
-						: mainStore.showInRange(null)
-					}"
-				>
-					<span>⊘</span>
-					<span>{{ mainStore.t.i.buttons.range }}</span>
-				</button>
-				<button
-					id="actions-measure"
-					:class="'actions-button' + (mainStore.measure.show ? ' button-pressed' : '')"
-					:title="mainStore.t.i.captions.measure"
-					accesskey="m"
-					@click="e => {
-						mainStore.measure.show = !mainStore.measure.show;
-						mainStore.mode = mainStore.measure.show ? 'measure' : 'normal';
-					}"
-				>
-					<span>123</span>
-					<span>{{ mainStore.t.i.buttons.measure }}</span>
-				</button>
-			</div>
+			<div id="basic-left__control-buttons-left" />
 			<form
 				v-if="mainStore.rangeShow"
 				action="javascript:void(0)"
@@ -256,20 +93,22 @@
 					:title="mainStore.t.i.captions.range"
 					class="fieldwidth_100"
 				/>
-				<button @click="mainStore.showInRange(mainStore.range)">
-					<span>↪</span>
-				</button>
-				<button
-					:title="mainStore.t.i.buttons.clear"
-					@click="
-						if (mainStore.range !== null) {
-							mainStore.range = null;
-							mainStore.showInRange(null);
-						}
-					"
-				>
-					<span>⊗</span>
-				</button>
+				<span class="control-buttons">
+					<button @click="mainStore.showInRange(mainStore.range)">
+						<span>↪</span>
+					</button>
+					<button
+						:title="mainStore.t.i.buttons.clear"
+						@click="
+							if (mainStore.range !== null) {
+								mainStore.range = null;
+								mainStore.showInRange(null);
+							}
+						"
+					>
+						<span>⊗</span>
+					</button>
+				</span>
 			</form>
 			<div
 				v-if="mainStore.measure.show"
@@ -369,7 +208,7 @@
 					</button>
 				</span>
 			</div>
-			<div id="basic-left__places">
+			<div id="places-tree">
 				<div
 					v-if="Object.keys(mainStore.places).length > 0 || Object.keys(mainStore.folders).length > 0"
 					id="places-menu"
@@ -435,7 +274,8 @@
 			class="app-cell"
 			:style="sidebarSize.right === 0 ? 'display: none' : ''"
 		>
-			<div>
+			<div id="basic-right__control-buttons-right" />
+			<div id="place-description">
 				<div v-if="currentPlace">
 					<dl
 						v-for="field in orderedCurrentPlaceFields"
@@ -761,7 +601,11 @@
 		/>
 		<div
 			id="sbs-top"
-			:style="`top: ${sidebarSize.top - 11}px`"
+			:style="`
+				top: ${sidebarSize.top - 11}px;
+				left: ${compactControlButtons ? sidebarSize.left : 0}px;
+				right: ${compactControlButtons ? sidebarSize.right : 0}px;
+			`"
 			@mousedown="e => sidebarDragStart(e, 'top')"
 			@touchstart="e => sidebarDragStart(e, 'top')"
 		/>
@@ -784,6 +628,188 @@
 			@touchstart="e => sidebarDragStart(e, 'left')"
 		/>
 	</div>
+	<Teleport :to="compactControlButtons
+		? '#basic-left__control-buttons-left'
+		: '#top-left__control-buttons-left'
+	">
+		<div class="control-buttons">
+			<button
+				id="actions-append"
+				class="actions-button"
+				:title="mainStore.t.i.hints.addPlace"
+				accesskey="a"
+				@click="appendPlace();"
+			>
+				<span>⊕</span>
+				<span>{{ mainStore.t.i.buttons.newPlace }}</span>
+			</button>
+			<button
+				id="actions-delete"
+				class="actions-button"
+				:title="mainStore.t.i.hints.deletePlace"
+				:disabled="!(mainStore.user && currentPlace && currentPlace.userid === mainStore.user.id)"
+				accesskey="d"
+				@click="mainStore.deletePlaces({places: {[currentPlace.id]: currentPlace}});"
+			>
+				<span>⊖</span>
+				<span>{{ mainStore.t.i.buttons.delete }}</span>
+			</button>
+			<button
+				id="actions-append-folder"
+				class="actions-button"
+				:title="mainStore.t.i.hints.addFolder"
+				accesskey="f"
+				@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
+			>
+				<span>⊕</span>
+				<span>{{ mainStore.t.i.buttons.newFolder }}</span>
+			</button>
+			<button
+				id="actions-edit-folders"
+				:class="'actions-button' + (foldersEditMode ? ' button-pressed' : '')"
+				:title="mainStore.t.i.hints.editFolders"
+				accesskey="c"
+				@click="foldersEditMode = !foldersEditMode;"
+			>
+				<span>🖉</span>
+				<span>{{ mainStore.t.i.buttons.editFolders }}</span>
+			</button>
+			<button
+				id="actions-range"
+				:class="'actions-button' + (mainStore.rangeShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.captions.range"
+				accesskey="r"
+				@click="e => {
+					mainStore.rangeShow = !mainStore.rangeShow;
+					mainStore.rangeShow
+					? mainStore.showInRange(mainStore.range)
+					: mainStore.showInRange(null)
+				}"
+			>
+				<span>⊘</span>
+				<span>{{ mainStore.t.i.buttons.range }}</span>
+			</button>
+			<button
+				id="actions-measure"
+				:class="'actions-button' + (mainStore.measure.show ? ' button-pressed' : '')"
+				:title="mainStore.t.i.captions.measure"
+				accesskey="m"
+				@click="e => {
+					mainStore.measure.show = !mainStore.measure.show;
+					mainStore.mode = mainStore.measure.show ? 'measure' : 'normal';
+				}"
+			>
+				<span>123</span>
+				<span>{{ mainStore.t.i.buttons.measure }}</span>
+			</button>
+		</div>
+	</Teleport>
+	<Teleport :to="compactControlButtons
+		? '#basic-right__control-buttons-right'
+		: '#top-right__control-buttons-right'
+	">
+		<div class="control-buttons">
+			<input
+				id="import-from-file-input"
+				ref="importFromFileInput"
+				name="jsonFile"
+				type="file"
+				accept=".json,.gpx,text/xml,application/json"
+				@change="importFromFile();"
+			/>
+			<button
+				id="actions-undo"
+				:disabled="mainStore.stateBackupsIndex < 0"
+				class="actions-button"
+				:title="mainStore.t.i.hints.undo"
+				accesskey="z"
+				@click="mainStore.undo();"
+			>
+				<span>↺</span>
+				<span>{{ mainStore.t.i.buttons.undo }}</span>
+			</button>
+			<button
+				id="actions-redo"
+				:disabled="
+					!mainStore.stateBackups ||
+					mainStore.stateBackupsIndex >= mainStore.stateBackups.length - 2
+				"
+				class="actions-button"
+				:title="mainStore.t.i.hints.redo"
+				accesskey="y"
+				@click="mainStore.redo();"
+			>
+				<span>↻</span>
+				<span>{{ mainStore.t.i.buttons.redo }}</span>
+			</button>
+			<button
+				id="actions-save"
+				:disabled="mainStore.saved"
+				:class="'actions-button' + (!mainStore.saved ? ' button-pressed' : '')"
+				:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
+				accesskey="s"
+				@click="toDBCompletely"
+			>
+				<span>↸</span>
+				<span>{{ mainStore.t.i.buttons.save }}</span>
+			</button>
+			<button
+				id="actions-install"
+				class="actions-button"
+				:title="mainStore.t.i.hints.install"
+				:disabled="installButtonEnabled"
+				@click="installPWA"
+			>
+				<span>⤓</span>
+				<span>{{ mainStore.t.i.buttons.install }}</span>
+			</button>
+			<button
+				id="actions-import"
+				class="actions-button"
+				:title="mainStore.t.i.hints.importPlaces"
+				accesskey="i"
+				@click="importFromFileInput.click()"
+			>
+				<span>↲</span>
+				<span>{{ mainStore.t.i.buttons.import }}</span>
+			</button>
+			<button
+				id="actions-export"
+				class="actions-button"
+				:title="mainStore.t.i.hints.exportPlaces"
+				accesskey="e"
+				@click="router.push({name: 'PlacesHomeExport'})"
+			>
+				<span>↱</span>
+				<span>{{ mainStore.t.i.buttons.export }}</span>
+			</button>
+			<button
+				id="actions-about"
+				class="actions-button"
+				:title="mainStore.t.i.hints.about"
+				accesskey="h"
+				@click="
+					router.push({
+						name: 'PlacesHomeText',
+						params: {what: 'about'}
+					});
+				"
+			>
+				<span>?</span>
+				<span>{{ mainStore.t.i.buttons.help }}</span>
+			</button>
+			<button
+				id="actions-exit"
+				class="actions-button"
+				:title="mainStore.t.i.hints.exit"
+				accesskey="q"
+				@click="e => {toDBCompletely().then(() => exit())}"
+			>
+				<span>↪</span>
+				<span>{{ mainStore.t.i.buttons.exit }}</span>
+			</button>
+		</div>
+	</Teleport>
 </template>
 
 <script setup lang="ts">
@@ -869,6 +895,7 @@ const sidebarDrag = ref({what: null as unknown, x: 0, y: 0, w: 0, h: 0});
 const sbs = ref('all');
 
 const compact = ref(0);
+const compactControlButtons = ref(false);
 watch(compact, () => {
 	let sidebars = constants.sidebars;
 	switch (compact.value) {
@@ -1533,6 +1560,11 @@ const windowResize = (): void => {
 	} else {
 		compact.value = 2;
 	}
+	if (window.innerWidth > constants.compactControlButtons) {
+		compactControlButtons.value = false;
+	} else {
+		compactControlButtons.value = true;
+	}
 };
 const sidebarDragStart = (event: Event, what: string): void => {
 	event.preventDefault();
@@ -1681,11 +1713,8 @@ const selectPlaces = (text: string): void => {
 		text-align: right;
 	}
 }
-#basic-left__places {
-	margin-top: 1rem;
-	.place-button {
-		cursor: pointer;
-	}
+.place-button {
+	cursor: pointer;
 }
 .two-fields {
 	display: grid;

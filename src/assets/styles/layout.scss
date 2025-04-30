@@ -45,7 +45,7 @@ body {
 	top: 0; right: 0; bottom: 0; left: 0;
 	display: grid;
 	grid-template-areas:
-		"basic-left   top-basic     top-right"
+		"top-left   top-basic     top-right"
 		"basic-left   basic-basic   basic-right"
 		"bottom-left  bottom-basic  bottom-basic"
 	;
@@ -69,6 +69,11 @@ body {
 }
 #top-right {
 	grid-area: top-right;
+}
+#basic-left__control-buttons-left, #basic-right__control-buttons-right {
+	+ * {
+		margin-top: 0;
+	}
 }
 #basic-left {
 	grid-area: basic-left;
@@ -272,6 +277,21 @@ body {
 	}
 }
 @media screen and (max-width: 1000px) {
+	#grid {
+		grid-template-areas:
+			"basic-left   top-basic     basic-right"
+			"basic-left   basic-basic   basic-right"
+			"bottom-left  bottom-basic  bottom-basic"
+		;
+		#top-left, #top-right {
+			display: none;
+		}
+		#basic-left__control-buttons-left, #basic-right__control-buttons-right {
+			+ * {
+				margin-top: 20px;
+			}
+		}
+	}
 	.narrower, .auth_forms, .account__form {
 		width: 100%;
 	}

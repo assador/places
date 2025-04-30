@@ -3,7 +3,7 @@
 		<l-map
 			ref="map"
 			v-model:zoom="mapCenter.zoom"
-			:center="mapCenter.coords"
+			:center="mapCenter.coords as PointExpression"
 			@ready="ready()"
 			@moveend="updateState()"
 		>
@@ -18,7 +18,7 @@
 			/>
 			<l-marker
 				ref="centerMarker"
-				:lat-lng="mapCenter.coords"
+				:lat-lng="mapCenter.coords as LatLngExpression"
 				draggable
 				:visible="mainStore.centerPlacemarkShow ? true : false"
 				@moveend="e => updateState({
@@ -28,7 +28,7 @@
 					],
 				})"
 			>
-				<l-icon v-bind="icon_center" />
+				<l-icon v-bind="icon_center as {}" />
 				<l-tooltip>
 					{{ mainStore.t.i.maps.center }}
 				</l-tooltip>
@@ -50,11 +50,11 @@
 				@moveend="e => placemarkDragEnd(place, e)"
 			>
 				<l-icon
-					v-bind="
+					v-bind="(
 						mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_01)
-					"
+					) as {}"
 				/>
 				<l-tooltip permanent="true">
 					{{ place.name }}
@@ -62,7 +62,7 @@
 			</l-marker>
 			<l-polyline
 				v-if="mainStore.mode === 'measure' && mainStore.measure.places.length"
-				:lat-lngs="getMeasurePolylineCoords()"
+				:lat-lngs="getMeasurePolylineCoords() as LatLngExpression[]"
 				color="rgba(0, 0, 0, 1)"
 				:weight="0.5"
 			>
@@ -79,11 +79,11 @@
 				@contextmenu="e => placemarkClick(place, e.originalEvent)"
 			>
 				<l-icon
-					v-bind="
+					v-bind="(
 						mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_02)
-					"
+					) as {}"
 				/>
 				<l-tooltip>
 					{{ place.name }}<br />
@@ -102,7 +102,7 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { emitter } from '@/shared/bus';
-import { L } from "leaflet";
+import { LatLngExpression, PointExpression } from "leaflet";
 import {
 	LMap,
 	LTileLayer,
