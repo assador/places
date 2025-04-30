@@ -8,6 +8,7 @@ export const t = {
 			altitude: 'Высота (м)',
 			altitudecapability: 'Высота над уровнем моря (м)',
 			auth: 'Авторизация',
+			center: 'Центр',
 			common: 'Приватность',
 			commonPlaces: 'Другие места',
 			confirmbefore: 'Подтвердить до',

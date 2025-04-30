@@ -558,31 +558,31 @@
 			</div>
 			<div class="center-coordinates">
 				<span class="imp">
-					{{ mainStore.t.i.buttons.center }}
+					{{ mainStore.t.i.captions.center }}
 				</span>
 				<span
 					class="nobr"
 					style="margin-left: 1em;"
 				>
-					{{ mainStore.t.i.captions.latitude }} °:
 					<input
 						id="center-coordinates-latitude"
 						v-model.number.trim="mainStore.center.latitude"
 						placeholder="latitude"
 						title="mainStore.t.i.captions.latitude"
 					/>
+					°N:
 				</span>
 				<span
 					class="nobr"
 					style="margin-left: 1em;"
 				>
-					{{ mainStore.t.i.captions.longitude }} °:
 					<input
 						id="center-coordinates-longitude"
 						v-model.number.trim="mainStore.center.longitude"
 						placeholder="longitude"
 						title="mainStore.t.i.captions.longitude"
 					/>
+					°E:
 				</span>
 				<span
 					class="nobr"

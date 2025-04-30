@@ -8,6 +8,7 @@ export const t = {
 			altitude: 'Altitude (m)',
 			altitudecapability: 'Altitude capability (m)',
 			auth: 'Authorization',
+			center: 'Центр',
 			common: 'Privacy',
 			commonPlaces: 'Places of others',
 			confirmbefore: 'Confirm before',
