@@ -44,7 +44,7 @@
 		"geckodriver": "^4.5.1",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.7.2",
-		"vite": "^6.3.1",
+		"vite": "^6.3.4",
 		"vitest": "^3.1.2",
 		"vue-tsc": "^2.2.10"
 	}
