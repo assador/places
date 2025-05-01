@@ -39,7 +39,11 @@ body {
 	position: relative;
 	width: 100%;
 	height: 100%;
+	overflow: auto;
+}
+#container > *:first-child {
 	min-width: 220px;
+	min-height: 480px;
 }
 #grid {
 	position: absolute;
@@ -240,7 +244,7 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	position: fixed;
+	position: absolute;
 	top: 0; right: 0; bottom: 0; left: 0;
 	padding: 50px;
 }
