@@ -357,6 +357,7 @@ export const useMainStore = defineStore('main', {
 					;
 				}
 			}
+			this.saved = false;
 			this.restoreObjectsAsLinks();
 		},
 		undo() {
