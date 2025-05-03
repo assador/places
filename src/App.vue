@@ -169,7 +169,11 @@ onMounted(() => {
 			case 'swapImages':
 			case 'undo':
 			case 'redo':
-				mainStore.saved = false;
+				if (action.args.find(arg =>
+					arg['todb'] === false && arg['needtodb'] !== false
+				)) {
+					mainStore.saved = false;
+				}
 				break;
 		}
 	});
@@ -206,8 +210,8 @@ const toDB = async (
 				for (const rec of response.data) {
 					if (!mainStore.waypoints[rec.waypoint.id]) {
 						mainStore.addWaypoint({
-							'waypoint': rec.waypoint,
-							'todb': false,
+							waypoint: rec.waypoint,
+							todb: false,
 						});
 					}
 					mainStore[

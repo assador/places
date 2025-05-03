@@ -65,7 +65,7 @@
 						id="actions-exit"
 						class="actions-button"
 						:title="mainStore.t.i.hints.exit"
-						@click="exit"
+						@click="exit()"
 					>
 						<span>↪</span>
 						<span>{{ mainStore.t.i.buttons.exit }}</span>
@@ -175,8 +175,8 @@ onMounted(() => {
 })
 
 const exit = async (): Promise<void> => {
-	mainStore.unload();
 	router.push({name: 'PlacesAuth'});
+	mainStore.unload();
 };
 
 const component = ref('users');

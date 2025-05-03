@@ -222,25 +222,25 @@ export const useMainStore = defineStore('main', {
 			this.tree.userid = this.user ? this.user.id : null;
 			this.tree.children = this.folders;
 		},
-		show(id) {
+		show(id: string) {
 			this.places[id].show = true;
 		},
-		hide(id) {
+		hide(id: string) {
 			this.places[id].show = false;
 		},
-		modifyPlaces(places) {
+		modifyPlaces(places: Record<string, Place>) {
 			this.places = places;
 		},
-		modifyFolders(folders) {
+		modifyFolders(folders: Record<string, Folder>) {
 			this.folders = folders;
 		},
-		modifyCommonPlaces(commonPlaces) {
+		modifyCommonPlaces(commonPlaces: Record<string, Place>) {
 			this.commonPlaces = commonPlaces;
 		},
-		deleteWaypoint(waypoint) {
+		deleteWaypoint(waypoint: Waypoint) {
 			delete this.waypoints[waypoint.id];
 		},
-		deletePlace(place) {
+		deletePlace(place: Place) {
 			delete this.places[place.id];
 		},
 		addFolderMut(payload: {folder: Folder, parent : Record<string, any>}) {
@@ -443,10 +443,11 @@ export const useMainStore = defineStore('main', {
 							folders: Object.assign({}, response.data.folders),
 						});
 						this.backup = false;
-						this.setHomePlace(this.user.homeplace
-							? this.user.homeplace
-							: null
-						);
+						this.setHomePlace({
+							id: this.user.homeplace ? this.user.homeplace : null,
+							todb: false,
+							needtodb: false,
+						});
 						this.backup = true;
 						this.setFirstCurrentPlace();
 						this.updateMap({
@@ -821,7 +822,11 @@ export const useMainStore = defineStore('main', {
 		restoreObjectsAsLinks() {
 			this.refreshing = true;
 			this.backup = false;
-			this.setHomePlace(this.user.homeplace ? this.user.homeplace : null);
+			this.setHomePlace({
+				id: this.user.homeplace ? this.user.homeplace : null,
+				todb: false,
+				needtodb: false,
+			});
 			this.backup = true;
 			if (this.currentPlace) {
 				let place: Place = null;
@@ -833,13 +838,15 @@ export const useMainStore = defineStore('main', {
 			}
 			this.refreshing = false;
 		},
-		async addFolder(payload: {folder: Folder, todb?: boolean}) {
+		async addFolder(
+			payload: {folder: Folder, todb?: boolean, needtodb?: boolean}
+		) {
 			this.backupState();
 			const parent = this.treeFlat[payload.folder.parent]
 				? this.treeFlat[payload.folder.parent]
 				: this.tree
 			;
-			if (!!payload.todb && !this.user.testaccount) {
+			if (payload.todb !== false && !this.user.testaccount) {
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
 				} else {
@@ -849,16 +856,18 @@ export const useMainStore = defineStore('main', {
 			}
 			this.addFolderMut({folder: payload.folder, parent: parent});
 		},
-		setHomePlace(id: string) {
+		setHomePlace(
+			payload: {id: string, todb?: boolean, needtodb?: boolean} | null
+		) {
 			this.backupState();
-			if (this.places[id]) {
-				this.homePlace = this.places[id];
-				this.user.homeplace = id;
-				emitter.emit('homeToDB', id);
+			if (payload && this.places[payload.id]) {
+				this.homePlace = this.places[payload.id];
+				this.user.homeplace = payload.id;
+				if (payload.todb !== false) emitter.emit('homeToDB', payload.id);
 			} else {
 				this.homePlace = null;
 				this.user.homeplace = null;
-				emitter.emit('homeToDB', null);
+				if (payload.todb !== false) emitter.emit('homeToDB', null);
 			}
 		},
 		deletePlacesMarkedAsDeleted() {
@@ -879,7 +888,11 @@ export const useMainStore = defineStore('main', {
 			}
 			this.deleteFolders({folders: folders});
 		},
-		async deletePlaces(payload: {places: Record<string, Place>, todb?: boolean}) {
+		async deletePlaces(payload: {
+			places: Record<string, Place>,
+			todb?: boolean,
+			needtodb?: boolean
+		}) {
 			this.backupState();
 			const
 				waypoints: Array<Waypoint> = [],
@@ -918,7 +931,7 @@ export const useMainStore = defineStore('main', {
 				emitter.emit('deletePlace', payload.places[payloadPlaceId]);
 				commonWaypoint = false;
 			}
-			if (!!payload.todb && !this.user.testaccount) {
+			if (payload.todb !== false && !this.user.testaccount) {
 				if (!this.inUndoRedo) {
 					const data = new FormData();
 					for (const image of images) {
@@ -937,7 +950,11 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 		},
-		async deleteFolders(payload: {folders: Record<string, Folder>, todb?: boolean}) {
+		async deleteFolders(payload: {
+			folders: Record<string, Folder>,
+			todb?: boolean,
+			needtodb?: boolean
+		}) {
 			this.backupState();
 			const
 				folders: Array<Folder> = []
@@ -949,7 +966,7 @@ export const useMainStore = defineStore('main', {
 					this.deleteFolder({folder: this.treeFlat[payloadFolderId]});
 				}
 			}
-			if (!!payload.todb && !this.user.testaccount) {
+			if (payload.todb !== false && !this.user.testaccount) {
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {what: 'folders', data: folders});
 				} else {
@@ -958,8 +975,13 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 		},
-		async addWaypoint(payload: {waypoint: Waypoint, from?: Place, todb?: boolean}) {
-			if (!!payload.todb && !this.user.testaccount) {
+		async addWaypoint(payload: {
+			waypoint: Waypoint,
+			from?: Place,
+			todb?: boolean,
+			needtodb?: boolean
+		}) {
+			if (payload.todb !== false && !this.user.testaccount) {
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {
 						what: 'waypoints',
@@ -975,9 +997,11 @@ export const useMainStore = defineStore('main', {
 			}
 			this.waypoints[payload.waypoint.id] = payload.waypoint;
 		},
-		async addPlace(payload: {place: Place, todb?: boolean}) {
+		async addPlace(
+			payload: {place: Place, todb?: boolean, needtodb?: boolean}
+		) {
 			this.backupState();
-			if (!!payload.todb && !this.user.testaccount) {
+			if (payload.todb !== false && !this.user.testaccount) {
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {what: 'places', data: [payload.place]});
 				} else {
@@ -988,7 +1012,7 @@ export const useMainStore = defineStore('main', {
 			this.places[payload.place.id] = payload.place;
 		},
 		async changeWaypoint(payload: Record<string, any>) {
-			let saveToDB = !!payload.todb;
+			let saveToDB = payload.todb !== false;
 			for (const key in payload.change) {
 				payload.waypoint[key] = payload.change[key];
 				if (
@@ -1017,7 +1041,7 @@ export const useMainStore = defineStore('main', {
 		},
 		async changePlace(payload: Record<string, any>) {
 			this.backupState();
-			let saveToDB = !!payload.todb;
+			let saveToDB = payload.todb !== false;
 			if ('latitude' in payload.change || 'longitude' in payload.change) {
 				const
 					lat = num2deg(('latitude' in payload.change
@@ -1067,7 +1091,7 @@ export const useMainStore = defineStore('main', {
 			for (const key in payload.change) {
 				payload.folder[key] = payload.change[key];
 			}
-			if (!!payload.todb && !this.user.testaccount) {
+			if (payload.todb !== false && !this.user.testaccount) {
 				payload.folder.updated = true;
 				if (!this.inUndoRedo) {
 					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
@@ -1078,7 +1102,7 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 		moveFolder(payload: Record<string, any>) {
-			let source;
+			let source: any;
 			const folder = ('folder' in payload)
 				? payload.folder
 				: this.treeFlat[payload.folderId]
@@ -1116,7 +1140,7 @@ export const useMainStore = defineStore('main', {
 				},
 				todb: true,
 			};
-			if (!payload.todb) {
+			if (payload.todb === false) {
 				changeFolderPayload.todb = false;
 				changeFolderPayload.change.updated = true;
 			}

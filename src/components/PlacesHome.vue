@@ -474,7 +474,7 @@
 							id="checkbox-homeplace"
 							type="checkbox"
 							:checked="currentPlace === mainStore.homePlace"
-							@change="e => mainStore.setHomePlace((e.target as HTMLInputElement).checked ? currentPlace.id : null)"
+							@change="e => mainStore.setHomePlace({id: (e.target as HTMLInputElement).checked ? currentPlace.id : null})"
 						/>
 						{{ mainStore.t.i.inputs.checkboxHome }}
 					</label>
@@ -598,6 +598,7 @@
 			v-if="confirmPopup"
 			:callback="confirmCallback"
 			:arguments="confirmCallbackArgs"
+			:message="confirmMessage"
 		/>
 		<div
 			id="sbs-top"
@@ -758,7 +759,7 @@
 				class="actions-button"
 				:title="mainStore.t.i.hints.install"
 				:disabled="installButtonEnabled"
-				@click="installPWA"
+				@click="installPWA()"
 			>
 				<span>⤓</span>
 				<span>{{ mainStore.t.i.buttons.install }}</span>
@@ -803,7 +804,7 @@
 				class="actions-button"
 				:title="mainStore.t.i.hints.exit"
 				accesskey="q"
-				@click="e => {toDBCompletely().then(() => exit())}"
+				@click="exit()"
 			>
 				<span>↪</span>
 				<span>{{ mainStore.t.i.buttons.exit }}</span>
@@ -955,11 +956,19 @@ const orderedImages = computed((): Array<Image> => {
 			: []
 	);
 });
-const currentPlaceLat = computed((): number => {
-	return waypoints.value[currentPlace.value.waypoint].latitude;
+const currentPlaceLat = computed((): number | null => {
+	return (
+		currentPlace.value
+			? waypoints.value[currentPlace.value.waypoint].latitude
+			: null
+	);
 });
-const currentPlaceLon = computed((): number => {
-	return waypoints.value[currentPlace.value.waypoint].longitude;
+const currentPlaceLon = computed((): number | null => {
+	return (
+		currentPlace.value
+			? waypoints.value[currentPlace.value.waypoint].longitude
+			: null
+	);
 });
 const currentDegMinSec = computed((): string => {
 	return coords2string([currentPlaceLat.value, currentPlaceLon.value]);
@@ -979,14 +988,28 @@ const getAltitude = async (lat: number, lon: number, alt: Ref) => {
 }
 
 watchEffect((): void => {
-	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceAltitude);
+	if (
+		typeof currentPlaceLat.value === 'number' &&
+		typeof currentPlaceLon.value === 'number'
+	) {
+		getAltitude(
+			currentPlaceLat.value,
+			currentPlaceLon.value,
+			currentPlaceAltitude
+		);
+	}
 });
 watchEffect((): void => {
-	getAltitude(
-		mainStore.center.latitude,
-		mainStore.center.longitude,
-		centerAltitude
-	);
+	if (
+		typeof currentPlaceLat.value === 'number' &&
+		typeof currentPlaceLon.value === 'number'
+	) {
+		getAltitude(
+			mainStore.center.latitude,
+			mainStore.center.longitude,
+			centerAltitude
+		);
+	}
 });
 watch(() => mainStore.ready, () => {
 	stateReadyChanged();
@@ -1010,10 +1033,12 @@ const confirmPopup = ref(false);
 provide('confirmPopup', confirmPopup);
 const confirmCallback = ref(null);
 const confirmCallbackArgs = ref(null);
-const confirm = (func, args): boolean => {
+const confirmMessage = ref(null);
+const confirm = (func: Function, args?: any[], msg?: string): boolean => {
 	confirmPopup.value = true;
 	confirmCallback.value = func;
 	confirmCallbackArgs.value = args;
+	confirmMessage.value = msg;
 	return true;
 }
 
@@ -1076,8 +1101,15 @@ const blur = (el?: HTMLElement): void => {
 	}
 };
 const exit = (): void => {
-	router.push({name: 'PlacesAuth'});
-	sessionStorage.clear();
+	const getOut = (): void => {
+		router.push({name: 'PlacesAuth'});
+		mainStore.unload();
+	}
+	if (mainStore.saved) {
+		getOut();
+	} else {
+		confirm(getOut, [], mainStore.t.i.text.notSaved);
+	}
 };
 const stateReadyChanged = (): void => {
 	if (!mainStore.ready) return;
@@ -1513,7 +1545,6 @@ const keyup = (event: Event): void => {
 				document.location.reload();
 				break;
 			case 'quit' :
-				toDBCompletely();
 				exit();
 				break;
 			case 'other' :

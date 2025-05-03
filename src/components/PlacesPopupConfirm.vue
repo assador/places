@@ -8,6 +8,9 @@
 				<h1 class="margin_bottom_0">
 					{{ mainStore.t.i.captions.sure }}
 				</h1>
+				<p v-if="props.message">
+					{{ props.message }}
+				</p>
 			</div>
 			<form
 				class="folder-delete__form margin_bottom_0"
@@ -48,10 +51,12 @@ import { useMainStore } from '@/stores/main';
 export interface IPlacesPopupConfirmProps {
 	callback: any;
 	arguments: any[];
+	message?: string;
 }
 const props = withDefaults(defineProps<IPlacesPopupConfirmProps>(), {
 	callback: null,
 	arguments: null,
+	message: null,
 });
 
 const mainStore = useMainStore();
