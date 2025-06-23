@@ -16,7 +16,7 @@ export default defineConfig({
 	},
 	server: {
 		proxy: {
-			'/backend': 'http://localhost:3000',
+			'/backend': 'http://localhost:5277',
 		},
 	},
 	test: {

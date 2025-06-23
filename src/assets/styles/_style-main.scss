@@ -1189,6 +1189,23 @@ $col-36: rgb(0, 0, 0);
 		width: 100%;
 		cursor: pointer;
 	}
+	.help {
+		display: inline-block;
+		vertical-align: middle;
+		position: relative;
+		width: 1.2em; height: 1.2em;
+		border: 1px solid;
+		border-radius: 50%;
+		cursor: help;
+		&::after {
+			content: '?';
+			position: absolute;
+			display: flex;
+			top: 0; right: 0; bottom: 0; left: 0;
+			justify-content: center;
+			align-items: center;
+		}
+	}
 
 	/* Оформление декорирования */
 

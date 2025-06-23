@@ -4,7 +4,7 @@ module.exports = {
 	devServer: {
 		proxy: {
 			'^/(backend|upload)': {
-				target: 'http://localhost:3000',
+				target: 'http://localhost:5277',
 				changeOrigin: true,
 			},
 		},

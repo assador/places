@@ -115,8 +115,17 @@
 				class="control-measure"
 			>
 				<dt>
-					{{ mainStore.t.i.captions.measure }}:
-					<span class="imp_02">{{ mainStore.measure.distance.toFixed(3) }}</span> {{ mainStore.t.i.text.km }}
+					<span v-if="mainStore.measure.places.length > 1">
+						{{ mainStore.t.i.captions.measure }}:
+						<span class="imp_02">
+							{{ mainStore.measure.distance.toFixed(3) }}
+						</span>
+						{{ mainStore.t.i.text.km }}
+					</span>
+					<span v-else>
+						{{ mainStore.t.i.captions.measureChoose }}
+						<span class="help" :title="mainStore.t.i.hints.measure" />
+					</span>
 				</dt>
 				<dd
 					v-for="(id, index) in mainStore.measure.places"
@@ -1183,8 +1192,8 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 				mainStore.measure.choosing = mainStore.measure.places.length;
 			}
 		default:
-			if (!payload.mode || payload.mode !== 'measure') {
-				if (currentPlace.value && payload.place === currentPlace.value) return;
+			if (payload.mode === 'measure') break;
+			if (!currentPlace.value || payload.place !== currentPlace.value) {
 				mainStore.currentPlace = payload.place;
 				currentPlaceCommon.value = (
 					currentPlace.value.userid !== mainStore.user.id
@@ -1192,12 +1201,11 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 						: false
 				);
 				openTreeToCurrentPlace();
-				mainStore.updateMap({
-					latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
-					longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
-				});
-				break;
 			}
+			mainStore.updateMap({
+				latitude: mainStore.waypoints[currentPlace.value.waypoint].latitude,
+				longitude: mainStore.waypoints[currentPlace.value.waypoint].longitude,
+			});
 	}
 };
 const appendPlace = async (): Promise<void | Place> => {
