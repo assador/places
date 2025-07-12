@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"noEmit": true,
 		"target": "esnext",
 		"module": "esnext",
 		"strict": false,
@@ -7,10 +8,10 @@
 		"importHelpers": true,
 		"moduleResolution": "node",
 		"experimentalDecorators": true,
-		"skipLibCheck": true,
+		"skipLibCheck": false,
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
-		"sourceMap": true,
+		"sourceMap": false,
 		"baseUrl": ".",
 		"types": [
 			"node"

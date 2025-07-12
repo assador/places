@@ -828,7 +828,7 @@ import {
 	computed,
 	watch,
 	onMounted,
-	onBeforeUnmount,
+	onUnmounted,
 	onUpdated,
 	provide,
 	inject,
@@ -1071,12 +1071,13 @@ onMounted(async () => {
 	makeFieldsValidatable(mainStore.t);
 	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceAltitude);
 });
-onBeforeUnmount(() => {
-	document.removeEventListener('dragover', handleDragOver, false);
-	document.removeEventListener('drop', handleDrop, false);
-	document.removeEventListener('keyup', keyup, false);
-	emitter.off('choosePlace');
+onUnmounted(() => {
+	document.removeEventListener('dragover', handleDragOver);
+	document.removeEventListener('drop', handleDrop);
+	document.removeEventListener('keyup', keyup);
+	window.removeEventListener('resize', windowResize);
 	window.clearInterval(idleTimeInterval.value);
+	emitter.off('choosePlace');
 });
 onUpdated(() => makeFieldsValidatable(mainStore.t));
 
