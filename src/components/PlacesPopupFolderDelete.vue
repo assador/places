@@ -72,7 +72,7 @@ import {
 	computed,
 	watch,
 	onMounted,
-	onBeforeUnmount,
+	onUnmounted,
 	onBeforeUpdate,
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
@@ -245,7 +245,7 @@ onBeforeUpdate(() => {
 		popuped.value = true;
 	}, 1);
 });
-onBeforeUnmount(() => {
-	document.removeEventListener('keyup', keyup, false);
+onUnmounted(() => {
+	document.removeEventListener('keyup', keyup);
 });
 </script>

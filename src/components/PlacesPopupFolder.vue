@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, onUpdated, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
 import { constants } from '../shared/constants';
@@ -163,8 +163,8 @@ onMounted(async () => {
 	document.getElementById('folderName')!.focus();
 	document.addEventListener('keyup', keyup, false);
 });
-onBeforeUnmount(() => {
-	document.removeEventListener('keyup', keyup, false);
+onUnmounted(() => {
+	document.removeEventListener('keyup', keyup);
 });
 onUpdated(() => {
 	makeFieldsValidatable(mainStore.t);

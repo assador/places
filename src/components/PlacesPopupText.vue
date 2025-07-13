@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import PlacesAbout from './PlacesAbout.vue';
 
@@ -50,7 +50,7 @@ onMounted(() => {
 		popuped.value = (props.what === '' ? false : true);
 	}, 1);
 });
-onBeforeUnmount(() => {
-	document.removeEventListener('keyup', keyup, false);
+onUnmounted(() => {
+	document.removeEventListener('keyup', keyup);
 });
 </script>

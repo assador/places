@@ -34,7 +34,7 @@ import {
 	inject,
 	watch,
 	onMounted,
-	onBeforeUnmount,
+	onUnmounted,
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMainStore } from '@/stores/main';;
@@ -118,7 +118,7 @@ onMounted(() => {
 	defineVars();
 	document.addEventListener('keyup', keyup, false);
 });
-onBeforeUnmount(() => {
-	document.removeEventListener('keyup', keyup, false);
+onUnmounted(() => {
+	document.removeEventListener('keyup', keyup);
 });
 </script>

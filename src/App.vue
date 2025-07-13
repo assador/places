@@ -1,8 +1,5 @@
 <template>
-	<div
-		id="container"
-		:class="'colortheme-' + colortheme"
-	>
+	<div id="container" :class="`colortheme-${colortheme}`">
 		<router-view />
 	</div>
 </template>
@@ -16,19 +13,21 @@ import { emitter } from '@/shared/bus'
 import { isParentInTree } from '@/shared/common';
 import { Place, Image, Folder, Waypoint } from '@/stores/types';
 
-const draggingElement = ref(null);
-const draggingType = ref(null);
+// Refs and Provides
+const draggingElement = ref<null | Element>(null);
+const draggingType = ref<string | null>(null);
 const foldersEditMode = ref(false);
-provide('foldersEditMode', foldersEditMode);
 const idleTimeInterval = ref(null);
-provide('idleTimeInterval', idleTimeInterval);
 const currentPlaceCommon = ref(false);
-provide('currentPlaceCommon', currentPlaceCommon);
 const selectedToExport = ref({});
-provide('selectedToExport', selectedToExport);
-
 const installEvent = ref<any>(null);
+
+provide('foldersEditMode', foldersEditMode);
+provide('idleTimeInterval', idleTimeInterval);
+provide('currentPlaceCommon', currentPlaceCommon);
+provide('selectedToExport', selectedToExport);
 provide('installEvent', installEvent);
+
 onBeforeMount(() => {
 	window.addEventListener('beforeinstallprompt', e => {
 		e.preventDefault();
@@ -42,403 +41,204 @@ const router = useRouter();
 const currentPlace = computed(() => mainStore.currentPlace);
 const colortheme = computed(() => mainStore.colortheme);
 const colorthemes = computed(() => [
-	{
-		value: 'brown',
-		title: mainStore.t.i.inputs.colorthemeBrown,
-	}, {
-		value: 'blue',
-		title: mainStore.t.i.inputs.colorthemeBlue,
-	}, {
-		value: 'pink',
-		title: mainStore.t.i.inputs.colorthemePink,
-	}, {
-		value: 'green',
-		title: mainStore.t.i.inputs.colorthemeGreen,
-	}, {
-		value: 'pink-light',
-		title: mainStore.t.i.inputs.colorthemePinkLight,
-	}, {
-		value: 'blue-light',
-		title: mainStore.t.i.inputs.colorthemeBlueLight,
-	}, {
-		value: 'purple-light',
-		title: mainStore.t.i.inputs.colorthemePurpleLight,
-	}, {
-		value: 'green-light',
-		title: mainStore.t.i.inputs.colorthemeGreenLight,
-	},
+	{ value: 'brown',        title: mainStore.t.i.inputs.colorthemeBrown },
+	{ value: 'blue',         title: mainStore.t.i.inputs.colorthemeBlue },
+	{ value: 'pink',         title: mainStore.t.i.inputs.colorthemePink },
+	{ value: 'green',        title: mainStore.t.i.inputs.colorthemeGreen },
+	{ value: 'pink-light',   title: mainStore.t.i.inputs.colorthemePinkLight },
+	{ value: 'blue-light',   title: mainStore.t.i.inputs.colorthemeBlueLight },
+	{ value: 'purple-light', title: mainStore.t.i.inputs.colorthemePurpleLight },
+	{ value: 'green-light',  title: mainStore.t.i.inputs.colorthemeGreenLight },
 ]);
 provide('colorthemes', colorthemes);
 
+// Event Bus Handlers
 emitter.on('logged', async () => {
 	await mainStore.setUser();
 	await mainStore.setServerConfig();
 	await mainStore.setPlaces();
 	await mainStore.setUsers('common');
 	mainStore.ready = true;
-	router.push({name: 'PlacesHome'});
+	router.push({ name: 'PlacesHome' });
 });
-emitter.on('toDB', (
-	payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
-) => {
-	switch (payload.what) {
-		case 'waypoints' :
-			toDB({
-				what: payload.what,
-				data: payload.data
-					? payload.data
-					: Object.values(mainStore.waypoints)
-				,
-			});
+
+emitter.on('toDB', (payload: Record<string, any>) => {
+	const { what, data } = payload;
+	const getData = (key: string) => data ? data : Object.values(mainStore[key]);
+	switch (what) {
+		case 'waypoints': toDB({ what, data: getData('waypoints') }); break;
+		case 'places':    toDB({ what, data: getData('places') });    break;
+		case 'folders':   toDB({ what, data: getData('treeFlat') });  break;
+		case undefined:
+			toDB({ what: 'waypoints', data: Object.values(mainStore.waypoints) });
+			toDB({ what: 'places',    data: Object.values(mainStore.places) });
+			toDB({ what: 'folders',   data: Object.values(mainStore.treeFlat) });
 			break;
-		case 'places' :
-			toDB({
-				what: payload.what,
-				data: payload.data
-					? payload.data
-					: Object.values(mainStore.places)
-				,
-			});
-			break;
-		case 'folders' :
-			toDB({
-				what: payload.what,
-				data: payload.data
-					? payload.data
-					: Object.values(mainStore.treeFlat)
-				,
-			});
-			break;
-		case undefined :
-			toDB({
-				what: 'waypoints',
-				data: Object.values(mainStore.waypoints),
-			});
-			toDB({
-				what: 'places',
-				data: Object.values(mainStore.places),
-			});
-			toDB({
-				what: 'folders',
-				data: Object.values(mainStore.treeFlat),
-			});
-			break;
-		default :
-			toDB(payload);
+		default: toDB(payload);
 	}
 });
-emitter.on('homeToDB', (id: string) => {
-	homeToDB(id);
-});
-emitter.on('toDBCompletely', () => {
-	toDBCompletely();
-});
-emitter.on('getFolderById', (id: string) => {
-	return mainStore.treeFlat[id];
-});
+emitter.on('homeToDB', (id: string) => homeToDB(id));
+emitter.on('toDBCompletely', () => toDBCompletely());
+emitter.on('getFolderById', (id: string) => mainStore.treeFlat[id]);
 mainStore.changeLang(mainStore.lang);
 
+// Lifecycle
 onMounted(() => {
-	/*
-	If the App is mounted during the session (for example, when the page
-	is reloaded), the store state is restored from sessionStorage.
-	*/
-	if (sessionStorage.getItem('places-store-state')) {
-		mainStore.replaceState(JSON.parse(sessionStorage.getItem('places-store-state')));
-	}
-	document.addEventListener('mousedown', () => {mainStore.idleTime = 0;}, false);
-	document.addEventListener('keyup', () => {mainStore.idleTime = 0;}, false);
-/*
-	mainStore.$subscribe((mutation, state) => {
-		console.log(mutation);
-		console.log(state);
-	});
-*/
+	const state = sessionStorage.getItem('places-store-state');
+	if (state) mainStore.replaceState(JSON.parse(state));
+	const resetIdle = () => { mainStore.idleTime = 0; };
+	document.addEventListener('mousedown', resetIdle, false);
+	document.addEventListener('keyup', resetIdle, false);
+
 	mainStore.$onAction((action): void => {
 		if (!mainStore.user || mainStore.user.testaccount) return;
-		switch (action.name) {
-			case 'addPlace':
-			case 'addFolder':
-			case 'deletePlace':
-			case 'deleteFolder':
-			case 'changePlace':
-			case 'changeFolder':
-			case 'changeWaypoint':
-			case 'moveFolder':
-			case 'setHomePlace':
-			case 'swapImages':
-			case 'undo':
-			case 'redo':
-				if (action.args.find(arg =>
-					arg['todb'] === false && arg['needtodb'] !== false
-				)) {
-					mainStore.saved = false;
-				}
-				break;
+		const actions = [
+			'addPlace', 'addFolder', 'deletePlace', 'deleteFolder', 'changePlace',
+			'changeFolder', 'changeWaypoint', 'moveFolder', 'setHomePlace',
+			'swapImages', 'undo', 'redo'
+		];
+		if (actions.includes(action.name) && action.args.find(arg => arg['todb'] === false && arg['needtodb'] !== false)) {
+			mainStore.saved = false;
 		}
 	});
 });
 
-const toDB = async (
-	payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
-): Promise<void> => {
+// DB Operations
+const toDB = async (payload: Record<string, any>): Promise<void> => {
 	if (mainStore.user.testaccount) return;
 	if (document.querySelector('.value_wrong')) {
 		mainStore.setMessage(mainStore.t.m.paged.incorrectFields);
 		return;
 	}
 	payload.id = sessionStorage.getItem('places-userid');
-	return axios.post(
-		'/backend/set_' +
-		(payload.what === 'waypoints' ? 'waypoints' : 'places') +
-		'.php',
-		payload
-	)
-		.then(response => {
-			if (
-				payload.what === 'waypoints' &&
-				response.data.length > 0
-			) {
-			/*
-			When adding new waypoints, the backend found existing
-			waypoints with the same coordinates and returned them:
-			no need to create new ones; or:
-			When updating waypoints, backend found them common,
-			created new waypoints with new values and returned them.
-			Then we update the waypoint key of the corresponding places.
-			*/
-				for (const rec of response.data) {
-					if (!mainStore.waypoints[rec.waypoint.id]) {
-						mainStore.addWaypoint({
-							waypoint: rec.waypoint,
-							todb: false,
-						});
-					}
-					mainStore[
-						'change' +
-							rec.waypointof.type.charAt(0).toUpperCase() +
-							rec.waypointof.type.slice(1)
-					](
-						{
-							[rec.waypointof.type]:
-								mainStore
-									[rec.waypointof.type + 's']
-									[rec.waypointof.id]
-							,
-							change: {
-								waypoint: rec.waypoint.id,
-							}
-						}
-					);
+	try {
+		const { data: response } = await axios.post(
+			`/backend/set_${payload.what === 'waypoints' ? 'waypoints' : 'places'}.php`,
+			payload
+		);
+		if (payload.what === 'waypoints' && response.length > 0) {
+			for (const rec of response) {
+				if (!mainStore.waypoints[rec.waypoint.id]) {
+					mainStore.addWaypoint({ waypoint: rec.waypoint, todb: false });
 				}
-			} else {
-				for (const fault of response.data) {
-					switch (fault) {
-						case 1 :
-							mainStore.setMessage(
-								mainStore.t.m.popup.cannotSendDataToDb
-							);
-							return;
-						case 2 :
-							return;
-						case 3 :
-							mainStore.setMessage(
-								mainStore.t.m.popup.placesCountExceeded
-							);
-							return;
-						case 4 :
-							mainStore.setMessage(
-								mainStore.t.m.paged.foldersCountExceeded
-							);
-							return;
-					}
+				mainStore[
+					'change' + rec.waypointof.type.charAt(0).toUpperCase() + rec.waypointof.type.slice(1)
+				]({
+					[rec.waypointof.type]: mainStore[rec.waypointof.type + 's'][rec.waypointof.id],
+					change: { waypoint: rec.waypoint.id }
+				});
+			}
+		} else {
+			for (const fault of response) {
+				switch (fault) {
+					case 1: mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb); return;
+					case 2: return;
+					case 3: mainStore.setMessage(mainStore.t.m.popup.placesCountExceeded); return;
+					case 4: mainStore.setMessage(mainStore.t.m.paged.foldersCountExceeded); return;
 				}
 			}
-			mainStore.savedToDB(payload);
-			mainStore.setMessage(
-				mainStore.t.m.popup.savedToDb
-			);
-		})
-		.catch(error => {
-			mainStore.setMessage(
-				mainStore.t.m.popup.cannotSendDataToDb + ': ' + error
-			);
-		});
+		}
+		mainStore.savedToDB(payload);
+		mainStore.setMessage(mainStore.t.m.popup.savedToDb);
+	} catch (error) {
+		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${error}`);
+	}
 };
 provide('toDB', toDB);
 
 const toDBCompletely = async (): Promise<void> => {
 	if (mainStore.user.testaccount) return;
-	const
-		waypoints: Array<Waypoint> = [],
-		places: Array<Place> = [],
-		folders: Array<Folder> = []
-	;
-	for (const waypoint of Object.values(mainStore.waypoints)) {
-		if (
-			(waypoint as Waypoint).added ||
-			(waypoint as Waypoint).deleted ||
-			(waypoint as Waypoint).updated
-		) {
-			waypoints.push(waypoint as Waypoint);
-		}
-	}
-	for (const place of Object.values(mainStore.places)) {
-		if (
-			(place as Place).added ||
-			(place as Place).deleted ||
-			(place as Place).updated
-		) {
-			places.push(place as Place);
-		}
-	}
-	for (const folder of Object.values(mainStore.treeFlat)) {
-		if (
-			(folder as Folder).added ||
-			(folder as Folder).deleted ||
-			(folder as Folder).updated
-		) {
-			folders.push(folder as Folder);
-		}
-	}
-	await toDB({what: 'waypoints', data: waypoints});
-	await toDB({what: 'places', data: places});
-	await toDB({what: 'folders', data: folders});
+	const filterChanged = <T extends { added?: boolean; deleted?: boolean; updated?: boolean }>(arr: Record<string, T>) =>
+		Object.values(arr).filter(item => item.added || item.deleted || item.updated);
+	await toDB({ what: 'waypoints', data: filterChanged(mainStore.waypoints) });
+	await toDB({ what: 'places',    data: filterChanged(mainStore.places) });
+	await toDB({ what: 'folders',   data: filterChanged(mainStore.treeFlat) });
 };
 provide('toDBCompletely', toDBCompletely);
 
 const homeToDB = async (id: string): Promise<void> => {
 	if (mainStore.user.testaccount) return;
-	return axios.post(
-		'/backend/set_home.php',
-		{id: sessionStorage.getItem('places-userid'), data: id}
-	)
-		.then(() => {
-			mainStore.saved = true;
-			mainStore.setMessage(
-				mainStore.t.m.popup.savedToDb
-			);
-		})
-		.catch(error => {
-			mainStore.setMessage(
-				mainStore.t.m.popup.cannotSendDataToDb + ': ' + error
-			);
+	try {
+		await axios.post('/backend/set_home.php', {
+			id: sessionStorage.getItem('places-userid'),
+			data: id
 		});
+		mainStore.saved = true;
+		mainStore.setMessage(mainStore.t.m.popup.savedToDb);
+	} catch (error) {
+		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${error}`);
+	}
 };
+
 const deleteImages = (images: Record<string, Image>, family?: boolean): void => {
 	const data = new FormData();
-	for (const [id, image] of Object.entries(images)) {
-		data.append('file_' + id, image.file);
-	}
+	Object.entries(images).forEach(([id, image]) => data.append('file_' + id, image.file));
 	data.append('userid', mainStore.user.id);
 	if (!mainStore.user.testaccount) {
 		axios.post('/backend/delete.php', data)
-			.then(() => {
-				toDB({
-					what: 'images_delete',
-					data: Object.values(images),
-				});
-			});
+			.then(() => toDB({ what: 'images_delete', data: Object.values(images) }));
 	}
-	mainStore.deleteImages({images: images, family: family});
+	mainStore.deleteImages({ images, family });
 };
 provide('deleteImages', deleteImages);
 
 const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 	const a = document.createElement('a');
-	let content: string = '';
-	switch (mime) {
-		case 'application/gpx+xml' :
-			a.download = 'places.gpx';
-			a.dataset.downloadurl = ['application/gpx+xml', a.download, a.href].join(':');
-			content =
-					'<?xml version="1.0" encoding="utf-8" standalone="yes"?>'
-					+ '<gpx'
-					+ ' version="1.1"'
-					+ ' xmlns="http://www.topografix.com/GPX/1/1"'
-					+ ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
-					+ ' xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
-			;
-			for (const p of Object.values(places)) {
-				content +=
-					'<wpt lat="' +
-					mainStore.waypoints[p.waypoint].latitude +
-					'" lon="' +
-					mainStore.waypoints[p.waypoint].longitude +
-					'">'
-				;
-				content += p.name ? ('<name>' + p.name + '</name>') : '';
-				content += p.description ? ('<desc>' + p.description + '</desc>') : '';
-				content += p.link ? ('<link href="' + p.link + '"></link>') : '';
-				content += p.time ? ('<time>' + p.time + '</time>') : '';
-				content += '</wpt>';
+	let content = '';
+	if (mime === 'application/gpx+xml') {
+		a.download = 'places.gpx';
+		a.dataset.downloadurl = ['application/gpx+xml', a.download, a.href].join(':');
+		content = [
+			'<?xml version="1.0" encoding="utf-8" standalone="yes"?>',
+			'<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
+		].join('');
+		for (const p of Object.values(places)) {
+			const wp = mainStore.waypoints[p.waypoint];
+			content += `<wpt lat="${wp.latitude}" lon="${wp.longitude}">`;
+			if (p.name) content += `<name>${p.name}</name>`;
+			if (p.description) content += `<desc>${p.description}</desc>`;
+			if (p.link) content += `<link href="${p.link}"></link>`;
+			if (p.time) content += `<time>${p.time}</time>`;
+			content += '</wpt>';
+		}
+		content += '</gpx>';
+	} else {
+		mime = 'application/json';
+		a.download = 'places.json';
+		a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
+		const waypoints: Waypoint[] = [];
+		const folders: Folder[] = [];
+		const placesArray: Place[] = [];
+		const foldersSet = new Set<string>();
+		for (const p of Object.values(places)) {
+			waypoints.push({ ...mainStore.waypoints[p.waypoint] });
+			let folderId = p.folderid;
+			while (folderId && folderId !== 'root' && !foldersSet.has(folderId)) {
+				const folder = mainStore.treeFlat[folderId];
+				folders.push({ ...folder });
+				foldersSet.add(folderId);
+				folderId = folder.parent;
 			}
-			content += '</gpx>';
-			break;
-		default :
-			mime = 'application/json';
-			a.download = 'places.json';
-			a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
-			const waypoints: Array<Waypoint> = [], folders: Array<Folder> = [];
-			let parentFolder: Folder;
-			for (const p of Object.values(places)) {
-				waypoints.push(Object.assign({}, mainStore.waypoints[p.waypoint]));
-				if (!folders.find(f => f.id === p.folderid)) {
-					parentFolder = mainStore.treeFlat[p.folderid];
-					while (
-						parentFolder.id !== 'root' &&
-						!folders.find(f => f.id === parentFolder.id)
-					) {
-						folders.push(Object.assign({}, parentFolder));
-						parentFolder = mainStore.treeFlat[parentFolder.parent];
-					}
-				}
-			}
-			const placesArray = [];
-			for (const place of Object.values(places)) {
-				placesArray.push(Object.assign({}, place));
-				delete placesArray[placesArray.length - 1].type;
-				delete placesArray[placesArray.length - 1].show;
-				delete placesArray[placesArray.length - 1].added;
-				delete placesArray[placesArray.length - 1].deleted;
-				delete placesArray[placesArray.length - 1].updated;
-				delete placesArray[placesArray.length - 1].geomark;
-				delete placesArray[placesArray.length - 1].images;
-			}
-			for (const waypoint of Object.values(waypoints)) {
-				delete waypoint.type;
-				delete waypoint.show;
-				delete waypoint.added;
-				delete waypoint.deleted;
-				delete waypoint.updated;
-			}
-			for (const folder of Object.values(folders)) {
-				delete folder.type;
-				delete folder.added;
-				delete folder.deleted;
-				delete folder.updated;
-				delete folder.opened;
-				delete folder.builded;
-				delete folder.geomarks;
-				delete folder.children;
-			}
-			content = JSON.stringify({
-				places: placesArray,
-				waypoints: waypoints,
-				folders: folders,
-			});
+		}
+		for (const place of Object.values(places)) {
+			const p = { ...place };
+			['type', 'show', 'added', 'deleted', 'updated', 'geomark', 'images'].forEach(k => delete (p as any)[k]);
+			placesArray.push(p);
+		}
+		waypoints.forEach(wp => ['type', 'show', 'added', 'deleted', 'updated'].forEach(k => delete (wp as any)[k]));
+		folders.forEach(f => ['type', 'added', 'deleted', 'updated', 'opened', 'builded', 'geomarks', 'children'].forEach(k => delete (f as any)[k]));
+		content = JSON.stringify({ places: placesArray, waypoints, folders });
 	}
-	a.href = URL.createObjectURL(
-		new Blob([content], {type: 'text/plain'})
-	);
+	a.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
 	a.click();
 };
 provide('exportPlaces', exportPlaces);
 
+// --- Drag & Drop Handlers ---
 const handleDragStart = (event: Event, type?: string): void => {
 	mainStore.idleTime = 0;
 	(event as any).dataTransfer.setData('text/plain', null);
-	(draggingElement.value as Element) = (event.target as Element);
+	draggingElement.value = event.target as Element;
 	if (type) draggingType.value = type;
 };
 provide('handleDragStart', handleDragStart);
@@ -446,94 +246,73 @@ provide('handleDragStart', handleDragStart);
 const handleDragEnter = (event: Event): void => {
 	event.preventDefault();
 	event.stopPropagation();
-	if (
-		!draggingElement.value ||
-		(event.target as Node).nodeType !== 1 ||
-		draggingElement.value === (event.target as Element)
-	) return;
+	if (!draggingElement.value || (event.target as Node).nodeType !== 1 || draggingElement.value === event.target) return;
 	switch (draggingType.value) {
-		case 'measure':
-			const measureId1 = (draggingElement.value as Element).getAttribute('measureitem');
-			const measureId2 = (event.target as Element).getAttribute('measureitem');
-			if (!measureId1 || !measureId2) return;
-			const measureIds = mainStore.measure.places;
-			const measureIdx1 = measureIds.indexOf(measureId1);
-			const measureIdx2 = measureIds.indexOf(measureId2);
-			[measureIds[measureIdx1], measureIds[measureIdx2]] =
-				[measureIds[measureIdx2], measureIds[measureIdx1]];
-			mainStore.measure.places = measureIds;
+		case 'measure': {
+			const el1 = draggingElement.value as Element;
+			const el2 = event.target as Element;
+			const id1 = el1.getAttribute('measureitem');
+			const id2 = el2.getAttribute('measureitem');
+			if (!id1 || !id2) return;
+			const ids = mainStore.measure.places;
+			const idx1 = ids.indexOf(id1), idx2 = ids.indexOf(id2);
+			[ids[idx1], ids[idx2]] = [ids[idx2], ids[idx1]];
+			mainStore.measure.places = ids;
 			mainStore.measureDistance();
-			(draggingElement.value as Element) = (event.target as Element);
+			draggingElement.value = el2;
 			return;
-		case 'images':
+		}
+		case 'images': {
 			const ids: string[] = [];
 			for (const id in currentPlace.value.images) {
-				if (id === (draggingElement.value as Element).id) {
-					ids.push(id);
-				}
-				if (id === (event.target as Element).id) {
-					ids.push(id);
-				}
+				if (id === (draggingElement.value as Element).id) ids.push(id);
+				if (id === (event.target as Element).id) ids.push(id);
 				if (ids.length === 2) break;
 			}
-			mainStore.swapImages({
-				place: currentPlace.value,
-				ids: ids,
-			});
+			mainStore.swapImages({ place: currentPlace.value, ids });
 			return;
-		default:
-			const draggingElementPP = (draggingElement.value as Element)!.parentElement!.parentElement!;
-			if (
-				(event.target as any).dataset.folderButton !== undefined &&
-				(
-					(draggingElement.value as any).dataset.folderButton !== undefined ||
-					(draggingElement.value as any).dataset.placeButton !== undefined
-				)
-			) {
-				(event.target as Element).classList.add('highlighted');
+		}
+		default: {
+			const el = event.target as HTMLElement;
+			const dragEl = draggingElement.value as HTMLElement;
+			const dragPP = (draggingElement.value as Element).parentElement?.parentElement;
+			const addClass = (cls: string) => el.classList.add(cls);
+			if (el.dataset.folderButton !== undefined &&
+				(dragEl.dataset.folderButton !== undefined || dragEl.dataset.placeButton !== undefined)) {
+				addClass('highlighted');
 			}
-			if (
-				(draggingElement.value as any).dataset.placeButton !== undefined &&
-				(event.target as any).dataset.placeButtonDragenterAreaTop !== undefined &&
-				(event.target as Element).parentElement !== draggingElement.value &&
-				(event.target as Element).parentElement !== (draggingElement.value as Element).nextElementSibling
-			) {
-				(event.target as Element).classList.add('dragenter-area_top_border');
-			} else if (
-				(draggingElement.value as any).dataset.placeButton !== undefined &&
-				(event.target as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
-				(event.target as Element).parentElement !== draggingElement.value &&
-				(event.target as Element).parentElement !== (draggingElement.value as Element).previousElementSibling
-			) {
-				(event.target as Element).classList.add('dragenter-area_bottom_border');
-			} else if (
-				(draggingElement.value as any).dataset.folderButton !== undefined &&
-				(event.target as any).dataset.folderDragenterAreaTop !== undefined &&
-				(event.target as Element).parentElement !== draggingElementPP! &&
-				(event.target as Element).parentElement !== draggingElementPP!.nextElementSibling
-			) {
-				(event.target as Element).classList.add('dragenter-area_top_border');
-			} else if (
-				(draggingElement.value as any).dataset.folderButton !== undefined &&
-				(event.target as any).dataset.folderDragenterAreaBottom !== undefined &&
-				(event.target as Element).parentElement !== draggingElementPP! &&
-				(event.target as Element).parentElement !== draggingElementPP!.previousElementSibling
-			) {
-				(event.target as Element).classList.add('dragenter-area_bottom_border');
+			if (dragEl.dataset.placeButton !== undefined) {
+				if (el.dataset.placeButtonDragenterAreaTop !== undefined &&
+					el.parentElement !== draggingElement.value &&
+					el.parentElement !== (draggingElement.value as Element).nextElementSibling) {
+					addClass('dragenter-area_top_border');
+				} else if (el.dataset.placeButtonDragenterAreaBottom !== undefined &&
+					el.parentElement !== draggingElement.value &&
+					el.parentElement !== (draggingElement.value as Element).previousElementSibling) {
+					addClass('dragenter-area_bottom_border');
+				}
+			} else if (dragEl.dataset.folderButton !== undefined) {
+				if (el.dataset.folderDragenterAreaTop !== undefined &&
+					el.parentElement !== dragPP &&
+					el.parentElement !== dragPP?.nextElementSibling) {
+					addClass('dragenter-area_top_border');
+				} else if (el.dataset.folderDragenterAreaBottom !== undefined &&
+					el.parentElement !== dragPP &&
+					el.parentElement !== dragPP?.previousElementSibling) {
+					addClass('dragenter-area_bottom_border');
+				}
 			}
-			break;
+		}
 	}
 };
 provide('handleDragEnter', handleDragEnter);
 
 const handleDragLeave = (event: Event): void => {
-	if ((event.target as Element).nodeType === 1) {
+	const el = event.target as Element;
+	if (el.nodeType === 1) {
 		event.preventDefault();
-		(event.target as Element).classList.remove('highlighted');
-		(event.target as Element).classList.remove('dragenter-area_top_border');
-		(event.target as Element).classList.remove('dragenter-area_bottom_border');
-		(event.target as Element).classList.remove('dragenter-area_top_border');
-		(event.target as Element).classList.remove('dragenter-area_bottom_border');
+		['highlighted', 'dragenter-area_top_border', 'dragenter-area_bottom_border']
+			.forEach(cls => el.classList.remove(cls));
 	}
 };
 provide('handleDragLeave', handleDragLeave);
@@ -545,28 +324,23 @@ provide('handleDragOver', handleDragOver);
 
 const handleDrop = (event: Event): void => {
 	draggingType.value = null;
-	if (draggingElement.value === null) return;
+	if (!draggingElement.value) return;
 	event.preventDefault();
 	event.stopPropagation();
-	if (
-		(event.target as Element).nodeType !== 1 ||
-		draggingElement.value === (event.target as Element) &&
-		(draggingElement.value as any).dataset.image === undefined
-	) return;
-	const
-		targetSrt = Number(
-			((event.target as Element).parentElement as Element).getAttribute('srt') ||
-			(((event.target as Element).parentElement as Element).parentElement as Element).getAttribute('srt')
-		) || 0,
-		changes: Record<string, any> = {folder: {}, place: {}}
-	;
+	const el = event.target as Element;
+	if (el.nodeType !== 1 || (draggingElement.value === el && !(draggingElement.value as any).dataset.image)) return;
+
+	const getSrt = (el: Element) =>
+		Number(el.parentElement?.getAttribute('srt') ||
+			el.parentElement?.parentElement?.getAttribute('srt')) || 0;
+
+	const changes: Record<string, any> = { folder: {}, place: {} };
 	let newContainer: any;
+
 	const change = () => {
 		if (Object.keys(changes.place).length) {
 			mainStore.changePlace({
-				place: mainStore.places[
-						(draggingElement.value as Element).id.match(/[\d\w]+$/)![0]
-				],
+				place: mainStore.places[(draggingElement.value as Element).id.match(/[\d\w]+$/)![0]],
 				change: changes.place,
 			});
 		}
@@ -580,184 +354,109 @@ const handleDrop = (event: Event): void => {
 		}
 	};
 	const cleanup = () => {
-		event.target!.dispatchEvent(new Event('dragleave'));
+		el.dispatchEvent(new Event('dragleave'));
 		draggingElement.value = null;
 	};
-	// Place button was dropped on the folder link
+
+	// Place button dropped on folder link
 	if (
 		(draggingElement.value as any).dataset.placeButton !== undefined &&
-		(event.target as any).dataset.folderButton !== undefined &&
-		(event.target as Element).id.replace(/^.*-([^-]*)/, "$1") !==
-			mainStore.places[
-				(draggingElement.value as Element).id
-			].folderid
+		(el as any).dataset.folderButton !== undefined &&
+		el.id.replace(/^.*-([^-]*)/, "$1") !== mainStore.places[(draggingElement.value as Element).id].folderid
 	) {
-		newContainer =
-			((event.target as Element).parentElement as Element).nextElementSibling!.nextElementSibling;
-		if (newContainer.lastElementChild) {
-			changes.place.srt = mainStore.places[
-				newContainer.lastElementChild.id
-			].srt + 1;
-		} else {
-			changes.place.srt = 1;
-		}
-		changes.place.folderid =
-			newContainer.id.replace(/^.*-([^-]*)/, "$1");
-		change();
-		cleanup();
-		return;
+		newContainer = el.parentElement?.nextElementSibling?.nextElementSibling;
+		changes.place.srt = newContainer?.lastElementChild
+			? mainStore.places[newContainer.lastElementChild.id].srt + 1
+			: 1;
+		changes.place.folderid = newContainer.id.replace(/^.*-([^-]*)/, "$1");
+		change(); cleanup(); return;
 	}
-	/*
-	Place button was dropped
-	on the top sorting area of another place button
-	*/
+
+	// Place button dropped on top sorting area of another place button
 	if (
 		(draggingElement.value as any).dataset.placeButton !== undefined &&
-		(event.target as any).dataset.placeButtonDragenterAreaTop !== undefined &&
-		(event.target as Element).parentElement !== (draggingElement.value as Element).nextElementSibling
+		(el as any).dataset.placeButtonDragenterAreaTop !== undefined &&
+		el.parentElement !== (draggingElement.value as Element).nextElementSibling
 	) {
-		if (!((event.target as Element).parentElement as Element).previousElementSibling) {
-			changes.place.srt = targetSrt / 2;
-		} else {
-			const targetPrevSrt = Number(
-				((event.target as Element).parentElement as Element).previousElementSibling!
-					.getAttribute('srt')
-			) || 0;
-			changes.place.srt = (targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
+		const targetSrt = getSrt(el);
+		const prevSib = el.parentElement?.previousElementSibling;
+		changes.place.srt = prevSib
+			? (targetSrt - Number(prevSib.getAttribute('srt') || 0)) / 2 + Number(prevSib.getAttribute('srt') || 0)
+			: targetSrt / 2;
+		if ((draggingElement.value as Element).parentElement !== el.parentElement?.parentElement) {
+			changes.place.folderid = el.parentElement?.parentElement?.id.match(/[\d\w]+$/)![0];
 		}
-		if ((draggingElement.value as Element).parentElement !== (((event.target as Element).parentElement as Element).parentElement as Element)) {
-			changes.place.folderid = (((event.target as Element).parentElement as Element).parentElement as Element).id.match(/[\d\w]+$/)![0];
-		}
-		(event.target as Element).classList.remove('dragenter-area_top_border');
-		change();
-		cleanup();
-		return;
+		el.classList.remove('dragenter-area_top_border');
+		change(); cleanup(); return;
 	}
-	/*
-	Place button was dropped
-	on the bottom sorting area of another place button
-	*/
+
+	// Place button dropped on bottom sorting area of another place button
 	if (
 		(draggingElement.value as any).dataset.placeButton !== undefined &&
-		(event.target as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
-		(event.target as Element).parentElement !== (draggingElement.value as Element).previousElementSibling
+		(el as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
+		el.parentElement !== (draggingElement.value as Element).previousElementSibling
 	) {
-		if (!((event.target as Element).parentElement as Element).nextElementSibling) {
-			changes.place.srt = targetSrt + 1;
-		} else {
-			const targetNextSrt = Number(
-				((event.target as Element).parentElement as Element).nextElementSibling!.getAttribute('srt')
-			) || 0;
-			changes.place.srt = (targetNextSrt - targetSrt) / 2 + targetSrt;
+		const targetSrt = getSrt(el);
+		const nextSib = el.parentElement?.nextElementSibling;
+		changes.place.srt = nextSib
+			? (Number(nextSib.getAttribute('srt') || 0) - targetSrt) / 2 + targetSrt
+			: targetSrt + 1;
+		if ((draggingElement.value as Element).parentElement !== el.parentElement?.parentElement) {
+			changes.place.folderid = el.parentElement?.parentElement?.id.match(/[\d\w]+$/)![0];
 		}
-		if ((draggingElement.value as Element).parentElement !== (((event.target as Element).parentElement as Element).parentElement as Element)) {
-			changes.place.folderid = (((event.target as Element).parentElement as Element).parentElement as Element).id.match(/[\d\w]+$/)![0];
-		}
-		(event.target as Element).classList.remove('dragenter-area_bottom_border');
-		change();
-		cleanup();
-		return;
+		el.classList.remove('dragenter-area_bottom_border');
+		change(); cleanup(); return;
 	}
-	// Folder link was dropped on the sorting area of another folder link
+
+	// Folder link dropped on sorting area of another folder link
 	if (
 		(draggingElement.value as any).dataset.folderButton !== undefined &&
-		(
-			(event.target as any).dataset.folderDragenterAreaTop !== undefined ||
-			(event.target as any).dataset.folderDragenterAreaBottom !== undefined
-		) &&
-		!!(changes.folder.id =
-			(draggingElement.value as Element).id.replace(/^.*-([^-]*)/, "$1")
-		) &&
-		!!(changes.folder.parent =
-			(((((event.target as Element).parentElement as Element).parentElement as Element).parentElement as Element).parentElement as Element)
-				.id.replace(/^.*-([^-]*)/, "$1")
-		) &&
+		((el as any).dataset.folderDragenterAreaTop !== undefined || (el as any).dataset.folderDragenterAreaBottom !== undefined) &&
+		!!(changes.folder.id = (draggingElement.value as Element).id.replace(/^.*-([^-]*)/, "$1")) &&
+		!!(changes.folder.parent = el.parentElement?.parentElement?.parentElement?.parentElement?.id.replace(/^.*-([^-]*)/, "$1")) &&
 		changes.folder.id !== changes.folder.parent &&
-		!isParentInTree(
-			mainStore.tree,
-			'children',
-			changes.folder.id,
-			changes.folder.parent
-		)
+		!isParentInTree(mainStore.tree, 'children', changes.folder.id, changes.folder.parent)
 	) {
-		if (
-			(event.target as any).dataset.folderDragenterAreaTop !== undefined &&
-			(draggingElement.value as Element).parentElement!.parentElement !==
-				((event.target as Element).parentElement as Element).previousElementSibling
-		) {
-			if (!((event.target as Element).parentElement as Element).previousElementSibling) {
-				changes.folder.srt = targetSrt / 2;
-			} else {
-				const targetPrevSrt = Number(
-					((event.target as Element).parentElement as Element).previousElementSibling!
-						.getAttribute('srt')
-				) || 0;
-				changes.folder.srt =
-					(targetSrt - targetPrevSrt) / 2 + targetPrevSrt;
-			}
-		} else if (
-			(event.target as any).dataset.folderDragenterAreaBottom !== undefined &&
-			(draggingElement.value as Element).parentElement!.parentElement !==
-				((event.target as Element).parentElement as Element).nextElementSibling
-		) {
-			if (!((event.target as Element).parentElement as Element).nextElementSibling) {
-				changes.folder.srt = targetSrt + 1;
-			} else {
-				const targetNextSrt = Number(
-					((event.target as Element).parentElement as Element).nextElementSibling!
-						.getAttribute('srt')
-				) || 0;
-				changes.folder.srt =
-					(targetNextSrt - targetSrt) / 2 + targetSrt;
-			}
+		const targetSrt = getSrt(el);
+		if ((el as any).dataset.folderDragenterAreaTop !== undefined &&
+			(draggingElement.value as Element).parentElement?.parentElement !== el.parentElement?.previousElementSibling) {
+			const prevSib = el.parentElement?.previousElementSibling;
+			changes.folder.srt = prevSib
+				? (targetSrt - Number(prevSib.getAttribute('srt') || 0)) / 2 + Number(prevSib.getAttribute('srt') || 0)
+				: targetSrt / 2;
+		} else if ((el as any).dataset.folderDragenterAreaBottom !== undefined &&
+			(draggingElement.value as Element).parentElement?.parentElement !== el.parentElement?.nextElementSibling) {
+			const nextSib = el.parentElement?.nextElementSibling;
+			changes.folder.srt = nextSib
+				? (Number(nextSib.getAttribute('srt') || 0) - targetSrt) / 2 + targetSrt
+				: targetSrt + 1;
 		}
-		change();
-		cleanup();
-		return;
+		change(); cleanup(); return;
 	}
+
 	// Folder link dropped on another folder link
 	if (
 		(draggingElement.value as any).dataset.folderButton !== undefined &&
-		(event.target as any).dataset.folderButton !== undefined &&
-		!!(changes.folder.id =
-			(draggingElement.value as Element).id.replace(/^.*-([^-]*)/, "$1")
-		) &&
-		!!(changes.folder.parent =
-			(event.target as Element).id.replace(/^.*-([^-]*)/, "$1")
-		) &&
-		changes.folder.id !== changes.folder.parent && (
-			!mainStore.treeFlat[changes.folder.parent].children ||
-			!mainStore.treeFlat[changes.folder.parent].children[changes.folder.id]
-		) &&
-		!isParentInTree(
-			mainStore.tree,
-			'children',
-			changes.folder.id,
-			changes.folder.parent
-		)
+		(el as any).dataset.folderButton !== undefined &&
+		!!(changes.folder.id = (draggingElement.value as Element).id.replace(/^.*-([^-]*)/, "$1")) &&
+		!!(changes.folder.parent = el.id.replace(/^.*-([^-]*)/, "$1")) &&
+		changes.folder.id !== changes.folder.parent &&
+		(!mainStore.treeFlat[changes.folder.parent].children ||
+			!mainStore.treeFlat[changes.folder.parent].children[changes.folder.id]) &&
+		!isParentInTree(mainStore.tree, 'children', changes.folder.id, changes.folder.parent)
 	) {
-		newContainer =
-			((event.target as Element).parentElement as Element).nextElementSibling!.firstElementChild;
-		if (newContainer && newContainer.lastElementChild) {
-			changes.folder.srt = mainStore.treeFlat[
-				newContainer.lastElementChild.id.replace(/^.*-([^-]*)/, "$1")
-			].srt + 1;
-		} else {
-			changes.folder.srt = 1;
-		}
-		change();
-		cleanup();
-		return;
+		newContainer = el.parentElement?.nextElementSibling?.firstElementChild;
+		changes.folder.srt = (newContainer && newContainer.lastElementChild)
+			? mainStore.treeFlat[newContainer.lastElementChild.id.replace(/^.*-([^-]*)/, "$1")].srt + 1
+			: 1;
+		change(); cleanup(); return;
 	}
+
 	// Image thumbnail dropped
 	if ((draggingElement.value as any).dataset.image !== undefined) {
-		mainStore.changePlace({
-			place: currentPlace.value,
-			change: {},
-		});
-		toDB({what: 'places', data: [currentPlace.value]});
-		cleanup();
-		return;
+		mainStore.changePlace({ place: currentPlace.value, change: {} });
+		toDB({ what: 'places', data: [currentPlace.value] });
+		cleanup(); return;
 	}
 	cleanup();
 };

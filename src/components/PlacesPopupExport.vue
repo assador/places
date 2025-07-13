@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onBeforeUnmount } from 'vue';
+import { ref, inject, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
 import PlacesTree from './PlacesTree.vue';
@@ -144,7 +144,7 @@ onMounted(() => {
 	}
 	document.addEventListener('keyup', keyup, false);
 });
-onBeforeUnmount(() => {
-	document.removeEventListener('keyup', keyup, false);
+onUnmounted(() => {
+	document.removeEventListener('keyup', keyup);
 });
 </script>

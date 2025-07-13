@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, inject, onMounted } from 'vue';
+import { ref, Ref, inject, onMounted, onUnmounted } from 'vue';
 import { constants } from '../shared/constants';
 import { useMainStore } from '@/stores/main';
 
@@ -80,5 +80,8 @@ const keyup = (event: Event): void => {
 onMounted(() => {
 	document.addEventListener('keyup', keyup, false);
 	window.setTimeout(() => {popuped.value = true;}, 1);
+});
+onUnmounted(() => {
+	document.removeEventListener('keyup', keyup);
 });
 </script>
