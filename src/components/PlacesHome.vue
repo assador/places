@@ -958,6 +958,9 @@ const getAltitude = async (lat: number, lon: number, alt: Ref<number | null>) =>
 		alt.value = null;
 	}
 };
+watch(() => mainStore.ready, () => {
+	stateReadyChanged();
+});
 watchEffect(() => {
 	if (
 		typeof currentPlaceLat.value === 'number' &&
@@ -974,22 +977,23 @@ watchEffect(() => {
 		getAltitude(mainStore.center.latitude, mainStore.center.longitude, centerAltitude);
 	}
 });
-watch(() => mainStore.ready, () => {
-	stateReadyChanged();
-});
 watch(mainStore, changedStore => {
 	if (!changedStore.refreshing) {
 		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
 	}
 });
-watch(() => mainStore.measure.places, mainStore.measureDistance);
+watchEffect(() => {
+	if (mainStore.measure.places.length > 1) mainStore.measureDistance();
+});
 watch(() => mainStore.waypoints, mainStore.measureDistance);
+
 emitter.on('choosePlace', (payload: {place: Place, mode?: string}) => {
 	choosePlace(payload);
 });
 emitter.on('deletePlace', (place: Place) => {
 	deletePlace(place);
 });
+
 const confirmPopup = ref(false);
 const confirmCallback = ref<Function | null>(null);
 const confirmCallbackArgs = ref<any[] | null>(null);
