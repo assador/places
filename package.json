@@ -25,6 +25,7 @@
 	},
 	"devDependencies": {
 		"@types/leaflet": "^1.9.20",
+		"@types/lodash": "^4.17.20",
 		"@types/node": "^24.0.13",
 		"@typescript-eslint/eslint-plugin": "^8.36.0",
 		"@typescript-eslint/parser": "^8.36.0",

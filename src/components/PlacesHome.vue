@@ -4,8 +4,8 @@
 		ref="root"
 		:class="`sbs_${sbs}`"
 		:style="gridStyle"
-		@mousemove="e => documentMouseOver(e)"
-		@touchmove="e => documentMouseOver(e)"
+		@mousemove="rootMouseOverTrottled"
+		@touchmove="rootMouseOverTrottled"
 		@mouseup="sidebarDragStop"
 		@touchend="sidebarDragStop"
 	>
@@ -839,7 +839,7 @@ import {
 import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import _ from 'lodash';
+import { orderBy, throttle } from 'lodash';
 import { constants } from '@/shared/constants';
 import {
 	generateRandomString,
@@ -893,16 +893,21 @@ const commonPlacesPagesCount = ref(0);
 const commonPlacesOnPageCount = ref(constants.commonplacesonpagecount);
 provide('commonPlacesOnPageCount', commonPlacesOnPageCount);
 const commonPlacesShow = ref(false);
+
 const sidebarSize = ref({
 	top: constants.sidebars.top,
 	right: constants.sidebars.right,
 	bottom: constants.sidebars.bottom,
 	left: constants.sidebars.left,
 });
-const sidebarDrag = ref({ what: null as unknown, x: 0, y: 0, w: 0, h: 0 });
-const sbs = ref('all');
+const gridStyle = computed(() =>
+	`grid-template-rows:${sidebarSize.value.top}px 1fr ${sidebarSize.value.bottom}px;` +
+	`grid-template-columns:${sidebarSize.value.left}px 1fr ${sidebarSize.value.right}px;`
+);
 const compact = ref(0);
 const compactControlButtons = ref(false);
+const sidebarDrag = ref({ what: null as unknown, x: 0, y: 0, w: 0, h: 0 });
+const sbs = ref('all');
 
 watch(compact, () => {
 	const sidebars =
@@ -913,10 +918,6 @@ watch(compact, () => {
 				: constants.sidebarsCompactUltra;
 	Object.assign(sidebarSize.value, sidebars);
 });
-const gridStyle = computed(() =>
-	`grid-template-rows:${sidebarSize.value.top}px 1fr ${sidebarSize.value.bottom}px;` +
-	`grid-template-columns:${sidebarSize.value.left}px 1fr ${sidebarSize.value.right}px;`
-);
 const linkEditing = ref(false);
 const orderedCurrentPlaceFields = ref([
 	'name', 'description', 'waypoint', 'link', 'time', 'srt', 'common', 'images',
@@ -933,7 +934,7 @@ const commonPlaces = computed<Record<string, Place>>(() => {
 	}, {} as Record<string, Place>);
 });
 const orderedImages = computed<Array<Image>>(() =>
-	currentPlace.value ? _.orderBy(currentPlace.value.images, 'srt') : []
+	currentPlace.value ? orderBy(currentPlace.value.images, 'srt') : []
 );
 const currentPlaceLat = computed<number | null>(() => {
 	const cp = currentPlace.value;
@@ -982,10 +983,8 @@ watch(mainStore, changedStore => {
 		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
 	}
 });
-watchEffect(() => {
-	if (mainStore.measure.places.length > 1) mainStore.measureDistance();
-});
-watch(() => mainStore.waypoints, mainStore.measureDistance);
+watch(() => mainStore.measure.places, mainStore.measureDistance, { deep: true });
+watch(() => mainStore.waypoints, mainStore.measureDistance, { deep: true });
 
 emitter.on('choosePlace', (payload: {place: Place, mode?: string}) => {
 	choosePlace(payload);
@@ -1455,7 +1454,7 @@ const sidebarDragStart = (event: Event, what: string): void => {
 			break;
 	}
 };
-const documentMouseOver = (event: Event): void => {
+const rootMouseOver = (event: Event): void => {
 	if (!sidebarDrag.value.what) return;
 	const isTouch = (event as TouchEvent).changedTouches !== undefined;
 	const getCoord = (axis: 'X' | 'Y') =>
@@ -1485,6 +1484,8 @@ const documentMouseOver = (event: Event): void => {
 		}
 	}
 };
+const rootMouseOverTrottled = throttle(rootMouseOver, 10);
+
 const sidebarDragStop = (): void => {
 	sidebarDrag.value.what = null;
 };
