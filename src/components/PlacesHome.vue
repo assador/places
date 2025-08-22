@@ -1161,8 +1161,8 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 				currentPlaceCommon.value = mainStore.currentPlace.userid !== mainStore.user.id;
 				openTreeToCurrentPlace();
 			}
-			const waypoint = mainStore.waypoints[mainStore.currentPlace.waypoint];
 /*
+			const waypoint = mainStore.waypoints[mainStore.currentPlace.waypoint];
 			if (waypoint) {
 				mainStore.updateMap({
 					latitude: waypoint.latitude,

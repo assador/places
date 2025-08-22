@@ -128,15 +128,26 @@
 				"
 				:draggable="true"
 				data-place-button
+				@dragstart="handleDragStart"
 				@click="e => {
-					instanceid !== 'popupexporttree' ? choosePlace(place, e) : '';
+					if (instanceid !== 'popupexporttree') {
+						choosePlace(place, e);
+						const waypoint = mainStore.waypoints[place.waypoint];
+						if (waypoint) {
+							mainStore.updateMap({
+								latitude: waypoint.latitude,
+								longitude: waypoint.longitude,
+							});
+						}
+					}
 				}"
 				@contextmenu="e => {
 					e.preventDefault();
-					instanceid !== 'popupexporttree' ? choosePlace(place, e) : '';
+					if (instanceid !== 'popupexporttree') {
+						choosePlace(place, e);
+					}
 				}"
-				@dragstart="handleDragStart"
-			>
+				>
 				<input
 					v-if="instanceid === 'popupexporttree'"
 					:id="'to-export-place-checkbox-' + place.id"
