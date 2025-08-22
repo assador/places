@@ -50,6 +50,18 @@
 				>
 					{{ !folder.geomarks ? '⚇' : (folder.geomarks === 1 ? '⚉' : '⚈') }}
 				</span>
+				<span
+					class="folder-button__deletehere"
+					:title="mainStore.t.i.buttons.deleteFolder"
+					@click="e => {
+						e.stopPropagation();
+						router.push({name: 'PlacesHomeDeleteFolder', params: {folderId: folder.id}})
+							.catch(err => {console.error(err);})
+						;
+					}"
+				>
+					⊗
+				</span>
 			</a>
 			<span
 				v-else
@@ -155,28 +167,35 @@
 				>
 					{{ !place.geomark ? '⚇' : '⚉' }}
 				</a>
+				<a
+					class="place-button__delete"
+					:title="mainStore.t.i.hints.deletePlace"
+					@click="mainStore.deletePlaces({places: {[place.id]: place}})"
+				>
+					⊗
+				</a>
 				<span
 					data-place-button-dragenter-area-top
 					class="dragenter-area dragenter-area_top"
 					@dragenter="handleDragEnter"
 					@dragleave="handleDragLeave"
-					/>
-					<span
+				/>
+				<span
 					data-place-button-dragenter-area-bottom
 					class="dragenter-area dragenter-area_bottom"
 					@dragenter="handleDragEnter"
 					@dragleave="handleDragLeave"
-					/>
-				</label>
-			</div>
-			<div
+				/>
+			</label>
+		</div>
+		<div
 			v-if="folder.id !== 'root'"
 			data-folder-dragenter-area-top
 			class="dragenter-area dragenter-area_top"
 			@dragenter="handleDragEnter"
 			@dragleave="handleDragLeave"
-			/>
-			<div
+		/>
+		<div
 			v-if="folder.id !== 'root'"
 			data-folder-dragenter-area-bottom
 			class="dragenter-area dragenter-area_bottom"

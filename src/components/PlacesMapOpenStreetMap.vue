@@ -83,6 +83,7 @@
 				/>
 				<l-tooltip permanent="true">
 					{{ mainStore.t.i.captions.measureWaypoint }}
+					{{ Object.keys(mainStore.temps).indexOf(point.id) + 1 }} —
 					{{ coords2string([point.latitude, point.longitude]) }}
 				</l-tooltip>
 			</l-marker>

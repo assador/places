@@ -126,6 +126,7 @@
 					<div class="control-measure-temps-buttons">
 						<button
 							v-for="(temp, id) in mainStore.temps"
+							:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
 							@click="chooseWaypoint({waypoint: temp})"
 						>
 							<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>

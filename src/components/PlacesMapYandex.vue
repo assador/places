@@ -61,7 +61,7 @@
 						? 'icon_01_blue'
 						: (point === mainStore.currentTemp ? 'icon_01_green' : 'icon_01')
 				].iconImageHref"
-				:title="`${ mainStore.t.i.captions.measureWaypoint } ${ coords2string([point.latitude, point.longitude]) }`"
+				:title="`${ mainStore.t.i.captions.measureWaypoint } ${ Object.keys(mainStore.temps).indexOf(point.id) + 1 } — ${ coords2string([point.latitude, point.longitude]) }`"
 			/>
 			<div
 				v-if="mainStore.mode === 'measure' && mainStore.measure.points.includes(point.id)"

@@ -1040,14 +1040,16 @@ $col-36: rgb(0, 0, 0);
 		transition: all 0.3s;
 	}
 	.place-button:hover .place-button__geomark,
-	.folder-button:hover .folder-button__geomarks {
+	.place-button:hover .place-button__delete,
+	.folder-button:hover .folder-button__geomarks,
+	.folder-button:hover .folder-button__deletehere {
 		opacity: 1;
 	}
 	.place-button__text, .folder-button__text {
 		flex-grow: 1;
 	}
-	.place-button__geomark, .folder-button__geomarks {
-		margin-left: 10px;
+	.place-button__geomark, .place-button__delete, .folder-button__geomarks, .folder-button__deletehere {
+		margin-left: 8px;
 		pointer-events: auto !important;
 		opacity: 0;
 		z-index: 20;
