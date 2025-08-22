@@ -227,42 +227,6 @@ export const useMainStore = defineStore('main', {
 		modifyCommonPlaces(commonPlaces: Record<string, Place>) {
 			this.commonPlaces = commonPlaces;
 		},
-		deleteWaypoint(waypoint: Waypoint) {
-			delete this.waypoints[waypoint.id];
-		},
-		deletePlace(place: Place) {
-			delete this.places[place.id];
-		},
-		deleteTemp(id: string) {
-			const measureIndex = this.measure.points.indexOf(id);
-			if (measureIndex !== -1) {
-				this.measure.points.splice(measureIndex, 1);
-				this.measure.choosing = this.measure.points.length;
-			}
-			delete this.temps[id];
-			if (this.currentTemp.id === id) this.currentTemp = null;
-		},
-		addFolderMut(payload: {folder: Folder, parent : Record<string, any>}) {
-			if (!payload.parent) {
-				this.folders[payload.folder.id] = payload.folder;
-			} else {
-				if (!payload.parent.children) {
-					payload.parent.children = {};
-				} else {
-					payload.parent.needToRefreshTreeSorry = null;
-					delete payload.parent.needToRefreshTreeSorry;
-				}
-				payload.parent.children[payload.folder.id] = payload.folder;
-			}
-		},
-		deleteFolder(payload: Record<string, any>) {
-			if (!payload.source) {
-				payload.source = this.treeFlat[payload.folder.parent];
-			}
-			delete payload.source.children[payload.folder.id];
-			payload.source.needToRefreshTreeSorry = null;
-			delete payload.source.needToRefreshTreeSorry;
-		},
 		deleteImages(payload: Record<string, any>) {
 			if (!payload.images || !Object.keys(payload.images).length) return;
 			for (const id in payload.images) {
@@ -1005,47 +969,6 @@ export const useMainStore = defineStore('main', {
 			}
 			this.places[payload.place.id] = payload.place;
 		},
-		addTemp() {
-			this.backupState();
-			const waypointId = generateRandomString(32);
-			this.temps[waypointId] = {
-				id: waypointId,
-				latitude: this.center.latitude,
-				longitude: this.center.longitude,
-				common: false,
-				type: 'waypoint',
-				added: false,
-				deleted: false,
-				updated: false,
-				show: true,
-			};
-		},
-		async changeWaypoint(payload: Record<string, any>) {
-			let saveToDB = (
-				payload.todb !== false &&
-				!this.temps[payload.waypoint.id]
-			);
-			for (const key in payload.change) {
-				payload.waypoint[key] = payload.change[key];
-				if (
-					key === 'added' ||
-					key === 'deleted' ||
-					key === 'updated'
-				) {
-					saveToDB = false;
-				}
-			}
-			if (saveToDB && !this.user.testaccount) {
-				payload.waypoint.updated = true;
-				emitter.emit('toDB', {
-					what: 'waypoints',
-					data: [{
-						...payload.waypoint,
-						from: (payload.from ? payload.from : null),
-					}],
-				});
-			}
-		},
 		async changePlace(payload: Record<string, any>) {
 			this.backupState();
 			let saveToDB = (
@@ -1089,6 +1012,75 @@ export const useMainStore = defineStore('main', {
 			if (saveToDB && !this.user.testaccount) {
 				payload.place.updated = true;
 				emitter.emit('toDB', {what: 'places', data: [payload.place]});
+			}
+		},
+		deletePlace(place: Place) {
+			delete this.places[place.id];
+		},
+		addTemp() {
+			this.backupState();
+			const waypointId = generateRandomString(32);
+			this.temps[waypointId] = {
+				id: waypointId,
+				latitude: this.center.latitude,
+				longitude: this.center.longitude,
+				common: false,
+				type: 'waypoint',
+				added: false,
+				deleted: false,
+				updated: false,
+				show: true,
+			};
+		},
+		async changeWaypoint(payload: Record<string, any>) {
+			let saveToDB = (
+				payload.todb !== false &&
+				!this.temps[payload.waypoint.id]
+			);
+			for (const key in payload.change) {
+				payload.waypoint[key] = payload.change[key];
+				if (
+					key === 'added' ||
+					key === 'deleted' ||
+					key === 'updated'
+				) {
+					saveToDB = false;
+				}
+			}
+			if (saveToDB && !this.user.testaccount) {
+				payload.waypoint.updated = true;
+				emitter.emit('toDB', {
+					what: 'waypoints',
+					data: [{
+						...payload.waypoint,
+						from: (payload.from ? payload.from : null),
+					}],
+				});
+			}
+		},
+		deleteWaypoint(waypoint: Waypoint) {
+			delete this.waypoints[waypoint.id];
+		},
+		deleteTemp(id: string) {
+			const measureIndex = this.measure.points.indexOf(id);
+			if (measureIndex !== -1) {
+				this.measure.points.splice(measureIndex, 1);
+				this.measure.choosing = this.measure.points.length;
+			}
+			delete this.temps[id];
+			if (this.currentTemp.id === id) this.currentTemp = null;
+		},
+		addFolderMut(payload: {folder: Folder, parent : Record<string, any>}) {
+			if (!payload.parent) {
+				this.folders[payload.folder.id] = payload.folder;
+			} else {
+				if (!payload.parent.children) {
+					payload.parent.children = {};
+				} else {
+					payload.parent.needToRefreshTreeSorry = null;
+					delete payload.parent.needToRefreshTreeSorry;
+				}
+				payload.parent.children[payload.folder.id] = payload.folder;
 			}
 		},
 		changeFolder(payload: Record<string, any>) {
@@ -1145,6 +1137,14 @@ export const useMainStore = defineStore('main', {
 				changeFolderPayload.change.updated = true;
 			}
 			this.changeFolder(changeFolderPayload);
+		},
+		deleteFolder(payload: Record<string, any>) {
+			if (!payload.source) {
+				payload.source = this.treeFlat[payload.folder.parent];
+			}
+			delete payload.source.children[payload.folder.id];
+			payload.source.needToRefreshTreeSorry = null;
+			delete payload.source.needToRefreshTreeSorry;
 		},
 		savedToDB(
 			payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
@@ -1335,6 +1335,7 @@ export const useMainStore = defineStore('main', {
 		setMessage(message: string, freeze?: boolean) {
 			message = message.replace(/[\t\n]/g, ' ');
 			message = message.replace(/[ ]{2,}/g, ' ').trim();
+			if (!message) return;
 			const messagesContainer = document.getElementById('messages');
 			if (messagesContainer) {
 				messagesContainer.classList.remove('invisible');

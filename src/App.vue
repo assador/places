@@ -92,9 +92,18 @@ onMounted(() => {
 
 	mainStore.$onAction((action): void => {
 		const actions = [
-			'addPlace', 'addFolder', 'deletePlace', 'deleteFolder', 'changePlace',
-			'changeFolder', 'changeWaypoint', 'moveFolder', 'setHomePlace',
-			'swapImages'
+			'addPlace',
+			'changePlace',
+			'deletePlace',
+			'addFolder',
+			'changeFolder',
+			'deleteFolder',
+			'moveFolder',
+			'addTemp',
+			'changeWaypoint',
+			'deleteTemp',
+			'setHomePlace',
+			'swapImages',
 		];
 		if (actions.includes(action.name)) {
 			mainStore.backup = true;

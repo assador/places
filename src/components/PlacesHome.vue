@@ -114,6 +114,33 @@
 				v-if="mainStore.measure.show"
 				class="control-measure"
 			>
+				<div class="control-measure-temps margin_bottom">
+					<div class="control-measure-temps-controls">
+						<button
+							:title="mainStore.t.i.hints.addTemp"
+							@click="mainStore.addTemp()"
+						>
+							⊕
+						</button>
+					</div>
+					<div class="control-measure-temps-buttons">
+						<button
+							v-for="(temp, id) in mainStore.temps"
+							@click="chooseWaypoint({waypoint: temp})"
+						>
+							<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>
+							<span
+								:title="mainStore.t.i.hints.deleteTemp"
+								@click="e => {
+									e.stopPropagation();
+									mainStore.deleteTemp(id);
+								}"
+							>
+								⊗
+							</span>
+						</button>
+					</div>
+				</div>
 				<dt>
 					<span v-if="mainStore.measure.points.length > 1">
 						{{ mainStore.t.i.captions.measure }}:
@@ -669,7 +696,7 @@
 				accesskey="d"
 				@click="mainStore.deletePlaces({places: {[currentPlace.id]: currentPlace}});"
 			>
-				<span>⊖</span>
+				<span>⊗</span>
 				<span>{{ mainStore.t.i.buttons.delete }}</span>
 			</button>
 			<button
@@ -720,29 +747,6 @@
 				<span>123</span>
 				<span>{{ mainStore.t.i.buttons.measure }}</span>
 			</button>
-			<button
-				v-if="mainStore.mode === 'measure'"
-				id="actions-append-temp"
-				class="actions-button"
-				:title="mainStore.t.i.hints.addTemp"
-				accesskey="p"
-				@click="mainStore.addTemp();"
-			>
-				<span>⊕</span>
-				<span>{{ mainStore.t.i.buttons.newTemp }}</span>
-			</button>
-			<button
-				v-if="mainStore.mode === 'measure'"
-				id="actions-delete-temp"
-				class="actions-button"
-				:title="mainStore.t.i.hints.deleteTemp"
-				:disabled="!mainStore.currentTemp"
-				accesskey="o"
-				@click="mainStore.deleteTemp(mainStore.currentTemp.id);"
-			>
-				<span>⊖</span>
-				<span>{{ mainStore.t.i.buttons.delete }}</span>
-			</button>
 		</div>
 	</Teleport>
 	<Teleport :to="compactControlButtons
@@ -785,7 +789,7 @@
 			</button>
 			<button
 				id="actions-save"
-				:disabled="mainStore.saved"
+				:disabled="mainStore.saved || mainStore.user.testaccount"
 				:class="'actions-button' + (!mainStore.saved ? ' button-pressed' : '')"
 				:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
 				accesskey="s"
@@ -1157,12 +1161,14 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 				openTreeToCurrentPlace();
 			}
 			const waypoint = mainStore.waypoints[mainStore.currentPlace.waypoint];
+/*
 			if (waypoint) {
 				mainStore.updateMap({
 					latitude: waypoint.latitude,
 					longitude: waypoint.longitude,
 				});
 			}
+*/
 	}
 };
 const chooseWaypoint = (payload: {waypoint: Waypoint, mode?: string}): void => {
@@ -1180,11 +1186,13 @@ const chooseWaypoint = (payload: {waypoint: Waypoint, mode?: string}): void => {
 			if (mainStore.currentTemp !== payload.waypoint) {
 				mainStore.currentTemp = payload.waypoint;
 			}
+/*
 			mainStore.updateMap({
 				latitude: mainStore.currentTemp.latitude,
 				longitude: mainStore.currentTemp.longitude,
 			});
-	}
+*/
+		}
 };
 const appendPlace = async (): Promise<void | Place> => {
 	const { places, serverConfig, user, center, t, addPlace, addWaypoint, setMessage } = mainStore;
@@ -1613,6 +1621,32 @@ const selectPlaces = (text: string): void => {
 .control-measure {
 	strong {
 		text-align: right;
+	}
+	&-temps {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 20px;
+		&-buttons {
+			display: flex;
+			flex-flow: row wrap;
+			justify-content: right;
+			gap: 8px;
+			button {
+				flex-basis: calc(100% / 10);
+				margin: 0;
+				padding: 0 0 0 4px;
+				display: grid;
+				grid-template-columns: 1fr auto;
+				align-items: center;
+				& > *:last-child {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					padding: 8px 6px;
+					line-height: 0;
+				}
+			}
+		}
 	}
 }
 .place-button {
