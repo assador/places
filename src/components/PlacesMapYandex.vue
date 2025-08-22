@@ -40,6 +40,37 @@
 			/>
 		</yandex-map-marker>
 		<yandex-map-marker
+			v-for="(point, id) in mainStore.temps"
+			v-if="mainStore.placemarksShow"
+			:key="id"
+			v-model="markers[point.id]"
+			:settings="{
+				coordinates: [point.longitude, point.latitude],
+				draggable: point === mainStore.currentTemp,
+			}"
+			position="top-center left-center"
+			@mousedown="(e: Event) => placemarkDragStart(point)"
+			@mouseup="(e: Event) => {placemarkDragEnd(point); placemarkClick(point, e);}"
+			@contextmenu="(e: Event) => placemarkClick(point, e)"
+		>
+			<img
+				v-if="point.show"
+				class="marker"
+				:src="placemarksOptions[
+					mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && point !== mainStore.currentTemp
+						? 'icon_01_blue'
+						: (point === mainStore.currentTemp ? 'icon_01_green' : 'icon_01')
+				].iconImageHref"
+				:title="`${ mainStore.t.i.captions.measureWaypoint } ${ coords2string([point.latitude, point.longitude]) }`"
+			/>
+			<div
+				v-if="mainStore.mode === 'measure' && mainStore.measure.points.includes(point.id)"
+				class="marker-caption"
+			>
+				{{ mainStore.measure.points.indexOf(point.id) + 1 }}
+			</div>
+		</yandex-map-marker>
+		<yandex-map-marker
 			v-for="(place, id) in mainStore.places"
 			v-if="mainStore.placemarksShow"
 			:key="id"
@@ -52,28 +83,25 @@
 				draggable: id === mainStore.currentPlace.id,
 			}"
 			position="top-center left-center"
-			@click="(e: Event) => placemarkClick(id, e)"
-			@contextmenu="(e: Event) => placemarkClick(id, e)"
-			@mousedown="() => dragging = true"
-			@mouseup="() => dragging = false"
-			@mousemove="() => {if (dragging) placemarkDragStart(id);}"
-			@moveend="() => placemarkDragEnd(id)"
+			@mousedown="(e: Event) => placemarkDragStart(place)"
+			@mouseup="(e: Event) => {placemarkDragEnd(place); placemarkClick(place, e);}"
+			@contextmenu="(e: Event) => placemarkClick(place, e)"
 		>
 			<img
 				v-if="place.show && place.geomark"
 				class="marker"
 				:src="placemarksOptions[
-					mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+					mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01')
 				].iconImageHref"
 				:title="place.name"
 			/>
 			<div
-				v-if="mainStore.mode === 'measure' && mainStore.measure.places.includes(place.id)"
+				v-if="mainStore.mode === 'measure' && mainStore.measure.points.includes(place.id)"
 				class="marker-caption"
 			>
-				{{ mainStore.measure.places.indexOf(place.id) + 1 }}
+				{{ mainStore.measure.points.indexOf(place.id) + 1 }}
 			</div>
 		</yandex-map-marker>
 		<yandex-map-marker
@@ -89,14 +117,14 @@
 				draggable: false,
 			}"
 			position="top-center left-center"
-			@click="(e: Event) => placemarkClick(id, e)"
-			@contextmenu="(e: Event) => placemarkClick(id, e)"
+			@click="(e: Event) => placemarkClick(place, e)"
+			@contextmenu="(e: Event) => placemarkClick(place, e)"
 		>
 			<img
 				v-if="place.geomark"
 				class="marker"
 				:src="placemarksOptions[
-					mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+					mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_02')
 				].iconImageHref"
@@ -107,10 +135,10 @@
 				)"
 			/>
 			<div
-				v-if="mainStore.mode === 'measure' && mainStore.measure.places.includes(place.id)"
+				v-if="mainStore.mode === 'measure' && mainStore.measure.points.includes(place.id)"
 				class="marker-caption"
 			>
-				{{ mainStore.measure.places.indexOf(place.id) + 1 }}
+				{{ mainStore.measure.points.indexOf(place.id) + 1 }}
 			</div>
 		</yandex-map-marker>
 		<yandex-map-controls :settings="{position: 'top left'}">
@@ -141,7 +169,8 @@ import {
 	YandexMapZoomControl,
 } from 'vue-yandex-maps';
 import type { YMap } from '@yandex/ymaps3-types';
-import { coords2string } from '@/shared/common';
+import { Place, Waypoint } from '@/stores/types';
+import { coords2string, generateRandomString } from '@/shared/common';
 
 const mainStore = useMainStore();
 
@@ -215,64 +244,124 @@ watch(() => mainStore.centerPlacemarkShow, () => {
 const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 
-const placemarkClick = (id: string, e: Event): void => {
-	const place = mainStore.places[id]
-		? mainStore.places[id]
-		: mainStore.commonPlaces[id]
-	;
-	e.preventDefault();
+const getMeasurePolylineCoords = (): number[][] => {
+	const coords: number[][] = [];
+	let point: Waypoint;
+	for (const idx in mainStore.measure.points) {
+		let p = mainStore.measure.points[idx];
+		if (mainStore.places[p]) {
+			point = mainStore.waypoints[mainStore.places[p].waypoint];
+		} else if (mainStore.commonPlaces[p]) {
+			point = mainStore.waypoints[mainStore.commonPlaces[p].waypoint];
+		} else if (mainStore.temps[p]) {
+			point = mainStore.temps[p];
+		} else {
+			return;
+		}
+		coords.push([point.latitude, point.longitude]);
+	}
+	return coords;
+}
+const mapContextMenu = (e: any): void => {
+	const coords = e.get('coords');
 	switch (mainStore.mode) {
 		case 'measure':
-			emitter.emit('choosePlace', {
-				place: place,
-				mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
-			});
+			const waypointId = generateRandomString(32);
+			mainStore.temps[waypointId] = {
+				id: waypointId,
+				latitude: coords[0],
+				longitude: coords[1],
+				common: false,
+				type: 'waypoint',
+				added: false,
+				deleted: false,
+				updated: false,
+				show: true,
+			};
+			mainStore.currentTemp = mainStore.temps[waypointId];
+			placemarkClick(mainStore.temps[waypointId], e);
 			break;
 		default:
-			if (e.type === 'contextmenu') {
-				mainStore.setMessage(place.name, true);
-				mainStore.setMessage(
-					coords2string([
-						mainStore.waypoints[place.waypoint].latitude,
-						mainStore.waypoints[place.waypoint].longitude
-					]),
-					true
+			break;
+	}
+}
+const placemarkClick = (point: Place | Waypoint, e: Event): void => {
+	switch (point.type) {
+		case 'waypoint':
+			switch (mainStore.mode) {
+				case 'measure':
+					emitter.emit('chooseWaypoint', {
+						waypoint: point,
+						mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
+					});
+					break;
+				default:
+					if (e.type === 'contextmenu') {
+						mainStore.setMessage(
+							coords2string([point['latitude'], point['longitude']]),
+							true
+						);
+					} else {
+						emitter.emit('chooseWaypoint', {waypoint: point});
+					}
+					break;
+			}
+			break;
+		default:
+			switch (mainStore.mode) {
+				case 'measure':
+					emitter.emit('choosePlace', {
+						place: point,
+						mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
+					});
+					break;
+				default:
+					if (e.type === 'contextmenu') {
+						mainStore.setMessage(point['name'], true);
+						mainStore.setMessage(
+							coords2string([
+								mainStore.waypoints[point['waypoint']].latitude,
+								mainStore.waypoints[point['waypoint']].longitude
+							]),
+							true
+						);
+						mainStore.setMessage(point['description'], true);
+					} else {
+						emitter.emit('choosePlace', {place: point});
+					}
+					break;
+			}
+			if (point.common) {
+				const inPaginator =
+					Object.keys(mainStore.commonPlaces).indexOf(point.id) /
+					(commonPlacesOnPageCount as Ref).value
+				;
+				(commonPlacesPage as Ref).value = (
+					Number.isInteger(inPaginator)
+						? inPaginator + 1
+						: Math.ceil(inPaginator)
 				);
-				mainStore.setMessage(place.description, true);
-			} else {
-				emitter.emit('choosePlace', {place: place});
 			}
 			break;
 	}
-	if (mainStore.commonPlaces[id]) {
-		const inPaginator =
-			Object.keys(mainStore.commonPlaces).indexOf(id) /
-			(commonPlacesOnPageCount as Ref).value
-		;
-		(commonPlacesPage as Ref).value = (
-			Number.isInteger(inPaginator)
-				? inPaginator + 1
-				: Math.ceil(inPaginator)
-		);
-	}
 };
-const placemarkDragStart = (id: string): void => {
-	if (id !== mainStore.currentPlace.id) {
+const placemarkDragStart = (place: Place | Waypoint): void => {
+	if (place !== mainStore.currentPlace) {
 		mainStore.setMessage(
 			mainStore.t.m.popup.needToChoosePlacemark
 		);
 	}
 };
-const placemarkDragEnd = (id: string): void => {
-	const coordinates = markers.value[id].coordinates.slice().reverse();
-	mainStore.changePlace({
-		place: mainStore.places[id],
+const placemarkDragEnd = (point: Place | Waypoint): void => {
+	const coordinates = markers.value[point.id].coordinates.slice().reverse();
+	mainStore[point.type === 'waypoint' ? 'changeWaypoint' : 'changePlace']({
+		[point.type === 'waypoint' ? 'waypoint' : 'place']: point,
+		todb: false,
 		change: {
 			latitude: Number(coordinates[0].toFixed(7)),
 			longitude: Number(coordinates[1].toFixed(7)),
 		},
 	});
-//	updateState({coords: coordinates});
 };
 const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
 	mainStore.updateMap({

@@ -21,16 +21,16 @@ export interface IMainState {
 	commonPlacemarksShow: boolean,
 	commonPlaces: Record<string, Place>,
 	currentPlace: Place | null,
+	currentTemp: Waypoint | null,
 	folders: Record<string, Folder>,
 	homePlace: Place | null,
 	idleTime: number,
-	inUndoRedo: boolean,
 	lang: string,
 	langs: Record<string, string>[],
 	measure: {
-		choosing: number,
+		points: string[],
 		distance: number,
-		places: string[],
+		choosing: number,
 		show: boolean,
 	},
 	messages: string[],
@@ -48,6 +48,7 @@ export interface IMainState {
 	stateBackups: any[],
 	stateBackupsIndex: number,
 	t: any,
+	temps: Record<string, Waypoint>,
 	tree: Folder,
 	user: User | null,
 	users: Record<string, User>,
@@ -68,10 +69,10 @@ export const useMainStore = defineStore('main', {
 		commonPlacemarksShow: false,
 		commonPlaces: {},
 		currentPlace: null,
+		currentTemp: null,
 		folders: {},
 		homePlace: null,
 		idleTime: 0,
-		inUndoRedo: false,
 		lang: 'ru',
 		langs: [{
 			value: 'ru',
@@ -81,7 +82,7 @@ export const useMainStore = defineStore('main', {
 			title: 'English',
 		}],
 		measure: {
-			places: [],
+			points: [],
 			distance: 0,
 			choosing: 0,
 			show: false,
@@ -101,6 +102,7 @@ export const useMainStore = defineStore('main', {
 		stateBackups: [],
 		stateBackupsIndex: -1,
 		t: {},
+		temps: {},
 		tree: {
 			id: 'root',
 			parent: null,
@@ -133,23 +135,11 @@ export const useMainStore = defineStore('main', {
 			object.deleted = false;
 			object.updated = false;
 		},
-		backupState() {
-			if (!this.backup || this.stateBackups.length >= constants.backupscount)  return;
-			this.stateBackups.splice(++this.stateBackupsIndex);
-			this.stateBackups.push(
-				Object.assign({}, JSON.parse(JSON.stringify(this.$state)))
-			);
-			delete this.stateBackups[this.stateBackups.length - 1].stateBackups
-		},
-		stateBackupsIndexChange(delta: number) {
-			this.stateBackupsIndex = this.stateBackupsIndex + delta;
-		},
 		reset() {
 			this.saved = true;
 			this.idleTime = 0;
 			this.stateBackups = [];
 			this.stateBackupsIndex = -1;
-			this.inUndoRedo = false;
 			this.user = null;
 			this.currentPlace = null;
 			this.homePlace = null;
@@ -243,6 +233,15 @@ export const useMainStore = defineStore('main', {
 		deletePlace(place: Place) {
 			delete this.places[place.id];
 		},
+		deleteTemp(id: string) {
+			const measureIndex = this.measure.points.indexOf(id);
+			if (measureIndex !== -1) {
+				this.measure.points.splice(measureIndex, 1);
+				this.measure.choosing = this.measure.points.length;
+			}
+			delete this.temps[id];
+			if (this.currentTemp.id === id) this.currentTemp = null;
+		},
 		addFolderMut(payload: {folder: Folder, parent : Record<string, any>}) {
 			if (!payload.parent) {
 				this.folders[payload.folder.id] = payload.folder;
@@ -296,30 +295,40 @@ export const useMainStore = defineStore('main', {
 		},
 		measureDistance() {
 			let lastIdx: number | null = null;
-			let place: Place, lastPlace: Place;
+			let point: Waypoint, lastPoint: Waypoint;
 			this.measure.distance = 0;
-			if (this.measure.places.length < 2) return;
-			for (let i = 0; i < this.measure.places.length; i++) {
-				if (this.measure.places[i] === null) continue;
+			if (this.measure.points.length < 2) return;
+			for (let i = 0; i < this.measure.points.length; i++) {
+				let p = this.measure.points[i];
+				if (p === null) continue;
 				if (lastIdx === null) {
 					lastIdx = i;
 					continue;
 				}
-				if (this.places[this.measure.places[i]]) {
-					place = this.places[this.measure.places[i]];
+				let l = this.measure.points[lastIdx];
+				if (this.places[p]) {
+					point = this.waypoints[this.places[p].waypoint];
+				} else if (this.commonPlaces[p]) {
+					point = this.waypoints[this.commonPlaces[p].waypoint];
+				} else if (this.temps[p]) {
+					point = this.temps[p];
 				} else {
-					place = this.commonPlaces[this.measure.places[i]];
+					return;
 				}
-				if (this.places[this.measure.places[lastIdx]]) {
-					lastPlace = this.places[this.measure.places[lastIdx]];
+				if (this.places[l]) {
+					lastPoint = this.waypoints[this.places[l].waypoint];
+				} else if (this.commonPlaces[l]) {
+					lastPoint = this.waypoints[this.commonPlaces[l].waypoint];
+				} else if (this.temps[l]) {
+					lastPoint = this.temps[l];
 				} else {
-					lastPlace = this.commonPlaces[this.measure.places[lastIdx]];
+					return;
 				}
 				this.measure.distance += distanceOnSphere(
-					this.waypoints[lastPlace.waypoint].latitude,
-					this.waypoints[lastPlace.waypoint].longitude,
-					this.waypoints[place.waypoint].latitude,
-					this.waypoints[place.waypoint].longitude,
+					lastPoint.latitude,
+					lastPoint.longitude,
+					point.latitude,
+					point.longitude,
 					constants.earthRadius
 				);
 				lastIdx = i;
@@ -339,12 +348,24 @@ export const useMainStore = defineStore('main', {
 				this.tree.name = this.t.i.captions.rootFolder;
 			});
 		},
+		backupState() {
+			if (!this.backup || this.stateBackups.length >= constants.backupscount) return;
+			this.stateBackups.splice(this.stateBackupsIndex + 1);
+			this.stateBackups.push(
+				Object.assign({}, JSON.parse(JSON.stringify(this.$state)))
+			);
+			delete this.stateBackups[this.stateBackups.length - 1].stateBackups;
+			++this.stateBackupsIndex;
+		},
+		stateBackupsIndexChange(delta: number) {
+			this.stateBackupsIndex = this.stateBackupsIndex + delta;
+		},
 		restoreState(backupIndex: number) {
 			if (!this.stateBackups) return;
 			for (const key in this.stateBackups[backupIndex]) {
 				if (
-					key !== 'inUndoRedo' &&
 					key !== 'stateBackups' &&
+					key !== 'stateBackupsIndex' &&
 					key !== 'placeFields' &&
 					key !== 'treeFlat'
 				) {
@@ -361,20 +382,18 @@ export const useMainStore = defineStore('main', {
 			this.restoreObjectsAsLinks();
 		},
 		undo() {
-			if (this.stateBackupsIndex < 0) return;
-			if (!this.inUndoRedo) {this.backupState(); --this.stateBackupsIndex;}
+			if (this.stateBackupsIndex > this.stateBackups.length - 2) {
+				this.backupState();
+				--this.stateBackupsIndex;
+			}
 			this.restoreState(this.stateBackupsIndex);
-			--this.stateBackupsIndex;
-			this.inUndoRedo = true;
+			if (this.stateBackupsIndex > 0) --this.stateBackupsIndex;
+			this.backup = false;
 		},
 		redo() {
-			if (!this.inUndoRedo) return;
-			++this.stateBackupsIndex;
-			this.restoreState(this.stateBackupsIndex + 1);
-			--this.stateBackupsIndex;
-			if (this.stateBackupsIndex > this.stateBackups.length - 2) {
-				this.inUndoRedo = false;
-			}
+			if (this.stateBackupsIndex > this.stateBackups.length - 2) return;
+			this.restoreState(++this.stateBackupsIndex);
+			this.backup = false;
 		},
 		unload() {
 			this.refreshing = true;
@@ -848,19 +867,13 @@ export const useMainStore = defineStore('main', {
 				: this.tree
 			;
 			if (payload.todb !== false && !this.user.testaccount) {
-				if (!this.inUndoRedo) {
-					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
-				} else {
-					emitter.emit('toDBCompletely');
-					this.inUndoRedo = false;
-				}
+				emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
 			}
 			this.addFolderMut({folder: payload.folder, parent: parent});
 		},
 		setHomePlace(
 			payload: {id: string, todb?: boolean, needtodb?: boolean} | null
 		) {
-			this.backupState();
 			if (payload && this.places[payload.id]) {
 				this.homePlace = this.places[payload.id];
 				this.user.homeplace = payload.id;
@@ -933,22 +946,17 @@ export const useMainStore = defineStore('main', {
 				commonWaypoint = false;
 			}
 			if (payload.todb !== false && !this.user.testaccount) {
-				if (!this.inUndoRedo) {
-					const data = new FormData();
-					for (const image of images) {
-						data.append('file_' + image.id, image.file);
-					}
-					data.append('userid', this.user.id);
-					await axios.post('/backend/delete.php', data)
-						.then(() => {
-							emitter.emit('toDB', {what: 'images_delete', data: images});
-						});
-					emitter.emit('toDB', {what: 'waypoints', data: waypoints});
-					emitter.emit('toDB', {what: 'places', data: places});
-				} else {
-					emitter.emit('toDBCompletely');
-					this.inUndoRedo = false;
+				const data = new FormData();
+				for (const image of images) {
+					data.append('file_' + image.id, image.file);
 				}
+				data.append('userid', this.user.id);
+				await axios.post('/backend/delete.php', data)
+					.then(() => {
+						emitter.emit('toDB', {what: 'images_delete', data: images});
+					});
+				emitter.emit('toDB', {what: 'waypoints', data: waypoints});
+				emitter.emit('toDB', {what: 'places', data: places});
 			}
 		},
 		async deleteFolders(payload: {
@@ -968,12 +976,7 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 			if (payload.todb !== false && !this.user.testaccount) {
-				if (!this.inUndoRedo) {
-					emitter.emit('toDB', {what: 'folders', data: folders});
-				} else {
-					emitter.emit('toDBCompletely');
-					this.inUndoRedo = false;
-				}
+				emitter.emit('toDB', {what: 'folders', data: folders});
 			}
 		},
 		async addWaypoint(payload: {
@@ -983,18 +986,13 @@ export const useMainStore = defineStore('main', {
 			needtodb?: boolean
 		}) {
 			if (payload.todb !== false && !this.user.testaccount) {
-				if (!this.inUndoRedo) {
-					emitter.emit('toDB', {
-						what: 'waypoints',
-						data: [{
-							...payload.waypoint,
-							from: (payload.from ? payload.from : null),
-						}],
-					});
-				} else {
-					emitter.emit('toDBCompletely');
-					this.inUndoRedo = false;
-				}
+				emitter.emit('toDB', {
+					what: 'waypoints',
+					data: [{
+						...payload.waypoint,
+						from: (payload.from ? payload.from : null),
+					}],
+				});
 			}
 			this.waypoints[payload.waypoint.id] = payload.waypoint;
 		},
@@ -1003,17 +1001,30 @@ export const useMainStore = defineStore('main', {
 		) {
 			this.backupState();
 			if (payload.todb !== false && !this.user.testaccount) {
-				if (!this.inUndoRedo) {
-					emitter.emit('toDB', {what: 'places', data: [payload.place]});
-				} else {
-					emitter.emit('toDBCompletely');
-					this.inUndoRedo = false;
-				}
+				emitter.emit('toDB', {what: 'places', data: [payload.place]});
 			}
 			this.places[payload.place.id] = payload.place;
 		},
+		addTemp() {
+			this.backupState();
+			const waypointId = generateRandomString(32);
+			this.temps[waypointId] = {
+				id: waypointId,
+				latitude: this.center.latitude,
+				longitude: this.center.longitude,
+				common: false,
+				type: 'waypoint',
+				added: false,
+				deleted: false,
+				updated: false,
+				show: true,
+			};
+		},
 		async changeWaypoint(payload: Record<string, any>) {
-			let saveToDB = payload.todb !== false;
+			let saveToDB = (
+				payload.todb !== false &&
+				!this.temps[payload.waypoint.id]
+			);
 			for (const key in payload.change) {
 				payload.waypoint[key] = payload.change[key];
 				if (
@@ -1026,23 +1037,21 @@ export const useMainStore = defineStore('main', {
 			}
 			if (saveToDB && !this.user.testaccount) {
 				payload.waypoint.updated = true;
-				if (!this.inUndoRedo) {
-					emitter.emit('toDB', {
-						what: 'waypoints',
-						data: [{
-							...payload.waypoint,
-							from: (payload.from ? payload.from : null),
-						}],
-					});
-				} else {
-					emitter.emit('toDBCompletely');
-					this.inUndoRedo = false;
-				}
+				emitter.emit('toDB', {
+					what: 'waypoints',
+					data: [{
+						...payload.waypoint,
+						from: (payload.from ? payload.from : null),
+					}],
+				});
 			}
 		},
 		async changePlace(payload: Record<string, any>) {
 			this.backupState();
-			let saveToDB = payload.todb !== false;
+			let saveToDB = (
+				payload.todb !== false &&
+				!this.temps[payload.place.id]
+			);
 			if ('latitude' in payload.change || 'longitude' in payload.change) {
 				const
 					lat = num2deg(('latitude' in payload.change
@@ -1079,12 +1088,7 @@ export const useMainStore = defineStore('main', {
 			}
 			if (saveToDB && !this.user.testaccount) {
 				payload.place.updated = true;
-				if (!this.inUndoRedo) {
-					emitter.emit('toDB', {what: 'places', data: [payload.place]});
-				} else {
-					emitter.emit('toDBCompletely');
-					this.inUndoRedo = false;
-				}
+				emitter.emit('toDB', {what: 'places', data: [payload.place]});
 			}
 		},
 		changeFolder(payload: Record<string, any>) {
@@ -1094,12 +1098,7 @@ export const useMainStore = defineStore('main', {
 			}
 			if (payload.todb !== false && !this.user.testaccount) {
 				payload.folder.updated = true;
-				if (!this.inUndoRedo) {
-					emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
-				} else {
-					emitter.emit('toDBCompletely');
-					this.inUndoRedo = false;
-				}
+				emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
 			}
 		},
 		moveFolder(payload: Record<string, any>) {
@@ -1403,6 +1402,14 @@ export const useMainStore = defineStore('main', {
 			const treeFlat: Record<string, Folder> = {};
 			treeToLivePlain(this.tree, 'children', treeFlat);
 			return treeFlat;
+		},
+		measureTemps() {
+			return Object.values(this.temps).filter(
+				(waypoint: Waypoint) => waypoint.type === 'waypoint'
+			);
+		},
+		tempIndexById: state => {
+			return (id: string) => Object.keys(state.temps).indexOf(id);
 		},
 	},
 });

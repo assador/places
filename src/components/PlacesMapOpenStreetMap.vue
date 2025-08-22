@@ -6,6 +6,7 @@
 			:center="mapCenter.coords as PointExpression"
 			@ready="ready()"
 			@moveend="updateState()"
+			@contextmenu="e => mapContextMenu(e)"
 		>
 			<l-control-layers />
 			<l-tile-layer
@@ -43,25 +44,50 @@
 				:draggable="id === mainStore.currentPlace.id"
 				:visible="mainStore.placemarksShow && place.show && place.geomark ? true : false"
 				@click="e => placemarkClick(place, e.originalEvent)"
-				@contextmenu="e => placemarkClick(place, e.originalEvent)"
+				@contextmenu="e => placemarkClick(place, e)"
 				@mousedown="() => dragging = true"
 				@mouseup="() => dragging = false"
-				@mousemove="e => {if (dragging) placemarkDragStart(place);}"
+				@mousemove="() => {if (dragging) placemarkDragStart(place);}"
 				@moveend="e => placemarkDragEnd(place, e)"
 			>
 				<l-icon
 					v-bind="(
-						mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+						mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_01)
 					) as {}"
 				/>
-				<l-tooltip permanent="true">
+				<l-tooltip permanent="true" v-if="place.name">
 					{{ place.name }}
 				</l-tooltip>
 			</l-marker>
+			<l-marker
+				v-for="(point, id) in mainStore.temps"
+				:key="id"
+				:lat-lng="[point.latitude, point.longitude]"
+				:draggable="point === mainStore.currentTemp"
+				:visible="mainStore.mode === 'measure'"
+				@click="e => placemarkClick(point, e.originalEvent)"
+				@contextmenu="e => placemarkClick(point, e)"
+				@mousedown="() => dragging = true"
+				@mouseup="() => dragging = false"
+				@mousemove="() => {if (dragging) placemarkDragStart(point);}"
+				@moveend="e => placemarkDragEnd(point, e)"
+			>
+				<l-icon
+					v-bind="(
+						mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && point !== mainStore.currentTemp
+							? icon_01_blue
+							: (point === mainStore.currentTemp ? icon_01_green : icon_01)
+					) as {}"
+				/>
+				<l-tooltip permanent="true">
+					{{ mainStore.t.i.captions.measureWaypoint }}
+					{{ coords2string([point.latitude, point.longitude]) }}
+				</l-tooltip>
+			</l-marker>
 			<l-polyline
-				v-if="mainStore.mode === 'measure' && mainStore.measure.places.length"
+				v-if="mainStore.mode === 'measure' && mainStore.measure.points.length"
 				:lat-lngs="getMeasurePolylineCoords() as LatLngExpression[]"
 				color="rgba(0, 0, 0, 1)"
 				:weight="0.5"
@@ -80,7 +106,7 @@
 			>
 				<l-icon
 					v-bind="(
-						mainStore.mode === 'measure' && mainStore.measure.places.includes(id) && place !== mainStore.currentPlace
+						mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_02)
 					) as {}"
@@ -118,8 +144,8 @@ import {
 */
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Place } from '@/stores/types';
-import { coords2string } from '@/shared/common';
+import { Place, Waypoint } from '@/stores/types';
+import { coords2string, generateRandomString } from '@/shared/common';
 
 const mainStore = useMainStore();
 
@@ -215,68 +241,116 @@ const dragging = ref(false);
 
 const getMeasurePolylineCoords = (): number[][] => {
 	const coords: number[][] = [];
-	let place: Place;
-	for (const idx in mainStore.measure.places) {
-		if (mainStore.places[mainStore.measure.places[idx]]) {
-			place = mainStore.places[mainStore.measure.places[idx]];
+	let point: Waypoint;
+	for (const idx in mainStore.measure.points) {
+		let p = mainStore.measure.points[idx];
+		if (mainStore.places[p]) {
+			point = mainStore.waypoints[mainStore.places[p].waypoint];
+		} else if (mainStore.commonPlaces[p]) {
+			point = mainStore.waypoints[mainStore.commonPlaces[p].waypoint];
+		} else if (mainStore.temps[p]) {
+			point = mainStore.temps[p];
 		} else {
-			place = mainStore.commonPlaces[mainStore.measure.places[idx]];
+			return;
 		}
-		coords.push([
-			mainStore.waypoints[place.waypoint].latitude,
-			mainStore.waypoints[place.waypoint].longitude,
-		]);
+		coords.push([point.latitude, point.longitude]);
 	}
 	return coords;
 }
-const placemarkClick = (place: Place, e: Event): void => {
-	e.preventDefault();
+const mapContextMenu = (e: any): void => {
 	switch (mainStore.mode) {
 		case 'measure':
-			emitter.emit('choosePlace', {
-				place: place,
-				mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
-			});
+			const waypointId = generateRandomString(32);
+			mainStore.temps[waypointId] = {
+				id: waypointId,
+				latitude: e.latlng.lat,
+				longitude: e.latlng.lng,
+				common: false,
+				type: 'waypoint',
+				added: false,
+				deleted: false,
+				updated: false,
+				show: true,
+			};
+			mainStore.currentTemp = mainStore.temps[waypointId];
+			placemarkClick(mainStore.temps[waypointId], e);
 			break;
 		default:
-			if (e.type === 'contextmenu') {
-				mainStore.setMessage(place.name, true);
-				mainStore.setMessage(
-					coords2string([
-						mainStore.waypoints[place.waypoint].latitude,
-						mainStore.waypoints[place.waypoint].longitude
-					]),
-					true
+			break;
+	}
+}
+const placemarkClick = (point: Place | Waypoint, e: Event): void => {
+	switch (point.type) {
+		case 'waypoint':
+			switch (mainStore.mode) {
+				case 'measure':
+					emitter.emit('chooseWaypoint', {
+						waypoint: point,
+						mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
+					});
+					break;
+				default:
+					if (e.type === 'contextmenu') {
+						mainStore.setMessage(
+							coords2string([point['latitude'], point['longitude']]),
+							true
+						);
+					} else {
+						emitter.emit('chooseWaypoint', {waypoint: point});
+					}
+					break;
+			}
+			break;
+		default:
+			switch (mainStore.mode) {
+				case 'measure':
+					emitter.emit('choosePlace', {
+						place: point,
+						mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
+					});
+					break;
+				default:
+					if (e.type === 'contextmenu') {
+						mainStore.setMessage(point['name'], true);
+						mainStore.setMessage(
+							coords2string([
+								mainStore.waypoints[point['waypoint']].latitude,
+								mainStore.waypoints[point['waypoint']].longitude
+							]),
+							true
+						);
+						mainStore.setMessage(point['description'], true);
+					} else {
+						emitter.emit('choosePlace', {place: point});
+					}
+					break;
+			}
+			if (point.common) {
+				const inPaginator =
+					Object.keys(mainStore.commonPlaces).indexOf(point.id) /
+					(commonPlacesOnPageCount as Ref).value
+				;
+				(commonPlacesPage as Ref).value = (
+					Number.isInteger(inPaginator)
+						? inPaginator + 1
+						: Math.ceil(inPaginator)
 				);
-				mainStore.setMessage(place.description, true);
-			} else {
-				emitter.emit('choosePlace', {place: place});
 			}
 			break;
 	}
-	if (place.common) {
-		const inPaginator =
-			Object.keys(mainStore.commonPlaces).indexOf(place.id) /
-			(commonPlacesOnPageCount as Ref).value
-		;
-		(commonPlacesPage as Ref).value = (
-			Number.isInteger(inPaginator)
-				? inPaginator + 1
-				: Math.ceil(inPaginator)
-		);
-	}
 };
-const placemarkDragStart = (place: Place): void => {
+const placemarkDragStart = (place: Place | Waypoint): void => {
 	if (place !== mainStore.currentPlace) {
 		mainStore.setMessage(
 			mainStore.t.m.popup.needToChoosePlacemark
 		);
 	}
 };
-const placemarkDragEnd = (place: Place, event: any): void => {
+const placemarkDragEnd = (point: Place | Waypoint, event: any): void => {
 	const coordinates = event.target.getLatLng();
-	mainStore.changePlace({
-		place: place,
+	mainStore[point.type === 'waypoint' ? 'changeWaypoint' : 'changePlace']({
+		[point.type === 'waypoint' ? 'waypoint' : 'place']: point,
+		todb: false,
 		change: {
 			latitude: Number(coordinates.lat.toFixed(7)),
 			longitude: Number(coordinates.lng.toFixed(7)),

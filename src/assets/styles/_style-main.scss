@@ -155,6 +155,9 @@ $col-36: rgb(0, 0, 0);
 	address, blockquote, caption, legend, dl, form, h1, h2, h3, h4, h5, h6, hr, ol,
 	p, pre, .pre, table, ul, #places-menu-folder-link-root {
 		margin-bottom: 18px;
+		&:last-child {
+			margin-bottom: 0;
+		}
 	}
 	.margin_bottom_0,
 	.showhide + .showhide_next {
@@ -1123,9 +1126,6 @@ $col-36: rgb(0, 0, 0);
 	.actions-button *:first-child {
 		flex-grow: 1;
 		font-size: 17px !important;
-	}
-	#actions-append, #actions-delete, #actions-about {
-		font-size: 24px;
 	}
 	.place-detailed dd {
 		padding-left: 0;

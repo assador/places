@@ -215,19 +215,7 @@ const deleteFolder = async (event: Event): Promise<void> => {
 				})
 			}
 		}
-		if (!mainStore.inUndoRedo) {
-			emitter.emit('toDB', {
-				what: 'places',
-				data: Object.values(places.value),
-			});
-			emitter.emit('toDB', {
-				what: 'folders',
-				data: Object.values(folders.value),
-			});
-		} else {
-			emitter.emit('toDBCompletely');
-			mainStore.inUndoRedo = false;
-		}
+		emitter.emit('toDBCompletely');
 	}
 	mainStore.deleteFolders({folders: {[folder.value.id]: folder.value}});
 	close(event);

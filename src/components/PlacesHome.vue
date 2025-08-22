@@ -115,7 +115,7 @@
 				class="control-measure"
 			>
 				<dt>
-					<span v-if="mainStore.measure.places.length > 1">
+					<span v-if="mainStore.measure.points.length > 1">
 						{{ mainStore.t.i.captions.measure }}:
 						<span class="imp_02">
 							{{ mainStore.measure.distance.toFixed(3) }}
@@ -128,7 +128,7 @@
 					</span>
 				</dt>
 				<dd
-					v-for="(id, index) in mainStore.measure.places"
+					v-for="(id, index) in mainStore.measure.points"
 					:key="index"
 					:measureitem="id"
 					:draggable="true"
@@ -137,14 +137,15 @@
 					@dragenter="handleDragEnter"
 					@drop="handleDrop"
 				>
-					<span>
+					<span v-if="mainStore.temps[id]">
+						{{ `${mainStore.t.i.captions.measureWaypoint} ${mainStore.tempIndexById(id) + 1}` }}
+					</span>
+					<span v-else-if="mainStore.places[id] || mainStore.commonPlaces[id]">
 						{{
-							id !== null
-								? (mainStore.places[id]
-									? mainStore.places[id]
-									: mainStore.commonPlaces[id]
-								).name
-								: `${mainStore.t.i.captions.measureChoose}:`
+							(mainStore.places[id]
+								? mainStore.places[id]
+								: mainStore.commonPlaces[id]
+							).name
 						}}
 					</span>
 					<span class="control-buttons">
@@ -154,7 +155,7 @@
 							@click="
 								mainStore.measure.choosing =
 									mainStore.measure.choosing === index
-										? mainStore.measure.places.length
+										? mainStore.measure.points.length
 										: index
 							"
 						>
@@ -163,8 +164,8 @@
 						<button
 							:title="mainStore.t.i.buttons.clear"
 							@click="
-								mainStore.measure.places.splice(index, 1);
-								mainStore.measure.choosing = mainStore.measure.places.length;
+								mainStore.measure.points.splice(index, 1);
+								mainStore.measure.choosing = mainStore.measure.points.length;
 							"
 						>
 							<span>⊗</span>
@@ -172,7 +173,7 @@
 					</span>
 				</dd>
 				<dd
-					v-if="mainStore.measure.places.length > 0"
+					v-if="mainStore.measure.points.length > 0"
 					class="control-measure-clearall"
 				>
 					<strong>
@@ -181,7 +182,7 @@
 					<button
 						:title="mainStore.t.i.buttons.clearAll"
 						@click="
-							mainStore.measure.places.length = 0;
+							mainStore.measure.points.length = 0;
 							mainStore.measure.choosing = 0;
 						"
 					>
@@ -236,7 +237,7 @@
 							:key="commonPlace.id"
 							:class="'place-button block_01' + (
 								commonPlace === currentPlace ||
-								mainStore.measure.places.includes(commonPlace.id)
+								mainStore.measure.points.includes(commonPlace.id)
 									? ' active' : ''
 							)"
 							@click="choosePlace({place: commonPlace})"
@@ -483,7 +484,14 @@
 							id="checkbox-homeplace"
 							type="checkbox"
 							:checked="currentPlace === mainStore.homePlace"
-							@change="e => mainStore.setHomePlace({id: (e.target as HTMLInputElement).checked ? currentPlace.id : null})"
+							@change="e => {
+								mainStore.backupState();
+								mainStore.setHomePlace({
+									id: (e.target as HTMLInputElement).checked
+										? currentPlace.id
+										: null
+								});
+							}"
 						/>
 						{{ mainStore.t.i.inputs.checkboxHome }}
 					</label>
@@ -712,6 +720,29 @@
 				<span>123</span>
 				<span>{{ mainStore.t.i.buttons.measure }}</span>
 			</button>
+			<button
+				v-if="mainStore.mode === 'measure'"
+				id="actions-append-temp"
+				class="actions-button"
+				:title="mainStore.t.i.hints.addTemp"
+				accesskey="p"
+				@click="mainStore.addTemp();"
+			>
+				<span>⊕</span>
+				<span>{{ mainStore.t.i.buttons.newTemp }}</span>
+			</button>
+			<button
+				v-if="mainStore.mode === 'measure'"
+				id="actions-delete-temp"
+				class="actions-button"
+				:title="mainStore.t.i.hints.deleteTemp"
+				:disabled="!mainStore.currentTemp"
+				accesskey="o"
+				@click="mainStore.deleteTemp(mainStore.currentTemp.id);"
+			>
+				<span>⊖</span>
+				<span>{{ mainStore.t.i.buttons.delete }}</span>
+			</button>
 		</div>
 	</Teleport>
 	<Teleport :to="compactControlButtons
@@ -729,7 +760,7 @@
 			/>
 			<button
 				id="actions-undo"
-				:disabled="mainStore.stateBackupsIndex < 0"
+				:disabled="mainStore.stateBackupsIndex < 1 && !mainStore.backup"
 				class="actions-button"
 				:title="mainStore.t.i.hints.undo"
 				accesskey="z"
@@ -742,7 +773,7 @@
 				id="actions-redo"
 				:disabled="
 					!mainStore.stateBackups ||
-					mainStore.stateBackupsIndex >= mainStore.stateBackups.length - 2
+					mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1
 				"
 				class="actions-button"
 				:title="mainStore.t.i.hints.redo"
@@ -983,11 +1014,15 @@ watch(mainStore, changedStore => {
 		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
 	}
 });
-watch(() => mainStore.measure.places, mainStore.measureDistance, { deep: true });
+watch(() => mainStore.measure.points, mainStore.measureDistance, { deep: true });
 watch(() => mainStore.waypoints, mainStore.measureDistance, { deep: true });
+watch(() => mainStore.temps, mainStore.measureDistance, { deep: true });
 
 emitter.on('choosePlace', (payload: {place: Place, mode?: string}) => {
 	choosePlace(payload);
+});
+emitter.on('chooseWaypoint', (payload: {waypoint: Waypoint, mode?: string}) => {
+	chooseWaypoint(payload);
 });
 emitter.on('deletePlace', (place: Place) => {
 	deletePlace(place);
@@ -1034,6 +1069,7 @@ onUnmounted(() => {
 	window.removeEventListener('resize', windowResize);
 	window.clearInterval(idleTimeInterval.value);
 	emitter.off('choosePlace');
+	emitter.off('chooseWaypoint');
 });
 onUpdated(() => makeFieldsValidatable(mainStore.t));
 
@@ -1107,19 +1143,17 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 	switch (mainStore.mode) {
 		case 'measure':
 			if (payload.mode && payload.mode === 'measure') {
-				const { places, choosing } = mainStore.measure;
+				const { points, choosing } = mainStore.measure;
 				const placeId = payload.place.id;
-				const idx = places.indexOf(placeId);
-				if (idx === -1)  places[choosing] = placeId; else places.splice(idx, 1);
-				mainStore.measure.choosing = places.length;
+				const idx = points.indexOf(placeId);
+				if (idx === -1)  points[choosing] = placeId; else points.splice(idx, 1);
+				mainStore.measure.choosing = points.length;
 			}
 		default:
 			if (payload.mode === 'measure') break;
-			const prevPlace = currentPlace.value;
-			const newPlace = payload.place;
-			if (!prevPlace || newPlace !== prevPlace) {
-				mainStore.currentPlace = newPlace;
-				currentPlaceCommon.value = newPlace.userid !== mainStore.user.id;
+			if (mainStore.currentPlace !== payload.place) {
+				mainStore.currentPlace = payload.place;
+				currentPlaceCommon.value = mainStore.currentPlace.userid !== mainStore.user.id;
 				openTreeToCurrentPlace();
 			}
 			const waypoint = mainStore.waypoints[mainStore.currentPlace.waypoint];
@@ -1129,6 +1163,27 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 					longitude: waypoint.longitude,
 				});
 			}
+	}
+};
+const chooseWaypoint = (payload: {waypoint: Waypoint, mode?: string}): void => {
+	switch (mainStore.mode) {
+		case 'measure':
+			if (payload.mode && payload.mode === 'measure') {
+				const { points, choosing } = mainStore.measure;
+				const waypointId = payload.waypoint.id;
+				const idx = points.indexOf(waypointId);
+				if (idx === -1)  points[choosing] = waypointId; else points.splice(idx, 1);
+				mainStore.measure.choosing = points.length;
+			}
+		default:
+			if (payload.mode === 'measure') break;
+			if (mainStore.currentTemp !== payload.waypoint) {
+				mainStore.currentTemp = payload.waypoint;
+			}
+			mainStore.updateMap({
+				latitude: mainStore.currentTemp.latitude,
+				longitude: mainStore.currentTemp.longitude,
+			});
 	}
 };
 const appendPlace = async (): Promise<void | Place> => {
@@ -1380,6 +1435,7 @@ const uploadFiles = (event: Event): void => {
 };
 const keyup = (event: Event): void => {
 	const e = event as KeyboardEvent;
+	e.preventDefault();
 	if (!(e.altKey && e.shiftKey)) return;
 	const shortcut = (constants.shortcuts as Record<string, string>)[e.code];
 	if (!shortcut) return;
@@ -1410,7 +1466,7 @@ const keyup = (event: Event): void => {
 		'other placemarks': () => mainStore.commonPlacemarksShowHide(),
 		'center': () => mainStore.centerPlacemarkShowHide(),
 		'undo': () => mainStore.undo(),
-		'redo': () => mainStore.redo()
+		'redo': () => mainStore.redo(),
 	};
 	const action = actions[shortcut];
 	if (action) action();

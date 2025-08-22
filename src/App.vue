@@ -91,14 +91,13 @@ onMounted(() => {
 	document.addEventListener('keyup', resetIdle, false);
 
 	mainStore.$onAction((action): void => {
-		if (!mainStore.user || mainStore.user.testaccount) return;
 		const actions = [
 			'addPlace', 'addFolder', 'deletePlace', 'deleteFolder', 'changePlace',
 			'changeFolder', 'changeWaypoint', 'moveFolder', 'setHomePlace',
-			'swapImages', 'undo', 'redo'
+			'swapImages'
 		];
-		if (actions.includes(action.name) && action.args.find(arg => arg['todb'] === false && arg['needtodb'] !== false)) {
-			mainStore.saved = false;
+		if (actions.includes(action.name)) {
+			mainStore.backup = true;
 		}
 	});
 });
@@ -254,10 +253,10 @@ const handleDragEnter = (event: Event): void => {
 			const id1 = el1.getAttribute('measureitem');
 			const id2 = el2.getAttribute('measureitem');
 			if (!id1 || !id2) return;
-			const ids = mainStore.measure.places;
+			const ids = mainStore.measure.points;
 			const idx1 = ids.indexOf(id1), idx2 = ids.indexOf(id2);
 			[ids[idx1], ids[idx2]] = [ids[idx2], ids[idx1]];
-			mainStore.measure.places = ids;
+			mainStore.measure.points = ids;
 			mainStore.measureDistance();
 			draggingElement.value = el2;
 			return;
