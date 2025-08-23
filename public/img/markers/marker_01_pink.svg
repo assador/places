@@ -18,20 +18,20 @@
       <stop
          id="stop4590"
          offset="0"
-         style="stop-color:#6597bd;stop-opacity:1" />
+         style="stop-color:#bd6582;stop-opacity:1;" />
       <stop
          id="stop4592"
          offset="1"
-         style="stop-color:#bdd6ff;stop-opacity:1" />
+         style="stop-color:#ffbdc7;stop-opacity:1;" />
     </linearGradient>
     <linearGradient
        id="linearGradient3741">
       <stop
-         style="stop-color:#173446;stop-opacity:1;"
+         style="stop-color:#461629;stop-opacity:1;"
          offset="0"
          id="stop3737" />
       <stop
-         style="stop-color:#b7dbfa;stop-opacity:1"
+         style="stop-color:#fab7cc;stop-opacity:1;"
          offset="1"
          id="stop3739" />
     </linearGradient>

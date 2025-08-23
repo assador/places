@@ -76,8 +76,8 @@
 				<l-icon
 					v-bind="(
 						mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && point !== mainStore.currentTemp
-							? icon_01_blue
-							: (point === mainStore.currentTemp ? icon_01_green : icon_01)
+							? icon_01_blue_faded
+							: (point === mainStore.currentTemp ? icon_01_green_faded : icon_01_faded)
 					) as {}"
 				/>
 				<l-tooltip permanent="true">
@@ -108,7 +108,7 @@
 					v-bind="(
 						mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
 							? icon_01_blue
-							: (place === mainStore.currentPlace ? icon_01_green : icon_02)
+							: (place === mainStore.currentPlace ? icon_01_green : icon_01_grey)
 					) as {}"
 				/>
 				<l-tooltip>
@@ -159,12 +159,39 @@ const icon_01 = ref({
 	shadowSize: [25, 38],
 	shadowAnchor: [2, 24],
 });
+const icon_01_faded = ref({
+	iconUrl: '/img/markers/marker_01_faded.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_01_grey = ref({
+	iconUrl: '/img/markers/marker_01_grey.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
 const icon_01_blue = ref({
 	iconUrl: '/img/markers/marker_01_blue.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
 	popupAnchor: [0, -34],
-	shadowUrl: '/img/markers/marker_01_shadow_blue.svg',
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_01_blue_faded = ref({
+	iconUrl: '/img/markers/marker_01_blue_faded.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
 	shadowSize: [25, 38],
 	shadowAnchor: [2, 24],
 });
@@ -173,12 +200,21 @@ const icon_01_green = ref({
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
 	popupAnchor: [0, -34],
-	shadowUrl: '/img/markers/marker_01_shadow_green.svg',
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
 	shadowSize: [25, 38],
 	shadowAnchor: [2, 24],
 });
-const icon_02 = ref({
-	iconUrl: '/img/markers/marker_02.svg',
+const icon_01_green_faded = ref({
+	iconUrl: '/img/markers/marker_01_green_faded.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_01_yellow = ref({
+	iconUrl: '/img/markers/marker_01_yellow.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
 	popupAnchor: [0, -34],

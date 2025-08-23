@@ -277,7 +277,16 @@
 								mainStore.measure.points.includes(commonPlace.id)
 									? ' active' : ''
 							)"
-							@click="choosePlace({place: commonPlace})"
+							@click="e => {
+								choosePlace({place: commonPlace});
+								const waypoint = mainStore.waypoints[commonPlace.waypoint];
+								if (waypoint) {
+									mainStore.updateMap({
+										latitude: waypoint.latitude,
+										longitude: waypoint.longitude,
+									});
+								}
+							}"
 							@contextmenu="e => {
 								e.preventDefault();
 								choosePlace({

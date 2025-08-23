@@ -58,8 +58,8 @@
 				class="marker"
 				:src="placemarksOptions[
 					mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && point !== mainStore.currentTemp
-						? 'icon_01_blue'
-						: (point === mainStore.currentTemp ? 'icon_01_green' : 'icon_01')
+						? 'icon_01_blue_faded'
+						: (point === mainStore.currentTemp ? 'icon_01_green_faded' : 'icon_01_faded')
 				].iconImageHref"
 				:title="`${ mainStore.t.i.captions.measureWaypoint } ${ Object.keys(mainStore.temps).indexOf(point.id) + 1 } — ${ coords2string([point.latitude, point.longitude]) }`"
 			/>
@@ -126,7 +126,7 @@
 				:src="placemarksOptions[
 					mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
 						? 'icon_01_blue'
-						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_02')
+						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01_grey')
 				].iconImageHref"
 				:title="place.name + '\n' + mainStore.t.i.captions.user + ': ' + (
 					mainStore.users[place.userid].name
@@ -205,14 +205,23 @@ const placemarksOptions = ref({
 	icon_01: {
 		iconImageHref: '/img/markers/marker_01.svg',
 	},
+	icon_01_faded: {
+		iconImageHref: '/img/markers/marker_01_faded.svg',
+	},
+	icon_01_grey: {
+		iconImageHref: '/img/markers/marker_01_grey.svg',
+	},
 	icon_01_green: {
 		iconImageHref: '/img/markers/marker_01_green.svg',
+	},
+	icon_01_green_faded: {
+		iconImageHref: '/img/markers/marker_01_green_faded.svg',
 	},
 	icon_01_blue: {
 		iconImageHref: '/img/markers/marker_01_blue.svg',
 	},
-	icon_02: {
-		iconImageHref: '/img/markers/marker_02.svg',
+	icon_01_blue_faded: {
+		iconImageHref: '/img/markers/marker_01_blue_faded.svg',
 	},
 	icon_center: {
 		iconImageHref: '/img/markers/marker_center.svg',
