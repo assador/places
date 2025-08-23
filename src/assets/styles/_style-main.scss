@@ -938,6 +938,27 @@ $col-36: rgb(0, 0, 0);
 		display: flex !important;
 		align-items: center;
 	}
+	.dropdown {
+		&_closed, &_opened {
+			.dropdown__header {
+				display: grid;
+				grid-template-columns: 1em 1fr;
+				cursor: pointer;
+				&::before {
+					padding-right: 0.2em;
+				}
+			}
+		}
+		&_closed .dropdown__body {
+			display: none !important;
+		}
+		&_closed .dropdown__header::before {
+			content: '\25e2';
+		}
+		&_opened .dropdown__header::before {
+			content: '\25e4';
+		}
+	}
 	.folder::before {
 		display: none;
 	}

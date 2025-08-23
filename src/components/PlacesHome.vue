@@ -76,6 +76,71 @@
 			:style="sidebarSize.left === 0 ? 'display: none' : ''"
 		>
 			<div id="basic-left__control-buttons-left" />
+			<div class="control-search">
+				<input
+					id="search-input"
+					ref="searchInput"
+					:placeholder="mainStore.t.i.inputs.searchPlaces"
+					:title="mainStore.t.i.inputs.searchPlaces"
+					@keyup="searchInputEvent"
+				/>
+				<span class="control-buttons">
+					<button
+						:title="mainStore.t.i.buttons.find"
+						@click="selectPlaces(searchInput.value)"
+					>
+						<span>↪</span>
+					</button>
+					<button
+						:title="mainStore.t.i.buttons.clear"
+						@click="
+							if (searchInput.value !== '') {
+								searchInput.value = '';
+								selectPlaces(searchInput.value);
+							}
+						"
+					>
+						<span>⊗</span>
+					</button>
+				</span>
+			</div>
+			<div class="temps dropdown dropdown_closed margin_bottom">
+				<h3 class="dropdown__header">{{ mainStore.t.i.captions.independentPoints }}</h3>
+				<div class="temps-list dropdown__body margin_bottom">
+					<div class="temps-list-controls">
+						<button
+							:title="mainStore.t.i.hints.addTemp"
+							@click="mainStore.addTemp()"
+						>
+							⊕
+						</button>
+						<button
+							:title="mainStore.t.i.hints.deleteAllTemps"
+							@click="mainStore.deleteAllTemps()"
+						>
+							⊗
+						</button>
+					</div>
+					<div class="temps-list-buttons">
+						<button
+							v-for="(temp, id) in mainStore.temps"
+							:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
+							@click="chooseWaypoint({waypoint: temp})"
+						>
+							<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>
+							<span
+								:title="mainStore.t.i.hints.deleteTemp"
+								@click="e => {
+									e.stopPropagation();
+									mainStore.deleteTemp(id);
+								}"
+							>
+								⊗
+							</span>
+						</button>
+					</div>
+				</div>
+			</div>
 			<form
 				v-if="mainStore.rangeShow"
 				action="javascript:void(0)"
@@ -110,40 +175,6 @@
 					</button>
 				</span>
 			</form>
-			<div class="temps margin_bottom">
-				<div class="temps-controls">
-					<button
-						:title="mainStore.t.i.hints.addTemp"
-						@click="mainStore.addTemp()"
-					>
-						⊕
-					</button>
-					<button
-						:title="mainStore.t.i.hints.deleteAllTemps"
-						@click="mainStore.deleteAllTemps()"
-					>
-						⊗
-					</button>
-				</div>
-				<div class="temps-buttons">
-					<button
-						v-for="(temp, id) in mainStore.temps"
-						:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
-						@click="chooseWaypoint({waypoint: temp})"
-					>
-						<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>
-						<span
-							:title="mainStore.t.i.hints.deleteTemp"
-							@click="e => {
-								e.stopPropagation();
-								mainStore.deleteTemp(id);
-							}"
-						>
-							⊗
-						</span>
-					</button>
-				</div>
-			</div>
 			<div
 				v-if="mainStore.measure.show"
 				class="control-measure"
@@ -223,34 +254,6 @@
 						<span>⊗</span>
 					</button>
 				</dd>
-			</div>
-			<div class="control-search">
-				<input
-					id="search-input"
-					ref="searchInput"
-					:placeholder="mainStore.t.i.inputs.searchPlaces"
-					:title="mainStore.t.i.inputs.searchPlaces"
-					@keyup="searchInputEvent"
-				/>
-				<span class="control-buttons">
-					<button
-						:title="mainStore.t.i.buttons.find"
-						@click="selectPlaces(searchInput.value)"
-					>
-						<span>↪</span>
-					</button>
-					<button
-						:title="mainStore.t.i.buttons.clear"
-						@click="
-							if (searchInput.value !== '') {
-								searchInput.value = '';
-								selectPlaces(searchInput.value);
-							}
-						"
-					>
-						<span>⊗</span>
-					</button>
-				</span>
 			</div>
 			<div id="places-tree">
 				<div
@@ -883,6 +886,7 @@ import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { orderBy, throttle } from 'lodash';
 import { constants } from '@/shared/constants';
+import { makeDropDowns } from '@/shared/common';
 import {
 	generateRandomString,
 	sortObjects,
@@ -1068,6 +1072,7 @@ onMounted(async () => {
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
 	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceAltitude);
+	makeDropDowns(root);
 });
 onUnmounted(() => {
 	['dragover', 'drop', 'keyup'].forEach(event =>
@@ -1639,6 +1644,9 @@ const selectPlaces = (text: string): void => {
 	}
 }
 .temps {
+	margin-top: -1em;
+}
+.temps-list {
 	display: grid;
 	grid-template-columns: 1fr auto;
 	gap: 20px;

@@ -23,6 +23,7 @@ export const t = {
 			haschildren: 'Has children',
 			id: 'ID',
 			images: 'Photos',
+			independentPoints: 'Independent waypoints',
 			latitude: 'Latitude',
 			link: 'Link',
 			login: 'Login',

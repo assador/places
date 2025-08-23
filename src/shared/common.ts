@@ -490,3 +490,20 @@ export const distanceOnSphere = (
 	const distance = radius * ang;
 	return distance;
 }
+export const makeDropDowns = (parent: any): void => {
+	const dropdowns = parent.value.querySelectorAll('.dropdown');
+	for (const dropdown of dropdowns) {
+		const header = dropdown.querySelectorAll('.dropdown__header')[0];
+		if (!header) continue;
+		if (
+			!dropdown.classList.contains('dropdown_opened') &&
+			!dropdown.classList.contains('dropdown_closed')
+		) {
+			dropdown.classList.add('dropdown_opened');
+		}
+		header.addEventListener('click', () => {
+			dropdown.classList.toggle('dropdown_opened');
+			dropdown.classList.toggle('dropdown_closed');
+		}, false);
+	}
+}

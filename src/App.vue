@@ -1,5 +1,5 @@
 <template>
-	<div id="container" :class="`colortheme-${colortheme}`">
+	<div ref="container" id="container" :class="`colortheme-${colortheme}`">
 		<router-view />
 	</div>
 </template>
@@ -14,6 +14,7 @@ import { isParentInTree } from '@/shared/common';
 import { Place, Image, Folder, Waypoint } from '@/stores/types';
 
 // Refs and Provides
+const container = ref<null | HTMLElement>(null);
 const draggingElement = ref<null | Element>(null);
 const draggingType = ref<string | null>(null);
 const foldersEditMode = ref(false);
