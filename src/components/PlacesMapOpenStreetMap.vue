@@ -66,7 +66,6 @@
 				:key="id"
 				:lat-lng="[point.latitude, point.longitude]"
 				:draggable="point === mainStore.currentTemp"
-				:visible="mainStore.mode === 'measure'"
 				@click="e => placemarkClick(point, e.originalEvent)"
 				@contextmenu="e => placemarkClick(point, e)"
 				@mousedown="() => dragging = true"
@@ -259,26 +258,20 @@ const getMeasurePolylineCoords = (): number[][] => {
 	return coords;
 }
 const mapContextMenu = (e: any): void => {
-	switch (mainStore.mode) {
-		case 'measure':
-			const waypointId = generateRandomString(32);
-			mainStore.temps[waypointId] = {
-				id: waypointId,
-				latitude: e.latlng.lat,
-				longitude: e.latlng.lng,
-				common: false,
-				type: 'waypoint',
-				added: false,
-				deleted: false,
-				updated: false,
-				show: true,
-			};
-			mainStore.currentTemp = mainStore.temps[waypointId];
-			placemarkClick(mainStore.temps[waypointId], e);
-			break;
-		default:
-			break;
-	}
+	const waypointId = generateRandomString(32);
+	mainStore.temps[waypointId] = {
+		id: waypointId,
+		latitude: e.latlng.lat,
+		longitude: e.latlng.lng,
+		common: false,
+		type: 'waypoint',
+		added: false,
+		deleted: false,
+		updated: false,
+		show: true,
+	};
+	mainStore.currentTemp = mainStore.temps[waypointId];
+	placemarkClick(mainStore.temps[waypointId], e);
 }
 const placemarkClick = (point: Place | Waypoint, e: Event): void => {
 	switch (point.type) {

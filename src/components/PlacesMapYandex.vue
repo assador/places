@@ -264,26 +264,20 @@ const getMeasurePolylineCoords = (): number[][] => {
 }
 const mapContextMenu = (e: any): void => {
 	const coords = e.get('coords');
-	switch (mainStore.mode) {
-		case 'measure':
-			const waypointId = generateRandomString(32);
-			mainStore.temps[waypointId] = {
-				id: waypointId,
-				latitude: coords[0],
-				longitude: coords[1],
-				common: false,
-				type: 'waypoint',
-				added: false,
-				deleted: false,
-				updated: false,
-				show: true,
-			};
-			mainStore.currentTemp = mainStore.temps[waypointId];
-			placemarkClick(mainStore.temps[waypointId], e);
-			break;
-		default:
-			break;
-	}
+	const waypointId = generateRandomString(32);
+	mainStore.temps[waypointId] = {
+		id: waypointId,
+		latitude: coords[0],
+		longitude: coords[1],
+		common: false,
+		type: 'waypoint',
+		added: false,
+		deleted: false,
+		updated: false,
+		show: true,
+	};
+	mainStore.currentTemp = mainStore.temps[waypointId];
+	placemarkClick(mainStore.temps[waypointId], e);
 }
 const placemarkClick = (point: Place | Waypoint, e: Event): void => {
 	switch (point.type) {

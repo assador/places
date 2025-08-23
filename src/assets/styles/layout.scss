@@ -270,17 +270,6 @@ body {
 .centered {
 	flex-direction: column;
 }
-.control-buttons {
-	display: flex;
-	flex-flow: row wrap;
-	gap: 8px;
-	text-align: center;
-	.actions-button {
-		flex: 1 1 calc(25% - 16px);
-		min-width: 50px;
-		min-height: 30px;
-	}
-}
 @media screen and (max-width: 1600px) {
 	.narrower, .auth_forms, .account__form {
 		width: 75%;

@@ -1121,23 +1121,6 @@ $col-36: rgb(0, 0, 0);
 	#top-right, #bottom-left {
 		font-size: 0 !important;
 	}
-	.actions-button {
-		display: flex;
-		flex-direction: column;
-		padding: 4px 0 1px 0;
-		line-height: 0.7;
-		font-size: 11px !important;
-		text-transform: lowercase;
-		overflow: hidden;
-	}
-	.actions-button * {
-		text-align: center;
-		width: 100%;
-	}
-	.actions-button *:first-child {
-		flex-grow: 1;
-		font-size: 17px !important;
-	}
 	.place-detailed dd {
 		padding-left: 0;
 	}

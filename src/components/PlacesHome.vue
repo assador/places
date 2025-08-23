@@ -110,38 +110,44 @@
 					</button>
 				</span>
 			</form>
+			<div class="temps margin_bottom">
+				<div class="temps-controls">
+					<button
+						:title="mainStore.t.i.hints.addTemp"
+						@click="mainStore.addTemp()"
+					>
+						⊕
+					</button>
+					<button
+						:title="mainStore.t.i.hints.deleteAllTemps"
+						@click="mainStore.deleteAllTemps()"
+					>
+						⊗
+					</button>
+				</div>
+				<div class="temps-buttons">
+					<button
+						v-for="(temp, id) in mainStore.temps"
+						:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
+						@click="chooseWaypoint({waypoint: temp})"
+					>
+						<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>
+						<span
+							:title="mainStore.t.i.hints.deleteTemp"
+							@click="e => {
+								e.stopPropagation();
+								mainStore.deleteTemp(id);
+							}"
+						>
+							⊗
+						</span>
+					</button>
+				</div>
+			</div>
 			<div
 				v-if="mainStore.measure.show"
 				class="control-measure"
 			>
-				<div class="control-measure-temps margin_bottom">
-					<div class="control-measure-temps-controls">
-						<button
-							:title="mainStore.t.i.hints.addTemp"
-							@click="mainStore.addTemp()"
-						>
-							⊕
-						</button>
-					</div>
-					<div class="control-measure-temps-buttons">
-						<button
-							v-for="(temp, id) in mainStore.temps"
-							:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
-							@click="chooseWaypoint({waypoint: temp})"
-						>
-							<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>
-							<span
-								:title="mainStore.t.i.hints.deleteTemp"
-								@click="e => {
-									e.stopPropagation();
-									mainStore.deleteTemp(id);
-								}"
-							>
-								⊗
-							</span>
-						</button>
-					</div>
-				</div>
 				<dt>
 					<span v-if="mainStore.measure.points.length > 1">
 						{{ mainStore.t.i.captions.measure }}:
@@ -603,7 +609,7 @@
 			</div>
 			<div class="center-coordinates">
 				<span class="imp">
-					{{ mainStore.t.i.captions.center }}
+					{{ mainStore.t.i.captions.center }}:
 				</span>
 				<span
 					class="nobr"
@@ -615,7 +621,7 @@
 						placeholder="latitude"
 						title="mainStore.t.i.captions.latitude"
 					/>
-					°N:
+					°N
 				</span>
 				<span
 					class="nobr"
@@ -627,7 +633,7 @@
 						placeholder="longitude"
 						title="mainStore.t.i.captions.longitude"
 					/>
-					°E:
+					°E
 				</span>
 				<span
 					class="nobr"
@@ -1161,15 +1167,6 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 				currentPlaceCommon.value = mainStore.currentPlace.userid !== mainStore.user.id;
 				openTreeToCurrentPlace();
 			}
-/*
-			const waypoint = mainStore.waypoints[mainStore.currentPlace.waypoint];
-			if (waypoint) {
-				mainStore.updateMap({
-					latitude: waypoint.latitude,
-					longitude: waypoint.longitude,
-				});
-			}
-*/
 	}
 };
 const chooseWaypoint = (payload: {waypoint: Waypoint, mode?: string}): void => {
@@ -1187,12 +1184,6 @@ const chooseWaypoint = (payload: {waypoint: Waypoint, mode?: string}): void => {
 			if (mainStore.currentTemp !== payload.waypoint) {
 				mainStore.currentTemp = payload.waypoint;
 			}
-/*
-			mainStore.updateMap({
-				latitude: mainStore.currentTemp.latitude,
-				longitude: mainStore.currentTemp.longitude,
-			});
-*/
 		}
 };
 const appendPlace = async (): Promise<void | Place> => {
@@ -1597,6 +1588,34 @@ const selectPlaces = (text: string): void => {
 	font-size: 55%;
 	text-transform: lowercase;
 }
+.actions-button {
+	display: flex;
+	flex-direction: column;
+	padding: 4px 0 1px 0;
+	line-height: 0.7;
+	font-size: 11px !important;
+	text-transform: lowercase;
+	overflow: hidden;
+	* {
+		text-align: center;
+		width: 100%;
+	}
+	*:first-child {
+		flex-grow: 1;
+		font-size: 17px !important;
+	}
+}
+.control-buttons {
+	display: flex;
+	flex-flow: row wrap;
+	gap: 8px;
+	text-align: center;
+	.actions-button {
+		flex: 1 1 calc(25% - 16px);
+		min-width: 50px;
+		min-height: 30px;
+	}
+}
 .control-search, .control-range, .control-measure dd {
 	display: flex;
 	flex-flow: row wrap;
@@ -1619,35 +1638,37 @@ const selectPlaces = (text: string): void => {
 		flex-basis: 0;
 	}
 }
+.temps {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 20px;
+	&-controls, &-buttons {
+		display: flex;
+		flex-flow: row wrap;
+		gap: 8px;
+	}
+	&-buttons {
+		justify-content: right;
+		button {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			align-items: center;
+			width: 40px;
+			margin: 0;
+			padding: 0 0 0 4px;
+			& > *:last-child {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 8px 6px;
+				line-height: 0;
+			}
+		}
+	}
+}
 .control-measure {
 	strong {
 		text-align: right;
-	}
-	&-temps {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 20px;
-		&-buttons {
-			display: flex;
-			flex-flow: row wrap;
-			justify-content: right;
-			gap: 8px;
-			button {
-				flex-basis: calc(100% / 10);
-				margin: 0;
-				padding: 0 0 0 4px;
-				display: grid;
-				grid-template-columns: 1fr auto;
-				align-items: center;
-				& > *:last-child {
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					padding: 8px 6px;
-					line-height: 0;
-				}
-			}
-		}
 	}
 }
 .place-button {

@@ -1068,7 +1068,14 @@ export const useMainStore = defineStore('main', {
 				this.measure.choosing = this.measure.points.length;
 			}
 			delete this.temps[id];
-			if (this.currentTemp.id === id) this.currentTemp = null;
+			if (this.currentTemp && this.currentTemp.id === id) {
+				this.currentTemp = null;
+			}
+		},
+		deleteAllTemps() {
+			for (let id in this.temps) {
+				this.deleteTemp(id);
+			}
 		},
 		addFolderMut(payload: {folder: Folder, parent : Record<string, any>}) {
 			if (!payload.parent) {
