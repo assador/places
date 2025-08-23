@@ -307,7 +307,10 @@ const mapContextMenu = (e: any): void => {
 		show: true,
 	};
 	mainStore.currentTemp = mainStore.temps[waypointId];
-	placemarkClick(mainStore.temps[waypointId], e);
+	emitter.emit('chooseWaypoint', {
+		waypoint: mainStore.temps[waypointId],
+		mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
+	});
 }
 const placemarkClick = (point: Place | Waypoint, e: Event): void => {
 	switch (point.type) {
