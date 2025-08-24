@@ -48,9 +48,9 @@ export const constants = {
 	},
 	sidebarsCompact: {
 		top    : 80,
-		right  : 150,
+		right  : 200,
 		bottom : 95,
-		left   : 150,
+		left   : 200,
 	},
 	sidebarsCompactUltra: {
 		top    : 80,
@@ -59,7 +59,7 @@ export const constants = {
 		left   : 0,
 	},
 	compactControlButtons: 1000,
-	compact: 850,
-	compactUltra: 500,
+	compact: 1000,
+	compactUltra: 800,
 	earthRadius: 6371,
 };

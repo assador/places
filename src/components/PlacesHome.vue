@@ -12,14 +12,14 @@
 		<div
 			id="top-left"
 			class="app-cell"
-			:style="sidebarSize.top === 0 || sidebarSize.left === 0 ? 'display: none' : ''"
+			:style="sidebarSize.top === 0 || sidebarSize.left === 0 || !cells.top || !cells.left ? 'display: none' : ''"
 		>
 			<div id="top-left__control-buttons-left" />
 		</div>
 		<div
 			id="top-basic"
 			class="app-cell"
-			:style="sidebarSize.top === 0 ? 'display: none' : ''"
+			:style="sidebarSize.top === 0 || !cells.top ? 'display: none' : ''"
 		>
 			<div id="top-basic-content">
 				<div class="brand">
@@ -66,14 +66,14 @@
 		<div
 			id="top-right"
 			class="app-cell"
-			:style="sidebarSize.top === 0 || sidebarSize.right === 0 ? 'display: none' : ''"
+			:style="sidebarSize.top === 0 || sidebarSize.right === 0 || !cells.top || !cells.right ? 'display: none' : ''"
 		>
 			<div id="top-right__control-buttons-right" />
 		</div>
 		<div
 			id="basic-left"
 			class="app-cell"
-			:style="sidebarSize.left === 0 ? 'display: none' : ''"
+			:style="sidebarSize.left !== 0 || cells.left ? 'display: block' : 'display: none'"
 		>
 			<div id="basic-left__control-buttons-left" />
 			<div class="control-search">
@@ -319,16 +319,40 @@
 			<div
 				class="basic-on-full button"
 				:title="mainStore.t.i.hints.fullscreen"
+				:style="cells.left && cells.right && compact === 2 ? 'display: none' : ''"
 				@click="basicOnFull"
 			>
 				⤧
 			</div>
-			<component :is="maps[mainStore.activeMapIndex].component" />
+			<component
+				:is="maps[mainStore.activeMapIndex].component"
+				:style="cells.left && cells.right && compact === 2 ? 'display: none' : ''"
+			/>
+			<button
+				id="sbb-top"
+				:class="cells.top ? 'disclosed' : ''"
+				@click="() => cells.top = !cells.top"
+			/>
+			<button
+				id="sbb-right"
+				:class="cells.right ? 'disclosed' : ''"
+				@click="() => cells.right = !cells.right"
+			/>
+			<button
+				id="sbb-bottom"
+				:class="cells.bottom ? 'disclosed' : ''"
+				@click="() => cells.bottom = !cells.bottom"
+			/>
+			<button
+				id="sbb-left"
+				:class="cells.left ? 'disclosed' : ''"
+				@click="() => cells.left = !cells.left"
+			/>
 		</div>
 		<div
 			id="basic-right"
 			class="app-cell"
-			:style="sidebarSize.right === 0 ? 'display: none' : ''"
+			:style="sidebarSize.right !== 0 || cells.right ? 'display: block' : 'display: none'"
 		>
 			<div id="basic-right__control-buttons-right" />
 			<div id="place-description">
@@ -557,53 +581,17 @@
 		<div
 			id="bottom-left"
 			class="app-cell"
-			:style="sidebarSize.bottom === 0 || sidebarSize.left === 0 ? 'display: none' : ''"
+			:style="sidebarSize.bottom === 0 || sidebarSize.left === 0 || !cells.left || !cells.bottom ? 'display: none' : ''"
 		>
-			<div class="control-buttons">
-				<button
-					id="placemarksShowHideButton"
-					:class="'actions-button' + (mainStore.placemarksShow ? ' button-pressed' : '')"
-					:title="mainStore.t.i.hints.shPlacemarks"
-					@click="mainStore.placemarksShowHide()"
-				>
-					<span>◆</span>
-					<span>{{ mainStore.t.i.buttons.places }}</span>
-				</button>
-				<button
-					id="commonPlacesShowHideButton"
-					:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
-					:title="mainStore.t.i.hints.shCommonPlaces"
-					@click="commonPlacesShowHide();"
-				>
-					<span>◇</span>
-					<span>{{ mainStore.t.i.buttons.commonPlaces }}</span>
-				</button>
-				<button
-					id="commonPlacemarksShowHideButton"
-					:class="'actions-button' + (mainStore.commonPlacemarksShow ? ' button-pressed' : '')"
-					:title="mainStore.t.i.hints.shCommonPlacemarks"
-					@click="mainStore.commonPlacemarksShowHide()"
-				>
-					<span>⬙</span>
-					<span>{{ mainStore.t.i.buttons.commonPlacemarks }}</span>
-				</button>
-				<button
-					id="centerPlacemarkShowHideButton"
-					:class="'actions-button' + (mainStore.centerPlacemarkShow ? ' button-pressed' : '')"
-					:title="mainStore.t.i.hints.shCenter"
-					@click="mainStore.centerPlacemarkShowHide()"
-				>
-					<span>◈</span>
-					<span>{{ mainStore.t.i.buttons.center }}</span>
-				</button>
-			</div>
+			<div id="bottom-left__control-buttons-bottom" />
 		</div>
 		<div
 			id="bottom-basic"
 			class="app-cell"
-			:style="sidebarSize.bottom === 0 ? 'display: none' : ''"
+			:style="sidebarSize.bottom === 0 || !cells.bottom ? 'display: none' : ''"
 		>
-			<div class="choose-map">
+			<div id="bottom-basic__control-buttons-bottom" />
+			<div id="bottom-choose-map">
 				<select
 					id="choose-map-input"
 					:title="mainStore.t.i.hints.mapProvider"
@@ -619,50 +607,34 @@
 					</option>
 				</select>
 			</div>
-			<div class="center-coordinates">
+			<div id="bottom-center-coordinates">
 				<span class="imp">
 					{{ mainStore.t.i.captions.center }}:
 				</span>
-				<span
-					class="nobr"
-					style="margin-left: 1em;"
-				>
+				<span class="nobr">
 					<input
 						id="center-coordinates-latitude"
 						v-model.number.trim="mainStore.center.latitude"
 						placeholder="latitude"
 						title="mainStore.t.i.captions.latitude"
 					/>
-					°N
+					<span>°N</span>
 				</span>
-				<span
-					class="nobr"
-					style="margin-left: 1em;"
-				>
+				<span class="nobr">
 					<input
 						id="center-coordinates-longitude"
 						v-model.number.trim="mainStore.center.longitude"
 						placeholder="longitude"
 						title="mainStore.t.i.captions.longitude"
 					/>
-					°E
-				</span>
-				<span
-					class="nobr"
-					style="margin-left: 1em;"
-				>
-					{{ mainStore.t.i.captions.altitude }}:
-					{{ centerAltitude }}
+					<span>°E</span>
 				</span>
 			</div>
+			<span id="bottom-altitude" class="nobr">
+				{{ mainStore.t.i.captions.altitude }}:
+				{{ centerAltitude }}
+			</span>
 		</div>
-		<router-view />
-		<places-popup-confirm
-			v-if="confirmPopup"
-			:callback="confirmCallback"
-			:arguments="confirmCallbackArgs"
-			:message="confirmMessage"
-		/>
 		<div
 			id="sbs-top"
 			:style="`
@@ -690,6 +662,13 @@
 			:style="`left: ${sidebarSize.left - 11}px`"
 			@mousedown="e => sidebarDragStart(e, 'left')"
 			@touchstart="e => sidebarDragStart(e, 'left')"
+		/>
+		<router-view />
+		<places-popup-confirm
+			v-if="confirmPopup"
+			:callback="confirmCallback"
+			:arguments="confirmCallbackArgs"
+			:message="confirmMessage"
 		/>
 	</div>
 	<Teleport :to="compactControlButtons
@@ -874,6 +853,49 @@
 			</button>
 		</div>
 	</Teleport>
+	<Teleport :to="compactControlButtons
+		? '#bottom-basic__control-buttons-bottom'
+		: '#bottom-left__control-buttons-bottom'
+	">
+		<div class="control-buttons">
+			<button
+				id="placemarksShowHideButton"
+				:class="'actions-button' + (mainStore.placemarksShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.hints.shPlacemarks"
+				@click="mainStore.placemarksShowHide()"
+			>
+				<span>◆</span>
+				<span>{{ mainStore.t.i.buttons.places }}</span>
+			</button>
+			<button
+				id="commonPlacesShowHideButton"
+				:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.hints.shCommonPlaces"
+				@click="commonPlacesShowHide();"
+			>
+				<span>◇</span>
+				<span>{{ mainStore.t.i.buttons.commonPlaces }}</span>
+			</button>
+			<button
+				id="commonPlacemarksShowHideButton"
+				:class="'actions-button' + (mainStore.commonPlacemarksShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.hints.shCommonPlacemarks"
+				@click="mainStore.commonPlacemarksShowHide()"
+			>
+				<span>⬙</span>
+				<span>{{ mainStore.t.i.buttons.commonPlacemarks }}</span>
+			</button>
+			<button
+				id="centerPlacemarkShowHideButton"
+				:class="'actions-button' + (mainStore.centerPlacemarkShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.hints.shCenter"
+				@click="mainStore.centerPlacemarkShowHide()"
+			>
+				<span>◈</span>
+				<span>{{ mainStore.t.i.buttons.center }}</span>
+			</button>
+		</div>
+	</Teleport>
 </template>
 
 <script setup lang="ts">
@@ -949,22 +971,54 @@ const commonPlacesOnPageCount = ref(constants.commonplacesonpagecount);
 provide('commonPlacesOnPageCount', commonPlacesOnPageCount);
 const commonPlacesShow = ref(false);
 
+const cells = ref({
+	top: true,
+	right: true,
+	bottom: true,
+	left: true,
+});
 const sidebarSize = ref({
 	top: constants.sidebars.top,
 	right: constants.sidebars.right,
 	bottom: constants.sidebars.bottom,
 	left: constants.sidebars.left,
 });
-const gridStyle = computed(() =>
-	`grid-template-rows:${sidebarSize.value.top}px 1fr ${sidebarSize.value.bottom}px;` +
-	`grid-template-columns:${sidebarSize.value.left}px 1fr ${sidebarSize.value.right}px;`
-);
+const gridStyle = computed(() => {
+	let style = '';
+	if (compact.value === 2) {
+		style += 'grid-template-columns:';
+		style += cells.value.left ? ' 45%' : ' 0';
+		style += ' 1fr';
+		style += cells.value.right ? ' 45%; ' : ' 0; ';
+		style += 'grid-template-rows:';
+		style += cells.value.top ? ' 80px' : ' 0';
+		style += ' 1fr';
+		style += cells.value.bottom ? ' auto;' : ' 0;';
+	} else {
+		style = 
+			`grid-template-columns:${sidebarSize.value.left}px 1fr ${sidebarSize.value.right}px;` +
+			`grid-template-rows:${sidebarSize.value.top}px 1fr ${sidebarSize.value.bottom}px;`
+		;
+	}
+	return style;
+});
 const compact = ref(0);
 const compactControlButtons = ref(false);
 const sidebarDrag = ref({ what: null as unknown, x: 0, y: 0, w: 0, h: 0 });
 const sbs = ref('all');
 
 watch(compact, () => {
+	if (compact.value === 2) {
+		cells.value.top = false;
+		cells.value.right = false;
+		cells.value.bottom = false;
+		cells.value.left = false;
+	} else {
+		cells.value.top = true;
+		cells.value.right = true;
+		cells.value.bottom = true;
+		cells.value.left = true;
+	}
 	const sidebars =
 		compact.value === 0
 			? constants.sidebars

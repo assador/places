@@ -114,9 +114,14 @@ body {
 	grid-area: bottom-left;
 }
 #bottom-basic {
-	display: flex;
-	flex-flow: column wrap;
 	grid-area: bottom-basic;
+	display: grid;
+	grid-template-columns: auto auto 1fr auto;
+	grid-template-areas:
+		"bottom-basic__control-buttons-bottom  bottom-choose-map  bottom-center-coordinates  bottom-altitude"
+	;
+	gap: 0;
+	align-items: baseline;
 	z-index: 200;
 	input {
 		width: 100px;
@@ -125,17 +130,27 @@ body {
 	select {
 		margin: 2px;
 	}
-}
-#bottom-basic .choose-map {
-	padding-right: 12px;
-	text-align: left;
-}
-#bottom-basic .center-coordinates {
-	display: flex;
-	flex-wrap: wrap;
-	flex-grow: 0;
-	align-items: baseline;
-	justify-content: right;
+	#bottom-basic__control-buttons-bottom {
+		grid-area: bottom-basic__control-buttons-bottom;
+	}
+	#bottom-choose-map {
+		grid-area: bottom-choose-map;
+	}
+	#bottom-center-coordinates {
+		grid-area: bottom-center-coordinates;
+		display: flex;
+		flex-flow: row nowrap;
+		align-items: baseline;
+		justify-content: right;
+		gap: 12px;
+		margin-right: 24px;
+		& > * {
+			flex: 0 1 auto;
+		}
+	}
+	#bottom-altitude {
+		grid-area: bottom-altitude;
+	}
 }
 #bottom-right {
 	grid-area: bottom-right;
@@ -195,6 +210,67 @@ body {
 	top: 0; right: 0; bottom: 0; left: 0;
 	padding: 12px;
 	overflow: auto;
+}
+#sbb-top, #sbb-right, #sbb-bottom, #sbb-left {
+	display: none;
+	position: absolute;
+	min-width: 0; min-height: 0;
+	z-index: 1000;
+	&::before {
+		content: '';
+		display: block;
+		position: absolute;
+		top: 0; right: 0; bottom: 0; left: 0;
+		background: url('/public/img/icons/arrow_02.svg') center/contain no-repeat;
+		opacity: 0.5;
+	}
+}
+#sbb-top, #sbb-bottom {
+	left: calc(50% - 20px);
+	width: 40px;
+	height: 20px;
+}
+#sbb-right, #sbb-left {
+	width: 20px;
+	height: 40px;
+}
+#sbb-top {
+	top: 12px;
+	&::before {
+		transform: scale(75%) rotate(90deg);
+	}
+	&.disclosed::before {
+		transform: scale(75%) rotate(-90deg);
+	}
+}
+#sbb-right {
+	bottom: calc(50% + 6px);
+	right: 12px;
+	&::before {
+		transform: scale(40%) rotate(180deg);
+	}
+	&.disclosed::before {
+		transform: scale(40%) rotate(0deg);
+	}
+}
+#sbb-bottom {
+	bottom: 12px;
+	&::before {
+		transform: scale(75%) rotate(-90deg);
+	}
+	&.disclosed::before {
+		transform: scale(75%) rotate(90deg);
+	}
+}
+#sbb-left {
+	top: calc(50% + 6px);
+	left: 12px;
+	&::before {
+		transform: scale(40%) rotate(0deg);
+	}
+	&.disclosed::before {
+		transform: scale(40%) rotate(180deg);
+	}
 }
 #sbs-up, #sbs-down {
 	display: none;
@@ -278,16 +354,33 @@ body {
 @media screen and (max-width: 1000px) {
 	#grid {
 		grid-template-areas:
-			"basic-left   top-basic     basic-right"
-			"basic-left   basic-basic   basic-right"
-			"bottom-left  bottom-basic  bottom-basic"
+			"basic-left    top-basic     basic-right"
+			"basic-left    basic-basic   basic-right"
+			"bottom-basic  bottom-basic  bottom-basic"
 		;
-		#top-left, #top-right {
+		#top-left, #top-right, #bottom-left {
 			display: none;
 		}
 		#basic-left__control-buttons-left, #basic-right__control-buttons-right {
 			+ * {
 				margin-top: 20px;
+			}
+		}
+		#bottom-basic {
+			grid-template-columns: 150px auto 1fr auto;
+			gap: 12px;
+			#bottom-center-coordinates {
+				flex-wrap: wrap;
+				margin-right: 12px;
+				& > span > span {
+					display: inline-block;
+					width: 1.2em;
+					text-align: left;
+				}
+			}
+			.control-buttons {
+				position: relative;
+				top: -3px;
 			}
 		}
 	}
@@ -303,13 +396,24 @@ body {
 		display: none;
 	}
 }
-@media screen and (max-width: 450px) {
-	#top-basic .brand > *:first-child + * {
-		display: none;
+@media screen and (max-width: 800px) {
+	#grid {
+		grid-template-areas:
+			"top-basic     top-basic     top-basic"
+			"basic-left    basic-basic   basic-right"
+			"bottom-basic  bottom-basic  bottom-basic"
+		;
+		#bottom-basic {
+			grid-template-areas:
+				"bottom-basic__control-buttons-bottom  bottom-choose-map"
+				"bottom-basic__control-buttons-bottom  bottom-center-coordinates"
+				"bottom-basic__control-buttons-bottom  bottom-altitude"
+			;
+		}
+		#sbb-top, #sbb-right, #sbb-bottom, #sbb-left {
+			display: block;
+		}
 	}
 }
 @media screen and (max-height: 450px) {
-	.account .brand, .popup-content .brand  {
-		top: 0;
-	}
 }
