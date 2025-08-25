@@ -1,5 +1,11 @@
 <template>
 	<div ref="container" id="container" :class="`colortheme-${colortheme}`">
+		<places-popup-confirm
+			v-if="confirmPopup"
+			:callback="confirmCallback"
+			:arguments="confirmCallbackArgs"
+			:message="confirmMessage"
+		/>
 		<router-view />
 	</div>
 </template>
@@ -12,6 +18,7 @@ import { useRouter } from 'vue-router';
 import { emitter } from '@/shared/bus'
 import { isParentInTree } from '@/shared/common';
 import { Place, Image, Folder, Waypoint } from '@/stores/types';
+import PlacesPopupConfirm from '@/components/PlacesPopupConfirm.vue';
 
 // Refs and Provides
 const container = ref<null | HTMLElement>(null);
@@ -53,6 +60,20 @@ const colorthemes = computed(() => [
 ]);
 provide('colorthemes', colorthemes);
 
+const confirmPopup = ref(false);
+const confirmCallback = ref<Function | null>(null);
+const confirmCallbackArgs = ref<any[] | null>(null);
+const confirmMessage = ref<string | null>(null);
+provide('confirmPopup', confirmPopup);
+
+const confirm = (func: Function, args: any[] = [], msg: string = ''): boolean => {
+	confirmPopup.value = true;
+	confirmCallback.value = func;
+	confirmCallbackArgs.value = args;
+	confirmMessage.value = msg;
+	return true;
+};
+
 // Event Bus Handlers
 emitter.on('logged', async () => {
 	await mainStore.setUser();
@@ -61,6 +82,18 @@ emitter.on('logged', async () => {
 	await mainStore.setUsers('common');
 	mainStore.ready = true;
 	router.push({ name: 'PlacesHome' });
+});
+emitter.on('logout', () => {
+	const getOut = () => {
+		router.push({ name: 'PlacesAuth' });
+		mainStore.unload();
+	};
+	mainStore.saved
+		? getOut()
+		: confirm(getOut, [], mainStore.t.i.text.notSaved);
+});
+emitter.on('confirm', ({func, args, msg}): void => {
+	confirm(func, args, msg);
 });
 
 emitter.on('toDB', (payload: Record<string, any>) => {

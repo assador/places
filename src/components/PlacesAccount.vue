@@ -1,129 +1,128 @@
 <template>
-	<div class="account centered">
-		<div class="brand">
-			<h1 class="margin_bottom_0">
-				{{ mainStore.t.i.brand.header }}
-			</h1>
-			<p>{{ mainStore.t.i.captions.accountPage }}</p>
+	<div class="account">
+		<div class="app-cell">
+			<places-header />
 		</div>
-		<form
-			class="account__form"
-			@submit.prevent="accountSubmit"
-		>
-			<table class="table_form">
-				<tbody>
-					<tr>
-						<th>{{ mainStore.t.i.captions.login }}:</th>
-						<td colspan="2">
-							<input
-								id="accountLogin"
-								v-model="accountLogin"
-								class="fieldwidth_100"
-								required
-								type="text"
-								:placeholder="mainStore.t.i.inputs.regLogin"
-							/>
-						</td>
-					</tr>
-					<tr>
-						<th>{{ mainStore.t.i.captions.newPassword }}:</th>
-						<td colspan="2">
-							<input
-								id="accountNewPassword"
-								v-model="accountNewPassword"
-								class="fieldwidth_100"
-								type="password"
-								:placeholder="mainStore.t.i.inputs.needToChangePassword"
-							/>
-						</td>
-					</tr>
-					<tr>
-						<th>{{ mainStore.t.i.captions.repeatNewPassword }}:</th>
-						<td colspan="2">
-							<input
-								id="accountNewPasswordRepeat"
-								v-model="accountNewPasswordRepeat"
-								class="fieldwidth_100"
-								type="password"
-								:placeholder="mainStore.t.i.inputs.needToChangePassword"
-							/>
-						</td>
-					</tr>
-					<tr>
-						<th>{{ mainStore.t.i.inputs.regAddressBy }}:</th>
-						<td colspan="2">
-							<input
-								id="accountName"
-								v-model="accountName"
-								class="fieldwidth_100"
-								type="text"
-								:placeholder="mainStore.t.i.inputs.regAddressBy"
-							/>
-						</td>
-					</tr>
-					<tr>
-						<th>e-mail:</th>
-						<td colspan="2">
-							<input
-								id="accountEmail"
-								v-model="accountEmail"
-								class="fieldwidth_100"
-								required
-								type="text"
-								placeholder="e-mail *"
-							/>
-						</td>
-					</tr>
-					<tr>
-						<th>{{ mainStore.t.i.captions.phone }}:</th>
-						<td colspan="2">
-							<input
-								id="accountPhone"
-								v-model="accountPhone"
-								class="fieldwidth_100"
-								type="text"
-								:placeholder="mainStore.t.i.captions.phone"
-							/>
-						</td>
-					</tr>
-					<tr class="back_0">
-						<th />
-						<td style="padding-top: 18px; vertical-align: top;">
-							<button type="submit">
-								{{ mainStore.t.i.buttons.save }}
-							</button>
-							&#160;
-							<button
-								type="button"
-								@click="e => close(e)"
+		<div class="centered">
+			<h2>{{ mainStore.t.i.captions.accountPage }}</h2>
+			<form
+				class="account-form"
+				@submit.prevent="accountSubmit"
+			>
+				<table class="table_form">
+					<tbody>
+						<tr>
+							<th>{{ mainStore.t.i.captions.login }}:</th>
+							<td colspan="2">
+								<input
+									id="accountLogin"
+									v-model="accountLogin"
+									class="fieldwidth_100"
+									required
+									type="text"
+									:placeholder="mainStore.t.i.inputs.regLogin"
+								/>
+							</td>
+						</tr>
+						<tr>
+							<th>{{ mainStore.t.i.captions.newPassword }}:</th>
+							<td colspan="2">
+								<input
+									id="accountNewPassword"
+									v-model="accountNewPassword"
+									class="fieldwidth_100"
+									type="password"
+									:placeholder="mainStore.t.i.inputs.needToChangePassword"
+								/>
+							</td>
+						</tr>
+						<tr>
+							<th>{{ mainStore.t.i.captions.repeatPassword }}:</th>
+							<td colspan="2">
+								<input
+									id="accountNewPasswordRepeat"
+									v-model="accountNewPasswordRepeat"
+									class="fieldwidth_100"
+									type="password"
+									:placeholder="mainStore.t.i.inputs.needToChangePassword"
+								/>
+							</td>
+						</tr>
+						<tr>
+							<th>{{ mainStore.t.i.inputs.regAddressBy }}:</th>
+							<td colspan="2">
+								<input
+									id="accountName"
+									v-model="accountName"
+									class="fieldwidth_100"
+									type="text"
+									:placeholder="mainStore.t.i.inputs.regAddressBy"
+								/>
+							</td>
+						</tr>
+						<tr>
+							<th>e-mail:</th>
+							<td colspan="2">
+								<input
+									id="accountEmail"
+									v-model="accountEmail"
+									class="fieldwidth_100"
+									required
+									type="text"
+									placeholder="e-mail *"
+								/>
+							</td>
+						</tr>
+						<tr>
+							<th>{{ mainStore.t.i.captions.phone }}:</th>
+							<td colspan="2">
+								<input
+									id="accountPhone"
+									v-model="accountPhone"
+									class="fieldwidth_100"
+									type="text"
+									:placeholder="mainStore.t.i.captions.phone"
+								/>
+							</td>
+						</tr>
+						<tr class="account-form-buttons back_0">
+							<th />
+							<td>
+								<button type="submit">
+									{{ mainStore.t.i.buttons.save }}
+								</button>
+								<button
+									type="button"
+									@click="e => close(e)"
+								>
+									{{ mainStore.t.i.buttons.back }}
+								</button>
+							</td>
+							<td>
+								<button
+									type="button"
+									@click="router.push(
+										{name: 'PlacesAccountDelete'}
+									).catch(e => {console.error(e);})"
+								>
+									{{ mainStore.t.i.buttons.deleteAccount }}
+								</button>
+							</td>
+						</tr>
+						<tr class="back_0">
+							<th />
+							<td
+								colspan="2"
+								style="padding-top: 18px;"
 							>
-								{{ mainStore.t.i.buttons.back }}
-							</button>
-						</td>
-						<td style="padding-top: 18px; vertical-align: top; text-align: right;">
-							<button
-								type="button"
-								@click="router.push(
-									{name: 'PlacesAccountDelete'}
-								).catch(e => {console.error(e);})"
-							>
-								{{ mainStore.t.i.buttons.deleteAccount }}
-							</button>
-						</td>
-					</tr>
-					<tr class="back_0">
-						<th />
-						<td
-							colspan="2"
-							style="padding-top: 18px;"
-						>
-							{{ account.message }}
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</form>
-		<router-view />
+								{{ account.message }}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+			<router-view />
+		</div>
 	</div>
 </template>
 
@@ -134,6 +133,7 @@ import { useRouter } from 'vue-router';
 import { constants } from '../shared/constants';
 import { makeFieldsValidatable } from '../shared/fields_validate';
 import { accountSaveRoutine, acc } from '../shared/account';
+import PlacesHeader from './PlacesHeader.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -200,3 +200,52 @@ const accountSubmit = function(): void {
 	}
 };
 </script>
+
+<style lang="scss" scoped>
+.app-cell {
+	overflow: visible;
+	z-index: 1;
+}
+.account {
+	display: grid;
+	grid-template-rows: auto 1fr;
+	position: absolute;
+	top: 0; right: 0; bottom: 0; left: 0;
+	& > * {
+		position: relative;
+	}
+	&-form {
+		display: flex;
+		width: 50%;
+		&-buttons {
+			td {
+				padding-top: 18px;
+				vertical-align: top;
+				}
+			th + td {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+			}
+			td:last-child {
+				text-align: right;
+			}
+		}
+	}
+}
+@media screen and (max-width: 1000px) {
+	.account-form {
+		width: 75%;
+	}
+}
+@media screen and (max-width: 800px) {
+	.account-form {
+		width: 100%;
+	}
+}
+@media screen and (max-width: 450px) {
+	.centered {
+		padding: 20px;
+	}
+}
+</style>

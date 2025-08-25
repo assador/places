@@ -172,7 +172,7 @@ $col-36: rgb(0, 0, 0);
 	.border_1,
 	td, th,
 	table.border_1 > * > tr > :is(td, th),
-	.auth__login {
+	.auth-login {
 		border: 1px solid $color-12;
 	}
 	.border_2,
@@ -220,7 +220,7 @@ $col-36: rgb(0, 0, 0);
 		background-color: $color-06;
 	}
 	.back_3,
-	#messages, .popup {
+	#messages, .messages, .popup {
 		background-color: $color-03;
 	}
 	tr:hover {
@@ -657,7 +657,7 @@ $col-36: rgb(0, 0, 0);
 		z-index: 0;
 		animation: waiting 2s ease-in-out infinite;
 	}
-	#messages .highlight {animation: highlight-text 1s ease-in-out;}
+	#messages .highlight, .messages .highlight {animation: highlight-text 1s ease-in-out;}
 	@keyframes highlight {
 		0% {box-shadow: 0 0 42px $color-05;}
 		50% {box-shadow: 0 0 42px $color-07;}
@@ -875,7 +875,7 @@ $col-36: rgb(0, 0, 0);
 	table.table_wopadd :is(th, td) {
 		padding: 0;
 	}
-	.auth__login {
+	.auth-login {
 		border-width: 0 1px 0 0;
 	}
 	.password {
@@ -893,11 +893,14 @@ $col-36: rgb(0, 0, 0);
 			box-shadow: none;
 		}
 	}
+/*
 	.popup, .popup *, .popup-image, .popup-text, .popup-folder, .popup-export {
 		max-width: 100%; max-height: 100%;
 	}
+*/
 	.popup, .popup-image, .popup-text, .popup-folder, .popup-export {
-		overflow: auto;
+		overflow: hidden;
+		z-index: 10000;
 	}
 	.popup-image, .image-thumbnail {
 		image-orientation: from-image;
@@ -1136,11 +1139,36 @@ $col-36: rgb(0, 0, 0);
 	.draggable *, .folder-button * {
 		pointer-events: none;
 	}
+	.actions-button {
+		display: flex;
+		flex-direction: column;
+		padding: 4px 0 1px 0;
+		line-height: 0.7;
+		font-size: 11px !important;
+		text-transform: lowercase;
+		overflow: hidden;
+		* {
+			text-align: center;
+			width: 100%;
+		}
+		*:first-child {
+			flex-grow: 1;
+			font-size: 17px !important;
+		}
+	}
+	.control-buttons {
+		display: flex;
+		flex-flow: row wrap;
+		gap: 8px;
+		text-align: center;
+		.actions-button {
+			flex: 1 1 calc(25% - 16px);
+			min-width: 50px;
+			min-height: 30px;
+		}
+	}
 	.control-measure .draggable button, .draggable .dd-images__delete, .dragenter-area, span.folder-button * {
 		pointer-events: all;
-	}
-	#top-right, #bottom-left {
-		font-size: 0 !important;
 	}
 	.place-detailed dd {
 		padding-left: 0;
@@ -1284,20 +1312,22 @@ $col-36: rgb(0, 0, 0);
 		box-shadow: 0 0 8px $color-41;
 		transition: all 0.5s;
 	}
-	#messages {
+	#messages, .messages {
 		border-radius: 7px;
 		box-shadow: 0 4px 23px $color-04;
-		text-align: right;
 		cursor: default;
+		.message {
+			padding: 7px;
+			&.border_1 {
+				border-right-width: 0; border-bottom-width: 0; border-left-width: 0;
+				&:first-child {
+					border-top-width: 0;
+				}
+			}
+		}
 	}
-	#messages .message {
-		padding: 7px;
-	}
-	#messages .message.border_1:first-child {
-		border-top-width: 0;
-	}
-	#messages .message.border_1 {
-		border-right-width: 0; border-bottom-width: 0; border-left-width: 0;
+	#messages {
+		text-align: right;
 	}
 	#placemarksShowHideButton,
 	#commonPlacesShowHideButton,
@@ -1316,7 +1346,7 @@ $col-36: rgb(0, 0, 0);
 		height: 115px;
 	}
 	:is(
-		.account__form,
+		.account-form,
 		.folder-delete__form,
 		.popup-export__form,
 		.place-delete__form
@@ -1324,7 +1354,7 @@ $col-36: rgb(0, 0, 0);
 		margin: 1em;
 	}
 	:is(
-		.account__form,
+		.account-form,
 		.folder-delete__form,
 		.popup-export__form,
 		.place-delete__form
@@ -1332,7 +1362,7 @@ $col-36: rgb(0, 0, 0);
 		display: flex;
 	}
 	:is(
-		.account__form,
+		.account-form,
 		.folder-delete__form,
 		.popup-export__form,
 		.place-delete__form

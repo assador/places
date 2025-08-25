@@ -66,6 +66,7 @@ export interface User {
 	token: string;
 	homeplace: string;
 	testaccount: boolean;
+	groups?: {group: string, parent: string}[];
 	added?: boolean;
 	deleted?: boolean;
 	updated?: boolean;

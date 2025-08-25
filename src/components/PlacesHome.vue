@@ -21,31 +21,7 @@
 			class="app-cell"
 			:style="sidebarSize.top === 0 || !cells.top ? 'display: none' : ''"
 		>
-			<div id="top-basic-content">
-				<div class="brand">
-					<h1 class="basiccolor margin_bottom_0">
-						{{ mainStore.t.i.brand.header }} —
-						<router-link to="/account">
-							{{ mainStore.user ? mainStore.user.login : 'o_O' }}
-						</router-link>
-						<router-link
-							v-if="
-								!!mainStore['user'] &&
-								!!mainStore.user['groups'] &&
-								!!mainStore.user['groups'].find(
-									g => g.parent === 'management'
-								)
-							"
-							to="/admin"
-							class="admin-link"
-						>
-							{{ mainStore.t.i.captions.admin }}
-						</router-link>
-					</h1>
-					<div>{{ mainStore.t.i.brand.slogan }}</div>
-				</div>
-				<places-dashboard />
-			</div>
+			<places-header />
 			<div
 				id="messages"
 				class="invisible"
@@ -59,7 +35,7 @@
 					:key="index"
 					class="message border_1"
 				>
-					{{ mainStore.messages[index] }}
+					{{ message }}
 				</div>
 			</div>
 		</div>
@@ -126,6 +102,13 @@
 							v-for="(temp, id) in mainStore.temps"
 							:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
 							@click="chooseWaypoint({waypoint: temp})"
+							@contextmenu="e => {
+								e.preventDefault();
+								chooseWaypoint({
+									waypoint: temp,
+									mode: (mainStore.mode === 'measure' ? 'measure' : 'normal')
+								});
+							}"
 						>
 							<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>
 							<span
@@ -315,6 +298,7 @@
 		<div
 			id="basic-basic"
 			class="app-cell"
+			:style="(cells.left ? 'padding-left: 0;' : '') + (cells.right ? 'padding-right: 0;' : '')"
 		>
 			<div
 				class="basic-on-full button"
@@ -331,21 +315,25 @@
 			<button
 				id="sbb-top"
 				:class="cells.top ? 'disclosed' : ''"
+				:style="(cells.top ? 'top: -10px;' : '')"
 				@click="() => cells.top = !cells.top"
 			/>
 			<button
 				id="sbb-right"
 				:class="cells.right ? 'disclosed' : ''"
+				:style="(cells.right ? 'right: -10px;' : '')"
 				@click="() => cells.right = !cells.right"
 			/>
 			<button
 				id="sbb-bottom"
 				:class="cells.bottom ? 'disclosed' : ''"
+				:style="(cells.bottom ? 'bottom: -10px;' : '')"
 				@click="() => cells.bottom = !cells.bottom"
 			/>
 			<button
 				id="sbb-left"
 				:class="cells.left ? 'disclosed' : ''"
+				:style="(cells.left ? 'left: -10px;' : '')"
 				@click="() => cells.left = !cells.left"
 			/>
 		</div>
@@ -504,7 +492,10 @@
 											:draggable="false"
 											@click="e => {
 												e.stopPropagation();
-												confirm(deleteImages, [{[image.id]: image}]);
+												emitter.emit('confirm', {
+													func: deleteImages,
+													args: [{[image.id]: image}],
+												});
 											}"
 										>
 											×
@@ -664,12 +655,6 @@
 			@touchstart="e => sidebarDragStart(e, 'left')"
 		/>
 		<router-view />
-		<places-popup-confirm
-			v-if="confirmPopup"
-			:callback="confirmCallback"
-			:arguments="confirmCallbackArgs"
-			:message="confirmMessage"
-		/>
 	</div>
 	<Teleport :to="compactControlButtons
 		? '#basic-left__control-buttons-left'
@@ -846,7 +831,7 @@
 				class="actions-button"
 				:title="mainStore.t.i.hints.exit"
 				accesskey="q"
-				@click="exit()"
+				@click="emitter.emit('logout')"
 			>
 				<span>↪</span>
 				<span>{{ mainStore.t.i.buttons.exit }}</span>
@@ -926,9 +911,8 @@ import {
 } from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
-import PlacesDashboard from './PlacesDashboard.vue';
+import PlacesHeader from './PlacesHeader.vue';
 import PlacesTree from './PlacesTree.vue';
-import PlacesPopupConfirm from './PlacesPopupConfirm.vue';
 import { Waypoint, Place, Image } from '@/stores/types';
 
 const mainStore = useMainStore();
@@ -987,9 +971,9 @@ const gridStyle = computed(() => {
 	let style = '';
 	if (compact.value === 2) {
 		style += 'grid-template-columns:';
-		style += cells.value.left ? ' 45%' : ' 0';
+		style += cells.value.left ? ' 48%' : ' 0';
 		style += ' 1fr';
-		style += cells.value.right ? ' 45%; ' : ' 0; ';
+		style += cells.value.right ? ' 48%; ' : ' 0; ';
 		style += 'grid-template-rows:';
 		style += cells.value.top ? ' 80px' : ' 0';
 		style += ' 1fr';
@@ -1106,19 +1090,6 @@ emitter.on('deletePlace', (place: Place) => {
 	deletePlace(place);
 });
 
-const confirmPopup = ref(false);
-const confirmCallback = ref<Function | null>(null);
-const confirmCallbackArgs = ref<any[] | null>(null);
-const confirmMessage = ref<string | null>(null);
-provide('confirmPopup', confirmPopup);
-
-const confirm = (func: Function, args: any[] = [], msg: string = ''): boolean => {
-	confirmPopup.value = true;
-	confirmCallback.value = func;
-	confirmCallbackArgs.value = args;
-	confirmMessage.value = msg;
-	return true;
-};
 onMounted(async () => {
 	if (mainStore.ready) stateReadyChanged();
 	mainStore.idleTime = 0;
@@ -1163,15 +1134,6 @@ const installPWA = () => {
 const blur = (el?: HTMLElement): void => {
 	if (el) (el as HTMLElement).blur();
 		else document.querySelectorAll<HTMLElement>(':focus').forEach(el => el.blur());
-};
-const exit = (): void => {
-	const getOut = () => {
-		mainStore.unload();
-		router.push({ name: 'PlacesAuth' });
-	};
-	mainStore.saved
-		? getOut()
-		: confirm(getOut, [], mainStore.t.i.text.notSaved);
 };
 const stateReadyChanged = (): void => {
 	if (!mainStore.ready) return;
@@ -1528,7 +1490,7 @@ const keyup = (event: Event): void => {
 		'save': toDBCompletely,
 		'help': () => router.push({ name: 'PlacesHomeText', params: { what: 'about' } }),
 		'revert': () => document.location.reload(),
-		'quit': exit,
+		'quit': () => emitter.emit('logout'),
 		'other': commonPlacesShowHide,
 		'placemarks': () => mainStore.placemarksShowHide(),
 		'other placemarks': () => mainStore.commonPlacemarksShowHide(),
@@ -1650,40 +1612,6 @@ const selectPlaces = (text: string): void => {
 </script>
 
 <style lang="scss" scoped>
-.admin-link {
-	position: relative;
-	top: -10px; left: 5px;
-	font-size: 55%;
-	text-transform: lowercase;
-}
-.actions-button {
-	display: flex;
-	flex-direction: column;
-	padding: 4px 0 1px 0;
-	line-height: 0.7;
-	font-size: 11px !important;
-	text-transform: lowercase;
-	overflow: hidden;
-	* {
-		text-align: center;
-		width: 100%;
-	}
-	*:first-child {
-		flex-grow: 1;
-		font-size: 17px !important;
-	}
-}
-.control-buttons {
-	display: flex;
-	flex-flow: row wrap;
-	gap: 8px;
-	text-align: center;
-	.actions-button {
-		flex: 1 1 calc(25% - 16px);
-		min-width: 50px;
-		min-height: 30px;
-	}
-}
 .control-search, .control-range, .control-measure dd {
 	display: flex;
 	flex-flow: row wrap;

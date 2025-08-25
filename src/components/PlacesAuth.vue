@@ -4,18 +4,18 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.12.6 beta</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.12.7 beta</p>
 		</div>
 		<places-dashboard />
-		<div class="auth_forms">
-			<div class="auth__login margin_bottom">
+		<div class="auth-forms">
+			<div class="auth-login margin_bottom">
 				<form
 					ref="authLoginForm"
 					class="margin_bottom"
 					@submit.prevent="authLoginSubmit"
 				>
 					<h2>{{ mainStore.t.i.captions.auth }}</h2>
-					<div class="auth__login__fields margin_bottom">
+					<div class="auth-login-fields margin_bottom">
 						<input
 							id="auth-login-input"
 							v-model.trim="authLogin"
@@ -62,7 +62,7 @@
 					</div>
 					<button
 						type="button"
-						onclick="document.querySelector('.auth__forgot')
+						onclick="document.querySelector('.auth-forgot')
 							.classList.toggle('hidden');
 						"
 					>
@@ -70,7 +70,7 @@
 					</button>
 				</form>
 				<form
-					class="auth__forgot hidden"
+					class="auth-forgot hidden"
 					@submit.prevent="authForgot"
 				>
 					<p>{{ mainStore.t.i.text.emailToSendPassword }}</p>
@@ -92,11 +92,11 @@
 			</div>
 			<form
 				ref="authRegForm"
-				class="auth__registration margin_bottom"
+				class="auth-registration margin_bottom"
 				@submit.prevent="authRegSubmit"
 			>
 				<h2>{{ mainStore.t.i.captions.reg }}</h2>
-				<div class="auth__registration__fields margin_bottom">
+				<div class="auth-registration-fields margin_bottom">
 					<input
 						id="reg-login-input"
 						v-model.trim="regLogin"
@@ -276,28 +276,25 @@ onUpdated(async () => {
 .margin_bottom {
 	margin-bottom: 12px !important;
 }
-.auth {
-	min-width: 440px !important;
-}
-.auth_forms {
+.auth-forms {
 	display: flex;
 	margin-bottom: 12px;
 }
-.auth__login, .auth__registration {
+.auth-login, .auth-registration {
 	width: 50%;
 }
-.auth__login {
+.auth-login {
 	padding-right: 20px;
 	text-align: right;
 }
-.auth__registration {
+.auth-registration {
 	padding-left: 20px;
 }
-.auth__login__fields, .auth__registration__fields {
+.auth-login-fields, .auth-registration-fields {
 	display: grid;
 	grid-gap: 12px;
 }
-.auth__registration__fields {
+.auth-registration-fields {
 	grid-template-columns: 1fr 1fr;
 }
 #dashboard {
@@ -306,6 +303,20 @@ onUpdated(async () => {
 @media screen and (max-width: 720px) {
 	.auth {
 		padding: 20px;
+	}
+}
+@media screen and (max-width: 450px) {
+	.auth-forms {
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	.auth-login, .auth-registration {
+		width: 100%;
+		padding: 0;
+		text-align: center;
+	}
+	.auth-login {
+		border: none;
 	}
 }
 </style>

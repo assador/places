@@ -18,18 +18,7 @@
 				id="top-basic"
 				class="app-cell"
 			>
-				<div id="top-basic-content">
-					<div class="brand">
-						<h1 class="basiccolor margin_bottom_0">
-							{{ mainStore.t.i.brand.header }} —
-							<router-link to="/account">
-								{{ mainStore.user ? mainStore.user.login : 'o_O' }}
-							</router-link>
-						</h1>
-						<div>{{ mainStore.t.i.brand.slogan }}</div>
-					</div>
-					<places-dashboard />
-				</div>
+				<places-header />
 				<div
 					id="messages"
 					class="invisible"
@@ -43,7 +32,7 @@
 						:key="index"
 						class="message border_1"
 					>
-						{{ mainStore.messages[index] }}
+						{{ message }}
 					</div>
 				</div>
 			</div>
@@ -53,16 +42,14 @@
 			>
 				<div class="control-buttons">
 					<button
-						id="actions-home"
 						class="actions-button"
-						:title="mainStore.t.i.hints.exit"
+						:title="mainStore.t.i.hints.home"
 						@click="router.push('/home')"
 					>
 						<span>⌂</span>
 						<span>{{ mainStore.t.i.buttons.home }}</span>
 					</button>
 					<button
-						id="actions-exit"
 						class="actions-button"
 						:title="mainStore.t.i.hints.exit"
 						@click="exit()"
@@ -115,7 +102,7 @@ import { useRouter } from 'vue-router';
 import { constants } from '@/shared/constants';
 //import { User, Group } from '@/store/types';
 import axios from 'axios';
-import PlacesDashboard from './PlacesDashboard.vue';
+import PlacesHeader from '@/components/PlacesHeader.vue';
 import AdminNavigation from './admin/AdminNavigation.vue';
 /*
 export interface IPlacesAdminProps {
@@ -205,14 +192,6 @@ const components = {
 }
 #top-left, #basic-left, #bottom-left, #bottom-basic, #bottom-right {
 	display: none;
-}
-#top-right {
-	min-height: 100px;
-}
-.control-buttons {
-	position: relative;
-	margin: -4px;
-	grid-template-columns: repeat(2, 1fr);
 }
 #admin-basic {
 	position: absolute;

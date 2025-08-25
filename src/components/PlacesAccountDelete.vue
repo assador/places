@@ -15,7 +15,7 @@
 					@submit.prevent="accountDeletionSubmit()"
 					@click="e => e.stopPropagation()"
 				>
-					<div class="account__form margin_bottom">
+					<div class="account-form margin_bottom">
 						<fieldset>
 							<h2>
 								{{ mainStore.t.i.captions.places }}

@@ -11,13 +11,10 @@ body {
 .brand, .app-cell, .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	position: relative;
 }
-.account__form {
-	display: flex;
-}
-.narrower, .auth_forms, .account__form {
+.narrower, .auth-forms {
 	width: 50%;
 }
-.auth .brand, .account .brand, .popup-content .brand  {
+.auth .brand, .popup-content .brand  {
 	top: -50px;
 	text-align: center;
 }
@@ -66,14 +63,6 @@ body {
 #top-basic {
 	grid-area: top-basic;
 	overflow: visible;
-	#top-basic-content {
-		overflow: hidden;
-	}
-}
-#top-basic-content {
-	position: absolute;
-	top: 0; right: 0; bottom: 0; left: 0;
-	padding: 12px;
 }
 #top-right {
 	grid-area: top-right;
@@ -177,14 +166,16 @@ body {
 	min-width: 38.2%;
 	padding: 0 12px;
 }
-#messages {
+#messages, .messages {
 	box-sizing: border-box;
+	padding: 10px 20px 12px 20px;
+	z-index: 100000;
+}
+#messages {
 	position: absolute;
 	top: 0; right: 0;
 	max-width: 100%;
 	margin: 12px;
-	padding: 10px 20px 12px 20px;
-	z-index: 100000;
 }
 #messages.visible {top: 0;}
 #messages.invisible {top: -100%;}
@@ -235,7 +226,7 @@ body {
 	height: 40px;
 }
 #sbb-top {
-	top: 12px;
+	top: 0;
 	&::before {
 		transform: scale(75%) rotate(90deg);
 	}
@@ -245,7 +236,7 @@ body {
 }
 #sbb-right {
 	bottom: calc(50% + 6px);
-	right: 12px;
+	right: 0;
 	&::before {
 		transform: scale(40%) rotate(180deg);
 	}
@@ -254,7 +245,7 @@ body {
 	}
 }
 #sbb-bottom {
-	bottom: 12px;
+	bottom: 0;
 	&::before {
 		transform: scale(75%) rotate(-90deg);
 	}
@@ -264,7 +255,7 @@ body {
 }
 #sbb-left {
 	top: calc(50% + 6px);
-	left: 12px;
+	left: 0;
 	&::before {
 		transform: scale(40%) rotate(0deg);
 	}
@@ -347,7 +338,7 @@ body {
 	flex-direction: column;
 }
 @media screen and (max-width: 1600px) {
-	.narrower, .auth_forms, .account__form {
+	.narrower, .auth-forms {
 		width: 75%;
 	}
 }
@@ -384,7 +375,7 @@ body {
 			}
 		}
 	}
-	.narrower, .auth_forms, .account__form {
+	.narrower, .auth-forms {
 		width: 100%;
 	}
 	#basic-left .scrollable, #basic-right .scrollable {
@@ -415,5 +406,5 @@ body {
 		}
 	}
 }
-@media screen and (max-height: 450px) {
+@media screen and (max-width: 450px) {
 }
