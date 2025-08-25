@@ -1,8 +1,5 @@
 <template>
-	<div
-		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="e => close(e)"
-	>
+	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
@@ -46,10 +43,7 @@
 							{{ mainStore.t.i.buttons.deleteFolder }}
 						</button>
 						&#160;
-						<button
-							type="button"
-							@click="e => close(e)"
-						>
+						<button type="button" @click="close()">
 							{{ mainStore.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
@@ -58,7 +52,7 @@
 			<a
 				href="javascript:void(0);"
 				class="close"
-				@click="e => close(e)"
+				@click="close()"
 			>
 				×
 			</a>
@@ -73,12 +67,11 @@ import {
 	watch,
 	onMounted,
 	onUnmounted,
-	onBeforeUpdate,
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMainStore } from '@/stores/main';;
-import { emitter } from '../shared/bus';
-import { constants } from '../shared/constants';
+import { emitter } from '@/shared/bus';
+import { constants } from '@/shared/constants';
 import { Place, Folder } from '@/stores/types';
 
 export interface IPlacesPopupFolderDeleteProps {
@@ -107,15 +100,11 @@ const open = (event?: Event): void => {
 		router.back();
 	}
 };
-const close = (event: Event): void => {
-	if (event) event.stopPropagation();
+const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
-const keyup = (event: Event): void => {
-	if (
-		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).code] === 'close'
-	) close(event);
+const keyup = (event: KeyboardEvent): void => {
+	if (event.key === 'Escape') close();
 };
 const markNestedAsDeleted = (folderCont: Folder): void => {
 	// Mark places and folders in the currently deleted folder as deleted
@@ -218,7 +207,7 @@ const deleteFolder = async (event: Event): Promise<void> => {
 		emitter.emit('toDBCompletely');
 	}
 	mainStore.deleteFolders({folders: {[folder.value.id]: folder.value}});
-	close(event);
+	close();
 };
 
 watch(() => props.folderId, () => {
@@ -227,11 +216,7 @@ watch(() => props.folderId, () => {
 onMounted(() => {
 	open();
 	document.addEventListener('keyup', keyup, false);
-});
-onBeforeUpdate(() => {
-	window.setTimeout(() => {
-		popuped.value = true;
-	}, 1);
+	window.setTimeout(() => popuped.value = true, 1);
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);

@@ -1,15 +1,12 @@
 <template>
-	<div
-		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="e => close(e)"
-	>
+	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
 		<div>
 			<places-about v-if="props.what === 'about'" />
 		</div>
 		<a
 			href="javascript:void(0)"
 			class="close"
-			@click="e => close(e)"
+			@click="close()"
 		>
 			×
 		</a>
@@ -36,12 +33,11 @@ const route = useRoute();
 watch(() => props.what, () => {
 	popuped.value = (props.what === '' ? false : true);
 });
-const close = (event: Event): void => {
-	if (event) event.stopPropagation();
+const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
-const keyup = (event: Event): void => {
-	if ((event as KeyboardEvent).code === 'Escape') close(event);
+const keyup = (event: KeyboardEvent): void => {
+	if (event.key === 'Escape') close();
 };
 
 onMounted(() => {

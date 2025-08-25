@@ -1,8 +1,5 @@
 <template>
-	<div
-		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="e => close(e)"
-	>
+	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
@@ -73,7 +70,7 @@
 						&#160;
 						<button
 							type="button"
-							@click="e => close(e)"
+							@click="close()"
 						>
 							{{ mainStore.t.i.buttons.cancel }}
 						</button>
@@ -83,7 +80,7 @@
 			<a
 				href="javascript:void(0);"
 				class="close"
-				@click="e => close(e)"
+				@click="close()"
 			>
 				×
 			</a>
@@ -115,19 +112,11 @@ const popuped = ref(false);
 const selectedToExport = inject('selectedToExport');
 const exportPlaces = inject<typeof exportPlaces>('exportPlaces');
 
-const close = (event?: Event): void => {
-	if (event) event.stopPropagation();
+const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
-const keyup = (event: Event): void => {
-	switch (
-		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).code]
-	) {
-		case 'close' :
-			close(event);
-			break;
-	}
+const keyup = (event: KeyboardEvent): void => {
+	if (event.key === 'Escape') close();
 };
 
 onMounted(() => {

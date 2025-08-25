@@ -80,8 +80,4 @@ const popuped = ref(false);
 	font-size: 55%;
 	text-transform: lowercase;
 }
-.popup {
-	display: block;
-	top: calc(100% + 8px); right: auto; bottom: auto; left: 0;
-}
 </style>

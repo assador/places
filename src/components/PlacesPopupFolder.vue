@@ -1,8 +1,5 @@
 <template>
-	<div
-		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="e => close(e)"
-	>
+	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
@@ -45,7 +42,7 @@
 									{{ mainStore.t.i.buttons.createFolder }}
 								</button>
 								&#160;
-								<button @click="e => close(e)">
+								<button @click="close()">
 									{{ mainStore.t.i.buttons.cancel }}
 								</button>
 							</td>
@@ -62,7 +59,7 @@
 			<a
 				href="javascript:void(0)"
 				class="close"
-				@click="e => close(e)"
+				@click="close()"
 			>
 				×
 			</a>
@@ -90,15 +87,11 @@ const route = useRoute();
 
 const currentPlace = computed(() => mainStore.currentPlace);
 
-const close = (event: Event): void => {
-	if (event) event.stopPropagation();
+const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
-const keyup = (event: Event): void => {
-	if (
-		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).code] === 'close'
-	) close(event);
+const keyup = (event: KeyboardEvent): void => {
+	if (event.key === 'Escape') close();
 };
 const appendFolder = (name: string, description: string): void => {
 	const treeFlat = mainStore.treeFlat;

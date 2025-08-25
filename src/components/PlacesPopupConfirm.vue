@@ -1,8 +1,5 @@
 <template>
-	<div
-		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="e => close(e)"
-	>
+	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
 		<div class="popup-content centered">
 			<div class="brand">
 				<h1 class="margin_bottom_0">
@@ -15,7 +12,7 @@
 			<form
 				class="folder-delete__form margin_bottom_0"
 				@click="e => e.stopPropagation()"
-				@submit.prevent="e => {props.callback(...props.arguments); close(e);}"
+				@submit.prevent="() => {props.callback(...props.arguments); close();}"
 			>
 				<div style="text-align: center;">
 					<fieldset>
@@ -25,7 +22,7 @@
 						&#160;
 						<button
 							type="button"
-							@click="e => close(e)"
+							@click="() => close()"
 						>
 							{{ mainStore.t.i.buttons.cancel }}
 						</button>
@@ -35,7 +32,7 @@
 			<a
 				href="javascript:void(0);"
 				class="close"
-				@click="e => close(e)"
+				@click="() => close()"
 			>
 				×
 			</a>
@@ -63,23 +60,19 @@ const mainStore = useMainStore();
 const confirmPopup = inject<Ref<boolean>>('confirmPopup');
 const popuped = ref(false);
 
-const close = (event: Event): void => {
-	if (event) event.stopPropagation();
+const close = (): void => {
 	popuped.value = false;
 	window.setTimeout(() => {
 		confirmPopup.value = false;
 	}, 1000);
 };
-const keyup = (event: Event): void => {
-	if (
-		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).code] === 'close'
-	) close(event);
+const keyup = (event: KeyboardEvent): void => {
+	if (event.key === 'Escape') close();
 };
 
 onMounted(() => {
 	document.addEventListener('keyup', keyup, false);
-	window.setTimeout(() => {popuped.value = true;}, 1);
+	window.setTimeout(() => popuped.value = true, 1);
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);

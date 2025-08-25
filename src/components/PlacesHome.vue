@@ -471,7 +471,7 @@
 									data-image
 									:class="'place-image' + (currentPlaceCommon ? '' : ' draggable')"
 									:draggable="currentPlaceCommon ? false : true"
-									@click="router.push({name: 'PlacesHomeImages', params: {imageId: image.id}}).catch(e => {console.error(e);})"
+									@click="router.push({name: 'PlacesHomeImages', params: {imageId: image.id}})"
 									@dragstart="e => handleDragStart(e, 'images')"
 									@dragenter="handleDragEnter"
 									@drop="handleDrop"

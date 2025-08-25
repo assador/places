@@ -1,8 +1,5 @@
 <template>
-	<div
-		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="e => close(e)"
-	>
+	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
 		<img
 			v-if="image"
 			class="popup-image border_1"
@@ -23,7 +20,7 @@
 		<a
 			href="javascript:void(0);"
 			class="close"
-			@click="e => close(e)"
+			@click="close()"
 		>×</a>
 	</div>
 </template>
@@ -59,11 +56,8 @@ const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
-const close = (event?: Event): void => {
-	if (event) event.stopPropagation();
-	router.replace(
-		route.matched[route.matched.length - 2].path
-	);
+const close = (): void => {
+	router.replace(route.matched[route.matched.length - 2].path);
 };
 const defineVars = (): void => {
 	const places: Record<string, Place> = (
@@ -94,10 +88,10 @@ const showImage = (step: number, event?: Event) => {
 		}).catch(e => {console.error(e);});
 	}
 };
-const keyup = (event: Event): void => {
-	switch ((event as KeyboardEvent).key) {
+const keyup = (event: KeyboardEvent): void => {
+	switch (event.key) {
 		case 'Escape' :
-			close(event);
+			close();
 			break;
 		case 'ArrowLeft' :
 			showImage(-1, event);
@@ -112,11 +106,11 @@ watch(() => props.imageId, () => {
 	defineVars();
 });
 onMounted(() => {
+	defineVars();
+	document.addEventListener('keyup', keyup, false);
 	window.setTimeout(() => {
 		popuped.value = true;
 	}, 1);
-	defineVars();
-	document.addEventListener('keyup', keyup, false);
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);
