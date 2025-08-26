@@ -478,31 +478,29 @@ $col-36: rgb(0, 0, 0);
 	}
 	input:is([type="checkbox"], [type="radio"]) {
 		display: inline-block;
-		width: 20px;
+		width: 20px; height: 20px;
 		vertical-align: middle;
 		opacity: 0;
-		cursor: pointer;
+	}
+	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"])) {
+		position: relative;
 	}
 	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"]))::before {
+		content: '';
 		display: inline-block;
-		width: 20px;
-		margin-top: -1px;
-		margin-right: -20px;
+		position: relative;
+		margin-top: -5px; margin-right: -20px;
+		width: 20px; height: 20px;
+		aspect-ratio: 1 / 1;
 		vertical-align: middle;
-		font-size: 20px;
-		color: $color-23;
-		cursor: pointer;
+		opacity: 0.5;
+		filter: invert(1);
 	}
-	.has-checks-radios:has(input:is([type="checkbox"], [type="radio"]))::before {
-		width: 20px;
-		margin-top: -3px;
-		margin-right: 0;
+	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"]):not(:checked))::before {
+		background: url('/public/img/icons/checkbox_unchecked.svg') center / contain no-repeat;
 	}
-	:is(label, .has-checks-radios):has(input:is([type="checkbox"]:checked, [type="radio"]:checked))::before {
-		content: '\1f5f9';
-	}
-	:is(label, .has-checks-radios):has(input:is([type="checkbox"]:not(:checked), [type="radio"]:not(:checked)))::before {
-		content: '\1f790';
+	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"]):checked)::before {
+		background: url('/public/img/icons/checkbox_checked.svg') center / contain no-repeat;
 	}
 	select {
 		padding-right: 10px; padding-left: 4px;
@@ -981,6 +979,18 @@ $col-36: rgb(0, 0, 0);
 	}
 	.folder-checkbox {
 		margin-left: -1.5em;
+	}
+	#popup-export__tree :is(.folder-subs)::before {
+		margin: -2px 0 0 0;
+	}
+	#popup-export__tree .place-button .folder-checkbox {
+		margin-left: 0;
+	}
+	#popup-export__tree .place-button {
+		margin-left: 20px;
+	}
+	#popup-export__tree .place-button::before {
+		margin-top: -2px;
 	}
 	.folder-checkbox + .folder-button {
 		margin-left: 0.7em;
