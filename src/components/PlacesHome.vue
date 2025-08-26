@@ -1135,7 +1135,6 @@ onUpdated(() => {
 		justMounted.value = false;
 	}
 });
-watch(currentPlace.value, () => openTreeToCurrentPlace());
 
 const installEvent = inject<typeof installEvent>('installEvent');
 const installButtonEnabled = computed(() => !!installEvent.value);
@@ -1183,6 +1182,8 @@ const openTreeToCurrentPlace = (): void => {
 		folderid = folder.parent;
 	}
 };
+watch(() => mainStore.currentPlace, () => openTreeToCurrentPlace(), {deep: true});
+
 const choosePlace = (payload: {place: Place, mode?: string}): void => {
 	if (!payload.place) {
 		mainStore.currentPlace = null;
