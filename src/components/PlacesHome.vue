@@ -1105,8 +1105,13 @@ onMounted(async () => {
 	}
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
-	getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceAltitude);
+	windowResize();
 	makeDropDowns(root);
+	// Register event listeners only once
+	document.addEventListener('dragover', handleDragOver, false);
+	document.addEventListener('drop', handleDrop, false);
+	document.addEventListener('keyup', keyup, false);
+	window.addEventListener('resize', windowResize, false);
 });
 onUnmounted(() => {
 	['dragover', 'drop', 'keyup'].forEach(event =>
@@ -1121,7 +1126,14 @@ onUnmounted(() => {
 	emitter.off('choosePlace');
 	emitter.off('chooseWaypoint');
 });
-onUpdated(() => makeFieldsValidatable(mainStore.t));
+const justMounted = ref(true);
+onUpdated(() => {
+	makeFieldsValidatable(mainStore.t);
+	if (justMounted.value) {
+		openTreeToCurrentPlace();
+		justMounted.value = false;
+	}
+});
 
 const installEvent = inject<typeof installEvent>('installEvent');
 const installButtonEnabled = computed(() => !!installEvent.value);
@@ -1139,7 +1151,6 @@ const stateReadyChanged = (): void => {
 	if (!mainStore.ready) return;
 	mainStore.restoreObjectsAsLinks();
 	if (!currentPlace.value) mainStore.setFirstCurrentPlace();
-	openTreeToCurrentPlace();
 	const commonPlacesKeys = Object.keys(mainStore.commonPlaces);
 	const commonPlacesLen = commonPlacesKeys.length;
 	const perPage = commonPlacesOnPageCount.value;
@@ -1154,17 +1165,11 @@ const stateReadyChanged = (): void => {
 			: Math.ceil(inPaginator);
 		currentPlaceCommon.value = true;
 	}
-	// Register event listeners only once
-	document.addEventListener('dragover', handleDragOver, false);
-	document.addEventListener('drop', handleDrop, false);
-	document.addEventListener('keyup', keyup, false);
-	window.addEventListener('resize', windowResize, false);
 	if (mainStore.user.testaccount) {
 		setTimeout(() => {
 			mainStore.setMessage(mainStore.t.m.popup.testAccount);
 		}, 3000);
 	}
-	windowResize();
 };
 const openTreeToCurrentPlace = (): void => {
 	if (currentPlaceCommon.value || !currentPlace.value) return;
