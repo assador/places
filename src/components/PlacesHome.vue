@@ -1126,6 +1126,7 @@ onUnmounted(() => {
 	emitter.off('choosePlace');
 	emitter.off('chooseWaypoint');
 });
+
 const justMounted = ref(true);
 onUpdated(() => {
 	makeFieldsValidatable(mainStore.t);
@@ -1134,6 +1135,7 @@ onUpdated(() => {
 		justMounted.value = false;
 	}
 });
+watch(currentPlace.value, () => openTreeToCurrentPlace());
 
 const installEvent = inject<typeof installEvent>('installEvent');
 const installButtonEnabled = computed(() => !!installEvent.value);
@@ -1200,7 +1202,6 @@ const choosePlace = (payload: {place: Place, mode?: string}): void => {
 			if (mainStore.currentPlace !== payload.place) {
 				mainStore.currentPlace = payload.place;
 				currentPlaceCommon.value = mainStore.currentPlace.userid !== mainStore.user.id;
-				openTreeToCurrentPlace();
 			}
 	}
 };
