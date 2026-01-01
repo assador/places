@@ -1,4 +1,5 @@
 @use "colors-opacities" as *;
+@use "icons" as *;
 
 $col-01: rgb(255, 252, 224);
 $col-02: rgb(200, 177, 160);
@@ -37,8 +38,16 @@ $col-34: rgb(70, 41, 23);
 $col-35: rgb(200, 177, 160);
 $col-36: rgb(0, 0, 0);
 
+$filter-hue-rotate-01: hue-rotate(0deg);
+
+$filter-saturate-01: saturate(0%);
+$filter-saturate-02: saturate(0%);
+
+$filter-brightness-01: brightness(0%);
+$filter-brightness-02: brightness(0%);
+
 @mixin theme {
-	
+
 	$color-01: rgba($col-36, $opacity-07);
 	$color-02: rgba($col-36, $opacity-11);
 	$color-03: rgba($col-36, $opacity-13);
@@ -145,7 +154,13 @@ $col-36: rgb(0, 0, 0);
 	$color-71: rgba($col-35, $opacity-10);
 	$color-72: rgba($col-35, $opacity-04);
 	
-	.margin_bottom_1, #places-menu-folder-link-root {
+	$filter-01: $filter-hue-rotate-01 $filter-saturate-01 $filter-brightness-01;
+	$filter-02: $filter-hue-rotate-01 $filter-saturate-02 $filter-brightness-02;
+
+	.margin_top {
+		margin-top: 18px !important;
+	}
+	.margin_bottom_1 {
 		margin-bottom: 12px !important;
 	}
 	.margin_bottom,
@@ -242,7 +257,7 @@ $col-36: rgb(0, 0, 0);
 	.un_imp {
 		color: $color-13;
 	}
-	.basiccolor, #places-menu-folder-link-root,
+	.basiccolor,
 	&, input, select, textarea {
 		color: $color-15;
 	}
@@ -363,17 +378,14 @@ $col-36: rgb(0, 0, 0);
 	sup, sub {
 		line-height: 0;
 	}
-	h1, h2, #places-menu-folder-link-root, h3, h4, h5, h6 {
+	h1, h2, h3, h4, h5, h6 {
 		font-weight: normal;
 	}
 	h1, .fontsize_02, .imp_02 {
 		font-size: 157.143%;
 		line-height: 1.05;
 	}
-	.place-button h2 {
-		line-height: 1;
-	}
-	h2, #places-menu-folder-link-root, .fontsize_01, .imp_01 {
+	h2, .fontsize_01, .imp_01 {
 		font-size: 128.571%;
 		line-height: 1.2;
 	}
@@ -482,10 +494,10 @@ $col-36: rgb(0, 0, 0);
 		vertical-align: middle;
 		opacity: 0;
 	}
-	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"])) {
+	label:has(input:is([type="checkbox"], [type="radio"])) {
 		position: relative;
 	}
-	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"]))::before {
+	label:has(input:is([type="checkbox"], [type="radio"]))::before {
 		content: '';
 		display: inline-block;
 		position: relative;
@@ -496,10 +508,10 @@ $col-36: rgb(0, 0, 0);
 		opacity: 0.5;
 		filter: invert(1);
 	}
-	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"]):not(:checked))::before {
+	label:has(input:is([type="checkbox"], [type="radio"]):not(:checked))::before {
 		background: url('/public/img/icons/checkbox_unchecked.svg') center / contain no-repeat;
 	}
-	:is(label, .has-checks-radios):has(input:is([type="checkbox"], [type="radio"]):checked)::before {
+	label:has(input:is([type="checkbox"], [type="radio"]):checked)::before {
 		background: url('/public/img/icons/checkbox_checked.svg') center / contain no-repeat;
 	}
 	select {
@@ -891,11 +903,6 @@ $col-36: rgb(0, 0, 0);
 			box-shadow: none;
 		}
 	}
-/*
-	.popup, .popup *, .popup-image, .popup-text, .popup-folder, .popup-export {
-		max-width: 100%; max-height: 100%;
-	}
-*/
 	.popup, .popup-image, .popup-text, .popup-folder, .popup-export {
 		overflow: hidden;
 		z-index: 10000;
@@ -960,194 +967,11 @@ $col-36: rgb(0, 0, 0);
 			content: '\25e4';
 		}
 	}
-	.folder::before {
-		display: none;
-	}
-	.folder-button, .folder-checkbox {
-		position: relative;
-		padding-left: 1.5em;
-		vertical-align: middle;
-		cursor: pointer;
-		z-index: 0;
-		border: 1px solid transparent;
-		transition: all 0.5s;
-	}
-	.folder-button {
-		display: flex;
-		flex-grow: 1;
-		margin: -1px -1px -1px -1.5em;
-	}
-	.folder-checkbox {
-		margin-left: -1.5em;
-	}
-	#popup-export__tree :is(.folder-subs)::before {
-		margin: -2px 0 0 0;
-	}
-	#popup-export__tree .place-button .folder-checkbox {
-		margin-left: 0;
-	}
-	#popup-export__tree .place-button {
-		margin-left: 20px;
-	}
-	#popup-export__tree .place-button::before {
-		margin-top: -2px;
-	}
-	.folder-checkbox + .folder-button {
-		margin-left: 0.7em;
-	}
-	.folder-button::before {
-		display: inline-block;
-		flex-shrink: 0;
-		width: 1.6em;
-		margin-left: -1.6em;
-	}
-	span.folder-button {
-		display: block;
-		white-space: nowrap;
-	}
-	.folder-button__name {
-		margin-bottom: 5px;
-		padding-right: 22px;
-	}
-	.folder-button__description {
-		display: block;
-		height: 44px;
-		margin-bottom: 10px;
-	}
-	.folder-button__delete {
-		display: inline-block;
-		margin-top: -8px;
-		margin-left: -22px;
-		line-height: 0;
-		font-size: 24px;
-		vertical-align: middle;
-	}
-	#places-menu-folder-link-root {
-		margin-left: 0;
-	}
-	.folder_opened {
-		position: relative;
-	}
-	.folder_root .folder_opened::before {
-		content: "";
-		display: block;
-		position: absolute;
-		top: 1.5em; bottom: 2px; left: 0.4em;
-		width: 1px;
-		margin: 0;
-		float: none;
-	}
-	.folder_closed > .folder-subfolders {
-		display: none;
-	}
-	.folder_opened > .folder-subfolders {
-		display: block;
-	}
-	:is(.folder_closed, .folder_opened) > :is(h2, h2::before, a::before) s{
-		cursor: pointer;
-	}
-	.folder_closed > * > .folder-button::before {
-		content: '\25e2';
-	}
-	.folder_opened > * > .folder-button::before {
-		content: '\25e4';
-	}
-	.folder_closed > .folder-places {
-		display: none !important;
-	}
-	.folder-places {
-		display: block !important;
-	}
-	.folder_root {
-		padding-left: 0;
-	}
-	.folder_root > h2 {
-		margin-left: 0;
-	}
-	.places-table tbody tr {
-		cursor: pointer;
-	}
-	.place-button {
-		display: flex !important;
-		text-align: left;
-		cursor: pointer !important;
-		transition: all 0.3s;
-	}
-	.place-button:hover .place-button__geomark,
-	.place-button:hover .place-button__delete,
-	.folder-button:hover .folder-button__geomarks,
-	.folder-button:hover .folder-button__deletehere {
-		opacity: 1;
-	}
-	.place-button__text, .folder-button__text {
-		flex-grow: 1;
-	}
-	.place-button__geomark, .place-button__delete, .folder-button__geomarks, .folder-button__deletehere {
-		margin-left: 8px;
-		pointer-events: auto !important;
-		opacity: 0;
-		z-index: 20;
-	}
-	.folder-checkbox,
-	#popup-export__tree .place-button,
-	#popup-export__tree .place-button * {
-		cursor: auto;
-	}
-	.place-button[class*="block_"] {
-		margin: 7px 0 10px 0;
-		padding: 4px 8px;
-	}
-	.place-button > *:first-child {
-		font-size: 100%;
-	}
-	.folder {
-		display: flex;
-		flex-direction: column;
-		position: relative;
-		> * {
-			display: flex;
-			z-index: 10;
-		}
-		> .folder-subs {
-			z-index: 20;
-		}
-	}
-	.dragenter-area {
-		position: absolute;
-		right: 0; left: 0;
-		z-index: 10;
-	}
 	.dragenter-area_top {
 		top: 0; bottom: 50%;
 	}
 	.dragenter-area_bottom {
 		top: 50%; bottom: 0;
-	}
-	.folder > .dragenter-area_top, .folder > .dragenter-area_bottom {
-		height: 4px;
-		z-index: 1000;
-	}
-	.folder > .dragenter-area_top {
-		top: 0; bottom: auto;
-	}
-	.folder > .dragenter-area_bottom {
-		top: auto; bottom: -1px;
-	}
-	.folder-button.over {
-		text-shadow: 0 0 3px $color-65;
-	}
-	.place-button[class*="block_"] .dragenter-area_top {
-		top: -6px;
-	}
-	.place-button[class*="block_"] .dragenter-area_bottom {
-		bottom: -7px;
-	}
-	.draggable {
-		position: relative;
-		cursor: move;
-	}
-	.draggable *, .folder-button * {
-		pointer-events: none;
 	}
 	.actions-button {
 		display: flex;
@@ -1177,27 +1001,26 @@ $col-36: rgb(0, 0, 0);
 			min-height: 30px;
 		}
 	}
-	.control-measure .draggable button, .draggable .dd-images__delete, .dragenter-area, span.folder-button * {
-		pointer-events: all;
+	.button-iconed {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 22px;
+		min-height: 22px;
+		&::before {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			line-height: 0;
+			transform: scale(0.7);
+			filter: $filter-02;
+		}
 	}
-	.place-detailed dd {
-		padding-left: 0;
+	.place-button__control::before, .folder-button__control::before {
+		filter: $filter-01;
 	}
-	.place-detailed :is(
-		textarea,
-		input:is([type="text"], [type="number"], [type="datetime-local"])
-	) {
-		display: inline-block;
-		margin: 3px 0 8px 0;
-	}
-	.place-detailed__link-dt:last-child {
-		margin-bottom: 8px;
-	}
-	.place-detailed__link-dt * {
-		display: inline-block;
-	}
-	.place-detailed__link-edit {
-		float: right;
+	.folder-button.over {
+		text-shadow: 0 0 3px $color-65;
 	}
 	.dd-images {
 		display: grid;
@@ -1341,6 +1164,7 @@ $col-36: rgb(0, 0, 0);
 	}
 	#placemarksShowHideButton,
 	#commonPlacesShowHideButton,
+	#commonTracksShowHideButton,
 	#commonPlacemarksShowHideButton,
 	#centerPlacemarkShowHideButton {
 		padding: 0;
@@ -1390,7 +1214,7 @@ $col-36: rgb(0, 0, 0);
 		display: inline-table;
 		text-align: left;
 	}
-	#to-export-places-menu-folder-link-root {
+	#to-export-places-menu-folder-link-root, #places-menu-folder-link-tracksroot {
 		white-space: nowrap;
 	}
 	.leaflet-touch .leaflet-control-attribution,
@@ -1413,9 +1237,6 @@ $col-36: rgb(0, 0, 0);
 		}
 		#basic-right {
 			box-shadow: inset 100px -100px 20px -100px $color-57;
-		}
-		.folder-button {
-			margin-right: 0;
 		}
 	}
 }

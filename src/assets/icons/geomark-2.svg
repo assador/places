@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="20"
+   height="20"
+   viewBox="0 0 20 20"
+   version="1.1"
+   id="svg-geomark-2"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1">
+    <path
+       id="path1"
+       style="stroke:none;fill:#ff0000;fill-opacity:1"
+       d="M 10 0 A 10 10 0 0 0 0 10 A 10 10 0 0 0 10 20 A 10 10 0 0 0 20 10 A 10 10 0 0 0 10 0 z M 10 1 A 9 9 0 0 1 19 10 A 9 9 0 0 1 10 19 A 9 9 0 0 1 1 10 A 9 9 0 0 1 10 1 z M 10 3.8300781 C 7.35267 3.8300781 5.2070314 5.9757162 5.2070312 8.6230469 C 5.2070311 11.270378 7.2691245 13.750224 10 17.509766 L 10 10.220703 A 2.238806 2.238806 0 0 1 7.7617188 7.9824219 A 2.238806 2.238806 0 0 1 10 5.7421875 L 10 3.8300781 z " />
+  </g>
+</svg>

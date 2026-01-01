@@ -9,7 +9,11 @@
 			<form
 				class="folder-new__form margin_bottom_0"
 				@click="e => e.stopPropagation()"
-				@submit.prevent="appendFolder(folderName ? folderName : '', folderDescription ? folderDescription : '');"
+				@submit.prevent="appendFolder({
+					parentId: parentId,
+					name: folderName ? folderName : '',
+					description: folderDescription ? folderDescription : '',
+				});"
 			>
 				<table class="table_form">
 					<tbody>
@@ -68,24 +72,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
-import { constants } from '../shared/constants';
-import { generateRandomString } from '../shared/common';
-import { makeFieldsValidatable } from '../shared/fields_validate';
+import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { Folder } from '@/stores/types';
+
+const mainStore = useMainStore();
+
+export interface IPlacesPopupFolderProps {
+	parentId?: string;
+}
+const props = withDefaults(defineProps<IPlacesPopupFolderProps>(), {
+	parentId: 'root',
+});
 
 const folderName = ref('');
 const folderDescription = ref('');
 const message = ref('');
 const popuped = ref(false);
 
-const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
-
-const currentPlace = computed(() => mainStore.currentPlace);
 
 const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
@@ -93,40 +101,34 @@ const close = (): void => {
 const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
 };
-const appendFolder = (name: string, description: string): void => {
-	const treeFlat = mainStore.treeFlat;
+const appendFolder = (payload: { parentId: string, name: string, description: string }): void => {
+	const { parentId, name, description } = payload;
 	if (
 		mainStore.serverConfig.rights.folderscount < 0 ||
-		mainStore.serverConfig.rights.folderscount > Object.keys(treeFlat).length - 1 ||
-		// length - 1 because there is a root folder too
+		mainStore.serverConfig.rights.folderscount > Object.keys(mainStore.folders).length ||
 		mainStore.user.testaccount
 	) {
 		let srt = 1;
-		if (
-			Object.keys(
-				treeFlat[
-					currentPlace.value ? currentPlace.value.folderid : 'root'
-				].children || []
-			).length
-		) {
-			srt = Math.ceil(Math.max(
-				...Object.keys(
-					treeFlat[
-						currentPlace.value ? currentPlace.value.folderid : 'root'
-					].children
-				).map(
-					(id: string) =>
-						treeFlat[
-							currentPlace.value ? currentPlace.value.folderid : 'root'
-						].children[id].srt
-				)
-			)) + 1;
+		let parentFolder: Folder;
+		switch (parentId) {
+			case 'root':
+				parentFolder = mainStore.tree;
+				break;
+			case 'tracksroot':
+				parentFolder = mainStore.treeTracks;
+				break;
+			default:
+				parentFolder = mainStore.folders[parentId] ?? mainStore.tree;
+				break;
+		}
+		if (parentFolder.children) {
+			srt =
+				Object.values(parentFolder.children)
+					[Object.values(parentFolder.children).length - 1].srt + 1;
 		}
 		const newFolder: Folder = {
-			id: generateRandomString(32) as string,
-			parent: currentPlace.value
-				? currentPlace.value.folderid
-				: 'root',
+			id: crypto.randomUUID(),
+			parent: parentId,
 			name: name,
 			description: description,
 			srt: Number(srt) || 0,
@@ -137,9 +139,9 @@ const appendFolder = (name: string, description: string): void => {
 			deleted: false,
 			updated: false,
 			opened: false,
-			userid: sessionStorage.getItem('places-userid'),
+			userid: sessionStorage.getItem('places-useruuid'),
 		};
-		mainStore.addFolder({folder: newFolder});
+		mainStore.addFolder({ folder: newFolder });
 		message.value = mainStore.t.m.paged.folderCreated;
 		folderName.value = '';
 		folderDescription.value = '';

@@ -33,6 +33,7 @@ export const constants = {
 	sessionlifetime: 3600,
 	backupscount: 10,
 	commonplacesonpagecount: 5,
+	commontracksonpagecount: 5,
 	map: {
 		initial: {
 			latitude  : 0,

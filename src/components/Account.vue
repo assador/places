@@ -1,7 +1,7 @@
 <template>
 	<div class="account">
 		<div class="app-cell">
-			<places-header />
+			<Header />
 		</div>
 		<div class="centered">
 			<h2>{{ mainStore.t.i.captions.accountPage }}</h2>
@@ -27,25 +27,45 @@
 						<tr>
 							<th>{{ mainStore.t.i.captions.newPassword }}:</th>
 							<td colspan="2">
-								<input
-									id="accountNewPassword"
-									v-model="accountNewPassword"
-									class="fieldwidth_100"
-									type="password"
-									:placeholder="mainStore.t.i.inputs.needToChangePassword"
-								/>
+								<div class="password nobr">
+									<input
+										id="accountNewPassword"
+										v-model="accountNewPassword"
+										class="fieldwidth_100"
+										type="password"
+										:placeholder="mainStore.t.i.inputs.needToChangePassword"
+									/>
+									<button type="button" @click.prevent="e => {
+										passwordShowHide(
+											(e.target as Element)
+												.previousElementSibling as HTMLInputElement
+										);
+									}">
+										👀
+									</button>
+								</div>
 							</td>
 						</tr>
 						<tr>
 							<th>{{ mainStore.t.i.captions.repeatPassword }}:</th>
 							<td colspan="2">
-								<input
-									id="accountNewPasswordRepeat"
-									v-model="accountNewPasswordRepeat"
-									class="fieldwidth_100"
-									type="password"
-									:placeholder="mainStore.t.i.inputs.needToChangePassword"
-								/>
+								<div class="password nobr">
+									<input
+										id="accountNewPasswordRepeat"
+										v-model="accountNewPasswordRepeat"
+										class="fieldwidth_100"
+										type="password"
+										:placeholder="mainStore.t.i.inputs.needToChangePassword"
+									/>
+									<button type="button" @click.prevent="e => {
+										passwordShowHide(
+											(e.target as Element)
+												.previousElementSibling as HTMLInputElement
+										);
+									}">
+										👀
+									</button>
+								</div>
 							</td>
 						</tr>
 						<tr>
@@ -101,9 +121,7 @@
 							<td>
 								<button
 									type="button"
-									@click="router.push(
-										{name: 'PlacesAccountDelete'}
-									).catch(e => {console.error(e);})"
+									@click="router.push({name: 'AccountDelete'})"
 								>
 									{{ mainStore.t.i.buttons.deleteAccount }}
 								</button>
@@ -133,7 +151,7 @@ import { useRouter } from 'vue-router';
 import { constants } from '../shared/constants';
 import { makeFieldsValidatable } from '../shared/fields_validate';
 import { accountSaveRoutine, acc } from '../shared/account';
-import PlacesHeader from './PlacesHeader.vue';
+import Header from './Header.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -160,7 +178,7 @@ onBeforeUnmount(() => {
 
 const close = (event?: Event): void => {
 	if (event) event.stopPropagation();
-	router.push({name: 'PlacesHome'});
+	router.push({name: 'Home'});
 };
 const keyup = (event: Event): void => {
 	if (
@@ -168,35 +186,25 @@ const keyup = (event: Event): void => {
 			[(event as KeyboardEvent).code] === 'close'
 	) close(event);
 };
-const accountSubmit = function(): void {
-	if (mainStore.user.testaccount) {
-		account.value.message = mainStore.t.m.paged.taCannotBeChanged;
-	} else {
-		if (!document.querySelector('.value_wrong')) {
-			const {
-				accountLogin,
-				accountNewPassword,
-				accountNewPasswordRepeat,
-				accountName,
-				accountEmail,
-				accountPhone,
-			} = this;
-			if (accountNewPassword === accountNewPasswordRepeat) {
-				const accountId = sessionStorage.getItem('places-userid') as string;
-				accountSaveRoutine({
-					accountId,
-					accountLogin,
-					accountNewPassword,
-					accountName,
-					accountEmail,
-					accountPhone,
-				}, mainStore.t);
-			} else {
-				account.value.message = mainStore.t.m.paged.passwordsNotMatch;
-			}
+const passwordShowHide = (input: HTMLInputElement): void => {
+	input.type = input.type === 'password' ? input.type = 'text' : 'password';
+}
+const accountSubmit = (): void => {
+	if (!document.querySelector('.value_wrong')) {
+		if (accountNewPassword.value === accountNewPasswordRepeat.value) {
+			accountSaveRoutine({
+				accountId: sessionStorage.getItem('places-useruuid') as string,
+				accountLogin: accountLogin.value,
+				accountNewPassword: accountNewPassword.value,
+				accountName: accountName.value,
+				accountEmail: accountEmail.value,
+				accountPhone: accountPhone.value,
+			}, mainStore.t);
 		} else {
-			account.value.message = mainStore.t.m.paged.incorrectFields;
+			account.value.message = mainStore.t.m.paged.passwordsNotMatch;
 		}
+	} else {
+		account.value.message = mainStore.t.m.paged.incorrectFields;
 	}
 };
 </script>

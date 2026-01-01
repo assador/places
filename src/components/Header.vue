@@ -4,7 +4,7 @@
 			<h1 class="basiccolor margin_bottom_0">
 				{{ mainStore.t.i.brand.header }} —
 				<span class="brand-login">
-					<places-popup
+					<Popup
 						:show="popuped"
 						:closeOnClick="false"
 						class="messages fontsize_n"
@@ -38,15 +38,22 @@
 								{{ mainStore.t.i.buttons.exit }}
 							</a>
 						</template>
-					</places-popup>
+					</Popup>
 				</span>
 				<a href="javascript:void(0)" @click="popuped = !popuped">
-					{{ mainStore.user ? mainStore.user.login : 'o_O' }}
+					{{
+						mainStore.user
+							? (mainStore.user.name
+								? mainStore.user.name
+								: mainStore.user.login
+							)
+							: 'o_O'
+					}}
 				</a>
 			</h1>
 			<div>{{ mainStore.t.i.brand.slogan }}</div>
 		</div>
-		<places-dashboard />
+		<Dashboard />
 	</div>
 </template>
 
@@ -54,8 +61,8 @@
 import { ref } from 'vue';
 import { emitter } from '@/shared/bus';
 import { useMainStore } from '@/stores/main';
-import PlacesDashboard from './PlacesDashboard.vue';
-import PlacesPopup from '@/components/PlacesPopup.vue';
+import Dashboard from './Dashboard.vue';
+import Popup from '@/components/Popup.vue';
 
 const mainStore = useMainStore();
 

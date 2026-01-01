@@ -1,6 +1,6 @@
 <template>
 	<div ref="container" id="container" :class="`colortheme-${colortheme}`">
-		<places-popup-confirm
+		<PopupConfirm
 			v-if="confirmPopup"
 			:callback="confirmCallback"
 			:arguments="confirmCallbackArgs"
@@ -15,10 +15,9 @@ import { ref, computed, provide, onMounted, onBeforeMount } from 'vue'
 import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { emitter } from '@/shared/bus'
-import { isParentInTree } from '@/shared/common';
-import { Place, Image, Folder, Waypoint } from '@/stores/types';
-import PlacesPopupConfirm from '@/components/PlacesPopupConfirm.vue';
+import { emitter } from '@/shared/bus';
+import { Place, Track, Image, Folder, Point } from '@/stores/types';
+import PopupConfirm from '@/components/PopupConfirm.vue';
 
 // Refs and Provides
 const container = ref<null | HTMLElement>(null);
@@ -27,12 +26,14 @@ const draggingType = ref<string | null>(null);
 const foldersEditMode = ref(false);
 const idleTimeInterval = ref(null);
 const currentPlaceCommon = ref(false);
+const currentTrackCommon = ref(false);
 const selectedToExport = ref({});
 const installEvent = ref<any>(null);
 
 provide('foldersEditMode', foldersEditMode);
 provide('idleTimeInterval', idleTimeInterval);
 provide('currentPlaceCommon', currentPlaceCommon);
+provide('currentTrackCommon', currentTrackCommon);
 provide('selectedToExport', selectedToExport);
 provide('installEvent', installEvent);
 
@@ -81,67 +82,70 @@ emitter.on('logged', async () => {
 	await mainStore.setPlaces();
 	await mainStore.setUsers('common');
 	mainStore.ready = true;
-	router.push({ name: 'PlacesHome' });
+	router.push({ name: 'Home' });
 });
 emitter.on('logout', () => {
 	const getOut = () => {
-		router.push({ name: 'PlacesAuth' });
+		router.push({ name: 'Auth' });
 		mainStore.unload();
 	};
-	mainStore.saved
+	(mainStore.saved || mainStore.user.testaccount)
 		? getOut()
 		: confirm(getOut, [], mainStore.t.i.text.notSaved);
 });
-emitter.on('confirm', ({func, args, msg}): void => {
+emitter.on('confirm', (object: { func: Function, args: any[], msg: string }): void => {
+	const { func, args, msg } = object;
 	confirm(func, args, msg);
 });
 
 emitter.on('toDB', (payload: Record<string, any>) => {
-	const { what, data } = payload;
-	const getData = (key: string) => data ? data : Object.values(mainStore[key]);
-	switch (what) {
-		case 'waypoints': toDB({ what, data: getData('waypoints') }); break;
-		case 'places':    toDB({ what, data: getData('places') });    break;
-		case 'folders':   toDB({ what, data: getData('treeFlat') });  break;
-		case undefined:
-			toDB({ what: 'waypoints', data: Object.values(mainStore.waypoints) });
-			toDB({ what: 'places',    data: Object.values(mainStore.places) });
-			toDB({ what: 'folders',   data: Object.values(mainStore.treeFlat) });
-			break;
-		default: toDB(payload);
+	if (payload) {
+		toDB(payload);
+	} else {
+		toDB({
+			'points': Object.values(mainStore.points),
+			'places': Object.values(mainStore.places),
+			'tracks': Object.values(mainStore.tracks),
+			'folders': Object.values(mainStore.foldersFlat),
+		});
 	}
 });
 emitter.on('homeToDB', (id: string) => homeToDB(id));
 emitter.on('toDBCompletely', () => toDBCompletely());
-emitter.on('getFolderById', (id: string) => mainStore.treeFlat[id]);
+emitter.on('getFolderById', (id: string) => mainStore.foldersFlat[id]);
 mainStore.changeLang(mainStore.lang);
 
 // Lifecycle
 onMounted(() => {
 	const state = sessionStorage.getItem('places-store-state');
 	if (state) mainStore.replaceState(JSON.parse(state));
-	const resetIdle = () => { mainStore.idleTime = 0; };
-	document.addEventListener('mousedown', resetIdle, false);
-	document.addEventListener('keyup', resetIdle, false);
 
-	mainStore.$onAction((action): void => {
+	mainStore.$onAction(({
+		name,
+		store,
+		args,
+		after,
+		onError,
+	}): void => {
 		const actions = [
 			'addPlace',
 			'changePlace',
-			'deletePlace',
+			'deleteObjects',
+			'addTrack',
+			'changeTrack',
 			'addFolder',
 			'changeFolder',
-			'deleteFolder',
-			'moveFolder',
 			'addTemp',
-			'changeWaypoint',
+			'changePoint',
 			'deleteTemp',
 			'setHomePlace',
 			'swapImages',
 		];
-		if (actions.includes(action.name)) {
-			mainStore.backup = true;
-		}
+		after(() => {
+			// if (actions.includes(name)) {
+				mainStore.idleTime = 0;
+			// }
+		});
 	});
 });
 
@@ -152,49 +156,39 @@ const toDB = async (payload: Record<string, any>): Promise<void> => {
 		mainStore.setMessage(mainStore.t.m.paged.incorrectFields);
 		return;
 	}
-	payload.id = sessionStorage.getItem('places-userid');
-	try {
-		const { data: response } = await axios.post(
-			`/backend/set_${payload.what === 'waypoints' ? 'waypoints' : 'places'}.php`,
-			payload
-		);
-		if (payload.what === 'waypoints' && response.length > 0) {
-			for (const rec of response) {
-				if (!mainStore.waypoints[rec.waypoint.id]) {
-					mainStore.addWaypoint({ waypoint: rec.waypoint, todb: false });
-				}
-				mainStore[
-					'change' + rec.waypointof.type.charAt(0).toUpperCase() + rec.waypointof.type.slice(1)
-				]({
-					[rec.waypointof.type]: mainStore[rec.waypointof.type + 's'][rec.waypointof.id],
-					change: { waypoint: rec.waypoint.id }
-				});
-			}
-		} else {
-			for (const fault of response) {
-				switch (fault) {
-					case 1: mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb); return;
-					case 2: return;
-					case 3: mainStore.setMessage(mainStore.t.m.popup.placesCountExceeded); return;
-					case 4: mainStore.setMessage(mainStore.t.m.paged.foldersCountExceeded); return;
-				}
-			}
-		}
-		mainStore.savedToDB(payload);
-		mainStore.setMessage(mainStore.t.m.popup.savedToDb);
-	} catch (error) {
-		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${error}`);
-	}
+	const userid = sessionStorage.getItem('places-useruuid');
+	const sessionid = sessionStorage.getItem('places-session');
+	await axios.post(`/backend/set_places.php`, {
+		data: payload,
+		userid: userid,
+		sessionid: sessionid,
+	})
+		.then(() => {
+			mainStore.savedToDB(payload);
+			mainStore.setMessage(mainStore.t.m.popup.savedToDb);
+		})
+		.catch(error => {
+			mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${error}`);
+		})
+	;
 };
 provide('toDB', toDB);
 
 const toDBCompletely = async (): Promise<void> => {
 	if (mainStore.user.testaccount) return;
-	const filterChanged = <T extends { added?: boolean; deleted?: boolean; updated?: boolean }>(arr: Record<string, T>) =>
+	const filterChanged = <T extends {
+		added?: boolean;
+		deleted?: boolean;
+		updated?: boolean;
+	}>(arr: Record<string, T>) => {
 		Object.values(arr).filter(item => item.added || item.deleted || item.updated);
-	await toDB({ what: 'waypoints', data: filterChanged(mainStore.waypoints) });
-	await toDB({ what: 'places',    data: filterChanged(mainStore.places) });
-	await toDB({ what: 'folders',   data: filterChanged(mainStore.treeFlat) });
+	}
+	toDB({
+		'points': filterChanged(mainStore.points),
+		'places': filterChanged(mainStore.places),
+		'tracks': filterChanged(mainStore.places),
+		'folders': filterChanged(mainStore.folders),
+	});
 };
 provide('toDBCompletely', toDBCompletely);
 
@@ -202,7 +196,7 @@ const homeToDB = async (id: string): Promise<void> => {
 	if (mainStore.user.testaccount) return;
 	try {
 		await axios.post('/backend/set_home.php', {
-			id: sessionStorage.getItem('places-userid'),
+			id: sessionStorage.getItem('places-useruuid'),
 			data: id
 		});
 		mainStore.saved = true;
@@ -218,7 +212,7 @@ const deleteImages = (images: Record<string, Image>, family?: boolean): void => 
 	data.append('userid', mainStore.user.id);
 	if (!mainStore.user.testaccount) {
 		axios.post('/backend/delete.php', data)
-			.then(() => toDB({ what: 'images_delete', data: Object.values(images) }));
+			.then(() => toDB({ 'images_delete': Object.values(images) }));
 	}
 	mainStore.deleteImages({ images, family });
 };
@@ -235,7 +229,7 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 			'<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
 		].join('');
 		for (const p of Object.values(places)) {
-			const wp = mainStore.waypoints[p.waypoint];
+			const wp = mainStore.points[p.pointid];
 			content += `<wpt lat="${wp.latitude}" lon="${wp.longitude}">`;
 			if (p.name) content += `<name>${p.name}</name>`;
 			if (p.description) content += `<desc>${p.description}</desc>`;
@@ -248,15 +242,15 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 		mime = 'application/json';
 		a.download = 'places.json';
 		a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
-		const waypoints: Waypoint[] = [];
+		const points: Point[] = [];
 		const folders: Folder[] = [];
 		const placesArray: Place[] = [];
 		const foldersSet = new Set<string>();
 		for (const p of Object.values(places)) {
-			waypoints.push({ ...mainStore.waypoints[p.waypoint] });
+			points.push({ ...mainStore.points[p.pointid] });
 			let folderId = p.folderid;
 			while (folderId && folderId !== 'root' && !foldersSet.has(folderId)) {
-				const folder = mainStore.treeFlat[folderId];
+				const folder = mainStore.foldersFlat[folderId];
 				folders.push({ ...folder });
 				foldersSet.add(folderId);
 				folderId = folder.parent;
@@ -267,9 +261,9 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 			['type', 'show', 'added', 'deleted', 'updated', 'geomark', 'images'].forEach(k => delete (p as any)[k]);
 			placesArray.push(p);
 		}
-		waypoints.forEach(wp => ['type', 'show', 'added', 'deleted', 'updated'].forEach(k => delete (wp as any)[k]));
+		points.forEach(wp => ['type', 'show', 'added', 'deleted', 'updated'].forEach(k => delete (wp as any)[k]));
 		folders.forEach(f => ['type', 'added', 'deleted', 'updated', 'opened', 'builded', 'geomarks', 'children'].forEach(k => delete (f as any)[k]));
-		content = JSON.stringify({ places: placesArray, waypoints, folders });
+		content = JSON.stringify({ places: placesArray, points, folders });
 	}
 	a.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
 	a.click();
@@ -278,7 +272,6 @@ provide('exportPlaces', exportPlaces);
 
 // --- Drag & Drop Handlers ---
 const handleDragStart = (event: Event, type?: string): void => {
-	mainStore.idleTime = 0;
 	(event as any).dataTransfer.setData('text/plain', null);
 	draggingElement.value = event.target as Element;
 	if (type) draggingType.value = type;
@@ -288,13 +281,13 @@ provide('handleDragStart', handleDragStart);
 const handleDragEnter = (event: Event): void => {
 	event.preventDefault();
 	event.stopPropagation();
-	if (!draggingElement.value || (event.target as Node).nodeType !== 1 || draggingElement.value === event.target) return;
+	const el = event.target as HTMLElement;
 	switch (draggingType.value) {
 		case 'measure': {
-			const el1 = draggingElement.value as Element;
-			const el2 = event.target as Element;
-			const id1 = el1.getAttribute('measureitem');
-			const id2 = el2.getAttribute('measureitem');
+			const el1 = draggingElement.value as HTMLElement;
+			const el2 = event.target as HTMLElement;
+			const id1 = el1.dataset.placesMeasurePointId;
+			const id2 = el2.dataset.placesMeasurePointId;
 			if (!id1 || !id2) return;
 			const ids = mainStore.measure.points;
 			const idx1 = ids.indexOf(id1), idx2 = ids.indexOf(id2);
@@ -315,30 +308,32 @@ const handleDragEnter = (event: Event): void => {
 			return;
 		}
 		default: {
-			const el = event.target as HTMLElement;
 			const dragEl = draggingElement.value as HTMLElement;
 			const dragPP = (draggingElement.value as Element).parentElement?.parentElement;
 			const addClass = (cls: string) => el.classList.add(cls);
-			if (el.dataset.folderButton !== undefined &&
-				(dragEl.dataset.folderButton !== undefined || dragEl.dataset.placeButton !== undefined)) {
+			if (
+				el.dataset.placesTreeFolderId &&
+				el.dataset.placesTreeType === dragEl.dataset.placesTreeType &&
+				(dragEl.dataset.placesTreeFolderId || dragEl.dataset.placesTreeItemId)
+			) {
 				addClass('highlighted');
 			}
-			if (dragEl.dataset.placeButton !== undefined) {
-				if (el.dataset.placeButtonDragenterAreaTop !== undefined &&
+			if (dragEl.dataset.placesTreeItemId) {
+				if (el.dataset.placesTreeItemSortingAreaTop &&
 					el.parentElement !== draggingElement.value &&
 					el.parentElement !== (draggingElement.value as Element).nextElementSibling) {
 					addClass('dragenter-area_top_border');
-				} else if (el.dataset.placeButtonDragenterAreaBottom !== undefined &&
+				} else if (el.dataset.placesTreeItemSortingAreaBottom &&
 					el.parentElement !== draggingElement.value &&
 					el.parentElement !== (draggingElement.value as Element).previousElementSibling) {
 					addClass('dragenter-area_bottom_border');
 				}
-			} else if (dragEl.dataset.folderButton !== undefined) {
-				if (el.dataset.folderDragenterAreaTop !== undefined &&
+			} else if (dragEl.dataset.placesTreeFolderId) {
+				if (el.dataset.placesTreeFolderSortingAreaTopFolderid &&
 					el.parentElement !== dragPP &&
 					el.parentElement !== dragPP?.nextElementSibling) {
 					addClass('dragenter-area_top_border');
-				} else if (el.dataset.folderDragenterAreaBottom !== undefined &&
+				} else if (el.dataset.placesTreeFolderSortingAreaTopFolderid &&
 					el.parentElement !== dragPP &&
 					el.parentElement !== dragPP?.previousElementSibling) {
 					addClass('dragenter-area_bottom_border');
@@ -372,132 +367,103 @@ const handleDrop = (event: Event): void => {
 	const el = event.target as Element;
 	if (el.nodeType !== 1 || (draggingElement.value === el && !(draggingElement.value as any).dataset.image)) return;
 
-	const getSrt = (el: Element) =>
-		Number(el.parentElement?.getAttribute('srt') ||
-			el.parentElement?.parentElement?.getAttribute('srt')) || 0;
+	const folder: Record<string, any> = {};
+	const item: Record<string, any> = {};
 
-	const changes: Record<string, any> = { folder: {}, place: {} };
-	let newContainer: any;
-
-	const change = () => {
-		if (Object.keys(changes.place).length) {
-			mainStore.changePlace({
-				place: mainStore.places[(draggingElement.value as Element).id.match(/[\d\w]+$/)![0]],
-				change: changes.place,
-			});
-		}
-		if (Object.keys(changes.folder).length) {
-			mainStore.moveFolder({
-				folderId: changes.folder.id,
-				targetId: changes.folder.parent,
-				srt: Number(changes.folder.srt) || 0,
-				backup: false,
-			});
-		}
-	};
 	const cleanup = () => {
 		el.dispatchEvent(new Event('dragleave'));
 		draggingElement.value = null;
 	};
 
-	// Place button dropped on folder link
+	// Tree item dropped on tree folder
 	if (
-		(draggingElement.value as any).dataset.placeButton !== undefined &&
-		(el as any).dataset.folderButton !== undefined &&
-		el.id.replace(/^.*-([^-]*)/, "$1") !== mainStore.places[(draggingElement.value as Element).id].folderid
+		!!(item.sourceId = (draggingElement.value as any).dataset.placesTreeItemId) &&
+		!!(item.targetId = (el as any).dataset.placesTreeFolderId) &&
+		!!(item.sourceParentId = (draggingElement.value as any).dataset.placesTreeItemParentId) &&
+		item.sourceParentId !== item.targetId
 	) {
-		newContainer = el.parentElement?.nextElementSibling?.nextElementSibling;
-		changes.place.srt = newContainer?.lastElementChild
-			? mainStore.places[newContainer.lastElementChild.id].srt + 1
-			: 1;
-		changes.place.folderid = newContainer.id.replace(/^.*-([^-]*)/, "$1");
-		change(); cleanup(); return;
+		const sourceType = (draggingElement.value as any).dataset.placesTreeItemType;
+		const targetType = (el as any).dataset.placesTreeType;
+		if (sourceType !== targetType) return;
+		mainStore.backupState();
+		mainStore.backup = false;
+		const items: Record<string, Place | Track> = mainStore[targetType + 's'];
+		const neighbours = Object.values(items).filter(
+			i => i.folderid === item.targetId
+		);
+		items[item.sourceId].srt = neighbours.length
+			? Math.max(...neighbours.map(i => i.srt)) + 1
+			: 1
+		;
+		items[item.sourceId].folderid = item.targetId;
+		mainStore.backup = true;
+		cleanup(); return;
 	}
 
-	// Place button dropped on top sorting area of another place button
+	// Tree item dropped on top sorting area of another tree item
 	if (
-		(draggingElement.value as any).dataset.placeButton !== undefined &&
-		(el as any).dataset.placeButtonDragenterAreaTop !== undefined &&
-		el.parentElement !== (draggingElement.value as Element).nextElementSibling
+		!!(item.sourceId = (draggingElement.value as any).dataset.placesTreeItemId) &&
+		!!(item.targetId = (el as any).dataset.placesTreeItemId) && (
+		(el as any).dataset.placesTreeItemSortingAreaTop ||
+		(el as any).dataset.placesTreeItemSortingAreaBottom)
 	) {
-		const targetSrt = getSrt(el);
-		const prevSib = el.parentElement?.previousElementSibling;
-		changes.place.srt = prevSib
-			? (targetSrt - Number(prevSib.getAttribute('srt') || 0)) / 2 + Number(prevSib.getAttribute('srt') || 0)
-			: targetSrt / 2;
-		if ((draggingElement.value as Element).parentElement !== el.parentElement?.parentElement) {
-			changes.place.folderid = el.parentElement?.parentElement?.id.match(/[\d\w]+$/)![0];
-		}
-		el.classList.remove('dragenter-area_top_border');
-		change(); cleanup(); return;
+		const sourceType = (draggingElement.value as any).dataset.placesTreeItemType;
+		const targetType = (el as any).dataset.placesTreeItemType;
+		if (sourceType !== targetType) return;
+		mainStore.backupState();
+		mainStore.backup = false;
+		const sourceItem = mainStore[sourceType + 's'][item.sourceId];
+		const targetItem = mainStore[targetType + 's'][item.targetId];
+		sourceItem.srt = mainStore.getNeighboursSrts(
+			item.targetId,
+			targetType,
+			!!(el as any).dataset.placesTreeItemSortingAreaTop
+		).new;
+		sourceItem.folderid = targetItem.folderid;
+		mainStore.backup = true;
+		cleanup(); return;
 	}
 
-	// Place button dropped on bottom sorting area of another place button
+	// Tree folder dropped on sorting area of another tree folder
 	if (
-		(draggingElement.value as any).dataset.placeButton !== undefined &&
-		(el as any).dataset.placeButtonDragenterAreaBottom !== undefined &&
-		el.parentElement !== (draggingElement.value as Element).previousElementSibling
+		!!(folder.sourceId = (draggingElement.value as any).dataset.placesTreeFolderId) && (
+		!!(folder.targetId = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid ||
+		(el as any).dataset.placesTreeFolderSortingAreaBottomFolderid))
 	) {
-		const targetSrt = getSrt(el);
-		const nextSib = el.parentElement?.nextElementSibling;
-		changes.place.srt = nextSib
-			? (Number(nextSib.getAttribute('srt') || 0) - targetSrt) / 2 + targetSrt
-			: targetSrt + 1;
-		if ((draggingElement.value as Element).parentElement !== el.parentElement?.parentElement) {
-			changes.place.folderid = el.parentElement?.parentElement?.id.match(/[\d\w]+$/)![0];
-		}
-		el.classList.remove('dragenter-area_bottom_border');
-		change(); cleanup(); return;
+		mainStore.backupState();
+		mainStore.backup = false;
+		const top = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid;
+		const srts = mainStore.getNeighboursSrts(folder.targetId, 'folder', top);
+		mainStore.folders[folder.sourceId].srt = srts.new;
+		mainStore.folders[folder.sourceId].parent = mainStore.folders[folder.targetId].parent;
+		mainStore.buildTrees();
+		mainStore.backup = true;
+		cleanup(); return;
 	}
 
-	// Folder link dropped on sorting area of another folder link
+	// Tree folder dropped on another tree folder
 	if (
-		(draggingElement.value as any).dataset.folderButton !== undefined &&
-		((el as any).dataset.folderDragenterAreaTop !== undefined || (el as any).dataset.folderDragenterAreaBottom !== undefined) &&
-		!!(changes.folder.id = (draggingElement.value as Element).id.replace(/^.*-([^-]*)/, "$1")) &&
-		!!(changes.folder.parent = el.parentElement?.parentElement?.parentElement?.parentElement?.id.replace(/^.*-([^-]*)/, "$1")) &&
-		changes.folder.id !== changes.folder.parent &&
-		!isParentInTree(mainStore.tree, 'children', changes.folder.id, changes.folder.parent)
+		!!(folder.sourceId = (draggingElement.value as any).dataset.placesTreeFolderId) &&
+		!!(folder.targetId = (el as any).dataset.placesTreeFolderId) &&
+		folder.sourceId !== folder.targetId &&
+		(draggingElement.value as any).dataset.placesTreeType === (el as any).dataset.placesTreeType
 	) {
-		const targetSrt = getSrt(el);
-		if ((el as any).dataset.folderDragenterAreaTop !== undefined &&
-			(draggingElement.value as Element).parentElement?.parentElement !== el.parentElement?.previousElementSibling) {
-			const prevSib = el.parentElement?.previousElementSibling;
-			changes.folder.srt = prevSib
-				? (targetSrt - Number(prevSib.getAttribute('srt') || 0)) / 2 + Number(prevSib.getAttribute('srt') || 0)
-				: targetSrt / 2;
-		} else if ((el as any).dataset.folderDragenterAreaBottom !== undefined &&
-			(draggingElement.value as Element).parentElement?.parentElement !== el.parentElement?.nextElementSibling) {
-			const nextSib = el.parentElement?.nextElementSibling;
-			changes.folder.srt = nextSib
-				? (Number(nextSib.getAttribute('srt') || 0) - targetSrt) / 2 + targetSrt
-				: targetSrt + 1;
-		}
-		change(); cleanup(); return;
-	}
-
-	// Folder link dropped on another folder link
-	if (
-		(draggingElement.value as any).dataset.folderButton !== undefined &&
-		(el as any).dataset.folderButton !== undefined &&
-		!!(changes.folder.id = (draggingElement.value as Element).id.replace(/^.*-([^-]*)/, "$1")) &&
-		!!(changes.folder.parent = el.id.replace(/^.*-([^-]*)/, "$1")) &&
-		changes.folder.id !== changes.folder.parent &&
-		(!mainStore.treeFlat[changes.folder.parent].children ||
-			!mainStore.treeFlat[changes.folder.parent].children[changes.folder.id]) &&
-		!isParentInTree(mainStore.tree, 'children', changes.folder.id, changes.folder.parent)
-	) {
-		newContainer = el.parentElement?.nextElementSibling?.firstElementChild;
-		changes.folder.srt = (newContainer && newContainer.lastElementChild)
-			? mainStore.treeFlat[newContainer.lastElementChild.id.replace(/^.*-([^-]*)/, "$1")].srt + 1
-			: 1;
-		change(); cleanup(); return;
+		mainStore.backupState();
+		mainStore.backup = false;
+		const neighbours = Object.values(mainStore.folders).filter(
+			f => f.parent === folder.targetId
+		);
+		mainStore.folders[folder.sourceId].srt = Math.max(...neighbours.map(f => f.srt)) + 1;
+		mainStore.folders[folder.sourceId].parent = folder.targetId;
+		mainStore.buildTrees();
+		mainStore.backup = true;
+		cleanup(); return;
 	}
 
 	// Image thumbnail dropped
 	if ((draggingElement.value as any).dataset.image !== undefined) {
 		mainStore.changePlace({ place: currentPlace.value, change: {} });
-		toDB({ what: 'places', data: [currentPlace.value] });
+		toDB({ 'places': [currentPlace.value] });
 		cleanup(); return;
 	}
 	cleanup();

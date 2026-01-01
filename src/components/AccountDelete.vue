@@ -157,7 +157,7 @@ const accountDeletionSubmit = async () => {
 			leaveImages.value,
 		);
 		mainStore.unload();
-		router.push({name: 'PlacesAuth'});
+		router.push({name: 'Auth'});
 	}
 };
 const accountDeletionConditionsChange = (event: Event): void => {

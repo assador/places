@@ -1,15 +1,14 @@
 import { defineStore } from 'pinia';
-import { User, Group, Waypoint, Place, Folder, Image } from './types';
+import { User, Group, Point, Place, Track, Folder, Image } from './types';
 import { constants } from '@/shared/constants';
 import { emitter } from '@/shared/bus';
 import {
-	generateRandomString,
 	num2deg,
-	treeToLivePlain,
 	plainToTree,
 	formFolderForImported,
 	distanceOnSphere,
 } from '@/shared/common';
+import { t } from '@/lang/ru';
 import axios from 'axios';
 
 export interface IMainState {
@@ -20,8 +19,12 @@ export interface IMainState {
 	colortheme: string,
 	commonPlacemarksShow: boolean,
 	commonPlaces: Record<string, Place>,
+	commonTracks: Record<string, Track>,
+	commonTracksShow: boolean,
 	currentPlace: Place | null,
-	currentTemp: Waypoint | null,
+	currentTemp: Point | null,
+	currentTrack: Track | null,
+	currentTrackPoint: Point | null,
 	folders: Record<string, Folder>,
 	homePlace: Place | null,
 	idleTime: number,
@@ -39,6 +42,8 @@ export interface IMainState {
 	mouseOverMessages: boolean,
 	placemarksShow: boolean,
 	places: Record<string, Place>,
+	placesShow: boolean,
+	points: Record<string, Point>,
 	range: number | null,
 	rangeShow: boolean,
 	ready: boolean,
@@ -48,11 +53,15 @@ export interface IMainState {
 	stateBackups: any[],
 	stateBackupsIndex: number,
 	t: any,
-	temps: Record<string, Waypoint>,
+	temps: Record<string, Point>,
+	tempsPlacemarksShow: boolean,
+	tempsShow: boolean,
+	tracks: Record<string, Track>,
+	tracksShow: boolean,
 	tree: Folder,
+	treeTracks: Folder,
 	user: User | null,
 	users: Record<string, User>,
-	waypoints: Record<string, Waypoint> | null,
 	zoom: number,
 }
 
@@ -68,8 +77,12 @@ export const useMainStore = defineStore('main', {
 		colortheme: 'brown',
 		commonPlacemarksShow: false,
 		commonPlaces: {},
+		commonTracks: {},
+		commonTracksShow: false,
 		currentPlace: null,
 		currentTemp: null,
+		currentTrack: null,
+		currentTrackPoint: null,
 		folders: {},
 		homePlace: null,
 		idleTime: 0,
@@ -93,6 +106,8 @@ export const useMainStore = defineStore('main', {
 		mouseOverMessages: false,
 		placemarksShow: true,
 		places: {},
+		placesShow: true,
+		points: {},
 		range: null,
 		rangeShow: false,
 		ready: false,
@@ -101,8 +116,12 @@ export const useMainStore = defineStore('main', {
 		serverConfig: null,
 		stateBackups: [],
 		stateBackupsIndex: -1,
-		t: {},
+		t: t,
 		temps: {},
+		tempsPlacemarksShow: true,
+		tempsShow: false,
+		tracks: {},
+		tracksShow: false,
 		tree: {
 			id: 'root',
 			parent: null,
@@ -118,9 +137,23 @@ export const useMainStore = defineStore('main', {
 			userid: '',
 			children: {},
 		},
+		treeTracks: {
+			id: 'tracksroot',
+			parent: null,
+			srt: 0,
+			geomarks: 1,
+			type: 'folder',
+			added: false,
+			deleted: false,
+			updated: false,
+			opened: true,
+			builded: true,
+			name: '',
+			userid: '',
+			children: {},
+		},
 		user: null,
 		users: {},
-		waypoints: {},
 		zoom: Number(constants.map.initial.zoom),
 	}),
 	actions: {
@@ -130,7 +163,7 @@ export const useMainStore = defineStore('main', {
 		setMouseOverMessages(over?: boolean) {
 			this.mouseOverMessages = (over === false ? false : true);
 		},
-		setObjectSaved(object: User | Group | Waypoint | Place | Folder) {
+		setObjectSaved(object: User | Group | Point | Place | Track | Folder) {
 //			object.added = false;
 			object.deleted = false;
 			object.updated = false;
@@ -143,7 +176,7 @@ export const useMainStore = defineStore('main', {
 			this.user = null;
 			this.currentPlace = null;
 			this.homePlace = null;
-			this.waypoints = {};
+			this.points = {};
 			this.places = {};
 			this.folders = {};
 			this.commonPlaces = {};
@@ -160,22 +193,40 @@ export const useMainStore = defineStore('main', {
 			this.messageTimer = 0;
 			this.mouseOverMessages = false;
 			this.serverConfig = null;
+			this.tracks = {};
+		},
+		buildTrees() {
+			const tree = plainToTree({plain: this.foldersFlat, live: true, keep: true});
+			if (!tree) return;
+			this.tree.children = {};
+			this.treeTracks.children = {};
+			this.folders = tree;
+			for (const id in this.folders) {
+				if (this.folders[id].parent === 'root') {
+					this.tree.children[id] = this.folders[id];
+					continue;
+				}
+				if (this.folders[id].parent === 'tracksroot') {
+					this.treeTracks.children[id] = this.folders[id];
+					continue;
+				}
+			}
+			this.tree.userid = this.treeTracks.userid = this.user ? this.user.id : null;
+			this.tree.name = this.t.i.captions.rootFolder;
+			this.treeTracks.name = this.t.i.captions.rootTracksFolder;
 		},
 		placesReady(payload: Record<string, any>) {
-			if (payload.waypoints) {
-				this.waypoints = payload.waypoints;
-			}
-			if (payload.places) {
-				this.places = payload.places;
-			}
-			if (payload.commonPlaces) {
-				this.commonPlaces = payload.commonPlaces;
-			}
-			if (payload.folders) {
-				this.folders = payload.folders;
-			}
+			const { points, places, commonPlaces, tracks, commonTracks, folders, what } = payload;
+
+			this.points = points ? points : {};
+			this.places = places ? places : {};
+			this.commonPlaces = commonPlaces ? commonPlaces : {};
+			this.tracks = tracks ? tracks : {};
+			this.commonTracks = commonTracks ? commonTracks : {};
+			this.folders = folders ? folders : {};
+
 			let added = false, deleted = false, updated = false;
-			switch (payload.what) {
+			switch (what) {
 				case 'added' :
 					added = true;
 					break;
@@ -186,46 +237,54 @@ export const useMainStore = defineStore('main', {
 					updated = true;
 					break;
 			}
-			for (const id in payload.waypoints) {
-				payload.waypoints[id].type = 'waypoint';
-				payload.waypoints[id].added = added;
-				payload.waypoints[id].deleted = deleted;
-				payload.waypoints[id].updated = updated;
-				payload.waypoints[id].show = true;
+			for (const point of (Object.values(this.points) as Point[])) {
+				point.type = 'point';
+				point.added = added;
+				point.deleted = deleted;
+				point.updated = updated;
+				point.show = true;
+				point.common = Boolean(point.common);
 			}
-			for (const id in payload.places) {
-				payload.places[id].type = 'place';
-				payload.places[id].added = added;
-				payload.places[id].deleted = deleted;
-				payload.places[id].updated = updated;
-				payload.places[id].show = true;
+			for (const place of (Object.values(this.places) as Place[])) {
+				place.type = 'place';
+				place.added = added;
+				place.deleted = deleted;
+				place.updated = updated;
+				place.show = true;
+				place.common = Boolean(place.common);
+				place.geomark = Boolean(place.geomark);
 			}
-			for (const id in payload.folders) {
-				payload.folders[id].type = 'folder';
-				payload.folders[id].added = added;
-				payload.folders[id].deleted = deleted;
-				payload.folders[id].updated = updated;
-				payload.folders[id].opened = false;
+			for (const track of (Object.values(this.tracks) as Track[])) {
+				track.type = 'track';
+				track.added = added;
+				track.deleted = deleted;
+				track.updated = updated;
+				track.show = true;
+				track.common = Boolean(track.common);
 			}
-			this.folders = plainToTree(this.folders);
-			this.tree.name = this.t.i.captions.rootFolder;
-			this.tree.userid = this.user ? this.user.id : null;
-			this.tree.children = this.folders;
-		},
-		show(id: string) {
-			this.places[id].show = true;
-		},
-		hide(id: string) {
-			this.places[id].show = false;
+			for (const folder of (Object.values(this.folders) as Folder[])) {
+				folder.type = 'folder';
+				folder.added = added;
+				folder.deleted = deleted;
+				folder.updated = updated;
+				folder.opened = false;
+			}
+			this.buildTrees();
 		},
 		modifyPlaces(places: Record<string, Place>) {
 			this.places = places;
 		},
-		modifyFolders(folders: Record<string, Folder>) {
-			this.folders = folders;
+		modifyTracks(tracks: Record<string, Track>) {
+			this.tracks = tracks;
 		},
 		modifyCommonPlaces(commonPlaces: Record<string, Place>) {
 			this.commonPlaces = commonPlaces;
+		},
+		modifyCommonTracks(commonTracks: Record<string, Track>) {
+			this.commonTracks = commonTracks;
+		},
+		modifyFolders(folders: Record<string, Folder>) {
+			this.folders = folders;
 		},
 		deleteImages(payload: Record<string, any>) {
 			if (!payload.images || !Object.keys(payload.images).length) return;
@@ -245,10 +304,10 @@ export const useMainStore = defineStore('main', {
 			}
 			for (const id in this.places) {
 				if (distanceOnSphere(
-					this.waypoints[this.places[id].waypoint].latitude,
-					this.waypoints[this.places[id].waypoint].longitude,
-					this.waypoints[this.currentPlace.waypoint].latitude,
-					this.waypoints[this.currentPlace.waypoint].longitude,
+					this.points[this.places[id].pointid].latitude,
+					this.points[this.places[id].pointid].longitude,
+					this.points[this.currentPlace.pointid].latitude,
+					this.points[this.currentPlace.pointid].longitude,
 					constants.earthRadius
 				) > range) {
 					this.places[id].show = false;
@@ -259,7 +318,7 @@ export const useMainStore = defineStore('main', {
 		},
 		measureDistance() {
 			let lastIdx: number | null = null;
-			let point: Waypoint, lastPoint: Waypoint;
+			let point: Point, lastPoint: Point;
 			this.measure.distance = 0;
 			if (this.measure.points.length < 2) return;
 			for (let i = 0; i < this.measure.points.length; i++) {
@@ -271,18 +330,18 @@ export const useMainStore = defineStore('main', {
 				}
 				let l = this.measure.points[lastIdx];
 				if (this.places[p]) {
-					point = this.waypoints[this.places[p].waypoint];
+					point = this.points[this.places[p].pointid];
 				} else if (this.commonPlaces[p]) {
-					point = this.waypoints[this.commonPlaces[p].waypoint];
+					point = this.points[this.commonPlaces[p].pointid];
 				} else if (this.temps[p]) {
 					point = this.temps[p];
 				} else {
 					return;
 				}
 				if (this.places[l]) {
-					lastPoint = this.waypoints[this.places[l].waypoint];
+					lastPoint = this.points[this.places[l].pointid];
 				} else if (this.commonPlaces[l]) {
-					lastPoint = this.waypoints[this.commonPlaces[l].waypoint];
+					lastPoint = this.points[this.commonPlaces[l].pointid];
 				} else if (this.temps[l]) {
 					lastPoint = this.temps[l];
 				} else {
@@ -297,12 +356,6 @@ export const useMainStore = defineStore('main', {
 				);
 				lastIdx = i;
 			}
-		},
-		showHidePlaceGeomark(payload: Record<string, any>) {
-			payload.place.geomark = payload.show;
-		},
-		showHideFolderGeomarks(payload: Record<string, any>) {
-			payload.folder.geomarks = payload.show;
 		},
 		changeLang(lang) {
 			const getLang = () => import(`@/lang/${lang}.ts`);
@@ -330,8 +383,7 @@ export const useMainStore = defineStore('main', {
 				if (
 					key !== 'stateBackups' &&
 					key !== 'stateBackupsIndex' &&
-					key !== 'placeFields' &&
-					key !== 'treeFlat'
+					key !== 'descriptionFields'
 				) {
 					this[key] =
 						JSON.parse(
@@ -368,7 +420,7 @@ export const useMainStore = defineStore('main', {
 			return axios
 				.get(
 					'/backend/get_account.php?id=' +
-					sessionStorage.getItem('places-userid')
+					sessionStorage.getItem('places-useruuid')
 				)
 				.then(response => {
 					this.user = response.data;
@@ -383,8 +435,8 @@ export const useMainStore = defineStore('main', {
 		async setServerConfig() {
 			return axios
 				.get(
-					'/backend/get_config.php?userid=' +
-					sessionStorage.getItem('places-userid')
+					'/backend/get_config.php?useruuid=' +
+					sessionStorage.getItem('places-useruuid')
 				)
 				.then(response => {
 					this.serverConfig = response.data;
@@ -417,11 +469,19 @@ export const useMainStore = defineStore('main', {
 				return axios
 					.get(
 						'/backend/get_places.php?id=' +
-						sessionStorage.getItem('places-userid')
+						sessionStorage.getItem('places-useruuid')
 					)
 					.then(response => {
+						for (
+							const folder of
+							Object.values(response.data.folders) as Folder[]
+						) {
+							if (folder.parent === null) {
+								folder.parent = 'root';
+							}
+						}
 						this.placesReady({
-							waypoints: Object.assign({}, response.data.waypoints),
+							points: Object.assign({}, response.data.points),
 							places: Object.assign({}, response.data.places),
 							commonPlaces: Object.assign({}, response.data.common_places),
 							folders: Object.assign({}, response.data.folders),
@@ -430,20 +490,21 @@ export const useMainStore = defineStore('main', {
 						this.setHomePlace({
 							id: this.user.homeplace ? this.user.homeplace : null,
 							todb: false,
-							needtodb: false,
 						});
 						this.backup = true;
 						this.setFirstCurrentPlace();
-						this.updateMap({
-							latitude: this.waypoints[this.currentPlace.waypoint].latitude,
-							longitude: this.waypoints[this.currentPlace.waypoint].longitude,
-						});
+						if (this.currentPlace) {
+							this.updateMap({
+								latitude: this.points[this.currentPlace.pointid].latitude,
+								longitude: this.points[this.currentPlace.pointid].longitude,
+							});
+						}
 					})
 					.catch(e => {
 						console.error(e);
 						this.setMessage(this.t.m.popup.cannotGetDataFromDb);
 						this.placesReady({
-							waypoints: {},
+							points: {},
 							places: {},
 							commonPlaces: {},
 							folders: {},
@@ -459,21 +520,19 @@ export const useMainStore = defineStore('main', {
 			const parseJSON = (text: string) => {
 				try {
 					const result =
-						<Record<string, Array<Place | Waypoint | Folder>>>
+						<Record<string, Array<Place | Track | Point | Folder>>>
 						JSON.parse(text)
 					;
 					return result;
 				} catch (e) {
 					console.error(e);
-					this.setMessage(
-						this.t.m.popup.parsingImportError + ': ' + e
-					);
+					this.setMessage(this.t.m.popup.parsingImportError + ': ' + e);
 					return null;
 				}
 			}
 			const parseGPX = (text: string) => {
 				const result = {
-					waypoints: [] as Array<Waypoint>,
+					points: [] as Array<Point>,
 					places: [] as Array<Place>,
 					tree: {} as Folder,
 				};
@@ -485,13 +544,11 @@ export const useMainStore = defineStore('main', {
 					);
 				} catch (e) {
 					console.error(e);
-					this.setMessage(
-						this.t.m.popup.parsingImportError + ': ' + e
-					);
+					this.setMessage(this.t.m.popup.parsingImportError + ': ' + e);
 					return null;
 				}
-				if (this.treeFlat.imported) {
-					result.tree = this.treeFlat.imported;
+				if (this.tree.imported) {
+					result.tree = this.tree.imported;
 				}
 				let importedPlaceFolder, importedFolder: Folder;
 				let description = '', time = '';
@@ -545,10 +602,11 @@ export const useMainStore = defineStore('main', {
 						}
 					}
 					// Forming an importing place as an object and pushing it in a structure
-					const newWaypointId = generateRandomString(32);
-					const newPlaceId = generateRandomString(32);
-					const newWaypoint = {
-						id: newWaypointId,
+					const newPointId = crypto.randomUUID();
+					const newPlaceId = crypto.randomUUID();
+					const newPoint = {
+						id: newPointId,
+						userid: sessionStorage.getItem('places-useruuid'),
 						latitude:
 							Number(wpt.getAttribute('lat')) ||
 							Number(constants.map.initial.latitude) ||
@@ -558,7 +616,7 @@ export const useMainStore = defineStore('main', {
 							Number(constants.map.initial.longitude) ||
 							null,
 						time: time,
-						type: 'waypoint',
+						type: 'point',
 						common: false,
 						added: true,
 						deleted: false,
@@ -567,7 +625,7 @@ export const useMainStore = defineStore('main', {
 					};
 					const newPlace = {
 						id: newPlaceId,
-						waypoint: newWaypointId,
+						pointid: newPointId,
 						folderid: importedPlaceFolder.folderid,
 						name: (wpt.getElementsByTagName('name').length
 							? wpt.getElementsByTagName('name')[0].textContent.trim()
@@ -585,7 +643,7 @@ export const useMainStore = defineStore('main', {
 						),
 						common: false,
 						geomark: true,
-						userid: String(sessionStorage.getItem('places-userid')),
+						userid: sessionStorage.getItem('places-useruuid'),
 						images: {},
 						type: 'place',
 						added: true,
@@ -593,7 +651,7 @@ export const useMainStore = defineStore('main', {
 						updated: false,
 						show: true,
 					};
-					result.waypoints.push(newWaypoint);
+					result.points.push(newPoint);
 					result.places.push(newPlace);
 				}
 				result.tree = importedPlaceFolder.imported;
@@ -603,8 +661,8 @@ export const useMainStore = defineStore('main', {
 				mime: string,
 				parsed:
 					Record<string,
-						Array<Waypoint | Place | Folder> |
-						Record<string, Array<Waypoint | Place> | Folder>
+						Array<Point | Place | Folder> |
+						Record<string, Array<Point | Place> | Folder>
 					> | null
 			) => {
 				try {
@@ -619,8 +677,8 @@ export const useMainStore = defineStore('main', {
 									and user has rights to add a folder.
 									*/
 									if (
-										this.treeFlat[folder.id] ||
-										!this.treeFlat[folder.parent] &&
+										this.folders[folder.id] ||
+										!this.folders[folder.parent] &&
 										(parsed.folders as Array<Folder>)
 											.find(f => f.id === folder.parent)
 									) {
@@ -630,12 +688,12 @@ export const useMainStore = defineStore('main', {
 										this.serverConfig.rights.folderscount < 0 ||
 										this.serverConfig.rights.folderscount
 											// length - 1 because there is a root folder too
-											> Object.keys(this.treeFlat).length - 1 ||
+											> Object.keys(this.folders).length - 1 ||
 										this.user.testaccount
 									) {
 										const newFolder: Folder = {
 											type: 'folder',
-											userid: sessionStorage.getItem('places-userid') as string,
+											userid: sessionStorage.getItem('places-useruuid') as string,
 											name: folder.name,
 											description: folder.description,
 											id: folder.id,
@@ -680,27 +738,28 @@ export const useMainStore = defineStore('main', {
 								> Object.keys(this.places).length ||
 							this.user.testaccount
 						) {
-							let newWaypoint: Waypoint;
-							if (this.waypoints[place.waypoint]) {
-								newWaypoint = this.waypoints[place.waypoint];
+							let newPoint: Point;
+							if (this.points[place.pointid]) {
+								newPoint = this.points[place.pointid];
 							} else {
-								const parsedWaypoint =
-									(parsed.waypoints as Array<Waypoint>)
-										.find(w => w.id === place.waypoint)
+								const parsedPoint =
+									(parsed.points as Array<Point>)
+										.find(w => w.id === place.pointid)
 								;
-								newWaypoint = {
-									id: parsedWaypoint.id,
+								newPoint = {
+									id: parsedPoint.id,
+									userid: parsedPoint.userid,
 									latitude:
-										Number(parsedWaypoint.latitude) ||
+										Number(parsedPoint.latitude) ||
 										Number(constants.map.initial.latitude) ||
 										null,
 									longitude:
-										Number(parsedWaypoint.longitude) ||
+										Number(parsedPoint.longitude) ||
 										Number(constants.map.initial.longitude) ||
 										null,
-									time: parsedWaypoint.time,
-									common: parsedWaypoint.common,
-									type: 'waypoint',
+									time: parsedPoint.time,
+									common: parsedPoint.common,
+									type: 'point',
 									added: true,
 									deleted: false,
 									updated: false,
@@ -709,10 +768,10 @@ export const useMainStore = defineStore('main', {
 							}
 							const newPlace: Place = {
 								type: 'place',
-								userid: sessionStorage.getItem('places-userid') as string,
+								userid: sessionStorage.getItem('places-useruuid') as string,
 								name: place.name,
 								description: place.description,
-								waypoint: place.waypoint,
+								pointid: place.pointid,
 								link: place.link,
 								time: place.time,
 								id: place.id,
@@ -726,9 +785,9 @@ export const useMainStore = defineStore('main', {
 								show: true,
 							};
 							this.addPlace({place: newPlace});
-							if (!this.waypoints[place.waypoint]) {
-								this.addWaypoint({
-									waypoint: newWaypoint,
+							if (!this.points[place.pointid]) {
+								this.addPoint({
+									point: newPoint,
 									from: newPlace,
 								});
 							}
@@ -741,9 +800,7 @@ export const useMainStore = defineStore('main', {
 					emitter.emit('toDBCompletely');
 				} catch (e) {
 					console.error(e);
-					this.setMessage(
-						this.t.m.popup.parsingImportError + ': ' + e
-					);
+					this.setMessage(this.t.m.popup.parsingImportError + ': ' + e);
 					return false;
 				}
 				return true;
@@ -769,8 +826,8 @@ export const useMainStore = defineStore('main', {
 			switch (payload) {
 				case 'common':
 					ids = [];
-					for (const place in this.commonPlaces) {
-						ids.push(this.commonPlaces[place].userid);
+					for (const place of Object.values(this.commonPlaces) as Place[]) {
+						if (!ids.includes(place.userid)) ids.push(place.userid);
 					}
 					break;
 				default:
@@ -779,7 +836,7 @@ export const useMainStore = defineStore('main', {
 			return axios
 				.post(
 					'/backend/get_users.php',
-					Array.isArray(ids) ? {users: ids} : null
+					Array.isArray(ids) ? { users: ids } : null
 				)
 				.then(response => {
 					for (let idx = 0; idx < response.data.length; idx++) {
@@ -792,14 +849,14 @@ export const useMainStore = defineStore('main', {
 				.catch(e => console.error(e))
 			;
 		},
-		async replaceState(payload: IMainState) {
+		replaceState(payload: IMainState) {
 			this.$state = payload;
 			this.changeLang(this.lang);
-			await this.restoreObjectsAsLinks();
+			this.restoreObjectsAsLinks();
 			if (this.currentPlace) {
 				this.updateMap({
-					latitude: this.waypoints[this.currentPlace.waypoint].latitude,
-					longitude: this.waypoints[this.currentPlace.waypoint].longitude,
+					latitude: this.points[this.currentPlace.pointid].latitude,
+					longitude: this.points[this.currentPlace.pointid].longitude,
 				});
 			}
 		},
@@ -809,7 +866,6 @@ export const useMainStore = defineStore('main', {
 			this.setHomePlace({
 				id: this.user.homeplace ? this.user.homeplace : null,
 				todb: false,
-				needtodb: false,
 			});
 			this.backup = true;
 			if (this.currentPlace) {
@@ -822,22 +878,44 @@ export const useMainStore = defineStore('main', {
 			}
 			this.refreshing = false;
 		},
-		async addFolder(
-			payload: {folder: Folder, todb?: boolean, needtodb?: boolean}
-		) {
-			this.backupState();
-			const parent = this.treeFlat[payload.folder.parent]
-				? this.treeFlat[payload.folder.parent]
-				: this.tree
-			;
-			if (payload.todb !== false && !this.user.testaccount) {
-				emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
+		getNeighboursSrts(id: string, type: string, top?: boolean) {
+			let fellows: Record<string, Folder | Place | Track> = this[type + 's'];
+			let neighbours = Object.values(fellows);
+			let item = fellows[id];
+			if (!fellows[id] && type === 'folder') {
+				fellows = id === 'tracksroot'
+					? this.treeTracks.children
+					: this.tree.children
+				;
+				item = fellows[id];
+				neighbours = Object.values(fellows).filter(
+					i => i['parent'] === item['parent']
+				);
+			} else {
+				neighbours = Object.values(fellows).filter(
+					i => i['folderid'] === item['folderid']
+				);
 			}
-			this.addFolderMut({folder: payload.folder, parent: parent});
+			const all = neighbours.map(i => i.srt).sort((a, b) => a - b);
+			const currentIndex = all.indexOf(item.srt);
+			const result = {
+				all: all,
+				own: item.srt,
+				previous: all[currentIndex - 1],
+				next: all[currentIndex + 1],
+				new: 0,
+			};
+			if (!!top) {result.new = !result.previous
+				? result.own / 2
+				: (result.own - result.previous) / 2 + result.previous;
+			} else {result.new = !result.next
+				? result.own + 1
+				: (result.next - result.own) / 2 + result.own;
+			}
+			return result;
 		},
-		setHomePlace(
-			payload: {id: string, todb?: boolean, needtodb?: boolean} | null
-		) {
+		async setHomePlace(payload: {id: string, todb?: boolean} | null) {
+			this.backupState();
 			if (payload && this.places[payload.id]) {
 				this.homePlace = this.places[payload.id];
 				this.user.homeplace = payload.id;
@@ -845,154 +923,143 @@ export const useMainStore = defineStore('main', {
 			} else {
 				this.homePlace = null;
 				this.user.homeplace = null;
-				if (payload.todb !== false) emitter.emit('homeToDB', null);
+				if (!payload || payload.todb !== false) emitter.emit('homeToDB', null);
 			}
 		},
-		deletePlacesMarkedAsDeleted() {
-			const places: Record<string, Place> = {};
-			for (const id in this.places) {
-				if (this.places[id].deleted) {
-					places[id] = this.places[id];
-				}
+		async addFolder(payload: {folder: Folder, todb?: boolean}) {
+			const { folder, todb } = payload;
+			this.backupState();
+			this.folders[folder.id] = folder;
+			this.buildTrees();
+			if (todb !== false && !this.user.testaccount) {
+				emitter.emit('toDB', { 'folders': [folder] });
 			}
-			this.deletePlaces({places: places});
 		},
-		deleteFoldersMarkedAsDeleted() {
-			const folders: Record<string, Folder> = {};
-			for (const id in this.treeFlat) {
-				if (this.treeFlat[id].deleted) {
-					folders[id] = this.treeFlat[id];
-				}
-			}
-			this.deleteFolders({folders: folders});
-		},
-		async deletePlaces(payload: {
-			places: Record<string, Place>,
-			todb?: boolean,
-			needtodb?: boolean
+		addTemp(point: Point = {
+			id: crypto.randomUUID(),
+			userid: sessionStorage.getItem('places-useruuid'),
+			latitude: this.center.latitude,
+			longitude: this.center.longitude,
+			common: false,
+			type: 'point',
+			added: false,
+			deleted: false,
+			updated: false,
+			show: true,
 		}) {
 			this.backupState();
-			const
-				waypoints: Array<Waypoint> = [],
-				places: Array<Place> = [],
-				images: Array<Image> = []
-			;
-			let commonWaypoint = false;
-			for (const payloadPlaceId in payload.places) {
-				for (const placeId in this.places) {
-					if (
-						placeId !== payloadPlaceId &&
-						this.places[placeId].waypoint ===
-							payload.places[payloadPlaceId].waypoint
-					) {
-						commonWaypoint = true;
-						break;
-					}
-				}
-				if (!commonWaypoint) {
-					waypoints.push(
-						this.waypoints[payload.places[payloadPlaceId].waypoint]
-					);
-					waypoints[waypoints.length - 1].deleted = true;
-					this.deleteWaypoint(
-						this.waypoints[payload.places[payloadPlaceId].waypoint]
-					);
-				}
-				places.push(payload.places[payloadPlaceId]);
-				if (payload.places[payloadPlaceId].images) {
-					for (const id in payload.places[payloadPlaceId].images) {
-						images.push(payload.places[payloadPlaceId].images[id]);
-					}
-				}
-				places[places.length - 1].deleted = true;
-				this.deletePlace(this.places[payloadPlaceId]);
-				emitter.emit('deletePlace', payload.places[payloadPlaceId]);
-				commonWaypoint = false;
-			}
-			if (payload.todb !== false && !this.user.testaccount) {
-				const data = new FormData();
-				for (const image of images) {
-					data.append('file_' + image.id, image.file);
-				}
-				data.append('userid', this.user.id);
-				await axios.post('/backend/delete.php', data)
-					.then(() => {
-						emitter.emit('toDB', {what: 'images_delete', data: images});
-					});
-				emitter.emit('toDB', {what: 'waypoints', data: waypoints});
-				emitter.emit('toDB', {what: 'places', data: places});
-			}
+			if (!Object.keys(this.temps).length) this.tempsShow = true;
+			this.temps[point.id] = point;
+			this.currentTemp = this.temps[point.id];
+			emitter.emit('choosePoint', {
+				point: this.temps[point.id],
+				mode: (this.mode),
+			});
 		},
-		async deleteFolders(payload: {
-			folders: Record<string, Folder>,
+		async addPoint(payload: {
+			point: Point,
+			from?: Place | Track,
+			to?: Place | Track,
 			todb?: boolean,
-			needtodb?: boolean
 		}) {
-			this.backupState();
-			const
-				folders: Array<Folder> = []
-			;
-			for (const payloadFolderId in payload.folders) {
-				folders.push(payload.folders[payloadFolderId]);
-				folders[folders.length - 1].deleted = true;
-				if (this.treeFlat[payloadFolderId]) {
-					this.deleteFolder({folder: this.treeFlat[payloadFolderId]});
-				}
-			}
-			if (payload.todb !== false && !this.user.testaccount) {
-				emitter.emit('toDB', {what: 'folders', data: folders});
-			}
-		},
-		async addWaypoint(payload: {
-			waypoint: Waypoint,
-			from?: Place,
-			todb?: boolean,
-			needtodb?: boolean
-		}) {
-			if (payload.todb !== false && !this.user.testaccount) {
+			const { point, from, to, todb } = payload;
+			if (todb !== false && !this.user.testaccount) {
 				emitter.emit('toDB', {
-					what: 'waypoints',
-					data: [{
-						...payload.waypoint,
-						from: (payload.from ? payload.from : null),
-					}],
+					'points': [{ ...point, from: (from ? from : null) }],
 				});
 			}
-			this.waypoints[payload.waypoint.id] = payload.waypoint;
+			if (to) to[point.id] = point;
+				else this.points[point.id] = point;
 		},
-		async addPlace(
-			payload: {place: Place, todb?: boolean, needtodb?: boolean}
-		) {
+		async addPlace(payload: { place: Place, todb?: boolean }) {
 			this.backupState();
-			if (payload.todb !== false && !this.user.testaccount) {
-				emitter.emit('toDB', {what: 'places', data: [payload.place]});
+			const { place, todb } = payload;
+			this.places[place.id] = place;
+			if (todb !== false && !this.user.testaccount) {
+				emitter.emit('toDB', { 'places': [place] });
 			}
-			this.places[payload.place.id] = payload.place;
+		},
+		async addTrack(payload: {track: Track, todb?: boolean}) {
+			this.backupState();
+			const { track, todb } = payload;
+			this.tracks[track.id] = track;
+			if (todb !== false && !this.user.testaccount) {
+				emitter.emit('toDB', { 'tracks': [track] });
+			}
+		},
+		addTrackPoint(
+			payload: {point: Point, track: Track } = {
+				point: {
+					id: crypto.randomUUID(),
+					userid: sessionStorage.getItem('places-useruuid'),
+					latitude: this.center.latitude,
+					longitude: this.center.longitude,
+					common: false,
+					type: 'point',
+					added: true,
+					deleted: false,
+					updated: false,
+					show: true,
+				},
+				track: this.currentTrack,
+		}) {
+			this.backupState();
+			const { point, track } = payload;
+			this.points[point.id] = point;
+			track.points.push(point.id);
+			this.currentTrackPoint = this.points[point.id];
+			emitter.emit('choosePoint', {
+				point: this.points[point.id],
+				mode: (this.mode),
+			});
+		},
+		async changeFolder(payload: Record<string, any>) {
+			this.backupState();
+			const { change, folder, todb } = payload;
+			let saveToDB = todb !== false;
+			for (const key in change) {
+				folder[key] = change[key];
+			}
+			if (saveToDB !== false && !this.user.testaccount) {
+				folder.updated = true;
+				emitter.emit('toDB', { 'folders': [folder] });
+			}
+		},
+		async changePoint(payload: Record<string, any>) {
+			const { change, point, from, todb } = payload;
+			let saveToDB = todb !== false;
+			for (const key in change) {
+				point[key] = change[key];
+			}
+			if (saveToDB && !this.user.testaccount) {
+				point.updated = true;
+				emitter.emit('toDB', {
+					'points': [{ ...point, from: (from ? from : null) }],
+				});
+			}
 		},
 		async changePlace(payload: Record<string, any>) {
 			this.backupState();
-			let saveToDB = (
-				payload.todb !== false &&
-				!this.temps[payload.place.id]
-			);
+			let saveToDB = payload.todb !== false;
 			if ('latitude' in payload.change || 'longitude' in payload.change) {
 				const
 					lat = num2deg(('latitude' in payload.change
 						? payload.change.latitude
-						: this.waypoints[payload.place.waypoint].latitude
+						: this.points[payload.place.pointid].latitude
 					), true),
 					lng = num2deg(('longitude' in payload.change
 						? payload.change.longitude
-						: this.waypoints[payload.place.waypoint].longitude
+						: this.points[payload.place.pointid].longitude
 					))
 				;
-				this.changeWaypoint({
-					waypoint: this.waypoints[payload.place.waypoint],
+				await this.changePoint({
+					point: this.points[payload.place.pointid],
 					change: {
 						latitude: Number(lat),
 						longitude: Number(lng),
 					},
 					from: payload.place,
+					todb: false,
 				});
 			}
 			for (const key in payload.change) {
@@ -1001,65 +1068,75 @@ export const useMainStore = defineStore('main', {
 					? (Number(payload.change[key]) || 0)
 					: payload.change[key]
 				;
-				if (
-					key === 'added' ||
-					key === 'deleted' ||
-					key === 'updated'
-				) {
-					saveToDB = false;
-				}
 			}
 			if (saveToDB && !this.user.testaccount) {
 				payload.place.updated = true;
-				emitter.emit('toDB', {what: 'places', data: [payload.place]});
+				emitter.emit('toDB', { 'places': [payload.place] });
 			}
 		},
-		deletePlace(place: Place) {
-			delete this.places[place.id];
-		},
-		addTemp() {
+		async changeTrack(payload: Record<string, any>) {
 			this.backupState();
-			const waypointId = generateRandomString(32);
-			this.temps[waypointId] = {
-				id: waypointId,
-				latitude: this.center.latitude,
-				longitude: this.center.longitude,
-				common: false,
-				type: 'waypoint',
-				added: false,
-				deleted: false,
-				updated: false,
-				show: true,
-			};
-		},
-		async changeWaypoint(payload: Record<string, any>) {
-			let saveToDB = (
-				payload.todb !== false &&
-				!this.temps[payload.waypoint.id]
-			);
+			let saveToDB = payload.todb !== false;
 			for (const key in payload.change) {
-				payload.waypoint[key] = payload.change[key];
-				if (
-					key === 'added' ||
-					key === 'deleted' ||
-					key === 'updated'
-				) {
-					saveToDB = false;
-				}
+				payload.track[key] = key === 'srt'
+					? (Number(payload.change[key]) || 0)
+					: payload.change[key]
+				;
 			}
 			if (saveToDB && !this.user.testaccount) {
-				payload.waypoint.updated = true;
-				emitter.emit('toDB', {
-					what: 'waypoints',
-					data: [{
-						...payload.waypoint,
-						from: (payload.from ? payload.from : null),
-					}],
-				});
+				payload.track.updated = true;
+				emitter.emit('toDB', { 'tracks': [payload.track] });
 			}
 		},
-		deleteWaypoint(waypoint: Waypoint) {
-			delete this.waypoints[waypoint.id];
+		async deleteObjects(payload: {
+			objects?: Record<string, Point | Place | Track | Folder>,
+			todb?: boolean,
+		} = {
+			objects: {},
+			todb: true,
+		}) {
+			this.backupState();
+			const data = {
+				points: <Array<Point>>[],
+				places: <Array<Place>>[],
+				tracks: <Array<Track>>[],
+				folders: <Array<Folder>>[],
+			};
+			if (!Object.values(payload.objects).length) {
+				for (const what in data) {
+					data[what] = Object.values(this[what]).filter(object =>
+						object.hasOwnProperty('deleted') &&
+						object['deleted'] === true
+					);
+				}
+			} else {
+				for (const object of Object.values(payload.objects)) {
+					let points = <Array<Point>>[];
+					if (object['pointid']) {
+						points.push(this.points[object['pointid']]);
+					}
+					if (object['pointids']) {
+						for (const id of object['pointids']) {
+							points.push(this.points[id]);
+						}
+					}
+					for (const point of points) {
+						if (!this.sharingPointsIds.includes(point.id)) {
+							this.points[point.id].deleted = true;
+							data.points.push(point);
+						}
+					}
+					object.deleted = true;
+					data[object.type + 's'].push(object);
+				}
+			}
+			for (const what in data) {
+				for (const object of data[what]) delete this[what][object.id];
+			}
+			this.buildTrees();
+			if (!this.user.testaccount && payload.todb !== false) {
+				emitter.emit('toDB', data);
+			}
 		},
 		deleteTemp(id: string) {
 			const measureIndex = this.measure.points.indexOf(id);
@@ -1077,94 +1154,22 @@ export const useMainStore = defineStore('main', {
 				this.deleteTemp(id);
 			}
 		},
-		addFolderMut(payload: {folder: Folder, parent : Record<string, any>}) {
-			if (!payload.parent) {
-				this.folders[payload.folder.id] = payload.folder;
-			} else {
-				if (!payload.parent.children) {
-					payload.parent.children = {};
-				} else {
-					payload.parent.needToRefreshTreeSorry = null;
-					delete payload.parent.needToRefreshTreeSorry;
-				}
-				payload.parent.children[payload.folder.id] = payload.folder;
-			}
+		async deleteTrackPoint (track: Track, id: string) {
+			
 		},
-		changeFolder(payload: Record<string, any>) {
-			this.backupState();
-			for (const key in payload.change) {
-				payload.folder[key] = payload.change[key];
-			}
-			if (payload.todb !== false && !this.user.testaccount) {
-				payload.folder.updated = true;
-				emitter.emit('toDB', {what: 'folders', data: [payload.folder]});
-			}
-		},
-		moveFolder(payload: Record<string, any>) {
-			let source: any;
-			const folder = ('folder' in payload)
-				? payload.folder
-				: this.treeFlat[payload.folderId]
-			;
-			if (folder.parent === 'root') {
-				source = this.tree;
-			} else {
-				source = this.treeFlat[folder.parent];
-			}
-			const target = ('target' in payload)
-				? payload.target
-				: this.treeFlat[payload.targetId]
-			;
-			const srt = (
-				('srt' in payload) ? payload.srt : (
-					Object.keys(target.children).length
-						? target.children[
-							Object.keys(target.children)[
-								Object.keys(target.children).length - 1
-							]
-						].srt + 1
-						: 1
-				)
-			);
-			if (target !== source) {
-				this.addFolderMut({folder: folder, parent: target});
-				this.deleteFolder({folder: folder, source: source});
-			}
-			const changeFolderPayload = {
-				folder: folder,
-				change: {
-					parent: target.id,
-					srt: Number(srt) || 0,
-					updated: false,
-				},
-				todb: true,
-			};
-			if (payload.todb === false) {
-				changeFolderPayload.todb = false;
-				changeFolderPayload.change.updated = true;
-			}
-			this.changeFolder(changeFolderPayload);
-		},
-		deleteFolder(payload: Record<string, any>) {
-			if (!payload.source) {
-				payload.source = this.treeFlat[payload.folder.parent];
-			}
-			delete payload.source.children[payload.folder.id];
-			payload.source.needToRefreshTreeSorry = null;
-			delete payload.source.needToRefreshTreeSorry;
-		},
-		savedToDB(
-			payload: Record<string, string | Array<Waypoint | Place | Image | Folder>>
-		) {
+		savedToDB(payload: Record<
+			string,
+			string | Array<Point | Place | Image | Folder>
+		>) {
 			switch (payload.what) {
-				case 'waypoints' :
+				case 'points' :
 					if (payload.data) {
-						for (const waypoint of payload.data) {
-							this.setObjectSaved(waypoint);
+						for (const point of payload.data) {
+							this.setObjectSaved(point);
 						}
 					} else {
-						for (const id in this.waypoints) {
-							this.setObjectSaved(this.waypoints[id]);
+						for (const id in this.points) {
+							this.setObjectSaved(this.points[id]);
 						}
 					}
 					break;
@@ -1185,15 +1190,15 @@ export const useMainStore = defineStore('main', {
 							this.setObjectSaved(folder);
 						}
 					} else {
-						for (const id in this.treeFlat) {
-							this.setObjectSaved(this.treeFlat[id]);
+						for (const id in this.folders) {
+							this.setObjectSaved(this.folders[id]);
 						}
 					}
 					break;
 				default :
 					if (payload.data) {
-						for (const waypoint of payload.data) {
-							this.setObjectSaved(waypoint);
+						for (const point of payload.data) {
+							this.setObjectSaved(point);
 						}
 						for (const place of payload.data) {
 							this.setObjectSaved(place);
@@ -1202,14 +1207,14 @@ export const useMainStore = defineStore('main', {
 							this.setObjectSaved(folder);
 						}
 					} else {
-						for (const id in this.waypoints) {
-							this.setObjectSaved(this.waypoints[id]);
+						for (const id in this.points) {
+							this.setObjectSaved(this.points[id]);
 						}
 						for (const id in this.places) {
 							this.setObjectSaved(this.places[id]);
 						}
-						for (const id in this.treeFlat) {
-							this.setObjectSaved(this.treeFlat[id]);
+						for (const id in this.folders) {
+							this.setObjectSaved(this.folders[id]);
 						}
 					}
 	
@@ -1271,6 +1276,12 @@ export const useMainStore = defineStore('main', {
 				: show
 			;
 		},
+		commonTracksShowHide(show? : boolean) {
+			this.commonTracksShow = show === undefined
+				? !this.commonTracksShow
+				: show
+			;
+		},
 		centerPlacemarkShowHide(show? : boolean) {
 			this.centerPlacemarkShow = show === undefined
 				? !this.centerPlacemarkShow
@@ -1279,64 +1290,110 @@ export const useMainStore = defineStore('main', {
 		},
 		showHideGeomarks(payload: Record<string, any>) {
 			let visibility: number;
-			const showHideSubGeomarks = (object: any, show: number | boolean) => {
-				if (object.type === 'place') {
-					this.showHidePlaceGeomark({
-						place: object,
-						show: !show ? false : true,
-					});
-					return;
-				}
-				this.showHideFolderGeomarks({
-					folder: object,
-					show: !show ? 0 : 1,
-				});
-				for (const id in this.places) {
-					if (this.places[id].folderid === object.id) {
-						this.showHidePlaceGeomark({
-							place: this.places[id],
-							show: show,
-						});
-					}
-				}
-				if (object.children && Object.keys(object.children).length) {
-					for (const id in object.children) {
-						showHideSubGeomarks(object.children[id], show);
-					}
+			const showHideSubsGeomarks = (
+				object: Place | Track | Folder,
+				show: number | boolean
+			) => {
+				switch (object.type) {
+					case 'place':
+						object['geomark'] = show;
+						return;
+					case 'track':
+						object['geomarks'] = show;
+						return;
+					case 'folder':
+						object['geomarks'] = !show ? 0 : 1;
+						for (const item of
+							Object.values({ ...this.places, ...this.tracks })
+								.filter((item: Place | Track) => {
+									if (
+										item.folderid === object.id ||
+										item.folderid === null &&
+										(
+											object.id === 'root' ||
+											object.id === 'tracksroot'
+										)
+									) {
+										return true;
+									} else {
+										return false;
+									}
+								})
+						) {
+							item[item['type'] !== 'place' ? 'geomarks' : 'geomark'] = show;
+						}
+						if (!object['children']) return;
+						for (const folder of Object.values(object['children'])) {
+							showHideSubsGeomarks(folder as Folder, !show ? 0 : 1);
+						}
+						break;
 				}
 			}
-			const showHideParentsGeomarks = (object: any) => {
-				if (object.id === 'root') return;
-				const parentProperty = (object.type === 'place' ? 'folderid' : 'parent');
-				let geomarksProperty;
-				let neibours: Array<Place | Folder> =
-					Object.values(this.places).filter(
-						(neibour: Place) => neibour.folderid === object[parentProperty]
-					) as Array<Place | Folder>
+			const showHideParentsGeomarks = (object: Place | Track | Folder) => {
+				const objectParentKey =
+					object.hasOwnProperty('folderid') ? 'folderid' : 'parent'
 				;
-				if (this.treeFlat[object[parentProperty]].children) {
-					neibours = neibours.concat(
-						Object.values(this.treeFlat[object[parentProperty]].children)
-					);
-				}
+				let neibours =
+					Object.values({ ...this.places, ...this.tracks, ...this.folders })
+						.filter(
+							(neibour: Place | Track | Folder) => {
+								const neibourParentKey =
+									neibour.hasOwnProperty('folderid') ? 'folderid' : 'parent'
+								;
+								if (
+									neibour[neibourParentKey] === object[objectParentKey] ||
+									(
+										neibour[neibourParentKey] === 'root' ||
+										neibour[neibourParentKey] === 'tracksroot' ||
+										neibour[neibourParentKey] === null
+									) && (
+										object[objectParentKey] === 'root' ||
+										object[objectParentKey] === 'tracksroot' ||
+										object[objectParentKey] === null
+									)
+								) {
+									return true;
+								} else {
+									return false;
+								}
+							}
+						) as Array<Place | Track | Folder>
+				;
 				for (let i = 0; i < neibours.length; i++) {
-					geomarksProperty = (neibours[i].type === 'place' ? 'geomark' : 'geomarks');
 					if (i === 0) {
-						visibility = neibours[i][geomarksProperty];
+						visibility = (neibours[i]['geomark'] ?? neibours[i]['geomarks']);
 						continue;
 					}
-					if (visibility != neibours[i][geomarksProperty]) {
+					if (visibility != (neibours[i]['geomark'] ?? neibours[i]['geomarks'])) {
 						visibility = 2;
 						break;
 					}
 				}
-				this.showHideFolderGeomarks({
-					folder: this.treeFlat[object[parentProperty]],
-					show: Number(visibility) || 1,
-				});
-				showHideParentsGeomarks(this.treeFlat[object[parentProperty]]);
+				let parent: Folder =
+					this.folders[object[objectParentKey]] ??
+					this.tree[object[objectParentKey]] ??
+					this.treeTracks[object[objectParentKey]] ??
+					null
+				;
+				if (parent === null) {
+					if (
+						object['parent'] === 'root' ||
+						object.type === 'place' && object['folderid'] === null
+					) {
+						this.tree.geomarks = Number(visibility);
+					}
+					if (
+						object['parent'] === 'tracksroot' ||
+						object.type === 'track' && object['folderid'] === null
+					) {
+						this.treeTracks.geomarks = Number(visibility);
+					}
+					return;
+				}
+				parent.geomarks = Number(visibility);
+				showHideParentsGeomarks(parent);
 			}
-			showHideSubGeomarks(payload.object, payload.show);
+			showHideSubsGeomarks(payload.object, payload.show);
 			showHideParentsGeomarks(payload.object);
 		},
 		setMessage(message: string, freeze?: boolean) {
@@ -1389,8 +1446,8 @@ export const useMainStore = defineStore('main', {
 		},
 	},
 	getters: {
-		placeFields() {
-			const placeFields = {
+		descriptionFields() {
+			const descriptionFields = {
 				name               : this.t.i.captions.name,
 				description        : this.t.i.captions.description,
 				link               : this.t.i.captions.link,
@@ -1404,20 +1461,63 @@ export const useMainStore = defineStore('main', {
 				common             : this.t.i.captions.common,
 				images             : this.t.i.captions.images,
 			}
-			return placeFields;
+			return descriptionFields;
 		},
-		treeFlat() {
-			const treeFlat: Record<string, Folder> = {};
-			treeToLivePlain(this.tree, 'children', treeFlat);
-			return treeFlat;
+		sharingPointsIds() {
+			let usingPointsIds: string[] = [];
+			usingPointsIds = usingPointsIds.concat(
+				Object.values(this.places).map((place: Place) => place.pointid)
+			);
+			for (const track of Object.values(this.tracks)) {
+				usingPointsIds = usingPointsIds.concat(
+					(track as Track).points.map(id =>
+						this.places[id] ? this.places[id].pointid : id
+				));
+			}
+			return usingPointsIds.filter((id, index, self) =>
+				self.indexOf(id) !== index
+			);
+		},
+		foldersFlat() {
+			let foldersFlat = {};
+			for (const folder of Object.values(this.folders) as Folder[]) {
+				foldersFlat[folder.id] = {};
+				for (const key in folder) {
+					if (key === 'children') continue;
+					foldersFlat[folder.id][key] = folder[key];
+				}
+			}
+			return foldersFlat as Record<string, Folder>;
 		},
 		measureTemps() {
 			return Object.values(this.temps).filter(
-				(waypoint: Waypoint) => waypoint.type === 'waypoint'
+				(point: Point) => point.type === 'point'
 			);
 		},
 		tempIndexById: state => {
 			return (id: string) => Object.keys(state.temps).indexOf(id);
+		},
+		// Since the track points can be either its own or independent
+		// or points of other places, we collect them all in one array
+		trackAllPointsArray() {
+			return (track: Track): {point: Point, of: string}[] => {
+				let points: {point: Point, of: string}[] = [];
+				let of: string;
+				for (const id of track.points) {
+					if (id in this.temps) of = 'temps';
+					else if (
+						Object.values(this.places).map((p: Place) => p.pointid)
+							.includes(id)
+					) {
+						of = 'places';
+					}
+					points.push({
+						point: this.points[id],
+						of: of,
+					});
+				}
+				return points;
+			}
 		},
 	},
 });

@@ -1,10 +1,11 @@
 <template>
-	<ul>
-		<places-tree-node
-			:instanceid="props.instanceid"
-			:folder="mainStore.tree"
+	<ul class="places-tree">
+		<TreeNode
+			:instanceid="instanceid"
+			:what="what"
+			:folder="what === 'places' ? mainStore.tree : mainStore.treeTracks"
 			:folders-checked-ids="foldersCheckedIds"
-			class="folder_root"
+			class="folder-root"
 		/>
 	</ul>
 </template>
@@ -12,14 +13,16 @@
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';;
-import PlacesTreeNode from './PlacesTreeNode.vue';
-import { formFoldersCheckedIds } from '../shared/common';
+import { formFoldersCheckedIds } from '@/shared/common';
+import TreeNode from './TreeNode.vue';
 
 export interface IPlacesTreeProps {
 	instanceid?: string;
+	what?: string;
 }
 const props = withDefaults(defineProps<IPlacesTreeProps>(), {
 	instanceid: '',
+	what: 'places',
 });
 const mainStore = useMainStore();
 
@@ -30,3 +33,12 @@ onMounted(() => {
 	foldersCheckedIds.value = formFoldersCheckedIds();
 });
 </script>
+
+<style lang="scss" scoped>
+.places-tree * {
+	pointer-events: none;
+}
+.folder-root {
+	padding: 0;
+}
+</style>

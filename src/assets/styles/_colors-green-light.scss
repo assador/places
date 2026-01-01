@@ -37,6 +37,14 @@ s.$col-34: rgb(250, 254, 246);  /* Buttons text color */
 s.$col-35: rgb(129, 141, 120);  /* Buttons border-color */
 s.$col-36: rgb(246, 250, 254);   /* Popups */
 
+s.$filter-hue-rotate-01: hue-rotate(78deg);
+
+s.$filter-saturate-01: saturate(40%);
+s.$filter-saturate-02: saturate(40%);
+
+s.$filter-brightness-01: brightness(125%);
+s.$filter-brightness-02: brightness(125%);
+
 .colortheme-green-light {
 	@include s.theme;
 }

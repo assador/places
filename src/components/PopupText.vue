@@ -1,7 +1,7 @@
 <template>
 	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
 		<div>
-			<places-about v-if="props.what === 'about'" />
+			<About v-if="props.what === 'about'" />
 		</div>
 		<a
 			href="javascript:void(0)"
@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import PlacesAbout from './PlacesAbout.vue';
+import About from './About.vue';
 
 export interface IPlacesPopupTextProps {
 	what?: string;

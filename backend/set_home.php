@@ -1,13 +1,11 @@
 <?php
-include "config.php";
-include "newpdo.php";
-include "common.php";
+require_once __DIR__ . '/bootstrap.php';
 
 $_POST = json_decode(file_get_contents("php://input"), true);
-if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
+if (testAccountCheck($ctx, $testaccountuuid, $_POST["id"])) {
 	echo 2; exit;
 } else {
-	$query = $conn->prepare("
+	$query = $ctx->db->prepare("
 		UPDATE `users`
 		SET
 			`homeplace` = " .

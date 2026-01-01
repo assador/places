@@ -21,7 +21,7 @@
 			class="app-cell"
 			:style="sidebarSize.top === 0 || !cells.top ? 'display: none' : ''"
 		>
-			<places-header />
+			<Header />
 			<div
 				id="messages"
 				class="invisible"
@@ -62,12 +62,14 @@
 				/>
 				<span class="control-buttons">
 					<button
+						class="button-iconed"
 						:title="mainStore.t.i.buttons.find"
 						@click="selectPlaces(searchInput.value)"
 					>
 						<span>↪</span>
 					</button>
 					<button
+						class="button-iconed icon icon-cross-45"
 						:title="mainStore.t.i.buttons.clear"
 						@click="
 							if (searchInput.value !== '') {
@@ -75,54 +77,8 @@
 								selectPlaces(searchInput.value);
 							}
 						"
-					>
-						<span>⊗</span>
-					</button>
+					/>
 				</span>
-			</div>
-			<div class="temps dropdown dropdown_closed margin_bottom">
-				<h3 class="dropdown__header">{{ mainStore.t.i.captions.independentPoints }}</h3>
-				<div class="temps-list dropdown__body margin_bottom">
-					<div class="temps-list-controls">
-						<button
-							:title="mainStore.t.i.hints.addTemp"
-							@click="mainStore.addTemp()"
-						>
-							⊕
-						</button>
-						<button
-							:title="mainStore.t.i.hints.deleteAllTemps"
-							@click="mainStore.deleteAllTemps()"
-						>
-							⊗
-						</button>
-					</div>
-					<div class="temps-list-buttons">
-						<button
-							v-for="(temp, id) in mainStore.temps"
-							:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
-							@click="chooseWaypoint({waypoint: temp})"
-							@contextmenu="e => {
-								e.preventDefault();
-								chooseWaypoint({
-									waypoint: temp,
-									mode: (mainStore.mode === 'measure' ? 'measure' : 'normal')
-								});
-							}"
-						>
-							<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>
-							<span
-								:title="mainStore.t.i.hints.deleteTemp"
-								@click="e => {
-									e.stopPropagation();
-									mainStore.deleteTemp(id);
-								}"
-							>
-								⊗
-							</span>
-						</button>
-					</div>
-				</div>
 			</div>
 			<form
 				v-if="mainStore.rangeShow"
@@ -142,10 +98,14 @@
 					class="fieldwidth_100"
 				/>
 				<span class="control-buttons">
-					<button @click="mainStore.showInRange(mainStore.range)">
+					<button
+						class="button-iconed"
+						@click="mainStore.showInRange(mainStore.range)"
+					>
 						<span>↪</span>
 					</button>
 					<button
+						class="button-iconed icon icon-cross-45"
 						:title="mainStore.t.i.buttons.clear"
 						@click="
 							if (mainStore.range !== null) {
@@ -153,9 +113,7 @@
 								mainStore.showInRange(null);
 							}
 						"
-					>
-						<span>⊗</span>
-					</button>
+					/>
 				</span>
 			</form>
 			<div
@@ -178,15 +136,15 @@
 				<dd
 					v-for="(id, index) in mainStore.measure.points"
 					:key="index"
-					:measureitem="id"
 					:draggable="true"
+					:data-places-measure-point-id="id"
 					class="draggable"
 					@dragstart="e => handleDragStart(e, 'measure')"
 					@dragenter="handleDragEnter"
 					@drop="handleDrop"
 				>
 					<span v-if="mainStore.temps[id]">
-						{{ `${mainStore.t.i.captions.measureWaypoint} ${mainStore.tempIndexById(id) + 1}` }}
+						{{ `${mainStore.t.i.captions.measurePoint} ${mainStore.tempIndexById(id) + 1}` }}
 					</span>
 					<span v-else-if="mainStore.places[id] || mainStore.commonPlaces[id]">
 						{{
@@ -199,6 +157,7 @@
 					<span class="control-buttons">
 						<button
 							:title="mainStore.t.i.buttons.specify"
+							class="button-iconed"
 							:class="mainStore.measure.choosing === index ? 'button-pressed' : ''"
 							@click="
 								mainStore.measure.choosing =
@@ -210,14 +169,13 @@
 							<span>↪</span>
 						</button>
 						<button
+							class="button-iconed icon icon-cross-45"
 							:title="mainStore.t.i.buttons.clear"
 							@click="
 								mainStore.measure.points.splice(index, 1);
 								mainStore.measure.choosing = mainStore.measure.points.length;
 							"
-						>
-							<span>⊗</span>
-						</button>
+						/>
 					</span>
 				</dd>
 				<dd
@@ -228,23 +186,80 @@
 						{{ mainStore.t.i.buttons.clearAll }}
 					</strong>
 					<button
+						class="button-iconed icon icon-cross-45"
 						:title="mainStore.t.i.buttons.clearAll"
 						@click="
 							mainStore.measure.points.length = 0;
 							mainStore.measure.choosing = 0;
 						"
-					>
-						<span>⊗</span>
-					</button>
+					/>
 				</dd>
 			</div>
-			<div id="places-tree">
+			<Points v-if="mainStore.tempsShow" type="temps" />
+			<div v-if="mainStore.tracksShow" id="tracks">
+				<div id="tracks-tree" class="margin_bottom">
+					<div
+						id="tracks-menu"
+						class="menu"
+					>
+						<Tree instanceid="trackstree" what="tracks" />
+					</div>
+					<div v-if="Object.keys(mainStore.commonTracks).length > 0 && commonTracksShow">
+						<h2 class="basiccolor">
+							{{ mainStore.t.i.captions.commonTracks }}
+						</h2>
+						<div class="margin_bottom">
+							<div
+								v-for="commonTrack in commonTracks"
+								:id="commonTrack.id"
+								:key="commonTrack.id"
+								:class="'place-button block_01' + (
+									commonTrack === currentTrack ||
+									mainStore.measure.points.includes(commonTrack.id)
+										? ' active' : ''
+								)"
+								@click="() => {
+									chooseTrack(commonTrack);
+									if (commonTrack.points.length) {
+										const point = mainStore.points[
+											mainStore.places[commonTrack.points[0]]
+												? mainStore.places[commonTrack.points[0]].pointid
+												: commonTrack.points[0]
+										];
+										mainStore.updateMap({
+											latitude: point.latitude,
+											longitude: point.longitude,
+										});
+									}
+								}"
+								@contextmenu="e => {
+									e.preventDefault();
+									chooseTrack(commonTrack, mainStore.mode);
+								}"
+							>
+								{{ commonTrack.name }}
+							</div>
+						</div>
+						<div class="margin_bottom">
+							<a
+								v-for="(page, index) in commonPlacesPagesCount"
+								:key="index"
+								href="javascript:void(0);"
+								:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
+								@click="commonPlacesPage = index + 1;"
+							>
+								{{ index + 1 }}
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div v-if="mainStore.placesShow" id="places-tree">
 				<div
-					v-if="Object.keys(mainStore.places).length > 0 || Object.keys(mainStore.folders).length > 0"
 					id="places-menu"
 					class="menu"
 				>
-					<places-tree instanceid="placestree" />
+					<Tree instanceid="placestree" what="places"  />
 				</div>
 				<div v-if="Object.keys(mainStore.commonPlaces).length > 0 && commonPlacesShow">
 					<h2 class="basiccolor">
@@ -260,22 +275,17 @@
 								mainStore.measure.points.includes(commonPlace.id)
 									? ' active' : ''
 							)"
-							@click="e => {
-								choosePlace({place: commonPlace});
-								const waypoint = mainStore.waypoints[commonPlace.waypoint];
-								if (waypoint) {
-									mainStore.updateMap({
-										latitude: waypoint.latitude,
-										longitude: waypoint.longitude,
-									});
-								}
+							@click="() => {
+								choosePlace(commonPlace);
+								const point = mainStore.points[commonPlace.pointid];
+								mainStore.updateMap({
+									latitude: point.latitude,
+									longitude: point.longitude,
+								});
 							}"
 							@contextmenu="e => {
 								e.preventDefault();
-								choosePlace({
-									place: commonPlace,
-									mode: (mainStore.mode === 'measure' ? 'measure' : 'normal'),
-								});
+								choosePlace(commonPlace, mainStore.mode);
 							}"
 						>
 							{{ commonPlace.name }}
@@ -343,135 +353,260 @@
 			:style="sidebarSize.right !== 0 || cells.right ? 'display: block' : 'display: none'"
 		>
 			<div id="basic-right__control-buttons-right" />
-			<div id="place-description">
-				<div v-if="currentPlace">
-					<dl
-						v-for="field in orderedCurrentPlaceFields"
-						:key="field"
-						class="place-detailed margin_bottom_0"
-					>
-						<dt
-							v-if="field === 'link'"
-							class="place-detailed__link-dt"
-						>
+			<div
+				v-if="mainStore.tracksShow && currentTrack"
+				id="track-description"
+				class="margin_bottom"
+			>
+				<h2>{{ mainStore.t.i.captions.currentTrack }}</h2>
+				<Points type="tracks" />
+				<dl
+					v-for="field in orderedCurrentTrackFields"
+					:key="field"
+					class="track-detailed margin_bottom_0"
+				>
+					<template v-if="field === 'link' || field === 'srt'">
+						<dt>
 							<a
-								v-if="!linkEditing && currentPlace[field].trim()"
+								v-if="field === 'link' && !linkEditing && currentTrack[field].trim()"
+								:href="currentTrack[field].trim()"
+								target="_blank"
+							>
+								{{ mainStore.descriptionFields[field] }}
+							</a>
+							<span v-else>
+								{{ mainStore.descriptionFields[field] }}:
+							</span>
+						</dt>
+						<dd>
+							<input
+								:id="'track-detailed-' + field"
+								v-model.number.trim="currentTrack[field]"
+								:type="field === 'srt' ? 'number' : 'text'"
+								:disabled="!!currentTrackCommon"
+								class="fieldwidth_100"
+								@change="mainStore.changeTrack({track: currentTrack, change: {[field]: currentTrack[field]}});"
+							/>
+						</dd>
+					</template>
+					<template v-else-if="field === 'time'">
+						<dt>{{ mainStore.descriptionFields[field] }}:</dt>
+						<dd>
+							<input
+								:id="'track-detailed-' + field"
+								v-model="currentTrack[field]"
+								type="datetime-local"
+								:disabled="!!currentTrackCommon"
+								class="fieldwidth_100"
+								@change="mainStore.changeTrack({track: currentTrack, change: {[field]: currentTrack[field]}});"
+							/>
+						</dd>
+					</template>
+					<template v-else-if="field === 'common'" class="margin_bottom">
+						<dd>
+							<label v-if="!currentTrackCommon">
+								<input
+									:id="'track-detailed-' + field"
+									v-model="currentTrack[field]"
+									type="checkbox"
+									:disabled="!!currentTrackCommon"
+									@change="mainStore.changeTrack({track: currentTrack, change: {[field]: currentTrack[field]}});"
+								/>
+								{{ mainStore.t.i.inputs.checkboxCommon }}
+							</label>
+						</dd>
+					</template>
+					<template v-else>
+						<dt>{{ mainStore.descriptionFields[field] }}:</dt>
+						<dd>
+							<textarea
+								:id="'track-detailed-' + field"
+								v-model.trim="currentTrack[field]"
+								:disabled="!!currentTrackCommon"
+								:placeholder="
+									field === 'name'
+										? mainStore.t.i.inputs.trackName
+										: (field === 'description'
+											? mainStore.t.i.inputs.trackDescription
+											: ''
+										)
+									"
+								class="fieldwidth_100"
+								@change="mainStore.changeTrack({
+									track: currentTrack,
+									change: {[field]: currentTrack[field]}
+								});"
+							/>
+						</dd>
+					</template>
+				</dl>
+			</div>
+			<div v-if="mainStore.placesShow && currentPlace" id="place-description">
+				<h2 v-if="mainStore.tracksShow">
+					{{ mainStore.t.i.captions.currentPlace }}
+				</h2>
+				<dl
+					v-for="field in orderedCurrentPlaceFields"
+					:key="field"
+					class="place-detailed margin_bottom_0"
+				>
+					<template v-if="field === 'link' || field === 'srt'">
+						<dt>
+							<a
+								v-if="field === 'link' && !linkEditing && currentPlace[field].trim()"
 								:href="currentPlace[field].trim()"
 								target="_blank"
 							>
-								{{ mainStore.placeFields[field] }}
+								{{ mainStore.descriptionFields[field] }}
 							</a>
 							<span v-else>
-								{{ mainStore.placeFields[field] }}:
+								{{ mainStore.descriptionFields[field] }}:
 							</span>
 						</dt>
-						<dt v-else-if="field === 'images' && orderedImages.length">
-							{{ mainStore.placeFields[field] }}:
-						</dt>
-						<div v-if="field === 'waypoint'">
-							<div class="two-fields">
-								<div>
-									<dt>
-										{{ mainStore.placeFields['latitude'] }} °
-									</dt>
-									<dd>
-										<input
-											id="detailed-latitude"
-											:value="currentPlaceLat"
-											type="number"
-											:disabled="!!currentPlaceCommon"
-											class="fieldwidth_100"
-											@change="e => mainStore.changePlace({place: currentPlace, change: {latitude: (e.target as HTMLInputElement).value.trim()}})"
-										/>
-									</dd>
-								</div>
-								<div>
-									<dt>
-										{{ mainStore.placeFields['longitude'] }} °
-									</dt>
-									<dd>
-										<input
-											id="detailed-longitude"
-											:value="currentPlaceLon"
-											type="number"
-											:disabled="!!currentPlaceCommon"
-											class="fieldwidth_100"
-											@change="e => mainStore.changePlace({place: currentPlace, change: {longitude: (e.target as HTMLInputElement).value.trim()}})"
-										/>
-									</dd>
-								</div>
-								<div class="two-fields__combined">
-									<dt>
-										{{ mainStore.placeFields['coordsMinSec'] }}
-									</dt>
-									<dd>
-										<input
-											id="detailed-coordinates"
-											:value="currentDegMinSec"
-											type="text"
-											:disabled="!!currentPlaceCommon"
-											class="fieldwidth_100"
-											@change="e => {const coords = string2coords((e.target as HTMLInputElement).value.trim()); if (coords === null) return; mainStore.changePlace({place: currentPlace, change: {latitude: coords[0], longitude: coords[1]}});}"
-										/>
-									</dd>
-								</div>
-							</div>
-							<div class="margin_bottom_1">
-								<strong>{{ mainStore.placeFields['altitudecapability'] }}:</strong>
-								{{ currentPlaceAltitude === null ? '?' : currentPlaceAltitude }}
-							</div>
-						</div>
-						<dt v-else-if="field !== 'common' && field !== 'link' && field !== 'waypoint' && field !== 'images'">
-							{{ mainStore.placeFields[field] }}:
-						</dt>
-						<dd v-if="field === 'srt' || field === 'link'">
+						<dd>
 							<input
-								:id="'detailed-' + field"
+								:id="'place-detailed-' + field"
 								v-model.number.trim="currentPlace[field]"
 								:type="field === 'srt' ? 'number' : 'text'"
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
+								@change="async () => {
+									await mainStore.changePlace({
+										place: currentPlace,
+										change: { [field]: currentPlace[field],
+										}
+									});
+								}"
 							/>
 						</dd>
-						<dd v-else-if="field === 'time'">
+					</template>
+					<template v-else-if="field === 'point'">
+						<div class="two-fields">
+							<div>
+								<dt>
+									{{ mainStore.descriptionFields['latitude'] }} °
+								</dt>
+								<dd>
+									<input
+										id="detailed-latitude"
+										:value="currentPlaceLat"
+										type="number"
+										:disabled="!!currentPlaceCommon"
+										class="fieldwidth_100"
+										@change="async e => {
+											await mainStore.changePlace({
+												place: currentPlace,
+												change: { latitude: (e.target as HTMLInputElement).value.trim() }
+											});
+										}"
+									/>
+								</dd>
+							</div>
+							<div>
+								<dt>
+									{{ mainStore.descriptionFields['longitude'] }} °
+								</dt>
+								<dd>
+									<input
+										id="detailed-longitude"
+										:value="currentPlaceLon"
+										type="number"
+										:disabled="!!currentPlaceCommon"
+										class="fieldwidth_100"
+										@change="async e => {
+											await mainStore.changePlace({
+												place: currentPlace,
+												change: { longitude: (e.target as HTMLInputElement).value.trim()}
+											});
+										}"
+									/>
+								</dd>
+							</div>
+							<div class="two-fields__combined">
+								<dt>
+									{{ mainStore.descriptionFields['coordsMinSec'] }}
+								</dt>
+								<dd>
+									<input
+										id="detailed-coordinates"
+										:value="currentDegMinSec"
+										type="text"
+										:disabled="!!currentPlaceCommon"
+										class="fieldwidth_100"
+										@change="async e => {
+											const coords = string2coords(
+												(e.target as HTMLInputElement).value.trim()
+											);
+											if (coords === null) return;
+											await mainStore.changePlace({
+												place: currentPlace,
+												change: {
+													latitude: coords[0],
+													longitude: coords[1],
+												},
+											});
+										}"
+									/>
+								</dd>
+							</div>
+						</div>
+						<div class="margin_bottom_1">
+							<strong>
+								{{ mainStore.descriptionFields['altitudecapability'] }}:
+							</strong>
+							{{ currentPlaceAltitude === null ? '?' : currentPlaceAltitude }}
+						</div>
+					</template>
+					<template v-else-if="field === 'time'">
+						<dt>{{ mainStore.descriptionFields[field] }}:</dt>
+						<dd>
 							<input
 								:id="'detailed-' + field"
 								v-model="currentPlace[field]"
 								type="datetime-local"
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
+								@change="async () => {
+									await mainStore.changePlace({
+										place: currentPlace,
+										change: { [field]: currentPlace[field] },
+									});
+								}"
 							/>
 						</dd>
-						<dd
-							v-else-if="field === 'common'"
-							class="margin_bottom"
-						>
-							<label>
+					</template>
+					<template v-else-if="field === 'common'">
+						<dd class="margin_bottom">
+							<label v-if="!currentPlaceCommon">
 								<input
 									:id="'detailed-' + field"
 									v-model="currentPlace[field]"
 									type="checkbox"
 									:disabled="!!currentPlaceCommon"
-									@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
+									@change="async () => {
+										await mainStore.changePlace({
+											place: currentPlace,
+											change: { [field]: currentPlace[field] },
+										});
+									}"
 								/>
 								{{ mainStore.t.i.inputs.checkboxCommon }}
 							</label>
 						</dd>
-						<dd
-							v-else-if="field === 'images' && orderedImages.length"
-							id="place-images"
-						>
+					</template>
+					<template v-else-if="field === 'images' && orderedImages.length">
+						<dt>{{ mainStore.descriptionFields[field] }}:</dt>
+						<dd id="place-images">
 							<div class="dd-images">
 								<div
 									v-for="image in orderedImages"
 									:id="image.id"
 									:key="image.id"
 									data-image
-									:class="'place-image' + (currentPlaceCommon ? '' : ' draggable')"
+									class="place-image"
+									:class="currentPlaceCommon ? '' : ' draggable'"
 									:draggable="currentPlaceCommon ? false : true"
-									@click="router.push({name: 'PlacesHomeImages', params: {imageId: image.id}})"
+									@click="router.push({name: 'HomeImages', params: {imageId: image.id}})"
 									@dragstart="e => handleDragStart(e, 'images')"
 									@dragenter="handleDragEnter"
 									@drop="handleDrop"
@@ -504,20 +639,35 @@
 								</div>
 							</div>
 						</dd>
-						<dd v-else-if="field !== 'waypoint' && field !== 'images'">
+					</template>
+					<template v-else-if="field !== 'images'">
+						<dt>{{ mainStore.descriptionFields[field] }}:</dt>
+						<dd>
 							<textarea
-								:id="'detailed-' + field"
+								:id="'place-detailed-' + field"
 								v-model.trim="currentPlace[field]"
 								:disabled="!!currentPlaceCommon"
-								:placeholder="field === 'name' ? mainStore.t.i.inputs.placeName : (field === 'description' ? mainStore.t.i.inputs.placeDescription : '')"
+								:placeholder="
+									field === 'name'
+										? mainStore.t.i.inputs.placeName
+										: (field === 'description'
+											? mainStore.t.i.inputs.placeDescription
+											: ''
+										)
+									"
 								class="fieldwidth_100"
-								@change="mainStore.changePlace({place: currentPlace, change: {[field]: currentPlace[field]}});"
+								@change="async () => {
+									await mainStore.changePlace({
+										place: currentPlace,
+										change: { [field]: currentPlace[field] },
+									});
+								}"
 							/>
 						</dd>
-					</dl>
-				</div>
+					</template>
+				</dl>
 				<div
-					v-if="currentPlace && !currentPlace.deleted && !currentPlaceCommon"
+					v-if="!currentPlaceCommon && !currentPlace.deleted"
 					class="images-add margin_bottom"
 				>
 					<div class="images-add__div button">
@@ -539,7 +689,7 @@
 				>
 					<span>… {{ mainStore.t.i.buttons.loading }} …</span>
 				</div>
-				<div v-if="currentPlace && !currentPlaceCommon">
+				<div v-if="!currentPlaceCommon">
 					<label>
 						<input
 							id="checkbox-homeplace"
@@ -557,16 +707,16 @@
 						{{ mainStore.t.i.inputs.checkboxHome }}
 					</label>
 				</div>
-				<div>
-					<button
-						:disabled="mainStore.saved"
-						:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
-						class="save-button"
-						@click="toDBCompletely"
-					>
-						{{ mainStore.t.i.buttons.save }}
-					</button>
-				</div>
+			</div>
+			<div>
+				<button
+					:disabled="mainStore.saved"
+					:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
+					class="save-button"
+					@click="toDBCompletely"
+				>
+					{{ mainStore.t.i.buttons.save }}
+				</button>
 			</div>
 		</div>
 		<div
@@ -662,35 +812,34 @@
 	">
 		<div class="control-buttons">
 			<button
-				id="actions-append"
-				class="actions-button"
-				:title="mainStore.t.i.hints.addPlace"
-				accesskey="a"
-				@click="appendPlace();"
+				id="actions-places"
+				:class="'actions-button' + (mainStore.placesShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.captions.places"
+				accesskey="p"
+				@click="() => mainStore.placesShow = !mainStore.placesShow"
 			>
-				<span>⊕</span>
-				<span>{{ mainStore.t.i.buttons.newPlace }}</span>
+				<span>☩</span>
+				<span>{{ mainStore.t.i.captions.places }}</span>
 			</button>
 			<button
-				id="actions-delete"
-				class="actions-button"
-				:title="mainStore.t.i.hints.deletePlace"
-				:disabled="!(mainStore.user && currentPlace && currentPlace.userid === mainStore.user.id)"
-				accesskey="d"
-				@click="mainStore.deletePlaces({places: {[currentPlace.id]: currentPlace}});"
+				id="actions-tracks"
+				:class="'actions-button' + (mainStore.tracksShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.captions.tracks"
+				accesskey="t"
+				@click="() => mainStore.tracksShow = !mainStore.tracksShow"
 			>
-				<span>⊗</span>
-				<span>{{ mainStore.t.i.buttons.delete }}</span>
+				<span>⭍</span>
+				<span>{{ mainStore.t.i.captions.tracks }}</span>
 			</button>
 			<button
-				id="actions-append-folder"
-				class="actions-button"
-				:title="mainStore.t.i.hints.addFolder"
-				accesskey="f"
-				@click="router.push({name: 'PlacesHomeFolder'}).catch(e => {console.error(e);});"
+				id="actions-points"
+				:class="'actions-button' + (mainStore.tempsShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.captions.independentPoints"
+				accesskey="t"
+				@click="() => mainStore.tempsShow = !mainStore.tempsShow"
 			>
-				<span>⊕</span>
-				<span>{{ mainStore.t.i.buttons.newFolder }}</span>
+				<span>⊙</span>
+				<span>{{ mainStore.t.i.captions.points }}</span>
 			</button>
 			<button
 				id="actions-edit-folders"
@@ -699,22 +848,22 @@
 				accesskey="c"
 				@click="foldersEditMode = !foldersEditMode;"
 			>
-				<span>🖉</span>
+				<span>abc|</span>
 				<span>{{ mainStore.t.i.buttons.editFolders }}</span>
 			</button>
 			<button
 				id="actions-range"
-				:class="'actions-button' + (mainStore.rangeShow ? ' button-pressed' : '')"
+				:class="'actions-button actions-button_bigger' + (mainStore.rangeShow ? ' button-pressed' : '')"
 				:title="mainStore.t.i.captions.range"
 				accesskey="r"
-				@click="e => {
+				@click="() => {
 					mainStore.rangeShow = !mainStore.rangeShow;
 					mainStore.rangeShow
-					? mainStore.showInRange(mainStore.range)
-					: mainStore.showInRange(null)
+						? mainStore.showInRange(mainStore.range)
+						: mainStore.showInRange(null)
 				}"
 			>
-				<span>⊘</span>
+				<span>⨷</span>
 				<span>{{ mainStore.t.i.buttons.range }}</span>
 			</button>
 			<button
@@ -722,12 +871,12 @@
 				:class="'actions-button' + (mainStore.measure.show ? ' button-pressed' : '')"
 				:title="mainStore.t.i.captions.measure"
 				accesskey="m"
-				@click="e => {
+				@click="() => {
 					mainStore.measure.show = !mainStore.measure.show;
 					mainStore.mode = mainStore.measure.show ? 'measure' : 'normal';
 				}"
 			>
-				<span>123</span>
+				<span>⤡</span>
 				<span>{{ mainStore.t.i.buttons.measure }}</span>
 			</button>
 		</div>
@@ -747,7 +896,7 @@
 			/>
 			<button
 				id="actions-undo"
-				:disabled="mainStore.stateBackupsIndex < 1 && !mainStore.backup"
+				:disabled="mainStore.stateBackupsIndex < 1"
 				class="actions-button"
 				:title="mainStore.t.i.hints.undo"
 				accesskey="z"
@@ -806,7 +955,7 @@
 				class="actions-button"
 				:title="mainStore.t.i.hints.exportPlaces"
 				accesskey="e"
-				@click="router.push({name: 'PlacesHomeExport'})"
+				@click="router.push({name: 'HomeExport'})"
 			>
 				<span>↱</span>
 				<span>{{ mainStore.t.i.buttons.export }}</span>
@@ -818,7 +967,7 @@
 				accesskey="h"
 				@click="
 					router.push({
-						name: 'PlacesHomeText',
+						name: 'HomeText',
 						params: {what: 'about'}
 					});
 				"
@@ -850,7 +999,7 @@
 				@click="mainStore.placemarksShowHide()"
 			>
 				<span>◆</span>
-				<span>{{ mainStore.t.i.buttons.places }}</span>
+				<!-- <span>{{ mainStore.t.i.buttons.places }}</span> -->
 			</button>
 			<button
 				id="commonPlacesShowHideButton"
@@ -859,7 +1008,7 @@
 				@click="commonPlacesShowHide();"
 			>
 				<span>◇</span>
-				<span>{{ mainStore.t.i.buttons.commonPlaces }}</span>
+				<!-- <span>{{ mainStore.t.i.buttons.commonPlaces }}</span> -->
 			</button>
 			<button
 				id="commonPlacemarksShowHideButton"
@@ -868,7 +1017,16 @@
 				@click="mainStore.commonPlacemarksShowHide()"
 			>
 				<span>⬙</span>
-				<span>{{ mainStore.t.i.buttons.commonPlacemarks }}</span>
+				<!-- <span>{{ mainStore.t.i.buttons.commonPlacemarks }}</span> -->
+			</button>
+			<button
+				id="commonTracksShowHideButton"
+				:class="'actions-button' + (commonTracksShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.hints.shCommonTracks"
+				@click="commonTracksShowHide();"
+			>
+				<span>◇</span>
+				<!-- <span>{{ mainStore.t.i.buttons.commonTracks }}</span> -->
 			</button>
 			<button
 				id="centerPlacemarkShowHideButton"
@@ -877,7 +1035,7 @@
 				@click="mainStore.centerPlacemarkShowHide()"
 			>
 				<span>◈</span>
-				<span>{{ mainStore.t.i.buttons.center }}</span>
+				<!-- <span>{{ mainStore.t.i.buttons.center }}</span> -->
 			</button>
 		</div>
 	</Teleport>
@@ -911,15 +1069,17 @@ import {
 } from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
-import PlacesHeader from './PlacesHeader.vue';
-import PlacesTree from './PlacesTree.vue';
-import { Waypoint, Place, Image } from '@/stores/types';
+import Header from './Header.vue';
+import Tree from './Tree.vue';
+import Points from './Points.vue';
+import { Folder, Point, Place, Track, Image } from '@/stores/types';
 
 const mainStore = useMainStore();
 const router = useRouter();
 
 const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
 const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
+const currentTrackCommon = inject('currentTrackCommon') as Ref<boolean>;
 const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
 const toDB = inject('toDB') as (...args: any[]) => any;
 const toDBCompletely = inject('toDBCompletely') as (...args: any[]) => any;
@@ -932,11 +1092,11 @@ const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 const maps = [
 	{
 		name: 'OpenStreetMap',
-		component: defineAsyncComponent(() => import('./PlacesMapOpenStreetMap.vue')),
+		component: defineAsyncComponent(() => import('./MapOpenStreetMap.vue')),
 		componentName: 'PlacesMapOpenStreetMap',
 	}, {
 		name: 'Яндекс.Карты',
-		component: defineAsyncComponent(() => import('./PlacesMapYandex.vue')),
+		component: defineAsyncComponent(() => import('./MapYandex.vue')),
 		componentName: 'PlacesMapYandex',
 	}
 ];
@@ -953,7 +1113,13 @@ provide('commonPlacesPage', commonPlacesPage);
 const commonPlacesPagesCount = ref(0);
 const commonPlacesOnPageCount = ref(constants.commonplacesonpagecount);
 provide('commonPlacesOnPageCount', commonPlacesOnPageCount);
+const commonTracksPage = ref(1);
+provide('commonTracksPage', commonTracksPage);
+const commonTracksPagesCount = ref(0);
+const commonTracksOnPageCount = ref(constants.commontracksonpagecount);
+provide('commonTracksOnPageCount', commonTracksOnPageCount);
 const commonPlacesShow = ref(false);
+const commonTracksShow = ref(false);
 
 const cells = ref({
 	top: true,
@@ -1013,10 +1179,14 @@ watch(compact, () => {
 });
 const linkEditing = ref(false);
 const orderedCurrentPlaceFields = ref([
-	'name', 'description', 'waypoint', 'link', 'time', 'srt', 'common', 'images',
+	'name', 'description', 'point', 'link', 'time', 'srt', 'common', 'images',
+]);
+const orderedCurrentTrackFields = ref([
+	'name', 'description', 'link', 'time', 'srt', 'common',
 ]);
 const currentPlace = computed(() => mainStore.currentPlace);
-const waypoints = computed(() => mainStore.waypoints);
+const currentTrack = computed(() => mainStore.currentTrack);
+const points = computed(() => mainStore.points);
 const commonPlaces = computed<Record<string, Place>>(() => {
 	const ids = Object.keys(mainStore.commonPlaces);
 	const start = commonPlacesOnPageCount.value * (commonPlacesPage.value - 1);
@@ -1026,16 +1196,25 @@ const commonPlaces = computed<Record<string, Place>>(() => {
 		return acc;
 	}, {} as Record<string, Place>);
 });
+const commonTracks = computed<Record<string, Track>>(() => {
+	const ids = Object.keys(mainStore.commonTracks);
+	const start = commonTracksOnPageCount.value * (commonTracksPage.value - 1);
+	const end = commonTracksOnPageCount.value * commonTracksPage.value;
+	return ids.slice(start, end).reduce((acc, id) => {
+		acc[id] = mainStore.commonTracks[id];
+		return acc;
+	}, {} as Record<string, Track>);
+});
 const orderedImages = computed<Array<Image>>(() =>
 	currentPlace.value ? orderBy(currentPlace.value.images, 'srt') : []
 );
 const currentPlaceLat = computed<number | null>(() => {
 	const cp = currentPlace.value;
-	return cp ? waypoints.value[cp.waypoint]?.latitude ?? null : null;
+	return cp ? points.value[cp.pointid]?.latitude ?? null : null;
 });
 const currentPlaceLon = computed<number | null>(() => {
 	const cp = currentPlace.value;
-	return cp ? waypoints.value[cp.waypoint]?.longitude ?? null : null;
+	return cp ? points.value[cp.pointid]?.longitude ?? null : null;
 });
 const currentDegMinSec = computed(() =>
 	coords2string([currentPlaceLat.value, currentPlaceLon.value])
@@ -1052,8 +1231,8 @@ const getAltitude = async (lat: number, lon: number, alt: Ref<number | null>) =>
 		alt.value = null;
 	}
 };
-watch(() => mainStore.ready, () => {
-	stateReadyChanged();
+watch(() => mainStore.ready, async () => {
+	await stateReadyChanged();
 });
 watchEffect(() => {
 	if (
@@ -1077,17 +1256,11 @@ watch(mainStore, changedStore => {
 	}
 });
 watch(() => mainStore.measure.points, mainStore.measureDistance, { deep: true });
-watch(() => mainStore.waypoints, mainStore.measureDistance, { deep: true });
+watch(() => mainStore.points, mainStore.measureDistance, { deep: true });
 watch(() => mainStore.temps, mainStore.measureDistance, { deep: true });
 
-emitter.on('choosePlace', (payload: {place: Place, mode?: string}) => {
-	choosePlace(payload);
-});
-emitter.on('chooseWaypoint', (payload: {waypoint: Waypoint, mode?: string}) => {
-	chooseWaypoint(payload);
-});
-emitter.on('deletePlace', (place: Place) => {
-	deletePlace(place);
+emitter.on('choosePoint', (payload: {point: Point, mode?: string}) => {
+	choosePoint(payload);
 });
 
 onMounted(async () => {
@@ -1099,7 +1272,7 @@ onMounted(async () => {
 				window.clearInterval(idleTimeInterval.value);
 				idleTimeInterval.value = undefined;
 				mainStore.unload();
-				router.push({ name: 'PlacesAuth' });
+				router.push({ name: 'Auth' });
 			}
 		}, 1000);
 	}
@@ -1123,16 +1296,15 @@ onUnmounted(() => {
 	);
 	window.removeEventListener('resize', windowResize);
 	window.clearInterval(idleTimeInterval.value);
-	emitter.off('choosePlace');
-	emitter.off('chooseWaypoint');
 });
 
-const justMounted = ref(true);
+const firstUpdate = ref(true);
 onUpdated(() => {
 	makeFieldsValidatable(mainStore.t);
-	if (justMounted.value) {
-		openTreeToCurrentPlace();
-		justMounted.value = false;
+	if (firstUpdate.value) {
+		openTreeTo(mainStore.currentPlace);
+		openTreeTo(mainStore.currentTrack);
+		firstUpdate.value = false;
 	}
 });
 
@@ -1148,7 +1320,7 @@ const blur = (el?: HTMLElement): void => {
 	if (el) (el as HTMLElement).blur();
 		else document.querySelectorAll<HTMLElement>(':focus').forEach(el => el.blur());
 };
-const stateReadyChanged = (): void => {
+const stateReadyChanged = async () => {
 	if (!mainStore.ready) return;
 	mainStore.restoreObjectsAsLinks();
 	if (!currentPlace.value) mainStore.setFirstCurrentPlace();
@@ -1166,107 +1338,160 @@ const stateReadyChanged = (): void => {
 			: Math.ceil(inPaginator);
 		currentPlaceCommon.value = true;
 	}
+	currentTrackCommon.value = false;
+	if (
+		currentTrack.value &&
+		currentTrack.value.common &&
+		currentTrack.value.userid !== mainStore.user.id
+	) {
+		currentTrackCommon.value = true;
+	}
 	if (mainStore.user.testaccount) {
 		setTimeout(() => {
 			mainStore.setMessage(mainStore.t.m.popup.testAccount);
 		}, 3000);
 	}
 };
-const openTreeToCurrentPlace = (): void => {
-	if (currentPlaceCommon.value || !currentPlace.value) return;
-	let folderid = currentPlace.value.folderid;
-	while (folderid) {
-		const folder = mainStore.treeFlat[folderid];
-		if (!folder) break;
-		mainStore.folderOpenClose({ folder, opened: true });
-		folderid = folder.parent;
+
+const openTreeTo = (object: Place | Track): void => {
+	if (!object || !object.folderid) return;
+	let id = object.folderid;
+	let folder: Folder;
+	while (id) {
+		folder = mainStore.folders[id];
+		if (folder) {
+			mainStore.folderOpenClose({ folder, opened: true });
+			id = folder.parent;
+			continue;
+		}
+		switch (id) {
+			case 'root':
+				mainStore.folderOpenClose({folder: mainStore.tree, opened: true});
+				return;
+			case 'tracksroot':
+				mainStore.folderOpenClose({folder: mainStore.treeTracks, opened: true});
+				return;
+			default:
+				return;
+		}
 	}
 };
-watch(() => mainStore.currentPlace, () => openTreeToCurrentPlace(), {deep: true});
+watch(() => mainStore.currentPlace, current => {
+	if (!current || currentPlaceCommon.value) return;
+	openTreeTo(mainStore.currentPlace);
+});
+watch(() => mainStore.currentTrack, current => {
+	if (!current || currentTrackCommon.value) return;
+	openTreeTo(mainStore.currentTrack);
+});
 
-const choosePlace = (payload: {place: Place, mode?: string}): void => {
-	if (!payload.place) {
+const choosePlace = (place: Place, mode?: string): void => {
+	if (!place) {
 		mainStore.currentPlace = null;
 		return;
 	}
 	switch (mainStore.mode) {
 		case 'measure':
-			if (payload.mode && payload.mode === 'measure') {
+			if (mode && mode === 'measure') {
 				const { points, choosing } = mainStore.measure;
-				const placeId = payload.place.id;
+				const placeId = place.id;
 				const idx = points.indexOf(placeId);
 				if (idx === -1)  points[choosing] = placeId; else points.splice(idx, 1);
 				mainStore.measure.choosing = points.length;
 			}
 		default:
-			if (payload.mode === 'measure') break;
-			if (mainStore.currentPlace !== payload.place) {
-				mainStore.currentPlace = payload.place;
+			if (mode === 'measure') break;
+			if (mainStore.currentPlace !== place) {
+				mainStore.currentPlace = place;
 				currentPlaceCommon.value = mainStore.currentPlace.userid !== mainStore.user.id;
 			}
 	}
 };
-const chooseWaypoint = (payload: {waypoint: Waypoint, mode?: string}): void => {
+provide('choosePlace', choosePlace);
+
+const chooseTrack = (track: Track, mode?: string): void => {
+	if (!track) {
+		mainStore.currentTrack = null;
+		return;
+	}
 	switch (mainStore.mode) {
 		case 'measure':
-			if (payload.mode && payload.mode === 'measure') {
+			if (mode && mode === 'measure') {
 				const { points, choosing } = mainStore.measure;
-				const waypointId = payload.waypoint.id;
-				const idx = points.indexOf(waypointId);
-				if (idx === -1)  points[choosing] = waypointId; else points.splice(idx, 1);
+				const trackId = track.id;
+				const idx = points.indexOf(trackId);
+				if (idx === -1)  points[choosing] = trackId; else points.splice(idx, 1);
 				mainStore.measure.choosing = points.length;
 			}
 		default:
-			if (payload.mode === 'measure') break;
-			if (mainStore.currentTemp !== payload.waypoint) {
-				mainStore.currentTemp = payload.waypoint;
+			if (mode === 'measure') break;
+			if (mainStore.currentTrack !== track) {
+				mainStore.currentTrack = track;
+				currentTrackCommon.value = mainStore.currentTrack.userid !== mainStore.user.id;
+			}
+	}
+};
+provide('chooseTrack', chooseTrack);
+
+const choosePoint = (payload: {point: Point, mode?: string}): void => {
+	const { point, mode } = payload;
+	switch (mainStore.mode) {
+		case 'measure':
+			if (mode && mode === 'measure') {
+				const { points, choosing } = mainStore.measure;
+				const pointId = point.id;
+				const idx = points.indexOf(pointId);
+				if (idx === -1)  points[choosing] = pointId; else points.splice(idx, 1);
+				mainStore.measure.choosing = points.length;
+			}
+		default:
+			if (mode === 'measure') break;
+			if (mainStore.currentTemp !== point) {
+				mainStore.currentTemp = point;
 			}
 		}
 };
-const appendPlace = async (): Promise<void | Place> => {
-	const { places, serverConfig, user, center, t, addPlace, addWaypoint, setMessage } = mainStore;
-	const placesCount = Object.keys(places).length;
-	const maxPlaces = serverConfig.rights.placescount;
-	// Check place limit
-	if (!user.testaccount && maxPlaces > 0 && maxPlaces <= placesCount) {
+const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Place> => {
+	const { serverConfig, user, center, t, addPlace, addPoint, setMessage } = mainStore;
+	// Check places limit
+	if (
+		!user.testaccount &&
+		serverConfig.rights.placescount > 0 &&
+		serverConfig.rights.placescount <= Object.keys(mainStore.places).length
+	) {
 		setMessage(t.m.popup.placesCountExceeded);
 		return;
 	}
-	const now = new Date().toISOString().slice(0, -5);
-	const waypointId = generateRandomString(32);
-	const placeId = generateRandomString(32);
-	const newWaypoint: Waypoint = {
-		id: waypointId,
+	const newPoint: Point = {
+		id: crypto.randomUUID(),
+		userid: user.id,
 		latitude: center.latitude ?? null,
 		longitude: center.longitude ?? null,
-		time: now,
+		time: new Date().toISOString().slice(0, -5),
 		common: false,
-		type: 'waypoint',
+		type: 'point',
 		added: true,
 		deleted: false,
 		updated: false,
 		show: true,
 	};
-	let folderid = 'root';
-	if (currentPlace.value && !currentPlace.value.common) {
-		folderid = currentPlace.value.folderid;
-	}
-	let srt = 1;
-	if (placesCount > 0) {
-		const maxSrt = Math.max(...Object.values(places).map((p: Place) => p.srt || 0));
-		srt = Math.ceil(maxSrt) + 1;
-	}
 	const newPlace: Place = {
 		type: 'place',
-		userid: sessionStorage.getItem('places-userid'),
+		userid: sessionStorage.getItem('places-useruuid'),
 		name: '',
 		description: '',
-		waypoint: waypointId,
+		pointid: '',
 		link: '',
-		time: now,
-		id: placeId,
-		folderid,
-		srt,
+		time: new Date().toISOString().slice(0, -5),
+		id: crypto.randomUUID(),
+		folderid: 'root',
+		srt:
+			Object.keys(mainStore.places).length
+				? Math.ceil(Math.max(
+					...Object.values(mainStore.places).map((p: Place) => p.srt || 0)
+				)) + 1
+				: 1
+		,
 		common: false,
 		geomark: true,
 		images: {},
@@ -1275,11 +1500,13 @@ const appendPlace = async (): Promise<void | Place> => {
 		updated: false,
 		show: true,
 	};
+	for (const key in payload) newPlace[key] = payload[key];
+	newPlace.pointid = newPoint.id;
+	await addPoint({ point: newPoint, from: newPlace });
 	await addPlace({ place: newPlace });
-	addWaypoint({ waypoint: newWaypoint, from: newPlace });
-	choosePlace({ place: newPlace });
+	choosePlace(newPlace);
 	await nextTick();
-	const detailedNameElem = document.getElementById('detailed-name');
+	const detailedNameElem = document.getElementById('place-detailed-name');
 	if (detailedNameElem) {
 		detailedNameElem.classList.add('highlight');
 		window.setTimeout(() => {
@@ -1289,47 +1516,61 @@ const appendPlace = async (): Promise<void | Place> => {
 	}
 	return newPlace;
 };
-const deletePlace = (place: Place): void => {
-	if (place !== currentPlace.value) return;
-	const placesKeys = Object.keys(mainStore.places);
-	const placesCount = placesKeys.length;
-	if (placesCount <= 1) {
-		choosePlace(null);
+provide('appendPlace', appendPlace);
+
+const appendTrack = async (): Promise<void | Track> => {
+	const { tracks, serverConfig, user, t, addTrack, setMessage } = mainStore;
+	const tracksCount = Object.keys(tracks).length;
+	const maxTracks = serverConfig.rights.trackscount;
+	// Check tracks limit
+	if (!user.testaccount && maxTracks > 0 && maxTracks <= tracksCount) {
+		setMessage(t.m.popup.tracksCountExceeded);
 		return;
 	}
-	const placeElem = document.getElementById(place.id);
-	if (placeElem) {
-		const nextElem = placeElem.nextElementSibling as HTMLElement | null;
-		const prevElem = placeElem.previousElementSibling as HTMLElement | null;
-		if (nextElem && mainStore.places[nextElem.id]) {
-			choosePlace({ place: mainStore.places[nextElem.id] });
-			return;
-		}
-		if (prevElem && mainStore.places[prevElem.id]) {
-			choosePlace({ place: mainStore.places[prevElem.id] });
-			return;
-		}
+	const now = new Date().toISOString().slice(0, -5);
+	const trackId = crypto.randomUUID();
+	let folderid = 'tracksroot';
+	if (currentTrack.value && !currentTrackCommon.value) {
+		folderid = currentTrack.value.folderid;
 	}
-	if (mainStore.homePlace && mainStore.homePlace !== place) {
-		choosePlace({ place: mainStore.homePlace });
-		return;
+	let srt = 1;
+	if (tracksCount > 0) {
+		const maxSrt = Math.max(...Object.values(tracks).map((t: Track) => t.srt || 0));
+		srt = Math.ceil(maxSrt) + 1;
 	}
-	// Find the first place in the root with the minimum srt
-	let firstPlaceInRoot: Place | null = null;
-	for (const id of placesKeys) {
-		const p = mainStore.places[id];
-		if (p.folderid === 'root') {
-			if (!firstPlaceInRoot || p.srt < firstPlaceInRoot.srt) {
-				firstPlaceInRoot = p;
-			}
-		}
+	const newTrack: Track = {
+		type: 'track',
+		id: trackId,
+		folderid,
+		points: [],
+		userid: sessionStorage.getItem('places-useruuid'),
+		name: '',
+		description: '',
+		link: '',
+		time: now,
+		srt,
+		common: false,
+		geomarks: 1,
+		added: true,
+		deleted: false,
+		updated: false,
+		show: true,
+	};
+	await addTrack({ track: newTrack });
+	chooseTrack(newTrack);
+	await nextTick();
+	const detailedNameElem = document.getElementById('track-detailed-name');
+	if (detailedNameElem) {
+		detailedNameElem.classList.add('highlight');
+		window.setTimeout(() => {
+			detailedNameElem.classList.remove('highlight');
+			detailedNameElem.focus();
+		}, 500);
 	}
-	if (firstPlaceInRoot) {
-		choosePlace({ place: firstPlaceInRoot });
-	} else {
-		choosePlace({ place: mainStore.places[placesKeys[0]] });
-	}
+	return newTrack;
 };
+provide('appendTrack', appendTrack);
+
 const commonPlacesShowHide = (show = null): void => {
 	commonPlacesShow.value =
 		show === null
@@ -1338,9 +1579,17 @@ const commonPlacesShowHide = (show = null): void => {
 	;
 	mainStore.commonPlacemarksShowHide(commonPlacesShow.value);
 };
+const commonTracksShowHide = (show = null): void => {
+	commonTracksShow.value =
+		show === null
+			? !commonTracksShow.value
+			: show
+	;
+	mainStore.commonTracksShowHide(commonTracksShow.value);
+};
 provide('commonPlacesShowHide', commonPlacesShowHide);
 
-const importFromFile = (): void => {
+const importFromFile = async () => {
 	const input = importFromFileInput.value as HTMLInputElement;
 	const file = input.files && input.files[0];
 	if (!file) return;
@@ -1352,7 +1601,7 @@ const importFromFile = (): void => {
 	const reader = new FileReader();
 	reader.onload = async (event: ProgressEvent<FileReader>) => {
 		await nextTick();
-		mainStore.setPlaces({
+		await mainStore.setPlaces({
 			text: event.target?.result,
 			mime,
 		});
@@ -1360,7 +1609,7 @@ const importFromFile = (): void => {
 	};
 	reader.readAsText(file);
 };
-const uploadFiles = (event: Event): void => {
+const uploadFiles = async (event: Event) => {
 	event.preventDefault();
 	if (mainStore.user.testaccount) {
 		mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads);
@@ -1452,15 +1701,9 @@ const uploadFiles = (event: Event): void => {
 					place: currentPlace.value,
 					change: { images: newImagesObject },
 				}).then(() => {
-					toDB({
-						what: 'places',
-						data: [currentPlace.value],
-					});
+					toDB({ 'places': [currentPlace.value] });
 				});
-				toDB({
-					what: 'images_upload',
-					data: filesArray,
-				});
+				toDB({ 'images_upload': filesArray });
 				mainStore.setMessage(popup.filesUploadedSuccessfully);
 			}
 		})
@@ -1478,29 +1721,19 @@ const keyup = (event: Event): void => {
 	if (!shortcut) return;
 	blur();
 	const actions: Record<string, () => void> = {
-		'add': appendPlace,
-		'delete': () => {
-			if (currentPlace.value && currentPlace.value.userid === mainStore.user.id) {
-				mainStore.deletePlaces({
-					places: { [currentPlace.value.id]: currentPlace.value }
-				});
-			}
-		},
-		'add folder': () => router.push({ name: 'PlacesHomeFolder' }),
-		'edit mode': () => {
-			foldersEditMode.value = !foldersEditMode.value;
-			const el = document.getElementById('actions-edit-folders');
-			if (el) el.classList.toggle('button-pressed');
-		},
+		'add': () => appendPlace(),
+		'add folder': () => router.push({ name: 'HomeFolder' }),
+		'edit mode': () => foldersEditMode.value = !foldersEditMode.value,
 		'import': () => importFromFileInput.value.click(),
-		'export': () => router.push({ name: 'PlacesHomeExport' }),
-		'save': toDBCompletely,
-		'help': () => router.push({ name: 'PlacesHomeText', params: { what: 'about' } }),
+		'export': () => router.push({ name: 'HomeExport' }),
+		'save': () => toDBCompletely(),
+		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
 		'revert': () => document.location.reload(),
 		'quit': () => emitter.emit('logout'),
-		'other': commonPlacesShowHide,
+		'other': () => commonPlacesShowHide(),
 		'placemarks': () => mainStore.placemarksShowHide(),
 		'other placemarks': () => mainStore.commonPlacemarksShowHide(),
+		'other tracks': () => mainStore.commonTracksShowHide(),
 		'center': () => mainStore.centerPlacemarkShowHide(),
 		'undo': () => mainStore.undo(),
 		'redo': () => mainStore.redo(),
@@ -1598,16 +1831,15 @@ const searchInputEvent = (event: KeyboardEvent): void => {
 };
 const selectPlaces = (text: string): void => {
 	const regexp = new RegExp(text, 'i');
-	const folders = mainStore.treeFlat;
 	for (const id in mainStore.places) {
 		if (regexp.test(mainStore.places[id].name)) {
 			mainStore.places[id].show = true;
 			if (
 				text.length !== 0 &&
-				!folders[mainStore.places[id].folderid].opened
+				!mainStore.folders[mainStore.places[id].folderid].opened
 			) {
 				mainStore.folderOpenClose({
-					folder: folders[mainStore.places[id].folderid],
+					folder: mainStore.folders[mainStore.places[id].folderid],
 					opened: true,
 				});
 			}
@@ -1636,40 +1868,9 @@ const selectPlaces = (text: string): void => {
 	}
 }
 .control-search, .control-range, .control-measure {
-	margin: 20px 0;
+	margin: 8px 0 20px 0;
 	> *:first-child {
 		flex-basis: 0;
-	}
-}
-.temps {
-	margin-top: -1em;
-}
-.temps-list {
-	display: grid;
-	grid-template-columns: 1fr auto;
-	gap: 20px;
-	&-controls, &-buttons {
-		display: flex;
-		flex-flow: row wrap;
-		gap: 8px;
-	}
-	&-buttons {
-		justify-content: right;
-		button {
-			display: grid;
-			grid-template-columns: 1fr auto;
-			align-items: center;
-			width: 40px;
-			margin: 0;
-			padding: 0 0 0 4px;
-			& > *:last-child {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				padding: 8px 6px;
-				line-height: 0;
-			}
-		}
 	}
 }
 .control-measure {
@@ -1677,8 +1878,26 @@ const selectPlaces = (text: string): void => {
 		text-align: right;
 	}
 }
-.place-button {
-	cursor: pointer;
+:is(.place-detailed, .track-detailed) {
+	dd {
+		padding-left: 0;
+	}
+	:is(
+		textarea,
+		input:is([type="text"], [type="number"], [type="datetime-local"])
+	) {
+		display: inline-block;
+		margin: 3px 0 8px 0;
+	}
+	.place-detailed__link-dt:last-child {
+		margin-bottom: 8px;
+	}
+	.place-detailed__link-dt * {
+		display: inline-block;
+	}
+	.place-detailed__link-edit {
+		float: right;
+	}
 }
 .two-fields {
 	display: grid;
@@ -1704,6 +1923,48 @@ const selectPlaces = (text: string): void => {
 	}
 	.two-fields__combined {
 		grid-column: 1 / 3;
+	}
+}
+.control-buttons {
+	display: flex;
+	flex-flow: row wrap;
+	gap: 8px;
+	text-align: center;
+	&:not(:last-child) {
+		margin-bottom: 8px;
+	}
+	.actions-button {
+		flex: 1 1 calc(25% - 16px);
+		min-width: 40px;
+		min-height: 30px;
+	}
+}
+.control-search, .control-range, .control-measure {
+	.control-buttons button {
+		width: 22px;
+	}
+}
+:is(#top-left, #basic-left) .control-buttons .actions-button {
+	flex-basis: calc(33% - 16px);
+	min-width: 50px;
+}
+:is(#bottom-left, #bottom-basic) .actions-button {
+	flex-basis: calc(20% - 16px);
+	min-width: 30px;
+	min-height: 30px;
+	& > *:first-child {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 32px !important;
+	}
+}
+.place-image {
+	* {
+		pointer-events: none;
+	}
+	.dd-images__delete {
+		pointer-events: auto;
 	}
 }
 </style>

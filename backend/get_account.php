@@ -1,25 +1,31 @@
 <?php
-include "config.php";
-include "newpdo.php";
+require_once __DIR__ . '/bootstrap.php';
 
-$query = $conn->query("SELECT * FROM `users` WHERE `id` = '" . $_GET["id"] . "'");
-$result = $query->fetchAll(PDO::FETCH_ASSOC);
-if(count($result) == 0) {
+$query = $ctx->db->prepare("SELECT * FROM `users` WHERE `id` = :id");
+$query->bindValue(":id", uuidToBin($_GET["id"]), PDO::PARAM_LOB);
+$query->execute();
+$result = $query->fetch(PDO::FETCH_ASSOC);
+if (!$result) {
 	echo 0;
-} else {
-	$result[0]["testaccount"] = $result[0]["id"] == $testaccountid ? true : false;
-	$query = $conn->query("
-		SELECT * FROM `usergroup`
-		INNER JOIN `groups` ON `usergroup`.`group` = `groups`.`id`
-		WHERE `user` = '" . $_GET["id"] . "'
-	");
-	$groups = $query->fetchAll(PDO::FETCH_ASSOC);
-	$result[0]["groups"] = [];
-	foreach	($groups as $key => $value) {
-		$result[0]["groups"][] = array(
-			"group"  => $value["group"],
-			"parent" => $value["parent"]
-		);
-	}
-	echo json_encode($result[0], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	exit;
 }
+$result["id"] = binToUuid($result["id"]);
+$result["testaccount"] = $result["id"] === $testaccountuuid ? true : false;
+
+$query = $ctx->db->prepare("
+	SELECT * FROM `usergroup`
+	INNER JOIN `groups` ON `usergroup`.`group` = `groups`.`id`
+	WHERE `user` = :id
+");
+$query->bindValue(":id", uuidToBin($_GET["id"]), PDO::PARAM_LOB);
+$query->execute();
+$groups = $query->fetchAll(PDO::FETCH_ASSOC);
+
+$result["groups"] = [];
+foreach	($groups as $key => $value) {
+	$result["groups"][] = array(
+		"group"  => $value["group"],
+		"parent" => $value["parent"]
+	);
+}
+echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

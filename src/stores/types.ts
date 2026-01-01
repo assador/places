@@ -1,39 +1,58 @@
-export interface Waypoint {
+export interface Point {
+	type: string;
 	id: string;
+	userid: string;
 	latitude: number;
 	longitude: number;
 	time?: string;
 	common: boolean;
-	type: string;
 	added: boolean;
 	deleted: boolean;
 	updated: boolean;
 	show: boolean;
 }
 export interface Place {
+	type: string;
 	id: string;
+	userid: string;
 	folderid: string;
+	pointid: string;
 	name: string;
 	description?: string;
-	waypoint: string;
 	link?: string;
 	time?: string;
 	srt: number;
 	common: boolean;
 	geomark: boolean;
-	userid: string;
 	images?: Record<string, Image>;
+	added: boolean;
+	deleted: boolean;
+	updated: boolean;
+	show: boolean;
+}
+export interface Track {
 	type: string;
+	id: string;
+	userid: string;
+	folderid: string;
+	points: string[];
+	name: string;
+	description?: string;
+	link?: string;
+	time?: string;
+	srt: number;
+	common: boolean;
+	geomarks: number;
 	added: boolean;
 	deleted: boolean;
 	updated: boolean;
 	show: boolean;
 }
 export interface Image {
+	type: string;
 	id: string;
 	placeid: string;
 	file: string;
-	type: string;
 	lastmodified: number;
 	size: number;
 	srt: number;
@@ -63,7 +82,6 @@ export interface User {
 	phone: string;
 	confirmed: boolean;
 	confirmbefore: string;
-	token: string;
 	homeplace: string;
 	testaccount: boolean;
 	groups?: {group: string, parent: string}[];

@@ -1,22 +1,41 @@
 <?php
-include "config.php";
-include "newpdo.php";
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
-$query = $conn->query("SELECT * FROM `users_change` WHERE `token` = '" . $_GET["token"] . "'");
-$result = $query->fetchAll(PDO::FETCH_ASSOC);
-if(count($result) > 0) {
-	$user = $result[0];
-	$result = $conn->exec(
-		"UPDATE `users` SET" .
-		"`login`    = '" . $user["login"    ] . "', " .
-		"`password` = '" . $user["password" ] . "', " .
-		"`name`     = '" . $user["name"     ] . "', " .
-		"`email`    = '" . $user["email"    ] . "', " .
-		"`phone`    = '" . $user["phone"    ] . "' " .
-		"WHERE `id` = '" . $user["id"       ] . "'"
-	);
-	if($result === 1) {
-		$query = $conn->query("DELETE FROM `users_change` WHERE `token` = '" . $_GET["token"] . "'");
+require_once __DIR__ . '/bootstrap.php';
+
+$query = $ctx->db->prepare("
+	SELECT * FROM `userschange`
+	WHERE `token` = :token
+");
+$query->bindValue(':token', $_GET["token"]);
+$query->execute();
+$user = $query->fetch(PDO::FETCH_ASSOC);
+
+if (count($user) > 0) {
+	$query = $ctx->db->prepare("
+		UPDATE `users` SET
+		`login` = :login,
+		`password` = :password,
+		`name` = :name,
+		`email` = :email,
+		`phone` = :phone
+		WHERE `id` = :id
+	");
+	$query->bindValue(':login', $user['login']);
+	$query->bindValue(':password', $user['password']);
+	$query->bindValue(':name', $user['name']);
+	$query->bindValue(':email', $user['email']);
+	$query->bindValue(':phone', $user['phone']);
+	$query->bindValue(':id', $user['id']);
+	$result = $query->execute();
+	if ($result == 1) {
+		$query = $ctx->db->prepare("
+			DELETE FROM `userschange`
+			WHERE `token` = :token
+		");
+		$query->bindValue(':token', $_GET["token"]);
 		$result = $query->execute();
 		echo '
 			<h1>Успешно</h1>

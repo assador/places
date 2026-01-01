@@ -9,7 +9,7 @@
 	>
 		<div id="grid">
 			<div id="top-basic" class="app-cell">
-				<places-header />
+				<Header />
 				<div
 					id="messages"
 					class="invisible"
@@ -53,7 +53,7 @@
 				</div>
 			</div>
 			<div id="basic-right" class="app-cell">
-				<admin-navigation />
+				<AdminNavigation />
 			</div>
 			<router-view />
 		</div>
@@ -66,7 +66,7 @@ import { useMainStore } from '@/stores/main';;
 import { useAdminStore } from '@/stores/admin';;
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-import PlacesHeader from '@/components/PlacesHeader.vue';
+import Header from '@/components/Header.vue';
 import AdminNavigation from './admin/AdminNavigation.vue';
 
 const mainStore = useMainStore();
@@ -76,7 +76,7 @@ const router = useRouter();
 const getUsers = async () => {
 	axios.post('/backend/get_users.php', {
 		user: {
-			id: sessionStorage.getItem('places-userid'),
+			id: sessionStorage.getItem('places-useruuid'),
 			password: mainStore.user.password,
 		},
 	})
@@ -95,7 +95,7 @@ provide('getUsers', getUsers);
 const getGroups = async () => {
 	axios.post('/backend/get_allgroups.php', {
 		user: {
-			id: sessionStorage.getItem('places-userid'),
+			id: sessionStorage.getItem('places-useruuid'),
 			password: mainStore.user.password,
 		},
 	})
@@ -119,7 +119,7 @@ onMounted(() => {
 
 const exit = async (): Promise<void> => {
 	mainStore.unload();
-	router.push({name: 'PlacesAuth'});
+	router.push({name: 'Auth'});
 };
 
 const component = ref('users');

@@ -1,9 +1,11 @@
 <?php
-include "config.php";
-include "newpdo.php";
-include "common.php";
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
-if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
+require_once __DIR__ . '/bootstrap.php';
+
+if (testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
 	exit;
 } else {
 	$files = [];
@@ -23,7 +25,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 			"type"         => $mime,
 		);
 	}
-	$query = $conn->query("
+	$query = $ctx->db->query("
 		SELECT `id`
 		FROM `groups`
 		WHERE `id`
@@ -51,7 +53,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 		}
 	}
 	unset($row);
-	foreach($_FILES as $key => $file) {
+	foreach ($_FILES as $key => $file) {
 		if($file["error"] == UPLOAD_ERR_OK) {
 			$size = filesize($file["tmp_name"]);
 			$mime = $file["type"];

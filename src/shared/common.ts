@@ -70,47 +70,47 @@ export const string2coords = (coords: string): number[] | null => {
 			(/[wW]/.test(lonArr[4]) ? -1 : 1),
 	];
 };
-export const treeToLivePlain = (
-	tree: Record<string, any>,
-	childrenKey: string,
-	plain: Record<string, any>
-): void => {
-	plain[tree.id] = tree;
-	if (tree[childrenKey] && Object.keys(tree[childrenKey]).length) {
-		for (const id in tree[childrenKey]) {
-			treeToLivePlain(tree[childrenKey][id], childrenKey, plain);
-		}
-	}
-};
-export const plainToTree = (plain: Record<string, any>): Record<string, any> => {
-	const tree = {};
-	let ready = false;
-	while (!ready && Object.keys(plain).length > 0) {
-		for (const id1 in plain) {
-			ready = true;
-			if (!plain[id1].builded) {
-				if (plain[id1].parent === 'root') {
-					tree[id1] = plain[id1];
-					plain[id1].builded = true;
-					ready = false;
-				} else {
-					for (const id2 in plain) {
-						if (id2 === plain[id1].parent) {
-							if (!plain[id2].children) {
-								plain[id2].children = {};
-							}
-							plain[id2].children[id1] = plain[id1];
-							plain[id1].builded = true;
-							ready = false;
-							break;
-						}
-
-					}
+export const isPlainTreeCorrect = (plain: Record<string, Folder>): boolean => {
+	for (const id in plain) {
+		const parent = plain[plain[id].parent];
+		if (parent) {
+			if (parent.id === id) {return false;}
+			// Check if the parent is your own child:
+			let parentId = parent.id;
+			while (parentId) {
+				if (!plain[parentId]) break;
+				if (plain[parentId].parent === id) {
+					return false;
 				}
+				parentId = plain[parentId].parent;
 			}
 		}
 	}
-	return tree as Record<string, any>;
+	return true;
+}
+export const plainToTree = (patload: {
+	plain: Record<string, Folder>,
+	live?: boolean,
+	keep?: boolean,
+} = {
+	plain: {},
+	live: false,
+	keep: false,
+}): Record<string, any> | undefined => {
+	const { plain, live, keep } = patload;
+	if (!isPlainTreeCorrect(plain)) return undefined;
+	const tree = {};
+	const copy = live ? plain : JSON.parse(JSON.stringify(plain));
+	for (const id in copy) {
+		copy[id].builded = true;
+		const parent = copy[copy[id].parent];
+		if (parent) {
+			if (!parent.hasOwnProperty('children')) parent['children'] = {};
+			parent.children[id] = copy[id];
+		}
+		if (!parent || keep) tree[id] = copy[id];
+	}
+	return tree;
 };
 export const treeToPlain = (
 	tree: Record<string, any>,
@@ -204,7 +204,7 @@ export const treeNewIds = (
 	items: Array<Record<string, any>>,
 	itemParentKey: string
 ): void => {
-	const newId = tree.id === "root" ? null : generateRandomString(32);
+	const newId = tree.id === "root" ? null : crypto.randomUUID();
 	if (Array.isArray(items) && items.length > 0) {
 		for (let i = 0; i < items.length; i++) {
 			if (items[i][itemParentKey] === tree.id) {
@@ -227,7 +227,14 @@ export const treeNewIds = (
 		}
 	}
 };
-export const formFolderForImported = (voc, time: string, imported?: Folder): any => {
+export const formFolderForImported = (
+	voc: Record<string, any>,
+	time: string,
+	imported?: Folder,
+): {
+	imported: Folder,
+	folderid: 'imported',
+} => {
 	/**
 	 * Creation of a folder for the imported places
 	 * in the folder tree branch for imported places.
@@ -250,7 +257,7 @@ export const formFolderForImported = (voc, time: string, imported?: Folder): any
 			name: voc.o.importedFolderName,
 			description: voc.o.importedFolderDescription,
 			srt: 99999,
-			userid: sessionStorage.getItem('places-userid') as string,
+			userid: sessionStorage.getItem('places-useruuid') as string,
 			geomarks: 1,
 			children: {} as Record<string, Folder>,
 		};
@@ -343,7 +350,7 @@ export const sortObjectsByProximity = (array: Array<Record<string, any>>): void 
 	// Sort geomarks so as to build the shortest path through them.
 	let
 		indexNearest = -1,
-		distCurrent,
+		distCurrent: number,
 		distMin = 10,
 		lastIndex = 0
 	;

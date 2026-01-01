@@ -83,9 +83,9 @@ const showImage = (step: number, event?: Event) => {
 			(currentIndex + step) % ImagesLength < 0 ? ImagesLength: 0
 		);
 		router.push({
-			name: 'PlacesHomeImages',
-			params: {imageId: images.value[currentIndex].id}
-		}).catch(e => {console.error(e);});
+			name: 'HomeImages',
+			params: {imageId: images.value[currentIndex].id},
+		});
 	}
 };
 const keyup = (event: KeyboardEvent): void => {

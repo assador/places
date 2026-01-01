@@ -43,8 +43,9 @@ CREATE TABLE `usergroup` (
 	`enabled` BOOLEAN NOT NULL DEFAULT 1,
 	PRIMARY KEY (`user`, `group`)
 );
-CREATE TABLE `waypoints` (
+CREATE TABLE `points` (
 	`id` VARCHAR (32) NOT NULL,
+	`userid` VARCHAR (32) NOT NULL,
 	`latitude` DOUBLE NOT NULL,
 	`longitude` DOUBLE NOT NULL,
 	`longitude` DOUBLE NOT NULL,
@@ -52,12 +53,13 @@ CREATE TABLE `waypoints` (
 	`time` VARCHAR (24) NOT NULL DEFAULT '',
 	`common` BOOLEAN NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`),
-	CONSTRAINT `U_waypoints` UNIQUE (`id`)
+	CONSTRAINT `U_points` UNIQUE (`id`)
 );
 CREATE TABLE `places` (
 	`id` VARCHAR (32) NOT NULL,
-	`waypoint` VARCHAR (32) NOT NULL,
+	`userid` VARCHAR (32) NOT NULL,
 	`folderid` VARCHAR (32) NOT NULL DEFAULT 'root',
+	`point` VARCHAR (32) NOT NULL,
 	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
 	`description` VARCHAR (2048) NOT NULL DEFAULT '',
 	`link` VARCHAR (512) NOT NULL DEFAULT '',
@@ -65,29 +67,43 @@ CREATE TABLE `places` (
 	`srt` DOUBLE NOT NULL DEFAULT 0,
 	`geomark` BOOLEAN NOT NULL DEFAULT 1,
 	`common` BOOLEAN NOT NULL DEFAULT 0,
-	`userid` VARCHAR (32) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `U_places` UNIQUE (`id`)
 );
+CREATE TABLE `tracks` (
+	`id` VARCHAR (32) NOT NULL,
+	`userid` VARCHAR (32) NOT NULL,
+	`folderid` VARCHAR (32) NOT NULL DEFAULT 'tracksroot',
+	`points` VARCHAR (32) NOT NULL,
+	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
+	`description` VARCHAR (2048) NOT NULL DEFAULT '',
+	`link` VARCHAR (512) NOT NULL DEFAULT '',
+	`time` VARCHAR (24) NOT NULL DEFAULT '',
+	`srt` DOUBLE NOT NULL DEFAULT 0,
+	`geomark` BOOLEAN NOT NULL DEFAULT 1,
+	`common` BOOLEAN NOT NULL DEFAULT 0,
+	PRIMARY KEY (`id`),
+	CONSTRAINT `U_tracks` UNIQUE (`id`)
+);
 CREATE TABLE `folders` (
 	`id` VARCHAR (32) NOT NULL,
+	`userid` VARCHAR (32) NOT NULL,
 	`parent` VARCHAR (32) NOT NULL DEFAULT 'root',
 	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
 	`description` VARCHAR (2048) NOT NULL DEFAULT '',
 	`srt` DOUBLE NOT NULL DEFAULT 0,
 	`geomarks` BOOLEAN NOT NULL DEFAULT 1,
-	`userid` VARCHAR (32) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `U_folders` UNIQUE (`id`)
 );
 CREATE TABLE `images` (
 	`id` VARCHAR (32) NOT NULL,
+	`placeid` VARCHAR (32) NOT NULL,
 	`file` VARCHAR (40) NOT NULL,
 	`size` INT UNSIGNED NOT NULL,
 	`type` VARCHAR (32) NOT NULL,
 	`lastmodified` INT UNSIGNED NOT NULL,
 	`srt` DOUBLE NOT NULL DEFAULT 0,
-	`placeid` VARCHAR (32) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `U_images` UNIQUE (`id`, `file`)
 );

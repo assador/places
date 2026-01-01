@@ -1,14 +1,12 @@
 <?php
-include "config.php";
-include "newpdo.php";
-include "common.php";
+require_once __DIR__ . '/bootstrap.php';
 
-if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
+if(testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
 	echo 2; exit;
 } else {
-	switch($_POST["need"]) {
+	switch ($_POST["need"]) {
 		case "visiting" :
-			$query = $conn->query("
+			$query = $ctx->db->query("
 				SELECT `id`
 				FROM `groups`
 				WHERE `id`
@@ -23,7 +21,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["userid"])) {
 			echo $result["id"];
 			break;
 		default :
-			$query = $conn->query("
+			$query = $ctx->db->query("
 				SELECT *
 				FROM `groups`
 				WHERE `id`

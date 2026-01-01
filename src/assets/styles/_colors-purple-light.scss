@@ -37,6 +37,14 @@ s.$col-34: rgb(250, 245, 255);
 s.$col-35: rgb(132, 116, 144);
 s.$col-36: rgb(245, 250, 255);
 
+s.$filter-hue-rotate-01: hue-rotate(273deg);
+
+s.$filter-saturate-01: saturate(50%);
+s.$filter-saturate-02: saturate(50%);
+
+s.$filter-brightness-01: brightness(100%);
+s.$filter-brightness-02: brightness(100%);
+
 .colortheme-purple-light {
 	@include s.theme;
 }

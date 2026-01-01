@@ -11,10 +11,6 @@
 			</p>
 			<form
 				class="popup-export__form"
-				@click="e => {
-					e.stopPropagation();
-					mainStore.idleTime = 0;
-				}"
 				@submit.prevent="e => exportPlaces(
 					selectedToExport,
 					(e.target as HTMLFormElement).elements['mime'].value
@@ -50,15 +46,15 @@
 				<p>{{ mainStore.t.i.text.specifyPlacesToExport }}:</p>
 				<div
 					v-if="
-						Object.keys(mainStore.places).length > 0 ||
-						Object.keys(mainStore.folders).length > 0
+						Object.keys(mainStore.places).length ||
+						Object.keys(mainStore.folders).length
 					"
 					id="popup-export__tree"
 					class="menu"
-					@click="e => e.stopPropagation()"
 				>
-					<places-tree
+					<Tree
 						instanceid="popupexporttree"
+						what="places"
 						:data="mainStore.tree || {}"
 					/>
 				</div>
@@ -92,7 +88,7 @@
 import { ref, inject, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
-import PlacesTree from './PlacesTree.vue';
+import Tree from './Tree.vue';
 import { constants } from '../shared/constants';
 
 export interface IPlacesPopupExportProps {

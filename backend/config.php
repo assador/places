@@ -1,12 +1,15 @@
 <?php
-$host = "http://localhost:8080";
-$from = "places@gmail.com";
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+$host = "http://localhost:5173";
 $dirs = array(
 	"uploads" => array(
 		"images" => array(
-			"big" =>            "/uploads/images/big/",
-			"small" =>          "/uploads/images/small/",
-			"orphaned_big" =>   "/uploads/images/big/orphaned/",
+			"big"            => "/uploads/images/big/",
+			"small"          => "/uploads/images/small/",
+			"orphaned_big"   => "/uploads/images/big/orphaned/",
 			"orphaned_small" => "/uploads/images/small/orphaned/",
 		),
 	),
@@ -21,7 +24,22 @@ $db = array(
 	"collation" => "utf8mb4_general_ci",
 	"charset"   => "utf8",
 );
-$testaccountid = "WTFjfa3NGGW8CyeS6CXuvK62TIWPaltF";
+$testaccountuuid = "f201c875-8d80-11f0-9d45-01d62c5c4751";
+$mail = array(
+	"from" => "noreply@places.earth",
+	"name" => "Сервис «Места»",
+	"logs" => "/tmp/mails",
+	"smtp" => null,
+/* example:
+	"smtp" => [
+		"host"     => "smtp.example.com",
+		"port"     => 587,
+		"username" => "...",
+		"password" => "...",
+		"secure"   => "tls",
+	],
+*/
+);
 $lengths = array(
 	"name"        => 500,
 	"description" => 5000,

@@ -37,6 +37,14 @@ s.$col-34: rgb(254, 246, 250);
 s.$col-35: rgb(141, 120, 129);
 s.$col-36: rgb(246, 250, 254);
 
+s.$filter-hue-rotate-01: hue-rotate(333deg);
+
+s.$filter-saturate-01: saturate(40%);
+s.$filter-saturate-02: saturate(40%);
+
+s.$filter-brightness-01: brightness(100%);
+s.$filter-brightness-02: brightness(1000%);
+
 .colortheme-pink-light {
 	@include s.theme;
 }

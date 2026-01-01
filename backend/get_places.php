@@ -1,63 +1,94 @@
 <?php
-include "config.php";
-include "newpdo.php";
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
-$waypoints = []; $places = []; $common_places = []; $folders = [];
-$query = $conn->query("
-	SELECT
-		`w`.`id`,
-		`w`.`latitude`,
-		`w`.`longitude`,
-		`w`.`time`,
-		`w`.`common`
-	FROM `waypoints` `w`
-	INNER JOIN `places` `p`
-	ON `w`.`id` = `p`.`waypoint`
-	AND (
-		`p`.userid = '" . $_GET["id"] . "'
-		OR `p`.`common` = 1
-	)
+require_once __DIR__ . '/bootstrap.php';
+
+$userIdBin = uuidToBin($_GET["id"]);
+
+$points = [];
+$places = [];
+$common_places = [];
+$folders = [];
+
+// Get points.
+$stmt = $ctx->db->prepare("
+	SELECT DISTINCT
+		pt.id,
+		pt.latitude,
+		pt.longitude
+	FROM points pt
+	LEFT JOIN places pl
+		ON pl.pointid = pt.id
+	WHERE pl.userid = :uid OR pl.common = 1
 ");
-$all_waypoints = $query->fetchAll(PDO::FETCH_ASSOC);
-foreach ($all_waypoints as $value) {
-	$waypoints[$value["id"]] = $value;
-}
-$query = $conn->query("
-	SELECT *
-	FROM `places` `p`
-	WHERE `p`.`userid` = '" . $_GET["id"] . "'
-	OR `p`.`common` = 1
-");
-$all_places = $query->fetchAll(PDO::FETCH_ASSOC);
-foreach ($all_places as $value) {
-	if ($value["userid"] == $_GET["id"]) {
-		$places[$value["id"]] = $value;
-	} elseif ($value["common"] == 1) {
-		$common_places[$value["id"]] = $value;
-	}
-}
-$query = $conn->query("SELECT * FROM `images`");
-$images = $query->fetchAll(PDO::FETCH_ASSOC);
-foreach ($images as $value) {
-	if (array_key_exists($value["placeid"], $places)) {
-		$places[$value["placeid"]]["images"][$value["id"]] = $value;
-	}
-	if (array_key_exists($value["placeid"], $common_places)) {
-		$common_places[$value["placeid"]]["images"][$value["id"]] = $value;
-	}
+$stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
+$stmt->execute();
+$points_bin = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($points_bin as $idx => $row) {
+	$row["id"] = binToUuid($row["id"]);
+	$points[$row["id"]] = $row;
 }
 
-$query = $conn->query("
+// Get places (own and common).
+$stmt = $ctx->db->prepare("
 	SELECT *
-	FROM `folders` `f`
-	WHERE `f`.`userid` = '" . $_GET["id"] . "'
+	FROM `places` `pl`
+	WHERE `pl`.`userid` = :uid OR `pl`.`common` = 1
 ");
-$all_folders = $query->fetchAll(PDO::FETCH_ASSOC);
-foreach ($all_folders as $value) {
-	$folders[$value["id"]] = $value;
+$stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
+$stmt->execute();
+$places_bin = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($places_bin as $idx => $row) {
+	$row["id"] = binToUuid($row["id"]);
+	$row["userid"] = binToUuid($row["userid"]);
+	$row["pointid"] = binToUuid($row["pointid"]);
+	if ($row["folderid"] != null) $row["folderid"] = binToUuid($row["folderid"]);
+	if ($row["userid"] == $_GET["id"]) {
+		$places[$row["id"]] = $row;
+	} elseif ($row["common"] == 1) {
+		$common_places[$row["id"]] = $row;
+	}
 }
+
+// Get images and put them in place.
+$stmt = $ctx->db->query("
+	SELECT *
+	FROM images
+");
+$images_bin = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($images_bin as $idx => $row) {
+	$row["id"] = binToUuid($row["id"]);
+	$row["placeid"] = binToUuid($row["placeid"]);
+	if (isset($places[$row["placeid"]])) {
+		$places[$row["placeid"]]["images"][$row["id"]] = $row;
+	}
+	if (isset($common_places[$row["placeid"]])) {
+		$common_places[$row["placeid"]]["images"][$row["id"]] = $row;
+	}
+}
+
+// Get folders.
+$stmt = $ctx->db->prepare("SELECT * FROM folders WHERE userid = :uid");
+$stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
+$stmt->execute();
+
+foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+	$row["id"] = binToUuid($row["id"]);
+	$row["userid"] = binToUuid($row["userid"]);
+	if ($row["parent"] !== null) {
+		$row["parent"] = binToUuid($row["parent"]);
+	}
+	$folders[$row["id"]] = $row;
+}
+
+// Return JSON.
 echo json_encode([
-	"waypoints" => $waypoints,
+	"points" => $points,
 	"places" => $places,
 	"common_places" => $common_places,
 	"folders" => $folders

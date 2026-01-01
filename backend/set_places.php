@@ -1,300 +1,292 @@
 <?php
-include "config.php";
-include "newpdo.php";
-include "common.php";
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
-$_POST = json_decode(file_get_contents("php://input"), true);
-$faults = [];
-/*
- * 1: Something’s wrong
- * 2: Test account
- * 3: Places limit reached
- * 4: Folders limit reached
- */
-function updateImages(&$conn, &$stmt, $images) {
-	$stmt = $conn->prepare("
-		INSERT INTO `images` (
-			`id`           ,
-			`file`         ,
-			`size`         ,
-			`type`         ,
-			`lastmodified` ,
-			`srt`          ,
-			`placeid`
-		) VALUES (
-			:id            ,
-			:file          ,
-			:size          ,
-			:type          ,
-			:lastmodified  ,
-			:srt           ,
-			:placeid
-		)
+require_once __DIR__ . '/bootstrap.php';
+
+$raw = file_get_contents("php://input");
+$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+$list = $data["data"] ?? [];
+
+$faults = []; // 1: wrong data, 2: test account, 3: places limit, 4: folders limit
+
+// Helpers
+
+function checkSession(AppContext $ctx, string $sessionid): bool {
+	$stmt = $ctx->db->prepare("
+		SELECT * FROM `sessions`
+		WHERE `id` = :sessionid
 	");
-	$stmt->bindParam( ":id"           , $id           );
-	$stmt->bindParam( ":file"         , $file         );
-	$stmt->bindParam( ":size"         , $size         );
-	$stmt->bindParam( ":type"         , $type         );
-	$stmt->bindParam( ":lastmodified" , $lastmodified );
-	$stmt->bindParam( ":srt"          , $srt          );
-	$stmt->bindParam( ":placeid"      , $placeid      );
-	foreach($images as $row) {
-		$id           = $row[ "id"           ];
-		$file         = $row[ "file"         ];
-		$size         = $row[ "size"         ];
-		$type         = $row[ "type"         ];
-		$lastmodified = $row[ "lastmodified" ];
-		$srt          = $row[ "srt"          ];
-		$placeid      = $row[ "placeid"      ];
-		$stmt->execute();
-	}
+	$stmt->bindValue(":sessionid", uuidToBin($sessionid), PDO::PARAM_LOB);
+	$stmt->execute();
+	$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	return (count($result) > 0 ? true : false);
 }
-if(testAccountCheck($conn, $testaccountid, $_POST["id"])) {
-	echo json_encode([2], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
-	exit;
-} else {
-	$query = $conn->query("
-		SELECT COUNT(*)
-		AS `count`
-		FROM `places`
-		WHERE `userid` = '" . $_POST["id"] . "'"
-	);
-	$placescount = $query->fetch(PDO::FETCH_ASSOC);
-	$query = $conn->query("
-		SELECT COUNT(*)
-		AS `count`
-		FROM `folders`
-		WHERE `userid` = '" . $_POST["id"] . "'"
-	);
-	$folderscount = $query->fetch(PDO::FETCH_ASSOC);
-	$query = $conn->query("
-		SELECT `id`
-		FROM `groups`
-		WHERE `id`
-		IN (
-			SELECT `group`
-			FROM `usergroup`
-			WHERE `user` = '" . $_POST["id"] . "'
+function deleteById(AppContext $ctx, string $table, string $id): void {
+	$sql = "DELETE FROM {$table} WHERE id = :id";
+	$params = [":id" => uuidToBin($id)];
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute($params);
+}
+function addPoint(AppContext $ctx, array $row): void {
+	$sql = "
+		INSERT INTO points (
+			id, latitude, longitude, altitude, location
+		) VALUES (
+			:id,
+			:latitude,
+			:longitude,
+			:altitude,
+			ST_GeomFromText(CONCAT('POINT(', :longitude, ' ', :latitude, ')'), 4326)
 		)
-		AND `parent` = 'visiting'
-	");
-	$visiting = $query->fetch(PDO::FETCH_ASSOC);
-	if($_POST["what"] == "places") {
-		$delete = $conn->prepare("DELETE FROM `places` WHERE `id` = :id AND `userid` = :userid");
-		$append = $conn->prepare("
-			INSERT INTO `places` (
-				`id`                 ,
-				`folderid`           ,
-				`name`               ,
-				`description`        ,
-				`waypoint`           ,
-				`link`               ,
-				`time`               ,
-				`srt`                ,
-				`geomark`            ,
-				`common`             ,
-				`userid`
-			) VALUES (
-				:id                 ,
-				:folderid           ,
-				:name               ,
-				:description        ,
-				:waypoint           ,
-				:link               ,
-				:time               ,
-				:srt                ,
-				:geomark            ,
-				:common             ,
-				:userid
-			)
-		");
-		$update = $conn->prepare("
-			UPDATE `places` SET
-				`id`                 = :id                 ,
-				`folderid`           = :folderid           ,
-				`name`               = :name               ,
-				`description`        = :description        ,
-				`waypoint`           = :waypoint           ,
-				`link`               = :link               ,
-				`time`               = :time               ,
-				`srt`                = :srt                ,
-				`geomark`            = :geomark            ,
-				`common`             = :common             ,
-				`userid`             = :userid
-			WHERE `id` = :id
-		");
-		$updateimage = $conn->prepare("
-			UPDATE `images` SET
-				`id`           = :id           ,
-				`file`         = :file         ,
-				`size`         = :size         ,
-				`type`         = :type         ,
-				`lastmodified` = :lastmodified ,
-				`srt`          = :srt          ,
-				`placeid`      = :placeid
-			WHERE `id` = :id
-		");
-		foreach($_POST["data"] as $row) {
-			if($row["deleted"] == true) {
-				$delete->bindParam( ":id"     , $row["id"]);
-				$delete->bindParam( ":userid" , $_POST["id"]);
-				try {
-					$delete->execute();
-					$placescount["count"]--;
-				} catch(Exception $e) {
-					error_log($e);
-					continue;
-				}
-			} elseif($row["added"] == true) {
-				if(
-					$placescount["count"] < $rights["placescount"][$visiting["id"]]
-					|| $rights["placescount"][$visiting["id"]] < 0
-				) {
-					$append->bindParam( ":id"                 , $row[ "id"                 ]);
-					$append->bindParam( ":folderid"           , $row[ "folderid"           ]);
-					$append->bindParam( ":name"               , $row[ "name"               ]);
-					$append->bindParam( ":description"        , $row[ "description"        ]);
-					$append->bindParam( ":waypoint"           , $row[ "waypoint"           ]);
-					$append->bindParam( ":link"               , $row[ "link"               ]);
-					$append->bindParam( ":time"               , $row[ "time"               ]);
-					$append->bindParam( ":srt"                , $row[ "srt"                ]);
-					$append->bindParam( ":geomark"            , $row[ "geomark"            ]);
-					$append->bindParam( ":common"             , $row[ "common"             ]);
-					$append->bindParam( ":userid"             , $_POST["id"]);
-					try {
-						$append->execute();
-						$placescount["count"]++;
-					} catch(Exception $e) {
-						error_log($e);
+		ON DUPLICATE KEY UPDATE
+			latitude  = VALUES(latitude),
+			longitude = VALUES(longitude),
+			altitude  = VALUES(altitude),
+			location  = VALUES(location)
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id"        => uuidToBin($row["id"]),
+		":latitude"  => $row["latitude"] ?? 0,
+		":longitude" => $row["longitude"] ?? 0,
+		":altitude"  => $row["altitude"] ?? null,
+	]);
+}
+function addPlace(AppContext $ctx, array $row): void {
+	$sql = "
+		INSERT INTO places (
+			id, pointid, folderid, name, description, link, time, srt, geomark, common, userid
+		) VALUES (
+			:id, :pointid, :folderid, :name, :description, :link, :time, :srt, :geomark, :common, :userid
+		)
+		ON DUPLICATE KEY UPDATE
+			pointid     = VALUES(pointid),
+			folderid    = VALUES(folderid),
+			name        = VALUES(name),
+			description = VALUES(description),
+			link        = VALUES(link),
+			time        = VALUES(time),
+			srt         = VALUES(srt),
+			geomark     = VALUES(geomark),
+			common      = VALUES(common)
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id"          => uuidToBin($row["id"]),
+		":pointid"     => uuidToBin($row["pointid"]),
+		":name"        => $row["name"] ?? "",
+		":description" => $row["description"] ?? "",
+		":link"        => $row["link"] ?? "",
+		":time"        => $row["time"] ?? "",
+		":srt"         => $row["srt"] ?? 0,
+		":geomark"     => (int)($row["geomark"] ?? 0),
+		":common"      => (int)($row["common"] ?? 0),
+		":userid"      => uuidToBin($row["userid"]),
+		":folderid" => (
+			$row["folderid"] == "root"
+				? null
+				: (uuidToBin($row["folderid"]) ?? null)
+		),
+	]);
+}
+function addFolder(AppContext $ctx, array $row): void {
+	$sql = "
+		INSERT INTO folders (id, parent, name, description, srt, geomarks, userid)
+		VALUES (:id, :parent, :name, :description, :srt, :geomarks, :userid)
+		ON DUPLICATE KEY UPDATE
+			parent      = VALUES(parent),
+			name        = VALUES(name),
+			description = VALUES(description),
+			srt         = VALUES(srt),
+			geomarks    = VALUES(geomarks)
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id"          => uuidToBin($row["id"]),
+		":parent"      => uuidToBin($row["parent"]) ?? null,
+		":name"        => $row["name"] ?? "",
+		":description" => $row["description"] ?? "",
+		":srt"         => $row["srt"] ?? 0,
+		":geomarks"    => (int)($row["geomarks"] ?? 0),
+		":userid"      => uuidToBin($row["userid"]),
+	]);
+}
+function addImage(AppContext $ctx, array $img): void {
+	$sql = "
+		INSERT INTO images (id, placeid, file, size, type, lastmodified, srt)
+		VALUES (:id, :placeid, :file, :size, :type, :lastmodified, :srt)
+		ON DUPLICATE KEY UPDATE
+			placeid      = VALUES(placeid)
+			file         = VALUES(file),
+			size         = VALUES(size),
+			type         = VALUES(type),
+			lastmodified = VALUES(lastmodified),
+			srt          = VALUES(srt),
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id"           => uuidToBin($img["id"]),
+		":placeid"      => uuidToBin($img["placeid"]),
+		":file"         => $img["file"] ?? "",
+		":size"         => (int)($img["size"] ?? 0),
+		":type"         => $img["type"] ?? "",
+		":lastmodified" => (int)($img["lastmodified"] ?? 0),
+		":srt"          => (int)($img["srt"] ?? 0),
+	]);
+}
+
+// Session check
+
+if (checkSession($ctx, $sessionid) === false) {
+	echo 5; exit;
+}
+
+// Limits
+
+$placescount  = (int)$ctx->db->query("
+	SELECT COUNT(*) AS c
+	FROM places
+	WHERE userid = " . $ctx->db->quote(uuidToBin($data["userid"])) . "
+")->fetch(PDO::FETCH_ASSOC)["c"];
+
+$folderscount = (int)$ctx->db->query("
+	SELECT COUNT(*) AS c
+	FROM folders
+	WHERE userid = " . $ctx->db->quote(uuidToBin($data["userid"])) . "
+")->fetch(PDO::FETCH_ASSOC)["c"];
+
+$visiting = $ctx->db->query("
+	SELECT id
+	FROM `groups`
+	WHERE id IN (
+		SELECT `group` FROM usergroup WHERE `user` = 
+		" . $ctx->db->quote(uuidToBin($data["userid"])) . "
+	)
+		AND parent = 'visiting'
+")->fetch(PDO::FETCH_ASSOC);
+
+$groupId = $visiting["id"] ?? null;
+
+$placesLimit = $groupId && isset($rights["placescount"][$groupId])
+	? (int)$rights["placescount"][$groupId] : 0;
+$foldersLimit = $groupId && isset($rights["folderscount"][$groupId])
+	? (int)$rights["folderscount"][$groupId] : 0;
+
+// Transaction
+
+try {
+	$ctx->db->beginTransaction();
+	foreach ($list as $what => $dataects) {
+		switch ($what) {
+			case "points": {
+				$delPointStmt = $ctx->db->prepare("
+					DELETE FROM points
+					WHERE id = :id
+				");
+				foreach ($dataects as $row) {
+					if (!empty($row["deleted"])) {
+						$delPointStmt->execute([
+							":id" => uuidToBin($row["id"]),
+						]);
 						continue;
 					}
-				} else {
-					if(!in_array(3, $faults)) {$faults[] = 3;}
+					if (!empty($row["added"])) {
+						addPoint($ctx, $row);
+					}
 				}
-			} elseif($row["updated"] == true) {
-				$update->bindParam( ":id"                 , $row[ "id"                 ]);
-				$update->bindParam( ":folderid"           , $row[ "folderid"           ]);
-				$update->bindParam( ":name"               , $row[ "name"               ]);
-				$update->bindParam( ":description"        , $row[ "description"        ]);
-				$update->bindParam( ":waypoint"           , $row[ "waypoint"           ]);
-				$update->bindParam( ":link"               , $row[ "link"               ]);
-				$update->bindParam( ":time"               , $row[ "time"               ]);
-				$update->bindParam( ":srt"                , $row[ "srt"                ]);
-				$update->bindParam( ":geomark"            , $row[ "geomark"            ]);
-				$update->bindParam( ":common"             , $row[ "common"             ]);
-				$update->bindParam( ":userid"             , $_POST["id"]);
-				try {$update->execute();} catch(Exception $e) {
-					error_log($e);
-					continue;
-				}
-				if(array_key_exists("images", $row)) {
-					foreach($row["images"] as $image) {
-						$updateimage->bindParam( ":id"           , $image["id"           ]);
-						$updateimage->bindParam( ":file"         , $image["file"         ]);
-						$updateimage->bindParam( ":size"         , $image["size"         ]);
-						$updateimage->bindParam( ":type"         , $image["type"         ]);
-						$updateimage->bindParam( ":lastmodified" , $image["lastmodified" ]);
-						$updateimage->bindParam( ":srt"          , $image["srt"          ]);
-						$updateimage->bindParam( ":placeid"      , $image["placeid"      ]);
-						try {$updateimage->execute();} catch(Exception $e) {
-							error_log($e);
+				break;
+			}
+			case "places": {
+				// Calculate the limit deltas within the package
+				$delta = 0;
+				foreach ($dataects as $row) {
+					if (!empty($row["deleted"])) {
+						$delta--;
+						$delPlaceStmt = $ctx->db->prepare("
+							DELETE FROM places
+							WHERE id = :id
+								AND userid = :userid
+						");
+						$delPlaceStmt->execute([
+							":id" => uuidToBin($row["id"]),
+							":userid" => uuidToBin($data["userid"]),
+						]);
+						continue;
+					}
+					if (!empty($row["added"])) {
+						$delta++;
+						if ($placesLimit >= 0 && $placescount >= $placesLimit) {
+							if (!in_array(3, $faults)) $faults[] = 3; // limit
 							continue;
 						}
-					}
-				}
-			}
-		}
-	} elseif($_POST["what"] == "folders") {
-		$delete = $conn->prepare("DELETE FROM `folders` WHERE `id` = :id AND `userid` = :userid");
-		$append = $conn->prepare("
-			INSERT INTO `folders` (
-				`id`          ,
-				`parent`      ,
-				`name`        ,
-				`description` ,
-				`srt`         ,
-				`geomarks`    ,
-				`userid`
-			) VALUES (
-				:id           ,
-				:parent       ,
-				:name         ,
-				:description  ,
-				:srt          ,
-				:geomarks     ,
-				:userid
-			)
-		");
-		$update = $conn->prepare("
-			UPDATE `folders` SET
-				`id`          = :id          ,
-				`parent`      = :parent      ,
-				`name`        = :name        ,
-				`description` = :description ,
-				`srt`         = :srt         ,
-				`geomarks`    = :geomarks    ,
-				`userid`      = :userid
-			WHERE `id` = :id
-		");
-		foreach($_POST["data"] as $row) {
-			if($row["deleted"] == true) {
-				$delete->bindParam(":id", $row[ "id" ]);
-				$delete->bindParam(":userid", $_POST["id"]);
-				try {
-					$delete->execute();
-					$folderscount["count"]--;
-				} catch(Exception $e) {
-					error_log($e);
-					continue;
-				}
-			} elseif($row["added"] == true) {
-				if(
-					$folderscount["count"] < $rights["folderscount"][$visiting["id"]]
-					|| $rights["folderscount"][$visiting["id"]] < 0
-				) {
-					$append->bindParam( ":id"          , $row[ "id"          ]);
-					$append->bindParam( ":parent"      , $row[ "parent"      ]);
-					$append->bindParam( ":name"        , $row[ "name"        ]);
-					$append->bindParam( ":description" , $row[ "description" ]);
-					$append->bindParam( ":srt"         , $row[ "srt"         ]);
-					$append->bindParam( ":geomarks"    , $row[ "geomarks"    ]);
-					$append->bindParam( ":userid"      , $_POST["id"]);
-					try {
-						$append->execute();
-						$folderscount["count"]++;
-					} catch(Exception $e) {
-						error_log($e);
+						$placescount++;
+						addPlace($ctx, $row);
 						continue;
 					}
-				} else {
-					if(!in_array(4, $faults)) {$faults[] = 4;}
+					if (!empty($row["images"]) && is_array($row["images"])) {
+						foreach ($row["images"] as $img) {
+							addImage($ctx, $img);
+						}
+					}
+					if (!empty($row["updated"])) {
+						continue;
+					}
 				}
+				break;
 			}
-			if($row["updated"] == true) {
-				$update->bindParam( ":id"          , $row[ "id"          ]);
-				$update->bindParam( ":parent"      , $row[ "parent"      ]);
-				$update->bindParam( ":name"        , $row[ "name"        ]);
-				$update->bindParam( ":description" , $row[ "description" ]);
-				$update->bindParam( ":srt"         , $row[ "srt"         ]);
-				$update->bindParam( ":geomarks"    , $row[ "geomarks"    ]);
-				$update->bindParam( ":userid"      , $_POST["id"]);
-				try {$update->execute();} catch(Exception $e) {
-					error_log($e);
-					continue;
+			case "folders": {
+				$delta = 0;
+				foreach ($dataects as $row) {
+					if (!empty($row["deleted"])) {
+						$delta--;
+						$delFolderStmt = $ctx->db->prepare("
+							DELETE FROM folders
+							WHERE id = :id
+								AND userid = :userid
+						");
+						$delFolderStmt->execute([
+							":id" => uuidToBin($row["id"]),
+							":userid" => uuidToBin($data["userid"])
+						]);
+						continue;
+					}
+					if (!empty($row["added"])) {
+						if ($foldersLimit >= 0 && $folderscount >= $foldersLimit) {
+							if (!in_array(4, $faults)) $faults[] = 4; // limit
+							continue;
+						}
+						if ($foldersLimit >= 0) $folderscount++;
+						addFolder($ctx, $row);
+					}
+					if (!empty($row["updated"])) {
+						continue;
+					}
 				}
+				break;
 			}
+			case "images_upload": {
+				foreach ($dataects as $img) addImage($ctx, $img);
+				break;
+			}
+			case "images_delete": {
+				foreach ($dataects as $row) {
+					deleteById($ctx, "images", $row["id"]);
+				}
+				break;
+			}
+			default:
+				$faults[] = 1;
 		}
-	} elseif($_POST["what"] == "images_upload") {
-		updateImages($conn, $stmt, $_POST["data"]);
-	} elseif($_POST["what"] == "images_delete") {
-		$ids = "";
-		foreach($_POST["data"] as $row) {
-			$ids .= "'{$row["id"]}',";
-		}
-		$ids = rtrim($ids, ",");
-		$stmt = $conn->prepare("DELETE FROM `images` WHERE `id` IN (" . $ids . ")");
-		try {$stmt->execute();} catch(Exception $e) {error_log($e);}
 	}
-	echo json_encode($faults, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
-	exit;
+	$ctx->db->commit();
+} catch (Throwable $e) {
+	$ctx->db->rollBack();
+	if (!in_array(1, $faults)) $faults[] = 1;
 }
+echo json_encode(
+	$faults,
+	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
+);
+exit;

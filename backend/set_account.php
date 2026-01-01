@@ -1,16 +1,25 @@
 <?php
-include "config.php";
-include "newpdo.php";
-include "common.php";
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+require_once __DIR__ . '/bootstrap.php';
 
 $date = new DateTime();
 $date->add(new DateInterval("P1D"));
 
 $_POST = json_decode(file_get_contents("php://input"), true);
-if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
+$idBin = uuidToBin($_POST["accountId"]);
+if (testAccountCheck($ctx, $testaccountuuid, $_POST["accountId"])) {
 	echo 2; exit;
 } else {
-	$query = $conn->query("SELECT * FROM `users` WHERE `id` = '" . $_POST["accountId"] . "' AND `confirmed` = 1");
+	$query = $ctx->db->prepare("
+		SELECT * FROM `users`
+		WHERE `id` = :id
+			AND `confirmed` = 1
+	");
+	$query->bindValue(':id', $idBin, PDO::PARAM_LOB);
+	$query->execute();
 	$result = $query->fetch(PDO::FETCH_ASSOC);
 	if(!!$result) {
 		$passwordchange =
@@ -18,7 +27,7 @@ if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
 			password_verify($_POST["accountNewPassword"], $result["password"])
 				? false : true;
 	}
-	if(
+	if (
 		count($result) == 0 ||
 		$result["login" ] == $_POST["accountLogin" ] &&
 		$result["name"  ] == $_POST["accountName"  ] &&
@@ -29,50 +38,72 @@ if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
 		echo 0; exit;
 	}
 	$currentuser = $result;
-	if($currentuser["login" ] != $_POST["accountLogin" ]) {
-		$query = $conn->query("SELECT `id` FROM `users` WHERE `login` = '" . $_POST["accountLogin"] . "'");
+	if ($currentuser["login" ] != $_POST["accountLogin" ]) {
+		$query = $ctx->db->prepare("
+			SELECT `id` FROM `users`
+			WHERE `login` = :login
+		");
+		$query->bindValue(':login', $_POST["accountLogin"], PDO::PARAM_LOB);
+		$query->execute();
 		$result = $query->fetch(PDO::FETCH_ASSOC);
 		if(!!$result) {
 			echo 3; exit;
 		}
 	}
-	$query = $conn->query("SELECT `id` FROM `users_change` WHERE `id` = '" . $_POST["accountId"] . "'");
+	$query = $ctx->db->prepare("
+		SELECT `id` FROM `userschange`
+		WHERE `id` = :id
+	");
+	$query->bindValue(':id', $idBin, PDO::PARAM_LOB);
+	$query->execute();
 	$result = $query->fetch(PDO::FETCH_ASSOC);
-	if(!!$result) {
-		$query = $conn->query("DELETE FROM `users_change` WHERE `id` = '" . $_POST["accountId"] . "'");
+	if (!!$result) {
+		$query = $ctx->db->prepare("
+			DELETE FROM `userschange`
+			WHERE `id` = :id
+		");
+		$query->bindValue(':id', $idBin, PDO::PARAM_LOB);
 		$result = $query->execute();
 	}
 	$token = generateRandomString(32);
-	$query = $conn->prepare(
-		"INSERT INTO `users_change` (`id`, `login`, `password`, `name`, `email`, `phone`, `confirmed`, `confirmbefore`, `token`) VALUES ('" .
-		$_POST["accountId"] .
-		"', '" .
-		$_POST["accountLogin"] .
-		"', '" .
-		($passwordchange
+	$query = $ctx->db->prepare("
+		INSERT INTO `userschange` (
+			`id`,
+			`login`,
+			`password`,
+			`name`,
+			`email`,
+			`phone`,
+			`confirmed`,
+			`confirmbefore`,
+			`token`
+		) VALUES (
+			:id,
+			:login,
+			:password,
+			:name,
+			:email,
+			:phone,
+			:confirmed,
+			:confirmbefore,
+			:token
+		)"
+	);
+	$query->bindValue(':id', $idBin, PDO::PARAM_LOB);
+	$query->bindValue(':login', $_POST["accountLogin"]);
+	$query->bindValue(':password', (
+		$passwordchange
 			? password_hash($_POST["accountNewPassword"], PASSWORD_DEFAULT)
 			: $currentuser["password"]
-		) .
-		"', '" .
-		$_POST["accountName"] .
-		"', '" .
-		$_POST["accountEmail"] .
-		"', '" .
-		$_POST["accountPhone"] .
-		"', 0, '" .
-		$date->format("Y-m-d H:i:s") .
-		"', '" .
-		$token .
-		"')"
-	);
+	));
+	$query->bindValue(':name', $_POST["accountName"]);
+	$query->bindValue(':email', $_POST["accountEmail"]);
+	$query->bindValue(':phone', $_POST["accountPhone"]);
+	$query->bindValue(':confirmed', 0);
+	$query->bindValue(':confirmbefore', $date->format("Y-m-d H:i:s"));
+	$query->bindValue(':token', $token);
 	$result = $query->execute();
-	
-	$headers =
-		"MIME-Version: 1.0" . "\r\n" .
-		"Content-type: text/html; charset=utf-8" . "\r\n" .
-		"From: =?utf-8?b?" . base64_encode("Сервис «Места»") . "?= <" . $from . ">"
-	;
-	$subject = "=?utf-8?b?" . base64_encode("Подтверждение изменения данных аккаунта в сервисе «Места»") . "?=";
+
 	$message = '
 		<html>
 		<head>
@@ -91,6 +122,16 @@ if(testAccountCheck($conn, $testaccountid, $_POST["accountId"])) {
 		</body>
 		</html>
 	';
-	mail($_POST["accountEmail"], $subject, $message, $headers);
-	echo 1; exit;
+	$sent = sendMail(
+		$_POST["accountEmail"],
+		"Подтверждение изменения данных аккаунта в сервисе «Места»",
+		$message,
+		$config["mail"]
+	);
+	if (!$sent) {
+		echo 0;
+		exit;
+	}
+	echo 1;
+	exit;
 }

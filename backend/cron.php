@@ -1,51 +1,23 @@
 <?php
-include "config.php";
-include "newpdo.php";
+require_once __DIR__ . '/bootstrap.php';
 
-$query = $conn->query("SET FOREIGN_KEY_CHECKS = 0");
-$query->execute();
+// Disable FK checks during cleaning.
+$ctx->db->exec("SET FOREIGN_KEY_CHECKS = 0");
 
-$query = $conn->query("
-	SELECT `w`.`id`
-	FROM `waypoints` `w`
+// Clean out orphan points.
+// Remove points that are not referenced by any place.
+$ctx->db->exec("
+	DELETE FROM points
+	WHERE id NOT IN (
+		SELECT pointid FROM places
+	)
 ");
-$waypoints = $query->fetchAll(PDO::FETCH_ASSOC);
 
-$all_with_waypoint_id = [];
-$orphaned_waypoints_ids = [];
-foreach ($waypoints as $waypoint) {
-	$query = $conn->query("
-		SELECT `p`.`id`
-		FROM `places` `p`
-		WHERE `p`.`waypoint` = '" . $waypoint["id"] . "'
-	");
-	$get_all_with_waypoint_id = $query->fetchAll(PDO::FETCH_ASSOC);
-	if (count($get_all_with_waypoint_id) === 0) {
-		$orphaned_waypoints_ids[] = $waypoint["id"];
-	}
-}
-
-$query = $conn->query("
-	DELETE FROM `waypoints` WHERE `id` IN ('" .
-		implode("','", $orphaned_waypoints_ids)
-	. "')
+// Clean out unconfirmed users.
+$ctx->db->exec("
+	DELETE FROM users
+	WHERE confirmed = 0
+		AND confirmbefore < NOW()
 ");
-$query->execute();
 
-$query = $conn->query("
-	SELECT `u`.`id`, `u`.`confirmbefore`
-	FROM `users` `u`
-	WHERE `u`.`confirmed` = 0
-");
-$users = $query->fetchAll(PDO::FETCH_ASSOC);
-$nowDateTime = new DateTime("now");
-foreach($users as $user) {
-	$regDateTime = DateTime::createFromFormat("Y-m-d H:i:s", $user["confirmbefore"]);
-	if($regDateTime < $nowDateTime) {
-		$query = $conn->query("DELETE FROM `users` WHERE `id` = '" . $user["id"] . "'");
-		$query->execute();
-	}
-}
-
-$query = $conn->query("SET FOREIGN_KEY_CHECKS = 1");
-$query->execute();
+$ctx->db->exec("SET FOREIGN_KEY_CHECKS = 1");

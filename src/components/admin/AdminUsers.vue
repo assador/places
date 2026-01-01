@@ -104,7 +104,6 @@
 							(value !== '' || tableMode === 1) &&
 							key as unknown as string !== 'id' &&
 							key as unknown as string !== 'password' &&
-							key as unknown as string !== 'token' &&
 							key as unknown as string !== 'homeplace' &&
 							key as unknown as string !== 'checked'
 						"

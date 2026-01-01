@@ -4,9 +4,9 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v5.12.8 beta</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.0.0 beta</p>
 		</div>
-		<places-dashboard />
+		<Dashboard />
 		<div class="auth-forms">
 			<div class="auth-login margin_bottom">
 				<form
@@ -27,8 +27,7 @@
 								mainStore.t.i.inputs.authTest
 							"
 							autofocus
-							@keyup.enter="authLoginSubmit"
-							/>
+						/>
 						<div class="password nobr">
 							<input
 								id="auth-password-input"
@@ -40,7 +39,6 @@
 									mainStore.t.i.inputs.regPassword + ' ' +
 									mainStore.t.i.inputs.authTest
 								"
-								@keyup.enter="authLoginSubmit"
 							/>
 							<button type="button" @click.prevent="e => {
 								passwordShowHide(
@@ -85,7 +83,7 @@
 					<button type="submit">
 						{{ mainStore.t.i.buttons.sendPassword }}
 					</button>
-					<div>
+					<div class="auth-forgot-message">
 						{{ forgot.message }}
 					</div>
 				</form>
@@ -105,7 +103,7 @@
 						type="text"
 						:placeholder="mainStore.t.i.inputs.regLogin"
 						@keyup.enter="authRegSubmit"
-						/>
+					/>
 					<input
 						id="reg-name-input"
 						v-model.trim="regName"
@@ -173,7 +171,7 @@
 				<button type="submit">
 					{{ mainStore.t.i.buttons.register }}
 				</button>
-				<div>
+				<div v-if="reg.message" class="margin_top">
 					{{ reg.message }}
 				</div>
 			</form>
@@ -181,34 +179,30 @@
 		<div>
 			<button
 				:title="mainStore.t.i.hints.about"
-				@click="router.push(
-					{name: 'PlacesAuthText', params: {what: 'about'}}
-				).catch(e => {console.error(e);})"
+				@click="router.push({name: 'AuthText', params: {what: 'about'}})"
 			>
 				{{ mainStore.t.i.buttons.whatIsIt }}
 			</button>
 		</div>
-		<p-w-a-prompt />
+		<PWAPrompt />
 		<router-view />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUpdated } from 'vue';
+import { ref, nextTick, onBeforeMount, onMounted, onUpdated } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { loginRoutine, login } from '@/shared/auth';
 import { regRoutine, reg } from '@/shared/reg';
 import { forgotRoutine, forgot } from '@/shared/forgot';
-import PlacesDashboard from './PlacesDashboard.vue';
+import Dashboard from './Dashboard.vue';
 import PWAPrompt from './PWAPrompt.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();
 
-const authLoginForm = ref(null);
-const authRegForm = ref(null);
 const authLogin = ref('');
 const authPassword = ref('');
 const regLogin = ref('');
@@ -222,9 +216,9 @@ const forgotEmail = ref('');
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
 }
-const authLoginSubmit = (e: Event): void => {
+const authLoginSubmit = async (e: Event) => {
 	if (!authLogin.value || !authPassword.value) return;
-	loginRoutine({
+	await loginRoutine({
 		authLogin: authLogin.value,
 		authPassword: authPassword.value,
 	}, mainStore.t);
@@ -256,13 +250,15 @@ const authRegSubmit = (): boolean => {
 	return true;
 };
 const authForgot = (): void => {
-	if (!document.getElementById('forgotEmail')!.classList.contains('value_wrong')) {
+	if (!document.getElementById('forgot-email-input')!.classList.contains('value_wrong')) {
 		forgotRoutine({forgotEmail: forgotEmail.value}, mainStore.t);
 	} else {
 		forgot.message = mainStore.t.m.paged.incorrectEmail;
 	}
 };
-
+onBeforeMount(() => {
+	mainStore.$reset();
+});
 onMounted(async () => {
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
@@ -296,6 +292,9 @@ onUpdated(async () => {
 }
 .auth-registration-fields {
 	grid-template-columns: 1fr 1fr;
+}
+.auth-forgot-message:not(:empty) {
+	margin-top: 12px;
 }
 #dashboard {
 	margin: -40px 0 40px 0;

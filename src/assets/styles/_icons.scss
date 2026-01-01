@@ -1,0 +1,23 @@
+/*
+.icon {
+	background: center / contain no-repeat;
+	&-plus {
+		background-image: url('@/assets/icons/plus.svg');
+	}
+}
+*/
+.icon {
+	position: relative;
+	&::before {
+		position: absolute;
+		top: 0; right: 0; bottom: 0; left: 0;
+	}
+	&-plus::before { content: url('@/assets/icons/plus.svg'); }
+	&-minus::before { content: url('@/assets/icons/minus.svg'); }
+	&-cross-45::before { content: url('@/assets/icons/cross-45.svg'); }
+	&-circle::before { content: url('@/assets/icons/circle.svg'); }
+	&-circle-full::before { content: url('@/assets/icons/circle-full.svg'); }
+	&-geomark-0::before { content: url('@/assets/icons/circle.svg'); }
+	&-geomark-1::before { content: url('@/assets/icons/geomark-1.svg'); }
+	&-geomark-2::before { content: url('@/assets/icons/geomark-2.svg'); }
+}

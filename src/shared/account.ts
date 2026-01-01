@@ -4,8 +4,8 @@ import axios from 'axios';
 export const acc = reactive({
 	message: '',
 });
-export const accountSaveRoutine = (account: Record<string, string>, voc) => {
-	if (account.accountNewPassword == undefined) account.accountNewPassword = '';
+export const accountSaveRoutine = async (account: Record<string, string>, voc) => {
+	if (account.accountNewPassword === undefined) account.accountNewPassword = '';
 	axios.post('/backend/set_account.php', account)
 		.then(response => {
 			switch (response.data) {
@@ -23,6 +23,9 @@ export const accountSaveRoutine = (account: Record<string, string>, voc) => {
 					break;
 			}
 		})
+		.catch(error => {
+			acc.message = error;
+		})
 	;
 };
 export const accountDeletionRoutine = (
@@ -32,6 +35,6 @@ export const accountDeletionRoutine = (
 ) => {
 	axios.post(
 		'/backend/delete_account.php',
-		{userId: userId, leavePlaces: leavePlaces, leaveImages: leaveImages}
+		{ userId: userId, leavePlaces: leavePlaces, leaveImages: leaveImages }
 	);
 };

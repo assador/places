@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="20"
+   height="20"
+   viewBox="0 0 20 20"
+   version="1.1"
+   id="svg-minus"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1">
+    <path
+       id="path1"
+       style="stroke:none;fill:#ff0000;fill-opacity:1"
+       d="M 10 0 C 4.4771525 0 0 4.4771525 0 10 C 0 15.522847 4.4771525 20 10 20 C 15.522847 20 20 15.522847 20 10 C 20 4.4771525 15.522847 0 10 0 z M 10 1 C 14.970562 1.0000007 18.999999 5.0294375 19 10 C 18.999999 14.970562 14.970562 18.999999 10 19 C 5.0294375 18.999999 1.0000007 14.970562 1 10 C 1.0000007 5.0294375 5.0294375 1.0000007 10 1 z M 4 9 L 4 11 L 16 11 L 16 9 L 4 9 z " />
+  </g>
+</svg>
