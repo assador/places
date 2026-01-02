@@ -9,32 +9,51 @@ $raw = file_get_contents("php://input");
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 $list = $data["data"] ?? [];
 
-error_log(
-    json_encode(
-        $list,
-        JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
-    )
-);
-
 $faults = []; // 1: wrong data, 2: test account, 3: places limit, 4: folders limit
 
 // Helpers
 
 function checkSession(AppContext $ctx, string $sessionid): bool {
 	$stmt = $ctx->db->prepare("
-		SELECT * FROM `sessions`
-		WHERE `id` = :sessionid
+		SELECT * FROM sessions
+		WHERE id = :sessionid
 	");
 	$stmt->bindValue(":sessionid", uuidToBin($sessionid), PDO::PARAM_LOB);
 	$stmt->execute();
 	$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	return (count($result) > 0 ? true : false);
 }
-function deleteById(AppContext $ctx, string $table, string $id): void {
-	$sql = "DELETE FROM {$table} WHERE id = :id";
-	$params = [":id" => uuidToBin($id)];
+function getById(AppContext $ctx, string $table, string $id) {
+	$sql = "
+		SELECT * FROM {$table}
+		WHERE id = :id
+	";
 	$stmt = $ctx->db->prepare($sql);
-	$stmt->execute($params);
+	$stmt->execute([
+		":id" => uuidToBin($id),
+	]);
+	return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+function deleteById(AppContext $ctx, string $table, string $id): void {
+	$sql = "
+		DELETE FROM {$table}
+		WHERE id = :id
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id" => uuidToBin($id),
+	]);
+}
+function pointByCoords(AppContext $ctx, float $latitude, float $longitude) {
+	$stmt = $ctx->db->prepare("
+		SELECT * FROM points
+		WHERE latitude = :latitude AND longitude = :longitude
+	");
+	$stmt->execute([
+		":latitude" => $latitude,
+		":longitude" => $longitude,
+	]);
+	return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 function addPoint(AppContext $ctx, array $row): void {
 	$sql = "
@@ -183,7 +202,7 @@ $foldersLimit = $groupId && isset($rights["folderscount"][$groupId])
 
 // Transaction
 
-// try {
+try {
 	$ctx->db->beginTransaction();
 	if (!empty($list['folders'])) {
 		$delta = 0;
@@ -248,7 +267,7 @@ $foldersLimit = $groupId && isset($rights["folderscount"][$groupId])
 				]);
 				continue;
 			}
-			if (!empty($row["added"])) {
+			if (!empty($row["added"]) && getById($ctx, "points", $row["pointid"])) {
 				$delta++;
 				if ($placesLimit >= 0 && $placescount >= $placesLimit) {
 					if (!in_array(3, $faults)) $faults[] = 3; // limit
@@ -277,12 +296,10 @@ $foldersLimit = $groupId && isset($rights["folderscount"][$groupId])
 		foreach ($list['images_upload'] as $img) addImage($ctx, $img);
 	}
 	$ctx->db->commit();
-/*
 } catch (Throwable $e) {
 	$ctx->db->rollBack();
 	if (!in_array(1, $faults)) $faults[] = 1;
 }
-*/
 echo json_encode(
 	$faults,
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
