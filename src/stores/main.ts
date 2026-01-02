@@ -164,7 +164,7 @@ export const useMainStore = defineStore('main', {
 			this.mouseOverMessages = (over === false ? false : true);
 		},
 		setObjectSaved(object: User | Group | Point | Place | Track | Folder) {
-//			object.added = false;
+			object.added = false;
 			object.deleted = false;
 			object.updated = false;
 		},
@@ -1071,7 +1071,7 @@ export const useMainStore = defineStore('main', {
 			}
 			if (saveToDB && !this.user.testaccount) {
 				payload.place.updated = true;
-				emitter.emit('toDB', { 'places': [payload.place] });
+				emitter.emit('toDB', { 'places': [ payload.place ] });
 			}
 		},
 		async changeTrack(payload: Record<string, any>) {

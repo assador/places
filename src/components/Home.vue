@@ -1707,7 +1707,7 @@ const uploadFiles = async (event: Event) => {
 					place: currentPlace.value,
 					change: { images: newImagesObject },
 				}).then(() => {
-					toDB({ 'places': [currentPlace.value] });
+					toDB({ 'places': [ currentPlace.value ] });
 				});
 				toDB({ 'images_upload': filesArray });
 				mainStore.setMessage(popup.filesUploadedSuccessfully);

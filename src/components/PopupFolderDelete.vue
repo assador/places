@@ -113,13 +113,7 @@ const deleteFolder = (): void => {
 	mainStore.backup = false;
 	folder.value.deleted = true;
 	if (keepContent.value === 'delete') {
-		const folderInTree = findInTree(
-			props.type === 'places' ? mainStore.tree : mainStore.treeTracks,
-			'children',
-			'id',
-			props.id
-		);
-		if (folderInTree) markNestedAsDeleted(folderInTree as Folder);
+		markNestedAsDeleted(folder.value);
 		if (mainStore.homePlace && mainStore.homePlace.deleted) {
 			mainStore.setHomePlace(null);
 		}

@@ -138,7 +138,10 @@
 							e.stopPropagation();
 							appendPlace({
 								folderid: folder.id,
-								srt: places[places.length - 1].srt + 1,
+								srt:
+									places.length > 0
+										? places[places.length - 1].srt + 1
+										: 1
 							});
 						}"
 					/>
@@ -150,6 +153,20 @@
 							name: 'HomeFolder',
 							params: { parentId: folder.id },
 						})"
+					/>
+					<span
+						class="folder-button__control icon icon-cross-45"
+						:title="mainStore.t.i.buttons.deleteFolder"
+						accesskey="f"
+						@click="e => {
+							e.stopPropagation();
+							router.push({
+								name: 'HomeDeleteFolder',
+								params: { id: folder.id },
+							})
+								.catch(error => { console.error(error); })
+							;
+						}"
 					/>
 				</div>
 			</div>
@@ -740,6 +757,9 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 }
 .folder-places {
 	display: block;
+	&:not(&:is(&#root)) {
+		margin-left: 15px;
+	}
 }
 #places-header, #tracks-header {
 	.control-buttons * {
