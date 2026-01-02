@@ -1502,8 +1502,14 @@ const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Pl
 	};
 	for (const key in payload) newPlace[key] = payload[key];
 	newPlace.pointid = newPoint.id;
-	await addPoint({ point: newPoint, from: newPlace });
-	await addPlace({ place: newPlace });
+	addPoint({ point: newPoint, from: newPlace, todb: false });
+	addPlace({ place: newPlace, todb: false });
+	if (payload['todb'] !== false && !mainStore.user.testaccount) {
+		emitter.emit('toDB', {
+			'points': [{ ...newPoint, from: newPlace }],
+			'places': [ newPlace ],
+		});
+	}
 	choosePlace(newPlace);
 	await nextTick();
 	const detailedNameElem = document.getElementById('place-detailed-name');

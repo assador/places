@@ -9,6 +9,13 @@ $raw = file_get_contents("php://input");
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 $list = $data["data"] ?? [];
 
+error_log(
+    json_encode(
+        $list,
+        JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+    )
+);
+
 $faults = []; // 1: wrong data, 2: test account, 3: places limit, 4: folders limit
 
 // Helpers
@@ -139,7 +146,7 @@ function addImage(AppContext $ctx, array $img): void {
 
 // Session check
 
-if (checkSession($ctx, $sessionid) === false) {
+if (checkSession($ctx, $data['sessionid']) === false) {
 	echo 5; exit;
 }
 
@@ -176,115 +183,106 @@ $foldersLimit = $groupId && isset($rights["folderscount"][$groupId])
 
 // Transaction
 
-try {
+// try {
 	$ctx->db->beginTransaction();
-	foreach ($list as $what => $dataects) {
-		switch ($what) {
-			case "points": {
-				$delPointStmt = $ctx->db->prepare("
-					DELETE FROM points
+	if (!empty($list['folders'])) {
+		$delta = 0;
+		foreach ($list['folders'] as $row) {
+			if (!empty($row["deleted"])) {
+				$delta--;
+				$delFolderStmt = $ctx->db->prepare("
+					DELETE FROM folders
 					WHERE id = :id
+						AND userid = :userid
 				");
-				foreach ($dataects as $row) {
-					if (!empty($row["deleted"])) {
-						$delPointStmt->execute([
-							":id" => uuidToBin($row["id"]),
-						]);
-						continue;
-					}
-					if (!empty($row["added"])) {
-						addPoint($ctx, $row);
-					}
+				$delFolderStmt->execute([
+					":id" => uuidToBin($row["id"]),
+					":userid" => uuidToBin($data["userid"])
+				]);
+				continue;
+			}
+			if (!empty($row["added"])) {
+				if ($foldersLimit >= 0 && $folderscount >= $foldersLimit) {
+					if (!in_array(4, $faults)) $faults[] = 4; // limit
+					continue;
 				}
-				break;
+				if ($foldersLimit >= 0) $folderscount++;
+				addFolder($ctx, $row);
 			}
-			case "places": {
-				// Calculate the limit deltas within the package
-				$delta = 0;
-				foreach ($dataects as $row) {
-					if (!empty($row["deleted"])) {
-						$delta--;
-						$delPlaceStmt = $ctx->db->prepare("
-							DELETE FROM places
-							WHERE id = :id
-								AND userid = :userid
-						");
-						$delPlaceStmt->execute([
-							":id" => uuidToBin($row["id"]),
-							":userid" => uuidToBin($data["userid"]),
-						]);
-						continue;
-					}
-					if (!empty($row["added"])) {
-						$delta++;
-						if ($placesLimit >= 0 && $placescount >= $placesLimit) {
-							if (!in_array(3, $faults)) $faults[] = 3; // limit
-							continue;
-						}
-						$placescount++;
-						addPlace($ctx, $row);
-						continue;
-					}
-					if (!empty($row["images"]) && is_array($row["images"])) {
-						foreach ($row["images"] as $img) {
-							addImage($ctx, $img);
-						}
-					}
-					if (!empty($row["updated"])) {
-						continue;
-					}
-				}
-				break;
+			if (!empty($row["updated"])) {
+				continue;
 			}
-			case "folders": {
-				$delta = 0;
-				foreach ($dataects as $row) {
-					if (!empty($row["deleted"])) {
-						$delta--;
-						$delFolderStmt = $ctx->db->prepare("
-							DELETE FROM folders
-							WHERE id = :id
-								AND userid = :userid
-						");
-						$delFolderStmt->execute([
-							":id" => uuidToBin($row["id"]),
-							":userid" => uuidToBin($data["userid"])
-						]);
-						continue;
-					}
-					if (!empty($row["added"])) {
-						if ($foldersLimit >= 0 && $folderscount >= $foldersLimit) {
-							if (!in_array(4, $faults)) $faults[] = 4; // limit
-							continue;
-						}
-						if ($foldersLimit >= 0) $folderscount++;
-						addFolder($ctx, $row);
-					}
-					if (!empty($row["updated"])) {
-						continue;
-					}
-				}
-				break;
-			}
-			case "images_upload": {
-				foreach ($dataects as $img) addImage($ctx, $img);
-				break;
-			}
-			case "images_delete": {
-				foreach ($dataects as $row) {
-					deleteById($ctx, "images", $row["id"]);
-				}
-				break;
-			}
-			default:
-				$faults[] = 1;
 		}
 	}
+	if (!empty($list['points'])) {
+		$delPointStmt = $ctx->db->prepare("
+			DELETE FROM points
+			WHERE id = :id
+		");
+		foreach ($list['points'] as $row) {
+			if (!empty($row["deleted"])) {
+				$delPointStmt->execute([
+					":id" => uuidToBin($row["id"]),
+				]);
+				continue;
+			}
+			if (!empty($row["added"])) {
+				addPoint($ctx, $row);
+			}
+		}
+	}
+	if (!empty($list['places'])) {
+		// Calculate the limit deltas within the package
+		$delta = 0;
+		foreach ($list['places'] as $row) {
+			if (!empty($row["deleted"])) {
+				$delta--;
+				$delPlaceStmt = $ctx->db->prepare("
+					DELETE FROM places
+					WHERE id = :id
+						AND userid = :userid
+				");
+				$delPlaceStmt->execute([
+					":id" => uuidToBin($row["id"]),
+					":userid" => uuidToBin($data["userid"]),
+				]);
+				continue;
+			}
+			if (!empty($row["added"])) {
+				$delta++;
+				if ($placesLimit >= 0 && $placescount >= $placesLimit) {
+					if (!in_array(3, $faults)) $faults[] = 3; // limit
+					continue;
+				}
+				$placescount++;
+				addPlace($ctx, $row);
+				continue;
+			}
+			if (!empty($row["images"]) && is_array($row["images"])) {
+				foreach ($row["images"] as $img) {
+					addImage($ctx, $img);
+				}
+			}
+			if (!empty($row["updated"])) {
+				continue;
+			}
+		}
+	}
+	if (!empty($list['images_delete'])) {
+		foreach ($list['images_delete'] as $row) {
+			deleteById($ctx, "images", $row["id"]);
+		}
+	}
+	if (!empty($list['images_upload'])) {
+		foreach ($list['images_upload'] as $img) addImage($ctx, $img);
+	}
 	$ctx->db->commit();
+/*
 } catch (Throwable $e) {
 	$ctx->db->rollBack();
 	if (!in_array(1, $faults)) $faults[] = 1;
 }
+*/
 echo json_encode(
 	$faults,
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK

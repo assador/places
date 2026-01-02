@@ -657,7 +657,7 @@ export const useMainStore = defineStore('main', {
 				result.tree = importedPlaceFolder.imported;
 				return result;
 			}
-			const addImported = (
+			const addImported = async (
 				mime: string,
 				parsed:
 					Record<string,
@@ -784,13 +784,13 @@ export const useMainStore = defineStore('main', {
 								updated: false,
 								show: true,
 							};
-							this.addPlace({place: newPlace});
 							if (!this.points[place.pointid]) {
-								this.addPoint({
+								await this.addPoint({
 									point: newPoint,
 									from: newPlace,
 								});
 							}
+							await this.addPlace({ place: newPlace });
 						} else {
 							this.setMessage(
 								this.t.m.popup.placesCountExceeded
@@ -976,7 +976,7 @@ export const useMainStore = defineStore('main', {
 			const { place, todb } = payload;
 			this.places[place.id] = place;
 			if (todb !== false && !this.user.testaccount) {
-				emitter.emit('toDB', { 'places': [place] });
+				emitter.emit('toDB', { 'places': [ place ] });
 			}
 		},
 		async addTrack(payload: {track: Track, todb?: boolean}) {
@@ -984,7 +984,7 @@ export const useMainStore = defineStore('main', {
 			const { track, todb } = payload;
 			this.tracks[track.id] = track;
 			if (todb !== false && !this.user.testaccount) {
-				emitter.emit('toDB', { 'tracks': [track] });
+				emitter.emit('toDB', { 'tracks': [ track ] });
 			}
 		},
 		addTrackPoint(
