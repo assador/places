@@ -1015,26 +1015,27 @@ export const useMainStore = defineStore('main', {
 		},
 		async changeFolder(payload: Record<string, any>) {
 			this.backupState();
-			const { change, folder, todb } = payload;
-			let saveToDB = todb !== false;
-			for (const key in change) {
-				folder[key] = change[key];
+			let saveToDB = payload.todb !== false;
+			for (const key in payload.change) {
+				payload.folder[key] = payload.change[key];
 			}
 			if (saveToDB !== false && !this.user.testaccount) {
-				folder.updated = true;
-				emitter.emit('toDB', { 'folders': [folder] });
+				payload.folder.updated = true;
+				emitter.emit('toDB', { 'folders': [payload.folder] });
 			}
 		},
 		async changePoint(payload: Record<string, any>) {
-			const { change, point, from, todb } = payload;
-			let saveToDB = todb !== false;
-			for (const key in change) {
-				point[key] = change[key];
+			let saveToDB = payload.todb !== false;
+			for (const key in payload.change) {
+				payload.point[key] = payload.change[key];
 			}
 			if (saveToDB && !this.user.testaccount) {
-				point.updated = true;
+				payload.point.updated = true;
 				emitter.emit('toDB', {
-					'points': [{ ...point, from: (from ? from : null) }],
+					'points': [{
+						...payload.point,
+						from: (payload.from ? payload.from : null),
+					}],
 				});
 			}
 		},
@@ -1052,14 +1053,13 @@ export const useMainStore = defineStore('main', {
 						: this.points[payload.place.pointid].longitude
 					))
 				;
-				await this.changePoint({
+				this.changePoint({
 					point: this.points[payload.place.pointid],
 					change: {
 						latitude: Number(lat),
 						longitude: Number(lng),
 					},
 					from: payload.place,
-					todb: false,
 				});
 			}
 			for (const key in payload.change) {

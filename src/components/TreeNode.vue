@@ -787,7 +787,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		}
 	}
 }
-.draggable *, .folder *, .place-button {
+.draggable *, .folder:not(:has(.folder_editable)) *, .place-button {
 	pointer-events: none;
 }
 .draggable,

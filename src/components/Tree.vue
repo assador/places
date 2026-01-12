@@ -35,7 +35,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.places-tree * {
+.places-tree:not(:has(.folder_editable)) * {
 	pointer-events: none;
 }
 .folder-root {

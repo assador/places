@@ -80,6 +80,24 @@ function addPoint(AppContext $ctx, array $row): void {
 		":altitude"  => $row["altitude"] ?? null,
 	]);
 }
+function updatePoint(AppContext $ctx, array $row): void {
+	$sql = "
+		UPDATE points
+		SET
+			latitude  = :latitude,
+			longitude = :longitude,
+			altitude  = :altitude,
+			location  = ST_GeomFromText(CONCAT('POINT(', :longitude, ' ', :latitude, ')'), 4326)
+		WHERE id = :id
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id"        => uuidToBin($row["id"]),
+		":latitude"  => $row["latitude"] ?? 0,
+		":longitude" => $row["longitude"] ?? 0,
+		":altitude"  => $row["altitude"] ?? null,
+	]);
+}
 function addPlace(AppContext $ctx, array $row): void {
 	$sql = "
 		INSERT INTO places (
@@ -117,6 +135,43 @@ function addPlace(AppContext $ctx, array $row): void {
 		),
 	]);
 }
+function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
+	$sql = "
+		UPDATE places
+		SET
+			pointid     = :pointid,
+			folderid    = :folderid,
+			name        = :name,
+			description = :description,
+			link        = :link,
+			time        = :time,
+			srt         = :srt,
+			geomark     = :geomark,
+			common      = :common,
+			userid      = :userid
+		WHERE id = :id
+			AND userid = :myuserid
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id"          => uuidToBin($row["id"]),
+		":pointid"     => uuidToBin($row["pointid"]),
+		":name"        => $row["name"] ?? "",
+		":description" => $row["description"] ?? "",
+		":link"        => $row["link"] ?? "",
+		":time"        => $row["time"] ?? "",
+		":srt"         => $row["srt"] ?? 0,
+		":geomark"     => (int)($row["geomark"] ?? 0),
+		":common"      => (int)($row["common"] ?? 0),
+		":userid"      => uuidToBin($row["userid"]),
+		":myuserid"    => uuidToBin($myuserid),
+		":folderid" => (
+			$row["folderid"] == "root"
+				? null
+				: (uuidToBin($row["folderid"]) ?? null)
+		),
+	]);
+}
 function addFolder(AppContext $ctx, array $row): void {
 	$sql = "
 		INSERT INTO folders (id, parent, name, description, srt, geomarks, userid)
@@ -137,6 +192,31 @@ function addFolder(AppContext $ctx, array $row): void {
 		":srt"         => $row["srt"] ?? 0,
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
 		":userid"      => uuidToBin($row["userid"]),
+	]);
+}
+function updateFolder(AppContext $ctx, array $row, string $myuserid): void {
+	$sql = "
+		UPDATE folders
+		SET
+			parent      = :parent,
+			name        = :name,
+			description = :description,
+			srt         = :srt,
+			geomarks    = :geomarks,
+			userid      = :userid
+		WHERE id = :id
+			AND userid = :myuserid
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id"          => uuidToBin($row["id"]),
+		":parent"      => uuidToBin($row["parent"]) ?? null,
+		":name"        => $row["name"] ?? "",
+		":description" => $row["description"] ?? "",
+		":srt"         => $row["srt"] ?? 0,
+		":geomarks"    => (int)($row["geomarks"] ?? 0),
+		":userid"      => uuidToBin($row["userid"]),
+		":myuserid"    => uuidToBin($myuserid),
 	]);
 }
 function addImage(AppContext $ctx, array $img): void {
@@ -162,6 +242,29 @@ function addImage(AppContext $ctx, array $img): void {
 		":srt"          => (int)($img["srt"] ?? 0),
 	]);
 }
+function updateImage(AppContext $ctx, array $img): void {
+	$sql = "
+		UPDATE images
+		SET
+			placeid      = :placeid
+			file         = :file,
+			size         = :size,
+			type         = :type,
+			lastmodified = :lastmodified,
+			srt          = :srt
+		WHERE id = :id
+	";
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute([
+		":id"           => uuidToBin($img["id"]),
+		":placeid"      => uuidToBin($img["placeid"]),
+		":file"         => $img["file"] ?? "",
+		":size"         => (int)($img["size"] ?? 0),
+		":type"         => $img["type"] ?? "",
+		":lastmodified" => (int)($img["lastmodified"] ?? 0),
+		":srt"          => (int)($img["srt"] ?? 0),
+	]);
+}
 
 // Session check
 
@@ -169,43 +272,54 @@ if (checkSession($ctx, $data['sessionid']) === false) {
 	echo 5; exit;
 }
 
-// Limits
-
-$placescount  = (int)$ctx->db->query("
-	SELECT COUNT(*) AS c
-	FROM places
-	WHERE userid = " . $ctx->db->quote(uuidToBin($data["userid"])) . "
-")->fetch(PDO::FETCH_ASSOC)["c"];
-
-$folderscount = (int)$ctx->db->query("
-	SELECT COUNT(*) AS c
-	FROM folders
-	WHERE userid = " . $ctx->db->quote(uuidToBin($data["userid"])) . "
-")->fetch(PDO::FETCH_ASSOC)["c"];
-
-$visiting = $ctx->db->query("
-	SELECT id
-	FROM `groups`
-	WHERE id IN (
-		SELECT `group` FROM usergroup WHERE `user` = 
-		" . $ctx->db->quote(uuidToBin($data["userid"])) . "
-	)
-		AND parent = 'visiting'
-")->fetch(PDO::FETCH_ASSOC);
-
-$groupId = $visiting["id"] ?? null;
-
-$placesLimit = $groupId && isset($rights["placescount"][$groupId])
-	? (int)$rights["placescount"][$groupId] : 0;
-$foldersLimit = $groupId && isset($rights["folderscount"][$groupId])
-	? (int)$rights["folderscount"][$groupId] : 0;
-
 // Transaction
 
 try {
 	$ctx->db->beginTransaction();
+
+	$visiting = $ctx->db->query("
+		SELECT `id`
+		FROM `groups`
+		WHERE id IN (
+			SELECT `group` FROM usergroup WHERE `user` = 
+			{$ctx->db->quote(uuidToBin($data['userid']))}
+		)
+			AND `parent` = 'visiting'
+	")->fetch(PDO::FETCH_ASSOC);
+	$groupId = $visiting["id"] ?? null;
+
+	if (!empty($list['points'])) {
+		$delPointStmt = $ctx->db->prepare("
+			DELETE FROM points
+			WHERE id = :id
+		");
+		foreach ($list['points'] as $row) {
+			if (!empty($row["deleted"])) {
+				$delPointStmt->execute([
+					":id" => uuidToBin($row["id"]),
+				]);
+			}
+			elseif (!empty($row["updated"])) {
+				updatePoint($ctx, $row);
+			}
+			elseif (!empty($row["added"])) {
+				addPoint($ctx, $row);
+			}
+		}
+	}
+
 	if (!empty($list['folders'])) {
+
+		$folderscount = (int)$ctx->db->query("
+			SELECT COUNT(*) AS c
+			FROM folders
+			WHERE userid = {$ctx->db->quote(uuidToBin($data['userid']))}
+		")->fetch(PDO::FETCH_ASSOC)["c"];
+		$foldersLimit = $groupId && isset($rights["folderscount"][$groupId])
+			? (int)$rights["folderscount"][$groupId] : 0;
+
 		$delta = 0;
+
 		foreach ($list['folders'] as $row) {
 			if (!empty($row["deleted"])) {
 				$delta--;
@@ -218,9 +332,11 @@ try {
 					":id" => uuidToBin($row["id"]),
 					":userid" => uuidToBin($data["userid"])
 				]);
-				continue;
 			}
-			if (!empty($row["added"])) {
+			elseif (!empty($row["updated"])) {
+				updateFolder($ctx, $row, $data["userid"]);
+			}
+			elseif (!empty($row["added"])) {
 				if ($foldersLimit >= 0 && $folderscount >= $foldersLimit) {
 					if (!in_array(4, $faults)) $faults[] = 4; // limit
 					continue;
@@ -228,31 +344,21 @@ try {
 				if ($foldersLimit >= 0) $folderscount++;
 				addFolder($ctx, $row);
 			}
-			if (!empty($row["updated"])) {
-				continue;
-			}
 		}
 	}
-	if (!empty($list['points'])) {
-		$delPointStmt = $ctx->db->prepare("
-			DELETE FROM points
-			WHERE id = :id
-		");
-		foreach ($list['points'] as $row) {
-			if (!empty($row["deleted"])) {
-				$delPointStmt->execute([
-					":id" => uuidToBin($row["id"]),
-				]);
-				continue;
-			}
-			if (!empty($row["added"])) {
-				addPoint($ctx, $row);
-			}
-		}
-	}
+
 	if (!empty($list['places'])) {
-		// Calculate the limit deltas within the package
+
+		$placescount = (int)$ctx->db->query("
+			SELECT COUNT(*) AS c
+			FROM places
+			WHERE userid = {$ctx->db->quote(uuidToBin($data['userid']))}
+		")->fetch(PDO::FETCH_ASSOC)["c"];
+		$placesLimit = $groupId && isset($rights["placescount"][$groupId])
+			? (int)$rights["placescount"][$groupId] : 0;
+
 		$delta = 0;
+
 		foreach ($list['places'] as $row) {
 			if (!empty($row["deleted"])) {
 				$delta--;
@@ -265,9 +371,11 @@ try {
 					":id" => uuidToBin($row["id"]),
 					":userid" => uuidToBin($data["userid"]),
 				]);
-				continue;
 			}
-			if (!empty($row["added"]) && getById($ctx, "points", $row["pointid"])) {
+			elseif (!empty($row["updated"])) {
+				updatePlace($ctx, $row, $data["userid"]);
+			}
+			elseif (!empty($row["added"]) && getById($ctx, "points", $row["pointid"])) {
 				$delta++;
 				if ($placesLimit >= 0 && $placescount >= $placesLimit) {
 					if (!in_array(3, $faults)) $faults[] = 3; // limit
@@ -275,26 +383,25 @@ try {
 				}
 				$placescount++;
 				addPlace($ctx, $row);
-				continue;
 			}
-			if (!empty($row["images"]) && is_array($row["images"])) {
+			elseif (!empty($row["images"]) && is_array($row["images"])) {
 				foreach ($row["images"] as $img) {
 					addImage($ctx, $img);
 				}
 			}
-			if (!empty($row["updated"])) {
-				continue;
-			}
 		}
 	}
+
 	if (!empty($list['images_delete'])) {
 		foreach ($list['images_delete'] as $row) {
 			deleteById($ctx, "images", $row["id"]);
 		}
 	}
+
 	if (!empty($list['images_upload'])) {
 		foreach ($list['images_upload'] as $img) addImage($ctx, $img);
 	}
+
 	$ctx->db->commit();
 } catch (Throwable $e) {
 	$ctx->db->rollBack();

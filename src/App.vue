@@ -430,14 +430,16 @@ const handleDrop = (event: Event): void => {
 		!!(folder.targetId = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid ||
 		(el as any).dataset.placesTreeFolderSortingAreaBottomFolderid))
 	) {
-		mainStore.backupState();
-		mainStore.backup = false;
 		const top = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid;
 		const srts = mainStore.getNeighboursSrts(folder.targetId, 'folder', top);
-		mainStore.folders[folder.sourceId].srt = srts.new;
-		mainStore.folders[folder.sourceId].parent = mainStore.folders[folder.targetId].parent;
+		mainStore.changeFolder({
+			folder: mainStore.folders[folder.sourceId],
+			change: {
+				srt: srts.new,
+				parent: mainStore.folders[folder.targetId].parent
+			},
+		});
 		mainStore.buildTrees();
-		mainStore.backup = true;
 		cleanup(); return;
 	}
 
