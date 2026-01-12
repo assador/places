@@ -696,12 +696,12 @@
 							type="checkbox"
 							:checked="currentPlace === mainStore.homePlace"
 							@change="e => {
-								mainStore.backupState();
 								mainStore.setHomePlace({
 									id: (e.target as HTMLInputElement).checked
 										? currentPlace.id
 										: null
 								});
+								mainStore.backupState();
 							}"
 						/>
 						{{ mainStore.t.i.inputs.checkboxHome }}
@@ -907,10 +907,7 @@
 			</button>
 			<button
 				id="actions-redo"
-				:disabled="
-					!mainStore.stateBackups ||
-					mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1
-				"
+				:disabled="mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1"
 				class="actions-button"
 				:title="mainStore.t.i.hints.redo"
 				accesskey="y"

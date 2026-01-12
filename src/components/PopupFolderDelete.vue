@@ -109,7 +109,6 @@ const markNestedAsDeleted = (folder: Folder): void => {
 	}
 };
 const deleteFolder = (): void => {
-	mainStore.backupState();
 	mainStore.backup = false;
 	folder.value.deleted = true;
 	if (keepContent.value === 'delete') {
@@ -171,6 +170,7 @@ const deleteFolder = (): void => {
 	}
 	mainStore.deleteObjects();
 	mainStore.backup = true;
+	mainStore.backupState();
 	close();
 };
 

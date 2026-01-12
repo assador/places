@@ -366,49 +366,46 @@ export const useMainStore = defineStore('main', {
 			});
 		},
 		backupState() {
-			if (!this.backup || this.stateBackups.length >= constants.backupscount) return;
-			this.stateBackups.splice(this.stateBackupsIndex + 1);
+			if (
+				!this.backup ||
+				this.stateBackups.length >= constants.backupscount
+			) {
+				return;
+			}
+			++this.stateBackupsIndex;
+			this.stateBackups.splice(this.stateBackupsIndex);
 			this.stateBackups.push(
 				Object.assign({}, JSON.parse(JSON.stringify(this.$state)))
 			);
-			delete this.stateBackups[this.stateBackups.length - 1].stateBackups;
-			++this.stateBackupsIndex;
-		},
-		stateBackupsIndexChange(delta: number) {
-			this.stateBackupsIndex = this.stateBackupsIndex + delta;
+			delete this.stateBackups[this.stateBackupsIndex].stateBackups;
 		},
 		restoreState(backupIndex: number) {
-			if (!this.stateBackups) return;
+			if (
+				backupIndex < 0 ||
+				backupIndex > this.stateBackups.length - 1 ||
+				this.stateBackupsIndex ===
+				this.stateBackups[backupIndex].stateBackupsIndex
+			) {
+				return;
+			}
 			for (const key in this.stateBackups[backupIndex]) {
-				if (
-					key !== 'stateBackups' &&
-					key !== 'stateBackupsIndex' &&
-					key !== 'descriptionFields'
-				) {
-					this[key] =
-						JSON.parse(
-							JSON.stringify(
-								this.stateBackups[backupIndex][key]
-							)
+				this[key] =
+					JSON.parse(
+						JSON.stringify(
+							this.stateBackups[backupIndex][key]
 						)
-					;
-				}
+					)
+				;
 			}
 			this.saved = false;
 			this.restoreObjectsAsLinks();
 		},
 		undo() {
-			if (this.stateBackupsIndex > this.stateBackups.length - 2) {
-				this.backupState();
-				--this.stateBackupsIndex;
-			}
-			this.restoreState(this.stateBackupsIndex);
-			if (this.stateBackupsIndex > 0) --this.stateBackupsIndex;
+			this.restoreState(this.stateBackupsIndex - 1);
 			this.backup = false;
 		},
 		redo() {
-			if (this.stateBackupsIndex > this.stateBackups.length - 2) return;
-			this.restoreState(++this.stateBackupsIndex);
+			this.restoreState(this.stateBackupsIndex + 1);
 			this.backup = false;
 		},
 		unload() {
@@ -915,7 +912,6 @@ export const useMainStore = defineStore('main', {
 			return result;
 		},
 		async setHomePlace(payload: {id: string, todb?: boolean} | null) {
-			this.backupState();
 			if (payload && this.places[payload.id]) {
 				this.homePlace = this.places[payload.id];
 				this.user.homeplace = payload.id;
@@ -925,15 +921,16 @@ export const useMainStore = defineStore('main', {
 				this.user.homeplace = null;
 				if (!payload || payload.todb !== false) emitter.emit('homeToDB', null);
 			}
+			this.backupState();
 		},
 		async addFolder(payload: {folder: Folder, todb?: boolean}) {
 			const { folder, todb } = payload;
-			this.backupState();
 			this.folders[folder.id] = folder;
 			this.buildTrees();
 			if (todb !== false && !this.user.testaccount) {
 				emitter.emit('toDB', { 'folders': [folder] });
 			}
+			this.backupState();
 		},
 		addTemp(point: Point = {
 			id: crypto.randomUUID(),
@@ -947,7 +944,6 @@ export const useMainStore = defineStore('main', {
 			updated: false,
 			show: true,
 		}) {
-			this.backupState();
 			if (!Object.keys(this.temps).length) this.tempsShow = true;
 			this.temps[point.id] = point;
 			this.currentTemp = this.temps[point.id];
@@ -955,6 +951,7 @@ export const useMainStore = defineStore('main', {
 				point: this.temps[point.id],
 				mode: (this.mode),
 			});
+			this.backupState();
 		},
 		async addPoint(payload: {
 			point: Point,
@@ -972,20 +969,20 @@ export const useMainStore = defineStore('main', {
 				else this.points[point.id] = point;
 		},
 		async addPlace(payload: { place: Place, todb?: boolean }) {
-			this.backupState();
 			const { place, todb } = payload;
 			this.places[place.id] = place;
 			if (todb !== false && !this.user.testaccount) {
 				emitter.emit('toDB', { 'places': [ place ] });
 			}
+			this.backupState();
 		},
 		async addTrack(payload: {track: Track, todb?: boolean}) {
-			this.backupState();
 			const { track, todb } = payload;
 			this.tracks[track.id] = track;
 			if (todb !== false && !this.user.testaccount) {
 				emitter.emit('toDB', { 'tracks': [ track ] });
 			}
+			this.backupState();
 		},
 		addTrackPoint(
 			payload: {point: Point, track: Track } = {
@@ -1003,7 +1000,6 @@ export const useMainStore = defineStore('main', {
 				},
 				track: this.currentTrack,
 		}) {
-			this.backupState();
 			const { point, track } = payload;
 			this.points[point.id] = point;
 			track.points.push(point.id);
@@ -1012,9 +1008,9 @@ export const useMainStore = defineStore('main', {
 				point: this.points[point.id],
 				mode: (this.mode),
 			});
+			this.backupState();
 		},
 		async changeFolder(payload: Record<string, any>) {
-			this.backupState();
 			let saveToDB = payload.todb !== false;
 			for (const key in payload.change) {
 				payload.folder[key] = payload.change[key];
@@ -1023,6 +1019,7 @@ export const useMainStore = defineStore('main', {
 				payload.folder.updated = true;
 				emitter.emit('toDB', { 'folders': [payload.folder] });
 			}
+			this.backupState();
 		},
 		async changePoint(payload: Record<string, any>) {
 			let saveToDB = payload.todb !== false;
@@ -1040,7 +1037,6 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 		async changePlace(payload: Record<string, any>) {
-			this.backupState();
 			let saveToDB = payload.todb !== false;
 			if ('latitude' in payload.change || 'longitude' in payload.change) {
 				const
@@ -1073,9 +1069,9 @@ export const useMainStore = defineStore('main', {
 				payload.place.updated = true;
 				emitter.emit('toDB', { 'places': [ payload.place ] });
 			}
+			this.backupState();
 		},
 		async changeTrack(payload: Record<string, any>) {
-			this.backupState();
 			let saveToDB = payload.todb !== false;
 			for (const key in payload.change) {
 				payload.track[key] = key === 'srt'
@@ -1087,6 +1083,7 @@ export const useMainStore = defineStore('main', {
 				payload.track.updated = true;
 				emitter.emit('toDB', { 'tracks': [payload.track] });
 			}
+			this.backupState();
 		},
 		async deleteObjects(payload: {
 			objects?: Record<string, Point | Place | Track | Folder>,
@@ -1095,7 +1092,6 @@ export const useMainStore = defineStore('main', {
 			objects: {},
 			todb: true,
 		}) {
-			this.backupState();
 			const data = {
 				points: <Array<Point>>[],
 				places: <Array<Place>>[],
@@ -1137,6 +1133,7 @@ export const useMainStore = defineStore('main', {
 			if (!this.user.testaccount && payload.todb !== false) {
 				emitter.emit('toDB', data);
 			}
+			this.backupState();
 		},
 		deleteTemp(id: string) {
 			const measureIndex = this.measure.points.indexOf(id);

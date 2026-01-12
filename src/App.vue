@@ -82,6 +82,7 @@ emitter.on('logged', async () => {
 	await mainStore.setPlaces();
 	await mainStore.setUsers('common');
 	mainStore.ready = true;
+	mainStore.backupState();
 	router.push({ name: 'Home' });
 });
 emitter.on('logout', () => {
@@ -385,7 +386,6 @@ const handleDrop = (event: Event): void => {
 		const sourceType = (draggingElement.value as any).dataset.placesTreeItemType;
 		const targetType = (el as any).dataset.placesTreeType;
 		if (sourceType !== targetType) return;
-		mainStore.backupState();
 		mainStore.backup = false;
 		const items: Record<string, Place | Track> = mainStore[targetType + 's'];
 		const neighbours = Object.values(items).filter(
@@ -397,7 +397,9 @@ const handleDrop = (event: Event): void => {
 		;
 		items[item.sourceId].folderid = item.targetId;
 		mainStore.backup = true;
-		cleanup(); return;
+		cleanup();
+		mainStore.backupState();
+		return;
 	}
 
 	// Tree item dropped on top sorting area of another tree item
@@ -410,7 +412,6 @@ const handleDrop = (event: Event): void => {
 		const sourceType = (draggingElement.value as any).dataset.placesTreeItemType;
 		const targetType = (el as any).dataset.placesTreeItemType;
 		if (sourceType !== targetType) return;
-		mainStore.backupState();
 		mainStore.backup = false;
 		const sourceItem = mainStore[sourceType + 's'][item.sourceId];
 		const targetItem = mainStore[targetType + 's'][item.targetId];
@@ -421,7 +422,9 @@ const handleDrop = (event: Event): void => {
 		).new;
 		sourceItem.folderid = targetItem.folderid;
 		mainStore.backup = true;
-		cleanup(); return;
+		cleanup();
+		mainStore.backupState();
+		return;
 	}
 
 	// Tree folder dropped on sorting area of another tree folder
@@ -450,7 +453,6 @@ const handleDrop = (event: Event): void => {
 		folder.sourceId !== folder.targetId &&
 		(draggingElement.value as any).dataset.placesTreeType === (el as any).dataset.placesTreeType
 	) {
-		mainStore.backupState();
 		mainStore.backup = false;
 		const neighbours = Object.values(mainStore.folders).filter(
 			f => f.parent === folder.targetId
@@ -459,7 +461,9 @@ const handleDrop = (event: Event): void => {
 		mainStore.folders[folder.sourceId].parent = folder.targetId;
 		mainStore.buildTrees();
 		mainStore.backup = true;
-		cleanup(); return;
+		cleanup();
+		mainStore.backupState();
+		return;
 	}
 
 	// Image thumbnail dropped
