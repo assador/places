@@ -1248,7 +1248,6 @@ export const useMainStore = defineStore('main', {
 						payload.place.images[payload.ids[0]].srt
 				][0]
 			;
-			payload.place.updated = true;
 		},
 		updateMap(payload: Record<string, any>) {
 			if (typeof payload.latitude === 'number') {

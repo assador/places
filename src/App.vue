@@ -299,12 +299,16 @@ const handleDragEnter = (event: Event): void => {
 			return;
 		}
 		case 'images': {
-			const ids: string[] = [];
-			for (const id in currentPlace.value.images) {
-				if (id === (draggingElement.value as Element).id) ids.push(id);
-				if (id === (event.target as Element).id) ids.push(id);
-				if (ids.length === 2) break;
+			if (
+				!((draggingElement.value as Element).id in currentPlace.value.images) ||
+				!((event.target as Element).id in currentPlace.value.images)
+			) {
+				return;
 			}
+			const ids: string[] = [
+				(draggingElement.value as Element).id,
+				(event.target as Element).id,
+			];
 			mainStore.swapImages({ place: currentPlace.value, ids });
 			return;
 		}
@@ -376,6 +380,14 @@ const handleDrop = (event: Event): void => {
 		draggingElement.value = null;
 	};
 
+	// Image thumbnail dropped
+	if ((draggingElement.value as any).dataset.image !== undefined) {
+		currentPlace.value.updated = true;
+		toDB({ 'images_update': Object.values(currentPlace.value.images) });
+		currentPlace.value.updated = false;
+		cleanup(); return;
+	}
+
 	// Tree item dropped on tree folder
 	if (
 		!!(item.sourceId = (draggingElement.value as any).dataset.placesTreeItemId) &&
@@ -386,6 +398,7 @@ const handleDrop = (event: Event): void => {
 		const sourceType = (draggingElement.value as any).dataset.placesTreeItemType;
 		const targetType = (el as any).dataset.placesTreeType;
 		if (sourceType !== targetType) return;
+
 		mainStore.backup = false;
 		const items: Record<string, Place | Track> = mainStore[targetType + 's'];
 		const neighbours = Object.values(items).filter(
@@ -396,13 +409,19 @@ const handleDrop = (event: Event): void => {
 			: 1
 		;
 		items[item.sourceId].folderid = item.targetId;
+
+		items[item.sourceId].updated = true;
+		toDB({ 'places': [ items[item.sourceId] ] });
+		items[item.sourceId].updated = false;
+
 		mainStore.backup = true;
-		cleanup();
 		mainStore.backupState();
+
+		cleanup();
 		return;
 	}
 
-	// Tree item dropped on top sorting area of another tree item
+	// Tree item dropped on sorting area of another tree item
 	if (
 		!!(item.sourceId = (draggingElement.value as any).dataset.placesTreeItemId) &&
 		!!(item.targetId = (el as any).dataset.placesTreeItemId) && (
@@ -412,6 +431,7 @@ const handleDrop = (event: Event): void => {
 		const sourceType = (draggingElement.value as any).dataset.placesTreeItemType;
 		const targetType = (el as any).dataset.placesTreeItemType;
 		if (sourceType !== targetType) return;
+
 		mainStore.backup = false;
 		const sourceItem = mainStore[sourceType + 's'][item.sourceId];
 		const targetItem = mainStore[targetType + 's'][item.targetId];
@@ -421,9 +441,15 @@ const handleDrop = (event: Event): void => {
 			!!(el as any).dataset.placesTreeItemSortingAreaTop
 		).new;
 		sourceItem.folderid = targetItem.folderid;
+
+		sourceItem.updated = true;
+		toDB({ 'places': [ sourceItem ] });
+		sourceItem.updated = false;
+
 		mainStore.backup = true;
-		cleanup();
 		mainStore.backupState();
+
+		cleanup();
 		return;
 	}
 
@@ -443,7 +469,16 @@ const handleDrop = (event: Event): void => {
 			},
 		});
 		mainStore.buildTrees();
-		cleanup(); return;
+
+		mainStore.folders[folder.sourceId].updated = true;
+		toDB({ 'folders': [ mainStore.folders[folder.sourceId] ] });
+		mainStore.folders[folder.sourceId].updated = false;
+
+		mainStore.backup = true;
+		mainStore.backupState();
+
+		cleanup();
+		return;
 	}
 
 	// Tree folder dropped on another tree folder
@@ -457,21 +492,22 @@ const handleDrop = (event: Event): void => {
 		const neighbours = Object.values(mainStore.folders).filter(
 			f => f.parent === folder.targetId
 		);
+
 		mainStore.folders[folder.sourceId].srt = Math.max(...neighbours.map(f => f.srt)) + 1;
 		mainStore.folders[folder.sourceId].parent = folder.targetId;
 		mainStore.buildTrees();
+
+		mainStore.folders[folder.sourceId].updated = true;
+		toDB({ 'folders': [ mainStore.folders[folder.sourceId] ] });
+		mainStore.folders[folder.sourceId].updated = false;
+
 		mainStore.backup = true;
-		cleanup();
 		mainStore.backupState();
+
+		cleanup();
 		return;
 	}
 
-	// Image thumbnail dropped
-	if ((draggingElement.value as any).dataset.image !== undefined) {
-		mainStore.changePlace({ place: currentPlace.value, change: {} });
-		toDB({ 'places': [currentPlace.value] });
-		cleanup(); return;
-	}
 	cleanup();
 };
 provide('handleDrop', handleDrop);

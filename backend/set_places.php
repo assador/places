@@ -136,10 +136,14 @@ function addPlace(AppContext $ctx, array $row): void {
 	]);
 }
 function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
+	$pointIdBin = null;
+	if (!empty($row["pointid"])) {
+		$pointIdBin = uuidToBin($row["pointid"]);
+	}
 	$sql = "
 		UPDATE places
 		SET
-			pointid     = :pointid,
+			" . ($pointIdBin !== null ? "pointid = :pointid," : "") . "
 			folderid    = :folderid,
 			name        = :name,
 			description = :description,
@@ -153,9 +157,8 @@ function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
 			AND userid = :myuserid
 	";
 	$stmt = $ctx->db->prepare($sql);
-	$stmt->execute([
+	$bindingArray = [
 		":id"          => uuidToBin($row["id"]),
-		":pointid"     => uuidToBin($row["pointid"]),
 		":name"        => $row["name"] ?? "",
 		":description" => $row["description"] ?? "",
 		":link"        => $row["link"] ?? "",
@@ -170,7 +173,11 @@ function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
 				? null
 				: (uuidToBin($row["folderid"]) ?? null)
 		),
-	]);
+	];
+	if ($pointIdBin !== null) {
+		$bindingArray[":pointid"] = $pointIdBin;
+	}
+	$stmt->execute($bindingArray);
 }
 function addFolder(AppContext $ctx, array $row): void {
 	$sql = "
@@ -243,10 +250,19 @@ function addImage(AppContext $ctx, array $img): void {
 	]);
 }
 function updateImage(AppContext $ctx, array $img): void {
+	$placeIdBin = null;
+	$trackIdBin = null;
+	if (!empty($row["placeid"])) {
+		$placeIdBin = uuidToBin($row["placeid"]);
+	}
+	if (!empty($row["trackid"])) {
+		$trackIdBin = uuidToBin($row["trackid"]);
+	}
 	$sql = "
 		UPDATE images
 		SET
-			placeid      = :placeid
+			" . ($placeIdBin !== null ? "placeid = :placeid," : "") . "
+			" . ($trackIdBin !== null ? "trackid = :trackid," : "") . "
 			file         = :file,
 			size         = :size,
 			type         = :type,
@@ -255,15 +271,21 @@ function updateImage(AppContext $ctx, array $img): void {
 		WHERE id = :id
 	";
 	$stmt = $ctx->db->prepare($sql);
-	$stmt->execute([
+	$bindingArray = [
 		":id"           => uuidToBin($img["id"]),
-		":placeid"      => uuidToBin($img["placeid"]),
 		":file"         => $img["file"] ?? "",
 		":size"         => (int)($img["size"] ?? 0),
 		":type"         => $img["type"] ?? "",
 		":lastmodified" => (int)($img["lastmodified"] ?? 0),
 		":srt"          => (int)($img["srt"] ?? 0),
-	]);
+	];
+	if ($placeIdBin !== null) {
+		$bindingArray[":placeid"] = $placeIdBin;
+	}
+	if ($trackIdBin !== null) {
+		$bindingArray[":trackid"] = $trackIdBin;
+	}
+	$stmt->execute($bindingArray);
 }
 
 // Session check
@@ -390,6 +412,10 @@ try {
 				}
 			}
 		}
+	}
+
+	if (!empty($list['images_update'])) {
+		foreach ($list['images_update'] as $img) updateImage($ctx, $img);
 	}
 
 	if (!empty($list['images_delete'])) {

@@ -136,7 +136,7 @@
 				<dd
 					v-for="(id, index) in mainStore.measure.points"
 					:key="index"
-					:draggable="true"
+					draggable
 					:data-places-measure-point-id="id"
 					class="draggable"
 					@dragstart="e => handleDragStart(e, 'measure')"
@@ -1966,7 +1966,7 @@ const selectPlaces = (text: string): void => {
 	* {
 		pointer-events: none;
 	}
-	.dd-images__delete {
+	.image-thumbnail, .dd-images__delete {
 		pointer-events: auto;
 	}
 }
