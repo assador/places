@@ -136,10 +136,10 @@ function addPlace(AppContext $ctx, array $row): void {
 	]);
 }
 function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
-	$pointIdBin = null;
-	if (!empty($row["pointid"])) {
-		$pointIdBin = uuidToBin($row["pointid"]);
-	}
+	$pointIdBin = !empty($row["pointid"])
+		? uuidToBin($row["pointid"])
+		: null
+	;
 	$sql = "
 		UPDATE places
 		SET
@@ -180,29 +180,6 @@ function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
 	$stmt->execute($bindingArray);
 }
 function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
-	$pointIdBin = null;
-	if (!empty($row["pointid"])) {
-		$pointIdBin = uuidToBin($row["pointid"]);
-	}
-	if ($pointIdBin !== null) {
-		$pointRefsStmt = $ctx->db->prepare("
-			SELECT
-				(SELECT COUNT(*) FROM pointtrack WHERE point = :pointid)
-			AS refcount;
-		");
-		$pointRefsStmt->bindValue(":pointid", $pointIdBin);
-		$pointRefsStmt->execute();
-		$pointRefs = $pointRefsStmt->fetch(PDO::FETCH_ASSOC);
-		if ($pointRefs["refcount"] === 0) {
-			$delPointStmt = $ctx->db->prepare("
-				DELETE FROM points
-				WHERE id = :pointid
-			");
-			$delPointStmt->execute([
-				":pointid" => $pointIdBin,
-			]);
-		}
-	}
 	$delPlaceStmt = $ctx->db->prepare("
 		DELETE FROM places
 		WHERE id = :id
@@ -212,6 +189,35 @@ function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
 		":id" => uuidToBin($row["id"]),
 		":userid" => uuidToBin($myuserid),
 	]);
+
+	$pointIdBin = !empty($row["pointid"])
+		? uuidToBin($row["pointid"])
+		: null
+	;
+	if ($pointIdBin !== null) {
+		$pointRefsStmt = $ctx->db->prepare("
+			SELECT COUNT(*) AS refcount
+			FROM (
+				SELECT pointid FROM places WHERE pointid = :pointid
+				UNION ALL
+				SELECT point FROM pointtrack WHERE point = :pointid
+			) t;
+		");
+		$pointRefsStmt->execute([
+			":pointid" => $pointIdBin,
+		]);
+		$pointRefs = $pointRefsStmt->fetch(PDO::FETCH_ASSOC);
+
+		if ((int)$pointRefs["refcount"] === 0) {
+			$delPointStmt = $ctx->db->prepare("
+				DELETE FROM points
+				WHERE id = :pointid
+			");
+			$delPointStmt->execute([
+				":pointid" => $pointIdBin,
+			]);
+		}
+	}
 }
 function addFolder(AppContext $ctx, array $row): void {
 	$sql = "
@@ -330,7 +336,7 @@ if (checkSession($ctx, $data['sessionid']) === false) {
 
 // Transaction
 
-// try {
+try {
 	$ctx->db->beginTransaction();
 
 	$visiting = $ctx->db->query("
@@ -455,7 +461,7 @@ if (checkSession($ctx, $data['sessionid']) === false) {
 	}
 
 	$ctx->db->commit();
-/*
+
 } catch (Throwable $e) {
 	$ctx->db->rollBack();
 	if (!in_array(1, $faults)) $faults[] = 1;
@@ -464,5 +470,4 @@ echo json_encode(
 	$faults,
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
 );
-*/
 exit;

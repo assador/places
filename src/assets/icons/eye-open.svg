@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="20"
+   height="20"
+   viewBox="0 0 20 20"
+   version="1.1"
+   id="svg-geomark-1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="g6">
+    <path
+       id="path4"
+       style="fill:#ff0000;fill-opacity:1;stroke:none"
+       d="M 10 0 A 10 10 0 0 0 0 10 A 10 10 0 0 0 10 20 A 10 10 0 0 0 20 10 A 10 10 0 0 0 10 0 z M 10 1 A 9 9 0 0 1 19 10 A 9 9 0 0 1 10 19 A 9 9 0 0 1 1 10 A 9 9 0 0 1 10 1 z M 9.8613281 6.1523438 C 7.089651 6.1523438 5.8230732 7.7738789 2.8632812 9.9238281 C 5.8230733 12.073779 7.9802763 13.863281 11.189453 13.863281 C 14.39863 13.863281 14.912797 11.386279 16.857422 9.9238281 C 13.897632 7.7738789 12.633005 6.1523437 9.8613281 6.1523438 z M 8.109375 7.3984375 A 1.5350523 1.5350523 0 0 1 9.6445312 8.9335938 A 1.5350523 1.5350523 0 0 1 8.109375 10.46875 A 1.5350523 1.5350523 0 0 1 6.5722656 8.9335938 A 1.5350523 1.5350523 0 0 1 8.109375 7.3984375 z " />
+  </g>
+</svg>
+Нашёл я, где удаляются точки. Оказывается, то, что я делаю сейчас в бэке — проверяю, используются ли ещё кем-нибудь точки, указанные в удаляемых местах, и если нет, удаляются вместе с этими местами — я уже реализовал во фронте (Vue.js). Там всё это проверяется по хранилищу (pinia store), которое в свою очередь, наполняется в начале из бэка. Но, наверно, это не лучшая идея делать во фронте? Бэк как-то ближе и надежнее, нет? Вот функция фронта, где это реализовано:
+
+	actions: {
+		…
+		async deleteObjects(payload: {
+			objects?: Record<string, Point | Place | Track | Folder>,
+			todb?: boolean,
+		} = {
+			objects: {},
+			todb: true,
+		}) {
+			const data = {
+				points: <Array<Point>>[],
+				places: <Array<Place>>[],
+				tracks: <Array<Track>>[],
+				folders: <Array<Folder>>[],
+			};
+			if (!Object.values(payload.objects).length) {
+				for (const what in data) {
+					data[what] = Object.values(this[what]).filter(object =>
+						object.hasOwnProperty('deleted') &&
+						object['deleted'] === true
+					);
+				}
+			} else {
+				for (const object of Object.values(payload.objects)) {
+// --> Add points used only by the object in the payload
+					let points = <Array<Point>>[];
+					if (object['pointid']) {
+						points.push(this.points[object['pointid']]);
+					}
+					if (object['pointids']) {
+						for (const id of object['pointids']) {
+							points.push(this.points[id]);
+						}
+					}
+					for (const point of points) {
+						if (!this.sharingPointsIds.includes(point.id)) {
+							this.points[point.id].deleted = true;
+							data.points.push(point);
+						}
+					}
+// <--
+					object.deleted = true;
+					data[object.type + 's'].push(object);
+				}
+			}
+			for (const what in data) {
+				for (const object of data[what]) delete this[what][object.id];
+			}
+			this.buildTrees();
+			if (!this.user.testaccount && payload.todb !== false) {
+				emitter.emit('toDB', data);
+			}
+			this.backupState();
+		},
+		…
+	},
+	getters: {
+		…
+		sharingPointsIds() {
+			let usingPointsIds: string[] = [];
+			usingPointsIds = usingPointsIds.concat(
+				Object.values(this.places).map((place: Place) => place.pointid)
+			);
+			for (const track of Object.values(this.tracks)) {
+				usingPointsIds = usingPointsIds.concat(
+					(track as Track).points.map(id =>
+						this.places[id] ? this.places[id].pointid : id
+				));
+			}
+			return usingPointsIds.filter((id, index, self) =>
+				self.indexOf(id) !== index
+			);
+		},
+		…
+	}
+
+Я в deleteObjects при вызове при удалении места передаю только одно лишь это место. Но точка, используемая в этом месте больше никем сейчас не используется. Поэтому и удаляется.
