@@ -41,9 +41,11 @@ s.$filter-hue-rotate-01: hue-rotate(273deg);
 
 s.$filter-saturate-01: saturate(50%);
 s.$filter-saturate-02: saturate(50%);
+s.$filter-saturate-03: saturate(25%);
 
 s.$filter-brightness-01: brightness(100%);
 s.$filter-brightness-02: brightness(100%);
+s.$filter-brightness-03: brightness(120%);
 
 .colortheme-purple-light {
 	@include s.theme;

@@ -41,9 +41,11 @@ s.$filter-hue-rotate-01: hue-rotate(266deg);
 
 s.$filter-saturate-01: saturate(25%);
 s.$filter-saturate-02: saturate(25%);
+s.$filter-saturate-03: saturate(25%);
 
 s.$filter-brightness-01: brightness(250%);
 s.$filter-brightness-02: brightness(250%);
+s.$filter-brightness-03: brightness(140%);
 
 .colortheme-pink {
 	@include s.theme;

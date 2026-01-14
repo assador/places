@@ -41,9 +41,11 @@ s.$filter-hue-rotate-01: hue-rotate(78deg);
 
 s.$filter-saturate-01: saturate(40%);
 s.$filter-saturate-02: saturate(40%);
+s.$filter-saturate-03: saturate(40%);
 
 s.$filter-brightness-01: brightness(125%);
 s.$filter-brightness-02: brightness(125%);
+s.$filter-brightness-03: brightness(140%);
 
 .colortheme-green-light {
 	@include s.theme;

@@ -35,14 +35,16 @@
 										type="password"
 										:placeholder="mainStore.t.i.inputs.needToChangePassword"
 									/>
-									<button type="button" @click.prevent="e => {
-										passwordShowHide(
-											(e.target as Element)
-												.previousElementSibling as HTMLInputElement
-										);
-									}">
-										👀
-									</button>
+									<button
+										type="button"
+										class="button-iconed icon icon-eye-closed"
+										@click.prevent="e => {
+											passwordShowHide(
+												(e.target as Element)
+													.previousElementSibling as HTMLInputElement
+											);
+										}"
+									/>
 								</div>
 							</td>
 						</tr>
@@ -57,14 +59,16 @@
 										type="password"
 										:placeholder="mainStore.t.i.inputs.needToChangePassword"
 									/>
-									<button type="button" @click.prevent="e => {
-										passwordShowHide(
-											(e.target as Element)
-												.previousElementSibling as HTMLInputElement
-										);
-									}">
-										👀
-									</button>
+									<button
+										type="button"
+										class="button-iconed icon icon-eye-closed"
+										@click.prevent="e => {
+											passwordShowHide(
+												(e.target as Element)
+													.previousElementSibling as HTMLInputElement
+											);
+										}"
+									/>
 								</div>
 							</td>
 						</tr>
@@ -239,6 +243,21 @@ const accountSubmit = (): void => {
 				text-align: right;
 			}
 		}
+	}
+	.button-iconed {
+		right: 5px;
+		margin-top: -20px;
+		&:hover {
+			right: 2px;
+			margin-top: -18px;
+		}
+		&::before {
+			margin-top: 0;
+			transform: scale(1.1);
+		}
+	}
+	input[type=text] + .button-iconed::before {
+		content: url('@/assets/icons/eye-open.svg');
 	}
 }
 @media screen and (max-width: 1000px) {

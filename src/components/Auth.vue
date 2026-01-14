@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.0.2 alpha</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.0.3 alpha</p>
 		</div>
 		<Dashboard />
 		<div class="auth-forms">
@@ -40,14 +40,16 @@
 									mainStore.t.i.inputs.authTest
 								"
 							/>
-							<button type="button" @click.prevent="e => {
-								passwordShowHide(
-									(e.target as Element)
-										.previousElementSibling as HTMLInputElement
-								);
-							}">
-								👀
-							</button>
+							<button
+								type="button"
+								class="button-iconed icon icon-eye-closed"
+								@click.prevent="e => {
+									passwordShowHide(
+										(e.target as Element)
+											.previousElementSibling as HTMLInputElement
+									);
+								}"
+							/>
 						</div>
 					</div>
 					<div class="margin_bottom">
@@ -122,14 +124,16 @@
 							:placeholder="mainStore.t.i.inputs.regPassword"
 							@keyup.enter="authRegSubmit"
 						/>
-						<button type="button" @click.prevent="e => {
-							passwordShowHide(
-								(e.target as Element)
-									.previousElementSibling as HTMLInputElement
-							);
-						}">
-							👀
-						</button>
+						<button
+							type="button"
+							class="button-iconed icon icon-eye-closed"
+							@click.prevent="e => {
+								passwordShowHide(
+									(e.target as Element)
+										.previousElementSibling as HTMLInputElement
+								);
+							}"
+						/>
 					</div>
 					<div class="password nobr">
 						<input
@@ -141,14 +145,16 @@
 							:placeholder="mainStore.t.i.inputs.regRepeatPassword"
 							@keyup.enter="authRegSubmit"
 						/>
-						<button type="button" @click.prevent="e => {
-							passwordShowHide(
-								(e.target as Element)
-									.previousElementSibling as HTMLInputElement
-							);
-						}">
-							👀
-						</button>
+						<button
+							type="button"
+							class="button-iconed icon icon-eye-closed"
+							@click.prevent="e => {
+								passwordShowHide(
+									(e.target as Element)
+										.previousElementSibling as HTMLInputElement
+								);
+							}"
+						/>
 					</div>
 					<input
 						id="reg-email-input"
@@ -275,6 +281,23 @@ onUpdated(async () => {
 .auth-forms {
 	display: flex;
 	margin-bottom: 12px;
+}
+.auth {
+	.button-iconed {
+		right: 5px;
+		margin-top: -22px;
+		&:hover {
+			right: 2px;
+			margin-top: -20px;
+		}
+		&::before {
+			margin-top: 0;
+			transform: scale(1.3);
+		}
+	}
+	input[type=text] + .button-iconed::before {
+		content: url('@/assets/icons/eye-open.svg');
+	}
 }
 .auth-login, .auth-registration {
 	width: 50%;
