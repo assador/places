@@ -179,6 +179,37 @@ function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
 	}
 	$stmt->execute($bindingArray);
 }
+function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
+	$delPlaceStmt = $ctx->db->prepare("
+		DELETE FROM places
+		WHERE id = :id
+			AND userid = :userid
+	");
+	$delPlaceStmt->execute([
+		":id" => uuidToBin($row["id"]),
+		":userid" => uuidToBin($myuserid),
+	]);
+	$pointIdBin = null;
+	if (!empty($row["pointid"])) {
+		$pointIdBin = uuidToBin($row["pointid"]);
+	}
+	if ($pointIdBin !== null) {
+		$pointRefsStmt = $ctx->db->prepare("
+			SELECT
+				(SELECT COUNT(*) FROM pointtrack WHERE point = :pointid)
+			AS refcount;
+		");
+		$pointRefsStmt->bindValue(":pointid", $pointIdBin);
+		$pointRefsStmt->execute();
+		$pointRefs = $pointRefsStmt->fetchAll(PDO::FETCH_ASSOC);
+error_log(
+	json_encode(
+		$pointRefs,
+		JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+	)
+);
+	}
+}
 function addFolder(AppContext $ctx, array $row): void {
 	$sql = "
 		INSERT INTO folders (id, parent, name, description, srt, geomarks, userid)
@@ -296,7 +327,7 @@ if (checkSession($ctx, $data['sessionid']) === false) {
 
 // Transaction
 
-try {
+// try {
 	$ctx->db->beginTransaction();
 
 	$visiting = $ctx->db->query("
@@ -384,15 +415,7 @@ try {
 		foreach ($list['places'] as $row) {
 			if (!empty($row["deleted"])) {
 				$delta--;
-				$delPlaceStmt = $ctx->db->prepare("
-					DELETE FROM places
-					WHERE id = :id
-						AND userid = :userid
-				");
-				$delPlaceStmt->execute([
-					":id" => uuidToBin($row["id"]),
-					":userid" => uuidToBin($data["userid"]),
-				]);
+				deletePlace($ctx, $row, $data["userid"]);
 			}
 			elseif (!empty($row["updated"])) {
 				updatePlace($ctx, $row, $data["userid"]);
@@ -429,6 +452,7 @@ try {
 	}
 
 	$ctx->db->commit();
+/*
 } catch (Throwable $e) {
 	$ctx->db->rollBack();
 	if (!in_array(1, $faults)) $faults[] = 1;
@@ -437,4 +461,5 @@ echo json_encode(
 	$faults,
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
 );
+*/
 exit;

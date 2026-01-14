@@ -6,7 +6,7 @@ export const login = reactive({
 	message: '',
 });
 export const loginRoutine = async (
-	user: {authLogin: string, authPassword: string},
+	user: { authLogin: string, authPassword: string },
 	voc: Record<string, any>
 ) => {
 	axios.post('/backend/auth.php', user)

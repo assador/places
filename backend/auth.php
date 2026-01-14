@@ -13,7 +13,7 @@ $query = $ctx->db->prepare("
 	WHERE login = :login
 		AND confirmed = 1
 ");
-$query->execute([":login" => $_POST["authLogin"]]);
+$query->execute([ ":login" => $_POST["authLogin" ]]);
 $result = $query->fetch(PDO::FETCH_ASSOC);
 
 if (!$result) {
@@ -26,4 +26,6 @@ if (!password_verify($_POST["authPassword"], $result["password"])) {
 }
 $result["session"] = createSession($ctx, $result["id"]);
 $result["id"] = binToUuid($result["id"]);
+$result["homeplace"] = binToUuid($result["homeplace"]);
+
 echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);

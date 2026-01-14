@@ -911,7 +911,7 @@ export const useMainStore = defineStore('main', {
 			}
 			return result;
 		},
-		async setHomePlace(payload: {id: string, todb?: boolean} | null) {
+		async setHomePlace(payload: { id: string, todb?: boolean } | null) {
 			if (payload && this.places[payload.id]) {
 				this.homePlace = this.places[payload.id];
 				this.user.homeplace = payload.id;
