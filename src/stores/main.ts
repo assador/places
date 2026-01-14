@@ -1107,6 +1107,7 @@ export const useMainStore = defineStore('main', {
 				}
 			} else {
 				for (const object of Object.values(payload.objects)) {
+/* Add points used only by the object in the payload
 					let points = <Array<Point>>[];
 					if (object['pointid']) {
 						points.push(this.points[object['pointid']]);
@@ -1122,6 +1123,7 @@ export const useMainStore = defineStore('main', {
 							data.points.push(point);
 						}
 					}
+*/
 					object.deleted = true;
 					data[object.type + 's'].push(object);
 				}

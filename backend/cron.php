@@ -10,6 +10,8 @@ $ctx->db->exec("
 	DELETE FROM points
 	WHERE id NOT IN (
 		SELECT pointid FROM places
+		UNION
+		SELECT point FROM pointtrack
 	)
 ");
 

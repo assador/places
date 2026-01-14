@@ -180,15 +180,6 @@ function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
 	$stmt->execute($bindingArray);
 }
 function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
-	$delPlaceStmt = $ctx->db->prepare("
-		DELETE FROM places
-		WHERE id = :id
-			AND userid = :userid
-	");
-	$delPlaceStmt->execute([
-		":id" => uuidToBin($row["id"]),
-		":userid" => uuidToBin($myuserid),
-	]);
 	$pointIdBin = null;
 	if (!empty($row["pointid"])) {
 		$pointIdBin = uuidToBin($row["pointid"]);
@@ -201,14 +192,26 @@ function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
 		");
 		$pointRefsStmt->bindValue(":pointid", $pointIdBin);
 		$pointRefsStmt->execute();
-		$pointRefs = $pointRefsStmt->fetchAll(PDO::FETCH_ASSOC);
-error_log(
-	json_encode(
-		$pointRefs,
-		JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
-	)
-);
+		$pointRefs = $pointRefsStmt->fetch(PDO::FETCH_ASSOC);
+		if ($pointRefs["refcount"] === 0) {
+			$delPointStmt = $ctx->db->prepare("
+				DELETE FROM points
+				WHERE id = :pointid
+			");
+			$delPointStmt->execute([
+				":pointid" => $pointIdBin,
+			]);
+		}
 	}
+	$delPlaceStmt = $ctx->db->prepare("
+		DELETE FROM places
+		WHERE id = :id
+			AND userid = :userid
+	");
+	$delPlaceStmt->execute([
+		":id" => uuidToBin($row["id"]),
+		":userid" => uuidToBin($myuserid),
+	]);
 }
 function addFolder(AppContext $ctx, array $row): void {
 	$sql = "
