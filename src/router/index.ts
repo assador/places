@@ -40,7 +40,7 @@ const routes: RouteRecordRaw[] = [
 				component: PopupImage,
 				props: true,
 			}, {
-				path: 'folder/:parent?',
+				path: 'folder/:parentId?',
 				name: 'HomeFolder',
 				component: PopupFolder,
 				props: true,

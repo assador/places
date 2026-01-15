@@ -116,85 +116,7 @@
 					/>
 				</span>
 			</form>
-			<div
-				v-if="mainStore.measure.show"
-				class="control-measure"
-			>
-				<dt>
-					<span v-if="mainStore.measure.points.length > 1">
-						{{ mainStore.t.i.captions.measure }}:
-						<span class="imp_02">
-							{{ mainStore.measure.distance.toFixed(3) }}
-						</span>
-						{{ mainStore.t.i.text.km }}
-					</span>
-					<span v-else>
-						{{ mainStore.t.i.captions.measureChoose }}
-						<span class="help" :title="mainStore.t.i.hints.measure" />
-					</span>
-				</dt>
-				<dd
-					v-for="(id, index) in mainStore.measure.points"
-					:key="index"
-					draggable
-					:data-places-measure-point-id="id"
-					class="draggable"
-					@dragstart="e => handleDragStart(e, 'measure')"
-					@dragenter="handleDragEnter"
-					@drop="handleDrop"
-				>
-					<span v-if="mainStore.temps[id]">
-						{{ `${mainStore.t.i.captions.measurePoint} ${mainStore.tempIndexById(id) + 1}` }}
-					</span>
-					<span v-else-if="mainStore.places[id] || mainStore.commonPlaces[id]">
-						{{
-							(mainStore.places[id]
-								? mainStore.places[id]
-								: mainStore.commonPlaces[id]
-							).name
-						}}
-					</span>
-					<span class="control-buttons">
-						<button
-							:title="mainStore.t.i.buttons.specify"
-							class="button-iconed"
-							:class="mainStore.measure.choosing === index ? 'button-pressed' : ''"
-							@click="
-								mainStore.measure.choosing =
-									mainStore.measure.choosing === index
-										? mainStore.measure.points.length
-										: index
-							"
-						>
-							<span>↪</span>
-						</button>
-						<button
-							class="button-iconed icon icon-cross-45"
-							:title="mainStore.t.i.buttons.clear"
-							@click="
-								mainStore.measure.points.splice(index, 1);
-								mainStore.measure.choosing = mainStore.measure.points.length;
-							"
-						/>
-					</span>
-				</dd>
-				<dd
-					v-if="mainStore.measure.points.length > 0"
-					class="control-measure-clearall"
-				>
-					<strong>
-						{{ mainStore.t.i.buttons.clearAll }}
-					</strong>
-					<button
-						class="button-iconed icon icon-cross-45"
-						:title="mainStore.t.i.buttons.clearAll"
-						@click="
-							mainStore.measure.points.length = 0;
-							mainStore.measure.choosing = 0;
-						"
-					/>
-				</dd>
-			</div>
+			<Measure />
 			<Points v-if="mainStore.tempsShow" type="temps" />
 			<div v-if="mainStore.tracksShow" id="tracks">
 				<div id="tracks-tree" class="margin_bottom">
@@ -1067,8 +989,9 @@ import {
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
 import Header from './Header.vue';
-import Tree from './Tree.vue';
+import Measure from './Measure.vue';
 import Points from './Points.vue';
+import Tree from './Tree.vue';
 import { Folder, Point, Place, Track, Image } from '@/stores/types';
 
 const mainStore = useMainStore();
@@ -1252,9 +1175,6 @@ watch(mainStore, changedStore => {
 		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
 	}
 });
-watch(() => mainStore.measure.points, mainStore.measureDistance, { deep: true });
-watch(() => mainStore.points, mainStore.measureDistance, { deep: true });
-watch(() => mainStore.temps, mainStore.measureDistance, { deep: true });
 
 emitter.on('choosePoint', (payload: {point: Point, mode?: string}) => {
 	choosePoint(payload);
@@ -1854,7 +1774,7 @@ const selectPlaces = (text: string): void => {
 </script>
 
 <style lang="scss" scoped>
-.control-search, .control-range, .control-measure dd {
+.control-search, .control-range {
 	display: flex;
 	flex-flow: row wrap;
 	justify-content: flex-end;
@@ -1874,11 +1794,6 @@ const selectPlaces = (text: string): void => {
 	margin: 8px 0 20px 0;
 	> *:first-child {
 		flex-basis: 0;
-	}
-}
-.control-measure {
-	strong {
-		text-align: right;
 	}
 }
 :is(.place-detailed, .track-detailed) {
@@ -1942,7 +1857,7 @@ const selectPlaces = (text: string): void => {
 		min-height: 30px;
 	}
 }
-.control-search, .control-range, .control-measure {
+.control-search, .control-range {
 	.control-buttons button {
 		width: 22px;
 	}

@@ -245,19 +245,19 @@ const accountSubmit = (): void => {
 		}
 	}
 	.button-iconed {
-		right: 5px;
+		right: 3px;
 		margin-top: -20px;
 		&:hover {
-			right: 2px;
+			right: 1px;
 			margin-top: -18px;
 		}
 		&::before {
 			margin-top: 0;
-			transform: scale(1.1);
+			transform: scale(1);
 		}
 	}
 	input[type=text] + .button-iconed::before {
-		content: url('@/assets/icons/eye-open.svg');
+		content: url('@/assets/icons/eye-open-2.svg');
 	}
 }
 @media screen and (max-width: 1000px) {

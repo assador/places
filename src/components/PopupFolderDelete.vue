@@ -9,7 +9,9 @@
 					«{{ folder ? folder.name : '' }}»
 				</p>
 			</div>
-			<p class="margin_bottom_0">
+			<p class="margin_bottom_0 center">
+				<strong>{{ mainStore.t.i.text.folderDeletingIrreversible }}</strong>
+				<br />
 				{{ mainStore.t.i.text.whatToDoWithFolder }}:
 			</p>
 			<form
