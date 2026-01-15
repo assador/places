@@ -260,7 +260,7 @@ $filter-brightness-03: brightness(0%);
 	.un_imp {
 		color: $color-13;
 	}
-	.basiccolor,
+	.basiccolor, .child-basiccolor::before, .child-basiccolor::after,
 	&, input, select, textarea {
 		color: $color-15;
 	}
