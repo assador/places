@@ -90,9 +90,9 @@ const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const mainStore = useMainStore();
 
-watch(() => mainStore.measure.points, mainStore.measureDistance, { deep: true });
-watch(() => mainStore.points, mainStore.measureDistance, { deep: true });
-watch(() => mainStore.temps, mainStore.measureDistance, { deep: true });
+watch(() => mainStore.measure.points, () => mainStore.measureDistance(), { deep: true });
+watch(() => mainStore.points, () => mainStore.measureDistance(), { deep: true });
+watch(() => mainStore.temps, () => mainStore.measureDistance(), { deep: true });
 </script>
 
 <style lang="scss" scoped>

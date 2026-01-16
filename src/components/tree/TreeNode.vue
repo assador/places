@@ -425,6 +425,15 @@
 			</label>
 		</div>
 		<div
+			v-if="distance > 0 && folder.opened"
+			:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
+			class="folder-distances"
+		>
+			<span class="un_color">{{ mainStore.t.i.captions.total }}: </span>
+			<span class="color-01">{{ distance }}</span>
+			<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
+		</div>
+		<div
 			v-if="folder.id !== 'root' && folder.id !== 'tracksroot'"
 			:data-places-tree-folder-sorting-area-top-folderid="folder.id"
 			class="dragenter-area dragenter-area_top"
@@ -510,6 +519,12 @@ const tracks = computed(() =>
 	)
 	.sortBy('srt')
 	.value()
+);
+
+const distance = computed(() =>
+	Math.round(mainStore.distanceBetweenPoints(
+		places.value.map(place => place.pointid)
+	) * 1000) / 1000
 );
 
 const choosePlaceInTree = (place: Place, e: Event): void => {
@@ -637,14 +652,8 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	&::before {
 		display: none;
 	}
-	& > * {
-		display: flex;
-		gap: 8px;
-		align-items: center;
-		z-index: 10;
-		&.folder-subs {
-			z-index: 20;
-		}
+	& > .folder-subs {
+		z-index: 20;
 	}
 	&:is(.folder_closed, .folder_opened) > :is(h2, h2::before) {
 		cursor: pointer;
@@ -693,6 +702,12 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 				display: block;
 			}
 		}
+	}
+	.folder-distances {
+		margin-top: -6px;
+		align-self: end;
+		text-align: right;
+		pointer-events: auto !important;
 	}
 	& > .dragenter-area_top, & > .dragenter-area_bottom {
 		height: 4px;
@@ -762,6 +777,13 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	}
 }
 #places-header, #tracks-header {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	z-index: 10;
+	&.folder-subs {
+		z-index: 20;
+	}
 	.control-buttons * {
 		pointer-events: auto !important;
 	}

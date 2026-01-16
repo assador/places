@@ -316,6 +316,21 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 		},
+		distanceBetweenPoints(ids: string[]): number {
+			if (ids.length < 2) return 0;
+			let distance = 0;
+			for (let i = 1; i < ids.length; i++) {
+				if (!this.points[ids[i]]) continue;
+				distance += distanceOnSphere(
+					this.points[ids[i]].latitude,
+					this.points[ids[i]].longitude,
+					this.points[ids[i - 1]].latitude,
+					this.points[ids[i - 1]].longitude,
+					constants.earthRadius
+				);
+			}
+			return distance;
+		},
 		measureDistance() {
 			let lastIdx: number | null = null;
 			let point: Point, lastPoint: Point;

@@ -58,7 +58,7 @@
 				v-if="type === 'temps'"
 				v-for="(temp, id) in mainStore.temps"
 				:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
-				@click="emitter.emit('choosePoint', {point: temp})"
+				@click="emitter.emit('choosePoint', { point: temp })"
 				@contextmenu="e => {
 					e.preventDefault();
 					emitter.emit('choosePoint', {
@@ -87,7 +87,7 @@
 					point.point === mainStore.currentTrackPoint
 						? 'button-pressed' : ''
 				"
-				@click="emitter.emit('choosePoint', {point: point.point})"
+				@click="emitter.emit('choosePoint', { point: point.point })"
 				@contextmenu="e => {
 					e.preventDefault();
 					emitter.emit('choosePoint', {
@@ -116,6 +116,7 @@
 import { ref } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { emitter } from '@/shared/bus';
+import { Point } from '@/stores/types';
 
 export interface IPlacesPointsProps {
 	type?: string;
@@ -126,6 +127,29 @@ const props = withDefaults(defineProps<IPlacesPointsProps>(), {
 const mainStore = useMainStore();
 
 const opened = ref(true);
+
+emitter.on('choosePoint', (payload: {point: Point, mode?: string}) => {
+	choosePoint(payload);
+});
+
+const choosePoint = (payload: {point: Point, mode?: string}): void => {
+	const { point, mode } = payload;
+	switch (mainStore.mode) {
+		case 'measure':
+			if (mode && mode === 'measure') {
+				const { points, choosing } = mainStore.measure;
+				const pointId = point.id;
+				const idx = points.indexOf(pointId);
+				if (idx === -1)  points[choosing] = pointId; else points.splice(idx, 1);
+				mainStore.measure.choosing = points.length;
+			}
+		default:
+			if (mode === 'measure') break;
+			if (mainStore.currentTemp !== point) {
+				mainStore.currentTemp = point;
+			}
+		}
+};
 </script>
 
 <style lang="scss" scoped>

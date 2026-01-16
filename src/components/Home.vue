@@ -1179,10 +1179,6 @@ watch(mainStore, changedStore => {
 	}
 });
 
-emitter.on('choosePoint', (payload: {point: Point, mode?: string}) => {
-	choosePoint(payload);
-});
-
 onMounted(async () => {
 	if (mainStore.ready) stateReadyChanged();
 	mainStore.idleTime = 0;
@@ -1353,24 +1349,6 @@ const chooseTrack = (track: Track, mode?: string): void => {
 };
 provide('chooseTrack', chooseTrack);
 
-const choosePoint = (payload: {point: Point, mode?: string}): void => {
-	const { point, mode } = payload;
-	switch (mainStore.mode) {
-		case 'measure':
-			if (mode && mode === 'measure') {
-				const { points, choosing } = mainStore.measure;
-				const pointId = point.id;
-				const idx = points.indexOf(pointId);
-				if (idx === -1)  points[choosing] = pointId; else points.splice(idx, 1);
-				mainStore.measure.choosing = points.length;
-			}
-		default:
-			if (mode === 'measure') break;
-			if (mainStore.currentTemp !== point) {
-				mainStore.currentTemp = point;
-			}
-		}
-};
 const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Place> => {
 	const { serverConfig, user, center, t, addPlace, addPoint, setMessage } = mainStore;
 	// Check places limit
