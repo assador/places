@@ -24,7 +24,7 @@ $db = array(
 	"collation" => "utf8mb4_unicode_ci",
 	"charset"   => "utf8mb4",
 );
-$testaccountuuid = "f201c875-8d80-11f0-9d45-01d62c5c4752";
+$testaccountuuid = "f201c875-8d80-11f0-9d45-01d62c5c4751";
 $mail = array(
 	"from" => "noreply@places.earth",
 	"name" => "Сервис «Места»",

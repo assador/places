@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import About from './About.vue';
+import About from '@/components/About.vue';
 
 export interface IPlacesPopupTextProps {
 	what?: string;

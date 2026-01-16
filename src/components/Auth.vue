@@ -203,8 +203,8 @@ import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { loginRoutine, login } from '@/shared/auth';
 import { regRoutine, reg } from '@/shared/reg';
 import { forgotRoutine, forgot } from '@/shared/forgot';
-import Dashboard from './Dashboard.vue';
-import PWAPrompt from './PWAPrompt.vue';
+import Dashboard from '@/components/Dashboard.vue';
+import PWAPrompt from '@/components/PWAPrompt.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();

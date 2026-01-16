@@ -2,14 +2,14 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
 const Auth = () => import('@/components/Auth.vue');
 const Home = () => import('@/components/Home.vue');
-const Admin = () => import('@/components/Admin.vue');
-const Account = () => import('@/components/Account.vue');
-const AccountDelete = () => import('@/components/AccountDelete.vue');
-const PopupText = () => import('@/components/PopupText.vue');
-const PopupImage = () => import('@/components/PopupImage.vue');
-const PopupFolder = () => import('@/components/PopupFolder.vue');
-const PopupFolderDelete = () => import('@/components/PopupFolderDelete.vue');
-const PopupExport = () => import('@/components/PopupExport.vue');
+const Admin = () => import('@/components/admin/Admin.vue');
+const Account = () => import('@/components/account/Account.vue');
+const AccountDelete = () => import('@/components/account/AccountDelete.vue');
+const PopupText = () => import('@/components/popups/PopupText.vue');
+const PopupImage = () => import('@/components/popups/PopupImage.vue');
+const PopupFolder = () => import('@/components/popups/PopupFolder.vue');
+const PopupFolderDelete = () => import('@/components/popups/PopupFolderDelete.vue');
+const PopupExport = () => import('@/components/popups/PopupExport.vue');
 
 const routes: RouteRecordRaw[] = [
 	{

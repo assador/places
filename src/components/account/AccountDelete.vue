@@ -126,7 +126,7 @@
 import { ref, onMounted, onBeforeUpdate } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
-import { accountDeletionRoutine, acc } from '../shared/account';
+import { accountDeletionRoutine, acc } from '../../shared/account';
 
 const mainStore = useMainStore();
 const router = useRouter();

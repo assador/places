@@ -17,7 +17,7 @@ import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { emitter } from '@/shared/bus';
 import { Place, Track, Image, Folder, Point } from '@/stores/types';
-import PopupConfirm from '@/components/PopupConfirm.vue';
+import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
 // Refs and Provides
 const container = ref<null | HTMLElement>(null);

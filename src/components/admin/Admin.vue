@@ -62,12 +62,12 @@
 
 <script setup lang="ts">
 import { ref, defineAsyncComponent, provide, onMounted } from 'vue';
-import { useMainStore } from '@/stores/main';;
-import { useAdminStore } from '@/stores/admin';;
+import { useMainStore } from '@/stores/main';
+import { useAdminStore } from '@/stores/admin';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import Header from '@/components/Header.vue';
-import AdminNavigation from './admin/AdminNavigation.vue';
+import AdminNavigation from '@/components/admin/AdminNavigation.vue';
 
 const mainStore = useMainStore();
 const adminStore = useAdminStore();
@@ -128,11 +128,15 @@ provide('component', component);
 const components = {
 	users: {
 		name: 'AdminUsers',
-		component: defineAsyncComponent(() => import('./admin/AdminUsers.vue')),
+		component: defineAsyncComponent(() =>
+			import('@/components/admin/AdminUsers.vue')
+		),
 	},
 	groups: {
 		name: 'AdminGroups',
-		component: defineAsyncComponent(() => import('./admin/AdminGroups.vue')),
+		component: defineAsyncComponent(() =>
+			import('@/components/admin/AdminGroups.vue')
+		),
 	},
 };
 </script>

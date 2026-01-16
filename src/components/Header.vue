@@ -61,8 +61,8 @@
 import { ref } from 'vue';
 import { emitter } from '@/shared/bus';
 import { useMainStore } from '@/stores/main';
-import Dashboard from './Dashboard.vue';
-import Popup from '@/components/Popup.vue';
+import Dashboard from '@/components/Dashboard.vue';
+import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
 

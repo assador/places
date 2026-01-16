@@ -988,10 +988,10 @@ import {
 } from '@/shared/common';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { emitter } from '@/shared/bus';
-import Header from './Header.vue';
-import Measure from './Measure.vue';
-import Points from './Points.vue';
-import Tree from './Tree.vue';
+import Header from '@/components/Header.vue';
+import Measure from '@/components/actors/Measure.vue';
+import Points from '@/components/Points.vue';
+import Tree from '@/components/tree/Tree.vue';
 import { Folder, Point, Place, Track, Image } from '@/stores/types';
 
 const mainStore = useMainStore();
@@ -1012,11 +1012,15 @@ const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 const maps = [
 	{
 		name: 'OpenStreetMap',
-		component: defineAsyncComponent(() => import('./MapOpenStreetMap.vue')),
+		component: defineAsyncComponent(() =>
+			import('@/components/maps/MapOpenStreetMap.vue')
+		),
 		componentName: 'PlacesMapOpenStreetMap',
 	}, {
 		name: 'Яндекс.Карты',
-		component: defineAsyncComponent(() => import('./MapYandex.vue')),
+		component: defineAsyncComponent(() =>
+			import('@/components/maps/MapYandex.vue')
+		),
 		componentName: 'PlacesMapYandex',
 	}
 ];

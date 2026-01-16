@@ -88,8 +88,7 @@
 import { ref, inject, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';;
 import { useRouter, useRoute } from 'vue-router';
-import Tree from './Tree.vue';
-import { constants } from '../shared/constants';
+import Tree from '@/components/tree/Tree.vue';
 
 export interface IPlacesPopupExportProps {
 	mime?: string;

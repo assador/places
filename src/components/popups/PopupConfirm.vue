@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { ref, Ref, inject, onMounted, onUnmounted } from 'vue';
-import { constants } from '../shared/constants';
+import { constants } from '../../shared/constants';
 import { useMainStore } from '@/stores/main';
 
 export interface IPlacesPopupConfirmProps {
