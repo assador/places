@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import { makeFieldsValidatable } from '@/shared/fields_validate';
 import { Folder } from '@/stores/types';

@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import { ref, inject, onMounted, onUnmounted } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import Tree from '@/components/tree/Tree.vue';
 

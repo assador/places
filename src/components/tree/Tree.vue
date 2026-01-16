@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { formFoldersCheckedIds } from '@/shared/common';
 import TreeNode from '@/components/tree/TreeNode.vue';
 

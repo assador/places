@@ -20,8 +20,8 @@
 	&-geomark-0::before { content: url('@/assets/icons/circle.svg'); }
 	&-geomark-1::before { content: url('@/assets/icons/geomark-1.svg'); }
 	&-geomark-2::before { content: url('@/assets/icons/geomark-2.svg'); }
-	// &-eye-open::before { content: url('@/assets/icons/eye-open-1.svg'); }
-	&-eye-open::before { content: url('@/assets/icons/eye-open-2.svg'); }
-	// &-eye-closed::before { content: url('@/assets/icons/eye-closed-1.svg'); }
-	&-eye-closed::before { content: url('@/assets/icons/eye-closed-2.svg'); }
+	&-eye-open::before { content: url('@/assets/icons/eye-open-1.svg'); }
+	// &-eye-open::before { content: url('@/assets/icons/eye-open-2.svg'); }
+	&-eye-closed::before { content: url('@/assets/icons/eye-closed-1.svg'); }
+	// &-eye-closed::before { content: url('@/assets/icons/eye-closed-2.svg'); }
 }

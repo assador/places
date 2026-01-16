@@ -994,21 +994,6 @@ import Points from '@/components/Points.vue';
 import Tree from '@/components/tree/Tree.vue';
 import { Folder, Point, Place, Track, Image } from '@/stores/types';
 
-const mainStore = useMainStore();
-const router = useRouter();
-
-const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
-const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
-const currentTrackCommon = inject('currentTrackCommon') as Ref<boolean>;
-const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
-const toDB = inject('toDB') as (...args: any[]) => any;
-const toDBCompletely = inject('toDBCompletely') as (...args: any[]) => any;
-const deleteImages = inject('deleteImages') as (...args: any[]) => any;
-const handleDragStart = inject('handleDragStart') as (...args: any[]) => any;
-const handleDragEnter = inject('handleDragEnter') as (...args: any[]) => any;
-const handleDragOver = inject('handleDragOver') as (...args: any[]) => any;
-const handleDrop = inject('handleDrop') as (...args: any[]) => any;
-
 const maps = [
 	{
 		name: 'OpenStreetMap',
@@ -1024,6 +1009,21 @@ const maps = [
 		componentName: 'PlacesMapYandex',
 	}
 ];
+const mainStore = useMainStore();
+const router = useRouter();
+
+const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
+const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
+const currentTrackCommon = inject('currentTrackCommon') as Ref<boolean>;
+const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
+const toDB = inject('toDB') as (...args: any[]) => any;
+const toDBCompletely = inject('toDBCompletely') as (...args: any[]) => any;
+const deleteImages = inject('deleteImages') as (...args: any[]) => any;
+const handleDragStart = inject('handleDragStart') as (...args: any[]) => any;
+const handleDragEnter = inject('handleDragEnter') as (...args: any[]) => any;
+const handleDragOver = inject('handleDragOver') as (...args: any[]) => any;
+const handleDrop = inject('handleDrop') as (...args: any[]) => any;
+
 const root = ref<HTMLElement | null>(null);
 const basicOnFull = () => {
 	root.value?.classList.toggle('basic-fulled');
@@ -1039,7 +1039,6 @@ const commonPlacesOnPageCount = ref(constants.commonplacesonpagecount);
 provide('commonPlacesOnPageCount', commonPlacesOnPageCount);
 const commonTracksPage = ref(1);
 provide('commonTracksPage', commonTracksPage);
-const commonTracksPagesCount = ref(0);
 const commonTracksOnPageCount = ref(constants.commontracksonpagecount);
 provide('commonTracksOnPageCount', commonTracksOnPageCount);
 const commonPlacesShow = ref(false);

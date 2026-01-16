@@ -296,7 +296,7 @@ onUpdated(async () => {
 		}
 	}
 	input[type=text] + .button-iconed::before {
-		content: url('@/assets/icons/eye-open-2.svg');
+		content: url('@/assets/icons/eye-open-1.svg');
 	}
 }
 .auth-login, .auth-registration {

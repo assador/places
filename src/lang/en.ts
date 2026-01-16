@@ -71,7 +71,7 @@ export const t = {
 		},
 		brand: {
 			header: 'The Places',
-			slogan: 'Geo placemarks viewer and editor service',
+			slogan: 'Personal Geo-Organizer',
 		},
 		buttons: {
 			addPhotos: 'Add photos',

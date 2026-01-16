@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, Ref, onMounted, onUnmounted, inject } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import { Place, Track, Folder } from '@/stores/types';
 import { findInTree } from '@/shared/common';

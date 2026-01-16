@@ -82,7 +82,7 @@
 
 <script setup lang="ts">
 import { watch, inject } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 
 const handleDragStart = inject('handleDragStart') as (...args: any[]) => any;
 const handleDragEnter = inject('handleDragEnter') as (...args: any[]) => any;

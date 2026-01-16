@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { ref, watch, inject } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();
 

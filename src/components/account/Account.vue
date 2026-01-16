@@ -150,7 +150,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUpdated, onBeforeUnmount, nextTick } from 'vue';
-import { useMainStore } from '@/stores/main';;
+import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { constants } from '../../shared/constants';
 import { makeFieldsValidatable } from '../../shared/fields_validate';
@@ -257,7 +257,7 @@ const accountSubmit = (): void => {
 		}
 	}
 	input[type=text] + .button-iconed::before {
-		content: url('@/assets/icons/eye-open-2.svg');
+		content: url('@/assets/icons/eye-open-1.svg');
 	}
 }
 @media screen and (max-width: 1000px) {
