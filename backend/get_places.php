@@ -14,14 +14,27 @@ $folders = [];
 
 // Get points.
 $stmt = $ctx->db->prepare("
-	SELECT DISTINCT
-		pt.id,
-		pt.latitude,
-		pt.longitude
-	FROM points pt
-	LEFT JOIN places pl
-		ON pl.pointid = pt.id
-	WHERE pl.userid = :uid OR pl.common = 1
+SELECT DISTINCT
+	pt.id,
+	pt.latitude,
+	pt.longitude,
+	pt.altitude
+FROM points pt
+WHERE
+	EXISTS (
+		SELECT 1
+		FROM places pl
+		WHERE pl.pointid = pt.id
+			AND (pl.userid = :uid OR pl.common = 1)
+	)
+	OR
+	EXISTS (
+		SELECT 1
+		FROM pointtrack ptk
+		JOIN tracks tr ON tr.id = ptk.track
+		WHERE ptk.point = pt.id
+			AND (tr.userid = :uid OR tr.common = 1)
+	);
 ");
 $stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
 $stmt->execute();

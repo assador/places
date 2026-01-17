@@ -4,6 +4,7 @@ export interface Point {
 	userid: string;
 	latitude: number;
 	longitude: number;
+	altitude?: number | null;
 	time?: string;
 	common: boolean;
 	added: boolean;

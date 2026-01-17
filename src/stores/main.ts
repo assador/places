@@ -1,3 +1,4 @@
+import { Ref } from 'vue';
 import { defineStore } from 'pinia';
 import { User, Group, Point, Place, Track, Folder, Image } from './types';
 import { constants } from '@/shared/constants';
@@ -769,6 +770,7 @@ export const useMainStore = defineStore('main', {
 										Number(parsedPoint.longitude) ||
 										Number(constants.map.initial.longitude) ||
 										null,
+									altitude: parsedPoint.altitude,
 									time: parsedPoint.time,
 									common: parsedPoint.common,
 									type: 'point',
@@ -947,11 +949,24 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
+		async getAltitude (lat: number, lon: number, alt?: Ref<number | null>) {
+			try {
+				const { data } = await axios.get(
+					`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
+				);
+				alt.value = isNaN(Number(data.elevation)) ? null : Number(data.elevation);
+				return alt.value;
+			} catch {
+				alt.value = null;
+				return alt.value;
+			}
+		},
 		addTemp(point: Point = {
 			id: crypto.randomUUID(),
 			userid: sessionStorage.getItem('places-useruuid'),
 			latitude: this.center.latitude,
 			longitude: this.center.longitude,
+			altitude: this.getAltitude(this.center.latitude, this.center.longitude),
 			common: false,
 			type: 'point',
 			added: false,
@@ -1006,6 +1021,7 @@ export const useMainStore = defineStore('main', {
 					userid: sessionStorage.getItem('places-useruuid'),
 					latitude: this.center.latitude,
 					longitude: this.center.longitude,
+					altitude: this.getAltitude(this.center.latitude, this.center.longitude),
 					common: false,
 					type: 'point',
 					added: true,
@@ -1069,6 +1085,10 @@ export const useMainStore = defineStore('main', {
 					change: {
 						latitude: Number(lat),
 						longitude: Number(lng),
+						altitude: payload.change.altitude
+							? payload.change.altitude
+							: this.getAltitude(Number(lat), Number(lng))
+						,
 					},
 					from: payload.place,
 				});

@@ -476,7 +476,7 @@
 							<strong>
 								{{ mainStore.descriptionFields['altitudecapability'] }}:
 							</strong>
-							{{ currentPlaceAltitude === null ? '?' : currentPlaceAltitude }}
+							{{ currentPlaceAlt === null ? '?' : currentPlaceAlt }}
 						</div>
 					</template>
 					<template v-else-if="field === 'time'">
@@ -1139,30 +1139,32 @@ const currentPlaceLon = computed<number | null>(() => {
 	const cp = currentPlace.value;
 	return cp ? points.value[cp.pointid]?.longitude ?? null : null;
 });
+const currentPlaceAlt = computed<number | null>(() => {
+	const cp = currentPlace.value;
+	return cp ? points.value[cp.pointid]?.altitude ?? null : null;
+});
 const currentDegMinSec = computed(() =>
 	coords2string([currentPlaceLat.value, currentPlaceLon.value])
 );
-const currentPlaceAltitude = ref<number | null>(null);
 const centerAltitude = ref<number | null>(null);
-const getAltitude = async (lat: number, lon: number, alt: Ref<number | null>) => {
-	try {
-		const { data } = await axios.get(
-			`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
-		);
-		alt.value = isNaN(Number(data.elevation)) ? null : Number(data.elevation);
-	} catch {
-		alt.value = null;
-	}
-};
+const getAltitudeForPoint = async (point: Point) => {
+	const altitude = ref(0);
+	await mainStore.getAltitude(point.latitude, point.longitude, altitude);
+	point.altitude = altitude.value;
+	point.updated = true;
+	toDB({ 'points': [ point ] });
+	point.updated = false;
+}
 watch(() => mainStore.ready, async () => {
 	await stateReadyChanged();
 });
 watchEffect(() => {
 	if (
 		typeof currentPlaceLat.value === 'number' &&
-		typeof currentPlaceLon.value === 'number'
+		typeof currentPlaceLon.value === 'number' &&
+		!mainStore.points[currentPlace.value.pointid].altitude
 	) {
-		getAltitude(currentPlaceLat.value, currentPlaceLon.value, currentPlaceAltitude);
+		getAltitudeForPoint(mainStore.points[currentPlace.value.pointid]);
 	}
 });
 watchEffect(() => {
@@ -1170,7 +1172,11 @@ watchEffect(() => {
 		typeof mainStore.center.latitude === 'number' &&
 		typeof mainStore.center.longitude === 'number'
 	) {
-		getAltitude(mainStore.center.latitude, mainStore.center.longitude, centerAltitude);
+		mainStore.getAltitude(
+			mainStore.center.latitude,
+			mainStore.center.longitude,
+			centerAltitude
+		);
 	}
 });
 watch(mainStore, changedStore => {
