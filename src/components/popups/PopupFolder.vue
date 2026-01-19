@@ -121,7 +121,7 @@ const appendFolder = (payload: { parentId: string, name: string, description: st
 				parentFolder = mainStore.folders[parentId] ?? mainStore.tree;
 				break;
 		}
-		if (parentFolder.children) {
+		if (parentFolder.children.length) {
 			srt =
 				Object.values(parentFolder.children)
 					[Object.values(parentFolder.children).length - 1].srt + 1;

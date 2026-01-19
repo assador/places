@@ -46,7 +46,7 @@
 			v-model="markers[point.id]"
 			:settings="{
 				coordinates: [point.longitude, point.latitude],
-				draggable: point === mainStore.currentTemp,
+				draggable: point === mainStore.currentPoint,
 			}"
 			position="top-center left-center"
 			@mousedown="(e: Event) => placemarkDragStart(point)"
@@ -62,9 +62,9 @@
 				:src="placemarksOptions[
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.includes(id) &&
-					point !== mainStore.currentTemp
+					point !== mainStore.currentPoint
 						? 'icon_01_blue_faded'
-						: (point === mainStore.currentTemp
+						: (point === mainStore.currentPoint
 							? 'icon_01_green_faded'
 							: 'icon_01_faded')
 				].iconImageHref"
@@ -89,7 +89,7 @@
 					mainStore.points[place.pointid]
 						? mainStore.points[place.pointid].latitude : 0,
 				],
-				draggable: id === mainStore.currentPlace?.id,
+				draggable: true,
 			}"
 			position="top-center left-center"
 			@mousedown="(e: Event) => placemarkDragStart(place)"
@@ -268,23 +268,6 @@ const commonPlacesPage = inject('commonPlacesPage');
 const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
 const choosePlace = inject('choosePlace') as (...args: any[]) => any;
 
-const getPointCoordsArray = (pointIdsArray: string[]): number[][] => {
-	const coords: number[][] = [];
-	let point: Point;
-	for (const id of pointIdsArray) {
-		if (mainStore.temps[id]) {
-			point = mainStore.temps[id];
-		} else if (mainStore.places[id]) {
-			point = mainStore.points[mainStore.places[id].pointid];
-		} else if (mainStore.commonPlaces[id]) {
-			point = mainStore.points[mainStore.commonPlaces[id].pointid];
-		} else {
-			return;
-		}
-		coords.push([point.latitude, point.longitude]);
-	}
-	return coords;
-}
 const mapContextMenu = (e: any): void => {
 	mainStore.addTemp({
 		id: crypto.randomUUID(),
@@ -357,11 +340,13 @@ const placemarkClick = (point: Place | Point, e: Event): void => {
 	}
 };
 const placemarkDragStart = (place: Place | Point): void => {
+/*
 	if (place !== mainStore.currentPlace) {
 		mainStore.setMessage(
 			mainStore.t.m.popup.needToChoosePlacemark
 		);
 	}
+*/
 };
 const placemarkDragEnd = async (point: Place | Point) => {
 	const coordinates = markers.value[point.id].coordinates.slice().reverse();

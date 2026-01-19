@@ -13,6 +13,8 @@
 		"allowSyntheticDefaultImports": true,
 		"sourceMap": false,
 		"baseUrl": ".",
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"types": [
 			"node"
 		],

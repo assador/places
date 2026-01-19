@@ -163,7 +163,7 @@ function createMainStoreState() {
 		serverConfig: { rights: { placescount: 100, trackscount: 100, photosize: 10_000_000 }, mimes: { 'image/png': 'png' }, uploadsize: 10_000_000 },
 		currentPlace: null,
 		currentTrack: null,
-		currentTemp: null,
+		currentPoint: null,
 		measureDistance: vi.fn(),
 		updateMap: vi.fn(),
 		t: t,

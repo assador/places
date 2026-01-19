@@ -5,6 +5,7 @@ export interface Point {
 	latitude: number;
 	longitude: number;
 	altitude?: number | null;
+	name?: string;
 	time?: string;
 	common: boolean;
 	added: boolean;
@@ -37,6 +38,7 @@ export interface Track {
 	userid: string;
 	folderid: string;
 	points: string[];
+	choosing: number | null;
 	name: string;
 	description?: string;
 	link?: string;

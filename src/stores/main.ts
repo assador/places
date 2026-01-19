@@ -1,4 +1,4 @@
-import { Ref } from 'vue';
+import { Ref, ref } from 'vue';
 import { defineStore } from 'pinia';
 import { User, Group, Point, Place, Track, Folder, Image } from './types';
 import { constants } from '@/shared/constants';
@@ -23,9 +23,8 @@ export interface IMainState {
 	commonTracks: Record<string, Track>,
 	commonTracksShow: boolean,
 	currentPlace: Place | null,
-	currentTemp: Point | null,
+	currentPoint: Point | null,
 	currentTrack: Track | null,
-	currentTrackPoint: Point | null,
 	folders: Record<string, Folder>,
 	homePlace: Place | null,
 	idleTime: number,
@@ -81,9 +80,8 @@ export const useMainStore = defineStore('main', {
 		commonTracks: {},
 		commonTracksShow: false,
 		currentPlace: null,
-		currentTemp: null,
+		currentPoint: null,
 		currentTrack: null,
-		currentTrackPoint: null,
 		folders: {},
 		homePlace: null,
 		idleTime: 0,
@@ -317,16 +315,16 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 		},
-		distanceBetweenPoints(ids: string[]): number {
+		distanceBetweenPoints(ids: string[], where: string = 'points'): number {
 			if (ids.length < 2) return 0;
 			let distance = 0;
 			for (let i = 1; i < ids.length; i++) {
-				if (!this.points[ids[i]]) continue;
+				if (!this[where][ids[i]]) continue;
 				distance += distanceOnSphere(
-					this.points[ids[i]].latitude,
-					this.points[ids[i]].longitude,
-					this.points[ids[i - 1]].latitude,
-					this.points[ids[i - 1]].longitude,
+					this[where][ids[i]].latitude,
+					this[where][ids[i]].longitude,
+					this[where][ids[i - 1]].latitude,
+					this[where][ids[i - 1]].longitude,
 					constants.earthRadius
 				);
 			}
@@ -949,7 +947,8 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		async getAltitude (lat: number, lon: number, alt?: Ref<number | null>) {
+		async getAltitude (lat: number, lon: number, altRef?: Ref<number | null>) {
+			const alt = altRef ? altRef : ref(null);
 			try {
 				const { data } = await axios.get(
 					`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
@@ -976,7 +975,7 @@ export const useMainStore = defineStore('main', {
 		}) {
 			if (!Object.keys(this.temps).length) this.tempsShow = true;
 			this.temps[point.id] = point;
-			this.currentTemp = this.temps[point.id];
+			this.currentPoint = this.temps[point.id];
 			emitter.emit('choosePoint', {
 				point: this.temps[point.id],
 				mode: (this.mode),
@@ -1006,7 +1005,7 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		async addTrack(payload: {track: Track, todb?: boolean}) {
+		async addTrack(payload: { track: Track, todb?: boolean }) {
 			const { track, todb } = payload;
 			this.tracks[track.id] = track;
 			if (todb !== false && !this.user.testaccount) {
@@ -1014,29 +1013,47 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		addTrackPoint(
-			payload: {point: Point, track: Track } = {
-				point: {
-					id: crypto.randomUUID(),
-					userid: sessionStorage.getItem('places-useruuid'),
-					latitude: this.center.latitude,
-					longitude: this.center.longitude,
-					altitude: this.getAltitude(this.center.latitude, this.center.longitude),
-					common: false,
-					type: 'point',
-					added: true,
-					deleted: false,
-					updated: false,
-					show: true,
-				},
-				track: this.currentTrack,
-		}) {
-			const { point, track } = payload;
+		async addTrackPoint(
+			point: Point = {
+				id: crypto.randomUUID(),
+				userid: sessionStorage.getItem('places-useruuid'),
+				latitude: this.center.latitude,
+				longitude: this.center.longitude,
+				altitude: null,
+				name: '',
+				common: false,
+				type: 'point',
+				added: true,
+				deleted: false,
+				updated: false,
+				show: true,
+			},
+			track: Track = this.currentTrack,
+		) {
+			if (point.altitude === null) {
+				point.altitude = await this.getAltitude(
+					point.latitude,
+					point.longitude
+				);
+			}
+			if (!point.name) {
+				point.name = (track.points.length + 1).toString();
+			}
 			this.points[point.id] = point;
 			track.points.push(point.id);
-			this.currentTrackPoint = this.points[point.id];
 			emitter.emit('choosePoint', {
 				point: this.points[point.id],
+				mode: (this.mode),
+			});
+			this.backupState();
+		},
+		async removeTrackPoint(point: Point, track: Track = this.currentTrack) {
+			let idx = track.points.indexOf(point.id);
+			if (idx === -1) return;
+			track.points.splice(idx, 1);
+			if (idx > track.points.length - 1) idx =  track.points.length - 1;
+			emitter.emit('choosePoint', {
+				point: point,
 				mode: (this.mode),
 			});
 			this.backupState();
@@ -1179,8 +1196,8 @@ export const useMainStore = defineStore('main', {
 				this.measure.choosing = this.measure.points.length;
 			}
 			delete this.temps[id];
-			if (this.currentTemp && this.currentTemp.id === id) {
-				this.currentTemp = null;
+			if (this.currentPoint && this.currentPoint.id === id) {
+				this.currentPoint = null;
 			}
 		},
 		deleteAllTemps() {
@@ -1189,7 +1206,8 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 		async deleteTrackPoint (track: Track, id: string) {
-			
+			console.log(track);
+			console.log(id);
 		},
 		savedToDB(payload: Record<
 			string,
@@ -1277,14 +1295,8 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 		},
-		swapImages(payload: Record<string, any>) {
-			payload.place.images[payload.ids[0]].srt =
-				[
-					payload.place.images[payload.ids[1]].srt,
-					payload.place.images[payload.ids[1]].srt =
-						payload.place.images[payload.ids[0]].srt
-				][0]
-			;
+		swapSrts(payload: any[]) {
+			payload[0].srt = [ payload[1].srt, payload[1].srt = payload[0].srt ][0];
 		},
 		updateMap(payload: Record<string, any>) {
 			if (typeof payload.latitude === 'number') {
@@ -1530,11 +1542,22 @@ export const useMainStore = defineStore('main', {
 		tempIndexById: state => {
 			return (id: string) => Object.keys(state.temps).indexOf(id);
 		},
+		trackPoints() {
+			return (track: Track): Point[] => {
+				if (track === null) return [];
+				let points: Point[] = [];
+				for (const id of track.points) {
+					if (id in this.points) points.push(this.points[id]);
+					else if (id in this.temps) points.push(this.temps[id]);
+				}
+				return points;
+			}
+		},
 		// Since the track points can be either its own or independent
 		// or points of other places, we collect them all in one array
 		trackAllPointsArray() {
-			return (track: Track): {point: Point, of: string}[] => {
-				let points: {point: Point, of: string}[] = [];
+			return (track: Track): { point: Point, of: string }[] => {
+				let points: { point: Point, of: string }[] = [];
 				let of: string;
 				for (const id of track.points) {
 					if (id in this.temps) of = 'temps';
@@ -1550,6 +1573,27 @@ export const useMainStore = defineStore('main', {
 					});
 				}
 				return points;
+			}
+		},
+		getPointCoordsArray () {
+			return (pointIdsArray: string[]): number[][] => {
+				const coords: number[][] = [];
+				let point: Point;
+				for (const id of pointIdsArray) {
+					if (this.points[id]) {
+						point = this.points[id];
+					} else if (this.temps[id]) {
+						point = this.temps[id];
+					} else if (this.places[id]) {
+						point = this.points[this.places[id].pointid];
+					} else if (this.commonPlaces[id]) {
+						point = this.points[this.commonPlaces[id].pointid];
+					} else {
+						return [];
+					}
+					coords.push([point.latitude, point.longitude]);
+				}
+				return coords;
 			}
 		},
 	},

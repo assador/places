@@ -29,6 +29,39 @@ export const sortObjects = (
 	});
 	return sorted;
 };
+export const moveInArrayAfter = (array: any[], from: number, to: number) => {
+	array.splice(to + (from > to ? 1 : 0), 0, array.splice(from, 1)[0]);
+};
+export const moveInObject = (
+	parent: Record<string, any>,
+	change: Record<string, any>,
+	target: Record<string, any>,
+	key: string,
+	before: boolean = false,
+) => {
+	let nearest = before ? -Infinity : Infinity;
+	for (const obj of Object.values(parent)) {
+		if (
+			before && obj[key] < target[key] && obj[key] > nearest ||
+			!before && obj[key] > target[key] && obj[key] < nearest
+		) {
+			nearest = obj[key];
+		}
+	}
+	if (before) {
+		if (nearest !== -Infinity) {
+			change[key] = (target[key] - nearest) / 2 + nearest;
+		} else {
+			change[key] = target[key] / 2;
+		}
+	} else {
+		if (nearest !== Infinity) {
+			change[key] = (nearest - target[key]) / 2 + target[key];
+		} else {
+			change[key] = target[key] + 10;
+		}
+	}
+};
 export const num2deg = (num: number, lat = false): number => {
 	const n = num % 360;
 	if (Math.abs(n) <= (lat ? 90 : 180)) return n;

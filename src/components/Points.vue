@@ -57,11 +57,14 @@
 			<button
 				v-if="type === 'temps'"
 				v-for="(temp, id) in mainStore.temps"
-				:class="temp === mainStore.currentTemp ? 'button-pressed' : ''"
-				@click="emitter.emit('choosePoint', { point: temp })"
+				:class="temp.id === mainStore.currentPoint.id ? 'button-pressed' : ''"
+				@click="e => {
+					e.preventDefault();
+					choosePoint({ point: temp });
+				}"
 				@contextmenu="e => {
 					e.preventDefault();
-					emitter.emit('choosePoint', {
+					choosePoint({
 						point: temp,
 						mode: mainStore.mode,
 					});
@@ -79,41 +82,71 @@
 			</button>
 			<button
 				v-else-if="type === 'tracks'"
-				v-for="
-					(point, index) of
-					mainStore.trackAllPointsArray(mainStore.currentTrack)
-				"
+				v-for="(point, idx) of mainStore.trackPoints(mainStore.currentTrack)"
+				:key="point.id"
+				:data-point="point.id"
+				:data-pointidx="idx"
+				:draggable="true"
+				@dragstart="e => handleDragStart(e, 'points')"
+				@dragenter="e => {
+					highlighted = point.id;
+					handleDragEnter(e);
+				}"
+				@dragend="highlighted = null"
+				@drop="handleDrop"
 				:class="
-					point.point === mainStore.currentTrackPoint
-						? 'button-pressed' : ''
+					point.id === highlighted ||
+					point.id ===
+						mainStore.currentTrack.points[mainStore.currentTrack.choosing]
+							? 'button-pressed' : ''
 				"
-				@click="emitter.emit('choosePoint', { point: point.point })"
+				@click="e => {
+					e.preventDefault();
+					choosePoint({ point: point });
+				}"
 				@contextmenu="e => {
 					e.preventDefault();
-					emitter.emit('choosePoint', {
-						point: point.point,
+					choosePoint({
+						point: point,
 						mode: mainStore.mode,
 					});
 				}"
 			>
-				<span>{{ index + 1 }}</span>
 				<span
-					class="button-iconed icon icon-cross-45"
+					:data-point="point.id"
+					:data-pointidx="idx"
+					@dragenter="highlighted = point.id"
+				>
+					{{ point.name }}
+				</span>
+				<span
+					:data-point="point.id"
+					:data-pointidx="idx"
 					:title="mainStore.t.i.hints.deleteTrack"
+					class="button-iconed icon icon-cross-45"
+					@dragenter="highlighted = point.id"
 					@click="e => {
 						e.stopPropagation();
 						mainStore.deleteTrackPoint(
-							mainStore.currentTrack, point.point.id
+							mainStore.currentTrack, point.id
 						);
 					}"
 				/>
 			</button>
 		</div>
+		<div
+			:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
+			class="points-distance"
+		>
+			<span class="un_color">{{ mainStore.t.i.captions.total }}: </span>
+			<span class="color-01">{{ distance }}</span>
+			<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { emitter } from '@/shared/bus';
 import { Point } from '@/stores/types';
@@ -124,15 +157,21 @@ export interface IPlacesPointsProps {
 const props = withDefaults(defineProps<IPlacesPointsProps>(), {
 	type: 'temps',
 });
+
+const handleDragStart = inject('handleDragStart') as (...args: any[]) => any;
+const handleDragEnter = inject('handleDragEnter') as (...args: any[]) => any;
+const handleDrop = inject('handleDrop') as (...args: any[]) => any;
+
 const mainStore = useMainStore();
 
 const opened = ref(true);
+const highlighted = ref(null);
 
-emitter.on('choosePoint', (payload: {point: Point, mode?: string}) => {
+emitter.on('choosePoint', (payload: { point: Point, mode?: string }) => {
 	choosePoint(payload);
 });
 
-const choosePoint = (payload: {point: Point, mode?: string}): void => {
+const choosePoint = (payload: { point: Point, mode?: string }): void => {
 	const { point, mode } = payload;
 	switch (mainStore.mode) {
 		case 'measure':
@@ -145,11 +184,36 @@ const choosePoint = (payload: {point: Point, mode?: string}): void => {
 			}
 		default:
 			if (mode === 'measure') break;
-			if (mainStore.currentTemp !== point) {
-				mainStore.currentTemp = point;
+			if (mainStore.currentTrack !== null) {
+				const idx = mainStore.currentTrack.points.indexOf(point.id);
+				if (idx !== -1) mainStore.currentTrack.choosing = idx;
+			}
+			if (mainStore.currentPoint !== point) {
+				mainStore.currentPoint = point;
 			}
 		}
 };
+const distance = computed(() => {
+	const idsArray = ref([]);
+	const where = ref('points');
+	switch (props.type) {
+		case 'temps':
+			idsArray.value = Object.keys(mainStore.temps);
+			where.value = 'temps';
+			break;
+		case 'tracks':
+			idsArray.value = mainStore.currentTrack !== null
+				? mainStore.currentTrack.points : []
+			;
+			where.value = 'points';
+			break;
+	}
+	return (
+		Math.round(
+			mainStore.distanceBetweenPoints(idsArray.value, where.value)
+		* 1000) / 1000
+	);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -215,5 +279,8 @@ const choosePoint = (payload: {point: Point, mode?: string}): void => {
 	&.closed {
 		display: none;
 	}
+}
+.points-distance {
+	margin-top: 8px;
 }
 </style>

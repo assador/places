@@ -16,11 +16,11 @@ import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { emitter } from '@/shared/bus';
+import { moveInArrayAfter, moveInObject } from '@/shared/common';
 import { Place, Track, Image, Folder, Point } from '@/stores/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
 // Refs and Provides
-const container = ref<null | HTMLElement>(null);
 const draggingElement = ref<null | Element>(null);
 const draggingType = ref<string | null>(null);
 const foldersEditMode = ref(false);
@@ -47,7 +47,6 @@ onBeforeMount(() => {
 const mainStore = useMainStore();
 const router = useRouter();
 
-const currentPlace = computed(() => mainStore.currentPlace);
 const colortheme = computed(() => mainStore.colortheme);
 const colorthemes = computed(() => [
 	{ value: 'brown',        title: mainStore.t.i.inputs.colorthemeBrown },
@@ -122,12 +121,13 @@ onMounted(() => {
 	if (state) mainStore.replaceState(JSON.parse(state));
 
 	mainStore.$onAction(({
-		name,
-		store,
-		args,
+		// name,
+		// store,
+		// args,
 		after,
-		onError,
+		// onError,
 	}): void => {
+/*
 		const actions = [
 			'addPlace',
 			'changePlace',
@@ -140,8 +140,9 @@ onMounted(() => {
 			'changePoint',
 			'deleteTemp',
 			'setHomePlace',
-			'swapImages',
+			'swapSrts',
 		];
+*/
 		after(() => {
 			// if (actions.includes(name)) {
 				mainStore.idleTime = 0;
@@ -284,7 +285,7 @@ const handleDragEnter = (event: Event): void => {
 	event.stopPropagation();
 	const el = event.target as HTMLElement;
 	switch (draggingType.value) {
-		case 'measure': {
+		case 'measure':
 			const el1 = draggingElement.value as HTMLElement;
 			const el2 = event.target as HTMLElement;
 			const id1 = el1.dataset.placesMeasurePointId;
@@ -297,22 +298,7 @@ const handleDragEnter = (event: Event): void => {
 			mainStore.measureDistance();
 			draggingElement.value = el2;
 			return;
-		}
-		case 'images': {
-			if (
-				!((draggingElement.value as Element).id in currentPlace.value.images) ||
-				!((event.target as Element).id in currentPlace.value.images)
-			) {
-				return;
-			}
-			const ids: string[] = [
-				(draggingElement.value as Element).id,
-				(event.target as Element).id,
-			];
-			mainStore.swapImages({ place: currentPlace.value, ids });
-			return;
-		}
-		default: {
+		default:
 			const dragEl = draggingElement.value as HTMLElement;
 			const dragPP = (draggingElement.value as Element).parentElement?.parentElement;
 			const addClass = (cls: string) => el.classList.add(cls);
@@ -344,7 +330,6 @@ const handleDragEnter = (event: Event): void => {
 					addClass('dragenter-area_bottom_border');
 				}
 			}
-		}
 	}
 };
 provide('handleDragEnter', handleDragEnter);
@@ -364,7 +349,7 @@ const handleDragOver = (event: Event): void => {
 };
 provide('handleDragOver', handleDragOver);
 
-const handleDrop = (event: Event): void => {
+const handleDrop = (event: Event, params?: Record<string, any>): void => {
 	draggingType.value = null;
 	if (!draggingElement.value) return;
 	event.preventDefault();
@@ -380,12 +365,45 @@ const handleDrop = (event: Event): void => {
 		draggingElement.value = null;
 	};
 
-	// Image thumbnail dropped
-	if ((draggingElement.value as any).dataset.image !== undefined) {
-		currentPlace.value.updated = true;
-		toDB({ 'images_update': Object.values(currentPlace.value.images) });
-		currentPlace.value.updated = false;
-		cleanup(); return;
+	// Image thumbnail dropped on another image thumbnail
+	if ((draggingElement.value as HTMLElement).dataset.hasOwnProperty('image')) {
+		const upperId = (draggingElement.value as HTMLElement).dataset.image;
+		const lowerId = (el as HTMLElement).dataset.image;
+		if (
+			!mainStore.currentPlace.images.hasOwnProperty(upperId) ||
+			!mainStore.currentPlace.images.hasOwnProperty(lowerId)
+		) {
+			return;
+		}
+		const images = mainStore.currentPlace.images;
+		moveInObject(
+			images,
+			images[upperId],
+			images[lowerId],
+			'srt',
+			params && params.before ? true : false
+		);
+		mainStore.currentPlace.updated = true;
+		toDB({ 'images_update': Object.values(mainStore.currentPlace.images) });
+		mainStore.currentPlace.updated = false;
+		cleanup();
+		return;
+	}
+
+	// Point button dropped on another point button
+	if ((draggingElement.value as HTMLElement).dataset.hasOwnProperty('point')) {
+		const upperId = (draggingElement.value as HTMLElement).dataset.point;
+		const upperIdx = Number((draggingElement.value as HTMLElement).dataset.pointidx);
+		const lowerId = (el as HTMLElement).dataset.point;
+		const lowerIdx = Number((el as HTMLElement).dataset.pointidx);
+		if (
+			!mainStore.currentTrack.points.includes(upperId) ||
+			!mainStore.currentTrack.points.includes(lowerId)
+		) {
+			return;
+		}
+		moveInArrayAfter(mainStore.currentTrack.points, upperIdx, lowerIdx);
+		return;
 	}
 
 	// Tree item dropped on tree folder

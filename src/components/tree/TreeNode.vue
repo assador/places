@@ -60,10 +60,16 @@
 					"
 					class="folder-button__content"
 				>
-					<h2 v-if="folder.id === 'root'">
+					<h2
+						v-if="folder.id === 'root'"
+						class="color-01"
+					>
 						{{ mainStore.t.i.captions.places }}
 					</h2>
-					<h2 v-else-if="folder.id === 'tracksroot'">
+					<h2
+						v-else-if="folder.id === 'tracksroot'"
+						class="color-01"
+					>
 						{{ mainStore.t.i.captions.tracks }}
 					</h2>
 					<div v-else>
@@ -218,7 +224,7 @@
 					accesskey="f"
 					@click="router.push({
 						name: 'HomeFolder',
-						params: { parent: 'root' },
+						params: { parentId: 'root' },
 					})"
 				/>
 			</div>
@@ -247,7 +253,7 @@
 					accesskey="f"
 					@click="router.push({
 						name: 'HomeFolder',
-						params: { parent: 'tracksroot' },
+						params: { parentId: 'tracksroot' },
 					})"
 				/>
 			</div>
@@ -361,13 +367,19 @@
 							object.hasOwnProperty('geomarks')
 						"
 						class="place-button__control icon"
-						:class="'icon-geomark-' + (!object['geomark'] ? '0' : '1')"
+						:class="'icon-geomark-' + (what === 'places'
+							? (!object['geomark'] ? '0' : '1')
+							: (!object['geomarks'] ? '0' : '1')
+						)"
 						:title="
 							(!object['geomark']
 								? mainStore.t.i.hints.show
 								: mainStore.t.i.hints.hide
 							) +
-							' ' + mainStore.t.i.hints.placemarkOnMap
+							' ' + (what === 'places'
+								? mainStore.t.i.hints.placemarkOnMap
+								: mainStore.t.i.hints.placemarksOnMap
+							)
 						"
 						@click="e => {
 							e.stopPropagation();
@@ -381,6 +393,7 @@
 						}"
 					/>
 					<span
+						v-if="what === 'places'"
 						class="place-button__control icon icon-plus"
 						:title="mainStore.t.i.hints.addPlaceNext"
 						@click="e => {
@@ -391,6 +404,22 @@
 									index === places.length - 1
 										? object.srt + 1
 										: object.srt + (places[index + 1].srt - object.srt) / 2
+								),
+							});
+						}"
+					/>
+					<span
+						v-else-if="what === 'tracks'"
+						class="place-button__control icon icon-plus"
+						:title="mainStore.t.i.hints.addTrackNext"
+						@click="e => {
+							e.stopPropagation();
+							appendTrack({
+								folderid: folder.id,
+								srt: (
+									index === tracks.length - 1
+										? object.srt + 1
+										: object.srt + (tracks[index + 1].srt - object.srt) / 2
 								),
 							});
 						}"
@@ -489,7 +518,7 @@ const handleDragLeave = inject<typeof handleDragLeave>('handleDragLeave');
 const handleDrop = inject<typeof handleDrop>('handleDrop');
 
 const appendPlace = inject('appendPlace') as (payload?: Record<string, any>) => void;
-const appendTrack = inject('appendTrack') as () => void;
+const appendTrack = inject('appendTrack') as (payload?: Record<string, any>) => void;
 const choosePlace = inject('choosePlace') as (...args: any[]) => any;
 const chooseTrack = inject('chooseTrack') as (...args: any[]) => any;
 
@@ -546,14 +575,12 @@ const chooseTrackInTree = (track: Track, e: Event): void => {
 const getPoint = (object: any): Point | null => {
 	if (object.type === 'place') {
 		return mainStore.points[object.pointid];
-	} else if (object.type === 'track' && object.points.length) {
-		if (object.points[object.choosing].place) {
-			return mainStore.points[
-				mainStore.places[object.points[object.choosing].id].pointid
-			];
-		} else {
-			return mainStore.points[object.points[object.choosing].id];
-		}
+	} else if (
+		object.type === 'track' &&
+		typeof object.choosing === 'number' &&
+		object.points[object.choosing]
+	) {
+		return object.points[object.choosing];
 	}
 	return null;
 }
@@ -772,7 +799,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 }
 .folder-places {
 	display: block;
-	&:not(&:is(&#root)) {
+	&:not(&:is(&#root, &#tracksroot)) {
 		margin-left: 15px;
 	}
 }
