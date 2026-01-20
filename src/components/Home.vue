@@ -141,7 +141,7 @@
 										? ' active' : ''
 								)"
 								@click="() => {
-									chooseTrack(commonTrack);
+									mainStore.chooseTrack(commonTrack);
 									if (commonTrack.points.length) {
 										const point = mainStore.points[
 											mainStore.places[commonTrack.points[0]]
@@ -156,7 +156,7 @@
 								}"
 								@contextmenu="e => {
 									e.preventDefault();
-									chooseTrack(commonTrack, mainStore.mode);
+									mainStore.chooseTrack(commonTrack, mainStore.mode);
 								}"
 							>
 								{{ commonTrack.name }}
@@ -167,8 +167,9 @@
 								v-for="(_, index) in commonTracksPagesCount"
 								:key="index"
 								href="javascript:void(0);"
-								:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
-								@click="commonPlacesPage = index + 1;"
+								class="pseudo_button"
+								:class="index + 1 === mainStore.commonPlacesPage ? ' un_imp' : ''"
+								@click="mainStore.commonPlacesPage = index + 1;"
 							>
 								{{ index + 1 }}
 							</a>
@@ -198,7 +199,7 @@
 									? ' active' : ''
 							)"
 							@click="() => {
-								choosePlace(commonPlace);
+								mainStore.choosePlace(commonPlace);
 								const point = mainStore.points[commonPlace.pointid];
 								mainStore.updateMap({
 									latitude: point.latitude,
@@ -207,7 +208,7 @@
 							}"
 							@contextmenu="e => {
 								e.preventDefault();
-								choosePlace(commonPlace, mainStore.mode);
+								mainStore.choosePlace(commonPlace, mainStore.mode);
 							}"
 						>
 							{{ commonPlace.name }}
@@ -218,8 +219,9 @@
 							v-for="(_, index) in commonPlacesPagesCount"
 							:key="index"
 							href="javascript:void(0);"
-							:class="'pseudo_button' + (index + 1 === commonPlacesPage ? ' un_imp' : '')"
-							@click="commonPlacesPage = index + 1;"
+							class="pseudo_button"
+							:class="index + 1 === mainStore.commonPlacesPage ? ' un_imp' : ''"
+							@click="mainStore.commonPlacesPage = index + 1;"
 						>
 							{{ index + 1 }}
 						</a>
@@ -657,14 +659,14 @@ import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { throttle } from 'lodash';
-import { constants } from '@/shared/constants';
-import { makeDropDowns } from '@/shared/common';
 import {
+	emitter,
+	constants,
 	generateRandomString,
 	sortObjects,
-} from '@/shared/common';
-import { makeFieldsValidatable } from '@/shared/fields_validate';
-import { emitter } from '@/shared/bus';
+	makeDropDowns,
+	makeFieldsValidatable,
+} from '@/shared';
 import Header from '@/components/Header.vue';
 import Measure from '@/components/actors/Measure.vue';
 import Points from '@/components/Points.vue';
@@ -708,11 +710,7 @@ const extmap = ref(null);
 provide('extmap', extmap);
 const importFromFileInput = ref<HTMLInputElement | null>(null);
 const inputUploadFiles = ref<HTMLInputElement | null>(null);
-const commonPlacesPage = ref(1);
-provide('commonPlacesPage', commonPlacesPage);
 const commonPlacesPagesCount = ref(0);
-const commonPlacesOnPageCount = ref(constants.commonplacesonpagecount);
-provide('commonPlacesOnPageCount', commonPlacesOnPageCount);
 const commonTracksPage = ref(1);
 provide('commonTracksPage', commonTracksPage);
 const commonTracksPagesCount = ref(0);
@@ -780,8 +778,8 @@ watch(compact, () => {
 const currentTrack = computed(() => mainStore.currentTrack);
 const commonPlaces = computed<Record<string, Place>>(() => {
 	const ids = Object.keys(mainStore.commonPlaces);
-	const start = commonPlacesOnPageCount.value * (commonPlacesPage.value - 1);
-	const end = commonPlacesOnPageCount.value * commonPlacesPage.value;
+	const start = mainStore.commonPlacesOnPageCount * (mainStore.commonPlacesPage - 1);
+	const end = mainStore.commonPlacesOnPageCount * mainStore.commonPlacesPage;
 	return ids.slice(start, end).reduce((acc, id) => {
 		acc[id] = mainStore.commonPlaces[id];
 		return acc;
@@ -881,16 +879,15 @@ const stateReadyChanged = async () => {
 	if (!mainStore.currentPlace) mainStore.setFirstCurrentPlace();
 	const commonPlacesKeys = Object.keys(mainStore.commonPlaces);
 	const commonPlacesLen = commonPlacesKeys.length;
-	const perPage = commonPlacesOnPageCount.value;
+	const perPage = mainStore.commonPlacesOnPageCount;
 	commonPlacesPagesCount.value = Math.ceil(commonPlacesLen / perPage);
 	currentPlaceCommon.value = false;
 	const cp = mainStore.currentPlace;
 	if (cp && cp.common && cp.userid !== mainStore.user.id) {
 		const idx = commonPlacesKeys.indexOf(cp.id);
 		const inPaginator = idx / perPage;
-		commonPlacesPage.value = Number.isInteger(inPaginator)
-			? inPaginator + 1
-			: Math.ceil(inPaginator);
+		mainStore.commonPlacesPage =
+			Number.isInteger(inPaginator) ? inPaginator + 1 : Math.ceil(inPaginator);
 		currentPlaceCommon.value = true;
 	}
 	currentTrackCommon.value = false;
@@ -939,54 +936,6 @@ watch(() => mainStore.currentTrack, current => {
 	if (!current || currentTrackCommon.value) return;
 	openTreeTo(mainStore.currentTrack);
 });
-
-const choosePlace = (place: Place, mode?: string): void => {
-	if (!place) {
-		mainStore.currentPlace = null;
-		return;
-	}
-	switch (mainStore.mode) {
-		case 'measure':
-			if (mode && mode === 'measure') {
-				const { points, choosing } = mainStore.measure;
-				const placeId = place.id;
-				const idx = points.indexOf(placeId);
-				if (idx === -1)  points[choosing] = placeId; else points.splice(idx, 1);
-				mainStore.measure.choosing = points.length;
-			}
-		default:
-			if (mode === 'measure') break;
-			if (mainStore.currentPlace !== place) {
-				mainStore.currentPlace = place;
-				currentPlaceCommon.value = mainStore.currentPlace.userid !== mainStore.user.id;
-			}
-	}
-};
-provide('choosePlace', choosePlace);
-
-const chooseTrack = (track: Track, mode?: string): void => {
-	if (!track) {
-		mainStore.currentTrack = null;
-		return;
-	}
-	switch (mainStore.mode) {
-		case 'measure':
-			if (mode && mode === 'measure') {
-				const { points, choosing } = mainStore.measure;
-				const trackId = track.id;
-				const idx = points.indexOf(trackId);
-				if (idx === -1)  points[choosing] = trackId; else points.splice(idx, 1);
-				mainStore.measure.choosing = points.length;
-			}
-		default:
-			if (mode === 'measure') break;
-			if (mainStore.currentTrack !== track) {
-				mainStore.currentTrack = track;
-				currentTrackCommon.value = mainStore.currentTrack.userid !== mainStore.user.id;
-			}
-	}
-};
-provide('chooseTrack', chooseTrack);
 
 const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Place> => {
 	const { serverConfig, user, center, t, addPlace, addPoint, setMessage } = mainStore;
@@ -1047,7 +996,7 @@ const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Pl
 			'places': [ newPlace ],
 		});
 	}
-	choosePlace(newPlace);
+	mainStore.choosePlace(newPlace);
 	await nextTick();
 	const detailedNameElem = document.getElementById('place-detailed-name');
 	if (detailedNameElem) {
@@ -1102,7 +1051,7 @@ const appendTrack = async (payload: Record<string, any> = {}): Promise<void | Tr
 	};
 	for (const key in payload) newTrack[key] = payload[key];
 	await addTrack({ track: newTrack });
-	chooseTrack(newTrack);
+	mainStore.chooseTrack(newTrack);
 	await nextTick();
 	const detailedNameElem = document.getElementById('track-detailed-name');
 	if (detailedNameElem) {

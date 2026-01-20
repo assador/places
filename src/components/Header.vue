@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { emitter } from '@/shared/bus';
+import { emitter } from '@/shared';
 import { useMainStore } from '@/stores/main';
 import Dashboard from '@/components/Dashboard.vue';
 import Popup from '@/components/popups/Popup.vue';

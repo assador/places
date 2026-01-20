@@ -339,7 +339,7 @@
 						name="placeCheckbox"
 						type="checkbox"
 						class="to-export-place-checkbox tree-item-checkbox"
-						:checked="selectedToExport.hasOwnProperty(object.id)"
+						:checked="Object.hasOwn(selectedToExport, object.id)"
 						@change="e => {
 							if (what === 'places') {
 								selectUnselect(
@@ -363,8 +363,8 @@
 				<span class="place-button__controls">
 					<span
 						v-if="
-							object.hasOwnProperty('geomark') ||
-							object.hasOwnProperty('geomarks')
+							Object.hasOwn(object, 'geomark') ||
+							Object.hasOwn(object, 'geomarks')
 						"
 						class="place-button__control icon"
 						:class="'icon-geomark-' + (what === 'places'
@@ -491,7 +491,7 @@ import { inject, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { Point, Place, Track, Folder } from '@/stores/types';
-import { formFoldersCheckedIds } from '@/shared/common';
+import { formFoldersCheckedIds } from '@/shared';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;
@@ -519,8 +519,6 @@ const handleDrop = inject<typeof handleDrop>('handleDrop');
 
 const appendPlace = inject('appendPlace') as (payload?: Record<string, any>) => void;
 const appendTrack = inject('appendTrack') as (payload?: Record<string, any>) => void;
-const choosePlace = inject('choosePlace') as (...args: any[]) => any;
-const chooseTrack = inject('chooseTrack') as (...args: any[]) => any;
 
 const currentPlace = computed(() => mainStore.currentPlace);
 const currentTrack = computed(() => mainStore.currentTrack);
@@ -557,7 +555,7 @@ const distance = computed(() =>
 );
 
 const choosePlaceInTree = (place: Place, e: Event): void => {
-	choosePlace(
+	mainStore.choosePlace(
 		place,
 		mainStore.mode === 'measure' && e.type === 'contextmenu'
 			? 'measure'
@@ -565,7 +563,7 @@ const choosePlaceInTree = (place: Place, e: Event): void => {
 	);
 };
 const chooseTrackInTree = (track: Track, e: Event): void => {
-	chooseTrack(
+	mainStore.chooseTrack(
 		track,
 		mainStore.mode === 'measure' && e.type === 'contextmenu'
 			? 'measure'

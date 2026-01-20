@@ -152,9 +152,7 @@
 import { ref, onMounted, onUpdated, onBeforeUnmount, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { constants } from '../../shared/constants';
-import { makeFieldsValidatable } from '../../shared/fields_validate';
-import { accountSaveRoutine, acc } from '../../shared/account';
+import { constants, accountSaveRoutine, acc, makeFieldsValidatable } from '@/shared';
 import Header from '@/components/Header.vue';
 
 const mainStore = useMainStore();

@@ -36,7 +36,7 @@ import {
 import { useRouter, useRoute } from 'vue-router';
 import { useMainStore } from '@/stores/main';
 import _ from 'lodash';
-import { constants } from '@/shared/constants';
+import { constants } from '@/shared';
 import { Place, Image } from '@/stores/types';
 
 export interface IPlacesPopupImageProps {

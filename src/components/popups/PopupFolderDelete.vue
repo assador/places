@@ -62,11 +62,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, onMounted, onUnmounted, inject } from 'vue';
+import { ref, Ref, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import { Place, Track, Folder } from '@/stores/types';
-import { findInTree } from '@/shared/common';
 
 export interface IPlacesPopupFolderDeleteProps {
 	id: string;
@@ -85,8 +84,6 @@ const keepContent = ref('keep');
 const popuped = ref(false);
 const folder = ref(mainStore.folders[props.id]);
 const subfolders = ref({} as Record<string, Folder>);
-
-const choosePlace = inject('choosePlace') as (...args: any[]) => any;
 
 const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
@@ -129,9 +126,9 @@ const deleteFolder = (): void => {
 		}
 		if (current.value && current.value.deleted) {
 			if (!Object.keys(mainStore[props.type]).length) {
-				choosePlace(null);
+				mainStore.choosePlace(null);
 			} else if (mainStore.homePlace && !mainStore.homePlace.deleted) {
-				choosePlace(mainStore.homePlace);
+				mainStore.choosePlace(mainStore.homePlace);
 			} else {
 				const itemsInRoot: Ref<Place[] | Track[]> = ref(
 					Object.values(mainStore[props.type] as Place[] | Track[]).filter(
@@ -143,15 +140,14 @@ const deleteFolder = (): void => {
 						(a, b) => (a as Place | Track).srt - (b as Place | Track).srt
 					)
 				);
-				const firstItemInRoot = ref(itemsInRoot.value[0]);
-				if (firstItemInRoot.value && !firstItemInRoot.value.deleted) {
-					choosePlace(firstItemInRoot.value);
+				if (itemsInRoot.value[0] && !itemsInRoot.value[0].deleted) {
+					mainStore.choosePlace(itemsInRoot.value[0] as Place);
 				} else if (
 					!Object.values(mainStore[props.type] as Place[] | Track[])[0].deleted
 				) {
-					choosePlace(Object.values(mainStore[props.type])[0]);
+					mainStore.choosePlace(Object.values(mainStore[props.type])[0] as Place);
 				} else {
-					choosePlace(null);
+					mainStore.choosePlace(null);
 				}
 			}
 		}

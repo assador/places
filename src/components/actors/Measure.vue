@@ -27,7 +27,7 @@
 			@drop="handleDrop"
 		>
 			<span v-if="mainStore.temps[id]">
-				{{ `${mainStore.t.i.captions.measurePoint} ${mainStore.tempIndexById(id) + 1}` }}
+				{{ `${mainStore.t.i.captions.measurePoint} ${mainStore.temps[id].name}` }}
 			</span>
 			<span v-else-if="mainStore.places[id] || mainStore.commonPlaces[id]">
 				{{
@@ -65,17 +65,14 @@
 			v-if="mainStore.measure.points.length > 0"
 			class="control-measure-clearall"
 		>
-			<strong>
-				{{ mainStore.t.i.buttons.clearAll }}
-			</strong>
 			<button
-				class="button-iconed icon icon-cross-45"
-				:title="mainStore.t.i.buttons.clearAll"
 				@click="
 					mainStore.measure.points.length = 0;
 					mainStore.measure.choosing = 0;
 				"
-			/>
+			>
+				{{ mainStore.t.i.buttons.clearAll }}
+			</button>
 		</dd>
 	</div>
 </template>
@@ -97,9 +94,6 @@ watch(() => mainStore.temps, () => mainStore.measureDistance(), { deep: true });
 
 <style lang="scss" scoped>
 .control-measure {
-	strong {
-		text-align: right;
-	}
 	dd {
 		display: flex;
 		flex-flow: row wrap;

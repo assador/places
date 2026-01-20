@@ -17,7 +17,6 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
-import { constants } from '@/shared/constants';
 
 export interface IPlacesPopupProps {
 	show: boolean;

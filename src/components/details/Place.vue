@@ -169,7 +169,10 @@
 								(currentPlaceCommon ? '' : ' draggable')
 							"
 							:draggable="currentPlaceCommon ? false : true"
-							@click="router.push({ name: 'HomeImages', params: {imageId: image.id } })"
+							@click="router.push({
+								name: 'HomeImages',
+								params: { imageId: image.id },
+							})"
 							@dragstart="e => handleDragStart(e, 'images')"
 							@dragenter="handleDragEnter"
 						>
@@ -205,15 +208,17 @@
 								:data-image="image.id"
 								class="sorting-area-left"
 								:class="image.id === highlightedLeft ? ' highlighted' : ''"
+								@dragenter="highlightedLeft = image.id"
+								@dragleave="highlightedLeft = null"
 								@drop="(e) => handleDrop(e, { before: true })"
-								@dragend="highlightedLeft = null"
 							/>
 							<div
 								:data-image="image.id"
 								class="sorting-area-right"
 								:class="image.id === highlightedRight ? ' highlighted' : ''"
+								@dragenter="highlightedRight = image.id"
+								@dragleave="highlightedRight = null"
 								@drop="(e) => handleDrop(e, { before: false })"
-								@dragend="highlightedRight = null"
 							/>
 						</div>
 					</div>
@@ -292,11 +297,9 @@
 <script setup lang="ts">
 import { ref, Ref, computed, watchEffect, inject } from 'vue';
 import { orderBy } from 'lodash';
-import { emitter } from '@/shared/bus';
+import { emitter, constants, coords2string, string2coords } from '@/shared';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { constants } from '@/shared/constants';
-import { coords2string, string2coords } from '@/shared/common';
 import { Point, Image } from '@/stores/types';
 
 const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;

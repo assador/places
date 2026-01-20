@@ -49,7 +49,6 @@
 				draggable: point === mainStore.currentPoint,
 			}"
 			position="top-center left-center"
-			@mousedown="(e: Event) => placemarkDragStart(point)"
 			@mouseup="async (e: Event) => {
 				placemarkDragEnd(point);
 				placemarkClick(point, e);
@@ -92,7 +91,6 @@
 				draggable: true,
 			}"
 			position="top-center left-center"
-			@mousedown="(e: Event) => placemarkDragStart(place)"
 			@mouseup="(e: Event) => {
 				placemarkDragEnd(place);
 				placemarkClick(place, e);
@@ -167,9 +165,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, shallowRef, watch, inject } from 'vue';
+import { ref, shallowRef, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { emitter } from '@/shared/bus';
 import {
 	YandexMap,
 	YandexMapMarker,
@@ -184,11 +181,9 @@ import {
 } from 'vue-yandex-maps';
 import type { YMap } from '@yandex/ymaps3-types';
 import { Place, Point } from '@/stores/types';
-import { coords2string, generateRandomString } from '@/shared/common';
+import { coords2string } from '@/shared';
 
 const mainStore = useMainStore();
-
-const dragging = ref(false);
 
 const map = shallowRef<YMap | null>(null);
 const markers = shallowRef({});
@@ -263,11 +258,7 @@ watch(() => mainStore.centerPlacemarkShow, () => {
 		placemarksOptions.value.center.visible = false;
 	}
 });
-
-const commonPlacesPage = inject('commonPlacesPage');
-const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
-const choosePlace = inject('choosePlace') as (...args: any[]) => any;
-
+/*
 const mapContextMenu = (e: any): void => {
 	mainStore.addTemp({
 		id: crypto.randomUUID(),
@@ -282,71 +273,9 @@ const mapContextMenu = (e: any): void => {
 		show: true,
 	});
 }
-const placemarkClick = (point: Place | Point, e: Event): void => {
-	switch (point.type) {
-		case 'point':
-			switch (mainStore.mode) {
-				case 'measure':
-					emitter.emit('choosePoint', {
-						point: point,
-						mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
-					});
-					break;
-				default:
-					if (e.type === 'contextmenu') {
-						mainStore.setMessage(
-							coords2string([point['latitude'], point['longitude']]),
-							true
-						);
-					} else {
-						emitter.emit('choosePoint', {point: point});
-					}
-					break;
-			}
-			break;
-		default:
-			switch (mainStore.mode) {
-				case 'measure':
-					choosePlace(point, e.type === 'contextmenu' ? 'measure' : 'normal');
-					break;
-				default:
-					if (e.type === 'contextmenu') {
-						mainStore.setMessage(point['name'], true);
-						mainStore.setMessage(
-							coords2string([
-								mainStore.points[point['point']].latitude,
-								mainStore.points[point['point']].longitude
-							]),
-							true
-						);
-						mainStore.setMessage(point['description'], true);
-					} else {
-						choosePlace(point);
-					}
-					break;
-			}
-			if (point.common) {
-				const inPaginator =
-					Object.keys(mainStore.commonPlaces).indexOf(point.id) /
-					(commonPlacesOnPageCount as Ref).value
-				;
-				(commonPlacesPage as Ref).value = (
-					Number.isInteger(inPaginator)
-						? inPaginator + 1
-						: Math.ceil(inPaginator)
-				);
-			}
-			break;
-	}
-};
-const placemarkDragStart = (place: Place | Point): void => {
-/*
-	if (place !== mainStore.currentPlace) {
-		mainStore.setMessage(
-			mainStore.t.m.popup.needToChoosePlacemark
-		);
-	}
 */
+const placemarkClick = (item: Place | Point, e: Event): void => {
+	mainStore.objectClick(item, e.type);
 };
 const placemarkDragEnd = async (point: Place | Point) => {
 	const coordinates = markers.value[point.id].coordinates.slice().reverse();

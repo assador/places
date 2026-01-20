@@ -15,8 +15,7 @@ import { ref, computed, provide, onMounted, onBeforeMount } from 'vue'
 import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { emitter } from '@/shared/bus';
-import { moveInArrayAfter, moveInObject } from '@/shared/common';
+import { emitter, moveInArrayAfter, moveInObject } from '@/shared';
 import { Place, Track, Image, Folder, Point } from '@/stores/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
@@ -366,12 +365,12 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 	};
 
 	// Image thumbnail dropped on another image thumbnail
-	if ((draggingElement.value as HTMLElement).dataset.hasOwnProperty('image')) {
+	if (Object.hasOwn((draggingElement.value as HTMLElement).dataset, 'image')) {
 		const upperId = (draggingElement.value as HTMLElement).dataset.image;
 		const lowerId = (el as HTMLElement).dataset.image;
 		if (
-			!mainStore.currentPlace.images.hasOwnProperty(upperId) ||
-			!mainStore.currentPlace.images.hasOwnProperty(lowerId)
+			!Object.hasOwn(mainStore.currentPlace.images, upperId) ||
+			!Object.hasOwn(mainStore.currentPlace.images, lowerId)
 		) {
 			return;
 		}
@@ -391,7 +390,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 	}
 
 	// Point button dropped on another point button
-	if ((draggingElement.value as HTMLElement).dataset.hasOwnProperty('point')) {
+	if (Object.hasOwn((draggingElement.value as HTMLElement).dataset, 'point')) {
 		const upperId = (draggingElement.value as HTMLElement).dataset.point;
 		const upperIdx = Number((draggingElement.value as HTMLElement).dataset.pointidx);
 		const lowerId = (el as HTMLElement).dataset.point;

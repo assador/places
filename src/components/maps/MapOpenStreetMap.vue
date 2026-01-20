@@ -175,7 +175,6 @@
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { emitter } from '@/shared/bus';
 import { LatLngExpression, PointExpression } from "leaflet";
 import {
 	LMap,
@@ -193,12 +192,11 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Point } from '@/stores/types';
-import { coords2string } from '@/shared/common';
+import { coords2string } from '@/shared';
 
 const mainStore = useMainStore();
 
 const map = inject('extmap');
-const choosePlace = inject('choosePlace') as (...args: any[]) => any;
 
 const icon_01 = ref({
 	iconUrl: '/img/markers/marker_01.svg',
@@ -311,16 +309,13 @@ const mapCenter = computed(() => ({
 	zoom: mainStore.zoom,
 }));
 
-const commonPlacesPage = inject('commonPlacesPage');
-const commonPlacesOnPageCount = inject('commonPlacesOnPageCount');
-
 const dragging = ref(false);
 
 const mapContextMenu = (e: any): void => {
 	switch (mainStore.mode) {
 		case 'normal':
 		case 'measure':
-			mainStore.addTemp({
+			const newTemp = mainStore.addTemp({
 				id: crypto.randomUUID(),
 				userid: sessionStorage.getItem('places-useruuid'),
 				latitude: e.latlng.lat,
@@ -332,8 +327,12 @@ const mapContextMenu = (e: any): void => {
 				updated: false,
 				show: true,
 			});
+			if (mainStore.mode === 'measure') {
+				mainStore.choosePoint(newTemp, 'measure');
+			}
 			break;
 		case 'tracks':
+			if (!mainStore.currentTrack) break;
 			mainStore.addTrackPoint(
 				{
 					id: crypto.randomUUID(),
@@ -354,67 +353,7 @@ const mapContextMenu = (e: any): void => {
 	}
 }
 const placemarkClick = (item: Place | Point, e: Event): void => {
-	switch (item.type) {
-		case 'point':
-			switch (mainStore.mode) {
-				case 'measure':
-					emitter.emit('choosePoint', {
-						point: item,
-						mode: (e.type === 'contextmenu' ? 'measure' : 'normal'),
-					});
-					break;
-				// case 'tracks':
-				// 	break;
-				default:
-					if (e.type === 'contextmenu') {
-						mainStore.setMessage(
-							coords2string([item['latitude'], item['longitude']]) + (
-								item['altitude']
-									? (' | ' + item['altitude']) + ' ' + mainStore.t.i.text.m
-									: ''
-							),
-							true
-						);
-					} else {
-						emitter.emit('choosePoint', { point: item });
-					}
-					break;
-			}
-			break;
-		case 'place':
-			switch (mainStore.mode) {
-				case 'measure':
-					choosePlace(item, e.type === 'contextmenu' ? 'measure' : 'normal');
-					break;
-				default:
-					if (e.type === 'contextmenu') {
-						mainStore.setMessage(item['name'], true);
-						mainStore.setMessage(
-							coords2string([
-								mainStore.points[item['point']].latitude,
-								mainStore.points[item['point']].longitude
-							]),
-							true
-						);
-						mainStore.setMessage(item['description'], true);
-					} else {
-						choosePlace(item);
-					}
-					break;
-			}
-			if (item.common) {
-				const inPaginator =
-					Object.keys(mainStore.commonPlaces).indexOf(item.id) /
-					(commonPlacesOnPageCount as Ref).value
-				;
-				(commonPlacesPage as Ref).value = (
-					Number.isInteger(inPaginator)
-						? inPaginator + 1
-						: Math.ceil(inPaginator)
-				);
-			}
-			break;
-	}
+	mainStore.objectClick(item, e.type);
 };
 const placemarkDragEnd = async (point: Place | Point, event: any) => {
 	const coordinates = event.target.getLatLng();

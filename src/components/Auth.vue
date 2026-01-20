@@ -199,10 +199,15 @@
 import { ref, nextTick, onBeforeMount, onMounted, onUpdated } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { makeFieldsValidatable } from '@/shared/fields_validate';
-import { loginRoutine, login } from '@/shared/auth';
-import { regRoutine, reg } from '@/shared/reg';
-import { forgotRoutine, forgot } from '@/shared/forgot';
+import {
+	reg,
+	login,
+	forgot,
+	regRoutine,
+	loginRoutine,
+	forgotRoutine,
+	makeFieldsValidatable,
+} from '@/shared';
 import Dashboard from '@/components/Dashboard.vue';
 import PWAPrompt from '@/components/PWAPrompt.vue';
 
@@ -222,7 +227,7 @@ const forgotEmail = ref('');
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
 }
-const authLoginSubmit = async (e: Event) => {
+const authLoginSubmit = async () => {
 	if (!authLogin.value || !authPassword.value) return;
 	await loginRoutine({
 		authLogin: authLogin.value,

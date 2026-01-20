@@ -60,17 +60,14 @@
 				:class="temp.id === mainStore.currentPoint.id ? 'button-pressed' : ''"
 				@click="e => {
 					e.preventDefault();
-					choosePoint({ point: temp });
+					mainStore.choosePoint(temp);
 				}"
 				@contextmenu="e => {
 					e.preventDefault();
-					choosePoint({
-						point: temp,
-						mode: mainStore.mode,
-					});
+					mainStore.choosePoint(temp, mainStore.mode);
 				}"
 			>
-				<span>{{ Object.keys(mainStore.temps).indexOf(id) + 1 }}</span>
+				<span>{{ temp.name }}</span>
 				<span
 					class="button-iconed icon icon-cross-45"
 					:title="mainStore.t.i.hints.deleteTemp"
@@ -102,14 +99,11 @@
 				"
 				@click="e => {
 					e.preventDefault();
-					choosePoint({ point: point });
+					mainStore.choosePoint(point);
 				}"
 				@contextmenu="e => {
 					e.preventDefault();
-					choosePoint({
-						point: point,
-						mode: mainStore.mode,
-					});
+					mainStore.choosePoint(point, mainStore.mode);
 				}"
 			>
 				<span
@@ -127,9 +121,7 @@
 					@dragenter="highlighted = point.id"
 					@click="e => {
 						e.stopPropagation();
-						mainStore.deleteTrackPoint(
-							mainStore.currentTrack, point.id
-						);
+						mainStore.deleteTrackPoint(point, mainStore.currentTrack);
 					}"
 				/>
 			</button>
@@ -148,8 +140,6 @@
 <script setup lang="ts">
 import { ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { emitter } from '@/shared/bus';
-import { Point } from '@/stores/types';
 
 export interface IPlacesPointsProps {
 	type?: string;
@@ -167,32 +157,6 @@ const mainStore = useMainStore();
 const opened = ref(true);
 const highlighted = ref(null);
 
-emitter.on('choosePoint', (payload: { point: Point, mode?: string }) => {
-	choosePoint(payload);
-});
-
-const choosePoint = (payload: { point: Point, mode?: string }): void => {
-	const { point, mode } = payload;
-	switch (mainStore.mode) {
-		case 'measure':
-			if (mode && mode === 'measure') {
-				const { points, choosing } = mainStore.measure;
-				const pointId = point.id;
-				const idx = points.indexOf(pointId);
-				if (idx === -1)  points[choosing] = pointId; else points.splice(idx, 1);
-				mainStore.measure.choosing = points.length;
-			}
-		default:
-			if (mode === 'measure') break;
-			if (mainStore.currentTrack !== null) {
-				const idx = mainStore.currentTrack.points.indexOf(point.id);
-				if (idx !== -1) mainStore.currentTrack.choosing = idx;
-			}
-			if (mainStore.currentPoint !== point) {
-				mainStore.currentPoint = point;
-			}
-		}
-};
 const distance = computed(() => {
 	const idsArray = ref([]);
 	const where = ref('points');
@@ -258,16 +222,16 @@ const distance = computed(() => {
 	}
 }
 .points-list-buttons {
-	display: flex;
-	flex-flow: row wrap;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
 	gap: 8px;
 	button {
 		display: grid;
 		grid-template-columns: 1fr auto;
 		align-items: center;
-		width: 40px;
 		margin: 0;
 		padding: 0 0 0 4px;
+		flex: 1 0 auto;
 		& > *:last-child {
 			display: flex;
 			align-items: center;

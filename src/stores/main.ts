@@ -1,14 +1,15 @@
 import { Ref, ref } from 'vue';
 import { defineStore } from 'pinia';
 import { User, Group, Point, Place, Track, Folder, Image } from './types';
-import { constants } from '@/shared/constants';
-import { emitter } from '@/shared/bus';
 import {
+	emitter,
+	constants,
 	num2deg,
+	coords2string,
 	plainToTree,
 	formFolderForImported,
 	distanceOnSphere,
-} from '@/shared/common';
+} from '@/shared';
 import { t } from '@/lang/ru';
 import axios from 'axios';
 
@@ -22,6 +23,8 @@ export interface IMainState {
 	commonPlaces: Record<string, Place>,
 	commonTracks: Record<string, Track>,
 	commonTracksShow: boolean,
+	commonPlacesPage: number,
+	commonPlacesOnPageCount: number,
 	currentPlace: Place | null,
 	currentPoint: Point | null,
 	currentTrack: Track | null,
@@ -79,7 +82,9 @@ export const useMainStore = defineStore('main', {
 		commonPlaces: {},
 		commonTracks: {},
 		commonTracksShow: false,
-		currentPlace: null,
+		commonPlacesPage: 1,
+		commonPlacesOnPageCount: constants.commonplacesonpagecount,
+			currentPlace: null,
 		currentPoint: null,
 		currentTrack: null,
 		folders: {},
@@ -938,7 +943,7 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		async addFolder(payload: {folder: Folder, todb?: boolean}) {
+		async addFolder(payload: { folder: Folder, todb?: boolean }) {
 			const { folder, todb } = payload;
 			this.folders[folder.id] = folder;
 			this.buildTrees();
@@ -960,27 +965,195 @@ export const useMainStore = defineStore('main', {
 				return alt.value;
 			}
 		},
-		addTemp(point: Point = {
-			id: crypto.randomUUID(),
-			userid: sessionStorage.getItem('places-useruuid'),
-			latitude: this.center.latitude,
-			longitude: this.center.longitude,
-			altitude: this.getAltitude(this.center.latitude, this.center.longitude),
-			common: false,
-			type: 'point',
-			added: false,
-			deleted: false,
-			updated: false,
-			show: true,
-		}) {
+		wherePointIsUsed(id: string) {
+			let uses: (Place | Track)[] = [];
+			uses.push(
+				...(Object.values(this.places) as Place[]).filter(place =>
+					place.pointid === id
+				),
+				...(Object.values(this.tracks) as Track[]).filter(track =>
+					track.points.includes(id)
+				),
+			);
+			return uses;
+		},
+		choosePoint(point: Point, inMode?: string) {
+			if (!point) {
+				this.currentPoint = null;
+				return;
+			}
+			switch (this.mode) {
+				case 'measure':
+					if (inMode && inMode === 'measure') {
+						const { points, choosing } = this.measure;
+						const idx = points.indexOf(point.id);
+						if (idx === -1) points[choosing] = point.id; else points.splice(idx, 1);
+						this.measure.choosing = points.length;
+					}
+				default:
+					if (inMode === 'measure') break;
+					if (this.currentTrack !== null) {
+						const idx = this.currentTrack.points.indexOf(point.id);
+						if (idx !== -1) this.currentTrack.choosing = idx;
+					}
+					if (this.currentPoint !== point) {
+						this.currentPoint = point;
+					}
+				}
+		},
+		choosePlace(place: Place, inMode?: string) {
+			if (!place) {
+				this.currentPlace = null;
+				return;
+			}
+			switch (this.mode) {
+				case 'measure':
+					if (inMode && inMode === 'measure') {
+						const { points, choosing } = this.measure;
+						const placeId = place.id;
+						const idx = points.indexOf(placeId);
+						if (idx === -1)  points[choosing] = placeId; else points.splice(idx, 1);
+						this.measure.choosing = points.length;
+					}
+				default:
+					if (inMode === 'measure') break;
+					if (this.currentPlace !== place) {
+						this.currentPlace = place;
+						this.currentPlaceCommon = this.currentPlace.userid !== this.user.id;
+					}
+			}
+		},
+		chooseTrack(track: Track, inMode?: string) {
+			if (!track) {
+				this.currentTrack = null;
+				return;
+			}
+			switch (this.mode) {
+				case 'measure':
+					if (inMode && inMode === 'measure') {
+						const { points, choosing } = this.measure;
+						const trackId = track.id;
+						const idx = points.indexOf(trackId);
+						if (idx === -1)  points[choosing] = trackId; else points.splice(idx, 1);
+						this.measure.choosing = points.length;
+					}
+				default:
+					if (inMode === 'measure') break;
+					if (this.currentTrack !== track) {
+						this.currentTrack = track;
+						this.currentTrackCommon = this.currentTrack.userid !== this.user.id;
+					}
+			}
+		},
+		objectClick(object: Place | Point, type: string) {
+			switch (object.type) {
+				case 'point':
+					if (type === 'contextmenu') {
+						switch (this.mode) {
+							case 'measure':
+								this.choosePoint(object, 'measure');
+								break;
+							case 'tracks':
+								if (this.currentTrack) {
+									if (this.currentTrack.points.includes(object.id)) {
+										this.deleteTrackPoint(object, this.currentTrack);
+									} else {
+										this.currentTrack.points.push(object.id);
+									}
+									break;
+								}
+							default:
+								this.setMessage(
+									coords2string([object['latitude'], object['longitude']]) + (
+										object['altitude']
+											? (' | ' + object['altitude']) + ' ' + this.t.i.text.m
+											: ''
+									),
+									true
+								);
+						}
+					} else {
+						this.choosePoint(object);
+					}
+					break;
+				case 'place':
+					if (type === 'contextmenu') {
+						switch (this.mode) {
+							case 'measure':
+								this.choosePlace(object, 'measure');
+								break;
+							case 'tracks':
+								if (this.currentTrack) {
+									if (this.currentTrack.points.includes(object.id)) {
+										this.removeTrackPoint(object, this.currentTrack);
+									} else {
+										this.currentTrack.points.push(object.id);
+									}
+									break;
+								}
+							default:
+								this.setMessage(object['name'], true);
+								this.setMessage(
+									coords2string([
+										this.points[object['pointid']].latitude,
+										this.points[object['pointid']].longitude
+									]),
+									true
+								);
+								this.setMessage(object['description'], true);
+						}
+					} else {
+						this.choosePlace(object);
+					}
+					if (object.common) {
+						const inPaginator =
+							Object.keys(this.commonPlaces).indexOf(object.id) /
+							this.commonPlacesOnPageCount
+						;
+						this.commonPlacesPage =
+							Number.isInteger(inPaginator)
+								? inPaginator + 1
+								: Math.ceil(inPaginator)
+						;
+					}
+					break;
+			}
+		},
+		addTemp(
+			point: Point = {
+				id: crypto.randomUUID(),
+				userid: sessionStorage.getItem('places-useruuid'),
+				latitude: this.center.latitude,
+				longitude: this.center.longitude,
+				altitude: null,
+				name: '',
+				common: false,
+				type: 'point',
+				added: false,
+				deleted: false,
+				updated: false,
+				show: true,
+			}
+		) {
 			if (!Object.keys(this.temps).length) this.tempsShow = true;
+			if (!point.name) {
+				const numberNames = Object.values(this.temps).map(
+					(temp: Point) => Number(temp.name)
+				);
+				point.name = (
+					(numberNames.length ? Math.max(...numberNames) : 0) + 1
+				).toString();
+			}
 			this.temps[point.id] = point;
 			this.currentPoint = this.temps[point.id];
-			emitter.emit('choosePoint', {
-				point: this.temps[point.id],
-				mode: (this.mode),
-			});
+			if (this.temps[point.id].altitude === null) {
+				this.temps[point.id].altitude = this.getAltitude(
+					this.temps[point.id].latitude,
+					this.temps[point.id].longitude,
+				);
+			}
 			this.backupState();
+			return this.temps[point.id];
 		},
 		async addPoint(payload: {
 			point: Point,
@@ -989,13 +1162,12 @@ export const useMainStore = defineStore('main', {
 			todb?: boolean,
 		}) {
 			const { point, from, to, todb } = payload;
+			if (to) to[point.id] = point; else this.points[point.id] = point;
 			if (todb !== false && !this.user.testaccount) {
 				emitter.emit('toDB', {
 					'points': [{ ...point, from: (from ? from : null) }],
 				});
 			}
-			if (to) to[point.id] = point;
-				else this.points[point.id] = point;
 		},
 		async addPlace(payload: { place: Place, todb?: boolean }) {
 			const { place, todb } = payload;
@@ -1013,7 +1185,7 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		async addTrackPoint(
+		addTrackPoint(
 			point: Point = {
 				id: crypto.randomUUID(),
 				userid: sessionStorage.getItem('places-useruuid'),
@@ -1030,21 +1202,23 @@ export const useMainStore = defineStore('main', {
 			},
 			track: Track = this.currentTrack,
 		) {
-			if (point.altitude === null) {
-				point.altitude = await this.getAltitude(
-					point.latitude,
-					point.longitude
-				);
-			}
 			if (!point.name) {
-				point.name = (track.points.length + 1).toString();
+				const numberNames = this.trackPoints(track).map(
+					(point: Point) => Number(point.name)
+				);
+				point.name = (
+					(numberNames.length ? Math.max(...numberNames) : 0) + 1
+				).toString();
 			}
 			this.points[point.id] = point;
 			track.points.push(point.id);
-			emitter.emit('choosePoint', {
-				point: this.points[point.id],
-				mode: (this.mode),
-			});
+			this.choosePoint(this.points[point.id]);
+			if (this.points[point.id].altitude === null) {
+				this.points[point.id].altitude = this.getAltitude(
+					this.points[point.id].latitude,
+					this.points[point.id].longitude,
+				);
+			}
 			this.backupState();
 		},
 		async removeTrackPoint(point: Point, track: Track = this.currentTrack) {
@@ -1052,10 +1226,11 @@ export const useMainStore = defineStore('main', {
 			if (idx === -1) return;
 			track.points.splice(idx, 1);
 			if (idx > track.points.length - 1) idx =  track.points.length - 1;
-			emitter.emit('choosePoint', {
-				point: point,
-				mode: (this.mode),
-			});
+			this.choosePoint(
+				this.points[track.points[idx]]
+					? this.points[track.points[idx]]
+					: this.temps[track.points[idx]]
+			);
 			this.backupState();
 		},
 		async changeFolder(payload: Record<string, any>) {
@@ -1153,8 +1328,11 @@ export const useMainStore = defineStore('main', {
 			if (!Object.values(payload.objects).length) {
 				for (const what in data) {
 					data[what] = Object.values(this[what]).filter(object =>
-						object.hasOwnProperty('deleted') &&
-						object['deleted'] === true
+						Object.hasOwn(
+							object as Point | Place | Track | Folder,
+							'deleted',
+						)
+						&& object['deleted'] === true
 					);
 				}
 			} else {
@@ -1205,9 +1383,10 @@ export const useMainStore = defineStore('main', {
 				this.deleteTemp(id);
 			}
 		},
-		async deleteTrackPoint (track: Track, id: string) {
+		async deleteTrackPoint (point: Point, track: Track) {
+			console.log(this.wherePointIsUsed(point));
+			console.log('track:');
 			console.log(track);
-			console.log(id);
 		},
 		savedToDB(payload: Record<
 			string,
@@ -1276,7 +1455,7 @@ export const useMainStore = defineStore('main', {
 		folderOpenClose(payload: Record<string, any>) {
 			if (payload.folder) {
 				payload.folder.opened =
-					payload.hasOwnProperty('opened')
+					Object.hasOwn(payload, 'opened')
 						? payload.opened
 						: !payload.folder.opened
 				;
@@ -1376,14 +1555,14 @@ export const useMainStore = defineStore('main', {
 			}
 			const showHideParentsGeomarks = (object: Place | Track | Folder) => {
 				const objectParentKey =
-					object.hasOwnProperty('folderid') ? 'folderid' : 'parent'
+					Object.hasOwn(object, 'folderid') ? 'folderid' : 'parent'
 				;
 				let neibours =
 					Object.values({ ...this.places, ...this.tracks, ...this.folders })
 						.filter(
 							(neibour: Place | Track | Folder) => {
 								const neibourParentKey =
-									neibour.hasOwnProperty('folderid') ? 'folderid' : 'parent'
+									Object.hasOwn(neibour, 'folderid') ? 'folderid' : 'parent'
 								;
 								if (
 									neibour[neibourParentKey] === object[objectParentKey] ||
@@ -1548,7 +1727,7 @@ export const useMainStore = defineStore('main', {
 				let points: Point[] = [];
 				for (const id of track.points) {
 					if (id in this.points) points.push(this.points[id]);
-					else if (id in this.temps) points.push(this.temps[id]);
+						else if (id in this.temps) points.push(this.temps[id]);
 				}
 				return points;
 			}
