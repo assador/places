@@ -1,11 +1,9 @@
-import { Ref, ref } from 'vue';
 import { defineStore } from 'pinia';
 import { User, Group, Point, Place, Track, Folder, Image } from './types';
 import {
 	emitter,
 	constants,
 	num2deg,
-	coords2string,
 	plainToTree,
 	formFolderForImported,
 	distanceOnSphere,
@@ -952,18 +950,21 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		async getAltitude (lat: number, lon: number, altRef?: Ref<number | null>) {
-			const alt = altRef ? altRef : ref(null);
+		async getAltitude (lat: number, lon: number): Promise<number | null> {
 			try {
 				const { data } = await axios.get(
 					`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
 				);
-				alt.value = isNaN(Number(data.elevation)) ? null : Number(data.elevation);
-				return alt.value;
+				const alt = Number(data.elevation);
+				return isNaN(alt) ? null : alt;
 			} catch {
-				alt.value = null;
-				return alt.value;
+				return null;
 			}
+		},
+		getPointById(id: string) {
+			if (Object.hasOwn(this.points, id)) return this.points[id];
+			if (Object.hasOwn(this.temps, id)) return this.temps[id];
+			return null;
 		},
 		wherePointIsUsed(id: string) {
 			let uses: (Place | Track)[] = [];
@@ -984,11 +985,23 @@ export const useMainStore = defineStore('main', {
 			}
 			switch (this.mode) {
 				case 'measure':
+					const idx = this.measure.points.indexOf(point.id);
+					// When inMode === 'measure', the point is added to the list
+					// of measured points if it is not already there, and removed
+					// from it if it is there.
+					if (idx !== -1) {
+						if (inMode && inMode === 'measure') {
+							this.measure.points.splice(idx, 1);
+							if (this.measure.choosing > this.measure.points.length - 1) {
+								this.measure.choosing = this.measure.points.length - 1;
+							}
+							break;
+						}
+						this.measure.choosing = idx;
+					}
 					if (inMode && inMode === 'measure') {
-						const { points, choosing } = this.measure;
-						const idx = points.indexOf(point.id);
-						if (idx === -1) points[choosing] = point.id; else points.splice(idx, 1);
-						this.measure.choosing = points.length;
+						if (idx === -1) this.measure.choosing = this.measure.points.length;
+						this.measure.points[this.measure.choosing] = point.id;
 					}
 				default:
 					if (inMode === 'measure') break;
@@ -1062,15 +1075,6 @@ export const useMainStore = defineStore('main', {
 									}
 									break;
 								}
-							default:
-								this.setMessage(
-									coords2string([object['latitude'], object['longitude']]) + (
-										object['altitude']
-											? (' | ' + object['altitude']) + ' ' + this.t.i.text.m
-											: ''
-									),
-									true
-								);
 						}
 					} else {
 						this.choosePoint(object);
@@ -1084,23 +1088,22 @@ export const useMainStore = defineStore('main', {
 								break;
 							case 'tracks':
 								if (this.currentTrack) {
-									if (this.currentTrack.points.includes(object.id)) {
-										this.removeTrackPoint(object, this.currentTrack);
+									if (
+										this.currentTrack.points.includes(
+											(object as Place).pointid
+										)
+									) {
+										this.removeTrackPoint(
+											this.points((object as Place).pointid),
+											this.currentTrack,
+										);
 									} else {
-										this.currentTrack.points.push(object.id);
+										this.currentTrack.points.push(
+											(object as Place).pointid
+										);
 									}
 									break;
 								}
-							default:
-								this.setMessage(object['name'], true);
-								this.setMessage(
-									coords2string([
-										this.points[object['pointid']].latitude,
-										this.points[object['pointid']].longitude
-									]),
-									true
-								);
-								this.setMessage(object['description'], true);
 						}
 					} else {
 						this.choosePlace(object);
@@ -1119,7 +1122,7 @@ export const useMainStore = defineStore('main', {
 					break;
 			}
 		},
-		addTemp(
+		async addTemp(
 			point: Point = {
 				id: crypto.randomUUID(),
 				userid: sessionStorage.getItem('places-useruuid'),
@@ -1146,8 +1149,8 @@ export const useMainStore = defineStore('main', {
 			}
 			this.temps[point.id] = point;
 			this.currentPoint = this.temps[point.id];
-			if (this.temps[point.id].altitude === null) {
-				this.temps[point.id].altitude = this.getAltitude(
+			if (!this.temps[point.id].altitude) {
+				this.temps[point.id].altitude = await this.getAltitude(
 					this.temps[point.id].latitude,
 					this.temps[point.id].longitude,
 				);
@@ -1185,7 +1188,7 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		addTrackPoint(
+		async addTrackPoint(
 			point: Point = {
 				id: crypto.randomUUID(),
 				userid: sessionStorage.getItem('places-useruuid'),
@@ -1214,7 +1217,7 @@ export const useMainStore = defineStore('main', {
 			track.points.push(point.id);
 			this.choosePoint(this.points[point.id]);
 			if (this.points[point.id].altitude === null) {
-				this.points[point.id].altitude = this.getAltitude(
+				this.points[point.id].altitude = await this.getAltitude(
 					this.points[point.id].latitude,
 					this.points[point.id].longitude,
 				);
@@ -1246,15 +1249,29 @@ export const useMainStore = defineStore('main', {
 		},
 		async changePoint(payload: Record<string, any>) {
 			let saveToDB = payload.todb !== false;
-			for (const key in payload.change) {
-				payload.point[key] = payload.change[key];
+			const coordsChanged =
+				Object.hasOwn(payload.change, 'latitude') ||
+				Object.hasOwn(payload.change, 'longitude')
+			;
+			const altitudeMissing =
+				payload.point.altitude === null ||
+				payload.point.altitude === undefined
+			;
+			Object.assign(payload.point, payload.change);
+			if (coordsChanged || altitudeMissing) {
+				const altitude = await this.getAltitude(
+					payload.point.latitude,
+					payload.point.longitude,
+				);
+				payload.point.altitude = altitude;
+				payload.change.altitude = altitude;
 			}
 			if (saveToDB && !this.user.testaccount) {
 				payload.point.updated = true;
 				emitter.emit('toDB', {
 					'points': [{
 						...payload.point,
-						from: (payload.from ? payload.from : null),
+						from: payload.from ?? null,
 					}],
 				});
 			}
@@ -1277,10 +1294,6 @@ export const useMainStore = defineStore('main', {
 					change: {
 						latitude: Number(lat),
 						longitude: Number(lng),
-						altitude: payload.change.altitude
-							? payload.change.altitude
-							: this.getAltitude(Number(lat), Number(lng))
-						,
 					},
 					from: payload.place,
 				});

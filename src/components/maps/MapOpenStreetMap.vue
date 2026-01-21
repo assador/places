@@ -1,4 +1,64 @@
 <template>
+<div>
+	<Teleport to="#container">
+		<Popup
+			:show="popupProps.show"
+			:position="popupProps.position"
+			:closeOnClick="false"
+			class="points-coordinates messages"
+			@update:show="popupProps.show = $event"
+			>
+			<template #slot>
+				<a
+					href="javascript:void(0)"
+					class="points-coordinates-copy"
+					@click="copyCoords(pointInfo.point)"
+				>
+					{{ mainStore.t.i.text.copy }}
+				</a>
+				<h3>
+					<span class="un_color">
+						{{ mainStore.t.i.captions.measurePoint }}:
+					</span>
+					<span class="color-01">
+						{{ pointInfo.point?.name }}
+					</span>
+				</h3>
+				<div class="nobr">
+					<span class="un_color">
+						{{ mainStore.t.i.captions.latitude }}:
+					</span>
+					<span class="color-01">
+						{{ latitude2string(pointInfo.point?.latitude) }}°
+					</span>
+				</div>
+				<div class="nobr">
+					<span class="un_color">
+						{{ mainStore.t.i.captions.longitude }}:
+					</span>
+					<span class="color-01">
+						{{ longitude2string(pointInfo.point?.longitude) }}°
+					</span>
+				</div>
+				<div
+					v-if="
+						pointInfo.point &&
+						Object.hasOwn(pointInfo.point, 'altitude') &&
+						!isNaN(pointInfo.point.altitude)
+					"
+					class="nobr"
+				>
+					<span class="un_color">
+						{{ mainStore.t.i.captions.altitude }}:
+					</span>
+					<span class="color-01">
+						{{ pointInfo.point?.altitude }}
+						{{ mainStore.t.i.text.m }}
+					</span>
+				</div>
+			</template>
+		</Popup>
+	</Teleport>
 	<div id="mapblock">
 		<l-map
 			ref="map"
@@ -73,7 +133,14 @@
 				"
 				draggable
 				@click="e => placemarkClick(point, e.originalEvent)"
-				@contextmenu="e => placemarkClick(point, e)"
+				@contextmenu="e => {
+					pointInfo.point = point;
+					popupProps.show = !popupProps.show;
+					popupProps.position.top = e.originalEvent.clientY + 5;
+					popupProps.position.right =
+						e.originalEvent.view.document.documentElement.clientWidth -
+						e.originalEvent.clientX + 5;
+				}"
 				@mousedown="() => dragging = true"
 				@mouseup="() => dragging = false"
 				@moveend="async (e: Event) => await placemarkDragEnd(point, e)"
@@ -170,6 +237,7 @@
 			</l-marker>
 		</l-map>
 	</div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -192,9 +260,35 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Point } from '@/stores/types';
-import { coords2string } from '@/shared';
+import {
+	coords2string,
+	latitude2string,
+	longitude2string,
+	point2coords,
+	IPlacesPopupProps,
+} from '@/shared';
+import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
+
+const pointInfo = ref({
+	point: null,
+});
+const popupProps = ref<IPlacesPopupProps>({
+	show: false,
+	position: {
+		top: 'auto',
+		right: 'auto',
+		bottom: 'auto',
+		left: 'auto',
+	},
+});
+
+const copyCoords = async (point: Point) => {
+    await navigator.clipboard.writeText(
+		point2coords(point, mainStore.t.i.text.m, mainStore.t.i.text.h)
+	);
+};
 
 const map = inject('extmap');
 
@@ -311,7 +405,7 @@ const mapCenter = computed(() => ({
 
 const dragging = ref(false);
 
-const mapContextMenu = (e: any): void => {
+const mapContextMenu = async (e: any) => {
 	switch (mainStore.mode) {
 		case 'normal':
 		case 'measure':
@@ -328,7 +422,7 @@ const mapContextMenu = (e: any): void => {
 				show: true,
 			});
 			if (mainStore.mode === 'measure') {
-				mainStore.choosePoint(newTemp, 'measure');
+				mainStore.choosePoint(await newTemp, 'measure');
 			}
 			break;
 		case 'tracks':
@@ -388,3 +482,22 @@ const ready = (): void => {
 	(map as Ref).value.leafletObject.panTo(mapCenter.value.coords);
 };
 </script>
+
+<style lang="scss" scoped>
+.points-coordinates {
+	padding: 30px 20px 10px 20px;
+	text-align: right;
+	h3 {
+		text-align: center;
+		margin-bottom: 8px;
+	}
+	&-degminsecalt, &-copy {
+		margin-top: 12px;
+	}
+	&-copy {
+		display: block;
+		position: absolute;
+		top: -6px; left: 10px;
+	}
+}
+</style>

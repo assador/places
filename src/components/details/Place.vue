@@ -111,11 +111,14 @@
 						</dd>
 					</div>
 				</div>
-				<div class="margin_bottom_1">
+				<div class="place-detailed__altitude margin_bottom_1">
 					<strong>
 						{{ mainStore.descriptionFields['altitudecapability'] }}:
 					</strong>
-					{{ currentPlaceAlt === null ? '?' : currentPlaceAlt }}
+					<span class="nobr right">
+						{{ currentPlaceAlt === null ? '?' : currentPlaceAlt }}
+						{{ mainStore.t.i.text.m }}
+					</span>
 				</div>
 			</template>
 			<template v-else-if="field === 'time'">
@@ -228,8 +231,8 @@
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
 				<dd>
 					<textarea
-						:id="'place-detailed-' + field"
 						v-model.trim="currentPlace[field]"
+						:id="'place-detailed-' + field"
 						:disabled="!!currentPlaceCommon"
 						:placeholder="
 							field === 'name'
@@ -295,12 +298,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, computed, watchEffect, inject } from 'vue';
+import { ref, Ref, computed, inject } from 'vue';
 import { orderBy } from 'lodash';
 import { emitter, constants, coords2string, string2coords } from '@/shared';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Point, Image } from '@/stores/types';
+import { Image } from '@/stores/types';
 
 const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;
 const deleteImages = inject('deleteImages') as (...args: any[]) => any;
@@ -343,25 +346,6 @@ const currentDegMinSec = computed(() =>
 const linkEditing = ref(false);
 const highlightedLeft = ref(null);
 const highlightedRight = ref(null);
-
-const getAltitudeForPoint = async (point: Point) => {
-	const altitude = ref(0);
-	await mainStore.getAltitude(point.latitude, point.longitude, altitude);
-	point.altitude = altitude.value;
-	point.updated = true;
-	emitter.emit('toDB', { 'points': [ point ] });
-	point.updated = false;
-}
-
-watchEffect(() => {
-	if (
-		typeof currentPlaceLat.value === 'number' &&
-		typeof currentPlaceLon.value === 'number' &&
-		!mainStore.points[currentPlace.value.pointid].altitude
-	) {
-		getAltitudeForPoint(mainStore.points[currentPlace.value.pointid]);
-	}
-});
 </script>
 
 <style lang="scss" scoped>
@@ -376,14 +360,17 @@ watchEffect(() => {
 		display: inline-block;
 		margin: 3px 0 8px 0;
 	}
-	.place-detailed__link-dt:last-child {
+	&__link-dt:last-child {
 		margin-bottom: 8px;
 	}
-	.place-detailed__link-dt * {
+	&__link-dt * {
 		display: inline-block;
 	}
-	.place-detailed__link-edit {
+	&__link-edit {
 		float: right;
+	}
+	&__altitude {
+		text-align: right;
 	}
 }
 .two-fields {

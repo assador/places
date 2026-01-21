@@ -1,5 +1,7 @@
 export * from '@/shared/constants';
 
+export * from '@/shared/interfaces';
+
 export * from '@/shared/common';
 export * from '@/shared/sorting';
 export * from '@/shared/checkers';

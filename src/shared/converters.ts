@@ -1,5 +1,5 @@
 import { isPlainTreeCorrect } from '@/shared/checkers';
-import { Folder } from '@/stores/types';
+import { Point, Folder } from '@/stores/types';
 
 let resultForRecursive: unknown;
 
@@ -27,9 +27,19 @@ export const coords2string = (coords: number[]): string => {
 	const latDMS = deg2degMinSec(Math.abs(lat));
 	const lonDMS = deg2degMinSec(Math.abs(lon));
 	return (
-		`${latDMS[0]}°${latDMS[1]}'${latDMS[2].toFixed(2)}"${lat < 0 ? 'S' : 'N'} ` +
+		`${latDMS[0]}°${latDMS[1]}'${latDMS[2].toFixed(2)}"${lat < 0 ? 'S' : 'N'}, ` +
 		`${lonDMS[0]}°${lonDMS[1]}'${lonDMS[2].toFixed(2)}"${lon < 0 ? 'W' : 'E'}`
 	);
+};
+export const latitude2string = (latitude: number): string => {
+	const lat = num2deg(latitude, true);
+	const latDMS = deg2degMinSec(Math.abs(lat));
+	return `${latDMS[0]}°${latDMS[1]}'${latDMS[2].toFixed(2)}"${lat < 0 ? 'S' : 'N'}`;
+};
+export const longitude2string = (longitude: number): string => {
+	const lon = num2deg(longitude);
+	const lonDMS = deg2degMinSec(Math.abs(lon));
+	return `${lonDMS[0]}°${lonDMS[1]}'${lonDMS[2].toFixed(2)}"${lon < 0 ? 'W' : 'E'}`;
 };
 export const string2coords = (coords: string): number[] | null => {
 	const reLat = /\s*(\d{1,2})\s*°\s*(\d{1,2})\s*\'\s*(\d{1,2}(?:[.,]\d+){0,1})\s*\"\s*([nNsS])\s*/;
@@ -44,6 +54,12 @@ export const string2coords = (coords: string): number[] | null => {
 			(/[wW]/.test(lonArr[4]) ? -1 : 1),
 	];
 };
+export const point2coords = (p: Point, m: string, h: string): string => {
+	return (
+		coords2string([p.latitude, p.longitude]) +
+		(p.altitude ? `, ${h} ${p.altitude} ${m}` : '')
+	);
+}
 export const plainToTree = (patload: {
 	plain: Record<string, Folder>,
 	live?: boolean,

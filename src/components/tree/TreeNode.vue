@@ -311,7 +311,11 @@
 					} else if (what === 'tracks') {
 						chooseTrackInTree(object as Track, e);
 					}
-					const point = getPoint(object);
+					const point = mainStore.getPointById(
+						what === 'places'
+							? object['pointid']
+							: object['points'][object['choosing']]
+					);
 					if (point) {
 						mainStore.updateMap({
 							latitude: point.latitude,
@@ -319,8 +323,7 @@
 						});
 					}
 				}"
-				@contextmenu="e => {
-					e.preventDefault();
+				@contextmenu.prevent="e => {
 					if (instanceid !== 'popupexporttree') {
 						if (what === 'places') {
 							choosePlaceInTree(object as Place, e);
@@ -490,7 +493,7 @@ import _ from 'lodash';
 import { inject, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Point, Place, Track, Folder } from '@/stores/types';
+import { Place, Track, Folder } from '@/stores/types';
 import { formFoldersCheckedIds } from '@/shared';
 
 export interface IPlacesTreeNodeProps {
@@ -570,18 +573,6 @@ const chooseTrackInTree = (track: Track, e: Event): void => {
 			: 'normal'
 	);
 };
-const getPoint = (object: any): Point | null => {
-	if (object.type === 'place') {
-		return mainStore.points[object.pointid];
-	} else if (
-		object.type === 'track' &&
-		typeof object.choosing === 'number' &&
-		object.points[object.choosing]
-	) {
-		return object.points[object.choosing];
-	}
-	return null;
-}
 const selectUnselect = (object: Place | Track, checked: boolean): void => {
 	if (checked) {
 		selectedToExport.value[object.id] = object;

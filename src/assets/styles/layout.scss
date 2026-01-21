@@ -310,7 +310,7 @@ body {
 	padding: 11px 16px;
 	z-index: 0;
 }
-.popup, .popup > div, .centered {
+.popup, .centered {
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -318,7 +318,11 @@ body {
 	top: 0; right: 0; bottom: 0; left: 0;
 	padding: 50px;
 }
+*:has(> .popup) {
+	position: relative;
+}
 .popup {
+	position: absolute;
 	z-index: 1000;
 }
 #scroll-up, #scroll-down {

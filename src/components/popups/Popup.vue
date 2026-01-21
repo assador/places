@@ -1,6 +1,8 @@
 <template>
 	<div
-		:class="'popup ' + (props.show ? 'appear' : 'disappear')"
+		class="popup"
+		:class="props.show ? 'appear' : 'disappear'"
+		:style="style"
 		@click="() => {if (closeOnClick) close();}"
 	>
 		<a
@@ -16,17 +18,19 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, type CSSProperties } from 'vue';
+import { IPlacesPopupProps } from '@/shared';
 
-export interface IPlacesPopupProps {
-	show: boolean;
-	what?: any;
-	closeOnClick?: boolean;
-}
 const props = withDefaults(defineProps<IPlacesPopupProps>(), {
 	show: false,
 	what: '',
 	closeOnClick: true,
+	position: () => ({
+		top: 'calc(100% + 8px)',
+		right: 'auto',
+		bottom: 'auto',
+		left: 0,
+	}),
 });
 const emit = defineEmits(['update:show']);
 
@@ -36,6 +40,14 @@ const close = (): void => {
 const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
 };
+const style = computed((): CSSProperties  => ({
+    position: 'absolute',
+    top: isNaN(Number(props.position.top)) ? props.position.top : `${props.position.top}px`,
+    right: isNaN(Number(props.position.right)) ? props.position.right : `${props.position.right}px`,
+    bottom: isNaN(Number(props.position.bottom)) ? props.position.bottom : `${props.position.bottom}px`,
+    left: isNaN(Number(props.position.left)) ? props.position.left : `${props.position.left}px`,
+	zIndex: 999999,
+}));
 
 onMounted(() => {
 	document.addEventListener('keyup', keyup, false);
@@ -48,7 +60,6 @@ onUnmounted(() => {
 <style lang="scss">
 .popup.messages {
 	display: block;
-	top: calc(100% + 8px); right: auto; bottom: auto; left: 0;
 	padding: 30px 0 0 0;
 	.close {
 		right: 0;

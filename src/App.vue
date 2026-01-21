@@ -395,13 +395,14 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		const upperIdx = Number((draggingElement.value as HTMLElement).dataset.pointidx);
 		const lowerId = (el as HTMLElement).dataset.point;
 		const lowerIdx = Number((el as HTMLElement).dataset.pointidx);
-		if (
-			!mainStore.currentTrack.points.includes(upperId) ||
-			!mainStore.currentTrack.points.includes(lowerId)
-		) {
-			return;
-		}
-		moveInArrayAfter(mainStore.currentTrack.points, upperIdx, lowerIdx);
+		const pointOf = (draggingElement.value as HTMLElement).dataset.pointof;
+		const points =
+			pointOf === 'track'
+				? mainStore.currentTrack.points
+				: mainStore.measure.points
+		;
+		if (!points.includes(upperId) || !points.includes(lowerId)) return;
+		moveInArrayAfter(points, upperIdx, lowerIdx);
 		return;
 	}
 

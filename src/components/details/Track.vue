@@ -7,7 +7,7 @@
 		<h2 class="color-01">
 			{{ mainStore.t.i.captions.currentTrack }}
 		</h2>
-		<Points type="tracks" />
+		<Points type="track" />
 		<dl
 			v-for="field in orderedCurrentTrackFields"
 			:key="field"

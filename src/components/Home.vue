@@ -52,7 +52,7 @@
 			:style="sidebarSize.left !== 0 || cells.left ? 'display: block' : 'display: none'"
 		>
 			<div id="basic-left__control-buttons-left" />
-			<div class="control-search">
+			<div class="helpers-search">
 				<input
 					id="search-input"
 					ref="searchInput"
@@ -83,7 +83,7 @@
 			<form
 				v-if="mainStore.rangeShow"
 				action="javascript:void(0)"
-				class="control-range"
+				class="helpers-range"
 				@submit="mainStore.showInRange(mainStore.range)"
 			>
 				<input
@@ -154,10 +154,11 @@
 										});
 									}
 								}"
-								@contextmenu="e => {
-									e.preventDefault();
-									mainStore.chooseTrack(commonTrack, mainStore.mode);
-								}"
+								@contextmenu.prevent="
+									mainStore.chooseTrack(
+										commonTrack, mainStore.mode
+									)
+								"
 							>
 								{{ commonTrack.name }}
 							</div>
@@ -206,10 +207,11 @@
 									longitude: point.longitude,
 								});
 							}"
-							@contextmenu="e => {
-								e.preventDefault();
-								mainStore.choosePlace(commonPlace, mainStore.mode);
-							}"
+							@contextmenu.prevent="
+								mainStore.choosePlace(
+									commonPlace, mainStore.mode
+								)
+							"
 						>
 							{{ commonPlace.name }}
 						</div>
@@ -668,7 +670,7 @@ import {
 	makeFieldsValidatable,
 } from '@/shared';
 import Header from '@/components/Header.vue';
-import Measure from '@/components/actors/Measure.vue';
+import Measure from '@/components/helpers/Measure.vue';
 import Points from '@/components/Points.vue';
 import Tree from '@/components/tree/Tree.vue';
 import TrackDetails from '@/components/details/Track.vue';
@@ -798,15 +800,14 @@ const centerAltitude = ref<number | null>(null);
 watch(() => mainStore.ready, async () => {
 	await stateReadyChanged();
 });
-watchEffect(() => {
+watchEffect(async () => {
 	if (
 		typeof mainStore.center.latitude === 'number' &&
 		typeof mainStore.center.longitude === 'number'
 	) {
-		mainStore.getAltitude(
+		centerAltitude.value = await mainStore.getAltitude(
 			mainStore.center.latitude,
 			mainStore.center.longitude,
-			centerAltitude
 		);
 	}
 });
@@ -1345,7 +1346,7 @@ const selectPlaces = (text: string): void => {
 </script>
 
 <style lang="scss" scoped>
-.control-search, .control-range {
+.helpers-search, .helpers-range {
 	display: flex;
 	flex-flow: row wrap;
 	justify-content: flex-end;
@@ -1361,7 +1362,7 @@ const selectPlaces = (text: string): void => {
 		}
 	}
 }
-.control-search, .control-range, .control-measure {
+.helpers-search, .helpers-range, .helpers-measure {
 	margin: 8px 0 20px 0;
 	> *:first-child {
 		flex-basis: 0;
@@ -1381,7 +1382,7 @@ const selectPlaces = (text: string): void => {
 		min-height: 30px;
 	}
 }
-.control-search, .control-range {
+.helpers-search, .helpers-range {
 	.control-buttons button {
 		width: 22px;
 	}
