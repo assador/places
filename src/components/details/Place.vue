@@ -98,6 +98,7 @@
 									const coords = string2coords(
 										(e.target as HTMLInputElement).value.trim()
 									);
+									// console.log(coords);
 									if (coords === null) return;
 									await mainStore.changePlace({
 										place: currentPlace,
@@ -196,13 +197,12 @@
 									:data-image="image.id"
 									class="dd-images__delete button"
 									:draggable="false"
-									@click="e => {
-										e.stopPropagation();
+									@click.stop="
 										emitter.emit('confirm', {
 											func: deleteImages,
 											args: [{[image.id]: image}],
-										});
-									}"
+										})
+									"
 								>
 									×
 								</div>

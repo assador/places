@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="popup-text about"
-		onclick="event.stopPropagation();"
+		@click.stop
 	>
 		<h1 class="margin_bottom_0">Места</h1>
 		<p>v6.0.3 alpha</p>

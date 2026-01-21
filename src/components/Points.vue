@@ -26,11 +26,9 @@
 					) + ' ' +
 					mainStore.t.i.hints.placemarksOnMap
 				"
-				@click="e => {
-					e.stopPropagation();
-					mainStore.tempsPlacemarksShow = 
-						!mainStore.tempsPlacemarksShow;
-				}"
+				@click.stop="
+					mainStore.tempsPlacemarksShow = !mainStore.tempsPlacemarksShow
+				"
 			/>
 			<div
 				v-if="type === 'temps'"
@@ -206,10 +204,7 @@
 				<span
 					class="button-iconed icon icon-cross-45"
 					:title="mainStore.t.i.hints.deleteTemp"
-					@click="e => {
-						e.stopPropagation();
-						mainStore.deleteTemp(id);
-					}"
+					@click.stop="mainStore.deleteTemp(id)"
 				/>
 			</button>
 			<button
@@ -260,10 +255,7 @@
 					:title="mainStore.t.i.hints.deleteTrack"
 					class="button-iconed icon icon-cross-45"
 					@dragenter="highlighted = point.id"
-					@click="e => {
-						e.stopPropagation();
-						mainStore.deleteTrackPoint(point, mainStore.currentTrack);
-					}"
+					@click.stop="mainStore.deleteTrackPoint(point, mainStore.currentTrack)"
 				/>
 			</button>
 			<button
@@ -309,8 +301,7 @@
 					:title="mainStore.t.i.hints.deleteTrack"
 					class="button-iconed icon icon-cross-45"
 					@dragenter="highlighted = id"
-					@click="e => {
-						e.stopPropagation();
+					@click.stop="() => {
 						mainStore.measure.points.splice(idx, 1);
 						if (idx > mainStore.measure.points.length - 1) {
 							mainStore.measure.choosing = mainStore.measure.points.length - 1

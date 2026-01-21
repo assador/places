@@ -89,7 +89,7 @@
 						:placeholder="mainStore.t.i.captions.name"
 						class="folder-button__name fieldwidth_100"
 						@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
-						@click="e => e.stopPropagation()"
+						@click.stop
 					/>
 					<textarea
 						:value="folder.description"
@@ -97,7 +97,7 @@
 						:placeholder="mainStore.t.i.captions.description"
 						class="folder-button__description fieldwidth_100"
 						@change="e => {mainStore.changeFolder({folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
-						@click="e => e.stopPropagation()"
+						@click.stop
 					/>
 				</div>
 				<div
@@ -121,8 +121,7 @@
 							mainStore.t.i.hints.placemarksOnMap
 						"
 						accesskey="a"
-						@click="e => {
-							e.stopPropagation();
+						@click.stop="() => {
 							if (what === 'places') {
 								mainStore.showHideGeomarks({
 									object: (folder.id === 'root' ? mainStore.tree : folder),
@@ -138,17 +137,29 @@
 					/>
 					<span
 						class="folder-button__control icon icon-plus"
-						:title="mainStore.t.i.hints.addPlace"
+						:title="mainStore.t.i.hints[(what === 'places' ? 'addPlace' : 'addTrack')]"
 						accesskey="a"
-						@click="e => {
-							e.stopPropagation();
-							appendPlace({
-								folderid: folder.id,
-								srt:
-									places.length > 0
-										? places[places.length - 1].srt + 1
-										: 1
-							});
+						@click.stop="() => {
+							switch (what) {
+								case 'places':
+									appendPlace({
+										folderid: folder.id,
+										srt:
+											places.length > 0
+												? places[places.length - 1].srt + 1
+												: 1
+									});
+									break;
+								case 'tracks':
+									appendTrack({
+										folderid: folder.id,
+										srt:
+											tracks.length > 0
+												? tracks[tracks.length - 1].srt + 1
+												: 1
+									});
+									break;
+							}
 						}"
 					/>
 					<span
@@ -164,15 +175,10 @@
 						class="folder-button__control icon icon-cross-45"
 						:title="mainStore.t.i.buttons.deleteFolder"
 						accesskey="f"
-						@click="e => {
-							e.stopPropagation();
-							router.push({
-								name: 'HomeDeleteFolder',
-								params: { id: folder.id },
-							})
-								.catch(error => { console.error(error); })
-							;
-						}"
+						@click.stop="router.push({
+							name: 'HomeDeleteFolder',
+							params: { id: folder.id },
+						})"
 					/>
 				</div>
 			</div>
@@ -197,8 +203,7 @@
 						mainStore.t.i.hints.placemarksOnMap
 					"
 					accesskey="a"
-					@click="e => {
-						e.stopPropagation();
+					@click.stop="() => {
 						if (what === 'places') {
 							mainStore.showHideGeomarks({
 								object: (folder.id === 'root' ? mainStore.tree : folder),
@@ -357,7 +362,7 @@
 							}
 							foldersCheckedIds = formFoldersCheckedIds();
 						}"
-						@click="e => e.stopPropagation()"
+						@click.stop
 					/>
 				</span>
 				<span class="place-button__content">
@@ -384,56 +389,46 @@
 								: mainStore.t.i.hints.placemarksOnMap
 							)
 						"
-						@click="e => {
-							e.stopPropagation();
-							mainStore.showHideGeomarks({
-								object: object,
-								show: !(object['geomark']
-									? object['geomark']
-									: object['geomarks']
-								),
-							});
-						}"
+						@click.stop="mainStore.showHideGeomarks({
+							object: object,
+							show: !(object['geomark']
+								? object['geomark']
+								: object['geomarks']
+							),
+						})"
 					/>
 					<span
 						v-if="what === 'places'"
 						class="place-button__control icon icon-plus"
 						:title="mainStore.t.i.hints.addPlaceNext"
-						@click="e => {
-							e.stopPropagation();
-							appendPlace({
-								folderid: folder.id,
-								srt: (
-									index === places.length - 1
-										? object.srt + 1
-										: object.srt + (places[index + 1].srt - object.srt) / 2
-								),
-							});
-						}"
+						@click.stop="appendPlace({
+							folderid: folder.id,
+							srt: (
+								index === places.length - 1
+									? object.srt + 1
+									: object.srt + (places[index + 1].srt - object.srt) / 2
+							),
+						})"
 					/>
 					<span
 						v-else-if="what === 'tracks'"
 						class="place-button__control icon icon-plus"
 						:title="mainStore.t.i.hints.addTrackNext"
-						@click="e => {
-							e.stopPropagation();
-							appendTrack({
-								folderid: folder.id,
-								srt: (
-									index === tracks.length - 1
-										? object.srt + 1
-										: object.srt + (tracks[index + 1].srt - object.srt) / 2
-								),
-							});
-						}"
+						@click.stop="appendTrack({
+							folderid: folder.id,
+							srt: (
+								index === tracks.length - 1
+									? object.srt + 1
+									: object.srt + (tracks[index + 1].srt - object.srt) / 2
+							),
+						})"
 					/>
 					<span
 						class="place-button__control icon icon-cross-45"
 						:title="mainStore.t.i.hints.deletePlace"
-						@click="e => {
-							e.stopPropagation();
-							mainStore.deleteObjects({objects: {[object.id]: object}});
-						}"
+						@click.stop="mainStore.deleteObjects({
+							objects: { [object.id]: object }
+						})"
 					/>
 				</span>
 				<span

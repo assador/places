@@ -11,8 +11,11 @@
 			</div>
 			<form
 				class="folder-delete__form margin_bottom_0"
-				@click="e => e.stopPropagation()"
-				@submit.prevent="() => {props.callback(...props.arguments); close();}"
+				@click.stop
+				@submit.prevent="() => {
+					props.callback(...props.arguments);
+					close();
+				}"
 			>
 				<div style="text-align: center;">
 					<fieldset>

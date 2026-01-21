@@ -26,12 +26,11 @@
 				draggable: true,
 			}"
 			position="top-center left-center"
-			@mouseup="e => {
-				e.stopPropagation();
+			@mouseup.stop="
 				updateState({
 					coords: markerCenter.coordinates.slice().reverse(),
-				});
-			}"
+				})
+			"
 		>
 			<img
 				class="marker-center"

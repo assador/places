@@ -174,7 +174,26 @@
 				"
 				draggable
 				@click="e => placemarkClick(point, e.originalEvent)"
-				@contextmenu="e => placemarkClick(point, e)"
+				@contextmenu="e => {
+					switch (mainStore.mode) {
+						case 'normal':
+						case 'measure':
+							pointInfo.point = point;
+							popupProps.show = !popupProps.show;
+							popupProps.position.top = e.originalEvent.clientY + 5;
+							popupProps.position.right =
+								e.originalEvent.view.document.documentElement.clientWidth -
+								e.originalEvent.clientX + 5;
+							break;
+						case 'tracks':
+							mainStore.deleteTrackPoint(
+								point,
+								mainStore.currentTrack,
+							)
+							break;
+					}
+					placemarkClick(point, e)
+				}"
 				@mousedown="() => dragging = true"
 				@mouseup="() => dragging = false"
 				@moveend="async (e: Event) => await placemarkDragEnd(point, e)"
@@ -188,7 +207,7 @@
 								: icon_01_faded)
 					) as {}"
 				/>
-				<l-tooltip permanent="true">
+				<l-tooltip v-if="!popupProps.show" permanent="true">
 					{{ mainStore.t.i.captions.measurePoint + ' ' + point.name + ' —' }}
 					{{ coords2string([point.latitude, point.longitude]) }}
 					{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
@@ -252,11 +271,6 @@ import {
 	LIcon,
 	LControlLayers,
 	LPolyline,
-/*
-	LPopup,
-	LPolygon,
-	LRectangle,
-*/
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Point } from '@/stores/types';

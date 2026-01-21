@@ -8,12 +8,12 @@
 			</div>
 			<form
 				class="folder-new__form margin_bottom_0"
-				@click="e => e.stopPropagation()"
+				@click.stop
 				@submit.prevent="appendFolder({
 					parentId: parentId,
 					name: folderName ? folderName : '',
 					description: folderDescription ? folderDescription : '',
-				});"
+				})"
 			>
 				<table class="table_form">
 					<tbody>
@@ -121,7 +121,7 @@ const appendFolder = (payload: { parentId: string, name: string, description: st
 				parentFolder = mainStore.folders[parentId] ?? mainStore.tree;
 				break;
 		}
-		if (parentFolder.children.length) {
+		if (parentFolder.children?.length) {
 			srt =
 				Object.values(parentFolder.children)
 					[Object.values(parentFolder.children).length - 1].srt + 1;

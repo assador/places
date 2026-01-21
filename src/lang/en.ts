@@ -174,7 +174,7 @@ export const t = {
 			about: 'About “The Places”, reference',
 			addFolder: 'Add folder',
 			addFolderIn: 'Add a folder to this folder',
-			addPlace: 'Add a place to this folder',
+			addPlace: 'Add a place',
 			addPlaceNext: 'Add the next place after this one',
 			addTemp: 'Add an independent point',
 			addTrack: 'Add a track',

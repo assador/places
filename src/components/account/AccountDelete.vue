@@ -13,7 +13,7 @@
 				</div>
 				<form
 					@submit.prevent="accountDeletionSubmit()"
-					@click="e => e.stopPropagation()"
+					@click.stop
 				>
 					<div class="account-form margin_bottom">
 						<fieldset>

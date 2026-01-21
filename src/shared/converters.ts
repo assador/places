@@ -42,16 +42,22 @@ export const longitude2string = (longitude: number): string => {
 	return `${lonDMS[0]}°${lonDMS[1]}'${lonDMS[2].toFixed(2)}"${lon < 0 ? 'W' : 'E'}`;
 };
 export const string2coords = (coords: string): number[] | null => {
-	const reLat = /\s*(\d{1,2})\s*°\s*(\d{1,2})\s*\'\s*(\d{1,2}(?:[.,]\d+){0,1})\s*\"\s*([nNsS])\s*/;
-	const reLon = /\s*(\d{1,3})\s*°\s*(\d{1,2})\s*\'\s*(\d{1,2}(?:[.,]\d+){0,1})\s*\"\s*([eEwW])\s*/;
+	const reLat = /\s*(\d{1,2})\s*°(?:\s*(\d{1,2}(?:[.,]\d+)*)\s*\'(?:\s*(\d{1,2}(?:[.,]\d+)*(?:[.,]\d+)*)\s*\")*)*\s*([nNsS])\s*/;
+	const reLon = /\s*(\d{1,3})\s*°(?:\s*(\d{1,2}(?:[.,]\d+)*)\s*\'(?:\s*(\d{1,2}(?:[.,]\d+)*(?:[.,]\d+)*)\s*\")*)*\s*([eEwW])\s*/;
 	const latArr = reLat.exec(coords);
 	const lonArr = reLon.exec(coords);
 	if (latArr === null || lonArr === null) return null;
+	for (let i = 1; i < 4; i++) {
+		if (!latArr[i]) latArr[i] = '0';
+		if (!lonArr[i]) lonArr[i] = '0';
+	}
 	return [
-		 degMinSec2deg(latArr.slice(1, 4).map(n => parseFloat(n.replace(/,/, '.')))) *
-			(/[sS]/.test(latArr[4]) ? -1 : 1),
-		 degMinSec2deg(lonArr.slice(1, 4).map(n => parseFloat(n.replace(/,/, '.')))) *
-			(/[wW]/.test(lonArr[4]) ? -1 : 1),
+		degMinSec2deg(
+			latArr.slice(1, 4).map(n => parseFloat(n.replace(/,/, '.')))
+		) * (/[sS]/.test(latArr[4]) ? -1 : 1),
+		degMinSec2deg(
+			lonArr.slice(1, 4).map(n => parseFloat(n.replace(/,/, '.')))
+		) * (/[wW]/.test(lonArr[4]) ? -1 : 1),
 	];
 };
 export const point2coords = (p: Point, m: string, h: string): string => {
