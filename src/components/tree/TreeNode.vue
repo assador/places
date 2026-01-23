@@ -11,8 +11,8 @@
 		<div
 			:id="folder.id === 'root'
 				? 'places-header'
-				: (folder.id === 'tracksroot'
-					? 'tracks-header'
+				: (folder.id === 'routesroot'
+					? 'routes-header'
 					: undefined
 				)
 			"
@@ -37,7 +37,7 @@
 			<div
 				class="folder-button"
 				:draggable="folder.parent ? true : false"
-				:data-places-tree-type="what === 'places' ? 'place' : 'track'"
+				:data-places-tree-type="what === 'places' ? 'place' : 'route'"
 				:data-places-tree-folder-id="folder.id"
 				:data-places-tree-item-type="'folder'"
 				@dragstart="handleDragStart"
@@ -67,10 +67,10 @@
 						{{ mainStore.t.i.captions.places }}
 					</h2>
 					<h2
-						v-else-if="folder.id === 'tracksroot'"
+						v-else-if="folder.id === 'routesroot'"
 						class="color-01"
 					>
-						{{ mainStore.t.i.captions.tracks }}
+						{{ mainStore.t.i.captions.routes }}
 					</h2>
 					<div v-else>
 						{{ folder.name }}
@@ -127,9 +127,9 @@
 									object: (folder.id === 'root' ? mainStore.tree : folder),
 									show: (folder.geomarks === 1 ? 0 : 1),
 								});
-							} else if (what === 'tracks') {
+							} else if (what === 'routes') {
 								mainStore.showHideGeomarks({
-									object: (folder.id === 'tracksroot' ? mainStore.treeTracks : folder),
+									object: (folder.id === 'routesroot' ? mainStore.treeRoutes : folder),
 									show: (folder.geomarks === 1 ? 0 : 1),
 								});
 							}
@@ -137,7 +137,7 @@
 					/>
 					<span
 						class="folder-button__control icon icon-plus"
-						:title="mainStore.t.i.hints[(what === 'places' ? 'addPlace' : 'addTrack')]"
+						:title="mainStore.t.i.hints[(what === 'places' ? 'addPlace' : 'addRoute')]"
 						accesskey="a"
 						@click.stop="() => {
 							switch (what) {
@@ -150,12 +150,12 @@
 												: 1
 									});
 									break;
-								case 'tracks':
-									appendTrack({
+								case 'routes':
+									appendRoute({
 										folderid: folder.id,
 										srt:
-											tracks.length > 0
-												? tracks[tracks.length - 1].srt + 1
+											routes.length > 0
+												? routes[routes.length - 1].srt + 1
 												: 1
 									});
 									break;
@@ -209,9 +209,9 @@
 								object: (folder.id === 'root' ? mainStore.tree : folder),
 								show: (folder.geomarks === 1 ? 0 : 1),
 							});
-						} else if (what === 'tracks') {
+						} else if (what === 'routes') {
 							mainStore.showHideGeomarks({
-								object: (folder.id === 'tracksroot' ? mainStore.treeTracks : folder),
+								object: (folder.id === 'routesroot' ? mainStore.treeRoutes : folder),
 								show: (folder.geomarks === 1 ? 0 : 1),
 							});
 						}
@@ -234,23 +234,31 @@
 				/>
 			</div>
 			<div
-				v-else-if="folder.id === 'tracksroot'"
+				v-else-if="folder.id === 'routesroot'"
 				class="control-buttons"
 			>
 				<button
 					class="button-iconed icon icon-plus"
-					:title="mainStore.t.i.hints.addTrack"
+					:title="mainStore.t.i.hints.addRoute"
 					accesskey="a"
-					@click="appendTrack()"
+					@click="appendRoute()"
 				/>
 				<button
 					class="button-iconed icon icon-cross-45"
-					:title="mainStore.t.i.hints.deleteTrack"
-					:disabled="!(mainStore.user && currentTrack && currentTrack.userid === mainStore.user.id)"
+					:title="mainStore.t.i.hints.deleteRoute"
+					:disabled="!(
+						mainStore.user &&
+						mainStore.currentRoute &&
+						mainStore.currentRoute.userid === mainStore.user.id
+					)"
 					accesskey="d"
-					@click="mainStore.deleteObjects({
-						objects: {[currentTrack.id]: currentTrack}
-					})"
+					@click="
+						mainStore.deleteObjects({
+							objects: {
+								[mainStore.currentRoute.id]: mainStore.currentRoute,
+							},
+						})
+					"
 				/>
 				<button
 					class="button-iconed icon icon-plus"
@@ -258,7 +266,7 @@
 					accesskey="f"
 					@click="router.push({
 						name: 'HomeFolder',
-						params: { parentId: 'tracksroot' },
+						params: { parentId: 'routesroot' },
 					})"
 				/>
 			</div>
@@ -286,7 +294,7 @@
 			class="folder-places"
 		>
 			<label
-				v-for="(object, index) in (what === 'places' ? places : tracks)"
+				v-for="(object, index) in (what === 'places' ? places : routes)"
 				:id="
 					(instanceid === 'popupexporttree' ? 'to-export-place-' : '') +
 					object.id
@@ -295,26 +303,37 @@
 				:type="object.type"
 				:srt="object.srt"
 				:title="object.description"
+				class="place-button block_01 draggable"
 				:class="
-					'place-button block_01 draggable' +
 					(what === 'places'
-						? (currentPlace && object.id == currentPlace.id ? ' active' : '')
-						: (currentTrack && object.id == currentTrack.id ? ' active' : '')
-					) +
-					(mainStore.mode === 'measure' && mainStore.measure.points.includes(object.id) ? ' chosen' : '')
+						? (
+							mainStore.currentPlace &&
+							object.id == mainStore.currentPlace.id
+								? 'active' : ''
+						)
+						: (
+							mainStore.currentRoute &&
+							object.id == mainStore.currentRoute.id
+								? 'active' : ''
+						)
+					) + (
+						mainStore.mode === 'measure' &&
+						mainStore.measure.points.find(p => p.id === object.id)
+							? ' chosen' : ''
+					)
 				"
 				:draggable="true"
-				:data-places-tree-type="what === 'places' ? 'place' : 'track'"
+				:data-places-tree-type="what === 'places' ? 'place' : 'route'"
 				:data-places-tree-item-id="object.id"
 				:data-places-tree-item-type="object.type"
 				:data-places-tree-item-parent-id="object.folderid"
 				@dragstart="handleDragStart"
-				@click="e => {
+				@click="() => {
 					if (instanceid === 'popupexporttree') return;
 					if (what === 'places') {
-						choosePlaceInTree(object as Place, e);
-					} else if (what === 'tracks') {
-						chooseTrackInTree(object as Track, e);
+						mainStore.currentPlace = object as Place;
+					} else if (what === 'routes') {
+						mainStore.currentRoute = object as Route;
 					}
 					const point = mainStore.getPointById(
 						what === 'places'
@@ -328,12 +347,12 @@
 						});
 					}
 				}"
-				@contextmenu.prevent="e => {
+				@contextmenu.prevent="() => {
 					if (instanceid !== 'popupexporttree') {
 						if (what === 'places') {
-							choosePlaceInTree(object as Place, e);
-						} else if (what === 'tracks') {
-							chooseTrackInTree(object as Track, e);
+							mainStore.currentPlace = object as Place;
+						} else if (what === 'routes') {
+							mainStore.currentRoute = object as Route;
 						}
 					}
 				}"
@@ -356,7 +375,7 @@
 								);
 							} else {
 								selectUnselect(
-									object as Track,
+									object as Route,
 									(e.target as HTMLInputElement).checked
 								);
 							}
@@ -411,15 +430,15 @@
 						})"
 					/>
 					<span
-						v-else-if="what === 'tracks'"
+						v-else-if="what === 'routes'"
 						class="place-button__control icon icon-plus"
-						:title="mainStore.t.i.hints.addTrackNext"
-						@click.stop="appendTrack({
+						:title="mainStore.t.i.hints.addRouteNext"
+						@click.stop="appendRoute({
 							folderid: folder.id,
 							srt: (
-								index === tracks.length - 1
+								index === routes.length - 1
 									? object.srt + 1
-									: object.srt + (tracks[index + 1].srt - object.srt) / 2
+									: object.srt + (routes[index + 1].srt - object.srt) / 2
 							),
 						})"
 					/>
@@ -432,7 +451,7 @@
 					/>
 				</span>
 				<span
-					:data-places-tree-type="what === 'places' ? 'place' : 'track'"
+					:data-places-tree-type="what === 'places' ? 'place' : 'route'"
 					:data-places-tree-item-id="object.id"
 					:data-places-tree-item-type="object.type"
 					:data-places-tree-item-sorting-area-top="true"
@@ -441,7 +460,7 @@
 					@dragleave="handleDragLeave"
 				/>
 				<span
-					:data-places-tree-type="what === 'places' ? 'place' : 'track'"
+					:data-places-tree-type="what === 'places' ? 'place' : 'route'"
 					:data-places-tree-item-id="object.id"
 					:data-places-tree-item-type="object.type"
 					:data-places-tree-item-sorting-area-bottom="true"
@@ -461,14 +480,14 @@
 			<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
 		</div>
 		<div
-			v-if="folder.id !== 'root' && folder.id !== 'tracksroot'"
+			v-if="folder.id !== 'root' && folder.id !== 'routesroot'"
 			:data-places-tree-folder-sorting-area-top-folderid="folder.id"
 			class="dragenter-area dragenter-area_top"
 			@dragenter="handleDragEnter"
 			@dragleave="handleDragLeave"
 		/>
 		<div
-			v-if="folder.id !== 'root' && folder.id !== 'tracksroot'"
+			v-if="folder.id !== 'root' && folder.id !== 'routesroot'"
 			:data-places-tree-folder-sorting-area-bottom-folderid="folder.id"
 			class="dragenter-area dragenter-area_bottom"
 			@dragenter="handleDragEnter"
@@ -488,7 +507,7 @@ import _ from 'lodash';
 import { inject, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Place, Track, Folder } from '@/stores/types';
+import { Place, Route, Folder } from '@/stores/types';
 import { formFoldersCheckedIds } from '@/shared';
 
 export interface IPlacesTreeNodeProps {
@@ -516,10 +535,8 @@ const handleDragLeave = inject<typeof handleDragLeave>('handleDragLeave');
 const handleDrop = inject<typeof handleDrop>('handleDrop');
 
 const appendPlace = inject('appendPlace') as (payload?: Record<string, any>) => void;
-const appendTrack = inject('appendTrack') as (payload?: Record<string, any>) => void;
+const appendRoute = inject('appendRoute') as (payload?: Record<string, any>) => void;
 
-const currentPlace = computed(() => mainStore.currentPlace);
-const currentTrack = computed(() => mainStore.currentTrack);
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));
 const places = computed(() =>
 	_.chain(mainStore.places)
@@ -533,13 +550,13 @@ const places = computed(() =>
 	.sortBy('srt')
 	.value()
 );
-const tracks = computed(() =>
-	_.chain(mainStore.tracks)
+const routes = computed(() =>
+	_.chain(mainStore.routes)
 	.filter(t =>
 		t.show &&
 		(
 			t.folderid === props.folder.id ||
-			t.folderid === null && props.folder.id === 'tracksroot'
+			t.folderid === null && props.folder.id === 'routesroot'
 		)
 	)
 	.sortBy('srt')
@@ -552,23 +569,7 @@ const distance = computed(() =>
 	) * 1000) / 1000
 );
 
-const choosePlaceInTree = (place: Place, e: Event): void => {
-	mainStore.choosePlace(
-		place,
-		mainStore.mode === 'measure' && e.type === 'contextmenu'
-			? 'measure'
-			: 'normal'
-	);
-};
-const chooseTrackInTree = (track: Track, e: Event): void => {
-	mainStore.chooseTrack(
-		track,
-		mainStore.mode === 'measure' && e.type === 'contextmenu'
-			? 'measure'
-			: 'normal'
-	);
-};
-const selectUnselect = (object: Place | Track, checked: boolean): void => {
+const selectUnselect = (object: Place | Route, checked: boolean): void => {
 	if (checked) {
 		selectedToExport.value[object.id] = object;
 	} else {
@@ -672,9 +673,9 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	&.folder_opened:is(
 		.points,
 		#places-menu-folder-root,
-		#places-menu-folder-tracksroot
+		#places-menu-folder-routesroot
 	) > .folder-subs:has(~ .folder-subfolders *),
-	:is(#places-header, #tracks-header):has(~ .folder-places:not(:empty)) {
+	:is(#places-header, #routes-header):has(~ .folder-places:not(:empty)) {
 		margin-bottom: 12px;
 	}
 	&.folder-root {
@@ -783,11 +784,11 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 }
 .folder-places {
 	display: block;
-	&:not(&:is(&#root, &#tracksroot)) {
+	&:not(&:is(&#root, &#routesroot)) {
 		margin-left: 15px;
 	}
 }
-#places-header, #tracks-header {
+#places-header, #routes-header {
 	display: flex;
 	gap: 8px;
 	align-items: center;

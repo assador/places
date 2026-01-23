@@ -105,15 +105,27 @@
 				]"
 				draggable
 				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
-				@click="e => placemarkClick(place, e.originalEvent)"
-				@contextmenu="e => placemarkClick(place, e)"
+				@click="() => {
+					mainStore.currentPlace = place;
+					mainStore.choosePoint(mainStore.points[place.pointid], place);
+				}"
+				@contextmenu="e => {
+					pointInfo.point = mainStore.points[place.pointid];
+					popupProps.show = !popupProps.show;
+					popupProps.position.top = e.originalEvent.clientY + 5;
+					popupProps.position.right =
+						e.originalEvent.view.document.documentElement.clientWidth -
+						e.originalEvent.clientX + 5;
+				}"
 				@mousedown="() => dragging = true"
 				@mouseup="() => dragging = false"
 				@moveend="async (e: Event) => await placemarkDragEnd(place, e)"
 			>
 				<l-icon
 					v-bind="(
-						mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
+						mainStore.mode === 'measure' &&
+						mainStore.measure.points.find(p => p.id === id) &&
+						place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_01)
 					) as {}"
@@ -132,7 +144,7 @@
 					point.show
 				"
 				draggable
-				@click="e => placemarkClick(point, e.originalEvent)"
+				@click="mainStore.choosePoint(point)"
 				@contextmenu="e => {
 					pointInfo.point = point;
 					popupProps.show = !popupProps.show;
@@ -148,7 +160,7 @@
 				<l-icon
 					v-bind="(
 						mainStore.mode === 'measure' &&
-						mainStore.measure.points.includes(id) &&
+						mainStore.measure.points.find(p => p.id === id) &&
 						point !== mainStore.currentPoint
 							? icon_01_blue_faded
 							: (point === mainStore.currentPoint
@@ -164,7 +176,7 @@
 				</l-tooltip>
 			</l-marker>
 			<l-marker
-				v-for="(point, idx) in mainStore.trackPoints(mainStore.currentTrack)"
+				v-for="(point, idx) in mainStore.routePoints(mainStore.currentRoute)"
 				:key="idx"
 				:lat-lng="[point.latitude, point.longitude]"
 				:visible="
@@ -173,26 +185,14 @@
 					point.show
 				"
 				draggable
-				@click="e => placemarkClick(point, e.originalEvent)"
+				@click="mainStore.choosePoint(point)"
 				@contextmenu="e => {
-					switch (mainStore.mode) {
-						case 'normal':
-						case 'measure':
-							pointInfo.point = point;
-							popupProps.show = !popupProps.show;
-							popupProps.position.top = e.originalEvent.clientY + 5;
-							popupProps.position.right =
-								e.originalEvent.view.document.documentElement.clientWidth -
-								e.originalEvent.clientX + 5;
-							break;
-						case 'tracks':
-							mainStore.deleteTrackPoint(
-								point,
-								mainStore.currentTrack,
-							)
-							break;
-					}
-					placemarkClick(point, e)
+					pointInfo.point = point;
+					popupProps.show = !popupProps.show;
+					popupProps.position.top = e.originalEvent.clientY + 5;
+					popupProps.position.right =
+						e.originalEvent.view.document.documentElement.clientWidth -
+						e.originalEvent.clientX + 5;
 				}"
 				@mousedown="() => dragging = true"
 				@mouseup="() => dragging = false"
@@ -214,15 +214,23 @@
 				</l-tooltip>
 			</l-marker>
 			<l-polyline
-				v-if="mainStore.currentTrack && mainStore.currentTrack.points.length"
-				:lat-lngs="mainStore.getPointCoordsArray(mainStore.currentTrack.points) as LatLngExpression[]"
+				v-if="mainStore.currentRoute && mainStore.currentRoute.points.length"
+				:lat-lngs="
+					mainStore.getPointCoordsArray(
+						mainStore.currentRoute.points.map(p => p.id)
+					) as LatLngExpression[]
+				"
 				color="rgba(0, 0, 0, 1)"
 				:weight="0.5"
 			>
 			</l-polyline>
 			<l-polyline
 				v-if="mainStore.mode === 'measure' && mainStore.measure.points.length"
-				:lat-lngs="mainStore.getPointCoordsArray(mainStore.measure.points) as LatLngExpression[]"
+				:lat-lngs="
+					mainStore.getPointCoordsArray(
+						mainStore.measure.points.map(p => p.id)
+					) as LatLngExpression[]
+				"
 				color="rgba(0, 0, 0, 1)"
 				:weight="0.5"
 			>
@@ -235,12 +243,21 @@
 					mainStore.points[place.pointid].longitude,
 				]"
 				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
-				@click="e => placemarkClick(place, e.originalEvent)"
-				@contextmenu="e => placemarkClick(place, e.originalEvent)"
+				@click="mainStore.choosePoint(mainStore.points[place.pointid])"
+				@contextmenu="e => {
+					pointInfo.point = mainStore.points[place.pointid];
+					popupProps.show = !popupProps.show;
+					popupProps.position.top = e.originalEvent.clientY + 5;
+					popupProps.position.right =
+						e.originalEvent.view.document.documentElement.clientWidth -
+						e.originalEvent.clientX + 5;
+				}"
 			>
 				<l-icon
 					v-bind="(
-						mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
+						mainStore.mode === 'measure' &&
+						mainStore.measure.points.find(p => p.id === id) &&
+						place !== mainStore.currentPlace
 							? icon_01_blue
 							: (place === mainStore.currentPlace ? icon_01_green : icon_01_grey)
 					) as {}"
@@ -423,11 +440,12 @@ const mapContextMenu = async (e: any) => {
 	switch (mainStore.mode) {
 		case 'normal':
 		case 'measure':
-			const newTemp = mainStore.addTemp({
+			const newTemp = await mainStore.addTemp({
 				id: crypto.randomUUID(),
 				userid: sessionStorage.getItem('places-useruuid'),
 				latitude: e.latlng.lat,
 				longitude: e.latlng.lng,
+				altitude: null,
 				common: false,
 				type: 'point',
 				added: false,
@@ -435,13 +453,16 @@ const mapContextMenu = async (e: any) => {
 				updated: false,
 				show: true,
 			});
-			if (mainStore.mode === 'measure') {
-				mainStore.choosePoint(await newTemp, 'measure');
-			}
+		case 'normal':
+			mainStore.choosePoint(newTemp);
 			break;
-		case 'tracks':
-			if (!mainStore.currentTrack) break;
-			mainStore.addTrackPoint(
+		case 'measure':
+			mainStore.addPointToMeasure(newTemp);
+			mainStore.choosePoint(newTemp, mainStore.measure);
+			break;
+		case 'routes':
+			if (!mainStore.currentRoute) break;
+			await mainStore.addRoutePoint(
 				{
 					id: crypto.randomUUID(),
 					userid: sessionStorage.getItem('places-useruuid'),
@@ -455,14 +476,11 @@ const mapContextMenu = async (e: any) => {
 					updated: false,
 					show: true,
 				},
-				mainStore.currentTrack,
+				mainStore.currentRoute,
 			);
 			break;
 	}
 }
-const placemarkClick = (item: Place | Point, e: Event): void => {
-	mainStore.objectClick(item, e.type);
-};
 const placemarkDragEnd = async (point: Place | Point, event: any) => {
 	const coordinates = event.target.getLatLng();
 	await mainStore[point.type === 'point' ? 'changePoint' : 'changePlace']({

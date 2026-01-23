@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { User, Group, Point, Place, Track, Folder, Image } from './types';
+import { User, Group, Point, Place, Route, Folder, Image, Measure } from './types';
 import {
 	emitter,
 	constants,
@@ -19,24 +19,22 @@ export interface IMainState {
 	colortheme: string,
 	commonPlacemarksShow: boolean,
 	commonPlaces: Record<string, Place>,
-	commonTracks: Record<string, Track>,
-	commonTracksShow: boolean,
+	commonRoutes: Record<string, Route>,
+	commonPlacesShow: boolean,
+	commonRoutesShow: boolean,
 	commonPlacesPage: number,
+	commonRoutesPage: number,
 	commonPlacesOnPageCount: number,
-	currentPlace: Place | null,
+	commonRoutesOnPageCount: number,
 	currentPoint: Point | null,
-	currentTrack: Track | null,
+	currentPlace: Place | null,
+	currentRoute: Route | null,
 	folders: Record<string, Folder>,
 	homePlace: Place | null,
 	idleTime: number,
 	lang: string,
 	langs: Record<string, string>[],
-	measure: {
-		points: string[],
-		distance: number,
-		choosing: number,
-		show: boolean,
-	},
+	measure: Measure,
 	messages: string[],
 	messageTimer: number,
 	mode: string,
@@ -57,10 +55,10 @@ export interface IMainState {
 	temps: Record<string, Point>,
 	tempsPlacemarksShow: boolean,
 	tempsShow: boolean,
-	tracks: Record<string, Track>,
-	tracksShow: boolean,
+	routes: Record<string, Route>,
+	routesShow: boolean,
 	tree: Folder,
-	treeTracks: Folder,
+	treeRoutes: Folder,
 	user: User | null,
 	users: Record<string, User>,
 	zoom: number,
@@ -78,13 +76,16 @@ export const useMainStore = defineStore('main', {
 		colortheme: 'brown',
 		commonPlacemarksShow: false,
 		commonPlaces: {},
-		commonTracks: {},
-		commonTracksShow: false,
+		commonRoutes: {},
+		commonPlacesShow: false,
+		commonRoutesShow: false,
 		commonPlacesPage: 1,
+		commonRoutesPage: 1,
 		commonPlacesOnPageCount: constants.commonplacesonpagecount,
-			currentPlace: null,
+		commonRoutesOnPageCount: constants.commonroutesonpagecount,
 		currentPoint: null,
-		currentTrack: null,
+		currentPlace: null,
+		currentRoute: null,
 		folders: {},
 		homePlace: null,
 		idleTime: 0,
@@ -97,9 +98,10 @@ export const useMainStore = defineStore('main', {
 			title: 'English',
 		}],
 		measure: {
+			type: 'measure',
 			points: [],
+			choosing: null,
 			distance: 0,
-			choosing: 0,
 			show: false,
 		},
 		messages: [],
@@ -122,8 +124,8 @@ export const useMainStore = defineStore('main', {
 		temps: {},
 		tempsPlacemarksShow: true,
 		tempsShow: false,
-		tracks: {},
-		tracksShow: false,
+		routes: {},
+		routesShow: false,
 		tree: {
 			id: 'root',
 			parent: null,
@@ -139,8 +141,8 @@ export const useMainStore = defineStore('main', {
 			userid: '',
 			children: {},
 		},
-		treeTracks: {
-			id: 'tracksroot',
+		treeRoutes: {
+			id: 'routesroot',
 			parent: null,
 			srt: 0,
 			geomarks: 1,
@@ -165,7 +167,7 @@ export const useMainStore = defineStore('main', {
 		setMouseOverMessages(over?: boolean) {
 			this.mouseOverMessages = (over === false ? false : true);
 		},
-		setObjectSaved(object: User | Group | Point | Place | Track | Folder) {
+		setObjectSaved(object: User | Group | Point | Place | Route | Folder) {
 			object.added = false;
 			object.deleted = false;
 			object.updated = false;
@@ -195,36 +197,36 @@ export const useMainStore = defineStore('main', {
 			this.messageTimer = 0;
 			this.mouseOverMessages = false;
 			this.serverConfig = null;
-			this.tracks = {};
+			this.routes = {};
 		},
 		buildTrees() {
 			const tree = plainToTree({plain: this.foldersFlat, live: true, keep: true});
 			if (!tree) return;
 			this.tree.children = {};
-			this.treeTracks.children = {};
+			this.treeRoutes.children = {};
 			this.folders = tree;
 			for (const id in this.folders) {
 				if (this.folders[id].parent === 'root') {
 					this.tree.children[id] = this.folders[id];
 					continue;
 				}
-				if (this.folders[id].parent === 'tracksroot') {
-					this.treeTracks.children[id] = this.folders[id];
+				if (this.folders[id].parent === 'routesroot') {
+					this.treeRoutes.children[id] = this.folders[id];
 					continue;
 				}
 			}
-			this.tree.userid = this.treeTracks.userid = this.user ? this.user.id : null;
+			this.tree.userid = this.treeRoutes.userid = this.user ? this.user.id : null;
 			this.tree.name = this.t.i.captions.rootFolder;
-			this.treeTracks.name = this.t.i.captions.rootTracksFolder;
+			this.treeRoutes.name = this.t.i.captions.rootRoutesFolder;
 		},
 		placesReady(payload: Record<string, any>) {
-			const { points, places, commonPlaces, tracks, commonTracks, folders, what } = payload;
+			const { points, places, commonPlaces, routes, commonRoutes, folders, what } = payload;
 
 			this.points = points ? points : {};
 			this.places = places ? places : {};
 			this.commonPlaces = commonPlaces ? commonPlaces : {};
-			this.tracks = tracks ? tracks : {};
-			this.commonTracks = commonTracks ? commonTracks : {};
+			this.routes = routes ? routes : {};
+			this.commonRoutes = commonRoutes ? commonRoutes : {};
 			this.folders = folders ? folders : {};
 
 			let added = false, deleted = false, updated = false;
@@ -256,13 +258,13 @@ export const useMainStore = defineStore('main', {
 				place.common = Boolean(place.common);
 				place.geomark = Boolean(place.geomark);
 			}
-			for (const track of (Object.values(this.tracks) as Track[])) {
-				track.type = 'track';
-				track.added = added;
-				track.deleted = deleted;
-				track.updated = updated;
-				track.show = true;
-				track.common = Boolean(track.common);
+			for (const route of (Object.values(this.routes) as Route[])) {
+				route.type = 'route';
+				route.added = added;
+				route.deleted = deleted;
+				route.updated = updated;
+				route.show = true;
+				route.common = Boolean(route.common);
 			}
 			for (const folder of (Object.values(this.folders) as Folder[])) {
 				folder.type = 'folder';
@@ -276,14 +278,14 @@ export const useMainStore = defineStore('main', {
 		modifyPlaces(places: Record<string, Place>) {
 			this.places = places;
 		},
-		modifyTracks(tracks: Record<string, Track>) {
-			this.tracks = tracks;
+		modifyRoutes(routes: Record<string, Route>) {
+			this.routes = routes;
 		},
 		modifyCommonPlaces(commonPlaces: Record<string, Place>) {
 			this.commonPlaces = commonPlaces;
 		},
-		modifyCommonTracks(commonTracks: Record<string, Track>) {
-			this.commonTracks = commonTracks;
+		modifyCommonRoutes(commonRoutes: Record<string, Route>) {
+			this.commonRoutes = commonRoutes;
 		},
 		modifyFolders(folders: Record<string, Folder>) {
 			this.folders = folders;
@@ -389,8 +391,7 @@ export const useMainStore = defineStore('main', {
 			) {
 				return;
 			}
-			++this.stateBackupsIndex;
-			this.stateBackups.splice(this.stateBackupsIndex);
+			this.stateBackups.splice(++this.stateBackupsIndex);
 			this.stateBackups.push(
 				Object.assign({}, JSON.parse(JSON.stringify(this.$state)))
 			);
@@ -486,6 +487,7 @@ export const useMainStore = defineStore('main', {
 						sessionStorage.getItem('places-useruuid')
 					)
 					.then(response => {
+						console.log(response.data);
 						for (
 							const folder of
 							Object.values(response.data.folders) as Folder[]
@@ -534,7 +536,7 @@ export const useMainStore = defineStore('main', {
 			const parseJSON = (text: string) => {
 				try {
 					const result =
-						<Record<string, Array<Place | Track | Point | Folder>>>
+						<Record<string, Array<Place | Route | Point | Folder>>>
 						JSON.parse(text)
 					;
 					return result;
@@ -894,12 +896,12 @@ export const useMainStore = defineStore('main', {
 			this.refreshing = false;
 		},
 		getNeighboursSrts(id: string, type: string, top?: boolean) {
-			let fellows: Record<string, Folder | Place | Track> = this[type + 's'];
+			let fellows: Record<string, Folder | Place | Route> = this[type + 's'];
 			let neighbours = Object.values(fellows);
 			let item = fellows[id];
 			if (!fellows[id] && type === 'folder') {
-				fellows = id === 'tracksroot'
-					? this.treeTracks.children
+				fellows = id === 'routesroot'
+					? this.treeRoutes.children
 					: this.tree.children
 				;
 				item = fellows[id];
@@ -967,53 +969,39 @@ export const useMainStore = defineStore('main', {
 			return null;
 		},
 		wherePointIsUsed(id: string) {
-			let uses: (Place | Track)[] = [];
+			let uses: (Place | Route)[] = [];
 			uses.push(
 				...(Object.values(this.places) as Place[]).filter(place =>
 					place.pointid === id
 				),
-				...(Object.values(this.tracks) as Track[]).filter(track =>
-					track.points.includes(id)
+				...(Object.values(this.routes) as Route[]).filter(route =>
+					route.points.find(p => p.id === id)
 				),
 			);
 			return uses;
 		},
-		choosePoint(point: Point, inMode?: string) {
+		choosePoint(point: Point, of?: Place | Route | Measure) {
 			if (!point) {
 				this.currentPoint = null;
 				return;
 			}
-			switch (this.mode) {
+			switch (of?.type) {
+				case 'route':
 				case 'measure':
-					const idx = this.measure.points.indexOf(point.id);
-					// When inMode === 'measure', the point is added to the list
-					// of measured points if it is not already there, and removed
-					// from it if it is there.
-					if (idx !== -1) {
-						if (inMode && inMode === 'measure') {
-							this.measure.points.splice(idx, 1);
-							if (this.measure.choosing > this.measure.points.length - 1) {
-								this.measure.choosing = this.measure.points.length - 1;
-							}
+					let item = of as Route | Measure;
+					for (let i = 0; i < item.points.length; i++) {
+						if (item.points[i].id === point.id) {
+							item.choosing = i;
 							break;
 						}
-						this.measure.choosing = idx;
 					}
-					if (inMode && inMode === 'measure') {
-						if (idx === -1) this.measure.choosing = this.measure.points.length;
-						this.measure.points[this.measure.choosing] = point.id;
-					}
+					this.currentPoint = point;
+					break;
 				default:
-					if (inMode === 'measure') break;
-					if (this.currentTrack !== null) {
-						const idx = this.currentTrack.points.indexOf(point.id);
-						if (idx !== -1) this.currentTrack.choosing = idx;
-					}
-					if (this.currentPoint !== point) {
-						this.currentPoint = point;
-					}
-				}
+					this.currentPoint = point;
+			}
 		},
+/*
 		choosePlace(place: Place, inMode?: string) {
 			if (!place) {
 				this.currentPlace = null;
@@ -1036,25 +1024,25 @@ export const useMainStore = defineStore('main', {
 					}
 			}
 		},
-		chooseTrack(track: Track, inMode?: string) {
-			if (!track) {
-				this.currentTrack = null;
+		chooseRoute(route: Route, inMode?: string) {
+			if (!route) {
+				this.currentRoute = null;
 				return;
 			}
 			switch (this.mode) {
 				case 'measure':
 					if (inMode && inMode === 'measure') {
 						const { points, choosing } = this.measure;
-						const trackId = track.id;
-						const idx = points.indexOf(trackId);
-						if (idx === -1)  points[choosing] = trackId; else points.splice(idx, 1);
+						const routeId = route.id;
+						const idx = points.indexOf(routeId);
+						if (idx === -1)  points[choosing] = routeId; else points.splice(idx, 1);
 						this.measure.choosing = points.length;
 					}
 				default:
 					if (inMode === 'measure') break;
-					if (this.currentTrack !== track) {
-						this.currentTrack = track;
-						this.currentTrackCommon = this.currentTrack.userid !== this.user.id;
+					if (this.currentRoute !== route) {
+						this.currentRoute = route;
+						this.currentRouteCommon = this.currentRoute.userid !== this.user.id;
 					}
 			}
 		},
@@ -1064,14 +1052,14 @@ export const useMainStore = defineStore('main', {
 					if (type === 'contextmenu') {
 						switch (this.mode) {
 							case 'measure':
-								this.choosePoint(object, 'measure');
+								this.choosePoint(object, mainStore.measure);
 								break;
-							case 'tracks':
-								if (this.currentTrack) {
-									if (this.currentTrack.points.includes(object.id)) {
-										this.deleteTrackPoint(object, this.currentTrack);
+							case 'routes':
+								if (this.currentRoute) {
+									if (this.currentRoute.points.includes(object.id)) {
+										this.deleteRoutePoint(object, this.currentRoute);
 									} else {
-										this.currentTrack.points.push(object.id);
+										this.currentRoute.points.push(object.id);
 									}
 									break;
 								}
@@ -1086,21 +1074,22 @@ export const useMainStore = defineStore('main', {
 							case 'measure':
 								this.choosePlace(object, 'measure');
 								break;
-							case 'tracks':
-								if (this.currentTrack) {
+							case 'routes':
+								if (this.currentRoute) {
 									if (
-										this.currentTrack.points.includes(
-											(object as Place).pointid
+										this.currentRoute.points.find(
+											p => p.id === (object as Place).pointid
 										)
 									) {
-										this.removeTrackPoint(
-											this.points((object as Place).pointid),
-											this.currentTrack,
+										this.removeRoutePoint(
+											this.points[(object as Place).pointid],
+											this.currentRoute,
 										);
 									} else {
-										this.currentTrack.points.push(
-											(object as Place).pointid
-										);
+										this.currentRoute.points.push({
+											id: (object as Place).pointid,
+											name: (object as Place).name,
+										});
 									}
 									break;
 								}
@@ -1122,6 +1111,7 @@ export const useMainStore = defineStore('main', {
 					break;
 			}
 		},
+*/
 		async addTemp(
 			point: Point = {
 				id: crypto.randomUUID(),
@@ -1129,27 +1119,16 @@ export const useMainStore = defineStore('main', {
 				latitude: this.center.latitude,
 				longitude: this.center.longitude,
 				altitude: null,
-				name: '',
 				common: false,
 				type: 'point',
 				added: false,
 				deleted: false,
 				updated: false,
 				show: true,
-			}
+			},
 		) {
-			if (!Object.keys(this.temps).length) this.tempsShow = true;
-			if (!point.name) {
-				const numberNames = Object.values(this.temps).map(
-					(temp: Point) => Number(temp.name)
-				);
-				point.name = (
-					(numberNames.length ? Math.max(...numberNames) : 0) + 1
-				).toString();
-			}
-			this.temps[point.id] = point;
-			this.currentPoint = this.temps[point.id];
-			if (!this.temps[point.id].altitude) {
+			this.temps = { ...this.temps, [point.id]: point };
+			if (this.temps[point.id].altitude === null) {
 				this.temps[point.id].altitude = await this.getAltitude(
 					this.temps[point.id].latitude,
 					this.temps[point.id].longitude,
@@ -1160,8 +1139,8 @@ export const useMainStore = defineStore('main', {
 		},
 		async addPoint(payload: {
 			point: Point,
-			from?: Place | Track,
-			to?: Place | Track,
+			from?: Place | Route,
+			to?: Place | Route,
 			todb?: boolean,
 		}) {
 			const { point, from, to, todb } = payload;
@@ -1180,22 +1159,33 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		async addTrack(payload: { track: Track, todb?: boolean }) {
-			const { track, todb } = payload;
-			this.tracks[track.id] = track;
+		async addRoute(payload: { route: Route, todb?: boolean }) {
+			const { route, todb } = payload;
+			this.routes[route.id] = route;
 			if (todb !== false && !this.user.testaccount) {
-				emitter.emit('toDB', { 'tracks': [ track ] });
+				emitter.emit('toDB', { 'routes': [ route ] });
 			}
 			this.backupState();
 		},
-		async addTrackPoint(
+		addPointToMeasure(point: Point = this.currentPoint) {
+			this.measure.choosing = this.measure.points.length;
+			this.measure.points[this.measure.choosing] = {
+				id: point.id,
+			};
+		},
+		removePointFromMeasure(idx: number = this.measure.choosing) {
+			this.measure.points.splice(idx, 1);
+			if (this.measure.choosing > this.measure.points.length - 1) {
+				this.measure.choosing = this.measure.points.length - 1;
+			}
+		},
+		async addRoutePoint(
 			point: Point = {
 				id: crypto.randomUUID(),
-				userid: sessionStorage.getItem('places-useruuid'),
+				userid: this.user.id,
 				latitude: this.center.latitude,
 				longitude: this.center.longitude,
 				altitude: null,
-				name: '',
 				common: false,
 				type: 'point',
 				added: true,
@@ -1203,19 +1193,18 @@ export const useMainStore = defineStore('main', {
 				updated: false,
 				show: true,
 			},
-			track: Track = this.currentTrack,
+			route: Route = this.currentRoute,
+			name?: string,
 		) {
-			if (!point.name) {
-				const numberNames = this.trackPoints(track).map(
-					(point: Point) => Number(point.name)
-				);
-				point.name = (
-					(numberNames.length ? Math.max(...numberNames) : 0) + 1
-				).toString();
+			if (!name) {
+				const numbers =
+					route.points.filter(p => /^\d+$/.test(p.name))
+						.map(p => Number(p.name))
+				;
+				name = (Math.max(0, ...numbers) + 1).toString();
 			}
-			this.points[point.id] = point;
-			track.points.push(point.id);
-			this.choosePoint(this.points[point.id]);
+			this.points = { ...this.points, [point.id]: point };
+			route.points.push({ id: point.id, name: name });
 			if (this.points[point.id].altitude === null) {
 				this.points[point.id].altitude = await this.getAltitude(
 					this.points[point.id].latitude,
@@ -1223,17 +1212,19 @@ export const useMainStore = defineStore('main', {
 				);
 			}
 			this.backupState();
+			return this.points[point.id];
 		},
-		async removeTrackPoint(point: Point, track: Track = this.currentTrack) {
-			let idx = track.points.indexOf(point.id);
-			if (idx === -1) return;
-			track.points.splice(idx, 1);
-			if (idx > track.points.length - 1) idx =  track.points.length - 1;
-			this.choosePoint(
-				this.points[track.points[idx]]
-					? this.points[track.points[idx]]
-					: this.temps[track.points[idx]]
-			);
+		async removeRoutePoint(point: Point, route: Route = this.currentRoute) {
+			let idx = null;
+			for (let i = 0; i < route.points.length; i++) {
+				if (route.points[i].id === point.id) {
+					idx = i;
+					break;
+				}
+			}
+			if (idx === null) return;
+			route.points.splice(idx, 1);
+			if (idx > route.points.length - 1) idx =  route.points.length - 1;
 			this.backupState();
 		},
 		async changeFolder(payload: Record<string, any>) {
@@ -1311,22 +1302,22 @@ export const useMainStore = defineStore('main', {
 			}
 			this.backupState();
 		},
-		async changeTrack(payload: Record<string, any>) {
+		async changeRoute(payload: Record<string, any>) {
 			let saveToDB = payload.todb !== false;
 			for (const key in payload.change) {
-				payload.track[key] = key === 'srt'
+				payload.route[key] = key === 'srt'
 					? (Number(payload.change[key]) || 0)
 					: payload.change[key]
 				;
 			}
 			if (saveToDB && !this.user.testaccount) {
-				payload.track.updated = true;
-				emitter.emit('toDB', { 'tracks': [payload.track] });
+				payload.route.updated = true;
+				emitter.emit('toDB', { 'routes': [payload.route] });
 			}
 			this.backupState();
 		},
 		async deleteObjects(payload: {
-			objects?: Record<string, Point | Place | Track | Folder>,
+			objects?: Record<string, Point | Place | Route | Folder>,
 			todb?: boolean,
 		} = {
 			objects: {},
@@ -1335,14 +1326,14 @@ export const useMainStore = defineStore('main', {
 			const data = {
 				points: <Array<Point>>[],
 				places: <Array<Place>>[],
-				tracks: <Array<Track>>[],
+				routes: <Array<Route>>[],
 				folders: <Array<Folder>>[],
 			};
 			if (!Object.values(payload.objects).length) {
 				for (const what in data) {
 					data[what] = Object.values(this[what]).filter(object =>
 						Object.hasOwn(
-							object as Point | Place | Track | Folder,
+							object as Point | Place | Route | Folder,
 							'deleted',
 						)
 						&& object['deleted'] === true
@@ -1396,10 +1387,10 @@ export const useMainStore = defineStore('main', {
 				this.deleteTemp(id);
 			}
 		},
-		async deleteTrackPoint (point: Point, track: Track) {
+		async deleteRoutePoint (point: Point, route: Route) {
 			console.log(this.wherePointIsUsed(point));
-			console.log('track:');
-			console.log(track);
+			console.log('route:');
+			console.log(route);
 		},
 		savedToDB(payload: Record<
 			string,
@@ -1513,9 +1504,9 @@ export const useMainStore = defineStore('main', {
 				: show
 			;
 		},
-		commonTracksShowHide(show? : boolean) {
-			this.commonTracksShow = show === undefined
-				? !this.commonTracksShow
+		commonRoutesShowHide(show? : boolean) {
+			this.commonRoutesShow = show === undefined
+				? !this.commonRoutesShow
 				: show
 			;
 		},
@@ -1528,27 +1519,27 @@ export const useMainStore = defineStore('main', {
 		showHideGeomarks(payload: Record<string, any>) {
 			let visibility: number;
 			const showHideSubsGeomarks = (
-				object: Place | Track | Folder,
+				object: Place | Route | Folder,
 				show: number | boolean
 			) => {
 				switch (object.type) {
 					case 'place':
 						object['geomark'] = show;
 						return;
-					case 'track':
+					case 'route':
 						object['geomarks'] = show;
 						return;
 					case 'folder':
 						object['geomarks'] = !show ? 0 : 1;
 						for (const item of
-							Object.values({ ...this.places, ...this.tracks })
-								.filter((item: Place | Track) => {
+							Object.values({ ...this.places, ...this.routes })
+								.filter((item: Place | Route) => {
 									if (
 										item.folderid === object.id ||
 										item.folderid === null &&
 										(
 											object.id === 'root' ||
-											object.id === 'tracksroot'
+											object.id === 'routesroot'
 										)
 									) {
 										return true;
@@ -1566,14 +1557,14 @@ export const useMainStore = defineStore('main', {
 						break;
 				}
 			}
-			const showHideParentsGeomarks = (object: Place | Track | Folder) => {
+			const showHideParentsGeomarks = (object: Place | Route | Folder) => {
 				const objectParentKey =
 					Object.hasOwn(object, 'folderid') ? 'folderid' : 'parent'
 				;
 				let neibours =
-					Object.values({ ...this.places, ...this.tracks, ...this.folders })
+					Object.values({ ...this.places, ...this.routes, ...this.folders })
 						.filter(
-							(neibour: Place | Track | Folder) => {
+							(neibour: Place | Route | Folder) => {
 								const neibourParentKey =
 									Object.hasOwn(neibour, 'folderid') ? 'folderid' : 'parent'
 								;
@@ -1581,11 +1572,11 @@ export const useMainStore = defineStore('main', {
 									neibour[neibourParentKey] === object[objectParentKey] ||
 									(
 										neibour[neibourParentKey] === 'root' ||
-										neibour[neibourParentKey] === 'tracksroot' ||
+										neibour[neibourParentKey] === 'routesroot' ||
 										neibour[neibourParentKey] === null
 									) && (
 										object[objectParentKey] === 'root' ||
-										object[objectParentKey] === 'tracksroot' ||
+										object[objectParentKey] === 'routesroot' ||
 										object[objectParentKey] === null
 									)
 								) {
@@ -1594,7 +1585,7 @@ export const useMainStore = defineStore('main', {
 									return false;
 								}
 							}
-						) as Array<Place | Track | Folder>
+						) as Array<Place | Route | Folder>
 				;
 				for (let i = 0; i < neibours.length; i++) {
 					if (i === 0) {
@@ -1609,7 +1600,7 @@ export const useMainStore = defineStore('main', {
 				let parent: Folder =
 					this.folders[object[objectParentKey]] ??
 					this.tree[object[objectParentKey]] ??
-					this.treeTracks[object[objectParentKey]] ??
+					this.treeRoutes[object[objectParentKey]] ??
 					null
 				;
 				if (parent === null) {
@@ -1620,10 +1611,10 @@ export const useMainStore = defineStore('main', {
 						this.tree.geomarks = Number(visibility);
 					}
 					if (
-						object['parent'] === 'tracksroot' ||
-						object.type === 'track' && object['folderid'] === null
+						object['parent'] === 'routesroot' ||
+						object.type === 'route' && object['folderid'] === null
 					) {
-						this.treeTracks.geomarks = Number(visibility);
+						this.treeRoutes.geomarks = Number(visibility);
 					}
 					return;
 				}
@@ -1705,10 +1696,10 @@ export const useMainStore = defineStore('main', {
 			usingPointsIds = usingPointsIds.concat(
 				Object.values(this.places).map((place: Place) => place.pointid)
 			);
-			for (const track of Object.values(this.tracks)) {
+			for (const route of Object.values(this.routes)) {
 				usingPointsIds = usingPointsIds.concat(
-					(track as Track).points.map(id =>
-						this.places[id] ? this.places[id].pointid : id
+					(route as Route).points.map(p =>
+						this.places[p.id] ? this.places[p.id].pointid : p.id
 				));
 			}
 			return usingPointsIds.filter((id, index, self) =>
@@ -1734,33 +1725,33 @@ export const useMainStore = defineStore('main', {
 		tempIndexById: state => {
 			return (id: string) => Object.keys(state.temps).indexOf(id);
 		},
-		trackPoints() {
-			return (track: Track): Point[] => {
-				if (track === null) return [];
+		routePoints() {
+			return (route: Route): Point[] => {
+				if (route === null) return [];
 				let points: Point[] = [];
-				for (const id of track.points) {
-					if (id in this.points) points.push(this.points[id]);
-						else if (id in this.temps) points.push(this.temps[id]);
+				for (const p of route.points) {
+					if (p.id in this.points) points.push(this.points[p.id]);
+						else if (p.id in this.temps) points.push(this.temps[p.id]);
 				}
 				return points;
 			}
 		},
-		// Since the track points can be either its own or independent
+		// Since the route points can be either its own or independent
 		// or points of other places, we collect them all in one array
-		trackAllPointsArray() {
-			return (track: Track): { point: Point, of: string }[] => {
+		routeAllPointsArray() {
+			return (route: Route): { point: Point, of: string }[] => {
 				let points: { point: Point, of: string }[] = [];
 				let of: string;
-				for (const id of track.points) {
-					if (id in this.temps) of = 'temps';
+				for (const p of route.points) {
+					if (p.id in this.temps) of = 'temps';
 					else if (
 						Object.values(this.places).map((p: Place) => p.pointid)
-							.includes(id)
+							.includes(p.id)
 					) {
 						of = 'places';
 					}
 					points.push({
-						point: this.points[id],
+						point: this.points[p.id],
 						of: of,
 					});
 				}

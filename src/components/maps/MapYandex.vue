@@ -48,18 +48,25 @@
 				draggable: point === mainStore.currentPoint,
 			}"
 			position="top-center left-center"
-			@mouseup="async (e: Event) => {
+			@mouseup="async () => {
 				placemarkDragEnd(point);
-				placemarkClick(point, e);
+				mainStore.choosePoint(point);
 			}"
-			@contextmenu="(e: Event) => placemarkClick(point, e)"
+			@contextmenu="e => {
+				pointInfo.point = point;
+				popupProps.show = !popupProps.show;
+				popupProps.position.top = e.originalEvent.clientY + 5;
+				popupProps.position.right =
+					e.originalEvent.view.document.documentElement.clientWidth -
+					e.originalEvent.clientX + 5;
+			}"
 		>
 			<img
 				v-if="point.show"
 				class="marker"
 				:src="placemarksOptions[
 					mainStore.mode === 'measure' &&
-					mainStore.measure.points.includes(id) &&
+					mainStore.measure.points.find(p => p.id === id) &&
 					point !== mainStore.currentPoint
 						? 'icon_01_blue_faded'
 						: (point === mainStore.currentPoint
@@ -69,10 +76,13 @@
 				:title="`${ mainStore.t.i.captions.measurePoint } ${ Object.keys(mainStore.temps).indexOf(point.id) + 1 } — ${ coords2string([point.latitude, point.longitude]) }`"
 			/>
 			<div
-				v-if="mainStore.mode === 'measure' && mainStore.measure.points.includes(point.id)"
+				v-if="
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.find(p => p.id === point.id)
+				"
 				class="marker-caption"
 			>
-				{{ mainStore.measure.points.indexOf(point.id) + 1 }}
+				{{ Number(mainStore.measure.points.find(p => p.id === point.id)) + 1 }}
 			</div>
 		</yandex-map-marker>
 		<yandex-map-marker
@@ -90,27 +100,40 @@
 				draggable: true,
 			}"
 			position="top-center left-center"
-			@mouseup="(e: Event) => {
+			@mouseup="() => {
 				placemarkDragEnd(place);
-				placemarkClick(place, e);
+				mainStore.currentPlace = place;
+				mainStore.choosePoint(mainStore.points[place.pointid]);
 			}"
-			@contextmenu="(e: Event) => placemarkClick(place, e)"
+			@contextmenu="e => {
+				pointInfo.point = mainStore.points[place.pointid];
+				popupProps.show = !popupProps.show;
+				popupProps.position.top = e.originalEvent.clientY + 5;
+				popupProps.position.right =
+					e.originalEvent.view.document.documentElement.clientWidth -
+					e.originalEvent.clientX + 5;
+			}"
 		>
 			<img
 				v-if="place.show && !!place.geomark"
 				class="marker"
 				:src="placemarksOptions[
-					mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.find(p => p.id === id) &&
+					place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01')
 				].iconImageHref"
 				:title="place.name"
 			/>
 			<div
-				v-if="mainStore.mode === 'measure' && mainStore.measure.points.includes(place.id)"
+				v-if="
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.find(p => p.id === place.id)
+				"
 				class="marker-caption"
 			>
-				{{ mainStore.measure.points.indexOf(place.id) + 1 }}
+				{{ Number(mainStore.measure.points.find(p => p.id === place.id)) + 1 }}
 			</div>
 		</yandex-map-marker>
 		<yandex-map-marker
@@ -128,14 +151,26 @@
 				draggable: false,
 			}"
 			position="top-center left-center"
-			@click="(e: Event) => placemarkClick(place, e)"
-			@contextmenu="(e: Event) => placemarkClick(place, e)"
+			@click="() => {
+				mainStore.currentPlace = place;
+				mainStore.choosePoint(mainStore.points[place.pointid]);
+			}"
+			@contextmenu="e => {
+				pointInfo.point = mainStore.points[place.pointid];
+				popupProps.show = !popupProps.show;
+				popupProps.position.top = e.originalEvent.clientY + 5;
+				popupProps.position.right =
+					e.originalEvent.view.document.documentElement.clientWidth -
+					e.originalEvent.clientX + 5;
+			}"
 		>
 			<img
 				v-if="!!place.geomark"
 				class="marker"
 				:src="placemarksOptions[
-					mainStore.mode === 'measure' && mainStore.measure.points.includes(id) && place !== mainStore.currentPlace
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.find(p => p.id === id) &&
+					place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01_grey')
 				].iconImageHref"
@@ -146,10 +181,13 @@
 				)"
 			/>
 			<div
-				v-if="mainStore.mode === 'measure' && mainStore.measure.points.includes(place.id)"
+				v-if="
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.find(p => p.id === place.id)
+				"
 				class="marker-caption"
 			>
-				{{ mainStore.measure.points.indexOf(place.id) + 1 }}
+				{{ Number(mainStore.measure.points.find(p => p.id === place.id)) + 1 }}
 			</div>
 		</yandex-map-marker>
 		<yandex-map-controls :settings="{position: 'top left'}">
@@ -180,7 +218,10 @@ import {
 } from 'vue-yandex-maps';
 import type { YMap } from '@yandex/ymaps3-types';
 import { Place, Point } from '@/stores/types';
-import { coords2string } from '@/shared';
+import {
+	coords2string,
+	IPlacesPopupProps,
+} from '@/shared';
 
 const mainStore = useMainStore();
 
@@ -257,25 +298,18 @@ watch(() => mainStore.centerPlacemarkShow, () => {
 		placemarksOptions.value.center.visible = false;
 	}
 });
-/*
-const mapContextMenu = (e: any): void => {
-	mainStore.addTemp({
-		id: crypto.randomUUID(),
-		userid: sessionStorage.getItem('places-useruuid'),
-		latitude: e.get('coords')[0],
-		longitude: e.get('coords')[2],
-		common: false,
-		type: 'point',
-		added: false,
-		deleted: false,
-		updated: false,
-		show: true,
-	});
-}
-*/
-const placemarkClick = (item: Place | Point, e: Event): void => {
-	mainStore.objectClick(item, e.type);
-};
+const pointInfo = ref({
+	point: null,
+});
+const popupProps = ref<IPlacesPopupProps>({
+	show: false,
+	position: {
+		top: 'auto',
+		right: 'auto',
+		bottom: 'auto',
+		left: 'auto',
+	},
+});
 const placemarkDragEnd = async (point: Place | Point) => {
 	const coordinates = markers.value[point.id].coordinates.slice().reverse();
 	await mainStore[point.type === 'point' ? 'changePoint' : 'changePlace']({

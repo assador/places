@@ -118,54 +118,51 @@
 			</form>
 			<Measure />
 			<Points v-if="mainStore.tempsShow" type="temps" />
-			<div v-if="mainStore.tracksShow" id="tracks">
-				<div id="tracks-tree" class="margin_bottom">
+			<div v-if="mainStore.routesShow" id="routes">
+				<div id="routes-tree" class="margin_bottom">
 					<div
-						id="tracks-menu"
+						id="routes-menu"
 						class="menu"
 					>
-						<Tree instanceid="trackstree" what="tracks" />
+						<Tree instanceid="routestree" what="routes" />
 					</div>
-					<div v-if="Object.keys(mainStore.commonTracks).length > 0 && commonTracksShow">
+					<div v-if="Object.keys(mainStore.commonRoutes).length > 0 && commonRoutesShow">
 						<h2 class="basiccolor">
-							{{ mainStore.t.i.captions.commonTracks }}
+							{{ mainStore.t.i.captions.commonRoutes }}
 						</h2>
 						<div class="margin_bottom">
 							<div
-								v-for="commonTrack in commonTracks"
-								:id="commonTrack.id"
-								:key="commonTrack.id"
-								:class="'place-button block_01' + (
-									commonTrack === currentTrack ||
-									mainStore.measure.points.includes(commonTrack.id)
-										? ' active' : ''
-								)"
+								v-for="commonRoute in mainStore.commonRoutes"
+								:id="commonRoute.id"
+								:key="commonRoute.id"
+								class="place-button block_01"
+								:class="
+									commonRoute === mainStore.currentRoute ||
+									mainStore.measure.points.find(p => p.id === commonRoute.id)
+										? 'active' : ''
+								"
 								@click="() => {
-									mainStore.chooseTrack(commonTrack);
-									if (commonTrack.points.length) {
+									mainStore.currentRoute = commonRoute;
+									if (commonRoute.points.length) {
 										const point = mainStore.points[
-											mainStore.places[commonTrack.points[0]]
-												? mainStore.places[commonTrack.points[0]].pointid
-												: commonTrack.points[0]
+											commonRoute.points[
+												commonRoute.choosing
+											].id
 										];
+										mainStore.currentPoint = point;
 										mainStore.updateMap({
 											latitude: point.latitude,
 											longitude: point.longitude,
 										});
 									}
 								}"
-								@contextmenu.prevent="
-									mainStore.chooseTrack(
-										commonTrack, mainStore.mode
-									)
-								"
 							>
-								{{ commonTrack.name }}
+								{{ commonRoute.name }}
 							</div>
 						</div>
 						<div class="margin_bottom">
 							<a
-								v-for="(_, index) in commonTracksPagesCount"
+								v-for="(_, index) in commonRoutesPagesCount"
 								:key="index"
 								href="javascript:void(0);"
 								class="pseudo_button"
@@ -194,24 +191,21 @@
 							v-for="commonPlace in commonPlaces"
 							:id="commonPlace.id"
 							:key="commonPlace.id"
-							:class="'place-button block_01' + (
+							class="place-button block_01"
+							:class="
 								commonPlace === mainStore.currentPlace ||
-								mainStore.measure.points.includes(commonPlace.id)
-									? ' active' : ''
-							)"
+								mainStore.measure.points.find(p => p.id === commonPlace.id)
+									? 'active' : ''
+							"
 							@click="() => {
-								mainStore.choosePlace(commonPlace);
+								mainStore.currentPlace = commonPlace;
 								const point = mainStore.points[commonPlace.pointid];
+								mainStore.currentPoint = point;
 								mainStore.updateMap({
 									latitude: point.latitude,
 									longitude: point.longitude,
 								});
 							}"
-							@contextmenu.prevent="
-								mainStore.choosePlace(
-									commonPlace, mainStore.mode
-								)
-							"
 						>
 							{{ commonPlace.name }}
 						</div>
@@ -279,7 +273,7 @@
 			:style="sidebarSize.right !== 0 || cells.right ? 'display: block' : 'display: none'"
 		>
 			<div id="basic-right__control-buttons-right" />
-			<TrackDetails />
+			<RouteDetails />
 			<PlaceDetails />
 			<div>
 				<button
@@ -395,14 +389,14 @@
 				<span>{{ mainStore.t.i.captions.places }}</span>
 			</button>
 			<button
-				id="actions-tracks"
-				:class="'actions-button' + (mainStore.tracksShow ? ' button-pressed' : '')"
-				:title="mainStore.t.i.captions.tracks"
+				id="actions-routes"
+				:class="'actions-button' + (mainStore.routesShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.captions.routes"
 				accesskey="t"
-				@click="() => mainStore.tracksShow = !mainStore.tracksShow"
+				@click="() => mainStore.routesShow = !mainStore.routesShow"
 			>
 				<span>⭍</span>
-				<span>{{ mainStore.t.i.captions.tracks }}</span>
+				<span>{{ mainStore.t.i.captions.routes }}</span>
 			</button>
 			<button
 				id="actions-points"
@@ -444,7 +438,7 @@
 			<button
 				id="mode-normal"
 				class="actions-button"
-				:class="mainStore.mode === 'normal' ? ' button-pressed' : ''"
+				:class="mainStore.mode === 'normal' ? 'button-pressed' : ''"
 				:title="mainStore.t.i.captions.modeNormal"
 				accesskey="m"
 				@click="() => {
@@ -456,24 +450,24 @@
 				<span>{{ mainStore.t.i.buttons.normal }}</span>
 			</button>
 			<button
-				id="mode-tracks"
+				id="mode-routes"
 				class="actions-button"
-				:class="mainStore.mode === 'tracks' ? ' button-pressed' : ''"
-				:title="mainStore.t.i.captions.modeTracks"
+				:class="mainStore.mode === 'routes' ? 'button-pressed' : ''"
+				:title="mainStore.t.i.captions.modeRoutes"
 				accesskey="m"
 				@click="() => {
-					mainStore.mode = 'tracks';
-					mainStore.tracksShow = true;
+					mainStore.mode = 'routes';
+					mainStore.routesShow = true;
 					mainStore.measure.show = false;
 				}"
 			>
 				<span>⭍</span>
-				<span>{{ mainStore.t.i.buttons.tracks }}</span>
+				<span>{{ mainStore.t.i.buttons.routes }}</span>
 			</button>
 			<button
 				id="mode-measure"
 				class="actions-button"
-				:class="mainStore.mode === 'measure' ? ' button-pressed' : ''"
+				:class="mainStore.mode === 'measure' ? 'button-pressed' : ''"
 				:title="mainStore.t.i.captions.modeMeasure"
 				accesskey="m"
 				@click="() => {
@@ -622,13 +616,13 @@
 				<!-- <span>{{ mainStore.t.i.buttons.commonPlacemarks }}</span> -->
 			</button>
 			<button
-				id="commonTracksShowHideButton"
-				:class="'actions-button' + (commonTracksShow ? ' button-pressed' : '')"
-				:title="mainStore.t.i.hints.shCommonTracks"
-				@click="commonTracksShowHide();"
+				id="commonRoutesShowHideButton"
+				:class="'actions-button' + (commonRoutesShow ? ' button-pressed' : '')"
+				:title="mainStore.t.i.hints.shCommonRoutes"
+				@click="commonRoutesShowHide();"
 			>
 				<span>◇</span>
-				<!-- <span>{{ mainStore.t.i.buttons.commonTracks }}</span> -->
+				<!-- <span>{{ mainStore.t.i.buttons.commonRoutes }}</span> -->
 			</button>
 			<button
 				id="centerPlacemarkShowHideButton"
@@ -673,9 +667,9 @@ import Header from '@/components/Header.vue';
 import Measure from '@/components/helpers/Measure.vue';
 import Points from '@/components/Points.vue';
 import Tree from '@/components/tree/Tree.vue';
-import TrackDetails from '@/components/details/Track.vue';
+import RouteDetails from '@/components/details/Route.vue';
 import PlaceDetails from '@/components/details/Place.vue';
-import { Folder, Point, Place, Track, Image } from '@/stores/types';
+import { Folder, Point, Place, Route, Image } from '@/stores/types';
 
 const maps = [
 	{
@@ -696,8 +690,6 @@ const mainStore = useMainStore();
 const router = useRouter();
 
 const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
-const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
-const currentTrackCommon = inject('currentTrackCommon') as Ref<boolean>;
 const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
 const toDB = inject('toDB') as (...args: any[]) => any;
 const toDBCompletely = inject('toDBCompletely') as (...args: any[]) => any;
@@ -713,13 +705,13 @@ provide('extmap', extmap);
 const importFromFileInput = ref<HTMLInputElement | null>(null);
 const inputUploadFiles = ref<HTMLInputElement | null>(null);
 const commonPlacesPagesCount = ref(0);
-const commonTracksPage = ref(1);
-provide('commonTracksPage', commonTracksPage);
-const commonTracksPagesCount = ref(0);
-const commonTracksOnPageCount = ref(constants.commontracksonpagecount);
-provide('commonTracksOnPageCount', commonTracksOnPageCount);
+const commonRoutesPage = ref(1);
+provide('commonRoutesPage', commonRoutesPage);
+const commonRoutesPagesCount = ref(0);
+const commonRoutesOnPageCount = ref(constants.commonroutesonpagecount);
+provide('commonRoutesOnPageCount', commonRoutesOnPageCount);
 const commonPlacesShow = ref(false);
-const commonTracksShow = ref(false);
+const commonRoutesShow = ref(false);
 
 const cells = ref({
 	top: true,
@@ -777,7 +769,6 @@ watch(compact, () => {
 				: constants.sidebarsCompactUltra;
 	Object.assign(sidebarSize.value, sidebars);
 });
-const currentTrack = computed(() => mainStore.currentTrack);
 const commonPlaces = computed<Record<string, Place>>(() => {
 	const ids = Object.keys(mainStore.commonPlaces);
 	const start = mainStore.commonPlacesOnPageCount * (mainStore.commonPlacesPage - 1);
@@ -787,15 +778,17 @@ const commonPlaces = computed<Record<string, Place>>(() => {
 		return acc;
 	}, {} as Record<string, Place>);
 });
-const commonTracks = computed<Record<string, Track>>(() => {
-	const ids = Object.keys(mainStore.commonTracks);
-	const start = commonTracksOnPageCount.value * (commonTracksPage.value - 1);
-	const end = commonTracksOnPageCount.value * commonTracksPage.value;
+/*
+const commonRoutes = computed<Record<string, Route>>(() => {
+	const ids = Object.keys(mainStore.commonRoutes);
+	const start = commonRoutesOnPageCount.value * (commonRoutesPage.value - 1);
+	const end = commonRoutesOnPageCount.value * commonRoutesPage.value;
 	return ids.slice(start, end).reduce((acc, id) => {
-		acc[id] = mainStore.commonTracks[id];
+		acc[id] = mainStore.commonRoutes[id];
 		return acc;
-	}, {} as Record<string, Track>);
+	}, {} as Record<string, Route>);
 });
+*/
 const centerAltitude = ref<number | null>(null);
 watch(() => mainStore.ready, async () => {
 	await stateReadyChanged();
@@ -857,7 +850,7 @@ onUpdated(() => {
 	makeFieldsValidatable(mainStore.t);
 	if (firstUpdate.value) {
 		openTreeTo(mainStore.currentPlace);
-		openTreeTo(mainStore.currentTrack);
+		openTreeTo(mainStore.currentRoute);
 		firstUpdate.value = false;
 	}
 });
@@ -882,22 +875,12 @@ const stateReadyChanged = async () => {
 	const commonPlacesLen = commonPlacesKeys.length;
 	const perPage = mainStore.commonPlacesOnPageCount;
 	commonPlacesPagesCount.value = Math.ceil(commonPlacesLen / perPage);
-	currentPlaceCommon.value = false;
 	const cp = mainStore.currentPlace;
 	if (cp && cp.common && cp.userid !== mainStore.user.id) {
 		const idx = commonPlacesKeys.indexOf(cp.id);
 		const inPaginator = idx / perPage;
 		mainStore.commonPlacesPage =
 			Number.isInteger(inPaginator) ? inPaginator + 1 : Math.ceil(inPaginator);
-		currentPlaceCommon.value = true;
-	}
-	currentTrackCommon.value = false;
-	if (
-		currentTrack.value &&
-		currentTrack.value.common &&
-		currentTrack.value.userid !== mainStore.user.id
-	) {
-		currentTrackCommon.value = true;
 	}
 	if (mainStore.user.testaccount) {
 		setTimeout(() => {
@@ -906,7 +889,7 @@ const stateReadyChanged = async () => {
 	}
 };
 
-const openTreeTo = (object: Place | Track): void => {
+const openTreeTo = (object: Place | Route): void => {
 	if (!object || !object.folderid) return;
 	let id = object.folderid;
 	let folder: Folder;
@@ -921,8 +904,8 @@ const openTreeTo = (object: Place | Track): void => {
 			case 'root':
 				mainStore.folderOpenClose({folder: mainStore.tree, opened: true});
 				return;
-			case 'tracksroot':
-				mainStore.folderOpenClose({folder: mainStore.treeTracks, opened: true});
+			case 'routesroot':
+				mainStore.folderOpenClose({folder: mainStore.treeRoutes, opened: true});
 				return;
 			default:
 				return;
@@ -930,12 +913,12 @@ const openTreeTo = (object: Place | Track): void => {
 	}
 };
 watch(() => mainStore.currentPlace, current => {
-	if (!current || currentPlaceCommon.value) return;
+	if (!current || (current.common && current.userid !== mainStore.user.id)) return;
 	openTreeTo(mainStore.currentPlace);
 });
-watch(() => mainStore.currentTrack, current => {
-	if (!current || currentTrackCommon.value) return;
-	openTreeTo(mainStore.currentTrack);
+watch(() => mainStore.currentRoute, current => {
+	if (!current || (current.common && current.userid !== mainStore.user.id)) return;
+	openTreeTo(mainStore.currentRoute);
 });
 
 const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Place> => {
@@ -997,7 +980,8 @@ const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Pl
 			'places': [ newPlace ],
 		});
 	}
-	mainStore.choosePlace(newPlace);
+	mainStore.currentPoint = newPoint;
+	mainStore.currentPlace = newPlace;
 	await nextTick();
 	const detailedNameElem = document.getElementById('place-detailed-name');
 	if (detailedNameElem) {
@@ -1011,29 +995,35 @@ const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Pl
 };
 provide('appendPlace', appendPlace);
 
-const appendTrack = async (payload: Record<string, any> = {}): Promise<void | Track> => {
-	const { tracks, serverConfig, user, t, addTrack, setMessage } = mainStore;
-	const tracksCount = Object.keys(tracks).length;
-	const maxTracks = serverConfig.rights.trackscount;
-	// Check tracks limit
-	if (!user.testaccount && maxTracks > 0 && maxTracks <= tracksCount) {
-		setMessage(t.m.popup.tracksCountExceeded);
+const appendRoute = async (payload: Record<string, any> = {}): Promise<void | Route> => {
+	const { routes, serverConfig, user, t, addRoute, setMessage } = mainStore;
+	const routesCount = Object.keys(routes).length;
+	const maxRoutes = serverConfig.rights.routescount;
+	// Check routes limit
+	if (!user.testaccount && maxRoutes > 0 && maxRoutes <= routesCount) {
+		setMessage(t.m.popup.routesCountExceeded);
 		return;
 	}
 	const now = new Date().toISOString().slice(0, -5);
-	const trackId = crypto.randomUUID();
-	let folderid = 'tracksroot';
-	if (currentTrack.value && !currentTrackCommon.value) {
-		folderid = currentTrack.value.folderid;
+	const routeId = crypto.randomUUID();
+	let folderid = 'routesroot';
+	if (
+		mainStore.currentRoute &&
+		!(
+			mainStore.currentRoute.common &&
+			mainStore.currentRoute.userid !== mainStore.user.id
+		)
+	) {
+		folderid = mainStore.currentRoute.folderid;
 	}
 	let srt = 1;
-	if (tracksCount > 0) {
-		const maxSrt = Math.max(...Object.values(tracks).map((t: Track) => t.srt || 0));
+	if (routesCount > 0) {
+		const maxSrt = Math.max(...Object.values(routes).map((t: Route) => t.srt || 0));
 		srt = Math.ceil(maxSrt) + 1;
 	}
-	const newTrack: Track = {
-		type: 'track',
-		id: trackId,
+	const newRoute: Route = {
+		type: 'route',
+		id: routeId,
 		folderid,
 		points: [],
 		choosing: null,
@@ -1050,11 +1040,11 @@ const appendTrack = async (payload: Record<string, any> = {}): Promise<void | Tr
 		updated: false,
 		show: true,
 	};
-	for (const key in payload) newTrack[key] = payload[key];
-	await addTrack({ track: newTrack });
-	mainStore.chooseTrack(newTrack);
+	for (const key in payload) newRoute[key] = payload[key];
+	await addRoute({ route: newRoute });
+	mainStore.currentRoute = newRoute;
 	await nextTick();
-	const detailedNameElem = document.getElementById('track-detailed-name');
+	const detailedNameElem = document.getElementById('route-detailed-name');
 	if (detailedNameElem) {
 		detailedNameElem.classList.add('highlight');
 		window.setTimeout(() => {
@@ -1062,9 +1052,9 @@ const appendTrack = async (payload: Record<string, any> = {}): Promise<void | Tr
 			detailedNameElem.focus();
 		}, 500);
 	}
-	return newTrack;
+	return newRoute;
 };
-provide('appendTrack', appendTrack);
+provide('appendRoute', appendRoute);
 
 const commonPlacesShowHide = (show = null): void => {
 	commonPlacesShow.value =
@@ -1074,13 +1064,13 @@ const commonPlacesShowHide = (show = null): void => {
 	;
 	mainStore.commonPlacemarksShowHide(commonPlacesShow.value);
 };
-const commonTracksShowHide = (show = null): void => {
-	commonTracksShow.value =
+const commonRoutesShowHide = (show = null): void => {
+	commonRoutesShow.value =
 		show === null
-			? !commonTracksShow.value
+			? !commonRoutesShow.value
 			: show
 	;
-	mainStore.commonTracksShowHide(commonTracksShow.value);
+	mainStore.commonRoutesShowHide(commonRoutesShow.value);
 };
 provide('commonPlacesShowHide', commonPlacesShowHide);
 
@@ -1233,7 +1223,7 @@ const keyup = (event: Event): void => {
 		'other': () => commonPlacesShowHide(),
 		'placemarks': () => mainStore.placemarksShowHide(),
 		'other placemarks': () => mainStore.commonPlacemarksShowHide(),
-		'other tracks': () => mainStore.commonTracksShowHide(),
+		'other routes': () => mainStore.commonRoutesShowHide(),
 		'center': () => mainStore.centerPlacemarkShowHide(),
 		'undo': () => mainStore.undo(),
 		'redo': () => mainStore.redo(),

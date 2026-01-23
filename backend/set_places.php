@@ -200,7 +200,7 @@ function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
 			FROM (
 				SELECT pointid FROM places WHERE pointid = :pointid
 				UNION ALL
-				SELECT point FROM pointtrack WHERE point = :pointid
+				SELECT pointid FROM pointroute WHERE pointid = :pointid
 			) t;
 		");
 		$pointRefsStmt->execute([
@@ -291,18 +291,18 @@ function addImage(AppContext $ctx, array $img): void {
 }
 function updateImage(AppContext $ctx, array $img): void {
 	$placeIdBin = null;
-	$trackIdBin = null;
+	$routeIdBin = null;
 	if (!empty($row["placeid"])) {
 		$placeIdBin = uuidToBin($row["placeid"]);
 	}
-	if (!empty($row["trackid"])) {
-		$trackIdBin = uuidToBin($row["trackid"]);
+	if (!empty($row["routeid"])) {
+		$routeIdBin = uuidToBin($row["routeid"]);
 	}
 	$sql = "
 		UPDATE images
 		SET
 			" . ($placeIdBin !== null ? "placeid = :placeid," : "") . "
-			" . ($trackIdBin !== null ? "trackid = :trackid," : "") . "
+			" . ($routeIdBin !== null ? "routeid = :routeid," : "") . "
 			file         = :file,
 			size         = :size,
 			type         = :type,
@@ -322,8 +322,8 @@ function updateImage(AppContext $ctx, array $img): void {
 	if ($placeIdBin !== null) {
 		$bindingArray[":placeid"] = $placeIdBin;
 	}
-	if ($trackIdBin !== null) {
-		$bindingArray[":trackid"] = $trackIdBin;
+	if ($routeIdBin !== null) {
+		$bindingArray[":routeid"] = $routeIdBin;
 	}
 	$stmt->execute($bindingArray);
 }

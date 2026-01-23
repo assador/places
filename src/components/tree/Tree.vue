@@ -3,7 +3,7 @@
 		<TreeNode
 			:instanceid="instanceid"
 			:what="what"
-			:folder="what === 'places' ? mainStore.tree : mainStore.treeTracks"
+			:folder="what === 'places' ? mainStore.tree : mainStore.treeRoutes"
 			:folders-checked-ids="foldersCheckedIds"
 			class="folder-root"
 		/>

@@ -1,7 +1,7 @@
 <template>
-	<div v-if="mainStore.placesShow && currentPlace" id="place-description">
+	<div v-if="mainStore.placesShow && mainStore.currentPlace" id="place-description">
 		<h2
-			v-if="mainStore.tracksShow"
+			v-if="mainStore.routesShow"
 				class="color-01"
 		>
 			{{ mainStore.t.i.captions.currentPlace }}
@@ -14,8 +14,12 @@
 			<template v-if="field === 'link' || field === 'srt'">
 				<dt>
 					<a
-						v-if="field === 'link' && !linkEditing && currentPlace[field].trim()"
-						:href="currentPlace[field].trim()"
+						v-if="
+							field === 'link' &&
+							!linkEditing &&
+							mainStore.currentPlace[field].trim()
+						"
+						:href="mainStore.currentPlace[field].trim()"
 						target="_blank"
 					>
 						{{ mainStore.descriptionFields[field] }}
@@ -27,14 +31,14 @@
 				<dd>
 					<input
 						:id="'place-detailed-' + field"
-						v-model.number.trim="currentPlace[field]"
+						v-model.number.trim="mainStore.currentPlace[field]"
 						:type="field === 'srt' ? 'number' : 'text'"
 						:disabled="!!currentPlaceCommon"
 						class="fieldwidth_100"
 						@change="async () => {
 							await mainStore.changePlace({
-								place: currentPlace,
-								change: { [field]: currentPlace[field],
+								place: mainStore.currentPlace,
+								change: { [field]: mainStore.currentPlace[field],
 								}
 							});
 						}"
@@ -56,7 +60,7 @@
 								class="fieldwidth_100"
 								@change="async e => {
 									await mainStore.changePlace({
-										place: currentPlace,
+										place: mainStore.currentPlace,
 										change: { latitude: (e.target as HTMLInputElement).value.trim() }
 									});
 								}"
@@ -76,7 +80,7 @@
 								class="fieldwidth_100"
 								@change="async e => {
 									await mainStore.changePlace({
-										place: currentPlace,
+										place: mainStore.currentPlace,
 										change: { longitude: (e.target as HTMLInputElement).value.trim()}
 									});
 								}"
@@ -101,7 +105,7 @@
 									// console.log(coords);
 									if (coords === null) return;
 									await mainStore.changePlace({
-										place: currentPlace,
+										place: mainStore.currentPlace,
 										change: {
 											latitude: coords[0],
 											longitude: coords[1],
@@ -127,14 +131,14 @@
 				<dd>
 					<input
 						:id="'detailed-' + field"
-						v-model="currentPlace[field]"
+						v-model="mainStore.currentPlace[field]"
 						type="datetime-local"
 						:disabled="!!currentPlaceCommon"
 						class="fieldwidth_100"
 						@change="async () => {
 							await mainStore.changePlace({
-								place: currentPlace,
-								change: { [field]: currentPlace[field] },
+								place: mainStore.currentPlace,
+								change: { [field]: mainStore.currentPlace[field] },
 							});
 						}"
 					/>
@@ -145,13 +149,13 @@
 					<label v-if="!currentPlaceCommon">
 						<input
 							:id="'detailed-' + field"
-							v-model="currentPlace[field]"
+							v-model="mainStore.currentPlace[field]"
 							type="checkbox"
 							:disabled="!!currentPlaceCommon"
 							@change="async () => {
 								await mainStore.changePlace({
-									place: currentPlace,
-									change: { [field]: currentPlace[field] },
+									place: mainStore.currentPlace,
+									change: { [field]: mainStore.currentPlace[field] },
 								});
 							}"
 						/>
@@ -189,8 +193,8 @@
 									class="image-thumbnail border_1"
 									:draggable="false"
 									:src="constants.dirs.uploads.images.small + image.file"
-									:alt="currentPlace.name"
-									:title="currentPlace.name"
+									:alt="mainStore.currentPlace.name"
+									:title="mainStore.currentPlace.name"
 								/>
 								<div
 									v-if="!currentPlaceCommon"
@@ -231,7 +235,7 @@
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
 				<dd>
 					<textarea
-						v-model.trim="currentPlace[field]"
+						v-model.trim="mainStore.currentPlace[field]"
 						:id="'place-detailed-' + field"
 						:disabled="!!currentPlaceCommon"
 						:placeholder="
@@ -245,8 +249,8 @@
 						class="fieldwidth_100"
 						@change="async () => {
 							await mainStore.changePlace({
-								place: currentPlace,
-								change: { [field]: currentPlace[field] },
+								place: mainStore.currentPlace,
+								change: { [field]: mainStore.currentPlace[field] },
 							});
 						}"
 					/>
@@ -254,7 +258,7 @@
 			</template>
 		</dl>
 		<div
-			v-if="!currentPlaceCommon && !currentPlace.deleted"
+			v-if="!currentPlaceCommon && !mainStore.currentPlace.deleted"
 			class="images-add margin_bottom"
 		>
 			<div class="images-add__div button">
@@ -281,11 +285,11 @@
 				<input
 					id="checkbox-homeplace"
 					type="checkbox"
-					:checked="currentPlace === mainStore.homePlace"
+					:checked="mainStore.currentPlace === mainStore.homePlace"
 					@change="e => {
 						mainStore.setHomePlace({
 							id: (e.target as HTMLInputElement).checked
-								? currentPlace.id
+								? mainStore.currentPlace.id
 								: null
 						});
 						mainStore.backupState();
@@ -315,7 +319,6 @@ const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
 const mainStore = useMainStore();
 const router = useRouter();
 
-const currentPlace = computed(() => mainStore.currentPlace);
 const currentPlaceLat = computed<number | null>(() =>
 	mainStore.currentPlace
 		? mainStore.points[mainStore.currentPlace.pointid]?.latitude ?? null

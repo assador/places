@@ -11,10 +11,6 @@
 				</span>
 				{{ mainStore.t.i.text.km }}
 			</span>
-			<span v-else>
-				{{ mainStore.t.i.captions.measureChoose }}
-				<span class="help" :title="mainStore.t.i.hints.measure" />
-			</span>
 		</div>
 		<Points type="measure" />
 	</div>

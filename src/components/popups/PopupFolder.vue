@@ -114,8 +114,8 @@ const appendFolder = (payload: { parentId: string, name: string, description: st
 			case 'root':
 				parentFolder = mainStore.tree;
 				break;
-			case 'tracksroot':
-				parentFolder = mainStore.treeTracks;
+			case 'routesroot':
+				parentFolder = mainStore.treeRoutes;
 				break;
 			default:
 				parentFolder = mainStore.folders[parentId] ?? mainStore.tree;

@@ -32,12 +32,12 @@ export interface Place {
 	updated: boolean;
 	show: boolean;
 }
-export interface Track {
+export interface Route {
 	type: string;
 	id: string;
 	userid: string;
 	folderid: string;
-	points: string[];
+	points: { id: string, name: string }[];
 	choosing: number | null;
 	name: string;
 	description?: string;
@@ -87,7 +87,7 @@ export interface User {
 	confirmbefore: string;
 	homeplace: string;
 	testaccount: boolean;
-	groups?: {group: string, parent: string}[];
+	groups?: { group: string, parent: string }[];
 	added?: boolean;
 	deleted?: boolean;
 	updated?: boolean;
@@ -105,4 +105,11 @@ export interface Group {
 	deleted?: boolean;
 	updated?: boolean;
 	checked?: boolean;
+}
+export interface Measure {
+	type: string;
+	points: { id: string, name: string }[];
+	choosing: number | null;
+	show: boolean;
+	distance: number,
 }

@@ -16,7 +16,7 @@ import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { emitter, moveInArrayAfter, moveInObject } from '@/shared';
-import { Place, Track, Image, Folder, Point } from '@/stores/types';
+import { Place, Route, Image, Folder, Point } from '@/stores/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
 // Refs and Provides
@@ -25,14 +25,14 @@ const draggingType = ref<string | null>(null);
 const foldersEditMode = ref(false);
 const idleTimeInterval = ref(null);
 const currentPlaceCommon = ref(false);
-const currentTrackCommon = ref(false);
+const currentRouteCommon = ref(false);
 const selectedToExport = ref({});
 const installEvent = ref<any>(null);
 
 provide('foldersEditMode', foldersEditMode);
 provide('idleTimeInterval', idleTimeInterval);
 provide('currentPlaceCommon', currentPlaceCommon);
-provide('currentTrackCommon', currentTrackCommon);
+provide('currentRouteCommon', currentRouteCommon);
 provide('selectedToExport', selectedToExport);
 provide('installEvent', installEvent);
 
@@ -104,7 +104,7 @@ emitter.on('toDB', (payload: Record<string, any>) => {
 		toDB({
 			'points': Object.values(mainStore.points),
 			'places': Object.values(mainStore.places),
-			'tracks': Object.values(mainStore.tracks),
+			'routes': Object.values(mainStore.routes),
 			'folders': Object.values(mainStore.foldersFlat),
 		});
 	}
@@ -131,8 +131,8 @@ onMounted(() => {
 			'addPlace',
 			'changePlace',
 			'deleteObjects',
-			'addTrack',
-			'changeTrack',
+			'addRoute',
+			'changeRoute',
 			'addFolder',
 			'changeFolder',
 			'addTemp',
@@ -187,7 +187,7 @@ const toDBCompletely = async (): Promise<void> => {
 	toDB({
 		'points': filterChanged(mainStore.points),
 		'places': filterChanged(mainStore.places),
-		'tracks': filterChanged(mainStore.places),
+		'routes': filterChanged(mainStore.places),
 		'folders': filterChanged(mainStore.folders),
 	});
 };
@@ -284,6 +284,7 @@ const handleDragEnter = (event: Event): void => {
 	event.stopPropagation();
 	const el = event.target as HTMLElement;
 	switch (draggingType.value) {
+/*
 		case 'measure':
 			const el1 = draggingElement.value as HTMLElement;
 			const el2 = event.target as HTMLElement;
@@ -297,6 +298,7 @@ const handleDragEnter = (event: Event): void => {
 			mainStore.measureDistance();
 			draggingElement.value = el2;
 			return;
+*/
 		default:
 			const dragEl = draggingElement.value as HTMLElement;
 			const dragPP = (draggingElement.value as Element).parentElement?.parentElement;
@@ -397,11 +399,16 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		const lowerIdx = Number((el as HTMLElement).dataset.pointidx);
 		const pointOf = (draggingElement.value as HTMLElement).dataset.pointof;
 		const points =
-			pointOf === 'track'
-				? mainStore.currentTrack.points
+			pointOf === 'route'
+				? mainStore.currentRoute.points
 				: mainStore.measure.points
 		;
-		if (!points.includes(upperId) || !points.includes(lowerId)) return;
+		if (
+			!points.find(p => p.id === upperId) ||
+			!points.find(p => p.id === lowerId)
+		) {
+			return;
+		}
 		moveInArrayAfter(points, upperIdx, lowerIdx);
 		return;
 	}
@@ -418,7 +425,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		if (sourceType !== targetType) return;
 
 		mainStore.backup = false;
-		const items: Record<string, Place | Track> = mainStore[targetType + 's'];
+		const items: Record<string, Place | Route> = mainStore[targetType + 's'];
 		const neighbours = Object.values(items).filter(
 			i => i.folderid === item.targetId
 		);

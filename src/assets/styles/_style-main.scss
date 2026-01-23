@@ -1177,7 +1177,7 @@ $filter-brightness-03: brightness(0%);
 	}
 	#placemarksShowHideButton,
 	#commonPlacesShowHideButton,
-	#commonTracksShowHideButton,
+	#commonRoutesShowHideButton,
 	#commonPlacemarksShowHideButton,
 	#centerPlacemarkShowHideButton {
 		padding: 0;
@@ -1227,7 +1227,7 @@ $filter-brightness-03: brightness(0%);
 		display: inline-table;
 		text-align: left;
 	}
-	#to-export-places-menu-folder-link-root, #places-menu-folder-link-tracksroot {
+	#to-export-places-menu-folder-link-root, #places-menu-folder-link-routesroot {
 		white-space: nowrap;
 	}
 	.leaflet-touch .leaflet-control-attribution,

@@ -11,7 +11,7 @@ $ctx->db->exec("
 	WHERE id NOT IN (
 		SELECT pointid FROM places
 		UNION
-		SELECT point FROM pointtrack
+		SELECT pointid FROM pointroute
 	)
 ");
 

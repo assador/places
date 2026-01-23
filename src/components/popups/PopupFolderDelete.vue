@@ -65,7 +65,7 @@
 import { ref, Ref, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
-import { Place, Track, Folder } from '@/stores/types';
+import { Place, Route, Folder } from '@/stores/types';
 
 export interface IPlacesPopupFolderDeleteProps {
 	id: string;
@@ -95,7 +95,7 @@ const markNestedAsDeleted = (folder: Folder): void => {
 	// Mark items in the current folder being deleted as deleted
 	for (
 		const object of
-		Object.values(mainStore[props.type] as Record<string, Place | Track>)
+		Object.values(mainStore[props.type] as Record<string, Place | Route>)
 	) {
 		if (object.folderid === folder.id) object.deleted = true;
 	}
@@ -115,39 +115,39 @@ const deleteFolder = (): void => {
 		if (mainStore.homePlace && mainStore.homePlace.deleted) {
 			mainStore.setHomePlace(null);
 		}
-		const current: Ref<Place | Track | null> = ref(null);
+		const current: Ref<Place | Route | null> = ref(null);
 		switch (props.type) {
 			case 'places':
 				current.value = mainStore.currentPlace;
 				break;
-			case 'tracks':
-				current.value = mainStore.currentTrack;
+			case 'routes':
+				current.value = mainStore.currentRoute;
 				break;
 		}
 		if (current.value && current.value.deleted) {
 			if (!Object.keys(mainStore[props.type]).length) {
-				mainStore.choosePlace(null);
+				mainStore.currentPlace = null;
 			} else if (mainStore.homePlace && !mainStore.homePlace.deleted) {
-				mainStore.choosePlace(mainStore.homePlace);
+				mainStore.currentPlace = mainStore.homePlace;
 			} else {
-				const itemsInRoot: Ref<Place[] | Track[]> = ref(
-					Object.values(mainStore[props.type] as Place[] | Track[]).filter(
+				const itemsInRoot: Ref<Place[] | Route[]> = ref(
+					Object.values(mainStore[props.type] as Place[] | Route[]).filter(
 						item => (
 							item['folderid'] === 'root' ||
-							item['folderid'] === 'trackroot'
+							item['folderid'] === 'routesroot'
 						)
 					).sort(
-						(a, b) => (a as Place | Track).srt - (b as Place | Track).srt
+						(a, b) => (a as Place | Route).srt - (b as Place | Route).srt
 					)
 				);
 				if (itemsInRoot.value[0] && !itemsInRoot.value[0].deleted) {
-					mainStore.choosePlace(itemsInRoot.value[0] as Place);
+					mainStore.currentPlace = itemsInRoot.value[0] as Place;
 				} else if (
-					!Object.values(mainStore[props.type] as Place[] | Track[])[0].deleted
+					!Object.values(mainStore[props.type] as Place[] | Route[])[0].deleted
 				) {
-					mainStore.choosePlace(Object.values(mainStore[props.type])[0] as Place);
+					mainStore.currentPlace = Object.values(mainStore[props.type])[0] as Place;
 				} else {
-					mainStore.choosePlace(null);
+					mainStore.currentPlace = null;
 				}
 			}
 		}
@@ -155,13 +155,13 @@ const deleteFolder = (): void => {
 		// Move subitems to the root
 		for (const item of Object.values(mainStore[props.type])) {
 			if (item['folderid'] === folder.value.id) {
-				item['folderid'] = props.type === 'tracks' ? 'tracksroot' : 'root';
+				item['folderid'] = props.type === 'routes' ? 'routesroot' : 'root';
 				item['updated'] = true;
 			}
 		}
 		for (const item of Object.values(mainStore.folders)) {
 			if (item.parent === folder.value.id) {
-				item['parent'] = props.type === 'tracks' ? 'tracksroot' : 'root';
+				item['parent'] = props.type === 'routes' ? 'routesroot' : 'root';
 				item['updated'] = true;
 			}
 		}

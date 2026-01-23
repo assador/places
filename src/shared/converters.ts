@@ -46,7 +46,7 @@ export const string2coords = (coords: string): number[] | null => {
 	const reLon = /\s*(\d{1,3})\s*°(?:\s*(\d{1,2}(?:[.,]\d+)*)\s*\'(?:\s*(\d{1,2}(?:[.,]\d+)*(?:[.,]\d+)*)\s*\")*)*\s*([eEwW])\s*/;
 	const latArr = reLat.exec(coords);
 	const lonArr = reLon.exec(coords);
-	if (latArr === null || lonArr === null) return null;
+	if (!latArr || !lonArr) return null;
 	for (let i = 1; i < 4; i++) {
 		if (!latArr[i]) latArr[i] = '0';
 		if (!lonArr[i]) lonArr[i] = '0';

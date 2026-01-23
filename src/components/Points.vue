@@ -8,8 +8,11 @@
 				<template v-if="type === 'temps'">
 					{{ mainStore.t.i.captions.pointsIndependent }}
 				</template>
-				<template v-else-if="type === 'track'">
-					{{ mainStore.t.i.captions.pointsTrack }}
+				<template v-else-if="type === 'route'">
+					{{ mainStore.t.i.captions.pointsRoute }}
+				</template>
+				<template v-else-if="type === 'measure'">
+					{{ mainStore.t.i.captions.pointsMeasure }}
 				</template>
 				<template v-else>
 					{{ mainStore.t.i.captions.points }}
@@ -46,13 +49,13 @@
 				/>
 			</div>
 			<div
-				v-else-if="type === 'track'"
+				v-else-if="type === 'route'"
 				class="control-buttons"
 			>
 				<button
 					class="button-iconed icon icon-plus"
-					:title="mainStore.t.i.hints.addTrackPoint"
-					@click="async () => await mainStore.addTrackPoint()"
+					:title="mainStore.t.i.hints.addRoutePoint"
+					@click="async () => await mainStore.addRoutePoint()"
 				/>
 			</div>
 			<div
@@ -64,7 +67,7 @@
 					:title="mainStore.t.i.hints.addTemp"
 					@click="async () => {
 						const point = await mainStore.addTemp();
-						mainStore.choosePoint(point, 'measure');
+						mainStore.currentPoint = point;
 					}"
 				/>
 				<button
@@ -80,7 +83,7 @@
 		<div
 			v-if="
 				type === 'temps' && Object.keys(mainStore.temps).length > 0 ||
-				type === 'track' && mainStore.currentTrack.points.length > 0 ||
+				type === 'route' && mainStore.currentRoute.points.length > 0 ||
 				type === 'measure' && mainStore.measure.points.length > 0
 			"
 			class="points-info"
@@ -113,7 +116,7 @@
 								{{ mainStore.t.i.captions.measurePoint }}:
 							</span>
 							<span class="color-01">
-								{{ pointInfo.point?.name }}
+								{{ pointInfo.name }}
 							</span>
 						</h3>
 						<div class="nobr">
@@ -152,7 +155,7 @@
 				</Popup>
 			</Teleport>
 			<div
-				v-if="type === 'track'"
+				v-if="type === 'route'"
 				:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
 				class="points-distance"
 			>
@@ -168,7 +171,7 @@
 					popupProps.show = !popupProps.show;
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.right = (
-						type === 'track'
+						type === 'route'
 						? (
 							e.view.document.documentElement.clientWidth -
 							e.clientX + 5
@@ -176,7 +179,7 @@
 						: 'auto'
 					);
 					popupProps.position.left = (
-						type === 'track'
+						type === 'route'
 						? 'auto'
 						: e.clientX + 5
 					);
@@ -191,16 +194,17 @@
 		">
 			<button
 				v-if="type === 'temps'"
-				v-for="(temp, id) in mainStore.temps"
-				:class="
-					mainStore.currentPoint &&
-					mainStore.currentPoint.id === temp.id
-						? 'button-pressed' : ''
-				"
-				@click.prevent="mainStore.choosePoint(temp)"
-				@contextmenu.prevent="mainStore.choosePoint(temp, mainStore.mode)"
+				v-for="(temp, id, idx) in mainStore.temps"
+				:class="mainStore.currentPoint?.id === temp.id ? 'button-pressed' : ''"
+				@click.prevent="mainStore.currentPoint = temp"
+				@contextmenu.prevent="e => {
+					pointInfo.point = temp;
+					popupProps.show = !popupProps.show;
+					popupProps.position.top = e.clientY + 5;
+					popupProps.position.left = e.clientX + 5;
+				}"
 			>
-				<span>{{ temp.name }}</span>
+				<span>{{ idx + 1 }}</span>
 				<span
 					class="button-iconed icon icon-cross-45"
 					:title="mainStore.t.i.hints.deleteTemp"
@@ -208,12 +212,12 @@
 				/>
 			</button>
 			<button
-				v-else-if="type === 'track'"
-				v-for="(point, idx) in mainStore.trackPoints(mainStore.currentTrack)"
+				v-else-if="type === 'route'"
+				v-for="(point, idx) in mainStore.currentRoute.points"
 				:key="point.id"
 				:data-point="point.id"
 				:data-pointidx="idx"
-				:data-pointof="'track'"
+				:data-pointof="'route'"
 				:draggable="true"
 				@dragstart="e => handleDragStart(e, 'points')"
 				@dragenter="e => {
@@ -228,11 +232,11 @@
 						? 'button-pressed' : ''
 				"
 				@click.prevent="() => {
-					pointInfo.point = point;
-					mainStore.choosePoint(point);
+					pointInfo.point = mainStore.getPointById(point.id);
+					mainStore.currentPoint = pointInfo.point;
 				}"
 				@contextmenu.prevent="e => {
-					pointInfo.point = point;
+					pointInfo.point = mainStore.getPointById(point.id);
 					popupProps.show = !popupProps.show;
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.right =
@@ -243,7 +247,7 @@
 				<span
 					:data-point="point.id"
 					:data-pointidx="idx"
-					:data-pointof="'track'"
+					:data-pointof="'route'"
 					@dragenter="highlighted = point.id"
 				>
 					{{ point.name }}
@@ -251,56 +255,64 @@
 				<span
 					:data-point="point.id"
 					:data-pointidx="idx"
-					:data-pointof="'track'"
-					:title="mainStore.t.i.hints.deleteTrack"
+					:data-pointof="'route'"
+					:title="mainStore.t.i.hints.deleteRoute"
 					class="button-iconed icon icon-cross-45"
 					@dragenter="highlighted = point.id"
-					@click.stop="mainStore.deleteTrackPoint(point, mainStore.currentTrack)"
+					@click.stop="
+						mainStore.deleteRoutePoint(
+							mainStore.getPointById(point.id),
+							mainStore.currentRoute
+						)
+					"
 				/>
 			</button>
 			<button
 				v-else-if="type === 'measure'"
-				v-for="(id, idx) in mainStore.measure.points"
-				:key="id"
-				:data-point="id"
+				v-for="(point, idx) in mainStore.measure.points"
+				:key="idx"
+				:data-point="point.id"
 				:data-pointidx="idx"
 				:data-pointof="'measure'"
 				:draggable="true"
 				@dragstart="e => handleDragStart(e, 'points')"
 				@dragenter="e => {
-					highlighted = id;
+					highlighted = point.id;
 					handleDragEnter(e);
 				}"
 				@dragend="highlighted = null"
 				@drop="handleDrop"
 				:class="
-					id === highlighted ||
-					id ===
-						mainStore.measure.points[mainStore.measure.choosing]
+					point.id === highlighted ||
+					point.id ===
+						mainStore.measure.points[mainStore.measure.choosing].id
 							? 'button-pressed' : ''
 				"
-				@click.prevent="mainStore.choosePoint(mainStore.getPointById(id))"
-				@contextmenu.prevent="
-					mainStore.choosePoint(
-						mainStore.getPointById(id), mainStore.mode
-					)
-				"
+				@click.prevent="mainStore.currentPoint = mainStore.getPointById(point.id)"
+				@contextmenu.prevent="e => {
+					pointInfo.point = mainStore.getPointById(point.id);
+					popupProps.show = !popupProps.show;
+					popupProps.position.top = e.clientY + 5;
+					popupProps.position.right =
+						e.view.document.documentElement.clientWidth -
+						e.clientX + 5;
+				}"
 			>
 				<span
-					:data-point="id"
+					:data-point="point.id"
 					:data-pointidx="idx"
 					:data-pointof="'measure'"
-					@dragenter="highlighted = id"
+					@dragenter="highlighted = point.id"
 				>
-					{{ mainStore.getPointById(id)?.name }}
+					{{ mainStore.getPointById(point.name) }}
 				</span>
 				<span
-					:data-point="id"
+					:data-point="point.id"
 					:data-pointidx="idx"
 					:data-pointof="'measure'"
-					:title="mainStore.t.i.hints.deleteTrack"
+					:title="mainStore.t.i.hints.deleteRoute"
 					class="button-iconed icon icon-cross-45"
-					@dragenter="highlighted = id"
+					@dragenter="highlighted = point.id"
 					@click.stop="() => {
 						mainStore.measure.points.splice(idx, 1);
 						if (idx > mainStore.measure.points.length - 1) {
@@ -342,6 +354,7 @@ const opened = ref(true);
 const highlighted = ref(null);
 const pointInfo = ref({
 	point: null,
+	name: null,
 });
 const popupProps = ref<IPlacesPopupProps>({
 	show: false,
@@ -370,9 +383,9 @@ const distance = computed(() => {
 			idsArray.value = Object.keys(mainStore.temps);
 			where.value = 'temps';
 			break;
-		case 'track':
-			idsArray.value = mainStore.currentTrack !== null
-				? mainStore.currentTrack.points : []
+		case 'route':
+			idsArray.value = mainStore.currentRoute !== null
+				? mainStore.currentRoute.points.map(p => p.id) : []
 			;
 			where.value = 'points';
 			break;

@@ -30,9 +30,9 @@ WHERE
 	OR
 	EXISTS (
 		SELECT 1
-		FROM pointtrack ptk
-		JOIN tracks tr ON tr.id = ptk.track
-		WHERE ptk.point = pt.id
+		FROM pointroute ptk
+		JOIN routes tr ON tr.id = ptk.routeid
+		WHERE ptk.pointid = pt.id
 			AND (tr.userid = :uid OR tr.common = 1)
 	);
 ");
