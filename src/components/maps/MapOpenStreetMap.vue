@@ -436,50 +436,23 @@ const mapCenter = computed(() => ({
 
 const dragging = ref(false);
 
-const mapContextMenu = async (e: any) => {
-	switch (mainStore.mode) {
-		case 'normal':
-		case 'measure':
-			const newTemp = await mainStore.addTemp({
-				id: crypto.randomUUID(),
-				userid: sessionStorage.getItem('places-useruuid'),
-				latitude: e.latlng.lat,
-				longitude: e.latlng.lng,
-				altitude: null,
-				common: false,
-				type: 'point',
-				added: false,
-				deleted: false,
-				updated: false,
-				show: true,
-			});
-		case 'normal':
-			mainStore.choosePoint(newTemp);
-			break;
-		case 'measure':
-			mainStore.addPointToMeasure(newTemp);
-			mainStore.choosePoint(newTemp, mainStore.measure);
-			break;
-		case 'routes':
-			if (!mainStore.currentRoute) break;
-			await mainStore.addRoutePoint(
-				{
-					id: crypto.randomUUID(),
-					userid: sessionStorage.getItem('places-useruuid'),
-					latitude: e.latlng.lat,
-					longitude: e.latlng.lng,
-					altitude: null,
-					common: false,
-					type: 'point',
-					added: true,
-					deleted: false,
-					updated: false,
-					show: true,
-				},
-				mainStore.currentRoute,
-			);
-			break;
-	}
+const mapContextMenu = (e: any) => {
+    const { lat, lng } = e.latlng;
+    if (['normal', 'measure'].includes(mainStore.mode)) {
+        const temp = mainStore.addTemp(lat, lng);
+        if (mainStore.mode === 'normal') {
+            mainStore.choosePoint(temp);
+        } else {
+            mainStore.addPointToMeasure(temp);
+            mainStore.choosePoint(temp, mainStore.measure);
+        }
+        return;
+    }
+    if (mainStore.mode === 'routes' && mainStore.currentRoute) {
+        mainStore.addRoutePoint({
+			point: mainStore.createPoint(undefined, lat, lng, true),
+		});
+    }
 }
 const placemarkDragEnd = async (point: Place | Point, event: any) => {
 	const coordinates = event.target.getLatLng();

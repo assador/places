@@ -55,7 +55,10 @@
 				<button
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addRoutePoint"
-					@click="async () => await mainStore.addRoutePoint()"
+					@click="async () => {
+						const point = await mainStore.addRoutePoint();
+						mainStore.currentPoint = point;
+					}"
 				/>
 			</div>
 			<div
@@ -67,6 +70,7 @@
 					:title="mainStore.t.i.hints.addTemp"
 					@click="async () => {
 						const point = await mainStore.addTemp();
+						mainStore.addPointToMeasure(point);
 						mainStore.currentPoint = point;
 					}"
 				/>
@@ -293,9 +297,7 @@
 					pointInfo.point = mainStore.getPointById(point.id);
 					popupProps.show = !popupProps.show;
 					popupProps.position.top = e.clientY + 5;
-					popupProps.position.right =
-						e.view.document.documentElement.clientWidth -
-						e.clientX + 5;
+					popupProps.position.left = e.clientX + 5;
 				}"
 			>
 				<span
@@ -304,7 +306,7 @@
 					:data-pointof="'measure'"
 					@dragenter="highlighted = point.id"
 				>
-					{{ mainStore.getPointById(point.name) }}
+					{{ point.name }}
 				</span>
 				<span
 					:data-point="point.id"

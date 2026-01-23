@@ -106,10 +106,13 @@ export interface Group {
 	updated?: boolean;
 	checked?: boolean;
 }
+export interface PointName {
+	id: string,
+	name: string,
+}
 export interface Measure {
 	type: string;
-	points: { id: string, name: string }[];
+	points: PointName[];
 	choosing: number | null;
 	show: boolean;
-	distance: number,
 }

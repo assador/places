@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { User, Group, Point, Place, Route, Folder, Image, Measure } from './types';
+import { User, Group, Point, Place, Route, Folder, Image, PointName, Measure } from './types';
 import {
 	emitter,
 	constants,
@@ -101,7 +101,6 @@ export const useMainStore = defineStore('main', {
 			type: 'measure',
 			points: [],
 			choosing: null,
-			distance: 0,
 			show: false,
 		},
 		messages: [],
@@ -335,46 +334,34 @@ export const useMainStore = defineStore('main', {
 			}
 			return distance;
 		},
-		measureDistance() {
-			let lastIdx: number | null = null;
-			let point: Point, lastPoint: Point;
-			this.measure.distance = 0;
-			if (this.measure.points.length < 2) return;
-			for (let i = 0; i < this.measure.points.length; i++) {
-				let p = this.measure.points[i];
-				if (p === null) continue;
-				if (lastIdx === null) {
-					lastIdx = i;
-					continue;
+		measureDistance(
+			ids: string[] = this.measure.points.map((p: PointName) => p.id),
+			takeIntoaltitudeDeltas: boolean = false,
+		): number {
+			if (ids.length < 2) return 0;
+			let distance = 0;
+			for (let i = 0; i < ids.length - 1; i++) {
+				const p1 = this.getPointById(ids[i]);
+				const p2 = this.getPointById(ids[i + 1]);
+				if (p1 && p2) {
+					const d = distanceOnSphere(
+						p1.latitude, p1.longitude,
+						p2.latitude, p2.longitude,
+						constants.earthRadius
+					);
+					if (
+						takeIntoaltitudeDeltas &&
+						p1.altitude !== null &&
+						p2.altitude !== null
+					) {
+						const deltaH = Math.abs(p1.altitude - p2.altitude) / 1000;
+						distance += Math.sqrt(Math.pow(d, 2) + Math.pow(deltaH, 2));
+					} else {
+						distance += d;
+					}
 				}
-				let l = this.measure.points[lastIdx];
-				if (this.places[p]) {
-					point = this.points[this.places[p].pointid];
-				} else if (this.commonPlaces[p]) {
-					point = this.points[this.commonPlaces[p].pointid];
-				} else if (this.temps[p]) {
-					point = this.temps[p];
-				} else {
-					return;
-				}
-				if (this.places[l]) {
-					lastPoint = this.points[this.places[l].pointid];
-				} else if (this.commonPlaces[l]) {
-					lastPoint = this.points[this.commonPlaces[l].pointid];
-				} else if (this.temps[l]) {
-					lastPoint = this.temps[l];
-				} else {
-					return;
-				}
-				this.measure.distance += distanceOnSphere(
-					lastPoint.latitude,
-					lastPoint.longitude,
-					point.latitude,
-					point.longitude,
-					constants.earthRadius
-				);
-				lastIdx = i;
 			}
+			return distance;
 		},
 		changeLang(lang) {
 			const getLang = () => import(`@/lang/${lang}.ts`);
@@ -487,7 +474,6 @@ export const useMainStore = defineStore('main', {
 						sessionStorage.getItem('places-useruuid')
 					)
 					.then(response => {
-						console.log(response.data);
 						for (
 							const folder of
 							Object.values(response.data.folders) as Folder[]
@@ -1001,149 +987,68 @@ export const useMainStore = defineStore('main', {
 					this.currentPoint = point;
 			}
 		},
-/*
-		choosePlace(place: Place, inMode?: string) {
-			if (!place) {
-				this.currentPlace = null;
-				return;
-			}
-			switch (this.mode) {
-				case 'measure':
-					if (inMode && inMode === 'measure') {
-						const { points, choosing } = this.measure;
-						const placeId = place.id;
-						const idx = points.indexOf(placeId);
-						if (idx === -1)  points[choosing] = placeId; else points.splice(idx, 1);
-						this.measure.choosing = points.length;
-					}
-				default:
-					if (inMode === 'measure') break;
-					if (this.currentPlace !== place) {
-						this.currentPlace = place;
-						this.currentPlaceCommon = this.currentPlace.userid !== this.user.id;
-					}
+		addPointToMeasure(point: Point = this.currentPoint) {
+			const numbers = this.measure.points
+				.filter(p => /^\d+$/.test(p.name))
+				.map(p => Number(p.name));
+			const name = (Math.max(0, ...numbers) + 1).toString();
+			this.measure.choosing = this.measure.points.length;
+			this.measure.points[this.measure.choosing] = {
+				id: point.id,
+				name: name,
+			};
+		},
+		removePointFromMeasure(point: Point = this.currentPoint) {
+			let idx = this.measure.points.map(p => p.id).indexOf(point.id);
+			if (idx === -1) return;
+			this.measure.points.splice(idx, 1);
+			if (this.measure.choosing > this.measure.points.length - 1) {
+				this.measure.choosing = this.measure.points.length - 1;
 			}
 		},
-		chooseRoute(route: Route, inMode?: string) {
-			if (!route) {
-				this.currentRoute = null;
-				return;
-			}
-			switch (this.mode) {
-				case 'measure':
-					if (inMode && inMode === 'measure') {
-						const { points, choosing } = this.measure;
-						const routeId = route.id;
-						const idx = points.indexOf(routeId);
-						if (idx === -1)  points[choosing] = routeId; else points.splice(idx, 1);
-						this.measure.choosing = points.length;
-					}
-				default:
-					if (inMode === 'measure') break;
-					if (this.currentRoute !== route) {
-						this.currentRoute = route;
-						this.currentRouteCommon = this.currentRoute.userid !== this.user.id;
-					}
-			}
-		},
-		objectClick(object: Place | Point, type: string) {
-			switch (object.type) {
-				case 'point':
-					if (type === 'contextmenu') {
-						switch (this.mode) {
-							case 'measure':
-								this.choosePoint(object, mainStore.measure);
-								break;
-							case 'routes':
-								if (this.currentRoute) {
-									if (this.currentRoute.points.includes(object.id)) {
-										this.deleteRoutePoint(object, this.currentRoute);
-									} else {
-										this.currentRoute.points.push(object.id);
-									}
-									break;
-								}
-						}
-					} else {
-						this.choosePoint(object);
-					}
-					break;
-				case 'place':
-					if (type === 'contextmenu') {
-						switch (this.mode) {
-							case 'measure':
-								this.choosePlace(object, 'measure');
-								break;
-							case 'routes':
-								if (this.currentRoute) {
-									if (
-										this.currentRoute.points.find(
-											p => p.id === (object as Place).pointid
-										)
-									) {
-										this.removeRoutePoint(
-											this.points[(object as Place).pointid],
-											this.currentRoute,
-										);
-									} else {
-										this.currentRoute.points.push({
-											id: (object as Place).pointid,
-											name: (object as Place).name,
-										});
-									}
-									break;
-								}
-						}
-					} else {
-						this.choosePlace(object);
-					}
-					if (object.common) {
-						const inPaginator =
-							Object.keys(this.commonPlaces).indexOf(object.id) /
-							this.commonPlacesOnPageCount
-						;
-						this.commonPlacesPage =
-							Number.isInteger(inPaginator)
-								? inPaginator + 1
-								: Math.ceil(inPaginator)
-						;
-					}
-					break;
-			}
-		},
-*/
-		async addTemp(
-			point: Point = {
-				id: crypto.randomUUID(),
-				userid: sessionStorage.getItem('places-useruuid'),
-				latitude: this.center.latitude,
-				longitude: this.center.longitude,
-				altitude: null,
-				common: false,
-				type: 'point',
-				added: false,
-				deleted: false,
-				updated: false,
-				show: true,
-			},
+		createPoint(
+			userid = this.user.id,
+			lat = this.center.latitude,
+			lng = this.center.longitude,
+			added = false,
+		): Point {return {
+			id: crypto.randomUUID(),
+			userid,
+			latitude: lat,
+			longitude: lng,
+			altitude: null,
+			common: false,
+			type: 'point',
+			added,
+			deleted: false,
+			updated: false,
+			show: true,
+		}},
+		addTemp(
+			lat: number = this.center.latitude,
+			lon: number = this.center.longitude,
 		) {
-			this.temps = { ...this.temps, [point.id]: point };
-			if (this.temps[point.id].altitude === null) {
-				this.temps[point.id].altitude = await this.getAltitude(
-					this.temps[point.id].latitude,
-					this.temps[point.id].longitude,
-				);
-			}
-			this.backupState();
-			return this.temps[point.id];
+			const point = this.createPoint(this.user.id, lat, lon);
+			this.temps[point.id] = point;
+			this.getAltitude(point.latitude, point.longitude).then(alt => {
+				if (this.temps[point.id]) {
+					this.temps[point.id].altitude = alt;
+					this.backupState();
+				}
+			});
+			return point;
 		},
-		async addPoint(payload: {
-			point: Point,
-			from?: Place | Route,
-			to?: Place | Route,
-			todb?: boolean,
-		}) {
-			const { point, from, to, todb } = payload;
+		addPoint({
+			point = this.createPoint(),
+			from,
+			to,
+			todb = false,
+		}: {
+			point?: Point;
+			from?: Place | Route;
+			to?: Place | Route;
+			todb?: boolean;
+		} = {}) {
 			if (to) to[point.id] = point; else this.points[point.id] = point;
 			if (todb !== false && !this.user.testaccount) {
 				emitter.emit('toDB', {
@@ -1151,70 +1056,37 @@ export const useMainStore = defineStore('main', {
 				});
 			}
 		},
-		async addPlace(payload: { place: Place, todb?: boolean }) {
-			const { place, todb } = payload;
-			this.places[place.id] = place;
-			if (todb !== false && !this.user.testaccount) {
-				emitter.emit('toDB', { 'places': [ place ] });
+		addRoutePoint({
+			point = this.createPoint(),
+			route = this.currentRoute,
+		}: {
+			point?: Point;
+			route?: Route;
+		} = {}) {
+			if (!route) return;
+			const numbers = route.points
+				.filter(p => /^\d+$/.test(p.name))
+				.map(p => Number(p.name));
+			const name = (Math.max(0, ...numbers) + 1).toString();
+			this.points[point.id] = point;
+			route.points.push({ id: point.id, name });
+			if (point.altitude === null) {
+				this.getAltitude(point.latitude, point.longitude).then(alt => {
+					if (this.points[point.id]) {
+						this.points[point.id].altitude = alt;
+						this.backupState();
+					}
+				});
 			}
-			this.backupState();
+			return point;
 		},
-		async addRoute(payload: { route: Route, todb?: boolean }) {
-			const { route, todb } = payload;
-			this.routes[route.id] = route;
-			if (todb !== false && !this.user.testaccount) {
-				emitter.emit('toDB', { 'routes': [ route ] });
-			}
-			this.backupState();
-		},
-		addPointToMeasure(point: Point = this.currentPoint) {
-			this.measure.choosing = this.measure.points.length;
-			this.measure.points[this.measure.choosing] = {
-				id: point.id,
-			};
-		},
-		removePointFromMeasure(idx: number = this.measure.choosing) {
-			this.measure.points.splice(idx, 1);
-			if (this.measure.choosing > this.measure.points.length - 1) {
-				this.measure.choosing = this.measure.points.length - 1;
-			}
-		},
-		async addRoutePoint(
-			point: Point = {
-				id: crypto.randomUUID(),
-				userid: this.user.id,
-				latitude: this.center.latitude,
-				longitude: this.center.longitude,
-				altitude: null,
-				common: false,
-				type: 'point',
-				added: true,
-				deleted: false,
-				updated: false,
-				show: true,
-			},
-			route: Route = this.currentRoute,
-			name?: string,
-		) {
-			if (!name) {
-				const numbers =
-					route.points.filter(p => /^\d+$/.test(p.name))
-						.map(p => Number(p.name))
-				;
-				name = (Math.max(0, ...numbers) + 1).toString();
-			}
-			this.points = { ...this.points, [point.id]: point };
-			route.points.push({ id: point.id, name: name });
-			if (this.points[point.id].altitude === null) {
-				this.points[point.id].altitude = await this.getAltitude(
-					this.points[point.id].latitude,
-					this.points[point.id].longitude,
-				);
-			}
-			this.backupState();
-			return this.points[point.id];
-		},
-		async removeRoutePoint(point: Point, route: Route = this.currentRoute) {
+		async removeRoutePoint({
+			point,
+			route = this.currentRoute,
+		}: {
+			point: Point;
+			route?: Route;
+		}) {
 			let idx = null;
 			for (let i = 0; i < route.points.length; i++) {
 				if (route.points[i].id === point.id) {
@@ -1225,6 +1097,32 @@ export const useMainStore = defineStore('main', {
 			if (idx === null) return;
 			route.points.splice(idx, 1);
 			if (idx > route.points.length - 1) idx =  route.points.length - 1;
+			this.backupState();
+		},
+		async addPlace({
+			place,
+			todb = false,
+		}: {
+			place: Place;
+			todb?: boolean;
+		}) {
+			this.places[place.id] = place;
+			if (todb !== false && !this.user.testaccount) {
+				emitter.emit('toDB', { 'places': [ place ] });
+			}
+			this.backupState();
+		},
+		async addRoute({
+			route,
+			todb = false
+		}: {
+			route: Route;
+			todb?: boolean;
+		}) {
+			this.routes[route.id] = route;
+			if (todb !== false && !this.user.testaccount) {
+				emitter.emit('toDB', { 'routes': [ route ] });
+			}
 			this.backupState();
 		},
 		async changeFolder(payload: Record<string, any>) {
@@ -1758,7 +1656,7 @@ export const useMainStore = defineStore('main', {
 				return points;
 			}
 		},
-		getPointCoordsArray () {
+		getPointCoordsArray() {
 			return (pointIdsArray: string[]): number[][] => {
 				const coords: number[][] = [];
 				let point: Point;
@@ -1779,5 +1677,8 @@ export const useMainStore = defineStore('main', {
 				return coords;
 			}
 		},
+		distance(): number {
+			return this.measureDistance();
+		}
 	},
 });

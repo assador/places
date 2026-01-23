@@ -283,54 +283,36 @@ const handleDragEnter = (event: Event): void => {
 	event.preventDefault();
 	event.stopPropagation();
 	const el = event.target as HTMLElement;
-	switch (draggingType.value) {
-/*
-		case 'measure':
-			const el1 = draggingElement.value as HTMLElement;
-			const el2 = event.target as HTMLElement;
-			const id1 = el1.dataset.placesMeasurePointId;
-			const id2 = el2.dataset.placesMeasurePointId;
-			if (!id1 || !id2) return;
-			const ids = mainStore.measure.points;
-			const idx1 = ids.indexOf(id1), idx2 = ids.indexOf(id2);
-			[ids[idx1], ids[idx2]] = [ids[idx2], ids[idx1]];
-			mainStore.measure.points = ids;
-			mainStore.measureDistance();
-			draggingElement.value = el2;
-			return;
-*/
-		default:
-			const dragEl = draggingElement.value as HTMLElement;
-			const dragPP = (draggingElement.value as Element).parentElement?.parentElement;
-			const addClass = (cls: string) => el.classList.add(cls);
-			if (
-				el.dataset.placesTreeFolderId &&
-				el.dataset.placesTreeType === dragEl.dataset.placesTreeType &&
-				(dragEl.dataset.placesTreeFolderId || dragEl.dataset.placesTreeItemId)
-			) {
-				addClass('highlighted');
-			}
-			if (dragEl.dataset.placesTreeItemId) {
-				if (el.dataset.placesTreeItemSortingAreaTop &&
-					el.parentElement !== draggingElement.value &&
-					el.parentElement !== (draggingElement.value as Element).nextElementSibling) {
-					addClass('dragenter-area_top_border');
-				} else if (el.dataset.placesTreeItemSortingAreaBottom &&
-					el.parentElement !== draggingElement.value &&
-					el.parentElement !== (draggingElement.value as Element).previousElementSibling) {
-					addClass('dragenter-area_bottom_border');
-				}
-			} else if (dragEl.dataset.placesTreeFolderId) {
-				if (el.dataset.placesTreeFolderSortingAreaTopFolderid &&
-					el.parentElement !== dragPP &&
-					el.parentElement !== dragPP?.nextElementSibling) {
-					addClass('dragenter-area_top_border');
-				} else if (el.dataset.placesTreeFolderSortingAreaTopFolderid &&
-					el.parentElement !== dragPP &&
-					el.parentElement !== dragPP?.previousElementSibling) {
-					addClass('dragenter-area_bottom_border');
-				}
-			}
+	const dragEl = draggingElement.value as HTMLElement;
+	const dragPP = (draggingElement.value as Element).parentElement?.parentElement;
+	const addClass = (cls: string) => el.classList.add(cls);
+	if (
+		el.dataset.placesTreeFolderId &&
+		el.dataset.placesTreeType === dragEl.dataset.placesTreeType &&
+		(dragEl.dataset.placesTreeFolderId || dragEl.dataset.placesTreeItemId)
+	) {
+		addClass('highlighted');
+	}
+	if (dragEl.dataset.placesTreeItemId) {
+		if (el.dataset.placesTreeItemSortingAreaTop &&
+			el.parentElement !== draggingElement.value &&
+			el.parentElement !== (draggingElement.value as Element).nextElementSibling) {
+			addClass('dragenter-area_top_border');
+		} else if (el.dataset.placesTreeItemSortingAreaBottom &&
+			el.parentElement !== draggingElement.value &&
+			el.parentElement !== (draggingElement.value as Element).previousElementSibling) {
+			addClass('dragenter-area_bottom_border');
+		}
+	} else if (dragEl.dataset.placesTreeFolderId) {
+		if (el.dataset.placesTreeFolderSortingAreaTopFolderid &&
+			el.parentElement !== dragPP &&
+			el.parentElement !== dragPP?.nextElementSibling) {
+			addClass('dragenter-area_top_border');
+		} else if (el.dataset.placesTreeFolderSortingAreaTopFolderid &&
+			el.parentElement !== dragPP &&
+			el.parentElement !== dragPP?.previousElementSibling) {
+			addClass('dragenter-area_bottom_border');
+		}
 	}
 };
 provide('handleDragEnter', handleDragEnter);
