@@ -57,7 +57,7 @@
 					:title="mainStore.t.i.hints.addRoutePoint"
 					@click="async () => {
 						const point = await mainStore.addRoutePoint();
-						mainStore.currentPoint = point;
+						mainStore.setCurrentPlace(point.id);
 					}"
 				/>
 			</div>
@@ -71,7 +71,7 @@
 					@click="async () => {
 						const point = await mainStore.addTemp();
 						mainStore.addPointToMeasure(point);
-						mainStore.currentPoint = point;
+						mainStore.setCurrentPoint(point.id);
 					}"
 				/>
 				<button
@@ -200,7 +200,7 @@
 				v-if="type === 'temps'"
 				v-for="(temp, id, idx) in mainStore.temps"
 				:class="mainStore.currentPoint?.id === temp.id ? 'button-pressed' : ''"
-				@click.prevent="mainStore.currentPoint = temp"
+				@click.prevent="mainStore.setCurrentPoint(temp.id)"
 				@contextmenu.prevent="e => {
 					pointInfo.point = temp;
 					popupProps.show = !popupProps.show;
@@ -232,12 +232,12 @@
 				@drop="handleDrop"
 				:class="
 					point.id === highlighted ||
-					point.id === mainStore.currentPoint.id
+					point.id === mainStore.currentPoint?.id
 						? 'button-pressed' : ''
 				"
 				@click.prevent="() => {
 					pointInfo.point = mainStore.getPointById(point.id);
-					mainStore.currentPoint = pointInfo.point;
+					mainStore.setCurrentPoint(pointInfo.point.id);
 				}"
 				@contextmenu.prevent="e => {
 					pointInfo.point = mainStore.getPointById(point.id);
@@ -292,7 +292,7 @@
 						mainStore.measure.points[mainStore.measure.choosing].id
 							? 'button-pressed' : ''
 				"
-				@click.prevent="mainStore.currentPoint = mainStore.getPointById(point.id)"
+				@click.prevent="mainStore.setCurrentPoint(point.id)"
 				@contextmenu.prevent="e => {
 					pointInfo.point = mainStore.getPointById(point.id);
 					popupProps.show = !popupProps.show;

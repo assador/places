@@ -331,9 +331,9 @@
 				@click="() => {
 					if (instanceid === 'popupexporttree') return;
 					if (what === 'places') {
-						mainStore.currentPlace = object as Place;
+						mainStore.setCurrentPlace((object as Place).id);
 					} else if (what === 'routes') {
-						mainStore.currentRoute = object as Route;
+						mainStore.setCurrentRoute((object as Route).id);
 					}
 					const point = mainStore.getPointById(
 						what === 'places'
@@ -350,9 +350,9 @@
 				@contextmenu.prevent="() => {
 					if (instanceid !== 'popupexporttree') {
 						if (what === 'places') {
-							mainStore.currentPlace = object as Place;
+							mainStore.setCurrentPlace((object as Place).id);
 						} else if (what === 'routes') {
-							mainStore.currentRoute = object as Route;
+							mainStore.setCurrentRoute((object as Route).id);
 						}
 					}
 				}"

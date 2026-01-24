@@ -142,18 +142,14 @@
 										? 'active' : ''
 								"
 								@click="() => {
-									mainStore.currentRoute = commonRoute;
+									mainStore.setCurrentRoute(commonRoute.id);
 									if (commonRoute.points.length) {
 										const point = mainStore.points[
 											commonRoute.points[
 												commonRoute.choosing
 											].id
 										];
-										mainStore.currentPoint = point;
-										mainStore.updateMap({
-											latitude: point.latitude,
-											longitude: point.longitude,
-										});
+										mainStore.setCurrentPoint(point.id);
 									}
 								}"
 							>
@@ -197,15 +193,7 @@
 								mainStore.measure.points.find(p => p.id === commonPlace.id)
 									? 'active' : ''
 							"
-							@click="() => {
-								mainStore.currentPlace = commonPlace;
-								const point = mainStore.points[commonPlace.pointid];
-								mainStore.currentPoint = point;
-								mainStore.updateMap({
-									latitude: point.latitude,
-									longitude: point.longitude,
-								});
-							}"
+							@click="mainStore.setCurrentPlace(commonPlace.id)"
 						>
 							{{ commonPlace.name }}
 						</div>
@@ -980,8 +968,7 @@ const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Pl
 			'places': [ newPlace ],
 		});
 	}
-	mainStore.currentPoint = newPoint;
-	mainStore.currentPlace = newPlace;
+	mainStore.setCurrentPlace(newPlace.id);
 	await nextTick();
 	const detailedNameElem = document.getElementById('place-detailed-name');
 	if (detailedNameElem) {
@@ -1042,7 +1029,7 @@ const appendRoute = async (payload: Record<string, any> = {}): Promise<void | Ro
 	};
 	for (const key in payload) newRoute[key] = payload[key];
 	await addRoute({ route: newRoute });
-	mainStore.currentRoute = newRoute;
+	mainStore.setCurrentRoute(newRoute.id);
 	await nextTick();
 	const detailedNameElem = document.getElementById('route-detailed-name');
 	if (detailedNameElem) {

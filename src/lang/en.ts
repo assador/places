@@ -54,6 +54,7 @@ export const t = {
 			repeatPassword: 'Repeat password',
 			rootFolder: 'My places',
 			rootRoutesFolder: 'My routes',
+			routePoint: 'Route point',
 			srt: 'Sorting',
 			sure: 'Are you sure?',
 			system: 'System',

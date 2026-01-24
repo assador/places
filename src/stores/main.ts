@@ -450,9 +450,61 @@ export const useMainStore = defineStore('main', {
 				})
 			;
 		},
-		setFirstCurrentPlace() {
+		getPointById(id: string) {
+			if (Object.hasOwn(this.points, id)) return this.points[id];
+			if (Object.hasOwn(this.temps, id)) return this.temps[id];
+			return null;
+		},
+		getPlaceById(id: string) {
+			if (Object.hasOwn(this.places, id)) return this.places[id];
+			if (Object.hasOwn(this.commonPlaces, id)) return this.commonPlaces[id];
+			return null;
+		},
+		getRouteById(id: string) {
+			if (Object.hasOwn(this.routes, id)) return this.routes[id];
+			if (Object.hasOwn(this.commonRoutes, id)) return this.commonRoutes[id];
+			return null;
+		},
+		setCurrentPoint(id: string | null | undefined) {
+			this.currentPoint = null;
+			const point = id ? this.getPointById(id) : null;
+			if (!point) return;
+			this.currentPoint = point;
+			if (this.currentRoute) {
+				const idx = this.currentRoute.points.map(p => p.id).indexOf(id);
+				if (idx !== -1) this.currentRoute.choosing = idx;
+			}
+			this.center = {
+				latitude: point.latitude,
+				longitude: point.longitude,
+			};
+		},
+		setCurrentPlace(id: string | null | undefined) {
 			this.currentPlace = null;
-			if (this.homePlace) this.currentPlace = this.homePlace;
+			const place = id ? this.getPlaceById(id) : null;
+			if (!place) return;
+			this.currentPlace = place;
+			this.setCurrentPoint(place.pointid);
+		},
+		setCurrentRoute(id: string | null | undefined) {
+			this.currentRoute = null;
+			const route = id ? this.getRouteById(id) : null;
+			if (!route) return;
+			this.currentRoute = route;
+			if (route.points.length > 0) {
+				if (// Damn you all
+					typeof route.choosing !== 'number' ||
+					!Number.isInteger(route.choosing) ||
+					route.choosing < 0 ||
+					route.choosing > route.points.length - 1
+				) {
+					route.choosing = 0;
+				}
+				this.setCurrentPoint(route.points[route.choosing].id);
+			}
+		},
+		setFirstCurrentPlace() {
+			if (this.homePlace) this.setCurrentPlace(this.homePlace.id);
 			else if (Object.keys(this.places).length) {
 				let firstPlaceInRoot: Place = null;
 				for (const id in this.places) {
@@ -461,8 +513,8 @@ export const useMainStore = defineStore('main', {
 						break;
 					}
 				}
-				if (firstPlaceInRoot) this.currentPlace = firstPlaceInRoot;
-				else this.currentPlace = this.places[Object.keys(this.places)[0]];
+				if (firstPlaceInRoot) this.setCurrentPlace(firstPlaceInRoot.id);
+					else this.setCurrentPlace(this.places[Object.keys(this.places)[0]].id);
 			}
 		},
 		async setPlaces(payload?: {mime: string, text: string | ArrayBuffer}) {
@@ -877,7 +929,7 @@ export const useMainStore = defineStore('main', {
 					place = this.commonPlaces[this.currentPlace.id];
 				if (this.places[this.currentPlace.id])
 					place = this.places[this.currentPlace.id];
-				this.currentPlace = place;
+				this.setCurrentPlace(place.id);
 			}
 			this.refreshing = false;
 		},
@@ -949,11 +1001,6 @@ export const useMainStore = defineStore('main', {
 				return null;
 			}
 		},
-		getPointById(id: string) {
-			if (Object.hasOwn(this.points, id)) return this.points[id];
-			if (Object.hasOwn(this.temps, id)) return this.temps[id];
-			return null;
-		},
 		wherePointIsUsed(id: string) {
 			let uses: (Place | Route)[] = [];
 			uses.push(
@@ -968,7 +1015,7 @@ export const useMainStore = defineStore('main', {
 		},
 		choosePoint(point: Point, of?: Place | Route | Measure) {
 			if (!point) {
-				this.currentPoint = null;
+				this.setCurrentPoint(null);
 				return;
 			}
 			switch (of?.type) {
@@ -981,10 +1028,10 @@ export const useMainStore = defineStore('main', {
 							break;
 						}
 					}
-					this.currentPoint = point;
+					this.setCurrentPoint(point.id);
 					break;
 				default:
-					this.currentPoint = point;
+					this.setCurrentPoint(point.id);
 			}
 		},
 		addPointToMeasure(point: Point = this.currentPoint) {
@@ -1070,6 +1117,7 @@ export const useMainStore = defineStore('main', {
 			const name = (Math.max(0, ...numbers) + 1).toString();
 			this.points[point.id] = point;
 			route.points.push({ id: point.id, name });
+			this.setCurrentPoint(point.id);
 			if (point.altitude === null) {
 				this.getAltitude(point.latitude, point.longitude).then(alt => {
 					if (this.points[point.id]) {
@@ -1277,7 +1325,7 @@ export const useMainStore = defineStore('main', {
 			}
 			delete this.temps[id];
 			if (this.currentPoint && this.currentPoint.id === id) {
-				this.currentPoint = null;
+				this.setCurrentPoint(null);
 			}
 		},
 		deleteAllTemps() {

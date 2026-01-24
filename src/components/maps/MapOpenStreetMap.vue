@@ -21,7 +21,7 @@
 						{{ mainStore.t.i.captions.measurePoint }}:
 					</span>
 					<span class="color-01">
-						{{ pointInfo.point?.name }}
+						{{ pointInfo.name }}
 					</span>
 				</h3>
 				<div class="nobr">
@@ -105,12 +105,10 @@
 				]"
 				draggable
 				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
-				@click="() => {
-					mainStore.currentPlace = place;
-					mainStore.choosePoint(mainStore.points[place.pointid], place);
-				}"
+				@click="mainStore.setCurrentPlace(place.id)"
 				@contextmenu="e => {
 					pointInfo.point = mainStore.points[place.pointid];
+					pointInfo.name = place.name;
 					popupProps.show = !popupProps.show;
 					popupProps.position.top = e.originalEvent.clientY + 5;
 					popupProps.position.right =
@@ -135,6 +133,44 @@
 				</l-tooltip>
 			</l-marker>
 			<l-marker
+				v-for="(place, id) in mainStore.commonPlaces"
+				:key="id"
+				:lat-lng="[
+					mainStore.points[place.pointid].latitude,
+					mainStore.points[place.pointid].longitude,
+				]"
+				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
+				@click="mainStore.choosePoint(mainStore.points[place.pointid])"
+				@contextmenu="e => {
+					pointInfo.point = mainStore.points[place.pointid];
+					pointInfo.name = place.name;
+					popupProps.show = !popupProps.show;
+					popupProps.position.top = e.originalEvent.clientY + 5;
+					popupProps.position.right =
+						e.originalEvent.view.document.documentElement.clientWidth -
+						e.originalEvent.clientX + 5;
+				}"
+			>
+				<l-icon
+					v-bind="(
+						mainStore.mode === 'measure' &&
+						mainStore.measure.points.find(p => p.id === id) &&
+						place !== mainStore.currentPlace
+							? icon_01_blue
+							: (place === mainStore.currentPlace ? icon_01_green : icon_01_grey)
+					) as {}"
+					style="opacity: 0"
+				/>
+				<l-tooltip>
+					{{ place.name }}<br />
+					{{ mainStore.t.i.captions.user }}: {{
+						mainStore.users[place.userid].name
+							? mainStore.users[place.userid].name
+							: mainStore.users[place.userid].login
+					}}
+				</l-tooltip>
+			</l-marker>
+			<l-marker
 				v-for="(point, id) in mainStore.temps"
 				:key="id"
 				:lat-lng="[point.latitude, point.longitude]"
@@ -147,6 +183,7 @@
 				@click="mainStore.choosePoint(point)"
 				@contextmenu="e => {
 					pointInfo.point = point;
+					pointInfo.name = Object.keys(mainStore.temps).indexOf(point.id) + 1;
 					popupProps.show = !popupProps.show;
 					popupProps.position.top = e.originalEvent.clientY + 5;
 					popupProps.position.right =
@@ -162,7 +199,7 @@
 						mainStore.mode === 'measure' &&
 						mainStore.measure.points.find(p => p.id === id) &&
 						point !== mainStore.currentPoint
-							? icon_01_blue_faded
+							? icon_null
 							: (point === mainStore.currentPoint
 								? icon_01_green_faded
 								: icon_01_faded)
@@ -188,6 +225,11 @@
 				@click="mainStore.choosePoint(point)"
 				@contextmenu="e => {
 					pointInfo.point = point;
+					pointInfo.name =
+						mainStore.currentRoute.points.find(
+							p => p.id === point.id
+						).name
+					;
 					popupProps.show = !popupProps.show;
 					popupProps.position.top = e.originalEvent.clientY + 5;
 					popupProps.position.right =
@@ -198,17 +240,27 @@
 				@mouseup="() => dragging = false"
 				@moveend="async (e: Event) => await placemarkDragEnd(point, e)"
 			>
-				<l-icon
-					v-bind="(
-						point !== mainStore.currentPoint
-							? icon_01_blue_faded
-							: (point === mainStore.currentPoint
-								? icon_01_green_faded
-								: icon_01_faded)
-					) as {}"
+				<l-icon v-bind="(
+					idx === mainStore.currentRoute.choosing
+						? icon_01_green : icon_null
+				) as {}" />
+				<l-circle-marker
+					v-if="
+						idx !== 0 &&
+						idx !== mainStore.currentRoute.points.length - 1
+					"
+					:lat-lng="[point.latitude, point.longitude]"
+					class-name="route-intermediate"
+					:radius="10"
+					:weight="1"
 				/>
 				<l-tooltip v-if="!popupProps.show" permanent="true">
-					{{ mainStore.t.i.captions.measurePoint + ' ' + point.name + ' —' }}
+					{{
+						mainStore.t.i.captions.routePoint + ' ' +
+						mainStore.currentRoute.points.find(
+							p => p.id === point.id
+						).name + ' — '
+					}}
 					{{ coords2string([point.latitude, point.longitude]) }}
 					{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
 				</l-tooltip>
@@ -217,13 +269,12 @@
 				v-if="mainStore.currentRoute && mainStore.currentRoute.points.length"
 				:lat-lngs="
 					mainStore.getPointCoordsArray(
-						mainStore.currentRoute.points.map(p => p.id)
+						mainStore.currentRoute?.points.map(p => p.id) ?? []
 					) as LatLngExpression[]
 				"
 				color="rgba(0, 0, 0, 1)"
 				:weight="0.5"
-			>
-			</l-polyline>
+			/>
 			<l-polyline
 				v-if="mainStore.mode === 'measure' && mainStore.measure.points.length"
 				:lat-lngs="
@@ -235,42 +286,34 @@
 				:weight="0.5"
 			>
 			</l-polyline>
-			<l-marker
-				v-for="(place, id) in mainStore.commonPlaces"
-				:key="id"
-				:lat-lng="[
-					mainStore.points[place.pointid].latitude,
-					mainStore.points[place.pointid].longitude,
-				]"
-				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
-				@click="mainStore.choosePoint(mainStore.points[place.pointid])"
-				@contextmenu="e => {
-					pointInfo.point = mainStore.points[place.pointid];
-					popupProps.show = !popupProps.show;
-					popupProps.position.top = e.originalEvent.clientY + 5;
-					popupProps.position.right =
-						e.originalEvent.view.document.documentElement.clientWidth -
-						e.originalEvent.clientX + 5;
-				}"
-			>
-				<l-icon
-					v-bind="(
-						mainStore.mode === 'measure' &&
-						mainStore.measure.points.find(p => p.id === id) &&
-						place !== mainStore.currentPlace
-							? icon_01_blue
-							: (place === mainStore.currentPlace ? icon_01_green : icon_01_grey)
-					) as {}"
-				/>
-				<l-tooltip>
-					{{ place.name }}<br />
-					{{ mainStore.t.i.captions.user }}: {{
-						mainStore.users[place.userid].name
-							? mainStore.users[place.userid].name
-							: mainStore.users[place.userid].login
-					}}
-				</l-tooltip>
-			</l-marker>
+			<l-circle-marker
+				v-if="polylineCurrentRouteCoords.length"
+				:lat-lng="polylineCurrentRouteCoords[0]"
+				class-name="route-start"
+				:radius="13"
+				:weight="1"
+			/>
+			<l-circle-marker
+				v-if="polylineCurrentRouteCoords.length"
+				:lat-lng="polylineCurrentRouteCoords[polylineCurrentRouteCoords.length - 1]"
+				class-name="route-end"
+				:radius="13"
+				:weight="1"
+			/>
+			<l-circle-marker
+				v-if="polylineCurrentMeasureCoords.length"
+				:lat-lng="polylineCurrentMeasureCoords[0]"
+				class-name="measure-start"
+				:radius="13"
+				:weight="1"
+			/>
+			<l-circle-marker
+				v-if="polylineCurrentMeasureCoords.length"
+				:lat-lng="polylineCurrentMeasureCoords[polylineCurrentMeasureCoords.length - 1]"
+				class-name="measure-end"
+				:radius="13"
+				:weight="1"
+			/>
 		</l-map>
 	</div>
 </div>
@@ -288,6 +331,7 @@ import {
 	LIcon,
 	LControlLayers,
 	LPolyline,
+	LCircleMarker,
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Point } from '@/stores/types';
@@ -304,6 +348,7 @@ const mainStore = useMainStore();
 
 const pointInfo = ref({
 	point: null,
+	name: null,
 });
 const popupProps = ref<IPlacesPopupProps>({
 	show: false,
@@ -359,6 +404,7 @@ const icon_01_blue = ref({
 	shadowSize: [25, 38],
 	shadowAnchor: [2, 24],
 });
+/*
 const icon_01_blue_faded = ref({
 	iconUrl: '/img/markers/marker_01_blue_faded.svg',
 	iconSize: [25, 38],
@@ -367,6 +413,13 @@ const icon_01_blue_faded = ref({
 	shadowUrl: '/img/markers/marker_01_shadow.svg',
 	shadowSize: [25, 38],
 	shadowAnchor: [2, 24],
+});
+*/
+const icon_null = ref({
+	iconUrl: '/img/markers/marker_null.svg',
+	iconSize: [20, 20],
+	iconAnchor: [10, 10],
+	popupAnchor: [0, -0],
 });
 const icon_01_green = ref({
 	iconUrl: '/img/markers/marker_01_green.svg',
@@ -433,6 +486,16 @@ const mapCenter = computed(() => ({
 	],
 	zoom: mainStore.zoom,
 }));
+const polylineCurrentRouteCoords = computed(() =>
+	mainStore.getPointCoordsArray(
+		mainStore.currentRoute?.points.map(p => p.id) ?? []
+	) as LatLngExpression[]
+);
+const polylineCurrentMeasureCoords = computed(() =>
+	mainStore.getPointCoordsArray(
+		mainStore.measure.points.map(p => p.id)
+	) as LatLngExpression[]
+);
 
 const dragging = ref(false);
 
@@ -455,6 +518,7 @@ const mapContextMenu = (e: any) => {
     }
 }
 const placemarkDragEnd = async (point: Place | Point, event: any) => {
+	console.log(mainStore.currentRoute.points.find(p => p.id === point.id).name);
 	const coordinates = event.target.getLatLng();
 	await mainStore[point.type === 'point' ? 'changePoint' : 'changePlace']({
 		[point.type === 'point' ? 'point' : 'place']: point,

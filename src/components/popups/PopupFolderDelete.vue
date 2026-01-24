@@ -126,9 +126,9 @@ const deleteFolder = (): void => {
 		}
 		if (current.value && current.value.deleted) {
 			if (!Object.keys(mainStore[props.type]).length) {
-				mainStore.currentPlace = null;
+				mainStore.setCurrentPlace(null);
 			} else if (mainStore.homePlace && !mainStore.homePlace.deleted) {
-				mainStore.currentPlace = mainStore.homePlace;
+				mainStore.setCurrentPlace(mainStore.homePlace.id);
 			} else {
 				const itemsInRoot: Ref<Place[] | Route[]> = ref(
 					Object.values(mainStore[props.type] as Place[] | Route[]).filter(
@@ -141,13 +141,13 @@ const deleteFolder = (): void => {
 					)
 				);
 				if (itemsInRoot.value[0] && !itemsInRoot.value[0].deleted) {
-					mainStore.currentPlace = itemsInRoot.value[0] as Place;
+					mainStore.setCurrentPlace((itemsInRoot.value[0] as Place).id);
 				} else if (
 					!Object.values(mainStore[props.type] as Place[] | Route[])[0].deleted
 				) {
-					mainStore.currentPlace = Object.values(mainStore[props.type])[0] as Place;
+					mainStore.setCurrentPlace((Object.values(mainStore[props.type])[0] as Place).id);
 				} else {
-					mainStore.currentPlace = null;
+					mainStore.setCurrentPlace(null);
 				}
 			}
 		}

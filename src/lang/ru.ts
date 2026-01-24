@@ -54,6 +54,7 @@ export const t = {
 			repeatPassword: 'Повторите пароль',
 			rootFolder: 'Мои места',
 			rootRoutesFolder: 'Мои пути',
+			routePoint: 'Точка пути',
 			srt: 'Сортировка',
 			sure: 'Вы уверены?',
 			system: 'Системн.',

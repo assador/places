@@ -1,3 +1,7 @@
+export interface PointName {
+	id: string,
+	name: string,
+}
 export interface Point {
 	type: string;
 	id: string;
@@ -5,7 +9,6 @@ export interface Point {
 	latitude: number;
 	longitude: number;
 	altitude?: number | null;
-	name?: string;
 	time?: string;
 	common: boolean;
 	added: boolean;
@@ -37,7 +40,7 @@ export interface Route {
 	id: string;
 	userid: string;
 	folderid: string;
-	points: { id: string, name: string }[];
+	points: PointName[];
 	choosing: number | null;
 	name: string;
 	description?: string;
@@ -105,10 +108,6 @@ export interface Group {
 	deleted?: boolean;
 	updated?: boolean;
 	checked?: boolean;
-}
-export interface PointName {
-	id: string,
-	name: string,
 }
 export interface Measure {
 	type: string;

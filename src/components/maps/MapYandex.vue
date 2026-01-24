@@ -102,8 +102,7 @@
 			position="top-center left-center"
 			@mouseup="() => {
 				placemarkDragEnd(place);
-				mainStore.currentPlace = place;
-				mainStore.choosePoint(mainStore.points[place.pointid]);
+				mainStore.setCurrentPlace(place.id);
 			}"
 			@contextmenu="e => {
 				pointInfo.point = mainStore.points[place.pointid];
@@ -151,10 +150,7 @@
 				draggable: false,
 			}"
 			position="top-center left-center"
-			@click="() => {
-				mainStore.currentPlace = place;
-				mainStore.choosePoint(mainStore.points[place.pointid]);
-			}"
+			@click="mainStore.setCurrentPlace(place.id)"
 			@contextmenu="e => {
 				pointInfo.point = mainStore.points[place.pointid];
 				popupProps.show = !popupProps.show;
