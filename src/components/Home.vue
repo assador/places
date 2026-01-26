@@ -117,7 +117,7 @@
 				</span>
 			</form>
 			<Measure />
-			<Points v-if="mainStore.tempsShow" type="temps" />
+			<Points v-if="mainStore.tempsShow.show" type="temps" />
 			<div v-if="mainStore.routesShow" id="routes">
 				<div id="routes-tree" class="margin_bottom">
 					<div
@@ -171,7 +171,7 @@
 					</div>
 				</div>
 			</div>
-			<div v-if="mainStore.placesShow" id="places-tree">
+			<div v-if="mainStore.placesShow.show" id="places-tree">
 				<div
 					id="places-menu"
 					class="menu"
@@ -368,10 +368,10 @@
 		<div class="control-buttons">
 			<button
 				id="actions-places"
-				:class="'actions-button' + (mainStore.placesShow ? ' button-pressed' : '')"
+				:class="'actions-button' + (mainStore.placesShow.show ? ' button-pressed' : '')"
 				:title="mainStore.t.i.captions.places"
 				accesskey="p"
-				@click="() => mainStore.placesShow = !mainStore.placesShow"
+				@click="() => mainStore.placesShow.show = !mainStore.placesShow.show"
 			>
 				<span>☩</span>
 				<span>{{ mainStore.t.i.captions.places }}</span>
@@ -388,10 +388,10 @@
 			</button>
 			<button
 				id="actions-points"
-				:class="'actions-button' + (mainStore.tempsShow ? ' button-pressed' : '')"
+				:class="'actions-button' + (mainStore.tempsShow.show ? ' button-pressed' : '')"
 				:title="mainStore.t.i.captions.independentPoints"
 				accesskey="t"
-				@click="() => mainStore.tempsShow = !mainStore.tempsShow"
+				@click="() => mainStore.tempsShow.show = !mainStore.tempsShow.show"
 			>
 				<span>⊙</span>
 				<span>{{ mainStore.t.i.captions.points }}</span>
@@ -657,7 +657,7 @@ import Points from '@/components/Points.vue';
 import Tree from '@/components/tree/Tree.vue';
 import RouteDetails from '@/components/details/Route.vue';
 import PlaceDetails from '@/components/details/Place.vue';
-import { Folder, Point, Place, Route, Image } from '@/stores/types';
+import { Folder, Place, Route, Image } from '@/stores/types';
 
 const maps = [
 	{
@@ -792,12 +792,6 @@ watchEffect(async () => {
 		);
 	}
 });
-watch(mainStore, changedStore => {
-	if (!changedStore.refreshing) {
-		sessionStorage.setItem('places-store-state', JSON.stringify(changedStore.$state));
-	}
-});
-
 onMounted(async () => {
 	if (mainStore.ready) stateReadyChanged();
 	mainStore.idleTime = 0;
@@ -908,82 +902,9 @@ watch(() => mainStore.currentRoute, current => {
 	if (!current || (current.common && current.userid !== mainStore.user.id)) return;
 	openTreeTo(mainStore.currentRoute);
 });
-
-const appendPlace = async (payload: Record<string, any> = {}): Promise<void | Place> => {
-	const { serverConfig, user, center, t, addPlace, addPoint, setMessage } = mainStore;
-	// Check places limit
-	if (
-		!user.testaccount &&
-		serverConfig.rights.placescount > 0 &&
-		serverConfig.rights.placescount <= Object.keys(mainStore.places).length
-	) {
-		setMessage(t.m.popup.placesCountExceeded);
-		return;
-	}
-	const newPoint: Point = {
-		id: crypto.randomUUID(),
-		userid: user.id,
-		latitude: center.latitude ?? null,
-		longitude: center.longitude ?? null,
-		time: new Date().toISOString().slice(0, -5),
-		common: false,
-		type: 'point',
-		added: true,
-		deleted: false,
-		updated: false,
-		show: true,
-	};
-	const newPlace: Place = {
-		type: 'place',
-		userid: sessionStorage.getItem('places-useruuid'),
-		name: '',
-		description: '',
-		pointid: '',
-		link: '',
-		time: new Date().toISOString().slice(0, -5),
-		id: crypto.randomUUID(),
-		folderid: 'root',
-		srt:
-			Object.keys(mainStore.places).length
-				? Math.ceil(Math.max(
-					...Object.values(mainStore.places).map((p: Place) => p.srt || 0)
-				)) + 1
-				: 1
-		,
-		common: false,
-		geomark: true,
-		images: {},
-		added: true,
-		deleted: false,
-		updated: false,
-		show: true,
-	};
-	for (const key in payload) newPlace[key] = payload[key];
-	newPlace.pointid = newPoint.id;
-	addPoint({ point: newPoint, from: newPlace, todb: false });
-	addPlace({ place: newPlace, todb: false });
-	if (payload['todb'] !== false && !mainStore.user.testaccount) {
-		emitter.emit('toDB', {
-			'points': [{ ...newPoint, from: newPlace }],
-			'places': [ newPlace ],
-		});
-	}
-	mainStore.setCurrentPlace(newPlace.id);
-	await nextTick();
-	const detailedNameElem = document.getElementById('place-detailed-name');
-	if (detailedNameElem) {
-		detailedNameElem.classList.add('highlight');
-		window.setTimeout(() => {
-			detailedNameElem.classList.remove('highlight');
-			detailedNameElem.focus();
-		}, 500);
-	}
-	return newPlace;
-};
-provide('appendPlace', appendPlace);
-
+/*
 const appendRoute = async (payload: Record<string, any> = {}): Promise<void | Route> => {
-	const { routes, serverConfig, user, t, addRoute, setMessage } = mainStore;
+	const { routes, serverConfig, user, t, setMessage } = mainStore;
 	const routesCount = Object.keys(routes).length;
 	const maxRoutes = serverConfig.rights.routescount;
 	// Check routes limit
@@ -1042,7 +963,7 @@ const appendRoute = async (payload: Record<string, any> = {}): Promise<void | Ro
 	return newRoute;
 };
 provide('appendRoute', appendRoute);
-
+*/
 const commonPlacesShowHide = (show = null): void => {
 	commonPlacesShow.value =
 		show === null
@@ -1135,58 +1056,55 @@ const uploadFiles = async (event: Event) => {
 	const imagesAddInput = document.getElementById('images-add__input') as HTMLInputElement;
 	if (imagesUploading) imagesUploading.classList.remove('hidden');
 	data.append('userid', mainStore.user.id);
-	axios.post('/backend/upload.php', data)
-		.then(response => {
-			if (imagesAddInput) imagesAddInput.value = '';
-			if (imagesUploading) imagesUploading.classList.add('hidden');
-			const [errorCodes, uploadedFiles] = response.data;
-			// Remove from the array those files that were not downloaded
-			const uploadedIds = new Set(uploadedFiles.map((f: any) => f.id));
-			for (let i = filesArray.length - 1; i >= 0; i--) {
-				if (!uploadedIds.has(filesArray[i].id)) {
-					filesArray.splice(i, 1);
-				}
+	const response = await axios.post('/backend/upload.php', data);
+	try {
+		if (imagesAddInput) imagesAddInput.value = '';
+		if (imagesUploading) imagesUploading.classList.add('hidden');
+		const [errorCodes, uploadedFiles] = response.data;
+		// Remove from the array those files that were not downloaded
+		const uploadedIds = new Set(uploadedFiles.map((f: any) => f.id));
+		for (let i = filesArray.length - 1; i >= 0; i--) {
+			if (!uploadedIds.has(filesArray[i].id)) {
+				filesArray.splice(i, 1);
 			}
-			// Errors handling
-			errorCodes.forEach((code: number) => {
-				switch (code) {
-					case 2:
-						mainStore.setMessage(popup.taNotAllowFileUploads);
-						break;
-					case 3:
-						mainStore.setMessage(popup.filesNotImages);
-						break;
-					case 4:
-						mainStore.setMessage(
-							`${popup.filesTooLarge} ${(
-								(mainStore.serverConfig.rights.photosize / 1048576).toFixed(3)
-							) || 0} Mb.`
-						);
-						break;
-				}
-			});
-			if (uploadedFiles.length > 0 && mainStore.currentPlace) {
-				const newImagesObject: Record<string, Image> = {
-					...(mainStore.currentPlace.images || {})
-				};
-				for (const image of filesArray) {
-					newImagesObject[image.id] = image;
-				}
-				mainStore.changePlace({
-					place: mainStore.currentPlace,
-					change: { images: newImagesObject },
-				}).then(() => {
-					toDB({ 'places': [ mainStore.currentPlace ] });
-				});
-				toDB({ 'images_upload': filesArray });
-				mainStore.setMessage(popup.filesUploadedSuccessfully);
+		}
+		// Errors handling
+		errorCodes.forEach((code: number) => {
+			switch (code) {
+				case 2:
+					mainStore.setMessage(popup.taNotAllowFileUploads);
+					break;
+				case 3:
+					mainStore.setMessage(popup.filesNotImages);
+					break;
+				case 4:
+					mainStore.setMessage(
+						`${popup.filesTooLarge} ${(
+							(mainStore.serverConfig.rights.photosize / 1048576).toFixed(3)
+						) || 0} Mb.`
+					);
+					break;
 			}
-		})
-		.catch(error => {
-			mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);
-			if (imagesAddInput) imagesAddInput.value = '';
-			if (imagesUploading) imagesUploading.classList.add('hidden');
 		});
+		if (uploadedFiles.length > 0 && mainStore.currentPlace) {
+			const newImagesObject: Record<string, Image> = {
+				...(mainStore.currentPlace.images || {})
+			};
+			for (const image of filesArray) {
+				newImagesObject[image.id] = image;
+			}
+			mainStore.changePlace({
+				place: mainStore.currentPlace,
+				change: { images: newImagesObject },
+			});
+			toDB({ 'images_upload': filesArray });
+			mainStore.setMessage(popup.filesUploadedSuccessfully);
+		}
+	} catch(error) {
+		mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);
+		if (imagesAddInput) imagesAddInput.value = '';
+		if (imagesUploading) imagesUploading.classList.add('hidden');
+	}
 };
 provide('uploadFiles', uploadFiles);
 
@@ -1198,7 +1116,7 @@ const keyup = (event: Event): void => {
 	if (!shortcut) return;
 	blur();
 	const actions: Record<string, () => void> = {
-		'add': () => appendPlace(),
+		'add': () => mainStore.appendPlace(),
 		'add folder': () => router.push({ name: 'HomeFolder' }),
 		'edit mode': () => foldersEditMode.value = !foldersEditMode.value,
 		'import': () => importFromFileInput.value.click(),

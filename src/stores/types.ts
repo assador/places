@@ -1,3 +1,22 @@
+export type AppendMode =
+	| 'change' // change the existing one
+	| 'clone'  // create new based on the existing one
+	| 'move'   // move the existing one to another object
+	| 'new'    // create new
+;
+export interface DataToDB {
+	points?: Point[],
+	places?: Place[],
+	routes?: Route[],
+	images?: Image[],
+	images_delete?: Image[],
+	images_update?: Image[],
+	folders?: Folder[],
+}
+export interface FirstShow {
+	show: boolean,
+	first: boolean,
+}
 export interface PointName {
 	id: string,
 	name: string,

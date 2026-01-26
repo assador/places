@@ -63,7 +63,25 @@ $images = array(
 );
 $uploadsize = 12582912;
 $rights = array(
+	"pointscount" => array(
+		"publishers" => -1,
+		"managers"   => -1,
+		"admins"     => -1,
+		"beginners"  => 100,
+		"ordinary"   => 300,
+		"trusted"    => 1000,
+		"superusers" => -1,
+	),
 	"placescount" => array(
+		"publishers" => -1,
+		"managers"   => -1,
+		"admins"     => -1,
+		"beginners"  => 100,
+		"ordinary"   => 300,
+		"trusted"    => 1000,
+		"superusers" => -1,
+	),
+	"routescount" => array(
 		"publishers" => -1,
 		"managers"   => -1,
 		"admins"     => -1,

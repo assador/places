@@ -1,19 +1,27 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
 
-$result = $ctx->db->exec("
-	UPDATE `users` SET `confirmed` = 1 WHERE `token` = '" . $_GET["token"] . "'
+$query = $ctx->db->prepare("
+	UPDATE `users` SET `confirmed` = 1 WHERE `token` = ':token'
 ");
+$query->execute([
+	":token" => $_GET["token"],
+]);
 if ($result === 1) {
-	$query = $ctx->db->query("
-		SELECT `id` FROM `users` WHERE `token` = '" . $_GET["token"] . "'
+	$query = $ctx->db->prepare("
+		SELECT `id` FROM `users` WHERE `token` = ':token'
 	");
+	$query->execute([
+		":token" => $_GET["token"],
+	]);
 	$user = $query->fetch(PDO::FETCH_ASSOC);
 	$query = $ctx->db->prepare("
 		INSERT INTO `usergroup` (`user`, `group`, `enabled`)
-		VALUES ('" . $user["id"] . "', 'beginners', 1)
+		VALUES (':userid', 'beginners', 1)
 	");
-	$query->execute();
+	$query->execute([
+		":userid" => $user["id"],
+	]);
 	echo '
 		<h1>Успешно</h1>
 		<p>

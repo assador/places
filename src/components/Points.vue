@@ -40,7 +40,7 @@
 				<button
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addTemp"
-					@click="mainStore.addTemp()"
+					@click="mainStore.appendPoint({ where: mainStore.temps })"
 				/>
 				<button
 					class="button-iconed icon icon-cross-45"
@@ -56,7 +56,10 @@
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addRoutePoint"
 					@click="async () => {
-						const point = await mainStore.addRoutePoint();
+						const point = mainStore.appendPoint({
+							where: mainStore.points,
+							whom: mainStore.currentRoute,
+						});
 						mainStore.setCurrentPlace(point.id);
 					}"
 				/>
@@ -69,7 +72,7 @@
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addTemp"
 					@click="async () => {
-						const point = await mainStore.addTemp();
+						const point = mainStore.appendPoint({ where: mainStore.temps });
 						mainStore.addPointToMeasure(point);
 						mainStore.setCurrentPoint(point.id);
 					}"
@@ -198,7 +201,7 @@
 		">
 			<button
 				v-if="type === 'temps'"
-				v-for="(temp, id, idx) in mainStore.temps"
+				v-for="(temp, idx) in computedTemps"
 				:class="mainStore.currentPoint?.id === temp.id ? 'button-pressed' : ''"
 				@click.prevent="mainStore.setCurrentPoint(temp.id)"
 				@contextmenu.prevent="e => {
@@ -212,7 +215,7 @@
 				<span
 					class="button-iconed icon icon-cross-45"
 					:title="mainStore.t.i.hints.deleteTemp"
-					@click.stop="mainStore.deleteTemp(id)"
+					@click.stop="mainStore.deleteTemp(temp.id)"
 				/>
 			</button>
 			<button
@@ -312,15 +315,10 @@
 					:data-point="point.id"
 					:data-pointidx="idx"
 					:data-pointof="'measure'"
-					:title="mainStore.t.i.hints.deleteRoute"
+					:title="mainStore.t.i.hints.deletePoint"
 					class="button-iconed icon icon-cross-45"
 					@dragenter="highlighted = point.id"
-					@click.stop="() => {
-						mainStore.measure.points.splice(idx, 1);
-						if (idx > mainStore.measure.points.length - 1) {
-							mainStore.measure.choosing = mainStore.measure.points.length - 1
-						};
-					}"
+					@click.stop="mainStore.deleteTemp(point.id)"
 				/>
 			</button>
 		</div>
@@ -376,6 +374,12 @@ const copyCoords = async (point: Point) => {
 	copied.value = true;
 	setTimeout(() => copied.value = false, 2000);
 };
+
+const computedTemps = computed(() => {
+	if (!mainStore.tempsShow.show) return [];
+	const ids = new Set(mainStore.measure.points.map(p => p.id));
+	return Object.values(mainStore.temps).filter(temp => !ids.has(temp.id));
+});
 
 const distance = computed(() => {
 	const idsArray = ref([]);

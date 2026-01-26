@@ -1,5 +1,5 @@
 <template>
-	<div v-if="mainStore.placesShow && mainStore.currentPlace" id="place-description">
+	<div v-if="mainStore.placesShow.show && mainStore.currentPlace" id="place-description">
 		<h2
 			v-if="mainStore.routesShow"
 				class="color-01"
@@ -35,13 +35,10 @@
 						:type="field === 'srt' ? 'number' : 'text'"
 						:disabled="!!currentPlaceCommon"
 						class="fieldwidth_100"
-						@change="async () => {
-							await mainStore.changePlace({
-								place: mainStore.currentPlace,
-								change: { [field]: mainStore.currentPlace[field],
-								}
-							});
-						}"
+						@change="mainStore.changePlace({
+							place: mainStore.currentPlace,
+							change: { [field]: mainStore.currentPlace[field] }
+						})"
 					/>
 				</dd>
 			</template>
@@ -58,12 +55,10 @@
 								type="number"
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="async e => {
-									await mainStore.changePlace({
-										place: mainStore.currentPlace,
-										change: { latitude: (e.target as HTMLInputElement).value.trim() }
-									});
-								}"
+								@change="e => mainStore.changePlace({
+									place: mainStore.currentPlace,
+									change: { latitude: (e.target as HTMLInputElement).value.trim() }
+								})"
 							/>
 						</dd>
 					</div>
@@ -79,7 +74,7 @@
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
 								@change="async e => {
-									await mainStore.changePlace({
+									mainStore.changePlace({
 										place: mainStore.currentPlace,
 										change: { longitude: (e.target as HTMLInputElement).value.trim()}
 									});
@@ -98,13 +93,12 @@
 								type="text"
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="async e => {
+								@change="e => {
 									const coords = string2coords(
 										(e.target as HTMLInputElement).value.trim()
 									);
-									// console.log(coords);
 									if (coords === null) return;
-									await mainStore.changePlace({
+									mainStore.changePlace({
 										place: mainStore.currentPlace,
 										change: {
 											latitude: coords[0],
@@ -135,12 +129,10 @@
 						type="datetime-local"
 						:disabled="!!currentPlaceCommon"
 						class="fieldwidth_100"
-						@change="async () => {
-							await mainStore.changePlace({
-								place: mainStore.currentPlace,
-								change: { [field]: mainStore.currentPlace[field] },
-							});
-						}"
+						@change="mainStore.changePlace({
+							place: mainStore.currentPlace,
+							change: { [field]: mainStore.currentPlace[field] },
+						})"
 					/>
 				</dd>
 			</template>
@@ -152,12 +144,10 @@
 							v-model="mainStore.currentPlace[field]"
 							type="checkbox"
 							:disabled="!!currentPlaceCommon"
-							@change="async () => {
-								await mainStore.changePlace({
-									place: mainStore.currentPlace,
-									change: { [field]: mainStore.currentPlace[field] },
-								});
-							}"
+							@change="mainStore.changePlace({
+								place: mainStore.currentPlace,
+								change: { [field]: mainStore.currentPlace[field] },
+							})"
 						/>
 						{{ mainStore.t.i.inputs.checkboxCommon }}
 					</label>
@@ -247,12 +237,10 @@
 								)
 							"
 						class="fieldwidth_100"
-						@change="async () => {
-							await mainStore.changePlace({
-								place: mainStore.currentPlace,
-								change: { [field]: mainStore.currentPlace[field] },
-							});
-						}"
+						@change="mainStore.changePlace({
+							place: mainStore.currentPlace,
+							change: { [field]: mainStore.currentPlace[field] },
+						})"
 					/>
 				</dd>
 			</template>
@@ -319,6 +307,10 @@ const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
 const mainStore = useMainStore();
 const router = useRouter();
 
+const linkEditing = ref(false);
+const highlightedLeft = ref(null);
+const highlightedRight = ref(null);
+
 const currentPlaceLat = computed<number | null>(() =>
 	mainStore.currentPlace
 		? mainStore.points[mainStore.currentPlace.pointid]?.latitude ?? null
@@ -346,9 +338,18 @@ const currentPlaceAlt = computed<number | null>(() => {
 const currentDegMinSec = computed(() =>
 	coords2string([currentPlaceLat.value, currentPlaceLon.value])
 );
-const linkEditing = ref(false);
-const highlightedLeft = ref(null);
-const highlightedRight = ref(null);
+/*
+const focusToName = () => {
+	const element = document.getElementById('place-detailed-name');
+	if (element) {
+		element.classList.add('highlight');
+		window.setTimeout(() => {
+			element.classList.remove('highlight');
+			element.focus();
+		}, 500);
+	}
+}
+*/
 </script>
 
 <style lang="scss" scoped>

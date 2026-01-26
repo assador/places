@@ -142,21 +142,13 @@
 						@click.stop="() => {
 							switch (what) {
 								case 'places':
-									appendPlace({
-										folderid: folder.id,
-										srt:
-											places.length > 0
-												? places[places.length - 1].srt + 1
-												: 1
+									mainStore.appendPlace({
+										props: { folderid: folder.id },
 									});
 									break;
 								case 'routes':
-									appendRoute({
-										folderid: folder.id,
-										srt:
-											routes.length > 0
-												? routes[routes.length - 1].srt + 1
-												: 1
+									mainStore.appendRoute({
+										props: { folderid: folder.id },
 									});
 									break;
 							}
@@ -166,7 +158,7 @@
 						class="folder-button__control icon icon-plus"
 						:title="mainStore.t.i.hints.addFolderIn"
 						accesskey="f"
-						@click="router.push({
+						@click.stop="router.push({
 							name: 'HomeFolder',
 							params: { parentId: folder.id },
 						})"
@@ -221,7 +213,7 @@
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addPlace"
 					accesskey="a"
-					@click="appendPlace()"
+					@click="mainStore.appendPlace()"
 				/>
 				<button
 					class="button-iconed icon icon-plus"
@@ -241,7 +233,7 @@
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addRoute"
 					accesskey="a"
-					@click="appendRoute()"
+					@click="mainStore.appendRoute()"
 				/>
 				<button
 					class="button-iconed icon icon-cross-45"
@@ -420,26 +412,28 @@
 						v-if="what === 'places'"
 						class="place-button__control icon icon-plus"
 						:title="mainStore.t.i.hints.addPlaceNext"
-						@click.stop="appendPlace({
-							folderid: folder.id,
-							srt: (
-								index === places.length - 1
+						@click.stop="mainStore.appendPlace({
+							props: {
+								folderid: folder.id,
+								srt: index === places.length - 1
 									? object.srt + 1
 									: object.srt + (places[index + 1].srt - object.srt) / 2
-							),
+								,
+							},
 						})"
 					/>
 					<span
 						v-else-if="what === 'routes'"
 						class="place-button__control icon icon-plus"
 						:title="mainStore.t.i.hints.addRouteNext"
-						@click.stop="appendRoute({
-							folderid: folder.id,
-							srt: (
-								index === routes.length - 1
+						@click.stop="mainStore.appendRoute({
+							props: {
+								folderid: folder.id,
+								srt: index === routes.length - 1
 									? object.srt + 1
 									: object.srt + (routes[index + 1].srt - object.srt) / 2
-							),
+								,
+							},
 						})"
 					/>
 					<span
@@ -533,9 +527,6 @@ const handleDragStart = inject<typeof handleDragStart>('handleDragStart');
 const handleDragEnter = inject<typeof handleDragEnter>('handleDragEnter');
 const handleDragLeave = inject<typeof handleDragLeave>('handleDragLeave');
 const handleDrop = inject<typeof handleDrop>('handleDrop');
-
-const appendPlace = inject('appendPlace') as (payload?: Record<string, any>) => void;
-const appendRoute = inject('appendRoute') as (payload?: Record<string, any>) => void;
 
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));
 const places = computed(() =>

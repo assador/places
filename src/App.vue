@@ -16,7 +16,7 @@ import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { emitter, moveInArrayAfter, moveInObject } from '@/shared';
-import { Place, Route, Image, Folder, Point } from '@/stores/types';
+import { Point, Place, Route, Folder, Image, DataToDB } from '@/stores/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
 // Refs and Provides
@@ -116,9 +116,6 @@ mainStore.changeLang(mainStore.lang);
 
 // Lifecycle
 onMounted(() => {
-	const state = sessionStorage.getItem('places-store-state');
-	if (state) mainStore.replaceState(JSON.parse(state));
-
 	mainStore.$onAction(({
 		// name,
 		// store,
@@ -128,16 +125,15 @@ onMounted(() => {
 	}): void => {
 /*
 		const actions = [
-			'addPlace',
-			'changePlace',
-			'deleteObjects',
-			'addRoute',
-			'changeRoute',
-			'addFolder',
+			'appendFolder',
+			'appendPlace',
+			'appendPoint',
+			'appendRoute',
 			'changeFolder',
-			'addTemp',
+			'changePlace',
 			'changePoint',
-			'deleteTemp',
+			'changeRoute',
+			'deleteObjects',
 			'setHomePlace',
 			'swapSrts',
 		];
@@ -151,7 +147,7 @@ onMounted(() => {
 });
 
 // DB Operations
-const toDB = async (payload: Record<string, any>): Promise<void> => {
+const toDB = async (payload: DataToDB): Promise<void> => {
 	if (mainStore.user.testaccount) return;
 	if (document.querySelector('.value_wrong')) {
 		mainStore.setMessage(mainStore.t.m.paged.incorrectFields);
@@ -159,19 +155,19 @@ const toDB = async (payload: Record<string, any>): Promise<void> => {
 	}
 	const userid = sessionStorage.getItem('places-useruuid');
 	const sessionid = sessionStorage.getItem('places-session');
-	await axios.post(`/backend/set_places.php`, {
-		data: payload,
-		userid: userid,
-		sessionid: sessionid,
-	})
-		.then(() => {
-			mainStore.savedToDB(payload);
-			mainStore.setMessage(mainStore.t.m.popup.savedToDb);
-		})
-		.catch(error => {
-			mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${error}`);
-		})
-	;
+	try {
+		await axios.post(`/backend/set_places.php`, {
+			data: payload,
+			userid: userid,
+			sessionid: sessionid,
+		});
+		mainStore.savedToDB(payload);
+		mainStore.setMessage(mainStore.t.m.popup.savedToDb);
+		
+	} catch (error: any) {
+		const errorMessage = error.response?.data?.message || error.message || error;
+		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${errorMessage}`);
+	}
 };
 provide('toDB', toDB);
 
@@ -182,13 +178,17 @@ const toDBCompletely = async (): Promise<void> => {
 		deleted?: boolean;
 		updated?: boolean;
 	}>(arr: Record<string, T>) => {
-		Object.values(arr).filter(item => item.added || item.deleted || item.updated);
+		return (
+			Object.values(arr).filter(
+				item => item.added || item.deleted || item.updated
+			)
+		);
 	}
 	toDB({
-		'points': filterChanged(mainStore.points),
-		'places': filterChanged(mainStore.places),
-		'routes': filterChanged(mainStore.places),
-		'folders': filterChanged(mainStore.folders),
+		points: filterChanged(mainStore.points),
+		places: filterChanged(mainStore.places),
+		routes: filterChanged(mainStore.routes),
+		folders: filterChanged(mainStore.folders),
 	});
 };
 provide('toDBCompletely', toDBCompletely);
@@ -207,13 +207,17 @@ const homeToDB = async (id: string): Promise<void> => {
 	}
 };
 
-const deleteImages = (images: Record<string, Image>, family?: boolean): void => {
+const deleteImages = async (images: Record<string, Image>, family?: boolean) => {
 	const data = new FormData();
 	Object.entries(images).forEach(([id, image]) => data.append('file_' + id, image.file));
 	data.append('userid', mainStore.user.id);
 	if (!mainStore.user.testaccount) {
-		axios.post('/backend/delete.php', data)
-			.then(() => toDB({ 'images_delete': Object.values(images) }));
+		try {
+			await axios.post('/backend/delete.php', data);
+			toDB({ 'images_delete': Object.values(images) });
+		} catch (error) {
+			console.error(error);
+		}
 	}
 	mainStore.deleteImages({ images, family });
 };
@@ -367,7 +371,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 			params && params.before ? true : false
 		);
 		mainStore.currentPlace.updated = true;
-		toDB({ 'images_update': Object.values(mainStore.currentPlace.images) });
+		toDB({ images_update: Object.values(mainStore.currentPlace.images) });
 		mainStore.currentPlace.updated = false;
 		cleanup();
 		return;
@@ -418,7 +422,10 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		items[item.sourceId].folderid = item.targetId;
 
 		items[item.sourceId].updated = true;
-		toDB({ 'places': [ items[item.sourceId] ] });
+		toDB({
+			[items[item.sourceId].type === 'place' ? 'places' : 'routes']:
+				[ items[item.sourceId] ]
+		});
 		items[item.sourceId].updated = false;
 
 		mainStore.backup = true;

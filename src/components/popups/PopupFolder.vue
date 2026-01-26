@@ -9,10 +9,12 @@
 			<form
 				class="folder-new__form margin_bottom_0"
 				@click.stop
-				@submit.prevent="appendFolder({
-					parentId: parentId,
-					name: folderName ? folderName : '',
-					description: folderDescription ? folderDescription : '',
+				@submit.prevent="mainStore.appendFolder({
+					props: {
+						parent: parentId,
+						name: folderName ? folderName : '',
+						description: folderDescription ? folderDescription : '',
+					},
 				})"
 			>
 				<table class="table_form">
@@ -76,7 +78,6 @@ import { ref, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import { makeFieldsValidatable } from '@/shared';
-import { Folder } from '@/stores/types';
 
 const mainStore = useMainStore();
 
@@ -101,56 +102,6 @@ const close = (): void => {
 const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
 };
-const appendFolder = (payload: { parentId: string, name: string, description: string }): void => {
-	const { parentId, name, description } = payload;
-	if (
-		mainStore.serverConfig.rights.folderscount < 0 ||
-		mainStore.serverConfig.rights.folderscount > Object.keys(mainStore.folders).length ||
-		mainStore.user.testaccount
-	) {
-		let srt = 1;
-		let parentFolder: Folder;
-		switch (parentId) {
-			case 'root':
-				parentFolder = mainStore.tree;
-				break;
-			case 'routesroot':
-				parentFolder = mainStore.treeRoutes;
-				break;
-			default:
-				parentFolder = mainStore.folders[parentId] ?? mainStore.tree;
-				break;
-		}
-		if (parentFolder.children?.length) {
-			srt =
-				Object.values(parentFolder.children)
-					[Object.values(parentFolder.children).length - 1].srt + 1;
-		}
-		const newFolder: Folder = {
-			id: crypto.randomUUID(),
-			parent: parentId,
-			name: name,
-			description: description,
-			srt: Number(srt) || 0,
-			geomarks: 1,
-			builded: false,
-			type: 'folder',
-			added: true,
-			deleted: false,
-			updated: false,
-			opened: false,
-			userid: sessionStorage.getItem('places-useruuid'),
-		};
-		mainStore.addFolder({ folder: newFolder });
-		message.value = mainStore.t.m.paged.folderCreated;
-		folderName.value = '';
-		folderDescription.value = '';
-		document.getElementById('folderName')!.focus();
-	} else {
-		message.value = mainStore.t.m.paged.foldersCountExceeded;
-	}
-};
-
 onMounted(async () => {
 	popuped.value = true;
 	await nextTick();

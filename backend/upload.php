@@ -25,17 +25,20 @@ if (testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
 			"type"         => $mime,
 		);
 	}
-	$query = $ctx->db->query("
+	$query = $ctx->db->prepare("
 		SELECT `id`
 		FROM `groups`
 		WHERE `id`
 		IN (
 			SELECT `group`
 			FROM `usergroup`
-			WHERE `user` = '" . $_POST["userid"] . "'
+			WHERE `user` = ':userid'
 		)
 		AND `system` = 1
 	");
+	$query->execute([
+		":userid" => $_POST["userid"],
+	]);
 	$result = $query->fetchAll(PDO::FETCH_ASSOC);
 	$found = false;
 	foreach($result as $row) {

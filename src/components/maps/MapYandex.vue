@@ -308,7 +308,7 @@ const popupProps = ref<IPlacesPopupProps>({
 });
 const placemarkDragEnd = async (point: Place | Point) => {
 	const coordinates = markers.value[point.id].coordinates.slice().reverse();
-	await mainStore[point.type === 'point' ? 'changePoint' : 'changePlace']({
+	mainStore[point.type === 'point' ? 'changePoint' : 'changePlace']({
 		[point.type === 'point' ? 'point' : 'place']: point,
 		change: {
 			latitude: Number(coordinates[0].toFixed(7)),

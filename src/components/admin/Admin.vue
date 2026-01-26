@@ -74,41 +74,34 @@ const adminStore = useAdminStore();
 const router = useRouter();
 
 const getUsers = async () => {
-	axios.post('/backend/get_users.php', {
+	const { data } = await axios.post('/backend/get_users.php', {
 		user: {
 			id: sessionStorage.getItem('places-useruuid'),
 			password: mainStore.user.password,
 		},
-	})
-	.then(response => {
-		switch (response.data) {
-			case false :
-				throw new Error('Administrator’s password failed the verification');
-			default :
-				adminStore.setUsers(response.data);
-			}
-		})
-	;
+	});
+	switch (data) {
+		case false :
+			throw new Error('Administrator’s password failed the verification');
+		default :
+			adminStore.setUsers(data);
+	}
 };
 provide('getUsers', getUsers);
 
 const getGroups = async () => {
-	axios.post('/backend/get_allgroups.php', {
+	const { data } = await axios.post('/backend/get_allgroups.php', {
 		user: {
 			id: sessionStorage.getItem('places-useruuid'),
 			password: mainStore.user.password,
 		},
-	})
-	.then(response => {
-		switch (response.data) {
-			case false :
-				throw new Error('Administrator’s password failed the verification');
-				return;
-			default :
-				adminStore.setGroups(response.data);
-			}
-		})
-	;
+	});
+	switch (data) {
+		case false :
+			throw new Error('Administrator’s password failed the verification');
+		default :
+			adminStore.setGroups(data);
+	}
 };
 provide('getGroups', getGroups);
 

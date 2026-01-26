@@ -98,10 +98,8 @@
 				v-for="(place, id) in mainStore.places"
 				:key="id"
 				:lat-lng="[
-					mainStore.points[place.pointid]
-						? mainStore.points[place.pointid].latitude : 0,
-					mainStore.points[place.pointid]
-						? mainStore.points[place.pointid].longitude : 0,
+						mainStore.points[place.pointid].latitude,
+						mainStore.points[place.pointid].longitude,
 				]"
 				draggable
 				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
@@ -117,7 +115,7 @@
 				}"
 				@mousedown="() => dragging = true"
 				@mouseup="() => dragging = false"
-				@moveend="async (e: Event) => await placemarkDragEnd(place, e)"
+				@moveend="e => placemarkDragEnd(place, e)"
 			>
 				<l-icon
 					v-bind="(
@@ -166,16 +164,13 @@
 					}}
 				</l-tooltip>
 			</l-marker>
-			<template
-				v-for="point in mainStore.temps"
-				:key="point.id"
-			>
+			<template v-for="point in mainStore.temps" :key="point.id">
 				<l-marker
 					v-if="
-						mainStore.tempsShow &&
-						!mainStore.measure.points.map(p => p.id).includes(point.id)
+						mainStore.mode === 'measure' && isMeasurePoint(point.id) ||
+						mainStore.mode !== 'measure' && !isMeasurePoint(point.id)
 					"
-					:lat-lng="[point.latitude, point.longitude]"
+					:lat-lng="[ point.latitude, point.longitude ]"
 					:visible="
 						mainStore.placemarksShow &&
 						mainStore.tempsPlacemarksShow &&
@@ -194,46 +189,14 @@
 					}"
 					@mousedown="() => dragging = true"
 					@mouseup="() => dragging = false"
-					@moveend="async (e: Event) => await placemarkDragEnd(point, e)"
-				>
-					<l-icon
-						v-bind="(point === mainStore.currentPoint
-							? icon_01_green : icon_01_blue
-						) as {}"
-					/>
-					<l-tooltip permanent="true">
-						{{ mainStore.t.i.captions.measurePoint }}
-						{{ Object.keys(mainStore.temps).indexOf(point.id) + 1 }} —
-						{{ coords2string([point.latitude, point.longitude]) }}
-						{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
-					</l-tooltip>
-				</l-marker>
-				<l-marker
-					v-if="
-						(mainStore.tempsShow || mainStore.mode === 'measure') &&
-						mainStore.measure.points.map(p => p.id).includes(point.id)
-					"
-					:lat-lng="[point.latitude, point.longitude]"
-					:visible="
-						mainStore.placemarksShow &&
-						mainStore.tempsPlacemarksShow &&
-						point.show
-					"
-					draggable
-					@click="mainStore.choosePoint(point)"
-					@contextmenu="e => {
-						pointInfo.point = point;
-						pointInfo.name = Object.keys(mainStore.temps).indexOf(point.id) + 1;
-						popupProps.show = !popupProps.show;
-						popupProps.position.top = e.originalEvent.clientY + 5;
-						popupProps.position.right =
-							e.originalEvent.view.document.documentElement.clientWidth -
-							e.originalEvent.clientX + 5;
+					@move="e => {
+						if (mainStore.mode !== 'measure') return;
+						const { lat, lng } = e.target.getLatLng();
+						point.latitude = lat;
+						point.longitude = lng;
 					}"
-					@mousedown="() => dragging = true"
-					@mouseup="() => dragging = false"
-					@moveend="async (e: Event) => await placemarkDragEnd(point, e)"
-				>
+					@moveend="e => placemarkDragEnd(point, e)"
+					>
 					<l-icon
 						v-bind="(point === mainStore.currentPoint
 							? icon_01_green
@@ -243,22 +206,12 @@
 						) as {}"
 					/>
 					<l-circle-marker
-						v-if="
-							mainStore.mode === 'measure' &&
-							point.id !== mainStore.measure.points[0].id &&
-							point.id !== mainStore.measure.points[mainStore.measure.points.length - 1].id
-						"
-						:lat-lng="[point.latitude, point.longitude]"
+						v-if="mainStore.mode === 'measure' && isMeasurePoint(point.id)"
+						:lat-lng="[ point.latitude, point.longitude ]"
 						class-name="route-intermediate"
 						:radius="10"
 						:weight="1"
 					/>
-					<l-tooltip permanent="true">
-						{{ mainStore.t.i.captions.measurePoint }}
-						{{ Object.keys(mainStore.temps).indexOf(point.id) + 1 }} —
-						{{ coords2string([point.latitude, point.longitude]) }}
-						{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
-					</l-tooltip>
 				</l-marker>
 			</template>
 			<template
@@ -290,7 +243,7 @@
 					}"
 					@mousedown="() => dragging = true"
 					@mouseup="() => dragging = false"
-					@moveend="async (e: Event) => await placemarkDragEnd(point, e)"
+					@moveend="e => placemarkDragEnd(point, e)"
 				>
 					<l-icon
 						v-bind="(point === mainStore.currentPoint
@@ -439,6 +392,86 @@ const copyCoords = async (point: Point) => {
 
 const map = inject('extmap');
 
+const mapCenter = computed(() => ({
+	coords: [
+		mainStore.center.latitude,
+		mainStore.center.longitude,
+	],
+	zoom: mainStore.zoom,
+}));
+
+const measurePointIds = computed(() => {
+	return new Set(mainStore.measure.points.map(p => p.id));
+});
+const isMeasurePoint = (id: string) => measurePointIds.value.has(id);
+
+const polylineCurrentRouteCoords = computed(() =>
+	mainStore.getPointCoordsArray(
+		mainStore.currentRoute?.points.map(p => p.id) ?? []
+	) as LatLngExpression[]
+);
+const polylineCurrentMeasureCoords = computed(() =>
+	mainStore.getPointCoordsArray(
+		mainStore.measure.points.map(p => p.id)
+	) as LatLngExpression[]
+);
+
+const dragging = ref(false);
+
+const mapContextMenu = async (e: any) => {
+    const { lat, lng } = e.latlng;
+    if (['normal', 'measure'].includes(mainStore.mode)) {
+		const temp = mainStore.appendPoint({
+			props: { latitude: lat, longitude: lng },
+			where: mainStore.temps,
+		});
+        if (mainStore.mode !== 'normal') {
+            mainStore.addPointToMeasure(temp);
+            mainStore.choosePoint(temp, mainStore.measure);
+        }
+        return;
+    }
+    if (mainStore.mode === 'routes' && mainStore.currentRoute) {
+        mainStore.appendPoint({
+			props: { latitude: lat, longitude: lng },
+			where: mainStore.points,
+			whom: mainStore.currentRoute,
+		});
+    }
+}
+const placemarkDragEnd = async (point: Place | Point, event: any) => {
+	const coordinates = event.target.getLatLng();
+	mainStore[point.type === 'point' ? 'changePoint' : 'changePlace']({
+		[point.type === 'point' ? 'point' : 'place']: point,
+		change: {
+			latitude: Number(coordinates.lat.toFixed(7)),
+			longitude: Number(coordinates.lng.toFixed(7)),
+		},
+	});
+};
+const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
+	mainStore.updateMap({
+		latitude: Number(
+			payload && payload.coords
+				? payload.coords[0].toFixed(7)
+				: (map as Ref).value.leafletObject.getCenter().lat.toFixed(7)
+		),
+		longitude: Number(
+			payload && payload.coords
+				? payload.coords[1].toFixed(7)
+				: (map as Ref).value.leafletObject.getCenter().lng.toFixed(7)
+		),
+		zoom: Number(
+			payload && payload.zoom
+				? payload.zoom
+				: (map as Ref).value.leafletObject.getZoom()
+		),
+	});
+};
+const ready = (): void => {
+	(map as Ref).value.leafletObject.panTo(mapCenter.value.coords);
+};
+
 const icon_01 = ref({
 	iconUrl: '/img/markers/marker_01.svg',
 	iconSize: [25, 38],
@@ -551,78 +584,6 @@ const providers = ref([{
 	url: 'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
 	visible: false,
 }]);
-
-const mapCenter = computed(() => ({
-	coords: [
-		mainStore.center.latitude,
-		mainStore.center.longitude,
-	],
-	zoom: mainStore.zoom,
-}));
-const polylineCurrentRouteCoords = computed(() =>
-	mainStore.getPointCoordsArray(
-		mainStore.currentRoute?.points.map(p => p.id) ?? []
-	) as LatLngExpression[]
-);
-const polylineCurrentMeasureCoords = computed(() =>
-	mainStore.getPointCoordsArray(
-		mainStore.measure.points.map(p => p.id)
-	) as LatLngExpression[]
-);
-
-const dragging = ref(false);
-
-const mapContextMenu = (e: any) => {
-    const { lat, lng } = e.latlng;
-    if (['normal', 'measure'].includes(mainStore.mode)) {
-        const temp = mainStore.addTemp(lat, lng);
-        if (mainStore.mode === 'normal') {
-            mainStore.choosePoint(temp);
-        } else {
-            mainStore.addPointToMeasure(temp);
-            mainStore.choosePoint(temp, mainStore.measure);
-        }
-        return;
-    }
-    if (mainStore.mode === 'routes' && mainStore.currentRoute) {
-        mainStore.addRoutePoint({
-			point: mainStore.createPoint(undefined, lat, lng, true),
-		});
-    }
-}
-const placemarkDragEnd = async (point: Place | Point, event: any) => {
-	console.log(mainStore.currentRoute.points.find(p => p.id === point.id).name);
-	const coordinates = event.target.getLatLng();
-	await mainStore[point.type === 'point' ? 'changePoint' : 'changePlace']({
-		[point.type === 'point' ? 'point' : 'place']: point,
-		change: {
-			latitude: Number(coordinates.lat.toFixed(7)),
-			longitude: Number(coordinates.lng.toFixed(7)),
-		},
-	});
-};
-const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
-	mainStore.updateMap({
-		latitude: Number(
-			payload && payload.coords
-				? payload.coords[0].toFixed(7)
-				: (map as Ref).value.leafletObject.getCenter().lat.toFixed(7)
-		),
-		longitude: Number(
-			payload && payload.coords
-				? payload.coords[1].toFixed(7)
-				: (map as Ref).value.leafletObject.getCenter().lng.toFixed(7)
-		),
-		zoom: Number(
-			payload && payload.zoom
-				? payload.zoom
-				: (map as Ref).value.leafletObject.getZoom()
-		),
-	});
-};
-const ready = (): void => {
-	(map as Ref).value.leafletObject.panTo(mapCenter.value.coords);
-};
 </script>
 
 <style lang="scss" scoped>

@@ -14,17 +14,15 @@ if (testAccountCheck($ctx, $testaccountuuid, $_POST["userId"])) {
 	// Delete, if neccessary, images as entries in DB and files.
 	if (!($_POST["leavePlaces"] == "all" && $_POST["leaveImages"] == "all")) {
 		$sqlpart = "
-			FROM
-				`places` `p`
-				INNER JOIN
-				`images` `i`
-					ON `i`.`placeid` = `p`.`id`
-					" . (
-						$_POST["leavePlaces"] == "common" && $_POST["leaveImages"] != "none"
-							? " AND `p`.`common` = 0"
-							: ""
-					) . "
-					AND `p`.`userid` = :id
+			FROM `places` `p`
+			INNER JOIN `images` `i`
+				ON `i`.`placeid` = `p`.`id`
+				" . (
+					$_POST["leavePlaces"] == "common" && $_POST["leaveImages"] != "none"
+						? " AND `p`.`common` = 0"
+						: ""
+				) . "
+				AND `p`.`userid` = :id
 		";
 		$query = $ctx->db->prepare("SELECT * " . $sqlpart);
 		$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);

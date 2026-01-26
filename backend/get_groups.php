@@ -13,12 +13,15 @@ if(testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
 				IN (
 					SELECT `group`
 					FROM `usergroup`
-					WHERE `user` = '" . $_POST["userid"] . "'
+					WHERE `user` = :userid
 				)
 				AND `parent` = 'visiting'
 			");
-			$result = $query->fetch(PDO::FETCH_ASSOC);
-			echo $result["id"];
+			$query->execute([
+				":userid" => $_POST["userid"],
+			]);
+			$groups = $query->fetchAll(PDO::FETCH_COLUMN);
+			echo $groups;
 			break;
 		default :
 			$query = $ctx->db->query("
@@ -28,11 +31,17 @@ if(testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
 				IN (
 					SELECT `group`
 					FROM `usergroup`
-					WHERE `user` = '" . $_POST["userid"] . "'
+					WHERE `user` = :userid
 				)
 			");
-			$result = $query->fetchAll(PDO::FETCH_ASSOC);
-			echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+			$query->execute([
+				":userid" => $_POST["userid"],
+			]);
+			$groups = $query->fetchAll(PDO::FETCH_COLUMN);
+			echo json_encode(
+				$groups,
+				JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
+			);
 	}
 	exit;
 }

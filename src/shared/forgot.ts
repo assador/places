@@ -4,20 +4,20 @@ import axios from 'axios';
 export const forgot = reactive({
 	message: '',
 });
-export const forgotRoutine = (data: Record<string, string>, voc) => {
-	axios.post('/backend/forgot.php', data)
-		.then(response => {
-			switch (response.data) {
-				case 1 :
-					forgot.message = voc.m.paged.letterError;
-					break;
-				case 2 :
-					forgot.message = voc.m.paged.letterErrorEmail;
-					break;
-				default :
-					forgot.message = voc.m.paged.forgotLetterSent;
-			}
-		})
-		.catch(() => forgot.message = voc.m.paged.letterError);
-	;
+export const forgotRoutine = async (payload: Record<string, string>, voc) => {
+	try {
+		const { data } = await axios.post('/backend/forgot.php', payload);
+		switch (data) {
+			case 1 :
+				forgot.message = voc.m.paged.letterError;
+				break;
+			case 2 :
+				forgot.message = voc.m.paged.letterErrorEmail;
+				break;
+			default :
+				forgot.message = voc.m.paged.forgotLetterSent;
+		}
+	} catch (error) {
+		forgot.message = voc.m.paged.letterError;
+	}
 };
