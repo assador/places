@@ -26,3 +26,19 @@
 	&-eye-closed::before { content: url('@/assets/icons/eye-closed-1.svg'); }
 	// &-eye-closed::before { content: url('@/assets/icons/eye-closed-2.svg'); }
 }
+.icon-triangle {
+	position: relative;
+	filter: var(--filter-03);
+	width: 20px; height: 20px;
+	min-width: 0; min-height: 0;
+	line-height: 0;
+	transform: scale(0.5);
+	&.icon-triangle_down::before {
+		display: block;
+		transform: rotate(180deg);
+	}
+	&.icon-triangle_right::before {
+		display: block;
+		transform: rotate(90deg);
+	}
+}

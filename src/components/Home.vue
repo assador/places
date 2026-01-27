@@ -374,7 +374,7 @@
 				@click="() => mainStore.placesShow.show = !mainStore.placesShow.show"
 			>
 				<span>☩</span>
-				<span>{{ mainStore.t.i.captions.places }}</span>
+				<span>{{ mainStore.t.i.buttons.places }}</span>
 			</button>
 			<button
 				id="actions-routes"
@@ -384,22 +384,22 @@
 				@click="() => mainStore.routesShow = !mainStore.routesShow"
 			>
 				<span>⭍</span>
-				<span>{{ mainStore.t.i.captions.routes }}</span>
+				<span>{{ mainStore.t.i.buttons.paths }}</span>
 			</button>
 			<button
 				id="actions-points"
 				:class="'actions-button' + (mainStore.tempsShow.show ? ' button-pressed' : '')"
-				:title="mainStore.t.i.captions.independentPoints"
+				:title="mainStore.t.i.buttons.independentPoints"
 				accesskey="t"
 				@click="() => mainStore.tempsShow.show = !mainStore.tempsShow.show"
 			>
 				<span>⊙</span>
-				<span>{{ mainStore.t.i.captions.points }}</span>
+				<span>{{ mainStore.t.i.buttons.points }}</span>
 			</button>
 			<button
 				id="actions-range"
 				:class="'actions-button actions-button_bigger' + (mainStore.rangeShow ? ' button-pressed' : '')"
-				:title="mainStore.t.i.captions.range"
+				:title="mainStore.t.i.buttons.range"
 				accesskey="r"
 				@click="() => {
 					mainStore.rangeShow = !mainStore.rangeShow;

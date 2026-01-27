@@ -41,11 +41,7 @@
 					</span>
 				</div>
 				<div
-					v-if="
-						pointInfo.point &&
-						Object.hasOwn(pointInfo.point, 'altitude') &&
-						!isNaN(pointInfo.point.altitude)
-					"
+					v-if="pointInfo.point?.altitude"
 					class="nobr"
 				>
 					<span class="un_color">
@@ -107,7 +103,7 @@
 				@contextmenu="e => {
 					pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
-					popupProps.show = !popupProps.show;
+					popupProps.show = true;
 					popupProps.position.top = e.originalEvent.clientY + 5;
 					popupProps.position.right =
 						e.originalEvent.view.document.documentElement.clientWidth -
@@ -119,9 +115,7 @@
 			>
 				<l-icon
 					v-bind="(
-						mainStore.measure.points.find(p => p.id === id) &&
-						place === mainStore.currentPlace
-							? icon_01 : icon_01_green
+						place === mainStore.currentPlace ? icon_01_green : icon_01
 					) as {}"
 				/>
 				<l-tooltip permanent="true" v-if="place.name">
@@ -140,7 +134,7 @@
 				@contextmenu="e => {
 					pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
-					popupProps.show = !popupProps.show;
+					popupProps.show = true;
 					popupProps.position.top = e.originalEvent.clientY + 5;
 					popupProps.position.right =
 						e.originalEvent.view.document.documentElement.clientWidth -
@@ -180,8 +174,8 @@
 					@click="mainStore.choosePoint(point)"
 					@contextmenu="e => {
 						pointInfo.point = point;
-						pointInfo.name = Object.keys(mainStore.temps).indexOf(point.id) + 1;
-						popupProps.show = !popupProps.show;
+						pointInfo.name = mainStore.lonelyTemps.indexOf(point) + 1;
+						popupProps.show = true;
 						popupProps.position.top = e.originalEvent.clientY + 5;
 						popupProps.position.right =
 							e.originalEvent.view.document.documentElement.clientWidth -
@@ -235,7 +229,7 @@
 								p => p.id === point.id
 							).name
 						;
-						popupProps.show = !popupProps.show;
+						popupProps.show = true;
 						popupProps.position.top = e.originalEvent.clientY + 5;
 						popupProps.position.right =
 							e.originalEvent.view.document.documentElement.clientWidth -
@@ -418,7 +412,7 @@ const polylineCurrentMeasureCoords = computed(() =>
 
 const dragging = ref(false);
 
-const mapContextMenu = async (e: any) => {
+const mapContextMenu = (e: any) => {
     const { lat, lng } = e.latlng;
     if (['normal', 'measure'].includes(mainStore.mode)) {
 		const temp = mainStore.appendPoint({

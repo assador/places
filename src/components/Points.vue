@@ -1,10 +1,11 @@
 <template>
 	<div class="points folder margin_bottom">
 		<div class="folder-subs points-header">
-			<h2
-				:class="opened ? 'icon-opened' : 'icon-closed'"
-				@click="opened = !opened"
-			>
+			<div
+				class="icon-triangle"
+				:class="opened ? 'icon-triangle_down' : 'icon-triangle_right'"
+			/>
+			<h2 @click="opened = !opened">
 				<template v-if="type === 'temps'">
 					{{ mainStore.t.i.captions.pointsIndependent }}
 				</template>
@@ -33,6 +34,7 @@
 					mainStore.tempsPlacemarksShow = !mainStore.tempsPlacemarksShow
 				"
 			/>
+			<div v-else />
 			<div
 				v-if="type === 'temps'"
 				class="control-buttons"
@@ -55,7 +57,7 @@
 				<button
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addRoutePoint"
-					@click="async () => {
+					@click="() => {
 						const point = mainStore.appendPoint({
 							where: mainStore.points,
 							whom: mainStore.currentRoute,
@@ -71,7 +73,7 @@
 				<button
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addTemp"
-					@click="async () => {
+					@click="() => {
 						const point = mainStore.appendPoint({ where: mainStore.temps });
 						mainStore.addPointToMeasure(point);
 						mainStore.setCurrentPoint(point.id);
@@ -201,12 +203,13 @@
 		">
 			<button
 				v-if="type === 'temps'"
-				v-for="(temp, idx) in computedTemps"
+				v-for="(temp, idx) in mainStore.lonelyTemps"
 				:class="mainStore.currentPoint?.id === temp.id ? 'button-pressed' : ''"
 				@click.prevent="mainStore.setCurrentPoint(temp.id)"
 				@contextmenu.prevent="e => {
 					pointInfo.point = temp;
-					popupProps.show = !popupProps.show;
+					pointInfo.name = idx + 1;
+					popupProps.show = true;
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.left = e.clientX + 5;
 				}"
@@ -244,7 +247,8 @@
 				}"
 				@contextmenu.prevent="e => {
 					pointInfo.point = mainStore.getPointById(point.id);
-					popupProps.show = !popupProps.show;
+					pointInfo.name = point.name;
+					popupProps.show = true;
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.right =
 						e.view.document.documentElement.clientWidth -
@@ -298,7 +302,8 @@
 				@click.prevent="mainStore.setCurrentPoint(point.id)"
 				@contextmenu.prevent="e => {
 					pointInfo.point = mainStore.getPointById(point.id);
-					popupProps.show = !popupProps.show;
+					pointInfo.name = point.name;
+					popupProps.show = true;
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.left = e.clientX + 5;
 				}"
@@ -332,7 +337,7 @@ import {
 	IPlacesPopupProps,
 	latitude2string,
 	longitude2string,
-	point2coords
+	point2coords,
 } from '@/shared';
 import { Point } from '@/stores/types';
 import Popup from '@/components/popups/Popup.vue';
@@ -375,12 +380,6 @@ const copyCoords = async (point: Point) => {
 	setTimeout(() => copied.value = false, 2000);
 };
 
-const computedTemps = computed(() => {
-	if (!mainStore.tempsShow.show) return [];
-	const ids = new Set(mainStore.measure.points.map(p => p.id));
-	return Object.values(mainStore.temps).filter(temp => !ids.has(temp.id));
-});
-
 const distance = computed(() => {
 	const idsArray = ref([]);
 	const where = ref('points');
@@ -407,14 +406,12 @@ const distance = computed(() => {
 <style lang="scss" scoped>
 .points-header {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(0, auto));
+	grid-template-columns: 8px 1fr auto auto;
 	gap: 8px;
 	align-items: start;
 	margin-bottom: 12px;
-	&::before {
-		margin-left: 0;
-		width: 1em;
-		margin-right: 8px;
+	.icon-triangle {
+		margin: 0 -6px;
 	}
 	& > * {
 		cursor: pointer;
@@ -427,16 +424,6 @@ const distance = computed(() => {
 		gap: 8px;
 		align-items: baseline;
 		margin: 0;
-		&::before {
-			display: inline-block;
-			font-size: 1rem;
-		}
-		&.icon-opened::before {
-			content: '\25e4';
-		}
-		&.icon-closed::before {
-			content: '\25e2';
-		}
 	}
 	.control-buttons {
 		align-self: flex-start;

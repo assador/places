@@ -54,10 +54,6 @@
 				}"
 			>
 				<div
-					class="folder-button__triangle icon-triangle"
-					:class="folder.opened ? 'icon-triangle_opened' : 'icon-triangle_closed'"
-					/>
-				<div
 					v-if="!foldersEditMode"
 					:id="
 						(instanceid === 'popupexporttree' ? 'to-export-' : '') +
@@ -65,6 +61,10 @@
 					"
 					class="folder-button__content"
 				>
+					<div
+						class="icon-triangle"
+						:class="folder.opened ? 'icon-triangle_down' : 'icon-triangle_right'"
+					/>
 					<h2
 						v-if="folder.id === 'root'"
 						class="color-01"
@@ -593,65 +593,6 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 </script>
 
 <style lang="scss" scoped>
-.place-button, .folder-button {
-	display: grid;
-	gap: 8px;
-	align-items: start;
-	justify-content: center;
-	cursor: pointer !important;
-	&:hover :is(.place-button__control, .folder-button__control) {
-		opacity: 1 !important;
-	}
-	h2 {
-		line-height: 1;
-	}
-	&__content {
-		min-height: 1lh;
-	}
-	&__controls {
-		display: flex;
-		gap: 8px;
-		padding: 2px 0 3px 0;
-		flex-wrap: wrap;
-		align-items: start;
-		justify-content: right;
-		z-index: 30;
-	}
-	&__control {
-		width: 14px;
-		height: 14px;
-		opacity: 0;
-		&::before {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			line-height: 0;
-			transform: scale(0.7);
-		}
-	}
-}
-.place-button {
-	grid-template-columns: 1fr auto;
-	&[class*="block_"] {
-		margin: 7px 0 10px 0;
-		padding: 4px 8px;
-	}
-	&[class*="block_"] .dragenter-area_top {
-		top: -6px;
-	}
-	&[class*="block_"] .dragenter-area_bottom {
-		bottom: -7px;
-	}
-}
-.folder-button {
-	grid-template-columns: 7px 1fr auto;
-	flex: 1 0 auto;
-	z-index: 0;
-	&::before {
-		display: inline-block;
-		flex-shrink: 0;
-	}
-}
 .folder {
 	display: flex;
 	flex-direction: column;
@@ -662,9 +603,6 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	}
 	& > .folder-subs {
 		z-index: 20;
-	}
-	&:is(.folder_closed, .folder_opened) > :is(h2, h2::before) {
-		cursor: pointer;
 	}
 	&.folder_opened:is(
 		.points,
@@ -731,21 +669,6 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		opacity: 1 !important;
 	}
 }
-.folder-button__triangle {
-	position: relative;
-	filter: var(--filter-03);
-	width: 20px; height: 20px;
-	min-width: 0; min-height: 0;
-	line-height: 0;
-	&.icon-triangle_opened {
-		transform: scale(0.5) rotate(180deg);
-		left: -6px;
-	}
-	&.icon-triangle_closed {
-		transform: scale(0.5) rotate(90deg);
-		left: -7px;
-	}
-}
 .folder_closed {
 	> .folder-subfolders {
 		display: none;
@@ -766,6 +689,68 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		width: 1px;
 		margin: 0;
 		float: none;
+	}
+}
+.place-button, .folder-button {
+	display: grid;
+	gap: 8px;
+	align-items: start;
+	justify-content: center;
+	cursor: pointer !important;
+	&:hover :is(.place-button__control, .folder-button__control) {
+		opacity: 1 !important;
+	}
+	h2 {
+		line-height: 1;
+	}
+	&__content {
+		min-height: 1lh;
+	}
+	&__controls {
+		display: flex;
+		gap: 8px;
+		padding: 2px 0 3px 0;
+		flex-wrap: wrap;
+		align-items: start;
+		justify-content: right;
+		z-index: 30;
+	}
+	&__control {
+		width: 14px;
+		height: 14px;
+		opacity: 0;
+		&::before {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			line-height: 0;
+			transform: scale(0.7);
+		}
+	}
+}
+.place-button {
+	grid-template-columns: 1fr auto;
+	&[class*="block_"] {
+		margin: 7px 0 10px 0;
+		padding: 4px 8px;
+	}
+	&[class*="block_"] .dragenter-area_top {
+		top: -6px;
+	}
+	&[class*="block_"] .dragenter-area_bottom {
+		bottom: -7px;
+	}
+}
+.folder-button {
+	grid-template-columns: 1fr auto;
+	flex: 1 0 auto;
+	z-index: 0;
+	&__content {
+		display: flex;
+		gap: 8px;
+		.icon-triangle {
+			margin: 0 -6px;
+		}
 	}
 }
 .tree-item-checkbox {
@@ -806,12 +791,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		justify-content: end;
 	}
 	.folder-button {
-		grid-template-columns: 7px 1fr;
-		&::before {
-			margin-left: 0;
-			width: 1em;
-			margin-right: 8px;
-		}
+		grid-template-columns: 1fr auto;
 		.folder-button__description {
 			height: 44px;
 		}

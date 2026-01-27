@@ -270,7 +270,7 @@ export const useMainStore = defineStore('main', {
 			whom?: Place | Route,
 			todb?: boolean;
 			mode?: AppendMode,
-		} = {}): Point {
+		} = {}) {
 
 			let point: Point;
 
@@ -316,12 +316,16 @@ export const useMainStore = defineStore('main', {
 					where[point.id] = point;
 					break;
 			}
-			this.backupState();
-
-			if (todb && !this.user.testaccount) {
-				const itemsToDB: DataToDB = { points: [ point ] };
-				emitter.emit('toDB', itemsToDB);
-			}
+			this.getAltitude(point.latitude, point.longitude)
+				.then((alt: number) => {
+					point.altitude = alt;
+					this.backupState();
+					if (todb && !this.user.testaccount) {
+						const itemsToDB: DataToDB = { points: [ point ] };
+						emitter.emit('toDB', itemsToDB);
+					}
+				})
+			;
 			return point;
 		},
 		appendPlace({
@@ -784,12 +788,17 @@ export const useMainStore = defineStore('main', {
 			const point = id ? this.getPointById(id) : null;
 			if (!point) return;
 			this.currentPoint = point;
+			if (point.altitude === null) {
+				this.getAltitude(point.latitude, point.longitude)
+					.then((alt: number) => point.altitude = alt)
+				;
+			}
 			let idx = -1;
 			if (this.currentRoute) {
-				idx = this.currentRoute.points.map(p => p.id).indexOf(id);
+				idx = this.currentRoute.points.map((p: PointName) => p.id).indexOf(id);
 				if (idx !== -1) this.currentRoute.choosing = idx;
 			}
-			idx = this.measure.points.map(p => p.id).indexOf(id);
+			idx = this.measure.points.map((p: PointName) => p.id).indexOf(id);
 			if (idx !== -1) this.measure.choosing = idx;
 			this.center = {
 				latitude: point.latitude,
@@ -1877,6 +1886,13 @@ export const useMainStore = defineStore('main', {
 				}
 				return coords;
 			}
+		},
+		lonelyTemps(): Point[] {
+			if (!this.tempsShow.show) return [];
+			const ids = new Set(this.measure.points.map((p: PointName) => p.id));
+			return Object.values(this.temps).filter(
+				(temp): temp is Point => !ids.has((temp as Point).id)
+			);
 		},
 		distance(): number {
 			return this.measureDistance();
