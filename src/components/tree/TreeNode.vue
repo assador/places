@@ -6,7 +6,8 @@
 		"
 		:srt="folder.srt"
 		:title="folder.description"
-		:class="'folder ' + (folder.opened ? 'folder_opened' : 'folder_closed')"
+		class="folder"
+		:class="folder.opened ? 'folder_opened' : 'folder_closed'"
 	>
 		<div
 			:id="folder.id === 'root'
@@ -52,6 +53,10 @@
 					);
 				}"
 			>
+				<div
+					class="folder-button__triangle icon-triangle"
+					:class="folder.opened ? 'icon-triangle_opened' : 'icon-triangle_closed'"
+					/>
 				<div
 					v-if="!foldersEditMode"
 					:id="
@@ -726,12 +731,24 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		opacity: 1 !important;
 	}
 }
+.folder-button__triangle {
+	position: relative;
+	filter: var(--filter-03);
+	width: 20px; height: 20px;
+	min-width: 0; min-height: 0;
+	line-height: 0;
+	&.icon-triangle_opened {
+		transform: scale(0.5) rotate(180deg);
+		left: -6px;
+	}
+	&.icon-triangle_closed {
+		transform: scale(0.5) rotate(90deg);
+		left: -7px;
+	}
+}
 .folder_closed {
 	> .folder-subfolders {
 		display: none;
-	}
-	> * > .folder-button::before {
-		content: '\25e2';
 	}
 	> .folder-places {
 		display: none !important;
@@ -740,9 +757,6 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 .folder_opened {
 	> .folder-subfolders {
 		display: block;
-	}
-	> * > .folder-button::before {
-		content: '\25e4';
 	}
 	&::before {
 		content: '';
@@ -789,6 +803,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	}
 	.control-buttons * {
 		pointer-events: auto !important;
+		justify-content: end;
 	}
 	.folder-button {
 		grid-template-columns: 7px 1fr;
