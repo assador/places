@@ -653,7 +653,6 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		margin-top: -6px;
 		align-self: end;
 		text-align: right;
-		pointer-events: auto !important;
 	}
 	& > .dragenter-area_top, & > .dragenter-area_bottom {
 		height: 4px;
@@ -786,8 +785,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	&.folder-subs {
 		z-index: 20;
 	}
-	.control-buttons * {
-		pointer-events: auto !important;
+	.control-buttons {
 		justify-content: end;
 	}
 	.folder-button {
@@ -807,13 +805,13 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		}
 	}
 }
-.draggable *, .folder:not(:has(.folder_editable)) *, .place-button {
-	pointer-events: none;
-}
 .draggable,
 .dragenter-area,
+.place-button,
 .folder-button,
-:is(.place-button__controls, .folder-button__controls) * {
+.control-buttons *,
+.place-button__control,
+.folder-button__control {
 	pointer-events: auto !important;
 }
 .dragenter-area_top, .dragenter-area_bottom {
