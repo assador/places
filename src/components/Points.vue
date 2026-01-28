@@ -42,7 +42,7 @@
 				<button
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addTemp"
-					@click="mainStore.appendPoint({ where: mainStore.temps })"
+					@click="mainStore.upsertPoint({ where: mainStore.temps })"
 				/>
 				<button
 					class="button-iconed icon icon-cross-45"
@@ -58,11 +58,10 @@
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addRoutePoint"
 					@click="() => {
-						const point = mainStore.appendPoint({
+						mainStore.upsertPoint({
 							where: mainStore.points,
 							whom: mainStore.currentRoute,
 						});
-						mainStore.setCurrentPlace(point.id);
 					}"
 				/>
 			</div>
@@ -74,9 +73,8 @@
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addTemp"
 					@click="() => {
-						const point = mainStore.appendPoint({ where: mainStore.temps });
+						const point = mainStore.upsertPoint({ where: mainStore.temps });
 						mainStore.addPointToMeasure(point);
-						mainStore.setCurrentPoint(point.id);
 					}"
 				/>
 				<button
@@ -404,6 +402,11 @@ const distance = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+.points {
+	&:has(.points-list-buttons:empty) {
+		margin-bottom: 0 !important;
+	}
+}
 .points-header {
 	display: grid;
 	grid-template-columns: 8px 1fr auto auto;
@@ -444,6 +447,7 @@ const distance = computed(() => {
 		margin: 0;
 		padding: 0 0 0 4px;
 		flex: 1 0 auto;
+		overflow: hidden;
 		& > *:last-child {
 			display: flex;
 			align-items: center;

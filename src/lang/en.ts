@@ -45,6 +45,7 @@ export const t = {
 			parent: 'Parent',
 			phone: 'Phone',
 			places: 'Places',
+			point: 'Point',
 			points: 'Points',
 			pointsIndependent: 'Independent points',
 			pointsMeasure: 'Ruler points',

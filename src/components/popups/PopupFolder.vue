@@ -9,7 +9,7 @@
 			<form
 				class="folder-new__form margin_bottom_0"
 				@click.stop
-				@submit.prevent="mainStore.appendFolder({
+				@submit.prevent="mainStore.upsertFolder({
 					props: {
 						parent: parentId,
 						name: folderName ? folderName : '',

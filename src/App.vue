@@ -125,10 +125,10 @@ onMounted(() => {
 	}): void => {
 /*
 		const actions = [
-			'appendFolder',
-			'appendPlace',
-			'appendPoint',
-			'appendRoute',
+			'upsertFolder',
+			'upsertPlace',
+			'upsertPoint',
+			'upsertRoute',
 			'changeFolder',
 			'changePlace',
 			'changePoint',

@@ -45,6 +45,7 @@ export const t = {
 			parent: 'Родитель',
 			phone: 'Телефон',
 			places: 'Места',
+			point: 'Точка',
 			points: 'Точки',
 			pointsIndependent: 'Независимые точки',
 			pointsMeasure: 'Точки линейки',

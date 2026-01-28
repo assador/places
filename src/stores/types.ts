@@ -19,7 +19,8 @@ export interface FirstShow {
 }
 export interface PointName {
 	id: string,
-	name: string,
+	name?: string,
+	description?: string,
 }
 export interface Point {
 	type: string;
@@ -68,6 +69,7 @@ export interface Route {
 	srt: number;
 	common: boolean;
 	geomarks: number;
+	images?: Record<string, Image>;
 	added: boolean;
 	deleted: boolean;
 	updated: boolean;

@@ -214,6 +214,32 @@ export const useMainStore = defineStore('main', {
 				show: true,
 			};
 		},
+		_defaultRoute(): Route {
+			const nextSrt = Object.values(this.routes as Record<string, Route>)
+				.filter(f => f.folderid === 'routesroot')
+				.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
+			;
+			return {
+				type: 'route',
+				id: crypto.randomUUID(),
+				userid: this.user!.id,
+				folderid: 'routesroot',
+				points: [],
+				choosing: null,
+				name: '',
+				description: '',
+				link: '',
+				time: new Date().toISOString().slice(0, -5),
+				srt: nextSrt,
+				common: false,
+				geomarks: 1,
+				images: {},
+				added: false,
+				deleted: false,
+				updated: false,
+				show: true,
+			};
+		},
 		_defaultFolder(): Folder {
 			const nextSrt = Object.values(this.folders as Record<string, Folder>)
 				.filter(f => f.parent === 'root')
@@ -249,6 +275,13 @@ export const useMainStore = defineStore('main', {
 			};
 			return place;
 		},
+		createRoute(overrides: Partial<Route>): Route {
+			const route: Route = {
+				...this._defaultRoute(),
+				...overrides,
+			};
+			return route;
+		},
 		createFolder(overrides: Partial<Folder>): Folder {
 			const folder: Folder = {
 				...this._defaultFolder(),
@@ -256,11 +289,13 @@ export const useMainStore = defineStore('main', {
 			};
 			return folder;
 		},
-		appendPoint({
+		upsertPoint({
 			object,
 			props = {},
 			where = this.points,
 			whom,
+			name,
+			description,
 			todb = false,
 			mode = 'new',
 		}: {
@@ -268,6 +303,8 @@ export const useMainStore = defineStore('main', {
 			props?: Partial<Point>;
 			where?: Record<string, Point>;
 			whom?: Place | Route,
+			name?: string,
+			description?: string,
 			todb?: boolean;
 			mode?: AppendMode,
 		} = {}) {
@@ -305,6 +342,19 @@ export const useMainStore = defineStore('main', {
 				case 'new':
 					point = this.createPoint({ added: true, ...props });
 					where[point.id] = point;
+					if (whom) {
+						if ('pointid' in whom) whom.pointid = point.id;
+						if ('points' in whom && Array.isArray(whom.points)) {
+							whom.points.push({
+								id: point.id,
+								name: name || `${whom.points.length + 1}`,
+								description: description ||
+								`${this.t.i.captions.routePoint} № ${whom.points.length + 1}`,
+							});
+						}
+						whom.updated = true;
+					}
+					this.setCurrentPoint(point);
 					break;
 				case 'clone':
 					point = this.createPoint({
@@ -314,12 +364,23 @@ export const useMainStore = defineStore('main', {
 						...props,
 					});
 					where[point.id] = point;
+					if (whom) {
+						if ('pointid' in whom) whom.pointid = point.id;
+						if ('points' in whom && Array.isArray(whom.points)) {
+							const pn = whom.points.find(p => p.id === object.id);
+							if (pn) {
+								pn.id = point.id;
+							}
+						}
+						whom.updated = true;
+					}
+					this.setCurrentPoint(point);
 					break;
 			}
+			this.backupState();
 			this.getAltitude(point.latitude, point.longitude)
 				.then((alt: number) => {
 					point.altitude = alt;
-					this.backupState();
 					if (todb && !this.user.testaccount) {
 						const itemsToDB: DataToDB = { points: [ point ] };
 						emitter.emit('toDB', itemsToDB);
@@ -328,7 +389,7 @@ export const useMainStore = defineStore('main', {
 			;
 			return point;
 		},
-		appendPlace({
+		upsertPlace({
 			object,
 			props,
 			where = this.places,
@@ -374,6 +435,7 @@ export const useMainStore = defineStore('main', {
 					point = this.createPoint({ added: true, ...props });
 					place = this.createPlace({
 						pointid: point.id,
+						folderid: folderId,
 						srt: nextSrt,
 						added: true,
 						...props,
@@ -399,6 +461,7 @@ export const useMainStore = defineStore('main', {
 					where[place.id] = place;
 					break;
 			}
+			this.setCurrentPlace(place);
 			this.backupState();
 
 			if (todb && !this.user.testaccount) {
@@ -408,9 +471,9 @@ export const useMainStore = defineStore('main', {
 			}
 			return place;
 		},
-		appendRoute({
+		upsertRoute({
 			object,
-			props = {},
+			props,
 			where = this.routes,
 			todb = false,
 			mode = 'new',
@@ -421,10 +484,60 @@ export const useMainStore = defineStore('main', {
 			todb?: boolean;
 			mode?: AppendMode,
 		} = {}): Route {
+
 			let route: Route;
+
+			const folderId = props?.folderid || object?.folderid || 'routesroot';
+			const nextSrt = Object.values(where)
+				.filter(f => f.folderid === folderId)
+				.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
+			;
+			if (mode === 'new' || mode === 'clone') {
+				// Check routes limit
+				if (
+					!this.user.testaccount &&
+					this.serverConfig.rights.routescount > 0 &&
+					Object.keys(where).length >= this.serverConfig.rights.routescount
+				) {
+					this.setMessage(t.m.popup.routesCountExceeded);
+					return;
+				}
+			}
+
+			switch (mode) {
+				case 'move':
+					route = object!;
+					break;
+				case 'change':
+					Object.assign(object!, { updated: true }, props);
+					route = object!;
+					break;
+				case 'new':
+					route = this.createRoute({
+						folderid: folderId,
+						srt: nextSrt,
+						added: true,
+						...props,
+					});
+					where[route.id] = route;
+					break;
+			}
+			this.setCurrentRoute(route);
+			this.backupState();
+
+			if (todb && !this.user.testaccount) {
+				const itemsToDB: DataToDB = { routes: [ route ] };
+				if (route.points.length) {
+					itemsToDB.points = [];
+					for (const pn of route.points) {
+						itemsToDB.points.push(this.getPointById(pn.id));
+					}
+				}
+				emitter.emit('toDB', itemsToDB);
+			}
 			return route;
 		},
-		appendFolder({
+		upsertFolder({
 			object,
 			props,
 			where = this.folders,
@@ -477,7 +590,7 @@ export const useMainStore = defineStore('main', {
 					break;
 			}
 			this.buildTrees();
-			this.backupState(); // Наш плагин теперь подхватит это изменение
+			this.backupState();
 
 			if (todb && !this.user.testaccount) {
 				emitter.emit('toDB', { folders: [folder] });
@@ -783,11 +896,16 @@ export const useMainStore = defineStore('main', {
 			if (Object.hasOwn(this.commonRoutes, id)) return this.commonRoutes[id];
 			return null;
 		},
-		setCurrentPoint(id: string | null | undefined) {
-			this.currentPoint = null;
-			const point = id ? this.getPointById(id) : null;
-			if (!point) return;
+		setCurrentPoint<T extends string | Point | null | undefined>(param: T) {
+			console.log('asdf');
+			let point = null;
+			if (typeof param === 'string') {
+				point = this.getPointById(param) ?? null;
+			} else {
+				point = param ?? null;
+			}
 			this.currentPoint = point;
+			if (!point) return;
 			if (point.altitude === null) {
 				this.getAltitude(point.latitude, point.longitude)
 					.then((alt: number) => point.altitude = alt)
@@ -795,29 +913,35 @@ export const useMainStore = defineStore('main', {
 			}
 			let idx = -1;
 			if (this.currentRoute) {
-				idx = this.currentRoute.points.map((p: PointName) => p.id).indexOf(id);
+				idx = this.currentRoute.points.map((p: PointName) => p.id).indexOf(point.id);
 				if (idx !== -1) this.currentRoute.choosing = idx;
 			}
-			idx = this.measure.points.map((p: PointName) => p.id).indexOf(id);
+			idx = this.measure.points.map((p: PointName) => p.id).indexOf(point.id);
 			if (idx !== -1) this.measure.choosing = idx;
 			this.center = {
 				latitude: point.latitude,
 				longitude: point.longitude,
 			};
 		},
-		setCurrentPlace(id: string | null | undefined) {
-			this.currentPlace = null;
-			const place = id ? this.getPlaceById(id) : null;
-			if (!place) return;
+		setCurrentPlace<T extends string | Place | null | undefined>(param: T) {
+			let place = null;
+			if (typeof param === 'string') {
+				place = this.getPlaceById(param) ?? null;
+			} else {
+				place = param ?? null;
+			}
 			this.currentPlace = place;
-			this.setCurrentPoint(place.pointid);
+			if (place) this.setCurrentPoint(place.pointid);
 		},
-		setCurrentRoute(id: string | null | undefined) {
-			this.currentRoute = null;
-			const route = id ? this.getRouteById(id) : null;
-			if (!route) return;
+		setCurrentRoute<T extends string | Route | null | undefined>(param: T) {
+			let route = null;
+			if (typeof param === 'string') {
+				route = this.getRouteById(param) ?? null;
+			} else {
+				route = param ?? null;
+			}
 			this.currentRoute = route;
-			if (route.points.length > 0) {
+			if (route.points.length) {
 				if (// Damn you all
 					typeof route.choosing !== 'number' ||
 					!Number.isInteger(route.choosing) ||
@@ -1084,7 +1208,7 @@ export const useMainStore = defineStore('main', {
 											updated: false,
 											builded: true,
 										};
-										this.appendFolder({
+										this.upsertFolder({
 											what: newFolder,
 											where: this.folders,
 										});
@@ -1099,7 +1223,7 @@ export const useMainStore = defineStore('main', {
 							}
 							break;
 						case 'application/gpx+xml' :
-							this.appendFolder({
+							this.upsertFolder({
 								what: parsed.tree,
 								where: this.folders,
 							});
@@ -1170,9 +1294,9 @@ export const useMainStore = defineStore('main', {
 								show: true,
 							};
 							if (!this.points[place.pointid]) {
-								this.appendPoint({ what: newPoint });
+								this.upsertPoint({ what: newPoint });
 							}
-							this.appendPlace({ what: newPlace });
+							this.upsertPlace({ what: newPlace });
 						} else {
 							this.setMessage(
 								this.t.m.popup.placesCountExceeded

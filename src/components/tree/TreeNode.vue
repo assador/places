@@ -147,12 +147,12 @@
 						@click.stop="() => {
 							switch (what) {
 								case 'places':
-									mainStore.appendPlace({
+									mainStore.upsertPlace({
 										props: { folderid: folder.id },
 									});
 									break;
 								case 'routes':
-									mainStore.appendRoute({
+									mainStore.upsertRoute({
 										props: { folderid: folder.id },
 									});
 									break;
@@ -218,7 +218,7 @@
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addPlace"
 					accesskey="a"
-					@click="mainStore.appendPlace()"
+					@click="mainStore.upsertPlace()"
 				/>
 				<button
 					class="button-iconed icon icon-plus"
@@ -238,7 +238,7 @@
 					class="button-iconed icon icon-plus"
 					:title="mainStore.t.i.hints.addRoute"
 					accesskey="a"
-					@click="mainStore.appendRoute()"
+					@click="mainStore.upsertRoute()"
 				/>
 				<button
 					class="button-iconed icon icon-cross-45"
@@ -417,7 +417,7 @@
 						v-if="what === 'places'"
 						class="place-button__control icon icon-plus"
 						:title="mainStore.t.i.hints.addPlaceNext"
-						@click.stop="mainStore.appendPlace({
+						@click.stop="mainStore.upsertPlace({
 							props: {
 								folderid: folder.id,
 								srt: index === places.length - 1
@@ -431,7 +431,7 @@
 						v-else-if="what === 'routes'"
 						class="place-button__control icon icon-plus"
 						:title="mainStore.t.i.hints.addRouteNext"
-						@click.stop="mainStore.appendRoute({
+						@click.stop="mainStore.upsertRoute({
 							props: {
 								folderid: folder.id,
 								srt: index === routes.length - 1

@@ -257,10 +257,9 @@
 					/>
 					<l-tooltip v-if="!popupProps.show" permanent="true">
 						{{
-							mainStore.t.i.captions.routePoint + ' ' +
 							mainStore.currentRoute.points.find(
 								p => p.id === point.id
-							).name + ' — '
+							).description + ' — '
 						}}
 						{{ coords2string([point.latitude, point.longitude]) }}
 						{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
@@ -415,18 +414,17 @@ const dragging = ref(false);
 const mapContextMenu = (e: any) => {
     const { lat, lng } = e.latlng;
     if (['normal', 'measure'].includes(mainStore.mode)) {
-		const temp = mainStore.appendPoint({
+		const temp = mainStore.upsertPoint({
 			props: { latitude: lat, longitude: lng },
 			where: mainStore.temps,
 		});
         if (mainStore.mode !== 'normal') {
             mainStore.addPointToMeasure(temp);
-            mainStore.choosePoint(temp, mainStore.measure);
         }
         return;
     }
     if (mainStore.mode === 'routes' && mainStore.currentRoute) {
-        mainStore.appendPoint({
+        mainStore.upsertPoint({
 			props: { latitude: lat, longitude: lng },
 			where: mainStore.points,
 			whom: mainStore.currentRoute,

@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.2.0 alpha</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.2.1 alpha</p>
 		</div>
 		<Dashboard />
 		<div class="auth-forms">

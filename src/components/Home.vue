@@ -578,49 +578,39 @@
 		<div class="control-buttons">
 			<button
 				id="placemarksShowHideButton"
-				:class="'actions-button' + (mainStore.placemarksShow ? ' button-pressed' : '')"
+				class="actions-button button-iconed icon icon-geomark-1"
+				:class="mainStore.placemarksShow ? 'button-pressed' : ''"
 				:title="mainStore.t.i.hints.shPlacemarks"
 				@click="mainStore.placemarksShowHide()"
-			>
-				<span>◆</span>
-				<!-- <span>{{ mainStore.t.i.buttons.places }}</span> -->
-			</button>
+			/>
 			<button
 				id="commonPlacesShowHideButton"
-				:class="'actions-button' + (commonPlacesShow ? ' button-pressed' : '')"
+				class="actions-button button-iconed icon icon-eye-open-2"
+				:class="commonPlacesShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.shCommonPlaces"
 				@click="commonPlacesShowHide();"
-			>
-				<span>◇</span>
-				<!-- <span>{{ mainStore.t.i.buttons.commonPlaces }}</span> -->
-			</button>
+			/>
 			<button
 				id="commonPlacemarksShowHideButton"
-				:class="'actions-button' + (mainStore.commonPlacemarksShow ? ' button-pressed' : '')"
+				class="actions-button button-iconed icon icon-geomark-2"
+				:class="mainStore.commonPlacemarksShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.shCommonPlacemarks"
 				@click="mainStore.commonPlacemarksShowHide()"
-			>
-				<span>⬙</span>
-				<!-- <span>{{ mainStore.t.i.buttons.commonPlacemarks }}</span> -->
-			</button>
+			/>
 			<button
 				id="commonRoutesShowHideButton"
-				:class="'actions-button' + (commonRoutesShow ? ' button-pressed' : '')"
+				class="actions-button button-iconed icon icon-circle"
+				:class="commonRoutesShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.shCommonRoutes"
 				@click="commonRoutesShowHide();"
-			>
-				<span>◇</span>
-				<!-- <span>{{ mainStore.t.i.buttons.commonRoutes }}</span> -->
-			</button>
+			/>
 			<button
 				id="centerPlacemarkShowHideButton"
-				:class="'actions-button' + (mainStore.centerPlacemarkShow ? ' button-pressed' : '')"
+				class="actions-button button-iconed icon icon-geomark-1"
+				:class="mainStore.centerPlacemarkShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.shCenter"
 				@click="mainStore.centerPlacemarkShowHide()"
-			>
-				<span>◈</span>
-				<!-- <span>{{ mainStore.t.i.buttons.center }}</span> -->
-			</button>
+			/>
 		</div>
 	</Teleport>
 </template>
@@ -903,7 +893,7 @@ watch(() => mainStore.currentRoute, current => {
 	openTreeTo(mainStore.currentRoute);
 });
 /*
-const appendRoute = async (payload: Record<string, any> = {}): Promise<void | Route> => {
+const upsertRoute = async (payload: Record<string, any> = {}): Promise<void | Route> => {
 	const { routes, serverConfig, user, t, setMessage } = mainStore;
 	const routesCount = Object.keys(routes).length;
 	const maxRoutes = serverConfig.rights.routescount;
@@ -962,7 +952,7 @@ const appendRoute = async (payload: Record<string, any> = {}): Promise<void | Ro
 	}
 	return newRoute;
 };
-provide('appendRoute', appendRoute);
+provide('upsertRoute', upsertRoute);
 */
 const commonPlacesShowHide = (show = null): void => {
 	commonPlacesShow.value =
@@ -1116,7 +1106,7 @@ const keyup = (event: Event): void => {
 	if (!shortcut) return;
 	blur();
 	const actions: Record<string, () => void> = {
-		'add': () => mainStore.appendPlace(),
+		'add': () => mainStore.upsertPlace(),
 		'add folder': () => router.push({ name: 'HomeFolder' }),
 		'edit mode': () => foldersEditMode.value = !foldersEditMode.value,
 		'import': () => importFromFileInput.value.click(),
