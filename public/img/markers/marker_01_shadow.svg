@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="138.298" height="78.480003" viewBox="0 0 129.65438 73.575004" id="svg4136" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <defs id="defs4138">
+<svg width="138.298" height="78.480003" viewBox="0 0 129.65438 73.575004" id="svg-icon" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <defs id="defs1">
         <linearGradient id="linearGradient4672">
             <stop style="stop-color:#462917;stop-opacity:0.56551725" offset="0" id="stop4668" />
             <stop style="stop-color:#462917;stop-opacity:0" offset="1" id="stop4670" />
@@ -16,7 +16,7 @@
             </cc:Work>
         </rdf:RDF>
     </metadata>
-    <g id="layer1" transform="translate(-87.864118,-214.04519)">
+    <g id="defs1" transform="translate(-87.864118,-214.04519)">
         <g id="g92">
             <path id="path4604" d="m 216.87097,239.4374 c -11.28403,33.69301 -102.35799,11.98537 -123.12098,48.18254 -12.29153,-21.95063 -4.17353,-38.57244 13.63957,-51.77911 17.8131,-13.20666 37.26057,-21.79564 68.11376,-21.79564 30.85318,0 45.35405,13.48919 41.36765,25.39221 z" style="fill:url(#radialGradient4676);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.330156;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
         </g>

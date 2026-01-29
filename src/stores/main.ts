@@ -897,7 +897,6 @@ export const useMainStore = defineStore('main', {
 			return null;
 		},
 		setCurrentPoint<T extends string | Point | null | undefined>(param: T) {
-			console.log('asdf');
 			let point = null;
 			if (typeof param === 'string') {
 				point = this.getPointById(param) ?? null;

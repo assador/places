@@ -17,11 +17,21 @@
 					: undefined
 				)
 			"
-			:class="
-				'folder-subs' +
-				(foldersEditMode ? ' folder_editable' : '')
-			"
+			class="folder-subs"
+			:class="foldersEditMode ? ' folder_editable' : ''"
 		>
+			<div
+				v-if="foldersEditMode"
+				class="icon icon-triangle"
+				:class="folder.opened ? 'icon-triangle_down' : 'icon-triangle_right'"
+				@click="e => {
+					mainStore.folderOpenClose(
+						instanceid === 'popupexporttree'
+							? { target: (e.target as Node).parentNode.parentNode }
+							: { folder: folder, opened: !folder.opened }
+					);
+				}"
+			/>
 			<label
 				v-if="instanceid === 'popupexporttree'"
 				class="tree-item-checkbox-container"
@@ -36,6 +46,31 @@
 				/>
 			</label>
 			<div
+				v-if="foldersEditMode"
+				:id="
+					(instanceid === 'popupexporttree' ? 'to-export-' : '') +
+					'places-menu-folder-link-' + folder.id
+				"
+				class="folder-button__content"
+			>
+				<input
+					:value="folder.name"
+					:placeholder="mainStore.t.i.captions.name"
+					class="folder-button__name fieldwidth_100"
+					@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
+					@click.stop
+				/>
+				<textarea
+					:value="folder.description"
+					rows="2"
+					:placeholder="mainStore.t.i.captions.description"
+					class="folder-button__description fieldwidth_100"
+					@change="e => {mainStore.changeFolder({folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
+					@click.stop
+				/>
+			</div>
+			<div
+				v-if="!foldersEditMode"
 				class="folder-button"
 				:draggable="folder.parent ? true : false"
 				:data-places-tree-type="what === 'places' ? 'place' : 'route'"
@@ -54,7 +89,6 @@
 				}"
 			>
 				<div
-					v-if="!foldersEditMode"
 					:id="
 						(instanceid === 'popupexporttree' ? 'to-export-' : '') +
 						'places-menu-folder-link-' + folder.id
@@ -62,7 +96,7 @@
 					class="folder-button__content"
 				>
 					<div
-						class="icon-triangle"
+						class="icon icon-triangle"
 						:class="folder.opened ? 'icon-triangle_down' : 'icon-triangle_right'"
 					/>
 					<h2
@@ -82,30 +116,6 @@
 					</div>
 				</div>
 				<div
-					v-else
-					:id="
-						(instanceid === 'popupexporttree' ? 'to-export-' : '') +
-						'places-menu-folder-link-' + folder.id
-					"
-					class="folder-button__content"
-					>
-					<input
-						:value="folder.name"
-						:placeholder="mainStore.t.i.captions.name"
-						class="folder-button__name fieldwidth_100"
-						@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
-						@click.stop
-					/>
-					<textarea
-						:value="folder.description"
-						rows="2"
-						:placeholder="mainStore.t.i.captions.description"
-						class="folder-button__description fieldwidth_100"
-						@change="e => {mainStore.changeFolder({folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
-						@click.stop
-					/>
-				</div>
-				<div
 					v-if="folder.parent"
 					class="folder-button__controls"
 				>
@@ -117,6 +127,7 @@
 								? '0'
 								: (folder.geomarks === 1 ? '1' : '2')
 							)
+							+ '-circled'
 						"
 						:title="
 							(folder.geomarks === 1
@@ -141,7 +152,7 @@
 						}"
 					/>
 					<span
-						class="folder-button__control icon icon-plus"
+						class="folder-button__control icon icon-plus-circled"
 						:title="mainStore.t.i.hints[(what === 'places' ? 'addPlace' : 'addRoute')]"
 						accesskey="a"
 						@click.stop="() => {
@@ -160,7 +171,7 @@
 						}"
 					/>
 					<span
-						class="folder-button__control icon icon-plus"
+						class="folder-button__control icon icon-plus-circled"
 						:title="mainStore.t.i.hints.addFolderIn"
 						accesskey="f"
 						@click.stop="router.push({
@@ -169,7 +180,7 @@
 						})"
 					/>
 					<span
-						class="folder-button__control icon icon-cross-45"
+						class="folder-button__control icon icon-cross-45-circled"
 						:title="mainStore.t.i.buttons.deleteFolder"
 						accesskey="f"
 						@click.stop="router.push({
@@ -190,7 +201,8 @@
 						(!folder.geomarks
 							? '0'
 							: (folder.geomarks === 1 ? '1' : '2')
-						)
+						) +
+						'-circled'
 					"
 					:title="
 						(folder.geomarks === 1
@@ -215,13 +227,13 @@
 					}"
 				/>
 				<button
-					class="button-iconed icon icon-plus"
+					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addPlace"
 					accesskey="a"
 					@click="mainStore.upsertPlace()"
 				/>
 				<button
-					class="button-iconed icon icon-plus"
+					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addFolder"
 					accesskey="f"
 					@click="router.push({
@@ -235,13 +247,13 @@
 				class="control-buttons"
 			>
 				<button
-					class="button-iconed icon icon-plus"
+					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addRoute"
 					accesskey="a"
 					@click="mainStore.upsertRoute()"
 				/>
 				<button
-					class="button-iconed icon icon-cross-45"
+					class="button-iconed icon icon-cross-45-circled"
 					:title="mainStore.t.i.hints.deleteRoute"
 					:disabled="!(
 						mainStore.user &&
@@ -258,7 +270,7 @@
 					"
 				/>
 				<button
-					class="button-iconed icon icon-plus"
+					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addFolder"
 					accesskey="f"
 					@click="router.push({
@@ -394,7 +406,7 @@
 						:class="'icon-geomark-' + (what === 'places'
 							? (!object['geomark'] ? '0' : '1')
 							: (!object['geomarks'] ? '0' : '1')
-						)"
+						) + '-circled'"
 						:title="
 							(!object['geomark']
 								? mainStore.t.i.hints.show
@@ -415,7 +427,7 @@
 					/>
 					<span
 						v-if="what === 'places'"
-						class="place-button__control icon icon-plus"
+						class="place-button__control icon icon-plus-circled"
 						:title="mainStore.t.i.hints.addPlaceNext"
 						@click.stop="mainStore.upsertPlace({
 							props: {
@@ -429,7 +441,7 @@
 					/>
 					<span
 						v-else-if="what === 'routes'"
-						class="place-button__control icon icon-plus"
+						class="place-button__control icon icon-plus-circled"
 						:title="mainStore.t.i.hints.addRouteNext"
 						@click.stop="mainStore.upsertRoute({
 							props: {
@@ -442,7 +454,7 @@
 						})"
 					/>
 					<span
-						class="place-button__control icon icon-cross-45"
+						class="place-button__control icon icon-cross-45-circled"
 						:title="mainStore.t.i.hints.deletePlace"
 						@click.stop="mainStore.deleteObjects({
 							objects: { [object.id]: object }
@@ -597,7 +609,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	display: flex;
 	flex-direction: column;
 	position: relative;
-	padding-left: 15px;
+	padding-left: 16px;
 	&::before {
 		display: none;
 	}
@@ -618,24 +630,17 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		}
 	}
 	&_editable {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 8px;
 		align-items: start;
-		flex-wrap: nowrap;
-		padding-left: 11px;
-		textarea {
-			min-height: auto;
-			height: auto;
-		}
+		margin-top: 12px;
 		.control-buttons {
 			flex: 0 1 auto;
 			flex-flow: column wrap;
 		}
 		.folder-button {
-			grid-template-columns: 8px 1fr auto !important;
-			flex: auto;
-			margin: 0 -8px 8px -12px;
-			&::before {
-				margin-right: 0 !important;
-			}
+			margin: 0 -8px 8px -1px;
 			&__content {
 				display: flex;
 				flex-direction: column;
@@ -647,6 +652,16 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 			input, textarea {
 				display: block;
 			}
+		}
+		.icon-triangle {
+			margin-top: 6px;
+			cursor: pointer;
+		}
+		input, textarea {
+			min-width: 0;
+		}
+		&#places-header, &#routes-header {
+			align-items: start;
 		}
 	}
 	.folder-distances {
@@ -723,7 +738,6 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 			align-items: center;
 			justify-content: center;
 			line-height: 0;
-			transform: scale(0.7);
 		}
 	}
 }
@@ -747,9 +761,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	&__content {
 		display: flex;
 		gap: 8px;
-		.icon-triangle {
-			margin: 0 -6px;
-		}
+		align-items: baseline;
 	}
 }
 .tree-item-checkbox {
@@ -774,7 +786,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 .folder-places {
 	display: block;
 	&:not(&:is(&#root, &#routesroot)) {
-		margin-left: 15px;
+		margin-left: 18px;
 	}
 }
 #places-header, #routes-header {
@@ -803,6 +815,14 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 			margin-left: 0;
 			margin-bottom: 12px;
 		}
+	}
+}
+.icon-triangle {
+	width: 10px; height: 10px;
+	min-width: 0; min-height: 0;
+	line-height: 0;
+	&::before {
+		background-color: var(--color-23);
 	}
 }
 .draggable,

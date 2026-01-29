@@ -6,13 +6,13 @@
    height="100"
    viewBox="0 0 25.664583 26.458333"
    version="1.1"
-   id="svg1"
+   id="svg-icon"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs1" />
   <g
-     id="layer1">
+     id="defs1">
     <path
        d="M 0,26.45833 V 4.23457 l 22.205579,0 0,22.22376 z M 1.8530385,24.60378 H 20.352541 l 0,-18.5146199 -18.4995025,-1e-7 z"
        id="text1"

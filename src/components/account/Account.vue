@@ -37,7 +37,7 @@
 									/>
 									<button
 										type="button"
-										class="button-iconed icon icon-eye-closed"
+										class="button-iconed icon icon-eye-closed-circled"
 										@click.prevent="e => {
 											passwordShowHide(
 												(e.target as Element)
@@ -61,7 +61,7 @@
 									/>
 									<button
 										type="button"
-										class="button-iconed icon icon-eye-closed"
+										class="button-iconed icon icon-eye-closed-circled"
 										@click.prevent="e => {
 											passwordShowHide(
 												(e.target as Element)
@@ -255,7 +255,7 @@ const accountSubmit = (): void => {
 		}
 	}
 	input[type=text] + .button-iconed::before {
-		content: url('@/assets/icons/eye-open-1.svg');
+		content: url('@/assets/icons/eye-open-1-circled.svg');
 	}
 }
 @media screen and (max-width: 1000px) {

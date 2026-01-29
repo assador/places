@@ -2,7 +2,7 @@
 	<div class="points folder margin_bottom">
 		<div class="folder-subs points-header">
 			<div
-				class="icon-triangle"
+				class="icon icon-triangle"
 				:class="opened ? 'icon-triangle_down' : 'icon-triangle_right'"
 			/>
 			<h2 @click="opened = !opened">
@@ -22,7 +22,7 @@
 			<div
 				v-if="type === 'temps'"
 				class="folder-button__control button-iconed icon"
-				:class="'icon-geomark-' + (!mainStore.tempsPlacemarksShow ? '0' : '1')"
+				:class="'icon-geomark-' + (!mainStore.tempsPlacemarksShow ? '0' : '1') + '-circled'"
 				:title="
 					(mainStore.tempsPlacemarksShow
 						? mainStore.t.i.hints.hide
@@ -40,12 +40,12 @@
 				class="control-buttons"
 			>
 				<button
-					class="button-iconed icon icon-plus"
+					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addTemp"
 					@click="mainStore.upsertPoint({ where: mainStore.temps })"
 				/>
 				<button
-					class="button-iconed icon icon-cross-45"
+					class="button-iconed icon icon-cross-45-circled"
 					:title="mainStore.t.i.hints.deleteAllTemps"
 					@click="mainStore.deleteAllTemps()"
 				/>
@@ -55,7 +55,7 @@
 				class="control-buttons"
 			>
 				<button
-					class="button-iconed icon icon-plus"
+					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addRoutePoint"
 					@click="() => {
 						mainStore.upsertPoint({
@@ -70,7 +70,7 @@
 				class="control-buttons"
 			>
 				<button
-					class="button-iconed icon icon-plus"
+					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addTemp"
 					@click="() => {
 						const point = mainStore.upsertPoint({ where: mainStore.temps });
@@ -78,7 +78,7 @@
 					}"
 				/>
 				<button
-					class="button-iconed icon icon-cross-45"
+					class="button-iconed icon icon-cross-45-circled"
 					:title="mainStore.t.i.buttons.clearAll"
 					@click="() => {
 						mainStore.measure.points.length = 0;
@@ -214,7 +214,7 @@
 			>
 				<span>{{ idx + 1 }}</span>
 				<span
-					class="button-iconed icon icon-cross-45"
+					class="button-iconed icon icon-cross-45-circled"
 					:title="mainStore.t.i.hints.deleteTemp"
 					@click.stop="mainStore.deleteTemp(temp.id)"
 				/>
@@ -266,7 +266,7 @@
 					:data-pointidx="idx"
 					:data-pointof="'route'"
 					:title="mainStore.t.i.hints.deleteRoute"
-					class="button-iconed icon icon-cross-45"
+					class="button-iconed icon icon-cross-45-circled"
 					@dragenter="highlighted = point.id"
 					@click.stop="
 						mainStore.deleteRoutePoint(
@@ -319,7 +319,7 @@
 					:data-pointidx="idx"
 					:data-pointof="'measure'"
 					:title="mainStore.t.i.hints.deletePoint"
-					class="button-iconed icon icon-cross-45"
+					class="button-iconed icon icon-cross-45-circled"
 					@dragenter="highlighted = point.id"
 					@click.stop="mainStore.deleteTemp(point.id)"
 				/>
@@ -414,7 +414,7 @@ const distance = computed(() => {
 	align-items: start;
 	margin-bottom: 12px;
 	.icon-triangle {
-		margin: 0 -6px;
+		margin: 7px 0;
 	}
 	& > * {
 		cursor: pointer;
@@ -484,6 +484,14 @@ const distance = computed(() => {
 		display: block;
 		position: absolute;
 		top: -6px; left: 10px;
+	}
+}
+.icon-triangle {
+	width: 10px; height: 10px;
+	min-width: 0; min-height: 0;
+	line-height: 0;
+	&::before {
+		background-color: var(--color-23);
 	}
 }
 </style>

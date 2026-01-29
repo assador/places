@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.2.1 alpha</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.2.2 alpha</p>
 		</div>
 		<Dashboard />
 		<div class="auth-forms">
@@ -42,7 +42,7 @@
 							/>
 							<button
 								type="button"
-								class="button-iconed icon icon-eye-closed"
+								class="button-iconed icon icon-eye-closed-circled"
 								@click.prevent="e => {
 									passwordShowHide(
 										(e.target as Element)
@@ -126,7 +126,7 @@
 						/>
 						<button
 							type="button"
-							class="button-iconed icon icon-eye-closed"
+							class="button-iconed icon icon-eye-closed-circled"
 							@click.prevent="e => {
 								passwordShowHide(
 									(e.target as Element)
@@ -147,7 +147,7 @@
 						/>
 						<button
 							type="button"
-							class="button-iconed icon icon-eye-closed"
+							class="button-iconed icon icon-eye-closed-circled"
 							@click.prevent="e => {
 								passwordShowHide(
 									(e.target as Element)
@@ -297,11 +297,12 @@ onUpdated(async () => {
 		}
 		&::before {
 			margin-top: 0;
-			transform: scale(1.2);
+			transform: scale(0.8);
+			background-color: var(--color-25);
 		}
 	}
 	input[type=text] + .button-iconed::before {
-		content: url('@/assets/icons/eye-open-1.svg');
+		mask-image: url('@/assets/icons/eye-open-1-circled.svg');
 	}
 }
 .auth-login, .auth-registration {

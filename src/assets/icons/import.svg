@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    width="20"
    height="20"
@@ -12,13 +10,14 @@
   <defs
      id="defs1" />
   <g
-     id="defs1">
-    <rect
-       style="fill:#000000;stroke:none;fill-opacity:0"
-       id="rect1"
-       width="20"
-       height="20"
-       x="0"
-       y="0" />
+     id="g1">
+    <path
+       style="fill:#ff0000;stroke:none"
+       d="M 20,0 V 16.5 H 3 v -1 H 19 V 0 Z"
+       id="path1" />
+    <path
+       id="path2"
+       style="fill:#ff0000;stroke:none"
+       d="M 5,12 3.5,16 5,20 0,16 Z" />
   </g>
 </svg>

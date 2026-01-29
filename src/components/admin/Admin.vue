@@ -30,7 +30,7 @@
 			<div id="top-right" class="app-cell">
 				<div class="control-buttons">
 					<button
-						class="actions-button"
+						class="action-button"
 						:title="mainStore.t.i.hints.home"
 						@click="router.push('/home')"
 					>
@@ -38,7 +38,7 @@
 						<span>{{ mainStore.t.i.buttons.home }}</span>
 					</button>
 					<button
-						class="actions-button"
+						class="action-button"
 						:title="mainStore.t.i.hints.exit"
 						@click="exit()"
 					>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="20"
+   height="20"
+   viewBox="0 0 20 20"
+   version="1.1"
+   id="svg-icon"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="g1">
+    <path
+       id="path1"
+       style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-width:1;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#ff0000;stroke:none"
+       d="M 10 0 C 6.1422247 0 3.0000003 3.1520893 3 7.0351562 C 2.9999998 10.907603 5.9050028 14.336332 9.6035156 19.451172 L 10 20 L 10.396484 19.451172 C 14.094998 14.336332 17 10.907603 17 7.0351562 C 17 3.1520892 13.857777 -1.1842379e-15 10 0 z M 10 1 C 13.330114 1 16.013672 3.6976232 16.013672 7.0351562 C 16.013672 10.23883 13.468549 13.519146 10 18.291016 C 6.531452 13.519146 3.9863279 10.23883 3.9863281 7.0351562 C 3.9863284 3.697623 6.6698871 1 10 1 z M 10 3 A 3.0007026 2.9993947 0 0 0 7 6.0019531 A 3.0007026 2.9993947 0 0 0 10 9 A 3.0007026 2.9993947 0 0 0 13 6.0019531 A 3.0007026 2.9993947 0 0 0 10 3 z " />
+  </g>
+</svg>

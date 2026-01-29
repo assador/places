@@ -5,13 +5,13 @@
    height="16"
    viewBox="0 0 16 16"
    version="1.1"
-   id="svg1"
+   id="svg-icon"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs1" />
   <g
-     id="layer1">
+     id="defs1">
     <path
        style="fill:none;stroke:#462816;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        d="M 0.75,0.75 H 15.25"

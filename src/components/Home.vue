@@ -14,7 +14,10 @@
 			class="app-cell"
 			:style="sidebarSize.top === 0 || sidebarSize.left === 0 || !cells.top || !cells.left ? 'display: none' : ''"
 		>
-			<div id="top-left__control-buttons-left" />
+			<div
+				class="action-buttons"
+				id="top-left__control-buttons-left"
+			/>
 		</div>
 		<div
 			id="top-basic"
@@ -44,14 +47,20 @@
 			class="app-cell"
 			:style="sidebarSize.top === 0 || sidebarSize.right === 0 || !cells.top || !cells.right ? 'display: none' : ''"
 		>
-			<div id="top-right__control-buttons-right" />
+			<div
+				class="action-buttons"
+				id="top-right__control-buttons-right"
+			/>
 		</div>
 		<div
 			id="basic-left"
 			class="app-cell"
 			:style="sidebarSize.left !== 0 || cells.left ? 'display: block' : 'display: none'"
 		>
-			<div id="basic-left__control-buttons-left" />
+			<div
+				class="action-buttons"
+				id="basic-left__control-buttons-left"
+			/>
 			<div class="helpers-search">
 				<input
 					id="search-input"
@@ -69,7 +78,7 @@
 						<span>↪</span>
 					</button>
 					<button
-						class="button-iconed icon icon-cross-45"
+						class="button-iconed icon icon-cross-45-circled"
 						:title="mainStore.t.i.buttons.clear"
 						@click="
 							if (searchInput.value !== '') {
@@ -105,7 +114,7 @@
 						<span>↪</span>
 					</button>
 					<button
-						class="button-iconed icon icon-cross-45"
+						class="button-iconed icon icon-cross-45-circled"
 						:title="mainStore.t.i.buttons.clear"
 						@click="
 							if (mainStore.range !== null) {
@@ -260,7 +269,10 @@
 			class="app-cell"
 			:style="sidebarSize.right !== 0 || cells.right ? 'display: block' : 'display: none'"
 		>
-			<div id="basic-right__control-buttons-right" />
+			<div
+				class="action-buttons"
+				id="basic-right__control-buttons-right"
+			/>
 			<RouteDetails />
 			<PlaceDetails />
 			<div>
@@ -279,14 +291,20 @@
 			class="app-cell"
 			:style="sidebarSize.bottom === 0 || sidebarSize.left === 0 || !cells.left || !cells.bottom ? 'display: none' : ''"
 		>
-			<div id="bottom-left__control-buttons-bottom" />
+			<div
+				class="action-buttons"
+				id="bottom-left__control-buttons-bottom"
+			/>
 		</div>
 		<div
 			id="bottom-basic"
 			class="app-cell"
 			:style="sidebarSize.bottom === 0 || !cells.bottom ? 'display: none' : ''"
 		>
-			<div id="bottom-basic__control-buttons-bottom" />
+			<div
+				class="action-buttons"
+				id="bottom-basic__control-buttons-bottom"
+			/>
 			<div id="bottom-choose-map">
 				<select
 					id="choose-map-input"
@@ -368,37 +386,41 @@
 		<div class="control-buttons">
 			<button
 				id="actions-places"
-				:class="'actions-button' + (mainStore.placesShow.show ? ' button-pressed' : '')"
+				class="action-button"
+				:class="mainStore.placesShow.show ? ' button-pressed' : ''"
 				:title="mainStore.t.i.captions.places"
 				accesskey="p"
 				@click="() => mainStore.placesShow.show = !mainStore.placesShow.show"
 			>
-				<span>☩</span>
+				<span class="icon icon-geomark-1" />
 				<span>{{ mainStore.t.i.buttons.places }}</span>
 			</button>
 			<button
 				id="actions-routes"
-				:class="'actions-button' + (mainStore.routesShow ? ' button-pressed' : '')"
+				class="action-button"
+				:class="mainStore.routesShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.captions.routes"
 				accesskey="t"
 				@click="() => mainStore.routesShow = !mainStore.routesShow"
 			>
-				<span>⭍</span>
+				<span class="icon icon-route" />
 				<span>{{ mainStore.t.i.buttons.paths }}</span>
 			</button>
 			<button
 				id="actions-points"
-				:class="'actions-button' + (mainStore.tempsShow.show ? ' button-pressed' : '')"
+				class="action-button"
+				:class="mainStore.tempsShow.show ? ' button-pressed' : ''"
 				:title="mainStore.t.i.buttons.independentPoints"
 				accesskey="t"
 				@click="() => mainStore.tempsShow.show = !mainStore.tempsShow.show"
 			>
-				<span>⊙</span>
+				<span class="icon icon-geomark-3" />
 				<span>{{ mainStore.t.i.buttons.points }}</span>
 			</button>
 			<button
 				id="actions-range"
-				:class="'actions-button actions-button_bigger' + (mainStore.rangeShow ? ' button-pressed' : '')"
+				class="action-button actions-button_bigger"
+				:class="mainStore.rangeShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.buttons.range"
 				accesskey="r"
 				@click="() => {
@@ -408,24 +430,25 @@
 						: mainStore.showInRange(null)
 				}"
 			>
-				<span>⨷</span>
+				<span class="icon icon-compas" />
 				<span>{{ mainStore.t.i.buttons.range }}</span>
 			</button>
 			<button
 				id="actions-edit-folders"
-				:class="'actions-button' + (foldersEditMode ? ' button-pressed' : '')"
+				class="action-button"
+				:class="foldersEditMode ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.editFolders"
 				accesskey="c"
 				@click="foldersEditMode = !foldersEditMode;"
 			>
-				<span>abc|</span>
+				<span class="icon icon-text">abc|</span>
 				<span>{{ mainStore.t.i.buttons.editFolders }}</span>
 			</button>
 		</div>
 		<div class="control-buttons">
 			<button
 				id="mode-normal"
-				class="actions-button"
+				class="action-button"
 				:class="mainStore.mode === 'normal' ? 'button-pressed' : ''"
 				:title="mainStore.t.i.captions.modeNormal"
 				accesskey="m"
@@ -434,12 +457,12 @@
 					mainStore.measure.show = false;
 				}"
 			>
-				<span>☩</span>
+				<span class="icon icon-cross" />
 				<span>{{ mainStore.t.i.buttons.normal }}</span>
 			</button>
 			<button
 				id="mode-routes"
-				class="actions-button"
+				class="action-button"
 				:class="mainStore.mode === 'routes' ? 'button-pressed' : ''"
 				:title="mainStore.t.i.captions.modeRoutes"
 				accesskey="m"
@@ -449,12 +472,12 @@
 					mainStore.measure.show = false;
 				}"
 			>
-				<span>⭍</span>
+				<span class="icon icon-route" />
 				<span>{{ mainStore.t.i.buttons.routes }}</span>
 			</button>
 			<button
 				id="mode-measure"
-				class="actions-button"
+				class="action-button"
 				:class="mainStore.mode === 'measure' ? 'button-pressed' : ''"
 				:title="mainStore.t.i.captions.modeMeasure"
 				accesskey="m"
@@ -463,7 +486,7 @@
 					mainStore.measure.show = true;
 				}"
 			>
-				<span>⤡</span>
+				<span class="icon icon-ruler" />
 				<span>{{ mainStore.t.i.buttons.measure }}</span>
 			</button>
 		</div>
@@ -484,69 +507,69 @@
 			<button
 				id="actions-undo"
 				:disabled="mainStore.stateBackupsIndex < 1"
-				class="actions-button"
+				class="action-button"
 				:title="mainStore.t.i.hints.undo"
 				accesskey="z"
 				@click="mainStore.undo();"
 			>
-				<span>↺</span>
+				<span class="icon icon-undo" />
 				<span>{{ mainStore.t.i.buttons.undo }}</span>
 			</button>
 			<button
 				id="actions-redo"
 				:disabled="mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1"
-				class="actions-button"
+				class="action-button"
 				:title="mainStore.t.i.hints.redo"
 				accesskey="y"
 				@click="mainStore.redo();"
 			>
-				<span>↻</span>
+				<span class="icon icon-redo" />
 				<span>{{ mainStore.t.i.buttons.redo }}</span>
 			</button>
 			<button
 				id="actions-save"
 				:disabled="mainStore.saved || mainStore.user.testaccount"
-				:class="'actions-button' + (!mainStore.saved ? ' button-pressed' : '')"
+				:class="'action-button' + (!mainStore.saved ? ' button-pressed' : '')"
 				:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
 				accesskey="s"
 				@click="toDBCompletely"
 			>
-				<span>↸</span>
+				<span class="icon icon-save" />
 				<span>{{ mainStore.t.i.buttons.save }}</span>
 			</button>
 			<button
 				id="actions-install"
-				class="actions-button"
+				class="action-button"
 				:title="mainStore.t.i.hints.install"
 				:disabled="installButtonEnabled"
 				@click="installPWA()"
 			>
-				<span>⤓</span>
+				<span class="icon icon-save" />
 				<span>{{ mainStore.t.i.buttons.install }}</span>
 			</button>
 			<button
 				id="actions-import"
-				class="actions-button"
+				class="action-button"
 				:title="mainStore.t.i.hints.importPlaces"
 				accesskey="i"
 				@click="importFromFileInput.click()"
 			>
-				<span>↲</span>
+				<span class="icon icon-import" />
 				<span>{{ mainStore.t.i.buttons.import }}</span>
 			</button>
 			<button
 				id="actions-export"
-				class="actions-button"
+				class="action-button"
 				:title="mainStore.t.i.hints.exportPlaces"
 				accesskey="e"
 				@click="router.push({name: 'HomeExport'})"
 			>
-				<span>↱</span>
+				<span class="icon icon-export" />
 				<span>{{ mainStore.t.i.buttons.export }}</span>
 			</button>
 			<button
 				id="actions-about"
-				class="actions-button"
+				class="action-button"
 				:title="mainStore.t.i.hints.about"
 				accesskey="h"
 				@click="
@@ -556,17 +579,17 @@
 					});
 				"
 			>
-				<span>?</span>
+				<span class="icon icon-text icon-help">?</span>
 				<span>{{ mainStore.t.i.buttons.help }}</span>
 			</button>
 			<button
 				id="actions-exit"
-				class="actions-button"
+				class="action-button"
 				:title="mainStore.t.i.hints.exit"
 				accesskey="q"
 				@click="emitter.emit('logout')"
 			>
-				<span>↪</span>
+				<span class="icon icon-exit" />
 				<span>{{ mainStore.t.i.buttons.exit }}</span>
 			</button>
 		</div>
@@ -578,39 +601,49 @@
 		<div class="control-buttons">
 			<button
 				id="placemarksShowHideButton"
-				class="actions-button button-iconed icon icon-geomark-1"
+				class="action-button"
 				:class="mainStore.placemarksShow ? 'button-pressed' : ''"
 				:title="mainStore.t.i.hints.shPlacemarks"
 				@click="mainStore.placemarksShowHide()"
-			/>
+			>
+				<span class="icon icon-geomark-1" />
+			</button>
 			<button
 				id="commonPlacesShowHideButton"
-				class="actions-button button-iconed icon icon-eye-open-2"
+				class="action-button"
 				:class="commonPlacesShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.shCommonPlaces"
 				@click="commonPlacesShowHide();"
-			/>
+			>
+				<span class="icon icon-geomark-3" />
+			</button>
 			<button
 				id="commonPlacemarksShowHideButton"
-				class="actions-button button-iconed icon icon-geomark-2"
+				class="action-button"
 				:class="mainStore.commonPlacemarksShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.shCommonPlacemarks"
 				@click="mainStore.commonPlacemarksShowHide()"
-			/>
+			>
+				<span class="icon icon-geomark-2" />
+			</button>
 			<button
 				id="commonRoutesShowHideButton"
-				class="actions-button button-iconed icon icon-circle"
+				class="action-button"
 				:class="commonRoutesShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.shCommonRoutes"
 				@click="commonRoutesShowHide();"
-			/>
+			>
+				<span class="icon icon-circle" />
+			</button>
 			<button
 				id="centerPlacemarkShowHideButton"
-				class="actions-button button-iconed icon icon-geomark-1"
+				class="action-button"
 				:class="mainStore.centerPlacemarkShow ? ' button-pressed' : ''"
 				:title="mainStore.t.i.hints.shCenter"
 				@click="mainStore.centerPlacemarkShowHide()"
-			/>
+			>
+				<span class="icon icon-cross" />
+			</button>
 		</div>
 	</Teleport>
 </template>
@@ -892,68 +925,6 @@ watch(() => mainStore.currentRoute, current => {
 	if (!current || (current.common && current.userid !== mainStore.user.id)) return;
 	openTreeTo(mainStore.currentRoute);
 });
-/*
-const upsertRoute = async (payload: Record<string, any> = {}): Promise<void | Route> => {
-	const { routes, serverConfig, user, t, setMessage } = mainStore;
-	const routesCount = Object.keys(routes).length;
-	const maxRoutes = serverConfig.rights.routescount;
-	// Check routes limit
-	if (!user.testaccount && maxRoutes > 0 && maxRoutes <= routesCount) {
-		setMessage(t.m.popup.routesCountExceeded);
-		return;
-	}
-	const now = new Date().toISOString().slice(0, -5);
-	const routeId = crypto.randomUUID();
-	let folderid = 'routesroot';
-	if (
-		mainStore.currentRoute &&
-		!(
-			mainStore.currentRoute.common &&
-			mainStore.currentRoute.userid !== mainStore.user.id
-		)
-	) {
-		folderid = mainStore.currentRoute.folderid;
-	}
-	let srt = 1;
-	if (routesCount > 0) {
-		const maxSrt = Math.max(...Object.values(routes).map((t: Route) => t.srt || 0));
-		srt = Math.ceil(maxSrt) + 1;
-	}
-	const newRoute: Route = {
-		type: 'route',
-		id: routeId,
-		folderid,
-		points: [],
-		choosing: null,
-		userid: sessionStorage.getItem('places-useruuid'),
-		name: '',
-		description: '',
-		link: '',
-		time: now,
-		srt,
-		common: false,
-		geomarks: 1,
-		added: true,
-		deleted: false,
-		updated: false,
-		show: true,
-	};
-	for (const key in payload) newRoute[key] = payload[key];
-	await addRoute({ route: newRoute });
-	mainStore.setCurrentRoute(newRoute.id);
-	await nextTick();
-	const detailedNameElem = document.getElementById('route-detailed-name');
-	if (detailedNameElem) {
-		detailedNameElem.classList.add('highlight');
-		window.setTimeout(() => {
-			detailedNameElem.classList.remove('highlight');
-			detailedNameElem.focus();
-		}, 500);
-	}
-	return newRoute;
-};
-provide('upsertRoute', upsertRoute);
-*/
 const commonPlacesShowHide = (show = null): void => {
 	commonPlacesShow.value =
 		show === null
@@ -1231,6 +1202,65 @@ const selectPlaces = (text: string): void => {
 </script>
 
 <style lang="scss" scoped>
+.control-buttons {
+	display: flex;
+	flex-flow: row wrap;
+	gap: 8px;
+	text-align: center;
+	&:not(:last-child) {
+		margin-bottom: 8px;
+	}
+	.action-button {
+		flex: 1 0 calc(25% - 16px);
+		display: flex;
+		flex-flow: column nowrap;
+		gap: 4px;
+		align-items: center;
+		min-width: 40px;
+		min-height: 30px;
+		padding: 2px 0 0 0;
+	}
+}
+#top-left, #top-right, #bottom-left {
+	&, .action-buttons {
+		display: flex;
+		align-items: stretch;
+	}
+	.action-buttons {
+		flex-direction: column;
+		flex: 1 1 calc(20% - 16px);
+		.icon {
+			&, &::before {
+				display: block;
+				width: 15px; height: 15px;
+			}
+			&-text {
+				display: flex;
+				width: 100%;
+				align-items: center;
+				justify-content: center;
+				font-size: 15px;
+				
+			}
+			&-help {
+				font-size: 20px;
+				
+			}
+		}
+		.icon-compas {
+			transform: rotate(45deg);
+		}
+	}
+	.action-button {
+		flex-basis: calc(20% - 16px);
+		justify-content: center;
+		min-width: 30px;
+		min-height: 30px;
+	}
+}
+:is(#top-right, #basic-right) .action-button {
+	min-width: 40px;
+}
 .helpers-search, .helpers-range {
 	display: flex;
 	flex-flow: row wrap;
@@ -1239,7 +1269,7 @@ const selectPlaces = (text: string): void => {
 	margin-top: 8px;
 	padding-left: 0;
 	align-items: center;
-	> *, .actions-button {
+	> *, .action-button {
 		flex: 0 1 auto;
 		&:first-child {
 			flex: 1 1 auto;
@@ -1253,41 +1283,9 @@ const selectPlaces = (text: string): void => {
 		flex-basis: 0;
 	}
 }
-.control-buttons {
-	display: flex;
-	flex-flow: row wrap;
-	gap: 8px;
-	text-align: center;
-	&:not(:last-child) {
-		margin-bottom: 8px;
-	}
-	.actions-button {
-		flex: 1 1 calc(25% - 16px);
-		min-width: 40px;
-		min-height: 30px;
-	}
-}
 .helpers-search, .helpers-range {
 	.control-buttons button {
 		width: 22px;
-	}
-}
-:is(#top-left, #basic-left) .control-buttons {
-	flex-flow: row nowrap;
-	.actions-button {
-		flex-basis: calc(20% - 16px);
-		min-width: 0;
-	}
-}
-:is(#bottom-left, #bottom-basic) .actions-button {
-	flex-basis: calc(20% - 16px);
-	min-width: 30px;
-	min-height: 30px;
-	& > *:first-child {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 32px !important;
 	}
 }
 </style>

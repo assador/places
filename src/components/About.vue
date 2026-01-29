@@ -4,7 +4,7 @@
 		@click.stop
 	>
 		<h1 class="margin_bottom_0">Места</h1>
-		<p>v6.2.1 alpha</p>
+		<p>v6.2.2 alpha</p>
 		<p>Персональный ГеоОрганайзер</p>
 		<p><strong>Разработчик:</strong><br />Дмитрий (Assador) Соколов<br />e-mail: <a href="mailto:assador@gmail.com">assador@gmail.com</a><br />Telegram: <a href="tg://resolve?domain=Assador">@Assador</a></p>
 		<h2>Оглавление</h2>

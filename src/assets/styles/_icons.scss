@@ -1,44 +1,64 @@
-/*
 .icon {
-	background: center / contain no-repeat;
-	&-plus {
-		background-image: url('@/assets/icons/plus.svg');
-	}
-}
-*/
-.icon {
+	display: block;
+	width: 20px; height: 20px;
 	position: relative;
 	&::before {
+		content: '';
+		display: block;
 		position: absolute;
 		top: 0; right: 0; bottom: 0; left: 0;
+		background-color: var(--color-25);
+		mask-size: contain;
+		mask-repeat: no-repeat;
 	}
-	&-plus::before { content: url('@/assets/icons/plus.svg'); }
-	&-minus::before { content: url('@/assets/icons/minus.svg'); }
-	&-cross-45::before { content: url('@/assets/icons/cross-45.svg'); }
-	&-circle::before { content: url('@/assets/icons/circle.svg'); }
-	&-circle-full::before { content: url('@/assets/icons/circle-full.svg'); }
-	&-triangle::before { content: url('@/assets/icons/triangle.svg'); }
-	&-geomark-0::before { content: url('@/assets/icons/circle.svg'); }
-	&-geomark-1::before { content: url('@/assets/icons/geomark-1.svg'); }
-	&-geomark-2::before { content: url('@/assets/icons/geomark-2.svg'); }
-	&-eye-open::before { content: url('@/assets/icons/eye-open-1.svg'); }
-	&-eye-open-2::before { content: url('@/assets/icons/eye-open-2.svg'); }
-	&-eye-closed::before { content: url('@/assets/icons/eye-closed-1.svg'); }
-	&-eye-closed-2::before { content: url('@/assets/icons/eye-closed-2.svg'); }
+	&-text::before { mask-image: url('@/assets/icons/empty.svg'); }
+	&-save::before { mask-image: url('@/assets/icons/save.svg'); }
+	&-exit::before { mask-image: url('@/assets/icons/exit.svg'); }
+	&-undo::before, &-redo::before { mask-image: url('@/assets/icons/undo.svg'); }
+	&-import::before, &-export::before { mask-image: url('@/assets/icons/import.svg'); }
+	&-triangle::before { mask-image: url('@/assets/icons/triangle.svg'); }
+	&-distance::before { mask-image: url('@/assets/icons/distance.svg'); }
+	&-compas::before { mask-image: url('@/assets/icons/compas.svg'); }
+	&-ruler::before { mask-image: url('@/assets/icons/ruler.svg'); }
+	&-route::before { mask-image: url('@/assets/icons/route.svg'); }
+	&-plus-circled::before { mask-image: url('@/assets/icons/plus-circled.svg'); }
+	&-minus-circled::before { mask-image: url('@/assets/icons/minus-circled.svg'); }
+	&-cross::before { mask-image: url('@/assets/icons/cross.svg'); }
+	&-cross-45-circled::before { mask-image: url('@/assets/icons/cross-45-circled.svg'); }
+	&-geomark-0-circled::before { mask-image: url('@/assets/icons/circle.svg'); }
+	&-geomark-1::before { mask-image: url('@/assets/icons/geomark-1.svg'); }
+	&-geomark-2::before { mask-image: url('@/assets/icons/geomark-2.svg'); }
+	&-geomark-3::before { mask-image: url('@/assets/icons/geomark-3.svg'); }
+	&-geomark-1-circled::before { mask-image: url('@/assets/icons/geomark-1-circled.svg'); }
+	&-geomark-2-circled::before { mask-image: url('@/assets/icons/geomark-2-circled.svg'); }
+	&-geomark-3-circled::before { mask-image: url('@/assets/icons/geomark-3-circled.svg'); }
+	&-eye-open-circled::before { mask-image: url('@/assets/icons/eye-open-1-circled.svg'); }
+	&-eye-open-2-circled::before { mask-image: url('@/assets/icons/eye-open-2-circled.svg'); }
+	&-eye-closed-circled::before { mask-image: url('@/assets/icons/eye-closed-1-circled.svg'); }
+	&-eye-closed-2-circled::before { mask-image: url('@/assets/icons/eye-closed-2-circled.svg'); }
+	&-circle::before { mask-image: url('@/assets/icons/circle.svg'); }
+	&-circle-half::before { mask-image: url('@/assets/icons/circle-half.svg'); }
+	&-circle-full::before { mask-image: url('@/assets/icons/circle-full.svg'); }
+
+	&-redo::before {
+		transform: scaleX(-1);
+	}
+	&-export::before {
+		transform: rotate(180deg);
+	}
+}
+button, .button {
+	.icon, &.icon {
+		&::before {
+			background-color: var(--color-68);
+		}
+	}
 }
 .icon-triangle {
-	position: relative;
-	filter: var(--filter-03);
-	width: 20px; height: 20px;
-	min-width: 0; min-height: 0;
-	line-height: 0;
-	transform: scale(0.5);
 	&.icon-triangle_down::before {
-		display: block;
 		transform: rotate(180deg);
 	}
 	&.icon-triangle_right::before {
-		display: block;
 		transform: rotate(90deg);
 	}
 }
