@@ -391,6 +391,7 @@ export const useMainStore = defineStore('main', {
 					}
 				})
 			;
+			where = { ...where };
 			return point;
 		},
 		upsertPlace({
@@ -465,6 +466,7 @@ export const useMainStore = defineStore('main', {
 					where[place.id] = place;
 					break;
 			}
+			this.setCurrentPlace(place);
 			this.backupState();
 
 			if (todb && !this.user.testaccount) {
@@ -525,6 +527,7 @@ export const useMainStore = defineStore('main', {
 					where[route.id] = route;
 					break;
 			}
+			this.setCurrentRoute(route);
 			this.backupState();
 
 			if (todb && !this.user.testaccount) {

@@ -223,7 +223,7 @@
 				</dd>
 			</template>
 
-			<!-- SEC Field Name -->
+<!-- SEC Field Name -->
 
 			<template v-else-if="field !== 'images'">
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>

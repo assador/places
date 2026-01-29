@@ -90,6 +90,9 @@
 					{{ mainStore.t.i.maps.center }}
 				</l-tooltip>
 			</l-marker>
+
+<!-- SEC Markers: Place Points  -->
+
 			<l-marker
 				v-for="(place, id) in mainStore.places"
 				:key="id"
@@ -99,9 +102,16 @@
 				]"
 				draggable
 				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
-				@click="mainStore.setCurrentPlace(place.id, false)"
+				@click="mainStore.setCurrentPlace(place, false)"
 				@contextmenu="e => {
-					pointInfo.point = mainStore.points[place.pointid];
+					if (
+						mainStore.mode === 'measure' &&
+						!isMeasurePoint(mainStore.points[place.pointid].id)
+					) {
+						mainStore.addPointToMeasure(mainStore.points[place.pointid]);
+						return;
+					}
+				pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
 					popupProps.show = true;
 					popupProps.position.top = e.originalEvent.clientY + 5;
@@ -122,6 +132,9 @@
 					{{ place.name }}
 				</l-tooltip>
 			</l-marker>
+
+<!-- SEC Markers: Common Place Points  -->
+
 			<l-marker
 				v-for="(place, id) in mainStore.commonPlaces"
 				:key="id"
@@ -132,7 +145,14 @@
 				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
 				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
 				@contextmenu="e => {
-					pointInfo.point = mainStore.points[place.pointid];
+					if (
+						mainStore.mode === 'measure' &&
+						!isMeasurePoint(mainStore.points[place.pointid].id)
+					) {
+						mainStore.addPointToMeasure(mainStore.points[place.pointid]);
+						return;
+					}
+				pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
 					popupProps.show = true;
 					popupProps.position.top = e.originalEvent.clientY + 5;
@@ -158,6 +178,9 @@
 					}}
 				</l-tooltip>
 			</l-marker>
+
+<!-- SEC Markers: Temps  -->
+
 			<template v-for="point in mainStore.temps" :key="point.id">
 				<l-marker
 					v-if="
@@ -173,6 +196,13 @@
 					draggable
 					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
+						if (
+							mainStore.mode === 'measure' &&
+							!isMeasurePoint(point.id)
+						) {
+							mainStore.addPointToMeasure(point);
+							return;
+						}
 						pointInfo.point = point;
 						pointInfo.name = mainStore.lonelyTemps.indexOf(point) + 1;
 						popupProps.show = true;
@@ -194,7 +224,7 @@
 					<l-icon
 						v-bind="(point === mainStore.currentPoint
 							? icon_01_green
-							: (mainStore.mode === 'measure'
+							: (isMeasurePoint(point.id)
 								? icon_null : icon_01_blue
 							)
 						) as {}"
@@ -208,6 +238,9 @@
 					/>
 				</l-marker>
 			</template>
+
+<!-- SEC Markers: Route Points  -->
+
 			<template
 				v-if="mainStore.mode === 'routes' && mainStore.routesShow"
 				v-for="point in mainStore.routePoints(mainStore.currentRoute)"
@@ -223,6 +256,13 @@
 					draggable
 					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
+						if (
+							mainStore.mode === 'measure' &&
+							!isMeasurePoint(point.id)
+						) {
+							mainStore.addPointToMeasure(point);
+							return;
+						}
 						pointInfo.point = point;
 						pointInfo.name =
 							mainStore.currentRoute.points.find(
@@ -412,9 +452,11 @@ const polylineCurrentMeasureCoords = computed(() =>
 
 const dragging = ref(false);
 
+// SEC Right click on an empty space on the map
+
 const mapContextMenu = (e: any) => {
     const { lat, lng } = e.latlng;
-    if (['normal', 'measure'].includes(mainStore.mode)) {
+    if (mainStore.mode === 'normal' ||  mainStore.mode === 'measure') {
 		const temp = mainStore.upsertPoint({
 			props: { latitude: lat, longitude: lng },
 			where: mainStore.temps,
