@@ -50,7 +50,7 @@
 			position="top-center left-center"
 			@mouseup="async () => {
 				placemarkDragEnd(point);
-				mainStore.choosePoint(point);
+				mainStore.setCurrentPoint(point, false);
 			}"
 			@contextmenu="e => {
 				pointInfo.point = point;

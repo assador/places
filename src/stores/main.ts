@@ -261,7 +261,10 @@ export const useMainStore = defineStore('main', {
 				opened: true,
 			};
 		},
-		createPoint(overrides: Partial<Point>): Point {
+
+// SEC Creating Entities
+
+	createPoint(overrides: Partial<Point>): Point {
 			const point: Point = {
 				...this._defaultPoint(),
 				...overrides,
@@ -289,7 +292,10 @@ export const useMainStore = defineStore('main', {
 			};
 			return folder;
 		},
-		upsertPoint({
+
+// SEC Upserting Entities
+
+	upsertPoint({
 			object,
 			props = {},
 			where = this.points,
@@ -597,6 +603,190 @@ export const useMainStore = defineStore('main', {
 			}
 			return folder;
 		},
+
+// SEC Deleting Entities
+
+		async deleteObjects(payload: {
+			objects?: Record<string, Point | Place | Route | Folder>,
+			todb?: boolean,
+		} = {
+			objects: {},
+			todb: true,
+		}) {
+			const data = {
+				points: <Array<Point>>[],
+				places: <Array<Place>>[],
+				routes: <Array<Route>>[],
+				folders: <Array<Folder>>[],
+			};
+			if (!Object.values(payload.objects).length) {
+				for (const what in data) {
+					data[what] = Object.values(this[what]).filter(object =>
+						Object.hasOwn(
+							object as Point | Place | Route | Folder,
+							'deleted',
+						)
+						&& object['deleted'] === true
+					);
+				}
+			} else {
+				for (const object of Object.values(payload.objects)) {
+/* Add points used only by the object in the payload
+					let points = <Array<Point>>[];
+					if (object['pointid']) {
+						points.push(this.points[object['pointid']]);
+					}
+					if (object['pointids']) {
+						for (const id of object['pointids']) {
+							points.push(this.points[id]);
+						}
+					}
+					for (const point of points) {
+						if (!this.sharingPointsIds.includes(point.id)) {
+							this.points[point.id].deleted = true;
+							data.points.push(point);
+						}
+					}
+*/
+					object.deleted = true;
+					data[object.type + 's'].push(object);
+				}
+			}
+			for (const what in data) {
+				for (const object of data[what]) delete this[what][object.id];
+			}
+			this.buildTrees();
+			if (!this.user.testaccount && payload.todb !== false) {
+				emitter.emit('toDB', data);
+			}
+			this.backupState();
+		},
+		deleteTemp(id: string) {
+			const measureIndex = this.measure.points.map(p => p.id).indexOf(id);
+			if (measureIndex !== -1) {
+				if (this.measure.choosing > this.measure.points.length - 2) {
+					this.measure.choosing = this.measure.points.length - 2
+					if (this.measure.choosing < 0) this.measure.choosing = null;
+				};
+				this.measure.points.splice(measureIndex, 1);
+			}
+			delete this.temps[id];
+			if (this.currentPoint && this.currentPoint.id === id) {
+				this.setCurrentPoint(null);
+			}
+		},
+		deleteAllTemps() {
+			for (let id in this.temps) {
+				this.deleteTemp(id);
+			}
+		},
+
+// SEC Setting Current
+
+		setCurrentPoint<T extends string | Point | null | undefined>(
+			param: T,
+			center?: boolean | undefined,
+		) {
+			let point = null;
+			if (typeof param === 'string') {
+				point = this.getPointById(param) ?? null;
+			} else {
+				point = param ?? null;
+			}
+			this.currentPoint = point;
+			if (!point) return;
+			if (point.altitude === null) {
+				this.getAltitude(point.latitude, point.longitude)
+					.then((alt: number) => point.altitude = alt)
+				;
+			}
+			let idx = -1;
+			if (this.currentRoute) {
+				idx = this.currentRoute.points.map((p: PointName) => p.id).indexOf(point.id);
+				if (idx !== -1) this.currentRoute.choosing = idx;
+			}
+			idx = this.measure.points.map((p: PointName) => p.id).indexOf(point.id);
+			if (idx !== -1) this.measure.choosing = idx;
+			if (center) this.center = {
+				latitude: point.latitude,
+				longitude: point.longitude,
+			};
+		},
+		setCurrentPlace<T extends string | Place | null | undefined>(
+			param: T,
+			center?: boolean | undefined,
+		) {
+			let place = null;
+			if (typeof param === 'string') {
+				place = this.getPlaceById(param) ?? null;
+			} else {
+				place = param ?? null;
+			}
+			this.currentPlace = place;
+			if (place) this.setCurrentPoint(place.pointid, center);
+		},
+		setCurrentRoute<T extends string | Route | null | undefined>(
+			param: T,
+			center?: boolean | undefined,
+		) {
+			let route = null;
+			if (typeof param === 'string') {
+				route = this.getRouteById(param) ?? null;
+			} else {
+				route = param ?? null;
+			}
+			this.currentRoute = route;
+			if (route.points.length) {
+				if (// Damn you all
+					typeof route.choosing !== 'number' ||
+					!Number.isInteger(route.choosing) ||
+					route.choosing < 0 ||
+					route.choosing > route.points.length - 1
+				) {
+					route.choosing = 0;
+				}
+				this.setCurrentPoint(route.points[route.choosing].id, center);
+			}
+		},
+		setFirstCurrentPlace() {
+			if (this.homePlace) this.setCurrentPlace(this.homePlace.id);
+			else if (Object.keys(this.places).length) {
+				let firstPlaceInRoot: Place = null;
+				for (const id in this.places) {
+					if (this.places[id].folderid === 'root') {
+						firstPlaceInRoot = this.places[id];
+						break;
+					}
+				}
+				if (firstPlaceInRoot) this.setCurrentPlace(firstPlaceInRoot.id);
+					else this.setCurrentPlace(this.places[Object.keys(this.places)[0]].id);
+			}
+		},
+
+// SEC Selecting Entities
+
+		selectPoint(point: Point, of?: Place | Route | Measure) {
+			if (!point) {
+				this.setCurrentPoint(null);
+				return;
+			}
+			switch (of?.type) {
+				case 'route':
+				case 'measure':
+					let item = of as Route | Measure;
+					for (let i = 0; i < item.points.length; i++) {
+						if (item.points[i].id === point.id) {
+							item.choosing = i;
+							break;
+						}
+					}
+					this.setCurrentPoint(point.id);
+					break;
+				default:
+					this.setCurrentPoint(point.id);
+			}
+		},
+
 		deleteMessage(index: number) {
 			this.messages.splice(index, 1);
 		},
@@ -895,76 +1085,6 @@ export const useMainStore = defineStore('main', {
 			if (Object.hasOwn(this.routes, id)) return this.routes[id];
 			if (Object.hasOwn(this.commonRoutes, id)) return this.commonRoutes[id];
 			return null;
-		},
-		setCurrentPoint<T extends string | Point | null | undefined>(param: T) {
-			let point = null;
-			if (typeof param === 'string') {
-				point = this.getPointById(param) ?? null;
-			} else {
-				point = param ?? null;
-			}
-			this.currentPoint = point;
-			if (!point) return;
-			if (point.altitude === null) {
-				this.getAltitude(point.latitude, point.longitude)
-					.then((alt: number) => point.altitude = alt)
-				;
-			}
-			let idx = -1;
-			if (this.currentRoute) {
-				idx = this.currentRoute.points.map((p: PointName) => p.id).indexOf(point.id);
-				if (idx !== -1) this.currentRoute.choosing = idx;
-			}
-			idx = this.measure.points.map((p: PointName) => p.id).indexOf(point.id);
-			if (idx !== -1) this.measure.choosing = idx;
-			this.center = {
-				latitude: point.latitude,
-				longitude: point.longitude,
-			};
-		},
-		setCurrentPlace<T extends string | Place | null | undefined>(param: T) {
-			let place = null;
-			if (typeof param === 'string') {
-				place = this.getPlaceById(param) ?? null;
-			} else {
-				place = param ?? null;
-			}
-			this.currentPlace = place;
-			if (place) this.setCurrentPoint(place.pointid);
-		},
-		setCurrentRoute<T extends string | Route | null | undefined>(param: T) {
-			let route = null;
-			if (typeof param === 'string') {
-				route = this.getRouteById(param) ?? null;
-			} else {
-				route = param ?? null;
-			}
-			this.currentRoute = route;
-			if (route.points.length) {
-				if (// Damn you all
-					typeof route.choosing !== 'number' ||
-					!Number.isInteger(route.choosing) ||
-					route.choosing < 0 ||
-					route.choosing > route.points.length - 1
-				) {
-					route.choosing = 0;
-				}
-				this.setCurrentPoint(route.points[route.choosing].id);
-			}
-		},
-		setFirstCurrentPlace() {
-			if (this.homePlace) this.setCurrentPlace(this.homePlace.id);
-			else if (Object.keys(this.places).length) {
-				let firstPlaceInRoot: Place = null;
-				for (const id in this.places) {
-					if (this.places[id].folderid === 'root') {
-						firstPlaceInRoot = this.places[id];
-						break;
-					}
-				}
-				if (firstPlaceInRoot) this.setCurrentPlace(firstPlaceInRoot.id);
-					else this.setCurrentPlace(this.places[Object.keys(this.places)[0]].id);
-			}
 		},
 		async setPlaces(payload?: { mime: string, text: string | ArrayBuffer }) {
 			// If reading from database, not importing
@@ -1453,27 +1573,6 @@ export const useMainStore = defineStore('main', {
 			);
 			return uses;
 		},
-		choosePoint(point: Point, of?: Place | Route | Measure) {
-			if (!point) {
-				this.setCurrentPoint(null);
-				return;
-			}
-			switch (of?.type) {
-				case 'route':
-				case 'measure':
-					let item = of as Route | Measure;
-					for (let i = 0; i < item.points.length; i++) {
-						if (item.points[i].id === point.id) {
-							item.choosing = i;
-							break;
-						}
-					}
-					this.setCurrentPoint(point.id);
-					break;
-				default:
-					this.setCurrentPoint(point.id);
-			}
-		},
 		addPointToMeasure(point: Point = this.currentPoint) {
 			const numbers = this.measure.points
 				.filter(p => /^\d+$/.test(p.name))
@@ -1600,85 +1699,6 @@ export const useMainStore = defineStore('main', {
 				emitter.emit('toDB', { 'routes': [payload.route] });
 			}
 			this.backupState();
-		},
-		async deleteObjects(payload: {
-			objects?: Record<string, Point | Place | Route | Folder>,
-			todb?: boolean,
-		} = {
-			objects: {},
-			todb: true,
-		}) {
-			const data = {
-				points: <Array<Point>>[],
-				places: <Array<Place>>[],
-				routes: <Array<Route>>[],
-				folders: <Array<Folder>>[],
-			};
-			if (!Object.values(payload.objects).length) {
-				for (const what in data) {
-					data[what] = Object.values(this[what]).filter(object =>
-						Object.hasOwn(
-							object as Point | Place | Route | Folder,
-							'deleted',
-						)
-						&& object['deleted'] === true
-					);
-				}
-			} else {
-				for (const object of Object.values(payload.objects)) {
-/* Add points used only by the object in the payload
-					let points = <Array<Point>>[];
-					if (object['pointid']) {
-						points.push(this.points[object['pointid']]);
-					}
-					if (object['pointids']) {
-						for (const id of object['pointids']) {
-							points.push(this.points[id]);
-						}
-					}
-					for (const point of points) {
-						if (!this.sharingPointsIds.includes(point.id)) {
-							this.points[point.id].deleted = true;
-							data.points.push(point);
-						}
-					}
-*/
-					object.deleted = true;
-					data[object.type + 's'].push(object);
-				}
-			}
-			for (const what in data) {
-				for (const object of data[what]) delete this[what][object.id];
-			}
-			this.buildTrees();
-			if (!this.user.testaccount && payload.todb !== false) {
-				emitter.emit('toDB', data);
-			}
-			this.backupState();
-		},
-		deleteTemp(id: string) {
-			const measureIndex = this.measure.points.map(p => p.id).indexOf(id);
-			if (measureIndex !== -1) {
-				if (this.measure.choosing > this.measure.points.length - 2) {
-					this.measure.choosing = this.measure.points.length - 2
-					if (this.measure.choosing < 0) this.measure.choosing = null;
-				};
-				this.measure.points.splice(measureIndex, 1);
-			}
-			delete this.temps[id];
-			if (this.currentPoint && this.currentPoint.id === id) {
-				this.setCurrentPoint(null);
-			}
-		},
-		deleteAllTemps() {
-			for (let id in this.temps) {
-				this.deleteTemp(id);
-			}
-		},
-		async deleteRoutePoint (point: Point, route: Route) {
-			console.log(this.wherePointIsUsed(point));
-			console.log('route:');
-			console.log(route);
 		},
 		savedToDB(payload: DataToDB) {
 			for (const point of payload.points ?? []) this.setObjectSaved(point);

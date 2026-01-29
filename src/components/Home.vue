@@ -491,6 +491,9 @@
 			</button>
 		</div>
 	</Teleport>
+
+<!-- SEC Controls Top-Right -->
+
 	<Teleport :to="compactControlButtons
 		? '#basic-right__control-buttons-right'
 		: '#top-right__control-buttons-right'
@@ -587,7 +590,12 @@
 				class="action-button"
 				:title="mainStore.t.i.hints.exit"
 				accesskey="q"
-				@click="emitter.emit('logout')"
+				@click="() => {
+					showMap = false;
+					$nextTick(() => {
+						emitter.emit('logout');
+					});
+				}"
 			>
 				<span class="icon icon-exit" />
 				<span>{{ mainStore.t.i.buttons.exit }}</span>
@@ -713,6 +721,10 @@ const basicOnFull = () => {
 };
 const extmap = ref(null);
 provide('extmap', extmap);
+
+const showMap = ref(true);
+provide('showMap', showMap);
+
 const importFromFileInput = ref<HTMLInputElement | null>(null);
 const inputUploadFiles = ref<HTMLInputElement | null>(null);
 const commonPlacesPagesCount = ref(0);
@@ -723,6 +735,11 @@ const commonRoutesOnPageCount = ref(constants.commonroutesonpagecount);
 provide('commonRoutesOnPageCount', commonRoutesOnPageCount);
 const commonPlacesShow = ref(false);
 const commonRoutesShow = ref(false);
+
+const currentPlaceNameInputRef = ref(null);
+const currentRouteNameInputRef = ref(null);
+provide('currentPlaceNameInputRef', currentPlaceNameInputRef);
+provide('currentRouteNameInputRef', currentRouteNameInputRef);
 
 const cells = ref({
 	top: true,
@@ -815,6 +832,9 @@ watchEffect(async () => {
 		);
 	}
 });
+
+// SEC Hooks
+
 onMounted(async () => {
 	if (mainStore.ready) stateReadyChanged();
 	mainStore.idleTime = 0;

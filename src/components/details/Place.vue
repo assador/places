@@ -39,6 +39,7 @@
 							place: mainStore.currentPlace,
 							change: { [field]: mainStore.currentPlace[field] }
 						})"
+						:placeholder="field"
 					/>
 				</dd>
 			</template>
@@ -221,10 +222,16 @@
 					</div>
 				</dd>
 			</template>
+
+			<!-- SEC Field Name -->
+
 			<template v-else-if="field !== 'images'">
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
 				<dd>
 					<textarea
+						:ref="el => {
+							if (field === 'name') currentPlaceNameInputRef = el;
+						}"
 						v-model.trim="mainStore.currentPlace[field]"
 						:id="'place-detailed-' + field"
 						:disabled="!!currentPlaceCommon"
@@ -235,7 +242,7 @@
 									? mainStore.t.i.inputs.placeDescription
 									: ''
 								)
-							"
+						"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
 							place: mainStore.currentPlace,
@@ -310,6 +317,8 @@ const router = useRouter();
 const linkEditing = ref(false);
 const highlightedLeft = ref(null);
 const highlightedRight = ref(null);
+
+const currentPlaceNameInputRef = inject('currentPlaceNameInputRef');
 
 const currentPlaceLat = computed<number | null>(() =>
 	mainStore.currentPlace

@@ -55,7 +55,7 @@
 			</template>
 		</Popup>
 	</Teleport>
-	<div id="mapblock">
+	<div v-if="showMap" id="mapblock">
 		<l-map
 			ref="map"
 			v-model:zoom="mapCenter.zoom"
@@ -130,7 +130,7 @@
 					mainStore.points[place.pointid].longitude,
 				]"
 				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
-				@click="mainStore.choosePoint(mainStore.points[place.pointid])"
+				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid])"
 				@contextmenu="e => {
 					pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
@@ -162,7 +162,7 @@
 				<l-marker
 					v-if="
 						mainStore.mode === 'measure' && isMeasurePoint(point.id) ||
-						mainStore.mode !== 'measure' && !isMeasurePoint(point.id)
+						!isMeasurePoint(point.id)
 					"
 					:lat-lng="[ point.latitude, point.longitude ]"
 					:visible="
@@ -171,7 +171,7 @@
 						point.show
 					"
 					draggable
-					@click="mainStore.choosePoint(point)"
+					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
 						pointInfo.point = point;
 						pointInfo.name = mainStore.lonelyTemps.indexOf(point) + 1;
@@ -221,7 +221,7 @@
 						point.show
 					"
 					draggable
-					@click="mainStore.choosePoint(point)"
+					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
 						pointInfo.point = point;
 						pointInfo.name =
@@ -384,6 +384,7 @@ const copyCoords = async (point: Point) => {
 };
 
 const map = inject('extmap');
+const showMap = inject('showMap');
 
 const mapCenter = computed(() => ({
 	coords: [

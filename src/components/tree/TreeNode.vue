@@ -161,11 +161,13 @@
 									mainStore.upsertPlace({
 										props: { folderid: folder.id },
 									});
+									currentPlaceNameInputRef.focus();
 									break;
 								case 'routes':
 									mainStore.upsertRoute({
 										props: { folderid: folder.id },
 									});
+									currentRouteNameInputRef.focus();
 									break;
 							}
 						}"
@@ -230,7 +232,10 @@
 					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addPlace"
 					accesskey="a"
-					@click="mainStore.upsertPlace()"
+					@click="() => {
+						mainStore.upsertPlace();
+						currentPlaceNameInputRef.focus();
+					}"
 				/>
 				<button
 					class="button-iconed icon icon-plus-circled"
@@ -250,7 +255,10 @@
 					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addRoute"
 					accesskey="a"
-					@click="mainStore.upsertRoute()"
+					@click="() => {
+						mainStore.upsertRoute();
+						currentRouteNameInputRef.focus();
+					}"
 				/>
 				<button
 					class="button-iconed icon icon-cross-45-circled"
@@ -429,29 +437,35 @@
 						v-if="what === 'places'"
 						class="place-button__control icon icon-plus-circled"
 						:title="mainStore.t.i.hints.addPlaceNext"
-						@click.stop="mainStore.upsertPlace({
-							props: {
-								folderid: folder.id,
-								srt: index === places.length - 1
-									? object.srt + 1
-									: object.srt + (places[index + 1].srt - object.srt) / 2
-								,
-							},
-						})"
+						@click.stop="() => {
+							mainStore.upsertPlace({
+								props: {
+									folderid: folder.id,
+									srt: index === places.length - 1
+										? object.srt + 1
+										: object.srt + (places[index + 1].srt - object.srt) / 2
+									,
+								},
+							});
+							currentPlaceNameInputRef.focus();
+						}"
 					/>
 					<span
 						v-else-if="what === 'routes'"
 						class="place-button__control icon icon-plus-circled"
 						:title="mainStore.t.i.hints.addRouteNext"
-						@click.stop="mainStore.upsertRoute({
-							props: {
-								folderid: folder.id,
-								srt: index === routes.length - 1
-									? object.srt + 1
-									: object.srt + (routes[index + 1].srt - object.srt) / 2
-								,
-							},
-						})"
+						@click.stop="() => {
+							mainStore.upsertRoute({
+								props: {
+									folderid: folder.id,
+									srt: index === routes.length - 1
+										? object.srt + 1
+										: object.srt + (routes[index + 1].srt - object.srt) / 2
+									,
+								},
+							});
+							currentRouteNameInputRef.focus();
+						}"
 					/>
 					<span
 						class="place-button__control icon icon-cross-45-circled"
@@ -515,7 +529,7 @@ export default {
 
 <script setup lang="ts">
 import _ from 'lodash';
-import { inject, computed } from 'vue';
+import { computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { Place, Route, Folder } from '@/stores/types';
@@ -536,6 +550,9 @@ const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 
 const mainStore = useMainStore();
 const router = useRouter();
+
+const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
+const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
 
 const selectedToExport = inject<typeof selectedToExport>('selectedToExport');
 const foldersCheckedIds: string[] = inject('foldersCheckedIds');

@@ -93,8 +93,11 @@
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
 				<dd>
 					<textarea
-						:id="'route-detailed-' + field"
+						:ref="el => {
+							if (field === 'name') currentRouteNameInputRef = el;
+						}"
 						v-model.trim="mainStore.currentRoute[field]"
+						:id="'route-detailed-' + field"
 						:disabled="!!currentRouteCommon"
 						:placeholder="
 							field === 'name'
@@ -103,7 +106,7 @@
 									? mainStore.t.i.inputs.routeDescription
 									: ''
 								)
-							"
+						"
 						class="fieldwidth_100"
 						@change="
 							mainStore.changeRoute({
@@ -128,6 +131,8 @@ import Points from '@/components/Points.vue';
 const currentRouteCommon = inject('currentRouteCommon') as Ref<boolean>;
 
 const mainStore = useMainStore();
+
+const currentRouteNameInputRef = inject('currentRouteNameInputRef');
 
 const orderedCurrentRouteFields = ref([
 	'name', 'description', 'link', 'time', 'srt', 'common',

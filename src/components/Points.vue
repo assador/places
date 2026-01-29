@@ -221,31 +221,31 @@
 			</button>
 			<button
 				v-else-if="type === 'route'"
-				v-for="(point, idx) in mainStore.currentRoute.points"
-				:key="point.id"
-				:data-point="point.id"
+				v-for="(pn, idx) in mainStore.currentRoute.points"
+				:key="pn.id"
+				:data-point="pn.id"
 				:data-pointidx="idx"
 				:data-pointof="'route'"
 				:draggable="true"
 				@dragstart="e => handleDragStart(e, 'points')"
 				@dragenter="e => {
-					highlighted = point.id;
+					highlighted = pn.id;
 					handleDragEnter(e);
 				}"
 				@dragend="highlighted = null"
 				@drop="handleDrop"
 				:class="
-					point.id === highlighted ||
-					point.id === mainStore.currentPoint?.id
+					pn.id === highlighted ||
+					pn.id === mainStore.currentPoint?.id
 						? 'button-pressed' : ''
 				"
 				@click.prevent="() => {
-					pointInfo.point = mainStore.getPointById(point.id);
-					mainStore.setCurrentPoint(pointInfo.point.id);
+					pointInfo.point = mainStore.getPointById(pn.id);
+					mainStore.setCurrentPoint(pointInfo.point);
 				}"
 				@contextmenu.prevent="e => {
-					pointInfo.point = mainStore.getPointById(point.id);
-					pointInfo.name = point.name;
+					pointInfo.point = mainStore.getPointById(pn.id);
+					pointInfo.name = pn.name;
 					popupProps.show = true;
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.right =
@@ -254,25 +254,24 @@
 				}"
 			>
 				<span
-					:data-point="point.id"
+					:data-point="pn.id"
 					:data-pointidx="idx"
 					:data-pointof="'route'"
-					@dragenter="highlighted = point.id"
+					@dragenter="highlighted = pn.id"
 				>
-					{{ point.name }}
+					{{ pn.name }}
 				</span>
 				<span
-					:data-point="point.id"
+					:data-point="pn.id"
 					:data-pointidx="idx"
 					:data-pointof="'route'"
-					:title="mainStore.t.i.hints.deleteRoute"
+					:title="mainStore.t.i.hints.deleteRoutePoint"
 					class="button-iconed icon icon-cross-45-circled"
-					@dragenter="highlighted = point.id"
+					@dragenter="highlighted = pn.id"
 					@click.stop="
-						mainStore.deleteRoutePoint(
-							mainStore.getPointById(point.id),
-							mainStore.currentRoute
-						)
+						mainStore.deleteObjects({
+							objects: { [pointInfo.point.id]: pointInfo.point }
+						})
 					"
 				/>
 			</button>
