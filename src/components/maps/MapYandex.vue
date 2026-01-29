@@ -102,7 +102,7 @@
 			position="top-center left-center"
 			@mouseup="() => {
 				placemarkDragEnd(place);
-				mainStore.setCurrentPlace(place.id);
+				mainStore.setCurrentPlace(place.id, false);
 			}"
 			@contextmenu="e => {
 				pointInfo.point = mainStore.points[place.pointid];
@@ -150,7 +150,7 @@
 				draggable: false,
 			}"
 			position="top-center left-center"
-			@click="mainStore.setCurrentPlace(place.id)"
+			@click="mainStore.setCurrentPlace(place.id, false)"
 			@contextmenu="e => {
 				pointInfo.point = mainStore.points[place.pointid];
 				popupProps.show = !popupProps.show;

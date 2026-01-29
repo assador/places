@@ -99,7 +99,7 @@
 				]"
 				draggable
 				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
-				@click="mainStore.setCurrentPlace(place.id)"
+				@click="mainStore.setCurrentPlace(place.id, false)"
 				@contextmenu="e => {
 					pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
@@ -130,7 +130,7 @@
 					mainStore.points[place.pointid].longitude,
 				]"
 				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
-				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid])"
+				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
 				@contextmenu="e => {
 					pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;

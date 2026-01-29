@@ -360,7 +360,6 @@ export const useMainStore = defineStore('main', {
 						}
 						whom.updated = true;
 					}
-					this.setCurrentPoint(point);
 					break;
 				case 'clone':
 					point = this.createPoint({
@@ -380,7 +379,6 @@ export const useMainStore = defineStore('main', {
 						}
 						whom.updated = true;
 					}
-					this.setCurrentPoint(point);
 					break;
 			}
 			this.backupState();
@@ -467,7 +465,6 @@ export const useMainStore = defineStore('main', {
 					where[place.id] = place;
 					break;
 			}
-			this.setCurrentPlace(place);
 			this.backupState();
 
 			if (todb && !this.user.testaccount) {
@@ -528,7 +525,6 @@ export const useMainStore = defineStore('main', {
 					where[route.id] = route;
 					break;
 			}
-			this.setCurrentRoute(route);
 			this.backupState();
 
 			if (todb && !this.user.testaccount) {
@@ -707,7 +703,7 @@ export const useMainStore = defineStore('main', {
 			}
 			idx = this.measure.points.map((p: PointName) => p.id).indexOf(point.id);
 			if (idx !== -1) this.measure.choosing = idx;
-			if (center) this.center = {
+			if (center !== false && point) this.center = {
 				latitude: point.latitude,
 				longitude: point.longitude,
 			};
@@ -749,42 +745,19 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 		setFirstCurrentPlace() {
-			if (this.homePlace) this.setCurrentPlace(this.homePlace.id);
-			else if (Object.keys(this.places).length) {
-				let firstPlaceInRoot: Place = null;
-				for (const id in this.places) {
-					if (this.places[id].folderid === 'root') {
-						firstPlaceInRoot = this.places[id];
-						break;
-					}
-				}
-				if (firstPlaceInRoot) this.setCurrentPlace(firstPlaceInRoot.id);
-					else this.setCurrentPlace(this.places[Object.keys(this.places)[0]].id);
-			}
-		},
-
-// SEC Selecting Entities
-
-		selectPoint(point: Point, of?: Place | Route | Measure) {
-			if (!point) {
-				this.setCurrentPoint(null);
+			if (this.homePlace) {
+				this.setCurrentPlace(this.homePlace);
 				return;
 			}
-			switch (of?.type) {
-				case 'route':
-				case 'measure':
-					let item = of as Route | Measure;
-					for (let i = 0; i < item.points.length; i++) {
-						if (item.points[i].id === point.id) {
-							item.choosing = i;
-							break;
-						}
-					}
-					this.setCurrentPoint(point.id);
+			let firstPlaceInRoot: Place = null;
+			for (const id in this.places) {
+				if (this.places[id].folderid === 'root') {
+					firstPlaceInRoot = this.places[id];
 					break;
-				default:
-					this.setCurrentPoint(point.id);
+				}
 			}
+			if (!firstPlaceInRoot) this.setCurrentPlace(this.places[Object.keys(this.places)[0]]);
+			this.setCurrentPlace(firstPlaceInRoot);
 		},
 
 		deleteMessage(index: number) {
@@ -1498,7 +1471,7 @@ export const useMainStore = defineStore('main', {
 					place = this.commonPlaces[this.currentPlace.id];
 				if (this.places[this.currentPlace.id])
 					place = this.places[this.currentPlace.id];
-				this.setCurrentPlace(place.id);
+				this.setCurrentPlace(place);
 			}
 			this.refreshing = false;
 		},
