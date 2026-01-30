@@ -379,6 +379,9 @@
 		/>
 		<router-view />
 	</div>
+
+<!-- SEC Controls Top-Left -->
+
 	<Teleport :to="compactControlButtons
 		? '#basic-left__control-buttons-left'
 		: '#top-left__control-buttons-left'
@@ -578,7 +581,7 @@
 				@click="
 					router.push({
 						name: 'HomeText',
-						params: {what: 'about'}
+						params: { what: 'about' },
 					});
 				"
 			>

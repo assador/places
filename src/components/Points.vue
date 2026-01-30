@@ -74,7 +74,10 @@
 					:title="mainStore.t.i.hints.addTemp"
 					@click="() => {
 						const point = mainStore.upsertPoint({ where: mainStore.temps });
-						mainStore.addPointToPoints(point, mainStore.measure);
+						mainStore.addPointToPoints({
+							point: point,
+							where: mainStore.measure,
+						});
 					}"
 				/>
 				<button
@@ -209,11 +212,17 @@
 				:class="mainStore.currentPoint?.id === temp.id ? 'button-pressed' : ''"
 				@click.prevent="mainStore.setCurrentPoint(temp.id)"
 				@contextmenu.prevent="e => {
-					if (
-						mainStore.mode === 'measure' ||
-						mainStore.mode === 'routes'
-					) {
-						mainStore.addPointToPoints(temp);
+					if (mainStore.mode === 'measure') {
+						mainStore.addPointToPoints({
+							point: temp,
+							where: mainStore.measure,
+						});
+						return;
+					} else if (mainStore.mode === 'routes') {
+						mainStore.addPointToPoints({
+							point: temp,
+							where: mainStore.currentRoute,
+						});
 						return;
 					}
 					pointInfo.point = temp;
@@ -320,7 +329,10 @@
 				@contextmenu.prevent="e => {
 					pointInfo.point = mainStore.getPointById(pn.id);
 					if (mainStore.mode === 'measure') {
-						mainStore.addPointToPoints(pointInfo.point);
+						mainStore.addPointToPoints({
+							point: pointInfo.point,
+							where: mainStore.measure,
+						});
 						return;
 					}
 					pointInfo.name = pn.name;

@@ -112,6 +112,7 @@ export const t = {
 			help: 'Help',
 			home: 'Home',
 			import: 'Import',
+			independentPoints: 'Independent points',
 			install: 'App',
 			loading: 'Loading',
 			login: 'Log in',

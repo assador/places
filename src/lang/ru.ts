@@ -112,6 +112,7 @@ export const t = {
 			help: 'Справка',
 			home: 'Домой',
 			import: 'Импорт',
+			independentPoints: 'Независимые точки',
 			install: 'Прилож',
 			loading: 'Загрузка',
 			login: 'Войти',

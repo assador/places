@@ -1558,21 +1558,24 @@ export const useMainStore = defineStore('main', {
 			);
 			return uses;
 		},
-		addPointToPoints(
-			point: Point = this.currentPoint,
-			entity?: Route | Measure,
-		) {
-			if (!entity) {
-				if (this.mode === 'routes' && this.currentRoute) entity = this.currentRoute;
-				else if (this.mode === 'measure') entity = this.measure;
+		addPointToPoints({
+			point = this.currentPoint,
+			where,
+		}: {
+			point: Point;
+			where?: Route | Measure;
+		}) {
+			if (!where) {
+				if (this.mode === 'routes' && this.currentRoute) where = this.currentRoute;
+				else if (this.mode === 'measure') where = this.measure;
 				else return;
 			}
-			const numbers = entity.points
+			const numbers = where.points
 				.filter(p => /^\d+$/.test(p.name))
 				.map(p => Number(p.name));
 			const name = (Math.max(0, ...numbers) + 1).toString();
-			entity.choosing = entity.points.length;
-			entity.points[entity.choosing] = {
+			where.choosing = where.points.length;
+			where.points[where.choosing] = {
 				id: point.id,
 				name: name,
 			};

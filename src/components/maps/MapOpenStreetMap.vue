@@ -108,13 +108,26 @@
 						mainStore.mode === 'measure' &&
 						!mainStore.isMeasurePoint(mainStore.points[place.pointid].id)
 					) {
-						mainStore.addPointToPoints(
-							mainStore.points[place.pointid],
-							mainStore.measure,
-						);
+						mainStore.addPointToPoints({
+							point: mainStore.points[place.pointid],
+							where: mainStore.measure,
+						});
 						return;
 					}
-				pointInfo.point = mainStore.points[place.pointid];
+					if (
+						mainStore.mode === 'routes' &&
+						!mainStore.isRoutePoint(
+							mainStore.points[place.pointid].id,
+							mainStore.currentRoute,
+						)
+					) {
+						mainStore.addPointToPoints({
+							point: mainStore.points[place.pointid],
+							where: mainStore.currentRoute,
+						});
+						return;
+					}
+					pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
 					popupProps.show = true;
 					popupProps.position.left = 'auto';
@@ -154,10 +167,10 @@
 						mainStore.mode === 'measure' &&
 						!mainStore.isMeasurePoint(mainStore.points[place.pointid].id)
 					) {
-						mainStore.addPointToPoints(
-							mainStore.points[place.pointid],
-							mainStore.measure,
-						);
+						mainStore.addPointToPoints({
+							point: mainStore.points[place.pointid],
+							where: mainStore.measure,
+						});
 						return;
 					}
 				pointInfo.point = mainStore.points[place.pointid];
@@ -203,16 +216,23 @@
 						mainStore.tempsPlacemarksShow &&
 						point.show
 					"
+					:z-index-offset="
+						point.id === mainStore.currentPoint?.id ? 10000 : 0
+					"
 					draggable
 					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
-						if (
-							mainStore.mode === 'measure' &&
-							!mainStore.isMeasurePoint(point.id) ||
-							mainStore.mode === 'route' &&
-							!mainStore.isRoutePoint(point.id, mainStore.currentRoute)
-						) {
-							mainStore.addPointToPoints(point, mainStore.measure);
+						if (mainStore.mode === 'measure') {
+							mainStore.addPointToPoints({
+								point: point,
+								where: mainStore.measure,
+							});
+							return;
+						} else if (mainStore.mode === 'routes') {
+							mainStore.addPointToPoints({
+								point: point,
+								where: mainStore.currentRoute,
+							});
 							return;
 						}
 						pointInfo.point = point;
@@ -243,7 +263,6 @@
 							)
 						) as {}"
 					/>
-<!-- FIXME When adding a route point to a measure point array, the l-circle is not displayed. -->
 					<l-circle-marker
 						v-if="
 							mainStore.mode === 'measure' &&
@@ -260,11 +279,14 @@
 <!-- SEC Markers: Route Points  -->
 
 			<template
-				v-if="mainStore.mode === 'routes' && mainStore.routesShow"
 				v-for="point in mainStore.routePoints(mainStore.currentRoute)"
 				:key="mainStore.currentRoute?.points.length"
 			>
 				<l-marker
+					v-if="
+						mainStore.mode === 'routes' && mainStore.routesShow ||
+						mainStore.mode === 'measure' && mainStore.isMeasurePoint(point.id)
+					"
 					:lat-lng="[point.latitude, point.longitude]"
 					:visible="
 						mainStore.placemarksShow &&
@@ -278,7 +300,10 @@
 							mainStore.mode === 'routes' &&
 							!mainStore.isMeasurePoint(point.id)
 						) {
-							mainStore.addPointToPoints(point, mainStore.currentRoute);
+							mainStore.addPointToPoints({
+								point: point,
+								where: mainStore.currentRoute,
+							});
 							return;
 						}
 						pointInfo.point = point;
@@ -297,6 +322,12 @@
 					}"
 					@mousedown="() => dragging = true"
 					@mouseup="() => dragging = false"
+					@move="e => {
+						if (mainStore.mode !== 'routes') return;
+						const { lat, lng } = e.target.getLatLng();
+						point.latitude = lat;
+						point.longitude = lng;
+					}"
 					@moveend="e => placemarkDragEnd(point, e)"
 				>
 					<l-icon
@@ -468,7 +499,7 @@ const mapContextMenu = (e: any) => {
 			where: mainStore.temps,
 		});
         if (mainStore.mode === 'measure') {
-            mainStore.addPointToPoints(temp, mainStore.measure);
+            mainStore.addPointToPoints({ point: temp, where: mainStore.measure });
         }
         return;
     }

@@ -372,9 +372,9 @@
 				}"
 				@contextmenu.prevent="() => {
 					if (what === 'places' && instanceid !== 'popupexporttree') {
-						mainStore.addPointToPoints(
-							mainStore.points[(object as Place).pointid]
-						);
+						mainStore.addPointToPoints({
+							point: mainStore.points[(object as Place).pointid],
+						});
 					}
 				}"
 			>

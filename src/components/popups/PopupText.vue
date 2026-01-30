@@ -1,8 +1,6 @@
 <template>
 	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
-		<div>
-			<About v-if="props.what === 'about'" />
-		</div>
+		<About v-if="props.what === 'about'" />
 		<a
 			href="javascript:void(0)"
 			class="close"
