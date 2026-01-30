@@ -1551,8 +1551,13 @@ export const useMainStore = defineStore('main', {
 		},
 		addPointToPoints(
 			point: Point = this.currentPoint,
-			entity: Route | Measure = this.measure,
+			entity?: Route | Measure,
 		) {
+			if (!entity) {
+				if (this.mode === 'routes' && this.currentRoute) entity = this.currentRoute;
+				else if (this.mode === 'measure') entity = this.measure;
+				else return;
+			}
 			const numbers = entity.points
 				.filter(p => /^\d+$/.test(p.name))
 				.map(p => Number(p.name));

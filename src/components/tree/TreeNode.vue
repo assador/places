@@ -354,9 +354,9 @@
 				@click="() => {
 					if (instanceid === 'popupexporttree') return;
 					if (what === 'places') {
-						mainStore.setCurrentPlace((object as Place).id);
+						mainStore.setCurrentPlace(object as Place);
 					} else if (what === 'routes') {
-						mainStore.setCurrentRoute((object as Route).id);
+						mainStore.setCurrentRoute(object as Route);
 					}
 					const point = mainStore.getPointById(
 						what === 'places'
@@ -371,12 +371,10 @@
 					}
 				}"
 				@contextmenu.prevent="() => {
-					if (instanceid !== 'popupexporttree') {
-						if (what === 'places') {
-							mainStore.setCurrentPlace((object as Place).id);
-						} else if (what === 'routes') {
-							mainStore.setCurrentRoute((object as Route).id);
-						}
+					if (what === 'places' && instanceid !== 'popupexporttree') {
+						mainStore.addPointToPoints(
+							mainStore.points[(object as Place).pointid]
+						);
 					}
 				}"
 			>
