@@ -295,7 +295,7 @@ export const useMainStore = defineStore('main', {
 
 // SEC Upserting Entities
 
-	upsertPoint({
+		upsertPoint({
 			object,
 			props = {},
 			where = this.points,
@@ -1549,23 +1549,29 @@ export const useMainStore = defineStore('main', {
 			);
 			return uses;
 		},
-		addPointToMeasure(point: Point = this.currentPoint) {
-			const numbers = this.measure.points
+		addPointToPoints(
+			point: Point = this.currentPoint,
+			entity: Route | Measure = this.measure,
+		) {
+			const numbers = entity.points
 				.filter(p => /^\d+$/.test(p.name))
 				.map(p => Number(p.name));
 			const name = (Math.max(0, ...numbers) + 1).toString();
-			this.measure.choosing = this.measure.points.length;
-			this.measure.points[this.measure.choosing] = {
+			entity.choosing = entity.points.length;
+			entity.points[entity.choosing] = {
 				id: point.id,
 				name: name,
 			};
 		},
-		removePointFromMeasure(point: Point = this.currentPoint) {
-			let idx = this.measure.points.map(p => p.id).indexOf(point.id);
+		removePointFromPoints(
+			point: Point = this.currentPoint,
+			entity: Route | Measure = this.measure,
+		) {
+			let idx = entity.points.map(p => p.id).indexOf(point.id);
 			if (idx === -1) return;
-			this.measure.points.splice(idx, 1);
-			if (this.measure.choosing > this.measure.points.length - 1) {
-				this.measure.choosing = this.measure.points.length - 1;
+			entity.points.splice(idx, 1);
+			if (entity.choosing > entity.points.length - 1) {
+				entity.choosing = entity.points.length - 1;
 			}
 		},
 		async removeRoutePoint({

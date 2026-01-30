@@ -74,7 +74,7 @@
 					:title="mainStore.t.i.hints.addTemp"
 					@click="() => {
 						const point = mainStore.upsertPoint({ where: mainStore.temps });
-						mainStore.addPointToMeasure(point);
+						mainStore.addPointToPoints(point, mainStore.measure);
 					}"
 				/>
 				<button
@@ -176,6 +176,7 @@
 				@click="e => {
 					pointInfo.point = mainStore.currentPoint;
 					popupProps.show = !popupProps.show;
+					popupProps.position.bottom = 'auto';
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.right = (
 						type === 'route'
@@ -206,8 +207,10 @@
 				@click.prevent="mainStore.setCurrentPoint(temp.id)"
 				@contextmenu.prevent="e => {
 					pointInfo.point = temp;
-					pointInfo.name = idx + 1;
+					pointInfo.name = (idx + 1).toString();
 					popupProps.show = true;
+					popupProps.position.right = 'auto';
+					popupProps.position.bottom = 'auto';
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.left = e.clientX + 5;
 				}"
@@ -247,6 +250,8 @@
 					pointInfo.point = mainStore.getPointById(pn.id);
 					pointInfo.name = pn.name;
 					popupProps.show = true;
+					popupProps.position.left = 'auto';
+					popupProps.position.bottom = 'auto';
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.right =
 						e.view.document.documentElement.clientWidth -
@@ -301,6 +306,8 @@
 					pointInfo.point = mainStore.getPointById(point.id);
 					pointInfo.name = point.name;
 					popupProps.show = true;
+					popupProps.position.right = 'auto';
+					popupProps.position.bottom = 'auto';
 					popupProps.position.top = e.clientY + 5;
 					popupProps.position.left = e.clientX + 5;
 				}"
@@ -331,12 +338,12 @@
 import { ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import {
-	IPlacesPopupProps,
 	latitude2string,
 	longitude2string,
 	point2coords,
+	IPlacesPopupProps,
 } from '@/shared';
-import { Point } from '@/stores/types';
+import { Point, PointName } from '@/stores/types';
 import Popup from '@/components/popups/Popup.vue';
 
 export interface IPlacesPointsProps {
@@ -354,19 +361,9 @@ const mainStore = useMainStore();
 
 const opened = ref(true);
 const highlighted = ref(null);
-const pointInfo = ref({
-	point: null,
-	name: null,
-});
-const popupProps = ref<IPlacesPopupProps>({
-	show: false,
-	position: {
-		top: 'auto',
-		right: 'auto',
-		bottom: 'auto',
-		left: 'auto',
-	},
-});
+
+const pointInfo = inject<PointName>('pointInfo');
+const popupProps = inject<IPlacesPopupProps>('popupProps');
 
 const copied = ref(false);
 const copyCoords = async (point: Point) => {

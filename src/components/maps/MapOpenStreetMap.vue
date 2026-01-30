@@ -108,12 +108,17 @@
 						mainStore.mode === 'measure' &&
 						!isMeasurePoint(mainStore.points[place.pointid].id)
 					) {
-						mainStore.addPointToMeasure(mainStore.points[place.pointid]);
+						mainStore.addPointToPoints(
+							mainStore.points[place.pointid],
+							mainStore.measure,
+						);
 						return;
 					}
 				pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
 					popupProps.show = true;
+					popupProps.position.left = 'auto';
+					popupProps.position.bottom = 'auto';
 					popupProps.position.top = e.originalEvent.clientY + 5;
 					popupProps.position.right =
 						e.originalEvent.view.document.documentElement.clientWidth -
@@ -149,12 +154,17 @@
 						mainStore.mode === 'measure' &&
 						!isMeasurePoint(mainStore.points[place.pointid].id)
 					) {
-						mainStore.addPointToMeasure(mainStore.points[place.pointid]);
+						mainStore.addPointToPoints(
+							mainStore.points[place.pointid],
+							mainStore.measure,
+						);
 						return;
 					}
 				pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
 					popupProps.show = true;
+					popupProps.position.left = 'auto';
+					popupProps.position.bottom = 'auto';
 					popupProps.position.top = e.originalEvent.clientY + 5;
 					popupProps.position.right =
 						e.originalEvent.view.document.documentElement.clientWidth -
@@ -181,7 +191,7 @@
 
 <!-- SEC Markers: Temps  -->
 
-			<template v-for="point in mainStore.temps" :key="point.id">
+			<template v-for="point in mainStore.temps">
 				<l-marker
 					v-if="
 						mainStore.mode === 'measure' && isMeasurePoint(point.id) ||
@@ -200,12 +210,14 @@
 							mainStore.mode === 'measure' &&
 							!isMeasurePoint(point.id)
 						) {
-							mainStore.addPointToMeasure(point);
+							mainStore.addPointToPoints(point, mainStore.measure);
 							return;
 						}
 						pointInfo.point = point;
-						pointInfo.name = mainStore.lonelyTemps.indexOf(point) + 1;
+						pointInfo.name = (mainStore.lonelyTemps.indexOf(point) + 1).toString();
 						popupProps.show = true;
+						popupProps.position.left = 'auto';
+						popupProps.position.bottom = 'auto';
 						popupProps.position.top = e.originalEvent.clientY + 5;
 						popupProps.position.right =
 							e.originalEvent.view.document.documentElement.clientWidth -
@@ -244,7 +256,7 @@
 			<template
 				v-if="mainStore.mode === 'routes' && mainStore.routesShow"
 				v-for="point in mainStore.routePoints(mainStore.currentRoute)"
-				:key="point.id"
+				:key="mainStore.currentRoute?.points.length"
 			>
 				<l-marker
 					:lat-lng="[point.latitude, point.longitude]"
@@ -257,10 +269,10 @@
 					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
 						if (
-							mainStore.mode === 'measure' &&
+							mainStore.mode === 'routes' &&
 							!isMeasurePoint(point.id)
 						) {
-							mainStore.addPointToMeasure(point);
+							mainStore.addPointToPoints(point, mainStore.currentRoute);
 							return;
 						}
 						pointInfo.point = point;
@@ -270,6 +282,8 @@
 							).name
 						;
 						popupProps.show = true;
+						popupProps.position.left = 'auto';
+						popupProps.position.bottom = 'auto';
 						popupProps.position.top = e.originalEvent.clientY + 5;
 						popupProps.position.right =
 							e.originalEvent.view.document.documentElement.clientWidth -
@@ -391,7 +405,7 @@ import {
 	LCircleMarker,
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Place, Point } from '@/stores/types';
+import { Place, Point, PointName } from '@/stores/types';
 import {
 	coords2string,
 	latitude2string,
@@ -403,19 +417,8 @@ import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
 
-const pointInfo = ref({
-	point: null,
-	name: null,
-});
-const popupProps = ref<IPlacesPopupProps>({
-	show: false,
-	position: {
-		top: 'auto',
-		right: 'auto',
-		bottom: 'auto',
-		left: 'auto',
-	},
-});
+const pointInfo = inject<PointName>('pointInfo');
+const popupProps = inject<IPlacesPopupProps>('popupProps');
 
 const copyCoords = async (point: Point) => {
     await navigator.clipboard.writeText(
@@ -461,8 +464,8 @@ const mapContextMenu = (e: any) => {
 			props: { latitude: lat, longitude: lng },
 			where: mainStore.temps,
 		});
-        if (mainStore.mode !== 'normal') {
-            mainStore.addPointToMeasure(temp);
+        if (mainStore.mode === 'measure') {
+            mainStore.addPointToPoints(temp, mainStore.measure);
         }
         return;
     }

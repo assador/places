@@ -347,18 +347,6 @@ const currentPlaceAlt = computed<number | null>(() => {
 const currentDegMinSec = computed(() =>
 	coords2string([currentPlaceLat.value, currentPlaceLon.value])
 );
-/*
-const focusToName = () => {
-	const element = document.getElementById('place-detailed-name');
-	if (element) {
-		element.classList.add('highlight');
-		window.setTimeout(() => {
-			element.classList.remove('highlight');
-			element.focus();
-		}, 500);
-	}
-}
-*/
 </script>
 
 <style lang="scss" scoped>

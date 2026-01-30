@@ -681,14 +681,15 @@ import {
 	sortObjects,
 	makeDropDowns,
 	makeFieldsValidatable,
+	IPlacesPopupProps,
 } from '@/shared';
+import { Folder, Place, Route, Image, PointName } from '@/stores/types';
 import Header from '@/components/Header.vue';
 import Measure from '@/components/helpers/Measure.vue';
 import Points from '@/components/Points.vue';
 import Tree from '@/components/tree/Tree.vue';
 import RouteDetails from '@/components/details/Route.vue';
 import PlaceDetails from '@/components/details/Place.vue';
-import { Folder, Place, Route, Image } from '@/stores/types';
 
 const maps = [
 	{
@@ -740,6 +741,23 @@ const currentPlaceNameInputRef = ref(null);
 const currentRouteNameInputRef = ref(null);
 provide('currentPlaceNameInputRef', currentPlaceNameInputRef);
 provide('currentRouteNameInputRef', currentRouteNameInputRef);
+
+const pointInfo = ref<PointName>({
+	point: null,
+	name: null,
+	description: null,
+});
+provide('pointInfo', pointInfo);
+const popupProps = ref<IPlacesPopupProps>({
+	show: false,
+	position: {
+		top: 'auto',
+		right: 'auto',
+		bottom: 'auto',
+		left: 'auto',
+	},
+});
+provide('popupProps', popupProps);
 
 const cells = ref({
 	top: true,

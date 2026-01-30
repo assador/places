@@ -69,6 +69,9 @@
 					@click.stop
 				/>
 			</div>
+
+<!-- SEC folder-button  -->
+
 			<div
 				v-if="!foldersEditMode"
 				class="folder-button"
@@ -161,13 +164,13 @@
 									mainStore.upsertPlace({
 										props: { folderid: folder.id },
 									});
-									currentPlaceNameInputRef.focus();
+									$nextTick(() => currentPlaceNameInputRef.focus());
 									break;
 								case 'routes':
 									mainStore.upsertRoute({
 										props: { folderid: folder.id },
 									});
-									currentRouteNameInputRef.focus();
+									$nextTick(() => currentRouteNameInputRef.focus());
 									break;
 							}
 						}"
@@ -234,7 +237,7 @@
 					accesskey="a"
 					@click="() => {
 						mainStore.upsertPlace();
-						currentPlaceNameInputRef.focus();
+						$nextTick(() => currentPlaceNameInputRef.focus());
 					}"
 				/>
 				<button
@@ -257,7 +260,7 @@
 					accesskey="a"
 					@click="() => {
 						mainStore.upsertRoute();
-						currentRouteNameInputRef.focus();
+						$nextTick(() => currentRouteNameInputRef.focus());
 					}"
 				/>
 				<button
@@ -310,6 +313,9 @@
 			"
 			class="folder-places"
 		>
+
+<!-- SEC place/route-button  -->
+
 			<label
 				v-for="(object, index) in (what === 'places' ? places : routes)"
 				:id="
@@ -447,7 +453,7 @@
 									,
 								},
 							});
-							currentPlaceNameInputRef.focus();
+							$nextTick(() => currentPlaceNameInputRef.focus());
 						}"
 					/>
 					<span
@@ -464,7 +470,7 @@
 									,
 								},
 							});
-							currentRouteNameInputRef.focus();
+							$nextTick(() => currentRouteNameInputRef.focus());
 						}"
 					/>
 					<span

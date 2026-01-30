@@ -18,7 +18,8 @@ export interface FirstShow {
 	first: boolean,
 }
 export interface PointName {
-	id: string,
+	point?: Point,
+	id?: string,
 	name?: string,
 	description?: string,
 }
