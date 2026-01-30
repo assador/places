@@ -112,8 +112,7 @@ if (testAccountCheck($ctx, $testaccountuuid, $_POST["accountId"])) {
 		<body>
 			<h1>Подтверждение изменения данных аккаунта в сервисе «Места»</h1>
 			<p>
-				Ваш e-mail был указан как e-mail пользователя сервиса просмотра
-				и редактирования библиотек геометок «Места». Если это были вы,
+				Ваш e-mail был указан как e-mail пользователя Персонального ГеоОрганайзера «Места». Если это были вы,
 				для подтверждения изменения данных аккаунта перейдите по ссылке:<br />
 				<a href="' . $host . '/backend/confirmaccount.php?token=' . $token . '">
 					' . $host . '/backend/confirmaccount.php?token=' . $token . '

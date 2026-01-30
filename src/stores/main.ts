@@ -931,16 +931,17 @@ export const useMainStore = defineStore('main', {
 				}
 			}
 		},
-		distanceBetweenPoints(ids: string[], where: string = 'points'): number {
+		distanceBetweenPoints(ids: string[], where?: string): number {
 			if (ids.length < 2) return 0;
+			const points = where ? this[where] : this.pointsAll;
 			let distance = 0;
 			for (let i = 1; i < ids.length; i++) {
-				if (!this[where][ids[i]]) continue;
+				if (!points[ids[i]]) continue;
 				distance += distanceOnSphere(
-					this[where][ids[i]].latitude,
-					this[where][ids[i]].longitude,
-					this[where][ids[i - 1]].latitude,
-					this[where][ids[i - 1]].longitude,
+					points[ids[i]].latitude,
+					points[ids[i]].longitude,
+					points[ids[i - 1]].latitude,
+					points[ids[i - 1]].longitude,
 					constants.earthRadius
 				);
 			}
@@ -1940,6 +1941,9 @@ export const useMainStore = defineStore('main', {
 				images             : this.t.i.captions.images,
 			}
 			return descriptionFields;
+		},
+		pointsAll() {
+			return { ...this.points, ...this.temps };
 		},
 		sharingPointsIds() {
 			let usingPointsIds: string[] = [];

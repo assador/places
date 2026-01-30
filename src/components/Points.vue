@@ -428,7 +428,7 @@ const distance = computed(() => {
 	}
 	return (
 		Math.round(
-			mainStore.distanceBetweenPoints(idsArray.value, where.value)
+			mainStore.distanceBetweenPoints(idsArray.value)
 		* 1000) / 1000
 	);
 });

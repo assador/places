@@ -1292,6 +1292,9 @@ const selectPlaces = (text: string): void => {
 			transform: rotate(45deg);
 		}
 	}
+	.control-buttons {
+		flex-grow: 1;
+	}
 	.action-button {
 		flex-basis: calc(20% - 16px);
 		justify-content: center;
