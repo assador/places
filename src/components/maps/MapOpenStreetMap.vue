@@ -106,7 +106,7 @@
 				@contextmenu="e => {
 					if (
 						mainStore.mode === 'measure' &&
-						!isMeasurePoint(mainStore.points[place.pointid].id)
+						!mainStore.isMeasurePoint(mainStore.points[place.pointid].id)
 					) {
 						mainStore.addPointToPoints(
 							mainStore.points[place.pointid],
@@ -152,7 +152,7 @@
 				@contextmenu="e => {
 					if (
 						mainStore.mode === 'measure' &&
-						!isMeasurePoint(mainStore.points[place.pointid].id)
+						!mainStore.isMeasurePoint(mainStore.points[place.pointid].id)
 					) {
 						mainStore.addPointToPoints(
 							mainStore.points[place.pointid],
@@ -194,8 +194,8 @@
 			<template v-for="point in mainStore.temps">
 				<l-marker
 					v-if="
-						mainStore.mode === 'measure' && isMeasurePoint(point.id) ||
-						!isMeasurePoint(point.id)
+						mainStore.mode === 'measure' && mainStore.isMeasurePoint(point.id) ||
+						!mainStore.isMeasurePoint(point.id)
 					"
 					:lat-lng="[ point.latitude, point.longitude ]"
 					:visible="
@@ -208,7 +208,9 @@
 					@contextmenu="e => {
 						if (
 							mainStore.mode === 'measure' &&
-							!isMeasurePoint(point.id)
+							!mainStore.isMeasurePoint(point.id) ||
+							mainStore.mode === 'route' &&
+							!mainStore.isRoutePoint(point.id, mainStore.currentRoute)
 						) {
 							mainStore.addPointToPoints(point, mainStore.measure);
 							return;
@@ -236,13 +238,17 @@
 					<l-icon
 						v-bind="(point === mainStore.currentPoint
 							? icon_01_green
-							: (isMeasurePoint(point.id)
+							: (mainStore.isMeasurePoint(point.id)
 								? icon_null : icon_01_blue
 							)
 						) as {}"
 					/>
+<!-- FIXME When adding a route point to a measure point array, the l-circle is not displayed. -->
 					<l-circle-marker
-						v-if="mainStore.mode === 'measure' && isMeasurePoint(point.id)"
+						v-if="
+							mainStore.mode === 'measure' &&
+							mainStore.isMeasurePoint(point.id)
+						"
 						:lat-lng="[ point.latitude, point.longitude ]"
 						class-name="route-intermediate"
 						:radius="10"
@@ -270,7 +276,7 @@
 					@contextmenu="e => {
 						if (
 							mainStore.mode === 'routes' &&
-							!isMeasurePoint(point.id)
+							!mainStore.isMeasurePoint(point.id)
 						) {
 							mainStore.addPointToPoints(point, mainStore.currentRoute);
 							return;
@@ -320,35 +326,9 @@
 					</l-tooltip>
 				</l-marker>
 			</template>
-			<l-polyline
-				v-if="
-					mainStore.routesShow &&
-					mainStore.mode === 'routes' &&
-					mainStore.currentRoute &&
-					mainStore.currentRoute.points.length
-				"
-				:lat-lngs="
-					mainStore.getPointCoordsArray(
-						mainStore.currentRoute?.points.map(p => p.id) ?? []
-					) as LatLngExpression[]
-				"
-				color="rgba(0, 0, 0, 1)"
-				:weight="0.5"
-			/>
-			<l-polyline
-				v-if="
-					mainStore.mode === 'measure' &&
-					mainStore.measure.points.length
-				"
-				:lat-lngs="
-					mainStore.getPointCoordsArray(
-						mainStore.measure.points.map(p => p.id)
-					) as LatLngExpression[]
-				"
-				color="rgba(0, 0, 0, 1)"
-				:weight="0.5"
-			>
-			</l-polyline>
+
+<!-- SEC Circles, Polylines -->
+
 			<l-circle-marker
 				v-if="
 					mainStore.routesShow &&
@@ -384,6 +364,34 @@
 				class-name="measure-end"
 				:radius="13"
 				:weight="1"
+			/>
+			<l-polyline
+				v-if="
+					mainStore.routesShow &&
+					mainStore.mode === 'routes' &&
+					mainStore.currentRoute &&
+					mainStore.currentRoute.points.length
+				"
+				:lat-lngs="
+					mainStore.getPointCoordsArray(
+						mainStore.currentRoute?.points.map(p => p.id) ?? []
+					) as LatLngExpression[]
+				"
+				color="rgba(0, 0, 0, 1)"
+				:weight="0.5"
+			/>
+			<l-polyline
+				v-if="
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.length
+				"
+				:lat-lngs="
+					mainStore.getPointCoordsArray(
+						mainStore.measure.points.map(p => p.id)
+					) as LatLngExpression[]
+				"
+				color="rgba(0, 0, 0, 1)"
+				:weight="0.5"
 			/>
 		</l-map>
 	</div>
@@ -436,11 +444,6 @@ const mapCenter = computed(() => ({
 	],
 	zoom: mainStore.zoom,
 }));
-
-const measurePointIds = computed(() => {
-	return new Set(mainStore.measure.points.map(p => p.id));
-});
-const isMeasurePoint = (id: string) => measurePointIds.value.has(id);
 
 const polylineCurrentRouteCoords = computed(() =>
 	mainStore.getPointCoordsArray(

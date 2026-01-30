@@ -763,6 +763,15 @@ export const useMainStore = defineStore('main', {
 			this.setCurrentPlace(firstPlaceInRoot);
 		},
 
+// SEC Checkers -->
+ 
+		isMeasurePoint(id: string) {
+			return this.measurePointIds.has(id);
+		},
+		isRoutePoint(id: string, route: Route) {
+			return this.routePointIds(route).has(id);
+		},
+
 		deleteMessage(index: number) {
 			this.messages.splice(index, 1);
 		},
@@ -1959,6 +1968,15 @@ export const useMainStore = defineStore('main', {
 			return Object.values(this.temps).filter(
 				(point: Point) => point.type === 'point'
 			);
+		},
+		measurePointIds() {
+			return new Set(this.measure.points.map((p: PointName) => {
+				if (p.id) return p.id;
+				else if (p.point) return this.getPointById(p.point.id);
+			}));
+		},
+		routePointIds: () => {
+			return (route: Route) => new Set(route.points.map((p: PointName) => p.id));
 		},
 		tempIndexById: state => {
 			return (id: string) => Object.keys(state.temps).indexOf(id);
