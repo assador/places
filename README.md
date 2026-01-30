@@ -3,7 +3,7 @@
 v6.2.2 alpha  
 A Vue.js project  
 “The Places” — a personal geo-organizer, geo placemarks viewer and editor service  
-Testing address: <http://places.scrofa-tridens.ru>
+Testing address: <https://places.scrofa-tridens.ru>
 
 The service allows to add and edit geo placemarks with names, descriptions, latitude / longitude values and photo albums; arrange that places and folders in the folder tree, sort places and their photo albums, export places libraries to files of various formats, import them from such files, search for places by name, and much more. The cartographic part uses Yandex.Maps and OSM, everything else is independent.
 
@@ -21,4 +21,4 @@ The service allows to add and edit geo placemarks with names, descriptions, 
 6. Inside cloned directory: npm install && npm run build
 7. Configure the web server. Specify /dist as the root directory.
 
-If you suddenly have a foolish desire to donate, disinterestedly or selfishly, you can do it here: <https://www.paypal.me/niaouveas>. Self-interest, if any, can be expressed by writing a letter to [assador@gmail.com](mailto:assador@gmail.com).
+If you suddenly have a foolish desire to donate, disinterestedly or selfishly, you can do it here: <https://boosty.to/assador/donate>. Self-interest, if any, can be expressed by writing a letter to [assador@gmail.com](mailto:assador@gmail.com).

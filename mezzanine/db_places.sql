@@ -1,128 +1,373 @@
-CREATE TABLE `users` (
-	`id` VARCHAR (32) NOT NULL,
-	`login` VARCHAR (100) NOT NULL,
-	`password` VARCHAR (255) NOT NULL,
-	`name` VARCHAR (100) NOT NULL DEFAULT '',
-	`email` VARCHAR (100) NOT NULL,
-	`phone` VARCHAR (20) NOT NULL DEFAULT '',
-	`confirmed` BOOLEAN NOT NULL DEFAULT 0,
-	`confirmbefore` DATETIME NOT NULL,
-	`token` VARCHAR (32) NOT NULL,
-	`homeplace` VARCHAR (32) DEFAULT NULL,
-	PRIMARY KEY (`id`),
-	CONSTRAINT `U_users` UNIQUE (`id`, `login`, `email`, `token`)
-);
-CREATE TABLE `users_change` (
-	`id` VARCHAR (32) NOT NULL,
-	`login` VARCHAR (100) NOT NULL,
-	`password` VARCHAR (255) NOT NULL,
-	`name` VARCHAR (100) NOT NULL DEFAULT '',
-	`email` VARCHAR (100) NOT NULL,
-	`phone` VARCHAR (20) NOT NULL DEFAULT '',
-	`confirmed` BOOLEAN NOT NULL DEFAULT 0,
-	`confirmbefore` DATETIME NOT NULL,
-	`token` VARCHAR (32) NOT NULL,
-	`homeplace` VARCHAR (32) NOT NULL DEFAULT '',
-	PRIMARY KEY (`id`),
-	CONSTRAINT `U_users_change` UNIQUE (`id`, `login`, `email`, `token`)
-);
-CREATE TABLE `groups` (
-	`id` VARCHAR (32) NOT NULL,
-	`parent` VARCHAR (32) DEFAULT NULL,
-	`name` VARCHAR (500) NOT NULL,
-	`description` VARCHAR (2044) NOT NULL DEFAULT '',
-	`owner` VARCHAR (32) NOT NULL,
-	`system` BOOLEAN NOT NULL DEFAULT 0,
-	`haschildren` BOOLEAN NOT NULL DEFAULT 0,
-	PRIMARY KEY (`id`),
-	CONSTRAINT `U_groups` UNIQUE (`id`)
-);
-CREATE TABLE `usergroup` (
-	`user` VARCHAR (32) NOT NULL,
-	`group` VARCHAR (32) NOT NULL,
-	`enabled` BOOLEAN NOT NULL DEFAULT 1,
-	PRIMARY KEY (`user`, `group`)
-);
-CREATE TABLE `points` (
-	`id` VARCHAR (32) NOT NULL,
-	`userid` VARCHAR (32) NOT NULL,
-	`latitude` DOUBLE NOT NULL,
-	`longitude` DOUBLE NOT NULL,
-	`longitude` DOUBLE NOT NULL,
-	`altitudecapability` DOUBLE DEFAULT NULL,
-	`time` VARCHAR (24) NOT NULL DEFAULT '',
-	`common` BOOLEAN NOT NULL DEFAULT 0,
-	PRIMARY KEY (`id`),
-	CONSTRAINT `U_points` UNIQUE (`id`)
-);
-CREATE TABLE `places` (
-	`id` VARCHAR (32) NOT NULL,
-	`userid` VARCHAR (32) NOT NULL,
-	`folderid` VARCHAR (32) NOT NULL DEFAULT 'root',
-	`point` VARCHAR (32) NOT NULL,
-	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
-	`description` VARCHAR (2048) NOT NULL DEFAULT '',
-	`link` VARCHAR (512) NOT NULL DEFAULT '',
-	`time` VARCHAR (24) NOT NULL DEFAULT '',
-	`srt` DOUBLE NOT NULL DEFAULT 0,
-	`geomark` BOOLEAN NOT NULL DEFAULT 1,
-	`common` BOOLEAN NOT NULL DEFAULT 0,
-	PRIMARY KEY (`id`),
-	CONSTRAINT `U_places` UNIQUE (`id`)
-);
-CREATE TABLE `tracks` (
-	`id` VARCHAR (32) NOT NULL,
-	`userid` VARCHAR (32) NOT NULL,
-	`folderid` VARCHAR (32) NOT NULL DEFAULT 'tracksroot',
-	`points` VARCHAR (32) NOT NULL,
-	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
-	`description` VARCHAR (2048) NOT NULL DEFAULT '',
-	`link` VARCHAR (512) NOT NULL DEFAULT '',
-	`time` VARCHAR (24) NOT NULL DEFAULT '',
-	`srt` DOUBLE NOT NULL DEFAULT 0,
-	`geomark` BOOLEAN NOT NULL DEFAULT 1,
-	`common` BOOLEAN NOT NULL DEFAULT 0,
-	PRIMARY KEY (`id`),
-	CONSTRAINT `U_tracks` UNIQUE (`id`)
-);
-CREATE TABLE `folders` (
-	`id` VARCHAR (32) NOT NULL,
-	`userid` VARCHAR (32) NOT NULL,
-	`parent` VARCHAR (32) NOT NULL DEFAULT 'root',
-	`name` VARCHAR (512) NOT NULL DEFAULT 'Без названия',
-	`description` VARCHAR (2048) NOT NULL DEFAULT '',
-	`srt` DOUBLE NOT NULL DEFAULT 0,
-	`geomarks` BOOLEAN NOT NULL DEFAULT 1,
-	PRIMARY KEY (`id`),
-	CONSTRAINT `U_folders` UNIQUE (`id`)
-);
-CREATE TABLE `images` (
-	`id` VARCHAR (32) NOT NULL,
-	`placeid` VARCHAR (32) NOT NULL,
-	`file` VARCHAR (40) NOT NULL,
-	`size` INT UNSIGNED NOT NULL,
-	`type` VARCHAR (32) NOT NULL,
-	`lastmodified` INT UNSIGNED NOT NULL,
-	`srt` DOUBLE NOT NULL DEFAULT 0,
-	PRIMARY KEY (`id`),
-	CONSTRAINT `U_images` UNIQUE (`id`, `file`)
-);
-ALTER TABLE `usergroup` ADD FOREIGN KEY (`user`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `usergroup` ADD FOREIGN KEY (`group`) REFERENCES `groups`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `groups` ADD FOREIGN KEY (`owner`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `places` ADD FOREIGN KEY (`userid`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `places` ADD FOREIGN KEY (`folderid`) REFERENCES `folders`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `images` ADD FOREIGN KEY (`placeid`) REFERENCES `places`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+/*M!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19-12.1.2-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: db_places
+-- ------------------------------------------------------
+-- Server version	12.1.2-MariaDB
 
-INSERT INTO `groups`
-	(`id`, `parent`, `name`, `description`, `owner`, `system`, `haschildren`)
-VALUES
-	('admins', 'management', 'Админы', NULL, NULL, 1, 0),
-	('beginners', 'visiting', 'Начинающие', NULL, NULL, 1, 0),
-	('management', NULL, 'Управление', NULL, NULL, 1, 1),
-	('managers', 'management', 'Управляющие', NULL, NULL, 1, 0),
-	('ordinary', 'visiting', 'Обыкновенные', NULL, NULL, 1, 0),
-	('publishers', 'management', 'Издатели', NULL, NULL, 1, 0),
-	('superusers', 'visiting', 'Суперпользователи', NULL, NULL, 1, 0),
-	('trusted', 'visiting', 'Доверенные', NULL, NULL, 1, 0),
-	('visiting', NULL, 'Посещение', NULL, NULL, 1, 1);
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
+
+--
+-- Table structure for table `folders`
+--
+
+DROP TABLE IF EXISTS `folders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `folders` (
+  `name` varchar(500) DEFAULT 'Без названия',
+  `description` varchar(2044) DEFAULT '',
+  `srt` double DEFAULT 0,
+  `geomarks` tinyint(1) NOT NULL DEFAULT 0,
+  `userid` binary(16) NOT NULL,
+  `id` binary(16) NOT NULL,
+  `parent` binary(16) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_userid_parent` (`userid`,`parent`),
+  CONSTRAINT `fk_folders_users` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `groups`
+--
+
+DROP TABLE IF EXISTS `groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `groups` (
+  `id` varchar(32) NOT NULL,
+  `parent` varchar(32) DEFAULT NULL,
+  `name` varchar(500) NOT NULL,
+  `description` varchar(2044) NOT NULL DEFAULT '',
+  `system` tinyint(1) NOT NULL DEFAULT 0,
+  `haschildren` tinyint(1) NOT NULL DEFAULT 0,
+  `owner` binary(16) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `U_groups` (`id`),
+  KEY `fk_groups_users` (`owner`),
+  KEY `idx_parent` (`parent`),
+  CONSTRAINT `fk_groups_users` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER trg_groups_ai
+AFTER INSERT ON groups
+FOR EACH ROW
+BEGIN
+	IF NEW.parent IS NOT NULL THEN
+		UPDATE groups
+		SET haschildren = 1
+		WHERE id = NEW.parent;
+	END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER trg_groups_au
+AFTER UPDATE ON groups
+FOR EACH ROW
+BEGIN
+	
+	IF NOT (OLD.parent <=> NEW.parent) THEN
+
+		
+		IF OLD.parent IS NOT NULL THEN
+			UPDATE groups g
+			SET haschildren = (
+				SELECT COUNT(*) > 0
+				FROM groups
+				WHERE parent = g.id
+			)
+			WHERE g.id = OLD.parent;
+		END IF;
+
+		
+		IF NEW.parent IS NOT NULL THEN
+			UPDATE groups
+			SET haschildren = 1
+			WHERE id = NEW.parent;
+		END IF;
+
+	END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER trg_groups_ad
+AFTER DELETE ON groups
+FOR EACH ROW
+BEGIN
+	IF OLD.parent IS NOT NULL THEN
+		UPDATE groups g
+		SET haschildren = (
+			SELECT COUNT(*) > 0
+			FROM groups
+			WHERE parent = g.id
+		)
+		WHERE g.id = OLD.parent;
+	END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `images`
+--
+
+DROP TABLE IF EXISTS `images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `images` (
+  `file` varchar(40) NOT NULL,
+  `size` int(10) unsigned NOT NULL,
+  `type` varchar(32) NOT NULL,
+  `lastmodified` int(10) unsigned NOT NULL,
+  `srt` double NOT NULL DEFAULT 0,
+  `id` binary(16) NOT NULL,
+  `placeid` binary(16) DEFAULT NULL,
+  `routeid` binary(16) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_images_placeid` (`placeid`),
+  KEY `idx_images_routeid` (`routeid`),
+  CONSTRAINT `fk_images_place` FOREIGN KEY (`placeid`) REFERENCES `places` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_images_route` FOREIGN KEY (`routeid`) REFERENCES `routes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `places`
+--
+
+DROP TABLE IF EXISTS `places`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `places` (
+  `name` varchar(500) DEFAULT 'Без названия',
+  `description` varchar(2044) DEFAULT '',
+  `link` varchar(512) DEFAULT '',
+  `time` varchar(24) DEFAULT '',
+  `srt` double DEFAULT 0,
+  `geomark` tinyint(1) NOT NULL DEFAULT 0,
+  `common` tinyint(1) NOT NULL DEFAULT 0,
+  `pointid` binary(16) NOT NULL,
+  `id` binary(16) NOT NULL,
+  `userid` binary(16) NOT NULL,
+  `folderid` binary(16) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_places_points` (`pointid`),
+  KEY `fk_places_users` (`userid`),
+  KEY `fk_places_folders` (`folderid`),
+  KEY `idx_common` (`common`),
+  CONSTRAINT `fk_places_folder` FOREIGN KEY (`folderid`) REFERENCES `folders` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_places_user` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `pointroute`
+--
+
+DROP TABLE IF EXISTS `pointroute`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pointroute` (
+  `routeid` binary(16) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `pointid` binary(16) NOT NULL,
+  `srt` int(11) NOT NULL DEFAULT 0,
+  `name` varchar(500) DEFAULT NULL,
+  UNIQUE KEY `uniq_point_route` (`pointid`,`routeid`),
+  KEY `idx_pointroute_route_srt` (`routeid`,`srt`),
+  CONSTRAINT `fk_pointroute_points` FOREIGN KEY (`pointid`) REFERENCES `points` (`id`),
+  CONSTRAINT `fk_pointroute_routes` FOREIGN KEY (`routeid`) REFERENCES `routes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `points`
+--
+
+DROP TABLE IF EXISTS `points`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `points` (
+  `id` binary(16) NOT NULL,
+  `latitude` decimal(9,6) NOT NULL,
+  `longitude` decimal(9,6) NOT NULL,
+  `altitude` double DEFAULT NULL,
+  `location` point NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `routes`
+--
+
+DROP TABLE IF EXISTS `routes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `routes` (
+  `name` varchar(500) DEFAULT 'Без названия',
+  `description` varchar(2044) DEFAULT '',
+  `link` varchar(512) DEFAULT '',
+  `time` varchar(24) DEFAULT '',
+  `srt` double DEFAULT 0,
+  `geomarks` tinyint(1) DEFAULT 1,
+  `common` tinyint(1) DEFAULT 0,
+  `id` binary(16) NOT NULL,
+  `userid` binary(16) NOT NULL,
+  `folderid` binary(16) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_common` (`common`),
+  KEY `idx_routes_userid` (`userid`),
+  KEY `idx_routes_folderid` (`folderid`),
+  CONSTRAINT `fk_routes_user` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `sessions`
+--
+
+DROP TABLE IF EXISTS `sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sessions` (
+  `id` binary(16) NOT NULL,
+  `userid` binary(16) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `expiresat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `reason` tinyint(3) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_userid` (`userid`),
+  KEY `idx_expiresat` (`expiresat`),
+  KEY `idx_reason` (`reason`),
+  KEY `idx_userid_reason` (`userid`,`reason`),
+  CONSTRAINT `fk_sessions_users` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `usergroup`
+--
+
+DROP TABLE IF EXISTS `usergroup`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usergroup` (
+  `group` varchar(32) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `user` binary(16) NOT NULL,
+  KEY `group` (`group`),
+  KEY `fk_usergroup_users` (`user`),
+  CONSTRAINT `fk_usergroup_users` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `usergroup_ibfk_2` FOREIGN KEY (`group`) REFERENCES `groups` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `login` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(100) DEFAULT '',
+  `email` varchar(100) DEFAULT '',
+  `phone` varchar(20) DEFAULT '',
+  `confirmed` tinyint(1) NOT NULL DEFAULT 0,
+  `confirmbefore` datetime NOT NULL,
+  `token` varchar(32) NOT NULL,
+  `homeplace` binary(16) DEFAULT NULL,
+  `id` binary(16) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_login` (`login`),
+  UNIQUE KEY `uniq_email` (`email`),
+  KEY `idx_confirmed` (`confirmed`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `userschange`
+--
+
+DROP TABLE IF EXISTS `userschange`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `userschange` (
+  `id` binary(16) NOT NULL,
+  `login` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `email` varchar(100) NOT NULL,
+  `phone` varchar(20) NOT NULL DEFAULT '',
+  `confirmed` tinyint(1) NOT NULL DEFAULT 0,
+  `confirmbefore` datetime NOT NULL,
+  `token` varchar(32) NOT NULL,
+  `homeplace` varchar(32) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `U_users_change` (`id`,`login`,`email`,`token`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping routines for database 'db_places'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
+
+-- Dump completed on 2026-01-31  0:40:19
