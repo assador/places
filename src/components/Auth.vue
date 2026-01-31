@@ -203,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onBeforeMount, onMounted, onUpdated } from 'vue';
+import { ref, inject, nextTick, onBeforeMount, onMounted, onUpdated } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import {
@@ -214,12 +214,13 @@ import {
 	loginRoutine,
 	forgotRoutine,
 	makeFieldsValidatable,
-	usePWAInstall,
 } from '@/shared';
 import Dashboard from '@/components/Dashboard.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();
+
+const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
 const authLogin = ref('');
 const authPassword = ref('');
@@ -230,8 +231,6 @@ const regPasswordRepeat = ref('');
 const regEmail = ref('');
 const regPhone = ref('');
 const forgotEmail = ref('');
-
-const { installPWAEnabled, installPWA } = usePWAInstall();
 
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
@@ -336,6 +335,9 @@ onUpdated(async () => {
 }
 #dashboard {
 	margin: -40px 0 40px 0;
+}
+#prompt-button {
+	margin-top: 18px;
 }
 @media screen and (max-width: 720px) {
 	.auth {

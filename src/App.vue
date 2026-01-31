@@ -11,11 +11,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, onMounted, onBeforeMount } from 'vue'
+import { ref, computed, provide, onMounted } from 'vue'
 import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { emitter, moveInArrayAfter, moveInObject } from '@/shared';
+import { emitter, moveInArrayAfter, moveInObject, usePWAInstall } from '@/shared';
 import { Point, Place, Route, Folder, Image, DataToDB } from '@/stores/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
@@ -27,21 +27,14 @@ const idleTimeInterval = ref(null);
 const currentPlaceCommon = ref(false);
 const currentRouteCommon = ref(false);
 const selectedToExport = ref({});
-const installEvent = ref<any>(null);
+const pwa = usePWAInstall();
 
 provide('foldersEditMode', foldersEditMode);
 provide('idleTimeInterval', idleTimeInterval);
 provide('currentPlaceCommon', currentPlaceCommon);
 provide('currentRouteCommon', currentRouteCommon);
 provide('selectedToExport', selectedToExport);
-provide('installEvent', installEvent);
-
-onBeforeMount(() => {
-	window.addEventListener('beforeinstallprompt', e => {
-		e.preventDefault();
-		installEvent.value = e;
-	});
-});
+provide('pwa', pwa);
 
 const mainStore = useMainStore();
 const router = useRouter();

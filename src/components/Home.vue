@@ -547,6 +547,7 @@
 				id="actions-install"
 				class="action-button"
 				:title="mainStore.t.i.hints.install"
+				:disabled="!installPWAEnabled"
 				@click="installPWA"
 			>
 				<span class="icon icon-save" />
@@ -684,7 +685,6 @@ import {
 	makeDropDowns,
 	makeFieldsValidatable,
 	IPlacesPopupProps,
-	usePWAInstall,
 } from '@/shared';
 import { Folder, Place, Route, Image, PointName } from '@/stores/types';
 import Header from '@/components/Header.vue';
@@ -712,7 +712,7 @@ const maps = [
 const mainStore = useMainStore();
 const router = useRouter();
 
-const { installPWAEnabled, installPWA } = usePWAInstall();
+const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
 const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
 const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
