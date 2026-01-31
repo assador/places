@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <!-- Я сохранил все ваши градиенты без изменений -->
+    <linearGradient id="linearGradient4672">
+      <stop style="stop-color:#462917;stop-opacity:0.56551725" offset="0" />
+      <stop style="stop-color:#462917;stop-opacity:0" offset="1" />
+    </linearGradient>
+    <linearGradient id="linearGradient4594">
+      <stop offset="0" style="stop-color:#bd8b65;stop-opacity:1" />
+      <stop offset="1" style="stop-color:#ffe2af;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="linearGradient3741">
+      <stop style="stop-color:#462917;stop-opacity:1;" offset="0" />
+      <stop style="stop-color:#ffcd91;stop-opacity:1" offset="1" />
+    </linearGradient>
+    <radialGradient xlink:href="#linearGradient3741" id="radialGradient4550" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-3.0499575e-7,-3.827273,2.7306666,-4.0701309e-6,-1359.6423,1794.0366)" cx="375" cy="577.57117" fx="375" fy="577.57117" r="93.75" />
+    <radialGradient xlink:href="#linearGradient4594" id="radialGradient4580" cx="374.99222" cy="537.88159" fx="374.99222" fy="537.88159" r="72.65625" gradientTransform="matrix(1.9630068,4.3506887e-8,-7.0147471e-8,3.1726456,-518.60036,-1438.4457)" gradientUnits="userSpaceOnUse" />
+    <radialGradient xlink:href="#linearGradient4672" id="radialGradient4676" cx="375" cy="711.77191" fx="375" fy="711.77191" r="64.827118" gradientTransform="matrix(4.3383676,0,0,2.6223457,-1409.376,-1354.512)" gradientUnits="userSpaceOnUse" />
+  </defs>
+  <rect width="512" height="512" fill="#462917" />
+  <g transform="translate(256, 256) scale(0.8) translate(-256, -256) translate(38.48)">
+    <path d="m 436.68285,426.22896 c -20.08701,59.97783 -182.21021,21.33548 -219.17097,85.77103 -21.88048,-39.0749 -7.42941,-68.66384 24.28017,-92.17338 31.70957,-23.50954 66.32854,-38.79901 121.25113,-38.79901 54.92258,0 80.73597,24.01247 73.63967,45.20136 z" style="fill:url(#radialGradient4676);fill-rule:nonzero;" />
+    <path style="fill:url(#radialGradient4550);fill-rule:nonzero;" d="m 384.39879,166.8869 c 0,92.16909 -168.85082,217.99567 -166.88691,345.11309 C 92.346725,358.80683 50.625001,259.05599 50.625001,166.8869 50.625001,74.7178 125.3428,0 217.5119,0 309.68099,0 384.39879,74.7178 384.39879,166.8869 Z" />
+    <path style="fill:url(#radialGradient4580);fill-rule:nonzero;stroke:#000000;stroke-width:0.87;stroke-opacity:0" d="m 346.84924,166.88684 c 0,71.43105 -91.66979,110.56328 -129.33736,191.91999 C 138.43359,302.86533 88.174553,238.31789 88.174553,166.88684 c 0,-71.431042 57.906297,-129.337342 129.337347,-129.337342 71.43104,0 129.33734,57.9063 129.33734,129.337342 z" />
+  </g>
+</svg>

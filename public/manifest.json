@@ -14,13 +14,8 @@
         "sizes": "512x512"
     }],
     "screenshots" : [{
-        "src": "/screenshot_wide.png",
-        "sizes": "2480x1295",
-        "type": "image/png",
-        "form_factor": "wide"
-    }, {
         "src": "/screenshot.png",
-        "sizes": "1366x1024",
-        "type": "image/png"
+        "type": "image/png",
+        "sizes": "1492x1291"
     }]
 }
