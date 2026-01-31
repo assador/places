@@ -70,11 +70,6 @@ body {
 #top-right {
 	grid-area: top-right;
 }
-#basic-left__control-buttons-left, #basic-right__control-buttons-right {
-	+ * {
-		margin-top: 0;
-	}
-}
 #basic-left {
 	grid-area: basic-left;
 }
@@ -359,11 +354,6 @@ body {
 		#top-left, #top-right, #bottom-left {
 			display: none;
 		}
-		#basic-left__control-buttons-left, #basic-right__control-buttons-right {
-			+ * {
-				margin-top: 20px;
-			}
-		}
 		#bottom-basic {
 			grid-template-columns: 150px auto 1fr auto;
 			gap: 12px;
@@ -375,10 +365,6 @@ body {
 					width: 1.2em;
 					text-align: left;
 				}
-			}
-			.control-buttons {
-				position: relative;
-				top: -3px;
 			}
 		}
 	}

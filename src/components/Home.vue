@@ -9,16 +9,22 @@
 		@mouseup="sidebarDragStop"
 		@touchend="sidebarDragStop"
 	>
+
+<!-- SEC Top-Left -->
+
 		<div
 			id="top-left"
 			class="app-cell"
 			:style="sidebarSize.top === 0 || sidebarSize.left === 0 || !cells.top || !cells.left ? 'display: none' : ''"
 		>
 			<div
-				class="action-buttons"
+				class="basic-action-buttons action-buttons"
 				id="top-left__control-buttons-left"
 			/>
 		</div>
+
+<!-- SEC Top-Basic -->
+
 		<div
 			id="top-basic"
 			class="app-cell"
@@ -42,23 +48,29 @@
 				</div>
 			</div>
 		</div>
+
+<!-- SEC Top-Right -->
+
 		<div
 			id="top-right"
 			class="app-cell"
 			:style="sidebarSize.top === 0 || sidebarSize.right === 0 || !cells.top || !cells.right ? 'display: none' : ''"
 		>
 			<div
-				class="action-buttons"
+				class="basic-action-buttons action-buttons"
 				id="top-right__control-buttons-right"
 			/>
 		</div>
+
+<!-- SEC Basic-Left -->
+
 		<div
 			id="basic-left"
 			class="app-cell"
 			:style="sidebarSize.left !== 0 || cells.left ? 'display: block' : 'display: none'"
 		>
 			<div
-				class="action-buttons"
+				class="basic-action-buttons action-buttons"
 				id="basic-left__control-buttons-left"
 			/>
 			<div class="helpers-search">
@@ -222,6 +234,9 @@
 				</div>
 			</div>
 		</div>
+
+<!-- SEC Basic-Basic -->
+
 		<div
 			id="basic-basic"
 			class="app-cell"
@@ -264,13 +279,16 @@
 				@click="() => cells.left = !cells.left"
 			/>
 		</div>
+
+<!-- SEC Basic-Right -->
+
 		<div
 			id="basic-right"
 			class="app-cell"
 			:style="sidebarSize.right !== 0 || cells.right ? 'display: block' : 'display: none'"
 		>
 			<div
-				class="action-buttons"
+				class="basic-action-buttons action-buttons"
 				id="basic-right__control-buttons-right"
 			/>
 			<RouteDetails />
@@ -286,23 +304,29 @@
 				</button>
 			</div>
 		</div>
+
+<!-- SEC Bottom-Left -->
+
 		<div
 			id="bottom-left"
 			class="app-cell"
 			:style="sidebarSize.bottom === 0 || sidebarSize.left === 0 || !cells.left || !cells.bottom ? 'display: none' : ''"
 		>
 			<div
-				class="action-buttons"
+				class="basic-action-buttons action-buttons"
 				id="bottom-left__control-buttons-bottom"
 			/>
 		</div>
+
+<!-- SEC Bottom-Basic -->
+
 		<div
 			id="bottom-basic"
 			class="app-cell"
 			:style="sidebarSize.bottom === 0 || !cells.bottom ? 'display: none' : ''"
 		>
 			<div
-				class="action-buttons"
+				class="basic-action-buttons action-buttons"
 				id="bottom-basic__control-buttons-bottom"
 			/>
 			<div id="bottom-choose-map">
@@ -448,7 +472,7 @@
 				<span>{{ mainStore.t.i.buttons.editFolders }}</span>
 			</button>
 		</div>
-		<div class="control-buttons">
+		<div class="control-buttons mode-buttons">
 			<button
 				id="mode-normal"
 				class="action-button"
@@ -605,6 +629,9 @@
 			</button>
 		</div>
 	</Teleport>
+
+<!-- SEC Controls Bottom-Left -->
+
 	<Teleport :to="compactControlButtons
 		? '#bottom-basic__control-buttons-bottom'
 		: '#bottom-left__control-buttons-bottom'
@@ -1237,67 +1264,62 @@ const selectPlaces = (text: string): void => {
 </script>
 
 <style lang="scss" scoped>
-.control-buttons {
+#top-left, #top-right, #bottom-left, .basic-action-buttons {
 	display: flex;
-	flex-flow: row wrap;
 	gap: 8px;
-	text-align: center;
-	&:not(:last-child) {
-		margin-bottom: 8px;
+	align-items: stretch;
+}
+.basic-action-buttons {
+	flex-direction: column;
+	flex: 1 1 calc(20% - 16px);
+	.icon {
+		&, &::before {
+			display: block;
+			width: 15px; height: 15px;
+		}
+		&-text {
+			display: flex;
+			width: 100%;
+			align-items: center;
+			justify-content: center;
+			font-size: 15px;
+			
+		}
+		&-help {
+			font-size: 20px;
+			
+		}
+	}
+	.icon-compas {
+		transform: rotate(45deg);
+	}
+	.control-buttons {
+		flex-grow: 1;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
+		gap: 8px;
 	}
 	.action-button {
-		flex: 1 0 calc(25% - 16px);
 		display: flex;
 		flex-flow: column nowrap;
 		gap: 4px;
 		align-items: center;
-		min-width: 40px;
-		min-height: 30px;
+		justify-content: center;
+		min-width: 0;
 		padding: 2px 0 0 0;
 	}
 }
-#top-left, #top-right, #bottom-left {
-	&, .action-buttons {
-		display: flex;
-		align-items: stretch;
-	}
-	.action-buttons {
-		flex-direction: column;
-		flex: 1 1 calc(20% - 16px);
-		.icon {
-			&, &::before {
-				display: block;
-				width: 15px; height: 15px;
-			}
-			&-text {
-				display: flex;
-				width: 100%;
-				align-items: center;
-				justify-content: center;
-				font-size: 15px;
-				
-			}
-			&-help {
-				font-size: 20px;
-				
-			}
-		}
-		.icon-compas {
-			transform: rotate(45deg);
-		}
-	}
-	.control-buttons {
-		flex-grow: 1;
-	}
-	.action-button {
-		flex-basis: calc(20% - 16px);
-		justify-content: center;
-		min-width: 30px;
-		min-height: 30px;
-	}
+.mode-buttons {
+	grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
 }
-:is(#top-right, #basic-right) .action-button {
-	min-width: 40px;
+:is(#top-right, #basic-right) .basic-action-buttons .control-buttons {
+	grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+}
+:is(#bottom-left, #bottom-basic) .basic-action-buttons .control-buttons {
+	grid-template-columns: repeat(auto-fit, minmax(25px, 1fr));
+}
+:is(#basic-left, #basic-right) .basic-action-buttons {
+	margin-bottom: 18px;
 }
 .helpers-search, .helpers-range {
 	display: flex;

@@ -839,6 +839,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	}
 }
 .icon-triangle {
+	flex: 0 0 10px;
 	width: 10px; height: 10px;
 	min-width: 0; min-height: 0;
 	line-height: 0;
