@@ -1,39 +1,21 @@
 <template>
 	<button
-		v-if="shown"
+		v-if="installPWAEnabled"
 		id="prompt-button"
 		class="important"
 		@click="installPWA"
 	>
-		Установить как приложение
+		{{ mainStore.t.i.buttons.installPWA }}
 	</button>
 </template>
 
 <script setup lang="ts">
-import {
-	ref,
-	inject,
-	watch,
-} from 'vue';
+import { usePWAInstall } from '@/shared';
+import { useMainStore } from '@/stores/main';
 
-const installEvent = inject<typeof installEvent>('installEvent');
-const shown = ref(false);
-watch(() => installEvent.value, () => {
-	shown.value = !!installEvent.value;
-});
+const mainStore = useMainStore();
 
-const dismissPrompt = (): void => {
-	shown.value = false;
-};
-const installPWA = (): void => {
-	installEvent.value.prompt();
-	installEvent.value.userChoice.then(choice => {
-		dismissPrompt();
-		if (choice.outcome === 'accepted') {
-		} else {
-		}
-	});
-};
+const { installPWAEnabled, installPWA } = usePWAInstall();
 </script>
 
 <style lang="scss" scoped>

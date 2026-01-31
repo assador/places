@@ -547,8 +547,7 @@
 				id="actions-install"
 				class="action-button"
 				:title="mainStore.t.i.hints.install"
-				:disabled="installButtonEnabled"
-				@click="installPWA()"
+				@click="installPWA"
 			>
 				<span class="icon icon-save" />
 				<span>{{ mainStore.t.i.buttons.install }}</span>
@@ -685,6 +684,7 @@ import {
 	makeDropDowns,
 	makeFieldsValidatable,
 	IPlacesPopupProps,
+	usePWAInstall,
 } from '@/shared';
 import { Folder, Place, Route, Image, PointName } from '@/stores/types';
 import Header from '@/components/Header.vue';
@@ -711,6 +711,8 @@ const maps = [
 ];
 const mainStore = useMainStore();
 const router = useRouter();
+
+const { installPWAEnabled, installPWA } = usePWAInstall();
 
 const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
 const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
@@ -901,14 +903,6 @@ onUpdated(() => {
 	}
 });
 
-const installEvent = inject<typeof installEvent>('installEvent');
-const installButtonEnabled = computed(() => !!installEvent.value);
-
-const installPWA = () => {
-	const event = installEvent.value;
-	if (!event) return;
-	event.prompt();
-};
 const blur = (el?: HTMLElement): void => {
 	if (el) (el as HTMLElement).blur();
 		else document.querySelectorAll<HTMLElement>(':focus').forEach(el => el.blur());

@@ -190,7 +190,14 @@
 				{{ mainStore.t.i.buttons.whatIsIt }}
 			</button>
 		</div>
-		<PWAPrompt />
+		<button
+			v-if="installPWAEnabled"
+			id="prompt-button"
+			class="important"
+			@click="installPWA"
+		>
+			{{ mainStore.t.i.buttons.installPWA }}
+		</button>
 		<router-view />
 	</div>
 </template>
@@ -207,9 +214,9 @@ import {
 	loginRoutine,
 	forgotRoutine,
 	makeFieldsValidatable,
+	usePWAInstall,
 } from '@/shared';
 import Dashboard from '@/components/Dashboard.vue';
-import PWAPrompt from '@/components/PWAPrompt.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -223,6 +230,8 @@ const regPasswordRepeat = ref('');
 const regEmail = ref('');
 const regPhone = ref('');
 const forgotEmail = ref('');
+
+const { installPWAEnabled, installPWA } = usePWAInstall();
 
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
