@@ -300,8 +300,9 @@ onUpdated(async () => {
 		right: 5px;
 		margin-top: -22px;
 		&:hover {
-			right: 2px;
-			margin-top: -20px;
+			right: 5px;
+			margin-top: -22px;
+			filter: brightness(130%);
 		}
 		&::before {
 			margin-top: 0;

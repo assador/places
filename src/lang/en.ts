@@ -1,4 +1,4 @@
-export const t = {
+export const getT = () => ({
 	i: {
 		captions: {
 			accountPage: 'User account page',
@@ -288,4 +288,5 @@ export const t = {
 		importedFolderName: 'Imported',
 		importedFolderDescription: 'Imported places',
 	},
-};
+});
+export const t = getT();

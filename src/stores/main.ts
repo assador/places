@@ -20,8 +20,8 @@ import {
 	formFolderForImported,
 	distanceOnSphere,
 } from '@/shared';
-import { t } from '@/lang/ru';
 import axios from 'axios';
+import { t } from '@/lang/ru';
 
 export interface IMainState {
 	activeMapIndex: number,
@@ -332,7 +332,7 @@ export const useMainStore = defineStore('main', {
 					this.serverConfig.rights.pointscount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.pointscount
 				) {
-					this.setMessage(t.m.popup.pointsCountExceeded);
+					this.setMessage(this.t.m.popup.pointsCountExceeded);
 					return;
 				}
 			}
@@ -423,7 +423,7 @@ export const useMainStore = defineStore('main', {
 					this.serverConfig.rights.placescount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.placescount
 				) {
-					this.setMessage(t.m.popup.placesCountExceeded);
+					this.setMessage(this.t.m.popup.placesCountExceeded);
 					return;
 				}
 			}
@@ -504,7 +504,7 @@ export const useMainStore = defineStore('main', {
 					this.serverConfig.rights.routescount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.routescount
 				) {
-					this.setMessage(t.m.popup.routesCountExceeded);
+					this.setMessage(this.t.m.popup.routesCountExceeded);
 					return;
 				}
 			}
@@ -570,7 +570,7 @@ export const useMainStore = defineStore('main', {
 					this.serverConfig.rights.folderscount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.folderscount
 				) {
-					this.setMessage(t.m.popup.foldersCountExceeded);
+					this.setMessage(this.t.m.popup.foldersCountExceeded);
 					return;
 				}
 			}
@@ -980,7 +980,7 @@ export const useMainStore = defineStore('main', {
 			const getLang = () => import(`@/lang/${lang}.ts`);
 			getLang().then(l => {
 				this.lang = lang;
-				this.t = l.t;
+				this.t = l.getT();
 				this.tree.name = this.t.i.captions.rootFolder;
 			});
 		},

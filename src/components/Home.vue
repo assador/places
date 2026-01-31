@@ -1318,7 +1318,7 @@ const selectPlaces = (text: string): void => {
 :is(#bottom-left, #bottom-basic) .basic-action-buttons .control-buttons {
 	grid-template-columns: repeat(auto-fit, minmax(25px, 1fr));
 }
-:is(#basic-left, #basic-right) .basic-action-buttons {
+:is(#basic-left, #basic-right) .basic-action-buttons:not(:empty) {
 	margin-bottom: 18px;
 }
 .helpers-search, .helpers-range {
