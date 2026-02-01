@@ -98,72 +98,6 @@
 			"
 			class="points-info"
 		>
-			<Teleport to="#container">
-				<Popup
-					:show="popupProps.show"
-					:position="popupProps.position"
-					:closeOnClick="false"
-					class="points-coordinates messages"
-					@update:show="popupProps.show = $event"
-				>
-					<template v-slot:slot>
-						<a
-							v-if="!copied"
-							href="javascript:void(0)"
-							class="points-coordinates-copy"
-							@click="copyCoords(pointInfo.point)"
-						>
-							{{ mainStore.t.i.text.copy }}
-						</a>
-						<div
-							v-else
-							class="points-coordinates-copy"
-						>
-							{{ mainStore.t.i.text.copied }}
-						</div>
-						<h3>
-							<span class="un_color">
-								{{ mainStore.t.i.captions.measurePoint }}:
-							</span>
-							<span class="color-01">
-								{{ pointInfo.name }}
-							</span>
-						</h3>
-						<div class="nobr">
-							<span class="un_color">
-								{{ mainStore.t.i.captions.latitude }}:
-							</span>
-							<span class="color-01">
-								{{ latitude2string(pointInfo.point?.latitude) }}°
-							</span>
-						</div>
-						<div class="nobr">
-							<span class="un_color">
-								{{ mainStore.t.i.captions.longitude }}:
-							</span>
-							<span class="color-01">
-								{{ longitude2string(pointInfo.point?.longitude) }}°
-							</span>
-						</div>
-						<div
-							v-if="
-								pointInfo.point &&
-								Object.hasOwn(pointInfo.point, 'altitude') &&
-								!isNaN(pointInfo.point.altitude)
-							"
-							class="nobr"
-						>
-							<span class="un_color">
-								{{ mainStore.t.i.captions.altitude }}:
-							</span>
-							<span class="color-01">
-								{{ pointInfo.point?.altitude }}
-								{{ mainStore.t.i.text.m }}
-							</span>
-						</div>
-					</template>
-				</Popup>
-			</Teleport>
 			<div
 				v-if="type === 'route'"
 				:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
@@ -360,11 +294,14 @@
 					:title="mainStore.t.i.hints.deleteRoutePoint"
 					class="button-iconed icon icon-cross-45-circled"
 					@dragenter="highlighted = pn.id"
-					@click.stop="
+					@click.stop="() => {
+/* TODO Uncomment when it’s ready
+						const point = mainStore.getPointById(pn.id);
 						mainStore.deleteObjects({
-							objects: { [pointInfo.point.id]: pointInfo.point }
-						})
-					"
+							objects: { [point.id]: point },
+						});
+*/
+					}"
 				/>
 			</button>
 		</div>
@@ -374,14 +311,8 @@
 <script setup lang="ts">
 import { ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
-import {
-	latitude2string,
-	longitude2string,
-	point2coords,
-	IPlacesPopupProps,
-} from '@/shared';
-import { Point, PointName } from '@/stores/types';
-import Popup from '@/components/popups/Popup.vue';
+import { IPlacesPopupProps } from '@/shared';
+import { PointName } from '@/stores/types';
 
 export interface IPlacesPointsProps {
 	type?: string;
@@ -401,15 +332,6 @@ const highlighted = ref(null);
 
 const pointInfo = inject<PointName>('pointInfo');
 const popupProps = inject<IPlacesPopupProps>('popupProps');
-
-const copied = ref(false);
-const copyCoords = async (point: Point) => {
-	await navigator.clipboard.writeText(
-		point2coords(point, mainStore.t.i.text.m, mainStore.t.i.text.h)
-	);
-	copied.value = true;
-	setTimeout(() => copied.value = false, 2000);
-};
 
 const distance = computed(() => {
 	const idsArray = ref([]);
@@ -501,22 +423,6 @@ const distance = computed(() => {
 	margin: -8px 0 8px 0;
 	:last-child {
 		text-align: right;
-	}
-}
-.points-coordinates {
-	padding: 30px 20px 10px 20px;
-	text-align: right;
-	h3 {
-		text-align: center;
-		margin-bottom: 8px;
-	}
-	&-degminsecalt, &-copy {
-		margin-top: 12px;
-	}
-	&-copy {
-		display: block;
-		position: absolute;
-		top: -6px; left: 10px;
 	}
 }
 .icon-triangle {

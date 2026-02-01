@@ -10,7 +10,7 @@
 						class="messages fontsize_n"
 						@update:show="popuped = $event"
 					>
-						<template v-slot:slot>
+						<template #slot>
 							<router-link
 								to="/account"
 								class="menu-link message border_1"

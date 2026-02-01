@@ -1,60 +1,5 @@
 <template>
 <div>
-	<Teleport to="#container">
-		<Popup
-			:show="popupProps.show"
-			:position="popupProps.position"
-			:closeOnClick="false"
-			class="points-coordinates messages"
-			@update:show="popupProps.show = $event"
-			>
-			<template #slot>
-				<a
-					href="javascript:void(0)"
-					class="points-coordinates-copy"
-					@click="copyCoords(pointInfo.point)"
-				>
-					{{ mainStore.t.i.text.copy }}
-				</a>
-				<h3>
-					<span class="un_color">
-						{{ mainStore.t.i.captions.measurePoint }}:
-					</span>
-					<span class="color-01">
-						{{ pointInfo.name }}
-					</span>
-				</h3>
-				<div class="nobr">
-					<span class="un_color">
-						{{ mainStore.t.i.captions.latitude }}:
-					</span>
-					<span class="color-01">
-						{{ latitude2string(pointInfo.point?.latitude) }}°
-					</span>
-				</div>
-				<div class="nobr">
-					<span class="un_color">
-						{{ mainStore.t.i.captions.longitude }}:
-					</span>
-					<span class="color-01">
-						{{ longitude2string(pointInfo.point?.longitude) }}°
-					</span>
-				</div>
-				<div
-					v-if="pointInfo.point?.altitude"
-					class="nobr"
-				>
-					<span class="un_color">
-						{{ mainStore.t.i.captions.altitude }}:
-					</span>
-					<span class="color-01">
-						{{ pointInfo.point?.altitude }}
-						{{ mainStore.t.i.text.m }}
-					</span>
-				</div>
-			</template>
-		</Popup>
-	</Teleport>
 	<div v-if="showMap" id="mapblock">
 		<l-map
 			ref="map"
@@ -173,7 +118,7 @@
 						});
 						return;
 					}
-				pointInfo.point = mainStore.points[place.pointid];
+					pointInfo.point = mainStore.points[place.pointid];
 					pointInfo.name = place.name;
 					popupProps.show = true;
 					popupProps.position.left = 'auto';
@@ -280,7 +225,7 @@
 
 			<template
 				v-for="point in mainStore.routePoints(mainStore.currentRoute)"
-				:key="mainStore.currentRoute?.points.length"
+				:key="mainStore.currentRoute?.points.length + point.id"
 			>
 				<l-marker
 					v-if="
@@ -447,23 +392,13 @@ import "leaflet/dist/leaflet.css";
 import { Place, Point, PointName } from '@/stores/types';
 import {
 	coords2string,
-	latitude2string,
-	longitude2string,
-	point2coords,
 	IPlacesPopupProps,
 } from '@/shared';
-import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
 
 const pointInfo = inject<PointName>('pointInfo');
 const popupProps = inject<IPlacesPopupProps>('popupProps');
-
-const copyCoords = async (point: Point) => {
-    await navigator.clipboard.writeText(
-		point2coords(point, mainStore.t.i.text.m, mainStore.t.i.text.h)
-	);
-};
 
 const map = inject('extmap');
 const showMap = inject('showMap');
@@ -657,22 +592,3 @@ const providers = ref([{
 	visible: false,
 }]);
 </script>
-
-<style lang="scss" scoped>
-.points-coordinates {
-	padding: 30px 20px 10px 20px;
-	text-align: right;
-	h3 {
-		text-align: center;
-		margin-bottom: 8px;
-	}
-	&-degminsecalt, &-copy {
-		margin-top: 12px;
-	}
-	&-copy {
-		display: block;
-		position: absolute;
-		top: -6px; left: 10px;
-	}
-}
-</style>

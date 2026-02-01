@@ -692,9 +692,9 @@ $filter-brightness-03: brightness(0%);
 	.indent_right_2 {margin-right: 40px;}
 	.indent_left_1 {margin-left: 20px;}
 	.indent_left_2 {margin-left: 40px;}
-	.appear, .disappear {transition: opacity 0.5s;}
-	.appear {opacity: 1;}
-	.disappear {opacity: 0;}
+	.appear, .disappear {transition: transform 0.5s, opacity 0.5s;}
+	.appear {transform: scale(1, 1); opacity: 1;}
+	.disappear {transform: scale(0, 0); opacity: 0;}
 	.visible, .invisible {transition: all 0.5s;}
 	.visible {opacity: 1;}
 	.invisible {opacity: 0;}

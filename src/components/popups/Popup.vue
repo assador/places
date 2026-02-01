@@ -13,7 +13,7 @@
 			×
 		</a>
 		{{ props.what }}
-		<slot name="slot"></slot>
+		<slot name="slot" />
 	</div>
 </template>
 

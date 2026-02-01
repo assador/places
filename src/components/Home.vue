@@ -1,4 +1,59 @@
 <template>
+	<Teleport to="#container">
+		<Popup
+			:show="popupProps.show"
+			:position="popupProps.position"
+			:closeOnClick="false"
+			class="points-coordinates messages"
+			@update:show="popupProps.show = $event"
+		>
+			<template #slot>
+				<a
+					href="javascript:void(0)"
+					class="points-coordinates-copy"
+					@click="copyCoords(pointInfo.point)"
+				>
+					{{ mainStore.t.i.text.copy }}
+				</a>
+				<h3>
+					<span class="un_color">
+						{{ mainStore.t.i.captions.measurePoint }}:
+					</span>
+					<span class="color-01">
+						{{ pointInfo.name }}
+					</span>
+				</h3>
+				<div class="nobr">
+					<span class="un_color">
+						{{ mainStore.t.i.captions.latitude }}:
+					</span>
+					<span class="color-01">
+						{{ latitude2string(pointInfo.point?.latitude) }}°
+					</span>
+				</div>
+				<div class="nobr">
+					<span class="un_color">
+						{{ mainStore.t.i.captions.longitude }}:
+					</span>
+					<span class="color-01">
+						{{ longitude2string(pointInfo.point?.longitude) }}°
+					</span>
+				</div>
+				<div
+					v-if="pointInfo.point?.altitude"
+					class="nobr"
+				>
+					<span class="un_color">
+						{{ mainStore.t.i.captions.altitude }}:
+					</span>
+					<span class="color-01">
+						{{ pointInfo.point?.altitude }}
+						{{ mainStore.t.i.text.m }}
+					</span>
+				</div>
+			</template>
+		</Popup>
+	</Teleport>
 	<div
 		id="grid"
 		ref="root"
@@ -712,14 +767,18 @@ import {
 	makeDropDowns,
 	makeFieldsValidatable,
 	IPlacesPopupProps,
+	point2coords,
+	latitude2string,
+	longitude2string,
 } from '@/shared';
-import { Folder, Place, Route, Image, PointName } from '@/stores/types';
+import { Folder, Point, Place, Route, Image, PointName } from '@/stores/types';
 import Header from '@/components/Header.vue';
 import Measure from '@/components/helpers/Measure.vue';
 import Points from '@/components/Points.vue';
 import Tree from '@/components/tree/Tree.vue';
 import RouteDetails from '@/components/details/Route.vue';
 import PlaceDetails from '@/components/details/Place.vue';
+import Popup from '@/components/popups/Popup.vue';
 
 const maps = [
 	{
@@ -790,6 +849,15 @@ const popupProps = ref<IPlacesPopupProps>({
 	},
 });
 provide('popupProps', popupProps);
+
+const copied = ref(false);
+const copyCoords = async (point: Point) => {
+	await navigator.clipboard.writeText(
+		point2coords(point, mainStore.t.i.text.m, mainStore.t.i.text.h)
+	);
+	copied.value = true;
+	setTimeout(() => copied.value = false, 2000);
+};
 
 const cells = ref({
 	top: true,
@@ -1346,6 +1414,22 @@ const selectPlaces = (text: string): void => {
 .helpers-search, .helpers-range {
 	.control-buttons button {
 		width: 22px;
+	}
+}
+.points-coordinates {
+	padding: 30px 20px 10px 20px;
+	text-align: right;
+	h3 {
+		text-align: center;
+		margin-bottom: 8px;
+	}
+	&-degminsecalt, &-copy {
+		margin-top: 12px;
+	}
+	&-copy {
+		display: block;
+		position: absolute;
+		top: -6px; left: 10px;
 	}
 }
 </style>
