@@ -7,21 +7,23 @@
 			:onerror="`this.src = '${constants.dirs.uploads.images.orphanedbig + image.file}'`"
 		/>
 		<a
-			href="javascript:void(0);"
-			class="prev icon icon-triangle"
+			class="prev"
 			:class="prevOver ? 'highlighted' : ''"
 			@mouseenter="prevOver = true"
 			@mouseleave="prevOver = false"
-			@click.stop="e => showImage(-1, e)"
-		/>
+			@click.stop="showImage(-1)"
+		>
+			<span class="icon icon-triangle" />
+		</a>
 		<a
-			href="javascript:void(0);"
-			class="next icon icon-triangle"
+			class="next"
 			:class="nextOver ? 'highlighted' : ''"
 			@mouseenter="nextOver = true"
 			@mouseleave="nextOver = false"
-			@click.stop="e => showImage(1, e)"
-		/>
+			@click.stop="showImage(1)"
+		>
+			<span class="icon icon-triangle" />
+		</a>
 		<a
 			href="javascript:void(0);"
 			class="close"
@@ -81,8 +83,7 @@ const defineVars = (): void => {
 	}
 	router.replace(route.matched[route.matched.length - 2].path);
 };
-const showImage = (step: number, event?: Event) => {
-	if (event) event.stopPropagation();
+const showImage = (step: number) => {
 	let currentIndex = images.value.indexOf(image.value);
 	if (currentIndex > -1) {
 		const ImagesLength = images.value.length;
@@ -91,7 +92,7 @@ const showImage = (step: number, event?: Event) => {
 		);
 		router.push({
 			name: 'HomeImages',
-			params: {imageId: images.value[currentIndex].id},
+			params: { imageId: images.value[currentIndex].id },
 		});
 	}
 };
@@ -101,10 +102,10 @@ const keyup = (event: KeyboardEvent): void => {
 			close();
 			break;
 		case 'ArrowLeft' :
-			showImage(-1, event);
+			showImage(-1);
 			break;
 		case 'ArrowRight' :
-			showImage(1, event);
+			showImage(1);
 			break;
 	}
 };
@@ -136,24 +137,30 @@ onUnmounted(() => {
 		position: absolute;
 		top: 0; bottom: 0;
 		width: auto; height: auto;
+		cursor: pointer;
 		z-index: 20;
-		&.icon::before {
+		.icon {
+			display: block;
+			position: absolute;
+			top: 50%; right: 25%; bottom: auto; left: 25%;
+			width: auto; height: auto;
+			aspect-ratio: 1 / 1;
 			opacity: 0;
 		}
-		&.icon:hover::before {
+		&:hover .icon {
 			opacity: 0.5;
 		}
 	}
 	.prev {
 		left: 0; right: 75%;
-		&.icon::before {
-			transform: scale(0.5) rotate(-90deg);
+		.icon {
+			transform: translateY(-50%) rotate(-90deg);
 		}
 	}
 	.next {
 		right: 0; left: 75%;
-		&.icon::before {
-			transform: scale(0.5) rotate(90deg);
+		.icon {
+			transform: translateY(-50%) rotate(90deg);
 		}
 	}
 	.close {
