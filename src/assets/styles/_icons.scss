@@ -10,6 +10,7 @@
 		background-color: var(--color-25);
 		mask-size: contain;
 		mask-repeat: no-repeat;
+		mask-position: center;
 	}
 	&-text::before { mask-image: url('@/assets/icons/empty.svg'); }
 	&-save::before { mask-image: url('@/assets/icons/save.svg'); }

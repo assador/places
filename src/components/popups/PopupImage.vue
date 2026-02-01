@@ -4,23 +4,28 @@
 			v-if="image"
 			class="popup-image border_1"
 			:src="constants.dirs.uploads.images.big + image.file"
-			:onerror="'this.src = \'' + constants.dirs.uploads.images.orphanedbig + image.file + '\''"
-			@click="e => showImage(1, e)"
+			:onerror="`this.src = '${constants.dirs.uploads.images.orphanedbig + image.file}'`"
 		/>
 		<a
 			href="javascript:void(0);"
-			class="prev"
-			@click="e => showImage(-1, e)"
-		>◀</a>
+			class="prev icon icon-triangle"
+			:class="prevOver ? 'highlighted' : ''"
+			@mouseenter="prevOver = true"
+			@mouseleave="prevOver = false"
+			@click.stop="e => showImage(-1, e)"
+		/>
 		<a
 			href="javascript:void(0);"
-			class="next"
-			@click="e => showImage(1, e)"
-		>▶</a>
+			class="next icon icon-triangle"
+			:class="nextOver ? 'highlighted' : ''"
+			@mouseenter="nextOver = true"
+			@mouseleave="nextOver = false"
+			@click.stop="e => showImage(1, e)"
+		/>
 		<a
 			href="javascript:void(0);"
 			class="close"
-			@click="close()"
+			@click.stop="close"
 		>×</a>
 	</div>
 </template>
@@ -48,6 +53,9 @@ const props = withDefaults(defineProps<IPlacesPopupImageProps>(), {
 
 const images = ref([] as Array<Image>);
 const image = ref({} as Image);
+
+const prevOver = ref(false);
+const nextOver = ref(false);
 
 const currentPlaceCommon = inject<Ref<boolean>>('currentPlaceCommon');
 
@@ -114,13 +122,42 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.appear, .disappear {
-	transition: opacity 10s;
-}
-.appear {
-	opacity: 1;
-}
-.disappear {
-	opacity: 0;
+.popup {
+	padding: 0;
+	.popup-image {
+		display: block;
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain;
+		image-orientation: from-image;
+		z-index: 10;
+	}
+	.prev, .next {
+		position: absolute;
+		top: 0; bottom: 0;
+		width: auto; height: auto;
+		z-index: 20;
+		&.icon::before {
+			opacity: 0;
+		}
+		&.icon:hover::before {
+			opacity: 0.5;
+		}
+	}
+	.prev {
+		left: 0; right: 75%;
+		&.icon::before {
+			transform: scale(0.5) rotate(-90deg);
+		}
+	}
+	.next {
+		right: 0; left: 75%;
+		&.icon::before {
+			transform: scale(0.5) rotate(90deg);
+		}
+	}
+	.close {
+		z-index: 30;
+	}
 }
 </style>

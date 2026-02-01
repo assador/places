@@ -41,10 +41,6 @@ body {
 	height: 100%;
 	overflow: auto;
 }
-#container > *:first-child {
-	min-width: 220px;
-	min-height: 480px;
-}
 #grid {
 	position: absolute;
 	top: 0; right: 0; bottom: 0; left: 0;

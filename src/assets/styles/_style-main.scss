@@ -692,9 +692,9 @@ $filter-brightness-03: brightness(0%);
 	.indent_right_2 {margin-right: 40px;}
 	.indent_left_1 {margin-left: 20px;}
 	.indent_left_2 {margin-left: 40px;}
-	.appear, .disappear {transition: transform 0.5s, opacity 0.5s;}
-	.appear {transform: scale(1, 1); opacity: 1;}
-	.disappear {transform: scale(0, 0); opacity: 0;}
+	.appear, .disappear {transition: opacity 0.5s;}
+	.appear {opacity: 1;}
+	.disappear {opacity: 0;}
 	.visible, .invisible {transition: all 0.5s;}
 	.visible {opacity: 1;}
 	.invisible {opacity: 0;}
@@ -952,39 +952,22 @@ $filter-brightness-03: brightness(0%);
 			box-shadow: none;
 		}
 	}
-	.popup, .popup-image, .popup-text, .popup-folder, .popup-export {
+	.popup, .popup-text, .popup-folder, .popup-export {
 		overflow: hidden;
 		z-index: 10000;
-	}
-	.popup-image, .image-thumbnail {
-		image-orientation: from-image;
 	}
 	.popup-text {
 		padding-right: 20px;
 	}
-	.popup-image {
-		cursor: pointer;
-	}
 	.folder-new__form {
 		width: 80%;
 	}
-	.prev, .next, .close {
+	.close {
 		position: absolute;
+		top: 0; right: 10px;
+		padding: 30px 21px;
 		line-height: 0;
 		font-size: 30px;
-	}
-	.prev, .next {
-		top: 50%;
-	}
-	.prev {
-		left: 10px;
-	}
-	.next, .close {
-		right: 10px;
-	}
-	.close {
-		top: 0;
-		padding: 30px 21px;
 	}
 	.about {
 		max-width: 1000px;
