@@ -276,7 +276,7 @@ function addImage(AppContext $ctx, array $img): void {
 			size         = VALUES(size),
 			type         = VALUES(type),
 			lastmodified = VALUES(lastmodified),
-			srt          = VALUES(srt),
+			srt          = VALUES(srt)
 	";
 	$stmt = $ctx->db->prepare($sql);
 	$stmt->execute([
@@ -292,11 +292,11 @@ function addImage(AppContext $ctx, array $img): void {
 function updateImage(AppContext $ctx, array $img): void {
 	$placeIdBin = null;
 	$routeIdBin = null;
-	if (!empty($row["placeid"])) {
-		$placeIdBin = uuidToBin($row["placeid"]);
+	if (!empty($img["placeid"])) {
+		$placeIdBin = uuidToBin($img["placeid"]);
 	}
-	if (!empty($row["routeid"])) {
-		$routeIdBin = uuidToBin($row["routeid"]);
+	if (!empty($img["routeid"])) {
+		$routeIdBin = uuidToBin($img["routeid"]);
 	}
 	$sql = "
 		UPDATE images

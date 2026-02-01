@@ -8,7 +8,7 @@
 		/>
 		<a
 			class="prev"
-			:class="prevOver ? 'highlighted' : ''"
+			:class="{ highlighted: prevOver }"
 			@mouseenter="prevOver = true"
 			@mouseleave="prevOver = false"
 			@click.stop="showImage(-1)"
@@ -17,7 +17,7 @@
 		</a>
 		<a
 			class="next"
-			:class="nextOver ? 'highlighted' : ''"
+			:class="{ highlighted: nextOver }"
 			@mouseenter="nextOver = true"
 			@mouseleave="nextOver = false"
 			@click.stop="showImage(1)"
@@ -139,6 +139,8 @@ onUnmounted(() => {
 		width: auto; height: auto;
 		cursor: pointer;
 		z-index: 20;
+		user-select: none;
+		-webkit-user-drag: none;
 		.icon {
 			display: block;
 			position: absolute;

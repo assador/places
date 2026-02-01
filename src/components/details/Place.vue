@@ -205,7 +205,7 @@
 							<div
 								:data-image="image.id"
 								class="sorting-area-left"
-								:class="image.id === highlightedLeft ? ' highlighted' : ''"
+								:class="{ highlighted: image.id === highlightedLeft }"
 								@dragenter="highlightedLeft = image.id"
 								@dragleave="highlightedLeft = null"
 								@drop="(e) => handleDrop(e, { before: true })"
@@ -213,7 +213,7 @@
 							<div
 								:data-image="image.id"
 								class="sorting-area-right"
-								:class="image.id === highlightedRight ? ' highlighted' : ''"
+								:class="{ highlighted: image.id === highlightedRight }"
 								@dragenter="highlightedRight = image.id"
 								@dragleave="highlightedRight = null"
 								@drop="(e) => handleDrop(e, { before: false })"

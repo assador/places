@@ -18,7 +18,7 @@
 				)
 			"
 			class="folder-subs"
-			:class="foldersEditMode ? ' folder_editable' : ''"
+			:class="{ folder_editable: foldersEditMode }"
 		>
 			<div
 				v-if="foldersEditMode"

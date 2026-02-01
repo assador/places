@@ -39,8 +39,8 @@
 <!-- SEC Markers: Place Points  -->
 
 			<l-marker
-				v-for="(place, id) in mainStore.places"
-				:key="id"
+				v-for="place in mainStore.places"
+				:key="place.id"
 				:lat-lng="[
 						mainStore.points[place.pointid].latitude,
 						mainStore.points[place.pointid].longitude,
@@ -49,6 +49,10 @@
 				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
 				@click="mainStore.setCurrentPlace(place, false)"
 				@contextmenu="e => {
+					if (pointInfo.point?.id === place.pointid) {
+						popupProps.show = !popupProps.show;
+						return;
+					}
 					if (
 						mainStore.mode === 'measure' &&
 						!mainStore.isMeasurePoint(mainStore.points[place.pointid].id)
@@ -99,8 +103,8 @@
 <!-- SEC Markers: Common Place Points  -->
 
 			<l-marker
-				v-for="(place, id) in mainStore.commonPlaces"
-				:key="id"
+				v-for="place in mainStore.commonPlaces"
+				:key="place.id"
 				:lat-lng="[
 					mainStore.points[place.pointid].latitude,
 					mainStore.points[place.pointid].longitude,
@@ -108,6 +112,10 @@
 				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
 				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
 				@contextmenu="e => {
+					if (pointInfo.point?.id === place.pointid) {
+						popupProps.show = !popupProps.show;
+						return;
+					}
 					if (
 						mainStore.mode === 'measure' &&
 						!mainStore.isMeasurePoint(mainStore.points[place.pointid].id)
@@ -132,7 +140,7 @@
 				<l-icon
 					v-bind="(
 						mainStore.mode === 'measure' &&
-						mainStore.measure.points.find(p => p.id === id) &&
+						mainStore.measure.points.find(p => p.id === place.id) &&
 						place === mainStore.currentPlace
 							? icon_01_faded : icon_01_green_faded
 					) as {}"
@@ -149,7 +157,10 @@
 
 <!-- SEC Markers: Temps  -->
 
-			<template v-for="point in mainStore.temps">
+			<template
+				v-for="point in mainStore.temps"
+				:key="`${point.id}_${mainStore.measure.points.length}`"
+			">
 				<l-marker
 					v-if="
 						mainStore.mode === 'measure' && mainStore.isMeasurePoint(point.id) ||
@@ -167,13 +178,18 @@
 					draggable
 					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
+						if (pointInfo.point?.id === point.id) {
+							popupProps.show = !popupProps.show;
+							return;
+						}
 						if (mainStore.mode === 'measure') {
 							mainStore.addPointToPoints({
 								point: point,
 								where: mainStore.measure,
 							});
 							return;
-						} else if (mainStore.mode === 'routes') {
+						}
+						if (mainStore.mode === 'routes') {
 							mainStore.addPointToPoints({
 								point: point,
 								where: mainStore.currentRoute,
@@ -224,14 +240,11 @@
 <!-- SEC Markers: Route Points  -->
 
 			<template
+				v-if="mainStore.mode === 'routes' && mainStore.routesShow"
 				v-for="point in mainStore.routePoints(mainStore.currentRoute)"
-				:key="mainStore.currentRoute?.points.length + point.id"
+				:key="`${point.id}_${mainStore.currentRoute?.points.length}`"
 			>
 				<l-marker
-					v-if="
-						mainStore.mode === 'routes' && mainStore.routesShow ||
-						mainStore.mode === 'measure' && mainStore.isMeasurePoint(point.id)
-					"
 					:lat-lng="[point.latitude, point.longitude]"
 					:visible="
 						mainStore.placemarksShow &&
@@ -241,6 +254,11 @@
 					draggable
 					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
+						if (point.id === mainStore.currentPoint.id) {
+							console.log('asdf');
+							popupProps.show = !popupProps.show;
+							return;
+						}
 						if (
 							mainStore.mode === 'routes' &&
 							!mainStore.isMeasurePoint(point.id)

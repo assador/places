@@ -238,7 +238,7 @@
 								:key="index"
 								href="javascript:void(0);"
 								class="pseudo_button"
-								:class="index + 1 === mainStore.commonPlacesPage ? ' un_imp' : ''"
+								:class="{ un_imp: index + 1 === mainStore.commonPlacesPage }"
 								@click="mainStore.commonPlacesPage = index + 1;"
 							>
 								{{ index + 1 }}
@@ -280,7 +280,7 @@
 							:key="index"
 							href="javascript:void(0);"
 							class="pseudo_button"
-							:class="index + 1 === mainStore.commonPlacesPage ? ' un_imp' : ''"
+							:class="{ un_imp: index + 1 === mainStore.commonPlacesPage }"
 							@click="mainStore.commonPlacesPage = index + 1;"
 						>
 							{{ index + 1 }}
@@ -311,25 +311,25 @@
 			/>
 			<button
 				id="sbb-top"
-				:class="cells.top ? 'disclosed' : ''"
+				:class="{ disclosed: cells.top }"
 				:style="(cells.top ? 'top: -10px;' : '')"
 				@click="() => cells.top = !cells.top"
 			/>
 			<button
 				id="sbb-right"
-				:class="cells.right ? 'disclosed' : ''"
+				:class="{ disclosed: cells.right }"
 				:style="(cells.right ? 'right: -10px;' : '')"
 				@click="() => cells.right = !cells.right"
 			/>
 			<button
 				id="sbb-bottom"
-				:class="cells.bottom ? 'disclosed' : ''"
+				:class="{ disclosed: cells.bottom }"
 				:style="(cells.bottom ? 'bottom: -10px;' : '')"
 				@click="() => cells.bottom = !cells.bottom"
 			/>
 			<button
 				id="sbb-left"
-				:class="cells.left ? 'disclosed' : ''"
+				:class="{ disclosed: cells.left }"
 				:style="(cells.left ? 'left: -10px;' : '')"
 				@click="() => cells.left = !cells.left"
 			/>
@@ -469,7 +469,7 @@
 			<button
 				id="actions-places"
 				class="action-button"
-				:class="mainStore.placesShow.show ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.placesShow.show }"
 				:title="mainStore.t.i.captions.places"
 				accesskey="p"
 				@click="() => mainStore.placesShow.show = !mainStore.placesShow.show"
@@ -480,7 +480,7 @@
 			<button
 				id="actions-routes"
 				class="action-button"
-				:class="mainStore.routesShow ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.routesShow }"
 				:title="mainStore.t.i.captions.routes"
 				accesskey="t"
 				@click="() => mainStore.routesShow = !mainStore.routesShow"
@@ -491,7 +491,7 @@
 			<button
 				id="actions-points"
 				class="action-button"
-				:class="mainStore.tempsShow.show ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.tempsShow.show }"
 				:title="mainStore.t.i.buttons.independentPoints"
 				accesskey="t"
 				@click="() => mainStore.tempsShow.show = !mainStore.tempsShow.show"
@@ -502,7 +502,7 @@
 			<button
 				id="actions-range"
 				class="action-button actions-button_bigger"
-				:class="mainStore.rangeShow ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.rangeShow }"
 				:title="mainStore.t.i.buttons.range"
 				accesskey="r"
 				@click="() => {
@@ -518,7 +518,7 @@
 			<button
 				id="actions-edit-folders"
 				class="action-button"
-				:class="foldersEditMode ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': foldersEditMode }"
 				:title="mainStore.t.i.hints.editFolders"
 				accesskey="c"
 				@click="foldersEditMode = !foldersEditMode;"
@@ -531,7 +531,7 @@
 			<button
 				id="mode-normal"
 				class="action-button"
-				:class="mainStore.mode === 'normal' ? 'button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.mode === 'normal' }"
 				:title="mainStore.t.i.captions.modeNormal"
 				accesskey="m"
 				@click="() => {
@@ -545,7 +545,7 @@
 			<button
 				id="mode-routes"
 				class="action-button"
-				:class="mainStore.mode === 'routes' ? 'button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.mode === 'routes' }"
 				:title="mainStore.t.i.captions.modeRoutes"
 				accesskey="m"
 				@click="() => {
@@ -560,7 +560,7 @@
 			<button
 				id="mode-measure"
 				class="action-button"
-				:class="mainStore.mode === 'measure' ? 'button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.mode === 'measure' }"
 				:title="mainStore.t.i.captions.modeMeasure"
 				accesskey="m"
 				@click="() => {
@@ -614,8 +614,12 @@
 			<button
 				id="actions-save"
 				:disabled="mainStore.saved || mainStore.user.testaccount"
-				:class="'action-button' + (!mainStore.saved ? ' button-pressed' : '')"
-				:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
+				class="action-button"
+				:class="{ 'button-pressed': !mainStore.saved }"
+				:title="
+					(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') +
+					mainStore.t.i.hints.sabeToDb
+				"
 				accesskey="s"
 				@click="toDBCompletely"
 			>
@@ -695,7 +699,7 @@
 			<button
 				id="placemarksShowHideButton"
 				class="action-button"
-				:class="mainStore.placemarksShow ? 'button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.placemarksShow }"
 				:title="mainStore.t.i.hints.shPlacemarks"
 				@click="mainStore.placemarksShowHide()"
 			>
@@ -704,7 +708,7 @@
 			<button
 				id="commonPlacesShowHideButton"
 				class="action-button"
-				:class="commonPlacesShow ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': commonPlacesShow }"
 				:title="mainStore.t.i.hints.shCommonPlaces"
 				@click="commonPlacesShowHide();"
 			>
@@ -713,7 +717,7 @@
 			<button
 				id="commonPlacemarksShowHideButton"
 				class="action-button"
-				:class="mainStore.commonPlacemarksShow ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.commonPlacemarksShow }"
 				:title="mainStore.t.i.hints.shCommonPlacemarks"
 				@click="mainStore.commonPlacemarksShowHide()"
 			>
@@ -722,7 +726,7 @@
 			<button
 				id="commonRoutesShowHideButton"
 				class="action-button"
-				:class="commonRoutesShow ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': commonRoutesShow }"
 				:title="mainStore.t.i.hints.shCommonRoutes"
 				@click="commonRoutesShowHide();"
 			>
@@ -731,7 +735,7 @@
 			<button
 				id="centerPlacemarkShowHideButton"
 				class="action-button"
-				:class="mainStore.centerPlacemarkShow ? ' button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.centerPlacemarkShow }"
 				:title="mainStore.t.i.hints.shCenter"
 				@click="mainStore.centerPlacemarkShowHide()"
 			>

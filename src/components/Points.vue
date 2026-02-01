@@ -143,16 +143,21 @@
 			<button
 				v-if="type === 'temps'"
 				v-for="(temp, idx) in mainStore.lonelyTemps"
-				:class="mainStore.currentPoint?.id === temp.id ? 'button-pressed' : ''"
+				:class="{ 'button-pressed': mainStore.currentPoint?.id === temp.id }"
 				@click.prevent="mainStore.setCurrentPoint(temp.id)"
 				@contextmenu.prevent="e => {
+					if (pointInfo.point?.id === temp.id) {
+						popupProps.show = !popupProps.show;
+						return;
+					}
 					if (mainStore.mode === 'measure') {
 						mainStore.addPointToPoints({
 							point: temp,
 							where: mainStore.measure,
 						});
 						return;
-					} else if (mainStore.mode === 'routes') {
+					}
+					if (mainStore.mode === 'routes') {
 						mainStore.addPointToPoints({
 							point: temp,
 							where: mainStore.currentRoute,
@@ -206,6 +211,10 @@
 				"
 				@click.prevent="mainStore.setCurrentPoint(point.id)"
 				@contextmenu.prevent="e => {
+					if (pointInfo.point?.id === point.id) {
+						popupProps.show = !popupProps.show;
+						return;
+					}
 					pointInfo.point = mainStore.getPointById(point.id);
 					pointInfo.name = point.name;
 					popupProps.show = true;
@@ -261,6 +270,10 @@
 					mainStore.setCurrentPoint(pointInfo.point);
 				}"
 				@contextmenu.prevent="e => {
+					if (pointInfo.point?.id === pn.id) {
+						popupProps.show = !popupProps.show;
+						return;
+					}
 					pointInfo.point = mainStore.getPointById(pn.id);
 					if (mainStore.mode === 'measure') {
 						mainStore.addPointToPoints({
