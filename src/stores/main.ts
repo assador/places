@@ -1119,11 +1119,11 @@ export const useMainStore = defineStore('main', {
 				}
 				return;
 			}
-			/*
-			If importing from file.
-			A payload parameter is present and is an object:
-			{text: <file’s content as a text>, type: <file’s MIME-type>}
-			*/
+/* TODO Completely rewrite to take into account the new architecture (upserts, etc.)
+			// If importing from file.
+			// A payload parameter is present and is an object:
+			// {text: <file’s content as a text>, type: <file’s MIME-type>}
+
 			const parseJSON = (text: string) => {
 				try {
 					const result =
@@ -1165,10 +1165,8 @@ export const useMainStore = defineStore('main', {
 					if (wpt.getElementsByTagName('time').length) {
 						time = wpt.getElementsByTagName('time')[0].textContent.trim();
 					}
-					/*
-					Updating the tree branch of folders for imported places
-					and get an ID of a folder for the importing place
-					*/
+					// Updating the tree branch of folders for imported places
+					// and get an ID of a folder for the importing place
 					importedPlaceFolder = formFolderForImported(
 						this.t,
 						time.slice(0, 10),
@@ -1279,10 +1277,11 @@ export const useMainStore = defineStore('main', {
 							while (!allParentsAdded) {
 								allParentsAdded = true;
 								for (const folder of (parsed.folders as Array<Folder>)) {
-									/*
-									Checking if such a folder already exists in the tree
-									and user has rights to add a folder.
-									*/
+
+									// Checking if such a folder already exists
+									// in the tree and user has rights
+									// to add a folder.
+
 									if (
 										this.folders[folder.id] ||
 										!this.folders[folder.parent] &&
@@ -1340,10 +1339,10 @@ export const useMainStore = defineStore('main', {
 							return false;
 					}
 					for (const place of (parsed.places as Array<Place>)) {
-						/*
-						Checking if such a place already exists
-						and user has rights to add a place.
-						*/
+
+						// Checking if such a place already exists
+						// and user has rights to add a place.
+
 						if (this.places[place.id]) continue;
 						if (
 							this.serverConfig.rights.placescount < 0 ||
@@ -1401,7 +1400,7 @@ export const useMainStore = defineStore('main', {
 							if (!this.points[place.pointid]) {
 								this.upsertPoint({ what: newPoint });
 							}
-							this.upsertPlace({ what: newPlace });
+							this.upsertPlace({ object: newPlace });
 						} else {
 							this.setMessage(
 								this.t.m.popup.placesCountExceeded
@@ -1431,6 +1430,7 @@ export const useMainStore = defineStore('main', {
 					return false;
 			}
 			addImported(payload.mime, parsed);
+*/
 		},
 		async setUsers(payload?: string) {
 			let ids = null;
