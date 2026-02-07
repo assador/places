@@ -163,14 +163,12 @@
 								case 'places':
 									mainStore.upsertPlace({
 										props: { folderid: folder.id },
-										todb: true,
 									});
 									$nextTick(() => currentPlaceNameInputRef.focus());
 									break;
 								case 'routes':
 									mainStore.upsertRoute({
 										props: { folderid: folder.id },
-										todb: true,
 									});
 									$nextTick(() => currentRouteNameInputRef.focus());
 									break;
@@ -238,7 +236,7 @@
 					:title="mainStore.t.i.hints.addPlace"
 					accesskey="a"
 					@click="() => {
-						mainStore.upsertPlace({ todb: true });
+						mainStore.upsertPlace();
 						$nextTick(() => currentPlaceNameInputRef.focus());
 					}"
 				/>
@@ -261,7 +259,7 @@
 					:title="mainStore.t.i.hints.addRoute"
 					accesskey="a"
 					@click="() => {
-						mainStore.upsertRoute({ todb: true });
+						mainStore.upsertRoute();
 						$nextTick(() => currentRouteNameInputRef.focus());
 					}"
 				/>
@@ -452,7 +450,6 @@
 										: object.srt + (places[index + 1].srt - object.srt) / 2
 									,
 								},
-								todb: true,
 							});
 							$nextTick(() => currentPlaceNameInputRef.focus());
 						}"
@@ -470,7 +467,6 @@
 										: object.srt + (routes[index + 1].srt - object.srt) / 2
 									,
 								},
-								todb: true,
 							});
 							$nextTick(() => currentRouteNameInputRef.focus());
 						}"

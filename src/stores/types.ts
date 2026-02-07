@@ -108,15 +108,16 @@ export interface User {
 	name: string;
 	email: string;
 	phone: string;
+	homeplace: string;
+	groups?: { group: string, parent: string }[];
+	testaccount: boolean;
 	confirmed: boolean;
 	confirmbefore: string;
-	homeplace: string;
-	testaccount: boolean;
-	groups?: { group: string, parent: string }[];
 	added?: boolean;
 	deleted?: boolean;
 	updated?: boolean;
 	checked?: boolean;
+	lastupdates: number;
 }
 export interface Group {
 	id: string;

@@ -466,8 +466,12 @@ const mapContextMenu = (e: any) => {
 }
 const placemarkDragEnd = async (point: Place | Point, event: any) => {
 	const coordinates = event.target.getLatLng();
-	mainStore[point.type === 'point' ? 'changePoint' : 'changePlace']({
-		[point.type === 'point' ? 'point' : 'place']: point,
+	mainStore.changePoint({
+		point: (
+			point.type === 'point'
+				? point
+				: mainStore.points[(point as Place).pointid]
+		),
 		change: {
 			latitude: Number(coordinates.lat.toFixed(7)),
 			longitude: Number(coordinates.lng.toFixed(7)),

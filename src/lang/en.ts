@@ -220,7 +220,7 @@ export const getT = () => ({
 			placemarkOnMap: 'placemark on the map',
 			placemarksOnMap: 'placemarks on the map',
 			redo: 'Redo last change',
-			sabeToDb: 'Save to database',
+			saveToDb: 'Save to database',
 			shCenter: 'Show / hide map center placemark',
 			shCommonPlacemarks: 'Show / hide placemarks of others',
 			shCommonPlaces: 'Show / hide places and placemarks of others',

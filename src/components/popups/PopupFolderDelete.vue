@@ -106,6 +106,7 @@ const markNestedAsDeleted = (folder: Folder): void => {
 			markNestedAsDeleted(subfolder);
 		}
 	}
+	mainStore.saved = false;
 };
 const deleteFolder = (): void => {
 	mainStore.backup = false;

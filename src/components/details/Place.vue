@@ -56,9 +56,11 @@
 								type="number"
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="e => mainStore.changePlace({
-									place: mainStore.currentPlace,
-									change: { latitude: (e.target as HTMLInputElement).value.trim() }
+								@change="e => mainStore.changePoint({
+									point: mainStore.points[mainStore.currentPlace.pointid],
+									change: {
+										latitude: Number((e.target as HTMLInputElement).value.trim())
+									},
 								})"
 							/>
 						</dd>
@@ -74,12 +76,12 @@
 								type="number"
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
-								@change="async e => {
-									mainStore.changePlace({
-										place: mainStore.currentPlace,
-										change: { longitude: (e.target as HTMLInputElement).value.trim()}
-									});
-								}"
+								@change="e => mainStore.changePoint({
+									point: mainStore.points[mainStore.currentPlace.pointid],
+									change: {
+										longitude: Number((e.target as HTMLInputElement).value.trim())
+									},
+								})"
 							/>
 						</dd>
 					</div>
@@ -99,8 +101,8 @@
 										(e.target as HTMLInputElement).value.trim()
 									);
 									if (coords === null) return;
-									mainStore.changePlace({
-										place: mainStore.currentPlace,
+									mainStore.changePoint({
+										point: mainStore.points[mainStore.currentPlace.pointid],
 										change: {
 											latitude: coords[0],
 											longitude: coords[1],

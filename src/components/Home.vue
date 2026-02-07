@@ -348,16 +348,6 @@
 			/>
 			<RouteDetails />
 			<PlaceDetails />
-			<div>
-				<button
-					:disabled="mainStore.saved"
-					:title="(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') + mainStore.t.i.hints.sabeToDb"
-					class="save-button"
-					@click="toDBCompletely"
-				>
-					{{ mainStore.t.i.buttons.save }}
-				</button>
-			</div>
 		</div>
 
 <!-- SEC Bottom-Left -->
@@ -613,15 +603,15 @@
 			</button>
 			<button
 				id="actions-save"
-				:disabled="mainStore.saved || mainStore.user.testaccount"
 				class="action-button"
 				:class="{ 'button-pressed': !mainStore.saved }"
+				:disabled="mainStore.saved"
 				:title="
 					(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') +
-					mainStore.t.i.hints.sabeToDb
+					mainStore.t.i.hints.saveToDb
 				"
 				accesskey="s"
-				@click="toDBCompletely"
+				@click="emitter.emit('toDB')"
 			>
 				<span class="icon icon-save" />
 				<span>{{ mainStore.t.i.buttons.save }}</span>
@@ -806,8 +796,6 @@ const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
 const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
 const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
-const toDB = inject('toDB') as (...args: any[]) => any;
-const toDBCompletely = inject('toDBCompletely') as (...args: any[]) => any;
 const handleDragOver = inject('handleDragOver') as (...args: any[]) => any;
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
@@ -1192,7 +1180,7 @@ const uploadFiles = async (event: Event) => {
 				place: mainStore.currentPlace,
 				change: { images: newImagesObject },
 			});
-			toDB({ 'images_upload': filesArray });
+			emitter.emit('toDB', { images_upload: filesArray });
 			mainStore.setMessage(popup.filesUploadedSuccessfully);
 		}
 	} catch(error) {
@@ -1216,7 +1204,7 @@ const keyup = (event: Event): void => {
 		'edit mode': () => foldersEditMode.value = !foldersEditMode.value,
 		'import': () => importFromFileInput.value.click(),
 		'export': () => router.push({ name: 'HomeExport' }),
-		'save': () => toDBCompletely(),
+		'save': () => emitter.emit('toDB'),
 		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
 		'revert': () => document.location.reload(),
 		'quit': () => emitter.emit('logout'),

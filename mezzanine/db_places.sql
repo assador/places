@@ -219,6 +219,7 @@ CREATE TABLE `pointroute` (
   `pointid` binary(16) NOT NULL,
   `srt` int(11) NOT NULL DEFAULT 0,
   `name` varchar(500) DEFAULT NULL,
+  `description` varchar(2044) DEFAULT NULL,
   UNIQUE KEY `uniq_point_route` (`pointid`,`routeid`),
   KEY `idx_pointroute_route_srt` (`routeid`,`srt`),
   CONSTRAINT `fk_pointroute_points` FOREIGN KEY (`pointid`) REFERENCES `points` (`id`),
@@ -327,6 +328,7 @@ CREATE TABLE `users` (
   `token` varchar(32) NOT NULL,
   `homeplace` binary(16) DEFAULT NULL,
   `id` binary(16) NOT NULL,
+  `lastupdates` bigint(20) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_login` (`login`),
   UNIQUE KEY `uniq_email` (`email`),
@@ -370,4 +372,4 @@ CREATE TABLE `userschange` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-01-31  0:40:19
+-- Dump completed on 2026-02-08  2:21:01

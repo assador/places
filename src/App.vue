@@ -90,20 +90,14 @@ emitter.on('confirm', (object: { func: Function, args: any[], msg: string }): vo
 	confirm(func, args, msg);
 });
 
-emitter.on('toDB', (payload: Record<string, any>) => {
+emitter.on('toDB', (payload: DataToDB) => {
 	if (payload) {
 		toDB(payload);
 	} else {
-		toDB({
-			'points': Object.values(mainStore.points),
-			'places': Object.values(mainStore.places),
-			'routes': Object.values(mainStore.routes),
-			'folders': Object.values(mainStore.foldersFlat),
-		});
+		toDB(mainStore.getAllModifiedPackage);
 	}
 });
 emitter.on('homeToDB', (id: string) => homeToDB(id));
-emitter.on('toDBCompletely', () => toDBCompletely());
 emitter.on('getFolderById', (id: string) => mainStore.foldersFlat[id]);
 mainStore.changeLang(mainStore.lang);
 
@@ -146,45 +140,19 @@ const toDB = async (payload: DataToDB): Promise<void> => {
 		mainStore.setMessage(mainStore.t.m.paged.incorrectFields);
 		return;
 	}
-	const userid = sessionStorage.getItem('places-useruuid');
-	const sessionid = sessionStorage.getItem('places-session');
+	if (!payload) payload = mainStore.getAllModifiedPackage;
 	try {
 		await axios.post(`/backend/set_places.php`, {
 			data: payload,
-			userid: userid,
-			sessionid: sessionid,
+			userid: sessionStorage.getItem('places-useruuid'),
+			sessionid: sessionStorage.getItem('places-session'),
 		});
 		mainStore.savedToDB(payload);
-		mainStore.setMessage(mainStore.t.m.popup.savedToDb);
-		
 	} catch (error: any) {
 		const errorMessage = error.response?.data?.message || error.message || error;
 		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${errorMessage}`);
 	}
 };
-provide('toDB', toDB);
-
-const toDBCompletely = async (): Promise<void> => {
-	if (mainStore.user.testaccount) return;
-	const filterChanged = <T extends {
-		added?: boolean;
-		deleted?: boolean;
-		updated?: boolean;
-	}>(arr: Record<string, T>) => {
-		return (
-			Object.values(arr).filter(
-				item => item.added || item.deleted || item.updated
-			)
-		);
-	}
-	toDB({
-		points: filterChanged(mainStore.points),
-		places: filterChanged(mainStore.places),
-		routes: filterChanged(mainStore.routes),
-		folders: filterChanged(mainStore.folders),
-	});
-};
-provide('toDBCompletely', toDBCompletely);
 
 const homeToDB = async (id: string): Promise<void> => {
 	if (mainStore.user.testaccount) return;
@@ -193,8 +161,6 @@ const homeToDB = async (id: string): Promise<void> => {
 			id: sessionStorage.getItem('places-useruuid'),
 			data: id
 		});
-		mainStore.saved = true;
-		mainStore.setMessage(mainStore.t.m.popup.savedToDb);
 	} catch (error) {
 		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${error}`);
 	}
@@ -207,7 +173,7 @@ const deleteImages = async (images: Record<string, Image>, family?: boolean) => 
 	if (!mainStore.user.testaccount) {
 		try {
 			await axios.post('/backend/delete.php', data);
-			toDB({ 'images_delete': Object.values(images) });
+			toDB({ images_delete: Object.values(images) });
 		} catch (error) {
 			console.error(error);
 		}
@@ -363,6 +329,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 			'srt',
 			params && params.before ? true : false
 		);
+// FIXME Do it smart. Including in set_places.php.
 		mainStore.currentPlace.updated = true;
 		toDB({ images_update: Object.values(mainStore.currentPlace.images) });
 		mainStore.currentPlace.updated = false;
@@ -415,11 +382,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		items[item.sourceId].folderid = item.targetId;
 
 		items[item.sourceId].updated = true;
-		toDB({
-			[items[item.sourceId].type === 'place' ? 'places' : 'routes']:
-				[ items[item.sourceId] ]
-		});
-		items[item.sourceId].updated = false;
+		mainStore.saved = false;
 
 		mainStore.backup = true;
 		mainStore.backupState();
@@ -450,8 +413,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		sourceItem.folderid = targetItem.folderid;
 
 		sourceItem.updated = true;
-		toDB({ 'places': [ sourceItem ] });
-		sourceItem.updated = false;
+		mainStore.saved = false;
 
 		mainStore.backup = true;
 		mainStore.backupState();
@@ -478,8 +440,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		mainStore.buildTrees();
 
 		mainStore.folders[folder.sourceId].updated = true;
-		toDB({ 'folders': [ mainStore.folders[folder.sourceId] ] });
-		mainStore.folders[folder.sourceId].updated = false;
+		mainStore.saved = false;
 
 		mainStore.backup = true;
 		mainStore.backupState();
@@ -505,8 +466,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		mainStore.buildTrees();
 
 		mainStore.folders[folder.sourceId].updated = true;
-		toDB({ 'folders': [ mainStore.folders[folder.sourceId] ] });
-		mainStore.folders[folder.sourceId].updated = false;
+		mainStore.saved = false;
 
 		mainStore.backup = true;
 		mainStore.backupState();
