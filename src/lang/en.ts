@@ -164,7 +164,7 @@ export const getT = () => ({
 			daLeaveImages: 'Leave my photos',
 			daLeaveOnlyCommonPlaces: 'Leave only places visible to others',
 			daLeaveOnlyCommonRoutes: 'Leave only routes visible to others',
-			deleteContent: 'Delete content (no undo)',
+			deleteContent: 'Delete content',
 			leaveContentInRoot: 'Leave the content in the root',
 			needToChangePassword: 'If you need to change your password',
 			placeDescription: 'Place description',

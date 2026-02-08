@@ -98,7 +98,7 @@ emitter.on('toDB', (payload: DataToDB) => {
 	}
 });
 emitter.on('homeToDB', (id: string) => homeToDB(id));
-emitter.on('getFolderById', (id: string) => mainStore.foldersFlat[id]);
+emitter.on('getFolderById', (id: string) => mainStore.folders[id]);
 mainStore.changeLang(mainStore.lang);
 
 // Lifecycle
@@ -214,7 +214,7 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 			points.push({ ...mainStore.points[p.pointid] });
 			let folderId = p.folderid;
 			while (folderId && folderId !== 'root' && !foldersSet.has(folderId)) {
-				const folder = mainStore.foldersFlat[folderId];
+				const folder = mainStore.folders[folderId];
 				folders.push({ ...folder });
 				foldersSet.add(folderId);
 				folderId = folder.parent;
@@ -437,14 +437,9 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 				parent: mainStore.folders[folder.targetId].parent
 			},
 		});
-		mainStore.buildTrees();
-
 		mainStore.folders[folder.sourceId].updated = true;
 		mainStore.saved = false;
-
-		mainStore.backup = true;
 		mainStore.backupState();
-
 		cleanup();
 		return;
 	}
@@ -463,14 +458,10 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 
 		mainStore.folders[folder.sourceId].srt = Math.max(...neighbours.map(f => f.srt)) + 1;
 		mainStore.folders[folder.sourceId].parent = folder.targetId;
-		mainStore.buildTrees();
-
 		mainStore.folders[folder.sourceId].updated = true;
 		mainStore.saved = false;
-
 		mainStore.backup = true;
 		mainStore.backupState();
-
 		cleanup();
 		return;
 	}

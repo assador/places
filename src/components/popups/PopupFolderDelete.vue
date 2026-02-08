@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import { Place, Route, Folder } from '@/stores/types';
@@ -109,66 +109,16 @@ const markNestedAsDeleted = (folder: Folder): void => {
 	mainStore.saved = false;
 };
 const deleteFolder = (): void => {
-	mainStore.backup = false;
-	folder.value.deleted = true;
-	if (keepContent.value === 'delete') {
-		markNestedAsDeleted(folder.value);
-		if (mainStore.homePlace && mainStore.homePlace.deleted) {
-			mainStore.setHomePlace(null);
-		}
-		const current: Ref<Place | Route | null> = ref(null);
-		switch (props.type) {
-			case 'places':
-				current.value = mainStore.currentPlace;
-				break;
-			case 'routes':
-				current.value = mainStore.currentRoute;
-				break;
-		}
-		if (current.value && current.value.deleted) {
-			if (!Object.keys(mainStore[props.type]).length) {
-				mainStore.setCurrentPlace(null);
-			} else if (mainStore.homePlace && !mainStore.homePlace.deleted) {
-				mainStore.setCurrentPlace(mainStore.homePlace.id);
-			} else {
-				const itemsInRoot: Ref<Place[] | Route[]> = ref(
-					Object.values(mainStore[props.type] as Place[] | Route[]).filter(
-						item => (
-							item['folderid'] === 'root' ||
-							item['folderid'] === 'routesroot'
-						)
-					).sort(
-						(a, b) => (a as Place | Route).srt - (b as Place | Route).srt
-					)
-				);
-				if (itemsInRoot.value[0] && !itemsInRoot.value[0].deleted) {
-					mainStore.setCurrentPlace((itemsInRoot.value[0] as Place).id);
-				} else if (
-					!Object.values(mainStore[props.type] as Place[] | Route[])[0].deleted
-				) {
-					mainStore.setCurrentPlace((Object.values(mainStore[props.type])[0] as Place).id);
-				} else {
-					mainStore.setCurrentPlace(null);
-				}
-			}
-		}
-	} else if (keepContent.value === 'keep') {
-		// Move subitems to the root
-		for (const item of Object.values(mainStore[props.type])) {
-			if (item['folderid'] === folder.value.id) {
-				item['folderid'] = props.type === 'routes' ? 'routesroot' : 'root';
-				item['updated'] = true;
-			}
-		}
-		for (const item of Object.values(mainStore.folders)) {
-			if (item.parent === folder.value.id) {
-				item['parent'] = props.type === 'routes' ? 'routesroot' : 'root';
-				item['updated'] = true;
-			}
-		}
-	}
-	mainStore.backup = true;
-	mainStore.backupState();
+	const objectsToDelete = mainStore.prepareFolderDelete(
+		folder.value.id,
+		props.type === 'places' ? 'root' : 'routesroot',
+		keepContent.value,
+	);
+	mainStore.deleteObjects(
+		keepContent.value === 'delete'
+			? objectsToDelete
+			: { [folder.value.id]: folder.value }
+	);
 	close();
 };
 

@@ -39,7 +39,7 @@
 <!-- SEC Markers: Place Points  -->
 
 			<l-marker
-				v-for="place in mainStore.places"
+				v-for="place in Object.values(mainStore.places).filter(p => !p.deleted)"
 				:key="place.id"
 				:lat-lng="[
 						mainStore.points[place.pointid].latitude,
@@ -103,7 +103,7 @@
 <!-- SEC Markers: Common Place Points  -->
 
 			<l-marker
-				v-for="place in mainStore.commonPlaces"
+				v-for="place in Object.values(mainStore.commonPlaces).filter(p => !p.deleted)"
 				:key="place.id"
 				:lat-lng="[
 					mainStore.points[place.pointid].latitude,
@@ -241,7 +241,7 @@
 
 			<template
 				v-if="mainStore.mode === 'routes' && mainStore.routesShow"
-				v-for="point in mainStore.routePoints(mainStore.currentRoute)"
+				v-for="point in mainStore.routePoints(mainStore.currentRoute).filter(p => !p.deleted)"
 				:key="`${point.id}_${mainStore.currentRoute?.points.length}`"
 			>
 				<l-marker

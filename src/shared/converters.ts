@@ -66,29 +66,18 @@ export const point2coords = (p: Point, m: string, h: string): string => {
 		(p.altitude ? `, ${h} ${p.altitude} ${m}` : '')
 	);
 }
-export const plainToTree = (patload: {
-	plain: Record<string, Folder>,
-	live?: boolean,
-	keep?: boolean,
-} = {
-	plain: {},
-	live: false,
-	keep: false,
-}): Record<string, any> | undefined => {
-	const { plain, live, keep } = patload;
-	if (!isPlainTreeCorrect(plain)) return undefined;
-	const tree = {};
-	const copy = live ? plain : JSON.parse(JSON.stringify(plain));
+export const makeChildren = (plain: Record<string, Folder>): Record<string, Folder> => {
+	if (!isPlainTreeCorrect(plain)) return {};
+	const copy = JSON.parse(JSON.stringify(plain));
 	for (const id in copy) {
-		copy[id].builded = true;
 		const parent = copy[copy[id].parent];
 		if (parent) {
 			if (!Object.hasOwn(parent, 'children')) parent['children'] = {};
 			parent.children[id] = copy[id];
 		}
-		if (!parent || keep) tree[id] = copy[id];
+		copy[id].builded = true;
 	}
-	return tree;
+	return copy;
 };
 export const treeToPlain = (
 	tree: Record<string, any>,

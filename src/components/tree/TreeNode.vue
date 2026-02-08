@@ -28,7 +28,10 @@
 					mainStore.folderOpenClose(
 						instanceid === 'popupexporttree'
 							? { target: (e.target as Node).parentNode.parentNode }
-							: { folder: folder, opened: !folder.opened }
+							: {
+								folder: mainStore.folders[folder.id],
+								opened: !folder.opened,
+							}
 					);
 				}"
 			/>
@@ -87,7 +90,10 @@
 					mainStore.folderOpenClose(
 						instanceid === 'popupexporttree'
 							? { target: (e.target as Node).parentNode.parentNode }
-							: { folder: folder, opened: !folder.opened }
+							: {
+								folder: mainStore.folders[folder.id],
+								opened: !folder.opened,
+							}
 					);
 				}"
 			>
@@ -190,7 +196,7 @@
 						accesskey="f"
 						@click.stop="router.push({
 							name: 'HomeDeleteFolder',
-							params: { id: folder.id },
+							params: { id: folder.id, type: what },
 						})"
 					/>
 				</div>
@@ -570,6 +576,7 @@ const places = computed(() =>
 	_.chain(mainStore.places)
 	.filter(p =>
 		p.show &&
+		!p.deleted &&
 		(
 			p.folderid === props.folder.id ||
 			p.folderid === null && props.folder.id === 'root'
@@ -580,11 +587,12 @@ const places = computed(() =>
 );
 const routes = computed(() =>
 	_.chain(mainStore.routes)
-	.filter(t =>
-		t.show &&
+	.filter(r =>
+		r.show &&
+		!r.deleted &&
 		(
-			t.folderid === props.folder.id ||
-			t.folderid === null && props.folder.id === 'routesroot'
+			r.folderid === props.folder.id ||
+			r.folderid === null && props.folder.id === 'routesroot'
 		)
 	)
 	.sortBy('srt')

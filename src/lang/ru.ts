@@ -164,7 +164,7 @@ export const getT = () => ({
 			daLeaveImages: 'Оставить мои фотографии',
 			daLeaveOnlyCommonPlaces: 'Оставить только видимые всем места',
 			daLeaveOnlyCommonRoutes: 'Оставить только видимые всем маршруты',
-			deleteContent: 'Удалить содержимое (без возможности отмены)',
+			deleteContent: 'Удалить содержимое',
 			leaveContentInRoot: 'Оставить содержимое в корне',
 			needToChangePassword: 'Если нужно сменить пароль',
 			placeDescription: 'Описание места',

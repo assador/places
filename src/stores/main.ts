@@ -4,7 +4,6 @@ import {
 	FirstShow,
 	PointName,
 	User,
-	Group,
 	Point,
 	Place,
 	Route,
@@ -15,7 +14,7 @@ import {
 import {
 	emitter,
 	constants,
-	plainToTree,
+	makeChildren,
 	formFolderForImported,
 	distanceOnSphere,
 } from '@/shared';
@@ -68,8 +67,6 @@ export interface IMainState {
 	temps: Record<string, Point>,
 	tempsPlacemarksShow: boolean,
 	tempsShow: FirstShow,
-	tree: Folder,
-	treeRoutes: Folder,
 	user: User | null,
 	users: Record<string, User>,
 	zoom: number,
@@ -142,36 +139,6 @@ export const useMainStore = defineStore('main', {
 		temps: {},
 		tempsPlacemarksShow: true,
 		tempsShow: { show: false, first: true },
-		tree: {
-			id: 'root',
-			parent: null,
-			srt: 0,
-			geomarks: 1,
-			type: 'folder',
-			added: false,
-			deleted: false,
-			updated: false,
-			opened: true,
-			builded: true,
-			name: '',
-			userid: '',
-			children: {},
-		},
-		treeRoutes: {
-			id: 'routesroot',
-			parent: null,
-			srt: 0,
-			geomarks: 1,
-			type: 'folder',
-			added: false,
-			deleted: false,
-			updated: false,
-			opened: true,
-			builded: true,
-			name: '',
-			userid: '',
-			children: {},
-		},
 		user: null,
 		users: {},
 		zoom: Number(constants.map.initial.zoom),
@@ -182,7 +149,7 @@ export const useMainStore = defineStore('main', {
 			return {
 				type: 'point',
 				id: crypto.randomUUID(),
-				userid: this.user!.id,
+				userid: this.user?.id,
 				latitude: this.center.latitude,
 				longitude: this.center.longitude,
 				altitude: null,
@@ -202,7 +169,7 @@ export const useMainStore = defineStore('main', {
 			return {
 				type: 'place',
 				id: crypto.randomUUID(),
-				userid: this.user!.id,
+				userid: this.user?.id,
 				folderid: 'root',
 				name: '',
 				description: '',
@@ -227,7 +194,7 @@ export const useMainStore = defineStore('main', {
 			return {
 				type: 'route',
 				id: crypto.randomUUID(),
-				userid: this.user!.id,
+				userid: this.user?.id,
 				folderid: 'routesroot',
 				points: [],
 				choosing: null,
@@ -253,7 +220,7 @@ export const useMainStore = defineStore('main', {
 			return {
 				type: 'folder',
 				id: crypto.randomUUID(),
-				userid: this.user!.id,
+				userid: this.user?.id,
 				parent: 'root',
 				name: '',
 				description: '',
@@ -269,7 +236,7 @@ export const useMainStore = defineStore('main', {
 
 // SEC Creating Entities
 
-	createPoint(overrides: Partial<Point>): Point {
+		createPoint(overrides: Partial<Point>): Point {
 			const point: Point = {
 				...this._defaultPoint(),
 				...overrides,
@@ -391,6 +358,7 @@ export const useMainStore = defineStore('main', {
 				})
 			;
 			where = { ...where };
+// FIXME Remove mainStore.saved = … / this.saved = … throughout the project and centralize this matter as completely as possible.
 			this.saved = false;
 			this.backupState();
 			return point;
@@ -577,7 +545,6 @@ export const useMainStore = defineStore('main', {
 					where[folder.id] = folder;
 					break;
 			}
-			this.buildTrees();
 			this.saved = false;
 			this.backupState();
 			return folder;
@@ -616,10 +583,101 @@ export const useMainStore = defineStore('main', {
 					this.points[pid].deleted = true;
 				}
 			});
-// FIXME Remove mainStore.saved = … / this.saved = … throughout the project and centralize this matter as completely as possible.
+			this.cleanupRoutesFromDeletedPoints();
+			this.fixCurrentsAfterDelete();
 			this.updateSavedStatus();
-			this.buildTrees();
 			this.backupState();
+		},
+		cleanupRoutesFromDeletedPoints() {
+			const deletedPointIds = new Set(
+				Object.values<Point>(this.points)
+					.filter(p => p.deleted)
+					.map(p => p.id)
+			);
+			if (deletedPointIds.size === 0) return;
+			Object.values<Route>(this.routes).forEach(route => {
+				if (route.deleted) return;
+				const initialLength = route.points.length;
+				route.points = route.points.filter(p => {
+					const actualPid = this.places[p.id]?.pointid || p.id;
+					return !deletedPointIds.has(actualPid);
+				});
+				if (route.points.length !== initialLength) {
+					route.updated = true;
+				}
+			});
+		},
+		fixCurrentsAfterDelete() {
+			if (this.currentPlace?.deleted) {
+				const fallbackId =
+					(this.homePlace && !this.homePlace.deleted) 
+						? this.homePlace.id
+						: (
+							Object.values<Place>(this.places).find(
+								p => !p.deleted
+							) || null
+						)
+				;
+				this.setCurrentPlace(fallbackId);
+			}
+			if (this.currentRoute?.deleted) {
+				this.setCurrentRoute(
+					Object.values<Route>(this.routes).find(
+						r => !r.deleted
+					) || null
+				);
+			}
+			if (this.currentPoint?.deleted) {
+				this.setCurrentPoint(null);
+			}
+		},
+		prepareFolderDelete(folderId: string, rootId: string, mode: string) {
+			const toDelete: Record<string, Place | Route | Folder> = {};
+			const rootFolder = this.folders[folderId];
+			if (!rootFolder) return {};
+		
+			const collectRecursive = (fId: string) => {
+				const folder = this.folders[fId];
+				if (!folder) return;
+				if (folder.parent !== null) toDelete[fId] = folder;
+		
+				Object.values<Place>(this.places).forEach(p => {
+					if (p.folderid === fId) toDelete[p.id] = p;
+				});
+				Object.values<Route>(this.routes).forEach(r => {
+					if (r.folderid === fId) toDelete[r.id] = r;
+				});
+				Object.values<Folder>(this.folders).forEach(subFolder => {
+					if (subFolder.parent === fId) {
+						collectRecursive(subFolder.id);
+					}
+				});
+			};
+
+			if (mode === 'delete') {
+				collectRecursive(folderId);
+			} else {
+				if (rootFolder.parent !== null) toDelete[folderId] = rootFolder;
+				Object.values<Place>(this.places).forEach(p => {
+					if (p.folderid === folderId) {
+						p.folderid = rootId;
+						p.updated = true;
+					}
+				});
+				Object.values<Route>(this.routes).forEach(r => {
+					if (r.folderid === folderId) {
+						r.folderid = rootId;
+						r.updated = true;
+					}
+				});
+				Object.values<Folder>(this.folders).forEach(f => {
+					if (f.parent === folderId) {
+						f.parent = rootId;
+						f.updated = true;
+					}
+				});
+			}
+			return toDelete;
 		},
 		deleteTemp(id: string) {
 			const measureIndex = this.measure.points.map(p => p.id).indexOf(id);
@@ -1166,17 +1224,30 @@ export const useMainStore = defineStore('main', {
 
 // SEC DB saving
  
-		setObjectSaved(object: User | Group | Point | Place | Route | Folder) {
-			object.added = false;
-			object.deleted = false;
-			object.updated = false;
-		},
 		savedToDB(payload: DataToDB) {
-			for (const point of payload.points ?? []) this.setObjectSaved(point);
-			for (const place of payload.places ?? []) this.setObjectSaved(place);
-			for (const route of payload.routes ?? []) this.setObjectSaved(route);
-			for (const folder of payload.folders ?? []) this.setObjectSaved(folder);
-			this.saved = true;
+			const collections = {
+				points: this.points,
+				places: this.places,
+				routes: this.routes,
+				folders: this.folders,
+			};
+			for (const [key, stateDict] of Object.entries(collections)) {
+				const items = payload[key as keyof DataToDB];
+				if (!items) continue;
+				items.forEach((item: any) => {
+					if (item.deleted) {
+						delete stateDict[item.id];
+					} else {
+						const stateItem = stateDict[item.id];
+						if (stateItem) {
+							stateItem.added = false;
+							stateItem.updated = false;
+							stateItem.deleted = false;
+						}
+					}
+				});
+			}
+			this.updateSavedStatus();
 		},
 
 // SEC Checkers
@@ -1234,26 +1305,6 @@ export const useMainStore = defineStore('main', {
 			this.serverConfig = null;
 			this.routes = {};
 		},
-		buildTrees() {
-			const tree = plainToTree({ plain: this.foldersFlat, live: true, keep: true });
-			if (!tree) return;
-			this.tree.children = {};
-			this.treeRoutes.children = {};
-			this.folders = tree;
-			for (const id in this.folders) {
-				if (this.folders[id].parent === 'root') {
-					this.tree.children[id] = this.folders[id];
-					continue;
-				}
-				if (this.folders[id].parent === 'routesroot') {
-					this.treeRoutes.children[id] = this.folders[id];
-					continue;
-				}
-			}
-			this.tree.userid = this.treeRoutes.userid = this.user ? this.user.id : null;
-			this.tree.name = this.t.i.captions.rootFolder;
-			this.treeRoutes.name = this.t.i.captions.rootRoutesFolder;
-		},
 		placesReady(payload: Record<string, any>) {
 			const { points, places, commonPlaces, routes, commonRoutes, folders, what } = payload;
 
@@ -1308,7 +1359,6 @@ export const useMainStore = defineStore('main', {
 				folder.updated = updated;
 				folder.opened = false;
 			}
-			this.buildTrees();
 		},
 		modifyPlaces(places: Record<string, Place>) {
 			this.places = places;
@@ -1902,17 +1952,6 @@ export const useMainStore = defineStore('main', {
 			}
 			return shared;
 		},
-		foldersFlat() {
-			let foldersFlat = {};
-			for (const folder of Object.values(this.folders) as Folder[]) {
-				foldersFlat[folder.id] = {};
-				for (const key in folder) {
-					if (key === 'children') continue;
-					foldersFlat[folder.id][key] = folder[key];
-				}
-			}
-			return foldersFlat as Record<string, Folder>;
-		},
 		measureTemps() {
 			return Object.values(this.temps).filter(
 				(point: Point) => point.type === 'point'
@@ -2009,6 +2048,45 @@ export const useMainStore = defineStore('main', {
 					(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
 				),
 			};
+		},
+		childrened() {
+			const aliveFolders: Record<string, Folder> = {};
+			for (const id in this.folders) {
+				if (!this.folders[id].deleted) {
+					aliveFolders[id] = this.folders[id];
+				}
+			}
+			return makeChildren(aliveFolders);
+		},
+		tree() {
+			const tree: Folder = this.createFolder({
+				id: 'root',
+				parent: null,
+				srt: 20,
+				name: this.t.i.captions.rootFolder,
+				children: {},
+			});
+			for (const id in this.childrened) {
+				if (this.childrened[id].parent === 'root') {
+					tree.children[id] = this.childrened[id];
+				}
+			}
+			return tree;
+		},
+		treeRoutes() {
+			const tree: Folder = this.createFolder({
+				id: 'routesroot',
+				parent: null,
+				srt: 10,
+				name: this.t.i.captions.rootRoutesFolder,
+				children: {},
+			});
+			for (const id in this.childrened) {
+				if (this.childrened[id].parent === 'routesroot') {
+					tree.children[id] = this.childrened[id];
+				}
+			}
+			return tree;
 		},
 	},
 });
