@@ -75,6 +75,12 @@ export interface IMainState {
 	zoom: number,
 }
 
+// Прямо над defineStore
+const isPoint = (obj: any): obj is Point => obj?.type === 'point';
+const isPlace = (obj: any): obj is Place => obj?.type === 'place';
+const isRoute = (obj: any): obj is Route => obj?.type === 'route';
+// const isFolder = (obj: any): obj is Folder => obj?.type === 'folder';
+
 export const useMainStore = defineStore('main', {
 	state: (): IMainState => ({
 		activeMapIndex: 0,
@@ -579,58 +585,40 @@ export const useMainStore = defineStore('main', {
 
 // SEC Deleting Entities
 
-		async deleteObjects(payload: {
-			objects?: Record<string, Point | Place | Route | Folder>,
-			todb?: boolean,
-		} = {
-			objects: {},
-			todb: true,
-		}) {
-			const data = {
-				points: <Array<Point>>[],
-				places: <Array<Place>>[],
-				routes: <Array<Route>>[],
-				folders: <Array<Folder>>[],
-			};
-			if (!Object.values(payload.objects).length) {
-				for (const what in data) {
-					data[what] = Object.values(this[what]).filter(object =>
-						Object.hasOwn(
-							object as Point | Place | Route | Folder,
-							'deleted',
+		deleteObjects(objects: Record<string, Point | Place | Route | Folder>) {
+			Object.values(objects).forEach(obj => {
+				obj.deleted = true;
+			});
+			const pointsToCheck = new Set<string>();
+			Object.values(objects).forEach(obj => {
+				if (isPlace(obj)) {
+					pointsToCheck.add(obj.pointid);
+				} else if (isRoute(obj)) {
+					obj.points.forEach(p => {
+						pointsToCheck.add(this.places[p.id]?.pointid || p.id);
+					});
+				} else if (isPoint(obj)) {
+					pointsToCheck.add(obj.id);
+				}
+			});
+			pointsToCheck.forEach(pid => {
+				const isPointStillNeeded = 
+					Object.values<Place>(this.places).some(
+						p => p.pointid === pid && !p.deleted
+					) ||
+					Object.values<Route>(this.routes).some(
+						r => !r.deleted && r.points.some(rp => (
+							this.places[rp.id]?.pointid || rp.id) === pid
 						)
-						&& object['deleted'] === true
-					);
+					)
+				;
+				if (!isPointStillNeeded && this.points[pid]) {
+					this.points[pid].deleted = true;
 				}
-			} else {
-				for (const object of Object.values(payload.objects)) {
-/* Add points used only by the object in the payload
-					let points = <Array<Point>>[];
-					if (object['pointid']) {
-						points.push(this.points[object['pointid']]);
-					}
-					if (object['pointids']) {
-						for (const id of object['pointids']) {
-							points.push(this.points[id]);
-						}
-					}
-					for (const point of points) {
-						if (!this.sharingPointsIds.includes(point.id)) {
-							this.points[point.id].deleted = true;
-							data.points.push(point);
-						}
-					}
-*/
-					object.deleted = true;
-					data[object.type + 's'].push(object);
-				}
-			}
-			for (const what in data) {
-				for (const object of data[what]) delete this[what][object.id];
-			}
+			});
 // FIXME Remove mainStore.saved = … / this.saved = … throughout the project and centralize this matter as completely as possible.
+			this.updateSavedStatus();
 			this.buildTrees();
-			this.saved = false;
 			this.backupState();
 		},
 		deleteTemp(id: string) {
@@ -1895,20 +1883,24 @@ export const useMainStore = defineStore('main', {
 		pointsAll() {
 			return { ...this.points, ...this.temps };
 		},
-		sharingPointsIds() {
-			let usingPointsIds: string[] = [];
-			usingPointsIds = usingPointsIds.concat(
-				Object.values(this.places).map((place: Place) => place.pointid)
-			);
-			for (const route of Object.values(this.routes)) {
-				usingPointsIds = usingPointsIds.concat(
-					(route as Route).points.map(p =>
-						this.places[p.id] ? this.places[p.id].pointid : p.id
-				));
+		sharingPointsIds(): string[] {
+			const counts = new Map<string, number>();
+			const count = (id: string) => counts.set(id, (counts.get(id) || 0) + 1);
+
+			Object.values<Place>(this.places).forEach(place => count(place.pointid));
+
+			Object.values<Route>(this.routes).forEach(route => {
+				route.points.forEach(p => {
+					const actualId = this.places[p.id]?.pointid || p.id;
+					count(actualId);
+				});
+			});
+
+			const shared: string[] = [];
+			for (const [id, num] of counts) {
+				if (num > 1) shared.push(id);
 			}
-			return usingPointsIds.filter((id, index, self) =>
-				self.indexOf(id) !== index
-			);
+			return shared;
 		},
 		foldersFlat() {
 			let foldersFlat = {};

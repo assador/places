@@ -254,8 +254,8 @@
 					draggable
 					@click="mainStore.setCurrentPoint(point, false)"
 					@contextmenu="e => {
+// FIXME Show point info if tha point is active
 						if (point.id === mainStore.currentPoint.id) {
-							console.log('asdf');
 							popupProps.show = !popupProps.show;
 							return;
 						}

@@ -167,7 +167,6 @@ const deleteFolder = (): void => {
 			}
 		}
 	}
-	mainStore.deleteObjects();
 	mainStore.backup = true;
 	mainStore.backupState();
 	close();

@@ -308,12 +308,8 @@
 					class="button-iconed icon icon-cross-45-circled"
 					@dragenter="highlighted = pn.id"
 					@click.stop="() => {
-/* TODO Uncomment when it’s ready
 						const point = mainStore.getPointById(pn.id);
-						mainStore.deleteObjects({
-							objects: { [point.id]: point },
-						});
-*/
+						mainStore.deleteObjects({ [point.id]: point });
 					}"
 				/>
 			</button>

@@ -258,7 +258,7 @@
 					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addRoute"
 					accesskey="a"
-					@click="() => {
+					@click.stop="() => {
 						mainStore.upsertRoute();
 						$nextTick(() => currentRouteNameInputRef.focus());
 					}"
@@ -272,19 +272,15 @@
 						mainStore.currentRoute.userid === mainStore.user.id
 					)"
 					accesskey="d"
-					@click="
-						mainStore.deleteObjects({
-							objects: {
-								[mainStore.currentRoute.id]: mainStore.currentRoute,
-							},
-						})
-					"
+					@click.stop="mainStore.deleteObjects({
+						[mainStore.currentRoute.id]: mainStore.currentRoute,
+					})"
 				/>
 				<button
 					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addFolder"
 					accesskey="f"
-					@click="router.push({
+					@click.stop="router.push({
 						name: 'HomeFolder',
 						params: { parentId: 'routesroot' },
 					})"
@@ -473,9 +469,12 @@
 					/>
 					<span
 						class="place-button__control icon icon-cross-45-circled"
-						:title="mainStore.t.i.hints.deletePlace"
+						:title="mainStore.t.i.hints[what === 'places'
+							? 'deletePlace'
+							: 'deleteRoute'
+						]"
 						@click.stop="mainStore.deleteObjects({
-							objects: { [object.id]: object }
+							[object.id]: object,
 						})"
 					/>
 				</span>
