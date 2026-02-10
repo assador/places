@@ -897,8 +897,9 @@ export const useMainStore = defineStore('main', {
 					this.placesReady({
 						points: Object.assign({}, data.points),
 						places: Object.assign({}, data.places),
-						commonPlaces: Object.assign({}, data.common_places),
+						routes: Object.assign({}, data.routes),
 						folders: Object.assign({}, data.folders),
+						commonPlaces: Object.assign({}, data.common_places),
 					});
 					this.backup = false;
 					this.setHomePlace({
@@ -906,6 +907,7 @@ export const useMainStore = defineStore('main', {
 					});
 					this.backup = true;
 					this.setFirstCurrentPlace();
+					this.setCurrentRoute(Object.values(this.routes)[0] ?? null);
 					if (this.currentPlace) {
 						this.updateMap({
 							latitude: this.points[this.currentPlace.pointid].latitude,
@@ -918,8 +920,9 @@ export const useMainStore = defineStore('main', {
 					this.placesReady({
 						points: {},
 						places: {},
-						commonPlaces: {},
+						routes: {},
 						folders: {},
+						commonPlaces: {},
 					});
 				}
 				return;

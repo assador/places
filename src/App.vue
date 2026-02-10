@@ -71,7 +71,6 @@ emitter.on('logged', async () => {
 	await mainStore.setUser();
 	await mainStore.setServerConfig();
 	await mainStore.setPlaces();
-	await mainStore.setUsers('common');
 	mainStore.ready = true;
 	mainStore.backupState();
 	router.push({ name: 'Home' });
