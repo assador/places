@@ -86,9 +86,9 @@
 			</div>
 		</yandex-map-marker>
 		<yandex-map-marker
-			v-for="(place, id) in mainStore.places"
+			v-for="place in Object.values(mainStore.places).filter(p => !p.deleted)"
 			v-if="mainStore.placemarksShow"
-			:key="id"
+			:key="place.id"
 			v-model="markers[place.id]"
 			:settings="{
 				coordinates: [
@@ -118,7 +118,7 @@
 				class="marker"
 				:src="placemarksOptions[
 					mainStore.mode === 'measure' &&
-					mainStore.measure.points.find(p => p.id === id) &&
+					mainStore.measure.points.find(p => p.id === place.id) &&
 					place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01')
@@ -136,9 +136,9 @@
 			</div>
 		</yandex-map-marker>
 		<yandex-map-marker
-			v-for="(place, id) in mainStore.commonPlaces"
+			v-for="place in Object.values(mainStore.commonPlaces).filter(p => !p.deleted)"
 			v-if="mainStore.commonPlacemarksShow"
-			:key="id"
+			:key="place.id"
 			v-model="markers[place.id]"
 			:settings="{
 				coordinates: [
@@ -165,7 +165,7 @@
 				class="marker"
 				:src="placemarksOptions[
 					mainStore.mode === 'measure' &&
-					mainStore.measure.points.find(p => p.id === id) &&
+					mainStore.measure.points.find(p => p.id === place.id) &&
 					place !== mainStore.currentPlace
 						? 'icon_01_blue'
 						: (place === mainStore.currentPlace ? 'icon_01_green' : 'icon_01_grey')

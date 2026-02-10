@@ -790,7 +790,6 @@ export const useMainStore = defineStore('main', {
 			this.setHomePlace({
 				id: this.user.homeplace ? this.user.homeplace : null,
 			});
-			this.backup = true;
 			if (this.currentPlace) {
 				let place: Place = null;
 				if (this.commonPlaces[this.currentPlace.id])
@@ -799,6 +798,22 @@ export const useMainStore = defineStore('main', {
 					place = this.places[this.currentPlace.id];
 				this.setCurrentPlace(place);
 			}
+			if (this.currentRoute) {
+				let route: Route = null;
+				if (this.routes[this.currentRoute.id]) {
+					route = this.routes[this.currentRoute.id];
+				}
+				this.setCurrentRoute(route); 
+			}
+			if (this.currentPoint) {
+				let point: Point = null;
+				if (this.points[this.currentPoint.id])
+					point = this.points[this.currentPoint.id];
+				if (this.temps[this.currentPoint.id])
+					point = this.temps[this.currentPoint.id];
+				this.setCurrentPoint(point); 
+			}
+			this.backup = true;
 			this.refreshing = false;
 		},
 		updateSavedStatus() {
@@ -1593,30 +1608,46 @@ export const useMainStore = defineStore('main', {
 		},
 		addPointToPoints({
 			point = this.currentPoint,
-			where,
+			entity,
 		}: {
 			point: Point;
-			where?: Route | Measure;
+			entity?: Route | Measure;
 		}) {
-			if (!where) {
-				if (this.mode === 'routes' && this.currentRoute) where = this.currentRoute;
-				else if (this.mode === 'measure') where = this.measure;
-				else return;
+			if (!entity) {
+				if (this.mode === 'routes' && this.currentRoute) {
+					entity = this.currentRoute;
+				} else if (this.mode === 'measure') {
+					entity = this.measure;
+				} else {
+					return;
+				}
 			}
-			const numbers = where.points
+			const numbers = entity.points
 				.filter(p => /^\d+$/.test(p.name))
 				.map(p => Number(p.name));
 			const name = (Math.max(0, ...numbers) + 1).toString();
-			where.choosing = where.points.length;
-			where.points[where.choosing] = {
+			entity.choosing = entity.points.length;
+			entity.points[entity.choosing] = {
 				id: point.id,
 				name: name,
 			};
 		},
-		removePointFromPoints(
-			point: Point = this.currentPoint,
-			entity: Route | Measure = this.measure,
-		) {
+		removePointFromPoints({
+			point = this.currentPoint,
+			entity,
+		}: {
+			point: Point;
+			entity?: Route | Measure;
+		}) {
+			if (!entity) {
+				if (this.mode === 'routes' && this.currentRoute) {
+					entity = this.currentRoute;
+				} else if (this.mode === 'measure') {
+					entity = this.measure;
+				} else {
+					return;
+				}
+			}
 			let idx = entity.points.map(p => p.id).indexOf(point.id);
 			if (idx === -1) return;
 			entity.points.splice(idx, 1);
@@ -1624,12 +1655,12 @@ export const useMainStore = defineStore('main', {
 				entity.choosing = entity.points.length - 1;
 			}
 		},
-		async removeRoutePoint({
-			point,
+		removeRoutePoint({
+			point = this.currentPoint,
 			route = this.currentRoute,
 		}: {
 			point: Point;
-			route?: Route;
+			route: Route;
 		}) {
 			let idx = null;
 			for (let i = 0; i < route.points.length; i++) {
@@ -1643,7 +1674,7 @@ export const useMainStore = defineStore('main', {
 			if (idx > route.points.length - 1) idx =  route.points.length - 1;
 			this.backupState();
 		},
-		async changeFolder(payload: Record<string, any>) {
+		changeFolder(payload: Record<string, any>) {
 			for (const key in payload.change) {
 				payload.folder[key] = payload.change[key];
 			}
@@ -1684,7 +1715,7 @@ export const useMainStore = defineStore('main', {
 			this.saved = false;
 			this.backupState();
 		},
-		async changeRoute(payload: Record<string, any>) {
+		changeRoute(payload: Record<string, any>) {
 			for (const key in payload.change) {
 				payload.route[key] = key === 'srt'
 					? (Number(payload.change[key]) || 0)

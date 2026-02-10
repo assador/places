@@ -34,8 +34,8 @@ const t = {
 			checkboxCommon: 'Common',
 			placeName: 'Place name',
 			placeDescription: 'Place description',
-			trackName: 'Track name',
-			trackDescription: 'Track description',
+			routeName: 'Route name',
+			routeDescription: 'Route description',
 		},
 		buttons: {
 			find: 'Find',
@@ -56,12 +56,12 @@ const t = {
 			range: 'Range',
 			measure: 'Measure',
 			currentPlace: 'Current place',
-			currentTrack: 'Current track',
+			currentRoute: 'Current route',
 			center: 'Center',
 			points: 'Points',
 			independentPoints: 'Independent points',
 			places: 'Places',
-			tracks: 'Tracks',
+			routes: 'Routes',
 			altitude: 'Altitude',
 			latitude: 'Latitude',
 			longitude: 'Longitude',
@@ -79,7 +79,7 @@ const t = {
 			shPlacemarks: 'Show placemarks',
 			shCommonPlaces: 'Show common places',
 			shCommonPlacemarks: 'Show common placemarks',
-			shCommonTracks: 'Show common tracks',
+			shCommonRoutes: 'Show common routes',
 			shCenter: 'Show center',
 			fullscreen: 'Fullscreen',
 		},
@@ -111,7 +111,7 @@ vi.mock('@/shared/constants', () => ({
 		sidebarsCompact: { top: 60, right: 240, bottom: 30, left: 240 },
 		sidebarsCompactUltra: { top: 0, right: 0, bottom: 0, left: 0 },
 		commonplacesonpagecount: 10,
-		commontracksonpagecount: 10,
+		commonroutesonpagecount: 10,
 		shortcuts: {},
 		dirs: { uploads: { images: { small: '/img/' } } },
 		map: { initial: { latitude : 0, longitude : 0, zoom : 15 } },
@@ -143,10 +143,10 @@ function createMainStoreState() {
 		points: {},
 		places: {},
 		commonPlaces: {},
-		commonTracks: {},
+		commonRoutes: {},
 		folders: {},
 		tree: { id: 'root', children: {} },
-		treeTracks: { id: 'tracksroot', children: {} },
+		treeRoutes: { id: 'routesroot', children: {} },
 		descriptionFields: { name: 'Name', description: 'Description', link: 'Link', time: 'Time', srt: 'Order', common: 'Common', latitude: 'Lat', longitude: 'Lon', coordsMinSec: 'Coords', altitudecapability: 'Altitude capability', images: 'Images' },
 		measure: { show: false, points: [], choosing: 0, distance: 0 },
 		mode: 'normal',
@@ -155,14 +155,14 @@ function createMainStoreState() {
 		placemarksShow: true,
 		pointsShow: true,
 		placesShow: true,
-		tracksShow: true,
+		routesShow: true,
 		tempsShow: false,
 		rangeShow: false,
 		range: null,
 		saved: true,
-		serverConfig: { rights: { placescount: 100, trackscount: 100, photosize: 10_000_000 }, mimes: { 'image/png': 'png' }, uploadsize: 10_000_000 },
+		serverConfig: { rights: { placescount: 100, routescount: 100, photosize: 10_000_000 }, mimes: { 'image/png': 'png' }, uploadsize: 10_000_000 },
 		currentPlace: null,
-		currentTrack: null,
+		currentRoute: null,
 		currentPoint: null,
 		measureDistance: vi.fn(),
 		updateMap: vi.fn(),
@@ -170,7 +170,7 @@ function createMainStoreState() {
 		backupState: vi.fn(),
 		setHomePlace: vi.fn(),
 		commonPlacemarksShowHide: vi.fn(),
-		commonTracksShowHide: vi.fn(),
+		commonRoutesShowHide: vi.fn(),
 		placemarksShowHide: vi.fn(),
 		centerPlacemarkShowHide: vi.fn(),
 		undo: vi.fn(),
@@ -181,8 +181,8 @@ function createMainStoreState() {
 		addPlace: vi.fn(),
 		addPoint: vi.fn(),
 		changePlace: vi.fn().mockResolvedValue(undefined),
-		addTrack: vi.fn(),
-		changeTrack: vi.fn().mockResolvedValue(undefined),
+		addRoute: vi.fn(),
+		changeRoute: vi.fn().mockResolvedValue(undefined),
 	};
 }
 
@@ -196,7 +196,7 @@ async function mountHome(options: { shallow?: boolean } = {}) {
 	const provide = {
 		idleTimeInterval: ref<number | undefined>(undefined),
 		currentPlaceCommon: ref(false),
-		currentTrackCommon: ref(false),
+		currentRouteCommon: ref(false),
 		foldersEditMode: ref(false),
 		toDB: vi.fn(),
 		toDBCompletely: vi.fn(),
@@ -229,7 +229,7 @@ describe('Home.vue', () => {
 		const wrapper = await mountHome({ shallow: true });
 		// Buttons exist
 		expect(wrapper.find('#actions-places').exists()).toBe(true);
-		expect(wrapper.find('#actions-tracks').exists()).toBe(true);
+		expect(wrapper.find('#actions-routes').exists()).toBe(true);
 		expect(wrapper.find('#actions-points').exists()).toBe(true);
 		// Search input is present
 		expect(wrapper.find('#search-input').exists()).toBe(true);

@@ -133,20 +133,22 @@ onMounted(() => {
 	});
 });
 
-// DB Operations
+// SEC DB operations
+
 const toDB = async (payload: DataToDB): Promise<void> => {
-	if (mainStore.user.testaccount) return;
 	if (document.querySelector('.value_wrong')) {
 		mainStore.setMessage(mainStore.t.m.paged.incorrectFields);
 		return;
 	}
 	if (!payload) payload = mainStore.getAllModifiedPackage;
 	try {
-		await axios.post(`/backend/set_places.php`, {
-			data: payload,
-			userid: sessionStorage.getItem('places-useruuid'),
-			sessionid: sessionStorage.getItem('places-session'),
-		});
+		if (!mainStore.user.testaccount) {
+			await axios.post(`/backend/set_places.php`, {
+				data: payload,
+				userid: sessionStorage.getItem('places-useruuid'),
+				sessionid: sessionStorage.getItem('places-session'),
+			});
+		}
 		mainStore.savedToDB(payload);
 	} catch (error: any) {
 		const errorMessage = error.response?.data?.message || error.message || error;
@@ -329,7 +331,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 			'srt',
 			params && params.before ? true : false
 		);
-// FIXME Do it smart. Including in set_places.php.
+// FIXME Refactor work with images at all.
 		mainStore.currentPlace.updated = true;
 		toDB({ images_update: Object.values(mainStore.currentPlace.images) });
 		mainStore.currentPlace.updated = false;

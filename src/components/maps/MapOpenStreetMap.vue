@@ -48,44 +48,9 @@
 				draggable
 				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
 				@click="mainStore.setCurrentPlace(place, false)"
-				@contextmenu="e => {
-					if (pointInfo.point?.id === place.pointid) {
-						popupProps.show = !popupProps.show;
-						return;
-					}
-					if (
-						mainStore.mode === 'measure' &&
-						!mainStore.isMeasurePoint(mainStore.points[place.pointid].id)
-					) {
-						mainStore.addPointToPoints({
-							point: mainStore.points[place.pointid],
-							where: mainStore.measure,
-						});
-						return;
-					}
-					if (
-						mainStore.mode === 'routes' &&
-						!mainStore.isRoutePoint(
-							mainStore.points[place.pointid].id,
-							mainStore.currentRoute,
-						)
-					) {
-						mainStore.addPointToPoints({
-							point: mainStore.points[place.pointid],
-							where: mainStore.currentRoute,
-						});
-						return;
-					}
-					pointInfo.point = mainStore.points[place.pointid];
-					pointInfo.name = place.name;
-					popupProps.show = true;
-					popupProps.position.left = 'auto';
-					popupProps.position.bottom = 'auto';
-					popupProps.position.top = e.originalEvent.clientY + 5;
-					popupProps.position.right =
-						e.originalEvent.view.document.documentElement.clientWidth -
-						e.originalEvent.clientX + 5;
-				}"
+				@contextmenu="e =>
+					markerContextMenu(e, mainStore.points[place.pointid], place)
+				"
 				@mousedown="() => dragging = true"
 				@mouseup="() => dragging = false"
 				@moveend="e => placemarkDragEnd(place, e)"
@@ -111,31 +76,9 @@
 				]"
 				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
 				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-				@contextmenu="e => {
-					if (pointInfo.point?.id === place.pointid) {
-						popupProps.show = !popupProps.show;
-						return;
-					}
-					if (
-						mainStore.mode === 'measure' &&
-						!mainStore.isMeasurePoint(mainStore.points[place.pointid].id)
-					) {
-						mainStore.addPointToPoints({
-							point: mainStore.points[place.pointid],
-							where: mainStore.measure,
-						});
-						return;
-					}
-					pointInfo.point = mainStore.points[place.pointid];
-					pointInfo.name = place.name;
-					popupProps.show = true;
-					popupProps.position.left = 'auto';
-					popupProps.position.bottom = 'auto';
-					popupProps.position.top = e.originalEvent.clientY + 5;
-					popupProps.position.right =
-						e.originalEvent.view.document.documentElement.clientWidth -
-						e.originalEvent.clientX + 5;
-				}"
+				@contextmenu="e =>
+					markerContextMenu(e, mainStore.points[place.pointid], place)
+				"
 			>
 				<l-icon
 					v-bind="(
@@ -155,88 +98,6 @@
 				</l-tooltip>
 			</l-marker>
 
-<!-- SEC Markers: Temps  -->
-
-			<template
-				v-for="point in mainStore.temps"
-				:key="`${point.id}_${mainStore.measure.points.length}`"
-			">
-				<l-marker
-					v-if="
-						mainStore.mode === 'measure' && mainStore.isMeasurePoint(point.id) ||
-						!mainStore.isMeasurePoint(point.id)
-					"
-					:lat-lng="[ point.latitude, point.longitude ]"
-					:visible="
-						mainStore.placemarksShow &&
-						mainStore.tempsPlacemarksShow &&
-						point.show
-					"
-					:z-index-offset="
-						point.id === mainStore.currentPoint?.id ? 10000 : 0
-					"
-					draggable
-					@click="mainStore.setCurrentPoint(point, false)"
-					@contextmenu="e => {
-						if (pointInfo.point?.id === point.id) {
-							popupProps.show = !popupProps.show;
-							return;
-						}
-						if (mainStore.mode === 'measure') {
-							mainStore.addPointToPoints({
-								point: point,
-								where: mainStore.measure,
-							});
-							return;
-						}
-						if (mainStore.mode === 'routes') {
-							mainStore.addPointToPoints({
-								point: point,
-								where: mainStore.currentRoute,
-							});
-							return;
-						}
-						pointInfo.point = point;
-						pointInfo.name = (mainStore.lonelyTemps.indexOf(point) + 1).toString();
-						popupProps.show = true;
-						popupProps.position.left = 'auto';
-						popupProps.position.bottom = 'auto';
-						popupProps.position.top = e.originalEvent.clientY + 5;
-						popupProps.position.right =
-							e.originalEvent.view.document.documentElement.clientWidth -
-							e.originalEvent.clientX + 5;
-					}"
-					@mousedown="() => dragging = true"
-					@mouseup="() => dragging = false"
-					@move="e => {
-						if (mainStore.mode !== 'measure') return;
-						const { lat, lng } = e.target.getLatLng();
-						point.latitude = lat;
-						point.longitude = lng;
-					}"
-					@moveend="e => placemarkDragEnd(point, e)"
-					>
-					<l-icon
-						v-bind="(point === mainStore.currentPoint
-							? icon_01_green
-							: (mainStore.isMeasurePoint(point.id)
-								? icon_null : icon_01_blue
-							)
-						) as {}"
-					/>
-					<l-circle-marker
-						v-if="
-							mainStore.mode === 'measure' &&
-							mainStore.isMeasurePoint(point.id)
-						"
-						:lat-lng="[ point.latitude, point.longitude ]"
-						class-name="route-intermediate"
-						:radius="10"
-						:weight="1"
-					/>
-				</l-marker>
-			</template>
-
 <!-- SEC Markers: Route Points  -->
 
 			<template
@@ -253,36 +114,9 @@
 					"
 					draggable
 					@click="mainStore.setCurrentPoint(point, false)"
-					@contextmenu="e => {
-// FIXME Show point info if tha point is active
-						if (point.id === mainStore.currentPoint.id) {
-							popupProps.show = !popupProps.show;
-							return;
-						}
-						if (
-							mainStore.mode === 'routes' &&
-							!mainStore.isMeasurePoint(point.id)
-						) {
-							mainStore.addPointToPoints({
-								point: point,
-								where: mainStore.currentRoute,
-							});
-							return;
-						}
-						pointInfo.point = point;
-						pointInfo.name =
-							mainStore.currentRoute.points.find(
-								p => p.id === point.id
-							).name
-						;
-						popupProps.show = true;
-						popupProps.position.left = 'auto';
-						popupProps.position.bottom = 'auto';
-						popupProps.position.top = e.originalEvent.clientY + 5;
-						popupProps.position.right =
-							e.originalEvent.view.document.documentElement.clientWidth -
-							e.originalEvent.clientX + 5;
-					}"
+					@contextmenu="e =>
+						markerContextMenu(e, point, mainStore.currentRoute)
+					"
 					@mousedown="() => dragging = true"
 					@mouseup="() => dragging = false"
 					@move="e => {
@@ -318,6 +152,62 @@
 						{{ coords2string([point.latitude, point.longitude]) }}
 						{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
 					</l-tooltip>
+				</l-marker>
+			</template>
+
+<!-- SEC Markers: Temps  -->
+
+			<template
+				v-for="point in mainStore.temps"
+				:key="`${point.id}_${mainStore.measure.points.length}`"
+			">
+				<l-marker
+					v-if="
+						mainStore.mode === 'measure' && mainStore.isMeasurePoint(point.id) ||
+						!mainStore.isMeasurePoint(point.id)
+					"
+					:lat-lng="[ point.latitude, point.longitude ]"
+					:visible="
+						mainStore.placemarksShow &&
+						mainStore.tempsPlacemarksShow &&
+						point.show
+					"
+					:z-index-offset="
+						point.id === mainStore.currentPoint?.id ? 10000 : 0
+					"
+					draggable
+					@click="mainStore.setCurrentPoint(point, false)"
+					@contextmenu="e =>
+						markerContextMenu(e, point, null)
+					"
+					@mousedown="() => dragging = true"
+					@mouseup="() => dragging = false"
+					@move="e => {
+						if (mainStore.mode !== 'measure') return;
+						const { lat, lng } = e.target.getLatLng();
+						point.latitude = lat;
+						point.longitude = lng;
+					}"
+					@moveend="e => placemarkDragEnd(point, e)"
+					>
+					<l-icon
+						v-bind="(point === mainStore.currentPoint
+							? icon_01_green
+							: (mainStore.isMeasurePoint(point.id)
+								? icon_null : icon_01_blue
+							)
+						) as {}"
+					/>
+					<l-circle-marker
+						v-if="
+							mainStore.mode === 'measure' &&
+							mainStore.isMeasurePoint(point.id)
+						"
+						:lat-lng="[ point.latitude, point.longitude ]"
+						class-name="route-intermediate"
+						:radius="10"
+						:weight="1"
+					/>
 				</l-marker>
 			</template>
 
@@ -407,7 +297,7 @@ import {
 	LCircleMarker,
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Place, Point, PointName } from '@/stores/types';
+import { Place, Route, Point, PointName } from '@/stores/types';
 import {
 	coords2string,
 	IPlacesPopupProps,
@@ -415,8 +305,8 @@ import {
 
 const mainStore = useMainStore();
 
-const pointInfo = inject<PointName>('pointInfo');
-const popupProps = inject<IPlacesPopupProps>('popupProps');
+const pointInfo = inject<Ref<PointName>>('pointInfo')!;
+const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
 
 const map = inject('extmap');
 const showMap = inject('showMap');
@@ -442,7 +332,7 @@ const polylineCurrentMeasureCoords = computed(() =>
 
 const dragging = ref(false);
 
-// SEC Right click on an empty space on the map
+// SEC Right clicks
 
 const mapContextMenu = (e: any) => {
     const { lat, lng } = e.latlng;
@@ -452,7 +342,10 @@ const mapContextMenu = (e: any) => {
 			where: mainStore.temps,
 		});
         if (mainStore.mode === 'measure') {
-            mainStore.addPointToPoints({ point: temp, where: mainStore.measure });
+            mainStore.addPointToPoints({
+				point: temp,
+				entity: mainStore.measure,
+			});
         }
         return;
     }
@@ -464,6 +357,69 @@ const mapContextMenu = (e: any) => {
 		});
     }
 }
+const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
+	switch (mainStore.mode) {
+		case 'routes':
+			if (
+				point.id !== mainStore.currentRoute.points.at(-1)?.id &&
+				!(
+					point.id === mainStore.currentPoint?.id &&
+					mainStore.isRoutePoint(point.id, mainStore.currentRoute)
+				)
+			) {
+				mainStore.addPointToPoints({
+					point: point,
+					entity: mainStore.currentRoute,
+				});
+				return;
+			}
+			break;
+		case 'measure':
+			if (
+				point.id !== mainStore.measure.points.at(-1)?.id &&
+				!(
+					point.id === mainStore.currentPoint?.id &&
+					mainStore.isMeasurePoint(point.id)
+				)
+			) {
+				mainStore.addPointToPoints({
+					point: point,
+					entity: mainStore.measure,
+				});
+				return;
+			}
+			break;
+		default:
+			break;
+	}
+	switch (of?.type) {
+		case 'route':
+			pointInfo.value.name =
+				mainStore.currentRoute.points.find(
+					p => p.id === point.id
+				).name
+			;
+			break;
+		case 'place':
+			pointInfo.value.name =
+				Object.values(mainStore.places).find(
+					p => p.pointid === point.id
+				)?.name
+			;
+			break;
+	}
+	pointInfo.value.point = point;
+	popupProps.value.show = !popupProps.value.show;
+	popupProps.value.position.left = 'auto';
+	popupProps.value.position.bottom = 'auto';
+	popupProps.value.position.top = e.originalEvent.clientY + 5;
+	popupProps.value.position.right =
+		e.originalEvent.view.document.documentElement.clientWidth -
+		e.originalEvent.clientX + 5;
+}
+
+// SEC Other
+
 const placemarkDragEnd = async (point: Place | Point, event: any) => {
 	const coordinates = event.target.getLatLng();
 	mainStore.changePoint({

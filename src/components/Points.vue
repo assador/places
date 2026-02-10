@@ -76,7 +76,7 @@
 						const point = mainStore.upsertPoint({ where: mainStore.temps });
 						mainStore.addPointToPoints({
 							point: point,
-							where: mainStore.measure,
+							entity: mainStore.measure,
 						});
 					}"
 				/>
@@ -153,14 +153,14 @@
 					if (mainStore.mode === 'measure') {
 						mainStore.addPointToPoints({
 							point: temp,
-							where: mainStore.measure,
+							entity: mainStore.measure,
 						});
 						return;
 					}
 					if (mainStore.mode === 'routes') {
 						mainStore.addPointToPoints({
 							point: temp,
-							where: mainStore.currentRoute,
+							entity: mainStore.currentRoute,
 						});
 						return;
 					}
@@ -247,7 +247,9 @@
  
 			<button
 				v-else-if="type === 'route'"
-				v-for="(pn, idx) in mainStore.currentRoute.points"
+				v-for="(pn, idx) in mainStore.currentRoute.points.filter(
+					p => !mainStore.getPointById(p.id).deleted
+				)"
 				:key="pn.id"
 				:data-point="pn.id"
 				:data-pointidx="idx"
@@ -278,7 +280,7 @@
 					if (mainStore.mode === 'measure') {
 						mainStore.addPointToPoints({
 							point: pointInfo.point,
-							where: mainStore.measure,
+							entity: mainStore.measure,
 						});
 						return;
 					}
@@ -318,7 +320,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { IPlacesPopupProps } from '@/shared';
 import { PointName } from '@/stores/types';
@@ -339,8 +341,8 @@ const mainStore = useMainStore();
 const opened = ref(true);
 const highlighted = ref(null);
 
-const pointInfo = inject<PointName>('pointInfo');
-const popupProps = inject<IPlacesPopupProps>('popupProps');
+const pointInfo = inject<Ref<PointName>>('pointInfo')!;
+const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
 
 const distance = computed(() => {
 	const idsArray = ref([]);

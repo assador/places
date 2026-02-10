@@ -9,7 +9,14 @@ $raw = file_get_contents("php://input");
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 $list = $data["data"] ?? [];
 
-$faults = []; // 1: wrong data, 2: test account, 3: places limit, 4: folders limit
+$faults = [];
+/*
+1: wrong data,
+2: test account,
+3: places limit,
+4: routes limit,
+5: folders limit
+*/
 
 // Helpers
 
@@ -25,23 +32,23 @@ function checkSession(AppContext $ctx, string $sessionid): bool {
 }
 function getById(AppContext $ctx, string $table, string $id) {
 	$sql = "
-		SELECT * FROM {$table}
-		WHERE id = :id
+		SELECT * FROM :table WHERE id = :id
 	";
 	$stmt = $ctx->db->prepare($sql);
 	$stmt->execute([
-		":id" => uuidToBin($id),
+		":table" => $table,
+		":id"    => uuidToBin($id),
 	]);
 	return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 function deleteById(AppContext $ctx, string $table, string $id): void {
 	$sql = "
-		DELETE FROM {$table}
-		WHERE id = :id
+		DELETE FROM :table WHERE id = :id
 	";
 	$stmt = $ctx->db->prepare($sql);
 	$stmt->execute([
-		":id" => uuidToBin($id),
+		":table" => $table,
+		":id"    => uuidToBin($id),
 	]);
 }
 function pointByCoords(AppContext $ctx, float $latitude, float $longitude) {
@@ -54,6 +61,31 @@ function pointByCoords(AppContext $ctx, float $latitude, float $longitude) {
 		":longitude" => $longitude,
 	]);
 	return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+function cleanupPointIfOrphaned(AppContext $ctx, string $pointIdBin): void {
+	if ($pointIdBin !== null) {
+		$pointRefsStmt = $ctx->db->prepare("
+			SELECT COUNT(*) AS refcount
+			FROM (
+				SELECT pointid FROM places WHERE pointid = :pointid
+				UNION ALL
+				SELECT pointid FROM pointroute WHERE pointid = :pointid
+			) t;
+		");
+		$pointRefsStmt->execute([
+			":pointid" => $pointIdBin,
+		]);
+		$pointRefs = $pointRefsStmt->fetch(PDO::FETCH_ASSOC);
+
+		if ((int)$pointRefs["refcount"] === 0) {
+			$delPointStmt = $ctx->db->prepare("
+				DELETE FROM points WHERE id = :pointid
+			");
+			$delPointStmt->execute([
+				":pointid" => $pointIdBin,
+			]);
+		}
+	}
 }
 function addPoint(AppContext $ctx, array $row): void {
 	$sql = "
@@ -194,29 +226,147 @@ function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
 		? uuidToBin($row["pointid"])
 		: null
 	;
-	if ($pointIdBin !== null) {
-		$pointRefsStmt = $ctx->db->prepare("
-			SELECT COUNT(*) AS refcount
-			FROM (
-				SELECT pointid FROM places WHERE pointid = :pointid
-				UNION ALL
-				SELECT pointid FROM pointroute WHERE pointid = :pointid
-			) t;
+	cleanupPointIfOrphaned($ctx, $pointIdBin);
+}
+function addRoute(AppContext $ctx, array $row, string $myuserid): void {
+	$idBin = uuidToBin($row["id"]);
+	$userIdBin = uuidToBin($myuserid);
+	$folderId = (!empty($row["folderid"]) && $row["folderid"] !== "routesroot")
+		? uuidToBin($row["folderid"])
+		: $row["folderid"]
+	;
+	$ctx->db->prepare("
+		INSERT INTO routes (id, userid, name, description, folderid, srt, time, link, geomarks, `show`, common)
+		VALUES (:id, :userid, :name, :description, :folderid, :srt, NOW(), :link, :geomarks, :show, :common)
+	")->execute([
+		":id"          => $idBin,
+		":userid"      => $userIdBin,
+		":name"        => $row["name"] ?? "",
+		":description" => $row["description"] ?? "",
+		":folderid"    => $folderId,
+		":srt"         => (int)($row["srt"] ?? 0),
+		":link"        => $row["link"] ?? "",
+		":geomarks"    => (int)($row["geomarks"] ?? 0),
+		":show"        => (int)($row["show"] ?? 0),
+		":common"      => (int)($row["common"] ?? 0),
+	]);
+	if (!empty($row["points"]) && is_array($row["points"])) {
+		$insPR = $ctx->db->prepare("
+			INSERT INTO pointroute (routeid, pointid, name, description, srt)
+			VALUES (:id, :pid, :name, :description, :srt)
 		");
-		$pointRefsStmt->execute([
-			":pointid" => $pointIdBin,
-		]);
-		$pointRefs = $pointRefsStmt->fetch(PDO::FETCH_ASSOC);
-
-		if ((int)$pointRefs["refcount"] === 0) {
-			$delPointStmt = $ctx->db->prepare("
-				DELETE FROM points
-				WHERE id = :pointid
-			");
-			$delPointStmt->execute([
-				":pointid" => $pointIdBin,
-			]);
+		foreach ($row["points"] as $index => $pMeta) {
+			if (!empty($pMeta["id"])) {
+				$insPR->execute([
+					":id"          => $idBin,
+					":pid"         => uuidToBin($pMeta["id"]),
+					":name"        => $pMeta["name"] ?? null,
+					":description" => $pMeta["description"] ?? null,
+					":srt"         => $index,
+				]);
+			}
 		}
+	}
+	$ctx->db->prepare("
+		UPDATE users SET lastupdates = NOW() WHERE id = :userid
+	")->execute([
+		":userid" => $userIdBin,
+	]);
+}
+function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
+	$idBin = uuidToBin($row["id"]);
+	$userIdBin = uuidToBin($myuserid);
+	$folderId = (!empty($row["folderid"]) && $row["folderid"] !== "routesroot")
+		? uuidToBin($row["folderid"])
+		: $row["folderid"]
+	;
+	$ctx->db->prepare("
+		UPDATE routes
+		SET
+			name        = :name,
+			description = :description,
+			folderid    = :folderid,
+			srt         = :srt,
+			link        = :link,
+			geomarks    = :geomarks,
+			`show`      = :show,
+			common      = :common
+		WHERE id = :id AND userid = :userid
+	")->execute([
+		":name"        => $row["name"] ?? "",
+		":description" => $row["description"] ?? "",
+		":folderid"    => $folderId,
+		":srt"         => (int)($row["srt"] ?? 0),
+		":link"        => $row["link"] ?? "",
+		":geomarks"    => (int)($row["geomarks"] ?? 0),
+		":show"        => (int)($row["show"] ?? 0),
+		":common"      => (int)($row["common"] ?? 0),
+		":id"          => $idBin,
+		":userid"      => $userIdBin,
+	]);
+	$oldPointsStmt = $ctx->db->prepare("
+		SELECT pointid FROM pointroute WHERE routeid = :id
+	");
+	$oldPointsStmt->execute([
+		":id" => $idBin,
+	]);
+	$oldPointIds = $oldPointsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+	$ctx->db->prepare("
+		DELETE FROM pointroute WHERE routeid = :id
+	")->execute([
+		":id" => $idBin,
+	]);
+	if (!empty($row["points"]) && is_array($row["points"])) {
+		$insPR = $ctx->db->prepare("
+			INSERT INTO pointroute (routeid, pointid, name, description, srt)
+			VALUES (:id, :pid, :name, :description, :srt)
+		");
+		foreach ($row["points"] as $index => $pMeta) {
+			if (!empty($pMeta["id"])) {
+				$insPR->execute([
+					":id"          => $idBin,
+					":pid"         => uuidToBin($pMeta["id"]),
+					":name"        => $pMeta["name"] ?? null,
+					":description" => $pMeta["description"] ?? null,
+					":srt"         => $index,
+				]);
+			}
+		}
+	}
+	foreach (array_unique($oldPointIds) as $pointIdBin) {
+		cleanupPointIfOrphaned($ctx, $pointIdBin);
+	}
+	$ctx->db->prepare("
+		UPDATE users SET lastupdates = NOW() WHERE id = :userid
+	")->execute([
+		":userid" => $userIdBin,
+	]);
+}
+function deleteRoute(AppContext $ctx, array $row, string $myuserid): void {
+	$idBin = uuidToBin($row["id"]);
+	$routePointIdsStmt = $ctx->db->prepare("
+		SELECT pointid FROM pointroute WHERE routeid = :id
+	");
+	$routePointIdsStmt->execute([
+		":id" => $idBin,
+	]);
+	$routePointIds = $routePointIdsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+	$ctx->db->prepare("
+		DELETE FROM pointroute WHERE routeid = :id
+	")->execute([
+		":id" => $idBin,
+	]);
+	$ctx->db->prepare("
+		DELETE FROM routes WHERE id = :id AND userid = :userid
+	")->execute([
+		":id" => $idBin,
+		":userid" => uuidToBin($myuserid),
+	]);
+
+	foreach (array_unique($routePointIds) as $pointIdBin) {
+		cleanupPointIfOrphaned($ctx, $pointIdBin);
 	}
 }
 function addFolder(AppContext $ctx, array $row): void {
@@ -330,7 +480,7 @@ function updateImage(AppContext $ctx, array $img): void {
 
 // Session check
 
-if (checkSession($ctx, $data['sessionid']) === false) {
+if (checkSession($ctx, $data["sessionid"]) === false) {
 	echo 5; exit;
 }
 
@@ -343,7 +493,7 @@ try {
 		SELECT `id`
 		FROM `groups`
 		WHERE id IN (
-			SELECT `group` FROM usergroup WHERE `user` = 
+			SELECT `group` FROM usergroup WHERE `user` =
 			{$ctx->db->quote(uuidToBin($data['userid']))}
 		)
 			AND `parent` = 'visiting'
@@ -400,7 +550,7 @@ try {
 			}
 			elseif (!empty($row["added"])) {
 				if ($foldersLimit >= 0 && $folderscount >= $foldersLimit) {
-					if (!in_array(4, $faults)) $faults[] = 4; // limit
+					if (!in_array(4, $faults)) $faults[] = 5; // limit
 					continue;
 				}
 				if ($foldersLimit >= 0) $folderscount++;
@@ -446,6 +596,45 @@ try {
 		}
 	}
 
+	if (!empty($list['routes'])) {
+
+		$routescount = (int)$ctx->db->query("
+			SELECT COUNT(*) AS c
+			FROM routes
+			WHERE userid = {$ctx->db->quote(uuidToBin($data['userid']))}
+		")->fetch(PDO::FETCH_ASSOC)["c"];
+		$routesLimit = $groupId && isset($rights["routescount"][$groupId])
+			? (int)$rights["routescount"][$groupId] : 0;
+
+		$delta = 0;
+
+		foreach ($list['routes'] as $row) {
+			if (!empty($row["deleted"])) {
+				$delta--;
+				deleteRoute($ctx, $row, $data["userid"]);
+			}
+			elseif (!empty($row["updated"])) {
+				updateRoute($ctx, $row, $data["userid"]);
+			}
+			elseif (!empty($row["added"])) {
+				$delta++;
+				if ($routesLimit >= 0 && $routescount >= $routesLimit) {
+					if (!in_array(3, $faults)) $faults[] = 4; // limit
+					continue;
+				}
+				$routescount++;
+				addRoute($ctx, $row);
+			}
+/* TODO Uncomment after refactoring, remembering to adapt the functions to the routes.
+			elseif (!empty($row["images"]) && is_array($row["images"])) {
+				foreach ($row["images"] as $img) {
+					addImage($ctx, $img);
+				}
+			}
+*/
+		}
+	}
+
 	if (!empty($list['images_update'])) {
 		foreach ($list['images_update'] as $img) updateImage($ctx, $img);
 	}
@@ -463,6 +652,7 @@ try {
 	$ctx->db->commit();
 
 } catch (Throwable $e) {
+	error_log($e->getMessage());
 	$ctx->db->rollBack();
 	if (!in_array(1, $faults)) $faults[] = 1;
 }
