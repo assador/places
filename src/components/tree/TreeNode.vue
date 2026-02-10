@@ -143,7 +143,7 @@
 								? mainStore.t.i.hints.hide
 								: mainStore.t.i.hints.show
 							) + ' ' +
-							mainStore.t.i.hints.placemarksOnMap
+							mainStore.t.i.hints.onMap
 						"
 						accesskey="a"
 						@click.stop="() => {
@@ -220,7 +220,7 @@
 							? mainStore.t.i.hints.hide
 							: mainStore.t.i.hints.show
 						) + ' ' +
-						mainStore.t.i.hints.placemarksOnMap
+						mainStore.t.i.hints.onMap
 					"
 					accesskey="a"
 					@click.stop="() => {
@@ -425,11 +425,8 @@
 							(!object['geomark']
 								? mainStore.t.i.hints.show
 								: mainStore.t.i.hints.hide
-							) +
-							' ' + (what === 'places'
-								? mainStore.t.i.hints.placemarkOnMap
-								: mainStore.t.i.hints.placemarksOnMap
-							)
+							) + ' ' +
+								mainStore.t.i.hints.onMap
 						"
 						@click.stop="mainStore.showHideGeomarks({
 							object: object,

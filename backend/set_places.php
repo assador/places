@@ -3,6 +3,19 @@ declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
+/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
+set_exception_handler(function($e) {
+	header('Content-Type: application/json');
+	http_response_code(500);
+	echo json_encode([
+		'error' => $e->getMessage(),
+		'file' => $e->getFile(),
+		'line' => $e->getLine(),
+	]);
+	exit;
+});
+*/
+
 require_once __DIR__ . '/bootstrap.php';
 
 $raw = file_get_contents("php://input");
@@ -233,11 +246,11 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$userIdBin = uuidToBin($myuserid);
 	$folderId = (!empty($row["folderid"]) && $row["folderid"] !== "routesroot")
 		? uuidToBin($row["folderid"])
-		: $row["folderid"]
+		: null
 	;
 	$ctx->db->prepare("
-		INSERT INTO routes (id, userid, name, description, folderid, srt, time, link, geomarks, `show`, common)
-		VALUES (:id, :userid, :name, :description, :folderid, :srt, NOW(), :link, :geomarks, :show, :common)
+		INSERT INTO routes (id, userid, name, description, folderid, srt, time, link, geomarks, common)
+		VALUES (:id, :userid, :name, :description, :folderid, :srt, NOW(), :link, :geomarks, :common)
 	")->execute([
 		":id"          => $idBin,
 		":userid"      => $userIdBin,
@@ -247,7 +260,6 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 		":srt"         => (int)($row["srt"] ?? 0),
 		":link"        => $row["link"] ?? "",
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
-		":show"        => (int)($row["show"] ?? 0),
 		":common"      => (int)($row["common"] ?? 0),
 	]);
 	if (!empty($row["points"]) && is_array($row["points"])) {
@@ -289,7 +301,6 @@ function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 			srt         = :srt,
 			link        = :link,
 			geomarks    = :geomarks,
-			`show`      = :show,
 			common      = :common
 		WHERE id = :id AND userid = :userid
 	")->execute([
@@ -299,7 +310,6 @@ function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 		":srt"         => (int)($row["srt"] ?? 0),
 		":link"        => $row["link"] ?? "",
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
-		":show"        => (int)($row["show"] ?? 0),
 		":common"      => (int)($row["common"] ?? 0),
 		":id"          => $idBin,
 		":userid"      => $userIdBin,
@@ -511,11 +521,11 @@ try {
 					":id" => uuidToBin($row["id"]),
 				]);
 			}
-			elseif (!empty($row["updated"])) {
-				updatePoint($ctx, $row);
-			}
 			elseif (!empty($row["added"])) {
 				addPoint($ctx, $row);
+			}
+			elseif (!empty($row["updated"])) {
+				updatePoint($ctx, $row);
 			}
 		}
 	}
@@ -545,9 +555,6 @@ try {
 					":userid" => uuidToBin($data["userid"])
 				]);
 			}
-			elseif (!empty($row["updated"])) {
-				updateFolder($ctx, $row, $data["userid"]);
-			}
 			elseif (!empty($row["added"])) {
 				if ($foldersLimit >= 0 && $folderscount >= $foldersLimit) {
 					if (!in_array(4, $faults)) $faults[] = 5; // limit
@@ -555,6 +562,9 @@ try {
 				}
 				if ($foldersLimit >= 0) $folderscount++;
 				addFolder($ctx, $row);
+			}
+			elseif (!empty($row["updated"])) {
+				updateFolder($ctx, $row, $data["userid"]);
 			}
 		}
 	}
@@ -576,9 +586,6 @@ try {
 				$delta--;
 				deletePlace($ctx, $row, $data["userid"]);
 			}
-			elseif (!empty($row["updated"])) {
-				updatePlace($ctx, $row, $data["userid"]);
-			}
 			elseif (!empty($row["added"]) && getById($ctx, "points", $row["pointid"])) {
 				$delta++;
 				if ($placesLimit >= 0 && $placescount >= $placesLimit) {
@@ -587,6 +594,9 @@ try {
 				}
 				$placescount++;
 				addPlace($ctx, $row);
+			}
+			elseif (!empty($row["updated"])) {
+				updatePlace($ctx, $row, $data["userid"]);
 			}
 			elseif (!empty($row["images"]) && is_array($row["images"])) {
 				foreach ($row["images"] as $img) {
@@ -613,9 +623,6 @@ try {
 				$delta--;
 				deleteRoute($ctx, $row, $data["userid"]);
 			}
-			elseif (!empty($row["updated"])) {
-				updateRoute($ctx, $row, $data["userid"]);
-			}
 			elseif (!empty($row["added"])) {
 				$delta++;
 				if ($routesLimit >= 0 && $routescount >= $routesLimit) {
@@ -623,7 +630,10 @@ try {
 					continue;
 				}
 				$routescount++;
-				addRoute($ctx, $row);
+				addRoute($ctx, $row, $data["userid"]);
+			}
+			elseif (!empty($row["updated"])) {
+				updateRoute($ctx, $row, $data["userid"]);
 			}
 /* TODO Uncomment after refactoring, remembering to adapt the functions to the routes.
 			elseif (!empty($row["images"]) && is_array($row["images"])) {

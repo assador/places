@@ -28,7 +28,7 @@
 						? mainStore.t.i.hints.hide
 						: mainStore.t.i.hints.show
 					) + ' ' +
-					mainStore.t.i.hints.placemarksOnMap
+					mainStore.t.i.hints.onMap
 				"
 				@click.stop="
 					mainStore.tempsPlacemarksShow = !mainStore.tempsPlacemarksShow
