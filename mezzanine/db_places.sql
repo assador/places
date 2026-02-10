@@ -220,9 +220,9 @@ CREATE TABLE `pointroute` (
   `srt` int(11) NOT NULL DEFAULT 0,
   `name` varchar(500) DEFAULT NULL,
   `description` varchar(2044) DEFAULT NULL,
-  UNIQUE KEY `uniq_point_route` (`pointid`,`routeid`),
-  KEY `idx_pointroute_route_srt` (`routeid`,`srt`),
-  CONSTRAINT `fk_pointroute_points` FOREIGN KEY (`pointid`) REFERENCES `points` (`id`),
+  UNIQUE KEY `idx_pointroute_route_srt` (`routeid`,`srt`),
+  KEY `fk_pointroute_points` (`pointid`),
+  CONSTRAINT `fk_pointroute_points` FOREIGN KEY (`pointid`) REFERENCES `points` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_pointroute_routes` FOREIGN KEY (`routeid`) REFERENCES `routes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -372,4 +372,4 @@ CREATE TABLE `userschange` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-08  2:21:01
+-- Dump completed on 2026-02-10 15:56:27
