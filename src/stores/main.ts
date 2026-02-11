@@ -2055,22 +2055,18 @@ export const useMainStore = defineStore('main', {
 				return points;
 			}
 		},
-		getPointCoordsArray() {
+		getPointCoords() {
+			return (pointId: string): number[] => {
+				let point = this.getPointById(pointId);
+				return [ point.latitude, point.longitude ];
+			}
+		},
+		getPointsCoords() {
 			return (pointIdsArray: string[]): number[][] => {
 				const coords: number[][] = [];
 				let point: Point;
 				for (const id of pointIdsArray) {
-					if (this.points[id]) {
-						point = this.points[id];
-					} else if (this.temps[id]) {
-						point = this.temps[id];
-					} else if (this.places[id]) {
-						point = this.points[this.places[id].pointid];
-					} else if (this.commonPlaces[id]) {
-						point = this.points[this.commonPlaces[id].pointid];
-					} else {
-						return [];
-					}
+					point = this.getPointById(id);
 					coords.push([ point.latitude, point.longitude ]);
 				}
 				return coords;

@@ -102,57 +102,101 @@
 
 			<template
 				v-if="mainStore.mode === 'routes' && mainStore.routesShow"
-				v-for="point in mainStore.routePoints(mainStore.currentRoute).filter(p => !p.deleted)"
-				:key="`${point.id}_${mainStore.currentRoute?.points.length}`"
+				v-for="route of Object.values(mainStore.routes).filter(
+					r => r.geomarks === 1 && !r.deleted
+				)"
+				:key="route.id"
 			>
-				<l-marker
-					:lat-lng="[point.latitude, point.longitude]"
-					:visible="
-						mainStore.placemarksShow &&
-						mainStore.tempsPlacemarksShow &&
-						point.show
+				<l-polyline
+					v-if="
+						mainStore.routesShow &&
+						mainStore.mode === 'routes' &&
+						route.points.length
 					"
-					draggable
-					@click="mainStore.setCurrentPoint(point, false)"
-					@contextmenu="e =>
-						markerContextMenu(e, point, mainStore.currentRoute)
+					:lat-lngs="
+						mainStore.getPointsCoords(
+							route.points.map(p => p.id) ?? []
+						) as LatLngExpression[]
 					"
-					@mousedown="() => dragging = true"
-					@mouseup="() => dragging = false"
-					@move="e => {
-						if (mainStore.mode !== 'routes') return;
-						const { lat, lng } = e.target.getLatLng();
-						point.latitude = lat;
-						point.longitude = lng;
-					}"
-					@moveend="e => placemarkDragEnd(point, e)"
+					color="rgba(0, 0, 0, 1)"
+					:weight="0.5"
+				/>
+				<l-circle-marker
+					v-if="route.points.length > 1"
+					:lat-lng="
+						mainStore.getPointCoords(
+							route.points[0].id
+						) as LatLngExpression
+					"
+					class-name="route-start"
+					:radius="13"
+					:weight="1"
+				/>
+				<l-circle-marker
+					v-if="route.points.length > 1"
+					:lat-lng="
+						mainStore.getPointCoords(
+							route.points.at(-1).id
+						) as LatLngExpression
+					"
+					class-name="route-end"
+					:radius="13"
+					:weight="1"
+				/>
+				<template
+					v-for="point in mainStore.routePoints(route).filter(
+						p => !p.deleted
+					)"
+					:key="`${point.id}_${mainStore.currentRoute?.points.length}`"
 				>
-					<l-icon
-						v-bind="(point === mainStore.currentPoint
-							? icon_01_green : icon_null
-						) as {}"
-					/>
-					<l-circle-marker
-						v-if="
-							mainStore.currentRoute.points.map(p => p.id).includes(point.id) &&
-							point.id !== mainStore.currentRoute.points[0].id &&
-							point.id !== mainStore.currentRoute.points[mainStore.currentRoute.points.length - 1].id
-						"
+					<l-marker
 						:lat-lng="[point.latitude, point.longitude]"
-						class-name="route-intermediate"
-						:radius="10"
-						:weight="1"
-					/>
-					<l-tooltip v-if="!popupProps.show" permanent="true">
-						{{
-							mainStore.currentRoute.points.find(
-								p => p.id === point.id
-							).description + ' — '
-						}}
-						{{ coords2string([point.latitude, point.longitude]) }}
-						{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
-					</l-tooltip>
-				</l-marker>
+						:visible="
+							mainStore.placemarksShow &&
+							mainStore.tempsPlacemarksShow &&
+							point.show
+						"
+						draggable
+						@click="mainStore.setCurrentPoint(point, false)"
+						@contextmenu="e =>
+							markerContextMenu(e, point, mainStore.currentRoute)
+						"
+						@mousedown="() => dragging = true"
+						@mouseup="() => dragging = false"
+						@move="e => {
+							if (mainStore.mode !== 'routes') return;
+							const { lat, lng } = e.target.getLatLng();
+							point.latitude = lat;
+							point.longitude = lng;
+						}"
+						@moveend="e => placemarkDragEnd(point, e)"
+					>
+						<l-icon
+							v-bind="(point === mainStore.currentPoint
+								? icon_01_green : icon_null
+							) as {}"
+						/>
+						<l-circle-marker
+							v-if="
+								point.id !== route.points[0].id &&
+								point.id !== route.points.at(-1).id
+							"
+							:lat-lng="[ point.latitude, point.longitude ]"
+							class-name="route-intermediate"
+							:radius="10"
+							:weight="1"
+						/>
+						<l-tooltip v-if="!popupProps.show" permanent="true">
+							{{
+								mainStore.currentRoute?.points.find(
+									p => p.id === point.id
+								)?.description + ' — '
+							}}
+							{{ coords2string([point.latitude, point.longitude]) }}
+							{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
+						</l-tooltip>
+					</l-marker>
+				</template>
 			</template>
 
 <!-- SEC Markers: Temps  -->
@@ -215,54 +259,31 @@
 
 			<l-circle-marker
 				v-if="
-					mainStore.routesShow &&
-					mainStore.mode === 'routes' &&
-					polylineCurrentRouteCoords.length
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.length
 				"
-				:lat-lng="polylineCurrentRouteCoords[0]"
-				class-name="route-start"
-				:radius="13"
-				:weight="1"
-			/>
-			<l-circle-marker
-				v-if="
-					mainStore.routesShow &&
-					mainStore.mode === 'routes' &&
-					polylineCurrentRouteCoords.length
+				:lat-lng="
+					mainStore.getPointCoords(
+						mainStore.measure.points[0].id
+					) as LatLngExpression
 				"
-				:lat-lng="polylineCurrentRouteCoords[polylineCurrentRouteCoords.length - 1]"
-				class-name="route-end"
-				:radius="13"
-				:weight="1"
-			/>
-			<l-circle-marker
-				v-if="mainStore.mode === 'measure' && polylineCurrentMeasureCoords.length"
-				:lat-lng="polylineCurrentMeasureCoords[0]"
 				class-name="measure-start"
 				:radius="13"
 				:weight="1"
 			/>
 			<l-circle-marker
-				v-if="mainStore.mode === 'measure' && polylineCurrentMeasureCoords.length"
-				:lat-lng="polylineCurrentMeasureCoords[polylineCurrentMeasureCoords.length - 1]"
+				v-if="
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.length
+				"
+				:lat-lng="
+					mainStore.getPointCoords(
+						mainStore.measure.points.at(-1).id
+					) as LatLngExpression
+				"
 				class-name="measure-end"
 				:radius="13"
 				:weight="1"
-			/>
-			<l-polyline
-				v-if="
-					mainStore.routesShow &&
-					mainStore.mode === 'routes' &&
-					mainStore.currentRoute &&
-					mainStore.currentRoute.points.length
-				"
-				:lat-lngs="
-					mainStore.getPointCoordsArray(
-						mainStore.currentRoute?.points.map(p => p.id) ?? []
-					) as LatLngExpression[]
-				"
-				color="rgba(0, 0, 0, 1)"
-				:weight="0.5"
 			/>
 			<l-polyline
 				v-if="
@@ -270,7 +291,7 @@
 					mainStore.measure.points.length
 				"
 				:lat-lngs="
-					mainStore.getPointCoordsArray(
+					mainStore.getPointsCoords(
 						mainStore.measure.points.map(p => p.id)
 					) as LatLngExpression[]
 				"
@@ -318,17 +339,6 @@ const mapCenter = computed(() => ({
 	],
 	zoom: mainStore.zoom,
 }));
-
-const polylineCurrentRouteCoords = computed(() =>
-	mainStore.getPointCoordsArray(
-		mainStore.currentRoute?.points.map(p => p.id) ?? []
-	) as LatLngExpression[]
-);
-const polylineCurrentMeasureCoords = computed(() =>
-	mainStore.getPointCoordsArray(
-		mainStore.measure.points.map(p => p.id)
-	) as LatLngExpression[]
-);
 
 const dragging = ref(false);
 

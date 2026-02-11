@@ -428,13 +428,21 @@
 							) + ' ' +
 								mainStore.t.i.hints.onMap
 						"
-						@click.stop="mainStore.showHideGeomarks({
-							object: object,
-							show: !(object['geomark']
-								? object['geomark']
-								: object['geomarks']
-							),
-						})"
+						@click.stop="() => {
+							if (what === 'places') {
+								mainStore.showHideGeomarks({
+									object: object,
+									show: !(object['geomark']
+										? object['geomark']
+										: object['geomarks']
+									),
+								});
+							} else if (what === 'routes') {
+								(object as Route).geomarks =
+									(object as Route).geomarks !== 0 ? 0 : 1
+								;
+							}
+						}"
 					/>
 					<span
 						v-if="what === 'places'"
@@ -585,7 +593,6 @@ const places = computed(() =>
 const routes = computed(() =>
 	_.chain(mainStore.routes)
 	.filter(r =>
-		r.show &&
 		!r.deleted &&
 		(
 			r.folderid === props.folder.id ||
