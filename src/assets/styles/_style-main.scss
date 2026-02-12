@@ -280,7 +280,7 @@ $filter-brightness-03: brightness(0%);
 		background-color: $color-18;
 	}
 	.back_2,
-	.folder_root .folder_opened::before {
+	.folder_root .folder_open::before {
 		background-color: $color-06;
 	}
 	.back_3,
@@ -979,7 +979,7 @@ $filter-brightness-03: brightness(0%);
 		align-items: center;
 	}
 	.dropdown {
-		&_closed, &_opened {
+		&_closed, &_open {
 			.dropdown__header {
 				display: grid;
 				grid-template-columns: 1em 1fr;
@@ -995,7 +995,7 @@ $filter-brightness-03: brightness(0%);
 		&_closed .dropdown__header::before {
 			content: '\25e2';
 		}
-		&_opened .dropdown__header::before {
+		&_open .dropdown__header::before {
 			content: '\25e4';
 		}
 	}

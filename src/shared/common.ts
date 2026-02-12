@@ -119,13 +119,13 @@ export const makeDropDowns = (parent: any): void => {
 		const header = dropdown.querySelectorAll('.dropdown__header')[0];
 		if (!header) continue;
 		if (
-			!dropdown.classList.contains('dropdown_opened') &&
+			!dropdown.classList.contains('dropdown_open') &&
 			!dropdown.classList.contains('dropdown_closed')
 		) {
-			dropdown.classList.add('dropdown_opened');
+			dropdown.classList.add('dropdown_open');
 		}
 		header.addEventListener('click', () => {
-			dropdown.classList.toggle('dropdown_opened');
+			dropdown.classList.toggle('dropdown_open');
 			dropdown.classList.toggle('dropdown_closed');
 		}, false);
 	}

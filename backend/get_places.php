@@ -78,7 +78,7 @@ function getPlaces(AppContext $ctx, string $userIdBin): array {
 		$row["id"] = binToUuid($row["id"]);
 		$row["userid"] = binToUuid($row["userid"]);
 		$row["pointid"] = binToUuid($row["pointid"]);
-		if ($row["folderid"] != null) $row["folderid"] = binToUuid($row["folderid"]);
+		$row["folderid"] = binToUuid($row["folderid"]);
 		if ($row["userid"] == $_GET["id"]) {
 			$places['places'][$row["id"]] = $row;
 		} elseif ($row["common"] == 1) {
@@ -148,15 +148,15 @@ function getRoutes(AppContext $ctx, string $userIdBin): array {
 		}
 		$routes[] = [
 			'id'          => binToUuid($routeRow['id']),
-			'folderid'    => binToUuid($routeRow['folderid']) ?? "routesroot",
+			'folderid'    => binToUuid($routeRow['folderid']),
 			'userid'      => $_GET["id"],
 			'name'        => $routeRow['name'] ?? "",
 			'description' => $routeRow['description'] ?? "",
 			'link'        => $routeRow['link'] ?? "",
 			'time'        => $routeRow['time'],
 			'srt'         => (int)$routeRow['srt'],
+			'geomarks'    => (int)$routeRow['geomarks'],
 			'common'      => (bool)$routeRow['common'],
-			'geomarks'    => (bool)$routeRow['geomarks'],
 			'points'      => $points,
 			'images'      => [] // TODO Implement when they are refactored
 		];
@@ -176,10 +176,8 @@ function getFolders(AppContext $ctx, string $userIdBin): array {
 	$folders = [];
 	foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
 		$row['id'] = binToUuid($row['id']);
+		$row['parent'] = binToUuid($row['parent']);
 		$row['userid'] = binToUuid($row['userid']);
-		if ($row['parent'] !== null) {
-			$row['parent'] = binToUuid($row['parent']);
-		}
 		$folders[$row['id']] = $row;
 	}
 	return $folders;

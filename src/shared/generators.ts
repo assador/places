@@ -11,36 +11,6 @@ export const generateRandomString = (length = 32): string => {
 	}
 	return string;
 };
-export const treeNewIds = (
-	tree: Record<string, any>,
-	childrenKey: string,
-	parentKey: string,
-	items: Array<Record<string, any>>,
-	itemParentKey: string
-): void => {
-	const newId = tree.id === "root" ? null : crypto.randomUUID();
-	if (Array.isArray(items) && items.length > 0) {
-		for (let i = 0; i < items.length; i++) {
-			if (items[i][itemParentKey] === tree.id) {
-				items[i].id = generateRandomString(32);
-				items[i][itemParentKey] = newId;
-			}
-		}
-	}
-	tree.id = newId;
-	if (Array.isArray(tree[childrenKey]) && tree[childrenKey].length > 0) {
-		for (let i = 0; i < tree[childrenKey].length; i++) {
-			tree[childrenKey][i][parentKey] = tree.id;
-			treeNewIds(
-				tree[childrenKey][i],
-				childrenKey,
-				parentKey,
-				items,
-				itemParentKey
-			);
-		}
-	}
-};
 export const formFoldersCheckedIds = (): string[] => {
 	const foldersCheckedIds = [];
 	if (document.getElementById('popup-export__tree')) {
@@ -67,6 +37,7 @@ export const formFoldersCheckedIds = (): string[] => {
 	}
 	return foldersCheckedIds;
 };
+// TODO Refactor.
 export const formFolderForImported = (
 	voc: Record<string, any>,
 	time: string,
@@ -87,13 +58,14 @@ export const formFolderForImported = (
 	if (!imported || !imported.id) {
 		imported = {
 			type: 'folder',
+			id: 'imported',
+			parent: null,
+			context: 'places',
 			builded: false,
-			opened: false,
+			open: false,
 			added: true,
 			deleted: false,
 			updated: false,
-			id: 'imported',
-			parent: 'root',
 			name: voc.o.importedFolderName,
 			description: voc.o.importedFolderDescription,
 			srt: 99999,
@@ -121,7 +93,7 @@ export const formFolderForImported = (
 			folders['y' + date.y] = {
 				type: 'folder',
 				builded: false,
-				opened: false,
+				open: false,
 				geomarks: 1,
 				added: true,
 				deleted: false,
@@ -145,7 +117,7 @@ export const formFolderForImported = (
 			folders['m' + date.m] = {
 				type: 'folder',
 				builded: false,
-				opened: false,
+				open: false,
 				geomarks: 1,
 				added: true,
 				deleted: false,
@@ -169,7 +141,7 @@ export const formFolderForImported = (
 			folders['d' + date.d] = {
 				type: 'folder',
 				builded: false,
-				opened: false,
+				open: false,
 				geomarks: 1,
 				added: true,
 				deleted: false,

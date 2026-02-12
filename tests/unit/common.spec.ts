@@ -15,7 +15,7 @@ const folder = {
 	added: false,
 	deleted: false,
 	updated: false,
-	opened: false,
+	open: false,
 	builded: true,
 };
 

@@ -214,7 +214,7 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 		for (const p of Object.values(places)) {
 			points.push({ ...mainStore.points[p.pointid] });
 			let folderId = p.folderid;
-			while (folderId && folderId !== 'root' && !foldersSet.has(folderId)) {
+			while (folderId && !foldersSet.has(folderId)) {
 				const folder = mainStore.folders[folderId];
 				folders.push({ ...folder });
 				foldersSet.add(folderId);
@@ -227,7 +227,7 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 			placesArray.push(p);
 		}
 		points.forEach(wp => ['type', 'show', 'added', 'deleted', 'updated'].forEach(k => delete (wp as any)[k]));
-		folders.forEach(f => ['type', 'added', 'deleted', 'updated', 'opened', 'builded', 'geomarks', 'children'].forEach(k => delete (f as any)[k]));
+		folders.forEach(f => ['type', 'added', 'deleted', 'updated', 'open', 'builded', 'geomarks', 'children'].forEach(k => delete (f as any)[k]));
 		content = JSON.stringify({ places: placesArray, points, folders });
 	}
 	a.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));

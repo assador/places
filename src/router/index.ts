@@ -40,10 +40,13 @@ const routes: RouteRecordRaw[] = [
 				component: PopupImage,
 				props: true,
 			}, {
-				path: 'folder/:parentId?',
+				path: 'folder',
 				name: 'HomeFolder',
 				component: PopupFolder,
-				props: true,
+				props: route => ({
+					parent: route.query.parent || null,
+					context: route.query.context || 'places',
+				}),
 			}, {
 				path: 'deletefolder?id=:id&type=:type?',
 				name: 'HomeDeleteFolder',

@@ -8,6 +8,7 @@ import {
 	Place,
 	Route,
 	Folder,
+	Tree,
 	DataToDB,
 	Measure,
 } from './types';
@@ -51,6 +52,7 @@ export interface IMainState {
 	messageTimer: number,
 	mode: string,
 	mouseOverMessages: boolean,
+	newEntityPointId: string | null,
 	placemarksShow: boolean,
 	places: Record<string, Place>,
 	placesShow: FirstShow,
@@ -69,6 +71,7 @@ export interface IMainState {
 	temps: Record<string, Point>,
 	tempsPlacemarksShow: boolean,
 	tempsShow: FirstShow,
+	treeParams: Record<string, Tree>,
 	user: User | null,
 	users: Record<string, User>,
 	zoom: number,
@@ -123,6 +126,7 @@ export const useMainStore = defineStore('main', {
 		messageTimer: 0,
 		mode: 'normal',
 		mouseOverMessages: false,
+		newEntityPointId: null,
 		placemarksShow: true,
 		places: {},
 		placesShow: { show: true, first: true },
@@ -141,11 +145,23 @@ export const useMainStore = defineStore('main', {
 		temps: {},
 		tempsPlacemarksShow: true,
 		tempsShow: { show: false, first: true },
+		treeParams: {
+			places: {
+				context: 'places',
+				open: false,
+			},
+			routes: {
+				context: 'routes',
+				open: false,
+			},
+		},
 		user: null,
 		users: {},
 		zoom: Number(constants.map.initial.zoom),
 	}),
+
 	persist: true,
+
 	actions: {
 
 // SEC Factories
@@ -168,14 +184,14 @@ export const useMainStore = defineStore('main', {
 		},
 		_defaultPlace(): Place {
 			const nextSrt = Object.values(this.places as Record<string, Place>)
-				.filter(f => f.folderid === 'root')
+				.filter(f => !f.folderid)
 				.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
 			;
 			return {
 				type: 'place',
 				id: crypto.randomUUID(),
 				userid: this.user?.id,
-				folderid: 'root',
+				folderid: null,
 				name: '',
 				description: '',
 				pointid: '',
@@ -193,14 +209,14 @@ export const useMainStore = defineStore('main', {
 		},
 		_defaultRoute(): Route {
 			const nextSrt = Object.values(this.routes as Record<string, Route>)
-				.filter(f => f.folderid === 'routesroot')
+				.filter(f => !f.folderid)
 				.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
 			;
 			return {
 				type: 'route',
 				id: crypto.randomUUID(),
 				userid: this.user?.id,
-				folderid: 'routesroot',
+				folderid: null,
 				points: [],
 				choosing: null,
 				name: '',
@@ -219,14 +235,15 @@ export const useMainStore = defineStore('main', {
 		},
 		_defaultFolder(): Folder {
 			const nextSrt = Object.values(this.folders as Record<string, Folder>)
-				.filter(f => f.parent === 'root')
+				.filter(f => !f.parent && f.context === 'places')
 				.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
 			;
 			return {
 				type: 'folder',
 				id: crypto.randomUUID(),
+				parent: null,
 				userid: this.user?.id,
-				parent: 'root',
+				context: 'places',
 				name: '',
 				description: '',
 				srt: nextSrt,
@@ -235,7 +252,7 @@ export const useMainStore = defineStore('main', {
 				added: false,
 				deleted: false,
 				updated: false,
-				opened: true,
+				open: true,
 			};
 		},
 
@@ -336,6 +353,7 @@ export const useMainStore = defineStore('main', {
 						}
 						whom.updated = true;
 					}
+					this.newEntityPointId = point.id;
 					break;
 				case 'clone':
 					point = this.createPoint({
@@ -355,6 +373,7 @@ export const useMainStore = defineStore('main', {
 						}
 						whom.updated = true;
 					}
+					this.newEntityPointId = point.id;
 					break;
 			}
 			this.getAltitude(point.latitude, point.longitude)
@@ -384,7 +403,7 @@ export const useMainStore = defineStore('main', {
 			let place: Place;
 			let point: Point;
 
-			const folderId = props?.folderid || object?.folderid || 'root';
+			const folderId = props?.folderid || object?.folderid || null;
 			const nextSrt = Object.values(where)
 				.filter(f => f.folderid === folderId)
 				.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
@@ -459,7 +478,7 @@ export const useMainStore = defineStore('main', {
 
 			let route: Route;
 
-			const folderId = props?.folderid || object?.folderid || 'routesroot';
+			const folderId = props?.folderid || object?.folderid || null;
 			const nextSrt = Object.values(where)
 				.filter(f => f.folderid === folderId)
 				.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
@@ -514,7 +533,7 @@ export const useMainStore = defineStore('main', {
 
 			let folder: Folder;
 
-			const parentId = props?.parent || object?.parent || 'root';
+			const parentId = props?.parent || object?.parent || null;
 			const nextSrt = Object.values(where)
 				.filter(f => f.parent === parentId)
 				.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
@@ -636,7 +655,7 @@ export const useMainStore = defineStore('main', {
 				this.setCurrentPoint(null);
 			}
 		},
-		prepareFolderDelete(folderId: string, rootId: string, mode: string) {
+		prepareFolderDelete(folderId: string, mode: string) {
 			const toDelete: Record<string, Place | Route | Folder> = {};
 			const rootFolder = this.folders[folderId];
 			if (!rootFolder) return {};
@@ -665,19 +684,19 @@ export const useMainStore = defineStore('main', {
 				if (rootFolder.parent !== null) toDelete[folderId] = rootFolder;
 				Object.values<Place>(this.places).forEach(p => {
 					if (p.folderid === folderId) {
-						p.folderid = rootId;
+						p.folderid = null;
 						p.updated = true;
 					}
 				});
 				Object.values<Route>(this.routes).forEach(r => {
 					if (r.folderid === folderId) {
-						r.folderid = rootId;
+						r.folderid = null;
 						r.updated = true;
 					}
 				});
 				Object.values<Folder>(this.folders).forEach(f => {
 					if (f.parent === folderId) {
-						f.parent = rootId;
+						f.parent = null;
 						f.updated = true;
 					}
 				});
@@ -736,6 +755,9 @@ export const useMainStore = defineStore('main', {
 				payload.change.altitude = altitude;
 			}
 			payload.point.updated = true;
+			if (this.newEntityPointId === payload.point.id) {
+				this.newEntityPointId = null;
+			}
 			this.saved = false;
 			this.backupState();
 		},
@@ -939,7 +961,7 @@ export const useMainStore = defineStore('main', {
 				folder.added = added;
 				folder.deleted = deleted;
 				folder.updated = updated;
-				folder.opened = false;
+				folder.open = false;
 			}
 		},
 		async setServerConfig() {
@@ -1003,14 +1025,6 @@ export const useMainStore = defineStore('main', {
 						'/backend/get_places.php?id=' +
 						sessionStorage.getItem('places-useruuid')
 					);
-					for (
-						const folder of
-						Object.values(data.folders) as Folder[]
-					) {
-						if (folder.parent === null) {
-							folder.parent = 'root';
-						}
-					}
 					this.placesReady({
 						points: Object.assign({}, data.points),
 						places: Object.assign({}, data.places),
@@ -1079,8 +1093,8 @@ export const useMainStore = defineStore('main', {
 					this.setMessage(this.t.m.popup.parsingImportError + ': ' + e);
 					return null;
 				}
-				if (this.tree.imported) {
-					result.tree = this.tree.imported;
+				if (this.trees.places.imported) {
+					result.tree = this.trees.places.imported;
 				}
 				let importedPlaceFolder, importedFolder: Folder;
 				let description = '', time = '';
@@ -1230,7 +1244,7 @@ export const useMainStore = defineStore('main', {
 											id: folder.id,
 											srt: Number(folder.srt) || 0,
 											parent: folder.parent,
-											opened: false,
+											open: false,
 											geomarks: 1,
 											added: true,
 											deleted: false,
@@ -1431,7 +1445,7 @@ export const useMainStore = defineStore('main', {
 			}
 			let firstPlaceInRoot: Place = null;
 			for (const id in this.places) {
-				if (this.places[id].folderid === 'root') {
+				if (!this.places[id].folderid) {
 					firstPlaceInRoot = this.places[id];
 					break;
 				}
@@ -1639,10 +1653,7 @@ export const useMainStore = defineStore('main', {
 									if (
 										item.folderid === object.id ||
 										item.folderid === null &&
-										(
-											object.id === 'root' ||
-											object.id === 'routesroot'
-										)
+										!object['parent']
 									) {
 										return true;
 									} else {
@@ -1668,19 +1679,13 @@ export const useMainStore = defineStore('main', {
 						.filter(
 							(neibour: Place | Route | Folder) => {
 								const neibourParentKey =
-									Object.hasOwn(neibour, 'folderid') ? 'folderid' : 'parent'
+									Object.hasOwn(neibour, 'folderid')
+										? 'folderid' : 'parent'
 								;
 								if (
 									neibour[neibourParentKey] === object[objectParentKey] ||
-									(
-										neibour[neibourParentKey] === 'root' ||
-										neibour[neibourParentKey] === 'routesroot' ||
-										neibour[neibourParentKey] === null
-									) && (
-										object[objectParentKey] === 'root' ||
-										object[objectParentKey] === 'routesroot' ||
-										object[objectParentKey] === null
-									)
+									neibour[neibourParentKey] === null &&
+									object[objectParentKey] === null
 								) {
 									return true;
 								} else {
@@ -1701,22 +1706,26 @@ export const useMainStore = defineStore('main', {
 				}
 				let parent: Folder =
 					this.folders[object[objectParentKey]] ??
-					this.tree[object[objectParentKey]] ??
-					this.treeRoutes[object[objectParentKey]] ??
+					this.trees.places[object[objectParentKey]] ??
+					this.trees.routes[object[objectParentKey]] ??
 					null
 				;
 				if (parent === null) {
 					if (
-						object['parent'] === 'root' ||
-						object.type === 'place' && object['folderid'] === null
+						object['parent'] === null &&
+						object['context'] === 'places'  ||
+						object.type === 'place' &&
+						object['folderid'] === null
 					) {
-						this.tree.geomarks = Number(visibility);
+						this.trees.places.geomarks = Number(visibility);
 					}
 					if (
-						object['parent'] === 'routesroot' ||
-						object.type === 'route' && object['folderid'] === null
+						object['parent'] === null &&
+						object['context'] === 'places'  ||
+						object.type === 'place' &&
+						object['folderid'] === null
 					) {
-						this.treeRoutes.geomarks = Number(visibility);
+						this.trees.routes.geomarks = Number(visibility);
 					}
 					return;
 				}
@@ -1791,7 +1800,7 @@ export const useMainStore = defineStore('main', {
 			getLang().then(l => {
 				this.lang = lang;
 				this.t = l.getT();
-				this.tree.name = this.t.i.captions.rootFolder;
+				this.trees.places.name = this.t.i.captions.rootFolder;
 			});
 		},
 		async getAltitude (lat: number, lon: number): Promise<number | null> {
@@ -1840,53 +1849,31 @@ export const useMainStore = defineStore('main', {
 			}
 			return distance;
 		},
-		measureDistance(
-			ids: string[] = this.measure.points.map((p: PointName) => p.id),
-			takeIntoaltitudeDeltas: boolean = false,
-		): number {
-			if (ids.length < 2) return 0;
-			let distance = 0;
-			for (let i = 0; i < ids.length - 1; i++) {
-				const p1 = this.getPointById(ids[i]);
-				const p2 = this.getPointById(ids[i + 1]);
-				if (p1 && p2) {
-					const d = distanceOnSphere(
-						p1.latitude, p1.longitude,
-						p2.latitude, p2.longitude,
-						constants.earthRadius
-					);
-					if (
-						takeIntoaltitudeDeltas &&
-						p1.altitude !== null &&
-						p2.altitude !== null
-					) {
-						const deltaH = Math.abs(p1.altitude - p2.altitude) / 1000;
-						distance += Math.sqrt(Math.pow(d, 2) + Math.pow(deltaH, 2));
-					} else {
-						distance += d;
-					}
+		folderOpenClose(
+			{ folder, open, target }:
+			{ folder?: Folder; open?: boolean; target?: any; }
+		) {
+			const targetOpen = typeof open !== 'undefined'
+				? open : !folder.open
+			;
+			if (folder) {
+				if (folder.virtual) {
+					this.trees[folder.context].open = targetOpen;
+				} else {
+					this.folders[folder.id].open = targetOpen;
 				}
 			}
-			return distance;
-		},
-		folderOpenClose(payload: Record<string, any>) {
-			if (payload.folder) {
-				payload.folder.opened =
-					Object.hasOwn(payload, 'opened')
-						? payload.opened
-						: !payload.folder.opened
-				;
-			}
-			if (payload.target) {
-				if (payload.opened) {
-					payload.target.classList.add('folder_opened');
+			if (target) {
+				if (targetOpen) {
+					target.classList.add('folder_open');
+					target.classList.remove('folder_closed');
 				} else {
-					if (payload.target.classList.contains('folder_opened')) {
-						payload.target.classList.add('folder_closed');
-						payload.target.classList.remove('folder_opened');
+					if (target.classList.contains('folder_open')) {
+						target.classList.add('folder_closed');
+						target.classList.remove('folder_open');
 					} else {
-						payload.target.classList.add('folder_opened');
-						payload.target.classList.remove('folder_closed');
+						target.classList.add('folder_open');
+						target.classList.remove('folder_closed');
 					}
 				}
 			}
@@ -1906,6 +1893,9 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 	},
+
+// SEC --- getters
+
 	getters: {
 		descriptionFields() {
 			const descriptionFields = {
@@ -1955,8 +1945,8 @@ export const useMainStore = defineStore('main', {
 				let item = fellows[id];
 				if (!fellows[id] && type === 'folder') {
 					fellows = id === 'routesroot'
-						? this.treeRoutes.children
-						: this.tree.children
+						? this.trees.routes.children
+						: this.trees.places.children
 					;
 					item = fellows[id];
 					neighbours = Object.values(fellows).filter(
@@ -2079,9 +2069,6 @@ export const useMainStore = defineStore('main', {
 				(temp): temp is Point => !ids.has((temp as Point).id)
 			);
 		},
-		distance(): number {
-			return this.measureDistance();
-		},
 		getAllModifiedPackage(): DataToDB {
 			return {
 				points: Object.values<Point>(this.points).filter(i =>
@@ -2098,6 +2085,40 @@ export const useMainStore = defineStore('main', {
 				),
 			};
 		},
+		getDistance() {
+			return (
+				pointIds: string[] = this.measure.points.map((p: PointName) => p.id),
+				takeIntoAltitudeDeltas: boolean = false,
+			): number => {
+				if (pointIds.length < 2) return 0;
+				let distance = 0;
+				for (let i = 0; i < pointIds.length - 1; i++) {
+					const p1 = this.getPointById(pointIds[i]);
+					const p2 = this.getPointById(pointIds[i + 1]);
+					if (p1 && p2) {
+						const d = distanceOnSphere(
+							p1.latitude, p1.longitude,
+							p2.latitude, p2.longitude,
+							constants.earthRadius
+						);
+						if (
+							takeIntoAltitudeDeltas &&
+							p1.altitude !== null &&
+							p2.altitude !== null
+						) {
+							const deltaH = Math.abs(p1.altitude - p2.altitude) / 1000;
+							distance += Math.sqrt(Math.pow(d, 2) + Math.pow(deltaH, 2));
+						} else {
+							distance += d;
+						}
+					}
+				}
+				return distance;
+			}
+		},
+
+// SEC Trees
+
 		childrened() {
 			const aliveFolders: Record<string, Folder> = {};
 			for (const id in this.folders) {
@@ -2107,16 +2128,27 @@ export const useMainStore = defineStore('main', {
 			}
 			return makeChildren(aliveFolders);
 		},
-		tree() {
+		treePlaces() {
 			const tree: Folder = this.createFolder({
-				id: 'root',
+				virtual: true,
+				context: 'places',
+				id: 'placesroot',
 				parent: null,
 				srt: 20,
-				name: this.t.i.captions.rootFolder,
+				name: this.t.i.captions.places,
 				children: {},
 			});
+			Object.defineProperty(tree, 'open', {
+				get: () => this.treeParams.places.open,
+				set: (val) => { this.treeParams.places.open = val; },
+				enumerable: true,
+				configurable: true,
+			});
 			for (const id in this.childrened) {
-				if (this.childrened[id].parent === 'root') {
+				if (
+					!this.childrened[id].parent &&
+					this.childrened[id].context === 'places'
+				) {
 					tree.children[id] = this.childrened[id];
 				}
 			}
@@ -2124,18 +2156,35 @@ export const useMainStore = defineStore('main', {
 		},
 		treeRoutes() {
 			const tree: Folder = this.createFolder({
+				virtual: true,
+				context: 'routes',
 				id: 'routesroot',
 				parent: null,
 				srt: 10,
-				name: this.t.i.captions.rootRoutesFolder,
+				name: this.t.i.captions.routes,
 				children: {},
 			});
+			Object.defineProperty(tree, 'open', {
+				get: () => this.treeParams.routes.open,
+				set: (val) => { this.treeParams.routes.open = val; },
+				enumerable: true,
+				configurable: true,
+			});
 			for (const id in this.childrened) {
-				if (this.childrened[id].parent === 'routesroot') {
+				if (
+					!this.childrened[id].parent &&
+					this.childrened[id].context === 'routes'
+				) {
 					tree.children[id] = this.childrened[id];
 				}
 			}
 			return tree;
+		},
+		trees() {
+			return {
+				places: this.treePlaces,
+				routes: this.treeRoutes,
+			};
 		},
 	},
 });

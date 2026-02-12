@@ -7,7 +7,7 @@
 			<h2 class="color-01">{{ mainStore.t.i.captions.measure }}</h2>
 			<span v-if="mainStore.measure.points.length > 1">
 				<span class="imp_02">
-					{{ mainStore.distance.toFixed(3) }}
+					{{ mainStore.getDistance().toFixed(3) }}
 				</span>
 				{{ mainStore.t.i.text.km }}
 			</span>

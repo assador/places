@@ -173,11 +173,7 @@ function addPlace(AppContext $ctx, array $row): void {
 		":geomark"     => (int)($row["geomark"] ?? 0),
 		":common"      => (int)($row["common"] ?? 0),
 		":userid"      => uuidToBin($row["userid"]),
-		":folderid" => (
-			$row["folderid"] == "root"
-				? null
-				: (uuidToBin($row["folderid"]) ?? null)
-		),
+		":folderid"    => uuidToBin($row["folderid"]) ?? null,
 	]);
 }
 function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
@@ -213,11 +209,7 @@ function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
 		":common"      => (int)($row["common"] ?? 0),
 		":userid"      => uuidToBin($row["userid"]),
 		":myuserid"    => uuidToBin($myuserid),
-		":folderid" => (
-			$row["folderid"] == "root"
-				? null
-				: (uuidToBin($row["folderid"]) ?? null)
-		),
+		":folderid"    => uuidToBin($row["folderid"]) ?? null,
 	];
 	if ($pointIdBin !== null) {
 		$bindingArray[":pointid"] = $pointIdBin;
@@ -244,10 +236,7 @@ function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
 function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$idBin = uuidToBin($row["id"]);
 	$userIdBin = uuidToBin($myuserid);
-	$folderId = (!empty($row["folderid"]) && $row["folderid"] !== "routesroot")
-		? uuidToBin($row["folderid"])
-		: null
-	;
+	$folderId = uuidToBin($row["folderid"]);
 	$ctx->db->prepare("
 		INSERT INTO routes (id, userid, name, description, folderid, srt, time, link, geomarks, common)
 		VALUES (:id, :userid, :name, :description, :folderid, :srt, NOW(), :link, :geomarks, :common)
@@ -288,10 +277,7 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$idBin = uuidToBin($row["id"]);
 	$userIdBin = uuidToBin($myuserid);
-	$folderId = (!empty($row["folderid"]) && $row["folderid"] !== "routesroot")
-		? uuidToBin($row["folderid"])
-		: $row["folderid"]
-	;
+	$folderId = uuidToBin($row["folderid"]);
 	$ctx->db->prepare("
 		UPDATE routes
 		SET
@@ -381,10 +367,29 @@ function deleteRoute(AppContext $ctx, array $row, string $myuserid): void {
 }
 function addFolder(AppContext $ctx, array $row): void {
 	$sql = "
-		INSERT INTO folders (id, parent, name, description, srt, geomarks, userid)
-		VALUES (:id, :parent, :name, :description, :srt, :geomarks, :userid)
+		INSERT INTO folders (
+			id,
+			parent,
+			userid,
+			context,
+			name,
+			description,
+			srt,
+			geomarks
+		)
+		VALUES (
+			:id,
+			:parent,
+			:userid,
+			:context,
+			:name,
+			:description,
+			:srt,
+			:geomarks
+		)
 		ON DUPLICATE KEY UPDATE
 			parent      = VALUES(parent),
+			context     = VALUES(context),
 			name        = VALUES(name),
 			description = VALUES(description),
 			srt         = VALUES(srt),
@@ -393,12 +398,13 @@ function addFolder(AppContext $ctx, array $row): void {
 	$stmt = $ctx->db->prepare($sql);
 	$stmt->execute([
 		":id"          => uuidToBin($row["id"]),
-		":parent"      => uuidToBin($row["parent"]) ?? null,
+		":parent"      => uuidToBin($row["parent"]),
+		":userid"      => uuidToBin($row["userid"]),
+		":context"     => $row["context"] ?? "places",
 		":name"        => $row["name"] ?? "",
 		":description" => $row["description"] ?? "",
 		":srt"         => $row["srt"] ?? 0,
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
-		":userid"      => uuidToBin($row["userid"]),
 	]);
 }
 function updateFolder(AppContext $ctx, array $row, string $myuserid): void {
@@ -406,24 +412,26 @@ function updateFolder(AppContext $ctx, array $row, string $myuserid): void {
 		UPDATE folders
 		SET
 			parent      = :parent,
+			userid      = :userid,
+			context     = :context,
 			name        = :name,
 			description = :description,
 			srt         = :srt,
-			geomarks    = :geomarks,
-			userid      = :userid
+			geomarks    = :geomarks
 		WHERE id = :id
 			AND userid = :myuserid
 	";
 	$stmt = $ctx->db->prepare($sql);
 	$stmt->execute([
 		":id"          => uuidToBin($row["id"]),
-		":parent"      => uuidToBin($row["parent"]) ?? null,
+		":parent"      => uuidToBin($row["parent"]),
+		":userid"      => uuidToBin($row["userid"]),
+		":myuserid"    => uuidToBin($myuserid),
+		":context"     => $row["context"] ?? "places",
 		":name"        => $row["name"] ?? "",
 		":description" => $row["description"] ?? "",
 		":srt"         => $row["srt"] ?? 0,
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
-		":userid"      => uuidToBin($row["userid"]),
-		":myuserid"    => uuidToBin($myuserid),
 	]);
 }
 function addImage(AppContext $ctx, array $img): void {

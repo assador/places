@@ -55,7 +55,7 @@
 					<Tree
 						instanceid="popupexporttree"
 						what="places"
-						:data="mainStore.tree || {}"
+						:data="mainStore.trees.places || {}"
 					/>
 				</div>
 				<div style="text-align: center;">
@@ -124,7 +124,7 @@ onMounted(() => {
 			.getElementsByClassName('folder')
 	) {
 		f.classList.add('folder_closed');
-		f.classList.remove('folder_opened');
+		f.classList.remove('folder_open');
 	}
 	document.addEventListener('keyup', keyup, false);
 });

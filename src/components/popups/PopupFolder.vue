@@ -11,7 +11,8 @@
 				@click.stop
 				@submit.prevent="mainStore.upsertFolder({
 					props: {
-						parent: parentId,
+						parent: parent,
+						context: context,
 						name: folderName ? folderName : '',
 						description: folderDescription ? folderDescription : '',
 					},
@@ -82,10 +83,12 @@ import { makeFieldsValidatable } from '@/shared';
 const mainStore = useMainStore();
 
 export interface IPlacesPopupFolderProps {
-	parentId?: string;
+	parent?: string | null;
+	context?: string;
 }
 const props = withDefaults(defineProps<IPlacesPopupFolderProps>(), {
-	parentId: 'root',
+	parent: null,
+	context: 'places',
 });
 
 const folderName = ref('');

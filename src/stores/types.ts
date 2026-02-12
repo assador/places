@@ -40,8 +40,8 @@ export interface Point {
 export interface Place {
 	type: string;
 	id: string;
-	userid: string;
 	folderid: string;
+	userid: string;
 	pointid: string;
 	name: string;
 	description?: string;
@@ -59,8 +59,8 @@ export interface Place {
 export interface Route {
 	type: string;
 	id: string;
-	userid: string;
 	folderid: string;
+	userid: string;
 	points: PointName[];
 	choosing: number | null;
 	name: string;
@@ -86,20 +86,27 @@ export interface Image {
 	srt: number;
 }
 export interface Folder {
+	type: string;
+	context: string;
+	virtual?: boolean;
 	id: string;
 	parent: string | null;
+	userid: string;
 	name: string;
 	description?: string;
 	srt: number;
 	geomarks: number;
 	builded: boolean;
-	type: string;
 	added: boolean;
 	deleted: boolean;
 	updated: boolean;
-	opened: boolean;
-	userid: string;
+	open: boolean;
 	children?: Record<string, Folder>;
+}
+export interface Tree {
+	name?: string;
+	open?: boolean;
+	context: string;
 }
 export interface User {
 	id: string;

@@ -765,7 +765,7 @@ import {
 	latitude2string,
 	longitude2string,
 } from '@/shared';
-import { Folder, Point, Place, Route, Image, PointName } from '@/stores/types';
+import { Point, Place, Route, Image, PointName } from '@/stores/types';
 import Header from '@/components/Header.vue';
 import Measure from '@/components/helpers/Measure.vue';
 import Points from '@/components/Points.vue';
@@ -1015,28 +1015,19 @@ const stateReadyChanged = async () => {
 		}, 3000);
 	}
 };
-
 const openTreeTo = (object: Place | Route): void => {
-	if (!object || !object.folderid) return;
+	if (!object) return;
+	const context = object.type === 'place' ? 'places' : 'routes';
+	mainStore.folderOpenClose({
+		folder: mainStore.trees[context],
+		open: true,
+	});
 	let id = object.folderid;
-	let folder: Folder;
 	while (id) {
-		folder = mainStore.folders[id];
-		if (folder) {
-			mainStore.folderOpenClose({ folder, opened: true });
-			id = folder.parent;
-			continue;
-		}
-		switch (id) {
-			case 'root':
-				mainStore.folderOpenClose({folder: mainStore.tree, opened: true});
-				return;
-			case 'routesroot':
-				mainStore.folderOpenClose({folder: mainStore.treeRoutes, opened: true});
-				return;
-			default:
-				return;
-		}
+		const folder = mainStore.folders[id];
+		if (!folder) break;
+		mainStore.folderOpenClose({ folder, open: true });
+		id = folder.parent;
 	}
 };
 watch(() => mainStore.currentPlace, current => {
@@ -1309,11 +1300,11 @@ const selectPlaces = (text: string): void => {
 			mainStore.places[id].show = true;
 			if (
 				text.length !== 0 &&
-				!mainStore.folders[mainStore.places[id].folderid].opened
+				!mainStore.folders[mainStore.places[id].folderid].open
 			) {
 				mainStore.folderOpenClose({
 					folder: mainStore.folders[mainStore.places[id].folderid],
-					opened: true,
+					open: true,
 				});
 			}
 		} else {

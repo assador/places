@@ -53,8 +53,6 @@ export const getT = () => ({
 			range: 'Show everything only within a specified radius of the current place (km)',
 			reg: 'Registration',
 			repeatPassword: 'Repeat password',
-			rootFolder: 'My places',
-			rootRoutesFolder: 'My routes',
 			routePoint: 'Route point',
 			srt: 'Sorting',
 			sure: 'Are you sure?',

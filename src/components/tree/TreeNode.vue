@@ -7,12 +7,12 @@
 		:srt="folder.srt"
 		:title="folder.description"
 		class="folder"
-		:class="folder.opened ? 'folder_opened' : 'folder_closed'"
+		:class="folder.open ? 'folder_open' : 'folder_closed'"
 	>
 		<div
-			:id="folder.id === 'root'
+			:id="folder.virtual && folder.context === 'places'
 				? 'places-header'
-				: (folder.id === 'routesroot'
+				: (folder.virtual && folder.context === 'routes'
 					? 'routes-header'
 					: undefined
 				)
@@ -23,15 +23,12 @@
 			<div
 				v-if="foldersEditMode"
 				class="icon icon-triangle"
-				:class="folder.opened ? 'icon-triangle_down' : 'icon-triangle_right'"
+				:class="folder.open ? 'icon-triangle_down' : 'icon-triangle_right'"
 				@click="e => {
 					mainStore.folderOpenClose(
 						instanceid === 'popupexporttree'
 							? { target: (e.target as Node).parentNode.parentNode }
-							: {
-								folder: mainStore.folders[folder.id],
-								opened: !folder.opened,
-							}
+							: { folder }
 					);
 				}"
 			/>
@@ -78,7 +75,7 @@
 			<div
 				v-if="!foldersEditMode"
 				class="folder-button"
-				:draggable="folder.parent ? true : false"
+				:draggable="!folder.virtual ? true : false"
 				:data-places-tree-type="what === 'places' ? 'place' : 'route'"
 				:data-places-tree-folder-id="folder.id"
 				:data-places-tree-item-type="'folder'"
@@ -90,10 +87,7 @@
 					mainStore.folderOpenClose(
 						instanceid === 'popupexporttree'
 							? { target: (e.target as Node).parentNode.parentNode }
-							: {
-								folder: mainStore.folders[folder.id],
-								opened: !folder.opened,
-							}
+							: { folder }
 					);
 				}"
 			>
@@ -106,26 +100,20 @@
 				>
 					<div
 						class="icon icon-triangle"
-						:class="folder.opened ? 'icon-triangle_down' : 'icon-triangle_right'"
+						:class="folder.open ? 'icon-triangle_down' : 'icon-triangle_right'"
 					/>
 					<h2
-						v-if="folder.id === 'root'"
+						v-if="folder.virtual"
 						class="color-01"
 					>
-						{{ mainStore.t.i.captions.places }}
-					</h2>
-					<h2
-						v-else-if="folder.id === 'routesroot'"
-						class="color-01"
-					>
-						{{ mainStore.t.i.captions.routes }}
+						{{ mainStore.t.i.captions[folder.context] }}
 					</h2>
 					<div v-else>
 						{{ folder.name }}
 					</div>
 				</div>
 				<div
-					v-if="folder.parent"
+					v-if="!folder.virtual"
 					class="folder-button__controls"
 				>
 					<span
@@ -146,19 +134,15 @@
 							mainStore.t.i.hints.onMap
 						"
 						accesskey="a"
-						@click.stop="() => {
-							if (what === 'places') {
-								mainStore.showHideGeomarks({
-									object: (folder.id === 'root' ? mainStore.tree : folder),
-									show: (folder.geomarks === 1 ? 0 : 1),
-								});
-							} else if (what === 'routes') {
-								mainStore.showHideGeomarks({
-									object: (folder.id === 'routesroot' ? mainStore.treeRoutes : folder),
-									show: (folder.geomarks === 1 ? 0 : 1),
-								});
-							}
-						}"
+						@click.stop="
+							mainStore.showHideGeomarks({
+								object: (folder.virtual
+									? mainStore.trees[what]
+									: folder
+								),
+								show: (folder.geomarks === 1 ? 0 : 1),
+							})
+						"
 					/>
 					<span
 						class="folder-button__control icon icon-plus-circled"
@@ -187,7 +171,10 @@
 						accesskey="f"
 						@click.stop="router.push({
 							name: 'HomeFolder',
-							params: { parentId: folder.id },
+							params: {
+								parent: folder.id,
+								context: folder.context,
+							},
 						})"
 					/>
 					<span
@@ -202,7 +189,7 @@
 				</div>
 			</div>
 			<div
-				v-if="folder.id === 'root'"
+				v-if="folder.virtual && folder.context === 'places'"
 				class="control-buttons"
 			>
 				<button
@@ -224,17 +211,13 @@
 					"
 					accesskey="a"
 					@click.stop="() => {
-						if (what === 'places') {
-							mainStore.showHideGeomarks({
-								object: (folder.id === 'root' ? mainStore.tree : folder),
-								show: (folder.geomarks === 1 ? 0 : 1),
-							});
-						} else if (what === 'routes') {
-							mainStore.showHideGeomarks({
-								object: (folder.id === 'routesroot' ? mainStore.treeRoutes : folder),
-								show: (folder.geomarks === 1 ? 0 : 1),
-							});
-						}
+						mainStore.showHideGeomarks({
+							object: (folder.virtual
+								? mainStore.trees[what]
+								: folder
+							),
+							show: (folder.geomarks === 1 ? 0 : 1),
+						});
 					}"
 				/>
 				<button
@@ -252,12 +235,12 @@
 					accesskey="f"
 					@click="router.push({
 						name: 'HomeFolder',
-						params: { parentId: 'root' },
+						query: { parent: null, context: 'places' },
 					})"
 				/>
 			</div>
 			<div
-				v-else-if="folder.id === 'routesroot'"
+				v-else-if="folder.virtual && folder.context === 'routes'"
 				class="control-buttons"
 			>
 				<button
@@ -288,7 +271,7 @@
 					accesskey="f"
 					@click.stop="router.push({
 						name: 'HomeFolder',
-						params: { parentId: 'routesroot' },
+						query: { parent: null, context: 'routes' },
 					})"
 				/>
 			</div>
@@ -510,7 +493,7 @@
 			</label>
 		</div>
 		<div
-			v-if="distance > 0 && folder.opened"
+			v-if="distance > 0 && folder.open"
 			:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
 			class="folder-distances"
 		>
@@ -519,14 +502,14 @@
 			<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
 		</div>
 		<div
-			v-if="folder.id !== 'root' && folder.id !== 'routesroot'"
+			v-if="!folder.virtual"
 			:data-places-tree-folder-sorting-area-top-folderid="folder.id"
 			class="dragenter-area dragenter-area_top"
 			@dragenter="handleDragEnter"
 			@dragleave="handleDragLeave"
 		/>
 		<div
-			v-if="folder.id !== 'root' && folder.id !== 'routesroot'"
+			v-if="!folder.virtual"
 			:data-places-tree-folder-sorting-area-bottom-folderid="folder.id"
 			class="dragenter-area dragenter-area_bottom"
 			@dragenter="handleDragEnter"
@@ -580,12 +563,8 @@ const children = computed(() => _.sortBy(props.folder.children, 'srt'));
 const places = computed(() =>
 	_.chain(mainStore.places)
 	.filter(p =>
-		p.show &&
-		!p.deleted &&
-		(
-			p.folderid === props.folder.id ||
-			p.folderid === null && props.folder.id === 'root'
-		)
+		p.show && !p.deleted &&
+		(p.folderid === props.folder.id || !p.folderid && props.folder.virtual)
 	)
 	.sortBy('srt')
 	.value()
@@ -593,11 +572,8 @@ const places = computed(() =>
 const routes = computed(() =>
 	_.chain(mainStore.routes)
 	.filter(r =>
-		!r.deleted &&
-		(
-			r.folderid === props.folder.id ||
-			r.folderid === null && props.folder.id === 'routesroot'
-		)
+		r.show && !r.deleted &&
+		(r.folderid === props.folder.id || !r.folderid && props.folder.virtual)
 	)
 	.sortBy('srt')
 	.value()
@@ -648,9 +624,9 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	& > .folder-subs {
 		z-index: 20;
 	}
-	&.folder_opened:is(
+	&.folder_open:is(
 		.points,
-		#places-menu-folder-root,
+		#places-menu-folder-placesroot,
 		#places-menu-folder-routesroot
 	) > .folder-subs:has(~ .folder-subfolders *),
 	:is(#places-header, #routes-header):has(~ .folder-places:not(:empty)) {
@@ -723,7 +699,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		display: none !important;
 	}
 }
-.folder_opened {
+.folder_open {
 	> .folder-subfolders {
 		display: block;
 	}

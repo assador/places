@@ -3,9 +3,9 @@
 		<div class="folder-subs points-header">
 			<div
 				class="icon icon-triangle"
-				:class="opened ? 'icon-triangle_down' : 'icon-triangle_right'"
+				:class="open ? 'icon-triangle_down' : 'icon-triangle_right'"
 			/>
-			<h2 @click="opened = !opened">
+			<h2 @click="open = !open">
 				<template v-if="type === 'temps'">
 					{{ mainStore.t.i.captions.pointsIndependent }}
 				</template>
@@ -135,7 +135,7 @@
 		</div>
 		<div :class="
 			'points-list-buttons folder-subfolders ' +
-			(opened ? 'opened' : 'closed')
+			(open ? 'open' : 'closed')
 		">
 
 <!-- SEC Buttons: Temps -->
@@ -338,7 +338,7 @@ const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const mainStore = useMainStore();
 
-const opened = ref(true);
+const open = ref(true);
 const highlighted = ref(null);
 
 const pointInfo = inject<Ref<PointName>>('pointInfo')!;

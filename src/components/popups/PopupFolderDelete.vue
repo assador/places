@@ -109,7 +109,6 @@ const markNestedAsDeleted = (folder: Folder): void => {
 const deleteFolder = (): void => {
 	const objectsToDelete = mainStore.prepareFolderDelete(
 		folder.value.id,
-		props.type === 'places' ? 'root' : 'routesroot',
 		keepContent.value,
 	);
 	mainStore.deleteObjects(
