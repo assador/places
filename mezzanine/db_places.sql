@@ -31,8 +31,10 @@ CREATE TABLE `folders` (
   `userid` binary(16) NOT NULL,
   `id` binary(16) NOT NULL,
   `parent` binary(16) DEFAULT NULL,
+  `context` varchar(32) NOT NULL DEFAULT 'places',
   PRIMARY KEY (`id`),
   KEY `idx_userid_parent` (`userid`,`parent`),
+  KEY `idx_folders_context` (`context`),
   CONSTRAINT `fk_folders_users` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -372,4 +374,4 @@ CREATE TABLE `userschange` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-10 15:56:27
+-- Dump completed on 2026-02-12 11:41:14

@@ -15,7 +15,7 @@ import { ref, computed, provide, onMounted } from 'vue'
 import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { emitter, moveInArrayAfter, moveInObject, usePWAInstall } from '@/shared';
+import { emitter, isAncestorOf, moveInArrayAfter, moveInObject, usePWAInstall } from '@/shared';
 import { Point, Place, Route, Folder, Image, DataToDB } from '@/stores/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
@@ -235,7 +235,9 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 };
 provide('exportPlaces', exportPlaces);
 
-// --- Drag & Drop Handlers ---
+// SEC Drag & Drop Handlers
+
+// SEC - handleDragStart
 const handleDragStart = (event: Event, type?: string): void => {
 	(event as any).dataTransfer.setData('text/plain', null);
 	draggingElement.value = event.target as Element;
@@ -243,6 +245,7 @@ const handleDragStart = (event: Event, type?: string): void => {
 };
 provide('handleDragStart', handleDragStart);
 
+// SEC - handleDragEnter
 const handleDragEnter = (event: Event): void => {
 	event.preventDefault();
 	event.stopPropagation();
@@ -281,6 +284,7 @@ const handleDragEnter = (event: Event): void => {
 };
 provide('handleDragEnter', handleDragEnter);
 
+// SEC - handleDragLeave
 const handleDragLeave = (event: Event): void => {
 	const el = event.target as Element;
 	if (el.nodeType === 1) {
@@ -291,11 +295,13 @@ const handleDragLeave = (event: Event): void => {
 };
 provide('handleDragLeave', handleDragLeave);
 
+// SEC - handleDragOver
 const handleDragOver = (event: Event): void => {
 	event.preventDefault();
 };
 provide('handleDragOver', handleDragOver);
 
+// SEC - handleDrop
 const handleDrop = (event: Event, params?: Record<string, any>): void => {
 	draggingType.value = null;
 	if (!draggingElement.value) return;
@@ -312,7 +318,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		draggingElement.value = null;
 	};
 
-	// Image thumbnail dropped on another image thumbnail
+	// SEC -- Image thumbnail dropped on another image thumbnail
 	if (Object.hasOwn((draggingElement.value as HTMLElement).dataset, 'image')) {
 		const upperId = (draggingElement.value as HTMLElement).dataset.image;
 		const lowerId = (el as HTMLElement).dataset.image;
@@ -338,7 +344,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		return;
 	}
 
-	// Point button dropped on another point button
+	// SEC -- Point on Point
 	if (Object.hasOwn((draggingElement.value as HTMLElement).dataset, 'point')) {
 		const upperId = (draggingElement.value as HTMLElement).dataset.point;
 		const upperIdx = Number((draggingElement.value as HTMLElement).dataset.pointidx);
@@ -360,7 +366,56 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		return;
 	}
 
-	// Tree item dropped on tree folder
+	// SEC -- Folder on Folder
+	if (
+		!!(folder.sourceId = (draggingElement.value as any).dataset.placesTreeFolderId) &&
+		!!(folder.targetId = (el as any).dataset.placesTreeFolderId) &&
+		folder.sourceId !== folder.targetId &&
+		(draggingElement.value as any).dataset.placesTreeType === (el as any).dataset.placesTreeType &&
+		!isAncestorOf({
+			ancestorId: folder.sourceId,
+			descendantId: folder.targetId,
+			relativesList: mainStore.folders,
+		})
+	) {
+		mainStore.backup = false;
+		const neighbours = Object.values(mainStore.folders).filter(
+			f => f.parent === folder.targetId
+		);
+
+		mainStore.folders[folder.sourceId].srt = Math.max(...neighbours.map(f => f.srt)) + 1;
+		mainStore.folders[folder.sourceId].parent = folder.targetId;
+		mainStore.folders[folder.sourceId].updated = true;
+		mainStore.saved = false;
+		mainStore.backup = true;
+		mainStore.backupState();
+		cleanup();
+		return;
+	}
+
+	// SEC -- Folder on sorting area of Folder
+	if (
+		!!(folder.sourceId = (draggingElement.value as any).dataset.placesTreeFolderId) && (
+		!!(folder.targetId = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid ||
+		(el as any).dataset.placesTreeFolderSortingAreaBottomFolderid))
+	) {
+		const top = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid;
+		const srts = mainStore.getNeighboursSrts(folder.targetId, 'folder', top);
+		mainStore.changeFolder({
+			folder: mainStore.folders[folder.sourceId],
+			change: {
+				srt: srts.new,
+				parent: mainStore.folders[folder.targetId].parent
+			},
+		});
+		mainStore.folders[folder.sourceId].updated = true;
+		mainStore.saved = false;
+		mainStore.backupState();
+		cleanup();
+		return;
+	}
+
+	// SEC -- Item on Folder
 	if (
 		!!(item.sourceId = (draggingElement.value as any).dataset.placesTreeItemId) &&
 		!!(item.targetId = (el as any).dataset.placesTreeFolderId) &&
@@ -392,7 +447,7 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		return;
 	}
 
-	// Tree item dropped on sorting area of another tree item
+	// SEC -- Item on sorting area of Item
 	if (
 		!!(item.sourceId = (draggingElement.value as any).dataset.placesTreeItemId) &&
 		!!(item.targetId = (el as any).dataset.placesTreeItemId) && (
@@ -419,50 +474,6 @@ const handleDrop = (event: Event, params?: Record<string, any>): void => {
 		mainStore.backup = true;
 		mainStore.backupState();
 
-		cleanup();
-		return;
-	}
-
-	// Tree folder dropped on sorting area of another tree folder
-	if (
-		!!(folder.sourceId = (draggingElement.value as any).dataset.placesTreeFolderId) && (
-		!!(folder.targetId = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid ||
-		(el as any).dataset.placesTreeFolderSortingAreaBottomFolderid))
-	) {
-		const top = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid;
-		const srts = mainStore.getNeighboursSrts(folder.targetId, 'folder', top);
-		mainStore.changeFolder({
-			folder: mainStore.folders[folder.sourceId],
-			change: {
-				srt: srts.new,
-				parent: mainStore.folders[folder.targetId].parent
-			},
-		});
-		mainStore.folders[folder.sourceId].updated = true;
-		mainStore.saved = false;
-		mainStore.backupState();
-		cleanup();
-		return;
-	}
-
-	// Tree folder dropped on another tree folder
-	if (
-		!!(folder.sourceId = (draggingElement.value as any).dataset.placesTreeFolderId) &&
-		!!(folder.targetId = (el as any).dataset.placesTreeFolderId) &&
-		folder.sourceId !== folder.targetId &&
-		(draggingElement.value as any).dataset.placesTreeType === (el as any).dataset.placesTreeType
-	) {
-		mainStore.backup = false;
-		const neighbours = Object.values(mainStore.folders).filter(
-			f => f.parent === folder.targetId
-		);
-
-		mainStore.folders[folder.sourceId].srt = Math.max(...neighbours.map(f => f.srt)) + 1;
-		mainStore.folders[folder.sourceId].parent = folder.targetId;
-		mainStore.folders[folder.sourceId].updated = true;
-		mainStore.saved = false;
-		mainStore.backup = true;
-		mainStore.backupState();
 		cleanup();
 		return;
 	}
