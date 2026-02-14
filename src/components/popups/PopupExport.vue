@@ -13,7 +13,7 @@
 				class="popup-export__form"
 				@submit.prevent="e => exportPlaces(
 					selectedToExport,
-					(e.target as HTMLFormElement).elements['mime'].value
+					(e.currentTarget as HTMLFormElement).elements['mime'].value
 				)"
 			>
 				<fieldset class="margin_bottom">

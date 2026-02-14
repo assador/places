@@ -201,7 +201,6 @@ async function mountHome(options: { shallow?: boolean } = {}) {
 		deleteImages: vi.fn(),
 		handleDragStart: vi.fn(),
 		handleDragEnter: vi.fn(),
-		handleDragOver: vi.fn(),
 		handleDrop: vi.fn(),
 		installEvent: ref<any>(undefined),
 	};

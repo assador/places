@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { tree } from './_tree';
 import { treeSorted } from './_tree_sorted';
-import { findInTree, sortObjects } from '@/shared/common';
+import { findInTree, sortObjects } from '@/shared';
 
 const folder = {
 	id: '2jmi6ciMRxs0pSVUSUBxwdROjAfeWBcf',

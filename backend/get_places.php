@@ -146,8 +146,9 @@ function getRoutes(AppContext $ctx, string $userIdBin): array {
 				"description" => $pointRow['description'] ?? "",
 			];
 		}
-		$routes[] = [
-			'id'          => binToUuid($routeRow['id']),
+		$routeId = binToUuid($routeRow['id']);
+		$routes[$routeId] = [
+			'id'          => $routeId,
 			'folderid'    => binToUuid($routeRow['folderid']),
 			'userid'      => $_GET["id"],
 			'name'        => $routeRow['name'] ?? "",

@@ -1,5 +1,5 @@
 export const tree = {
-	"id": "placesroot",
+	"id": null,
 	"parent": null,
 	"context": "places",
 	"srt": 0,
@@ -15,7 +15,7 @@ export const tree = {
 	"children": {
 		"EsHS1i213EDZj2D7gl0JsA05vFFbICPB": {
 			"id": "EsHS1i213EDZj2D7gl0JsA05vFFbICPB",
-			"parent": "placesroot",
+			"parent": null,
 			"context": "places",
 			"name": "Москва",
 			"description": "Всякие места в Москве",
@@ -65,7 +65,7 @@ export const tree = {
 		},
 		"nBG5TLsWKccf44h4UzUl6IznRDFfLmaY": {
 			"id": "nBG5TLsWKccf44h4UzUl6IznRDFfLmaY",
-			"parent": "placesroot",
+			"parent": null,
 			"context": "places",
 			"name": "Походы",
 			"description": "Походные места",
@@ -167,7 +167,7 @@ export const tree = {
 		},
 		"BO4xIkgGi58m4J2ptfXFB9x5ZleqY9WV": {
 			"id": "BO4xIkgGi58m4J2ptfXFB9x5ZleqY9WV",
-			"parent": "placesroot",
+			"parent": null,
 			"context": "places",
 			"name": "Работа",
 			"description": "",
@@ -183,7 +183,7 @@ export const tree = {
 		},
 		"4cHwO9Qg35qK1cwN0cl2xLV74AkFOUSx": {
 			"id": "4cHwO9Qg35qK1cwN0cl2xLV74AkFOUSx",
-			"parent": "placesroot",
+			"parent": null,
 			"context": "places",
 			"name": "Ребуха",
 			"description": "",

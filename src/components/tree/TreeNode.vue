@@ -42,7 +42,7 @@
 					type="checkbox"
 					class="tree-item-checkbox"
 					:checked="foldersCheckedIds.includes(folder.id)"
-					@change="e => selectUnselectFolder(folder.id, (e.target as HTMLInputElement).checked)"
+					@change="e => selectUnselectFolder(folder.id, (e.currentTarget as HTMLInputElement).checked)"
 				/>
 			</label>
 			<div
@@ -57,7 +57,7 @@
 					:value="folder.name"
 					:placeholder="mainStore.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
-					@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.target as HTMLInputElement).value}});}"
+					@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.currentTarget as HTMLInputElement).value}});}"
 					@click.stop
 				/>
 				<textarea
@@ -65,7 +65,7 @@
 					rows="2"
 					:placeholder="mainStore.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
-					@change="e => {mainStore.changeFolder({folder: folder, change: {description: (e.target as HTMLInputElement).value}});}"
+					@change="e => {mainStore.changeFolder({folder: folder, change: {description: (e.currentTarget as HTMLInputElement).value}});}"
 					@click.stop
 				/>
 			</div>
@@ -74,15 +74,16 @@
 
 			<div
 				v-if="!foldersEditMode"
-				class="folder-button"
+				class="folder-button drag draggable"
 				:draggable="!folder.virtual ? true : false"
-				:data-places-tree-type="what === 'places' ? 'place' : 'route'"
-				:data-places-tree-folder-id="folder.id"
-				:data-places-tree-item-type="'folder'"
-				@dragstart="handleDragStart"
+				:data-entity-id="folder.id === null ? 'null' : folder.id"
+				:data-entity-type="folder.type"
+				:data-entity-context="what"
+				@dragstart="e => handleDragStart(e, folder)"
 				@dragenter="handleDragEnter"
 				@dragleave="handleDragLeave"
-				@drop="handleDrop"
+				@dragover.prevent
+				@drop.prevent.stop="handleDropExt"
 				@click="e => {
 					mainStore.folderOpenClose(
 						instanceid === 'popupexporttree'
@@ -331,11 +332,10 @@
 					)
 				"
 				:draggable="true"
-				:data-places-tree-type="what === 'places' ? 'place' : 'route'"
-				:data-places-tree-item-id="object.id"
-				:data-places-tree-item-type="object.type"
-				:data-places-tree-item-parent-id="object.folderid"
-				@dragstart="handleDragStart"
+				:data-entity-id="object.id"
+				:data-entity-type="object.type"
+				:data-entity-context="what"
+				@dragstart="e => handleDragStart(e, object)"
 				@click="() => {
 					if (instanceid === 'popupexporttree') return;
 					if (what === 'places') {
@@ -377,12 +377,12 @@
 							if (what === 'places') {
 								selectUnselect(
 									object as Place,
-									(e.target as HTMLInputElement).checked
+									(e.currentTarget as HTMLInputElement).checked
 								);
 							} else {
 								selectUnselect(
 									object as Route,
-									(e.target as HTMLInputElement).checked
+									(e.currentTarget as HTMLInputElement).checked
 								);
 							}
 							foldersCheckedIds = formFoldersCheckedIds();
@@ -473,20 +473,24 @@
 					/>
 				</span>
 				<span
-					:data-places-tree-type="what === 'places' ? 'place' : 'route'"
-					:data-places-tree-item-id="object.id"
-					:data-places-tree-item-type="object.type"
-					:data-places-tree-item-sorting-area-top="true"
-					class="dragenter-area dragenter-area_top"
+					:data-entity-id="object.id"
+					:data-entity-type="object.type"
+					:data-entity-context="what"
+					:data-entity-sort-area="'top'"
+					class="drag dragenter-area dragenter-area_top"
+					@dragover.prevent
+					@drop.prevent.stop="handleDropExt"
 					@dragenter="handleDragEnter"
 					@dragleave="handleDragLeave"
 				/>
 				<span
-					:data-places-tree-type="what === 'places' ? 'place' : 'route'"
-					:data-places-tree-item-id="object.id"
-					:data-places-tree-item-type="object.type"
-					:data-places-tree-item-sorting-area-bottom="true"
-					class="dragenter-area dragenter-area_bottom"
+					:data-entity-id="object.id"
+					:data-entity-type="object.type"
+					:data-entity-context="what"
+					:data-entity-sort-area="'bottom'"
+					class="drag dragenter-area dragenter-area_bottom"
+					@dragover.prevent
+					@drop.prevent.stop="handleDropExt"
 					@dragenter="handleDragEnter"
 					@dragleave="handleDragLeave"
 				/>
@@ -503,15 +507,25 @@
 		</div>
 		<div
 			v-if="!folder.virtual"
-			:data-places-tree-folder-sorting-area-top-folderid="folder.id"
-			class="dragenter-area dragenter-area_top"
+			:data-entity-id="folder.id"
+			:data-entity-type="folder.type"
+			:data-entity-context="what"
+			:data-entity-sort-area="'top'"
+			class="drag dragenter-area dragenter-area_top"
+			@dragover.prevent
+			@drop.prevent.stop="handleDropExt"
 			@dragenter="handleDragEnter"
 			@dragleave="handleDragLeave"
 		/>
 		<div
 			v-if="!folder.virtual"
-			:data-places-tree-folder-sorting-area-bottom-folderid="folder.id"
-			class="dragenter-area dragenter-area_bottom"
+			:data-entity-id="folder.id"
+			:data-entity-type="folder.type"
+			:data-entity-context="what"
+			:data-entity-sort-area="'bottom'"
+			class="drag dragenter-area dragenter-area_bottom"
+			@dragover.prevent
+			@drop.prevent.stop="handleDropExt"
 			@dragenter="handleDragEnter"
 			@dragleave="handleDragLeave"
 		/>
@@ -529,12 +543,12 @@ import _ from 'lodash';
 import { computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Place, Route, Folder } from '@/stores/types';
+import { Place, Route, Folder, DragEntityPayload } from '@/stores/types';
 import { formFoldersCheckedIds } from '@/shared';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;
-	what: string;
+	what: 'places' | 'routes';
 	folder?: Folder;
 	parent?: Folder;
 }
@@ -554,9 +568,6 @@ const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef')
 const selectedToExport = inject<typeof selectedToExport>('selectedToExport');
 const foldersCheckedIds: string[] = inject('foldersCheckedIds');
 const foldersEditMode = inject('foldersEditMode');
-const handleDragStart = inject<typeof handleDragStart>('handleDragStart');
-const handleDragEnter = inject<typeof handleDragEnter>('handleDragEnter');
-const handleDragLeave = inject<typeof handleDragLeave>('handleDragLeave');
 const handleDrop = inject<typeof handleDrop>('handleDrop');
 
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));
@@ -578,12 +589,24 @@ const routes = computed(() =>
 	.sortBy('srt')
 	.value()
 );
-
-const distance = computed(() =>
-	Math.round(mainStore.distanceBetweenPoints(
-		places.value.map(place => place.pointid)
-	) * 1000) / 1000
-);
+const distance = computed(() => {
+	switch (props.what) {
+		case 'places':
+			return Math.round(mainStore.distanceBetweenPoints(
+				places.value.map(place => place.pointid)
+			) * 1000) / 1000;
+		case 'routes':
+			const isTotalPath = false; // TODO Implement checkbox: Include distances between routes.
+			if (isTotalPath) {
+				return Math.round(mainStore.distanceBetweenPoints(
+					routes.value.map(route => route.points.map(pn => pn.id)).flat()
+				) * 1000) / 1000;
+			} else {
+				const sum = routes.value.reduce((s, r) => s + mainStore.distanceBetweenPoints(r.points.map(p => p.id)), 0);
+				return Math.round(sum * 1000) / 1000;
+			}
+	}
+});
 
 const selectUnselect = (object: Place | Route, checked: boolean): void => {
 	if (checked) {
@@ -610,6 +633,65 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		(folderCheckbox as HTMLInputElement).checked = checked ? true : false;
 	}
 };
+
+// SEC DnD
+
+const canAcceptDrop = (target: HTMLElement): boolean => {
+	const { currentDrag } = mainStore;
+	const { entityId, entityContext, entityType } = target.dataset;
+	return !(
+		currentDrag.id === entityId ||
+		currentDrag.context !== entityContext ||
+		(currentDrag.type === 'folder' && ['place', 'route'].includes(entityType))
+	);
+};
+const removeDragClasses = (targets?: HTMLElement[]) => {
+	const drags = targets ? targets : document.querySelectorAll('.drag');
+	drags.forEach((element: Element) => {
+		[
+			'highlighted',
+			'dragenter-area_top_border',
+			'dragenter-area_bottom_border',
+		]
+			.forEach(cls => element.classList.remove(cls))
+		;
+	});
+};
+const handleDropExt = (event: DragEvent) => {
+	const target = event.currentTarget as HTMLElement;
+	removeDragClasses([ target ]);
+	if (!canAcceptDrop(target)) return;
+	handleDrop(event);
+};
+const handleDragStart = (event: DragEvent, entity: Folder | Place | Route) => {
+	mainStore.currentDrag = {
+		id: entity.id,
+		type: entity.type,
+		context: props.what,
+	};
+	const payload: DragEntityPayload = { ...mainStore.currentDrag };
+	event.dataTransfer?.setData('application/my-app-dnd', JSON.stringify(payload));
+};
+const handleDragEnter = (event: DragEvent) => {
+	const target = event.currentTarget as HTMLElement;
+	if (!canAcceptDrop(target)) return;
+	const area = target.dataset.entitySortArea;
+	if (!area) {
+		target.classList.add('highlighted');
+	} else {
+		target.classList.add(area === 'top'
+			? 'dragenter-area_top_border' : 'dragenter-area_bottom_border'
+		);
+	}
+};
+const handleDragLeave = (event: DragEvent) => {
+	const target = event.currentTarget as HTMLElement;
+	target.classList.remove(
+		'highlighted',
+		'dragenter-area_top_border',
+		'dragenter-area_bottom_border',
+	);
+};
 </script>
 
 <style lang="scss" scoped>
@@ -626,8 +708,7 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 	}
 	&.folder_open:is(
 		.points,
-		#places-menu-folder-placesroot,
-		#places-menu-folder-routesroot
+		#places-menu-folder-null
 	) > .folder-subs:has(~ .folder-subfolders *),
 	:is(#places-header, #routes-header):has(~ .folder-places:not(:empty)) {
 		margin-bottom: 12px;
@@ -791,11 +872,9 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		margin-top: -38px;
 	}
 }
-.folder-places {
+:not(:is(.folder-root)) > .folder-places {
 	display: block;
-	&:not(&:is(&#root, &#routesroot)) {
-		margin-left: 18px;
-	}
+	margin-left: 18px;
 }
 #places-header, #routes-header {
 	display: flex;

@@ -11,6 +11,7 @@ import {
 	Tree,
 	DataToDB,
 	Measure,
+	DragEntityPayload,
 } from './types';
 import {
 	emitter,
@@ -39,6 +40,7 @@ export interface IMainState {
 	commonRoutesOnPageCount: number,
 	commonRoutesPage: number,
 	commonRoutesShow: boolean,
+	currentDrag: DragEntityPayload,
 	currentPlace: Place | null,
 	currentPoint: Point | null,
 	currentRoute: Route | null,
@@ -102,6 +104,7 @@ export const useMainStore = defineStore('main', {
 		commonRoutesOnPageCount: constants.commonroutesonpagecount,
 		commonRoutesPage: 1,
 		commonRoutesShow: false,
+		currentDrag: null,
 		currentPlace: null,
 		currentPoint: null,
 		currentRoute: null,
@@ -486,7 +489,7 @@ export const useMainStore = defineStore('main', {
 			if (mode === 'new' || mode === 'clone') {
 				// Check routes limit
 				if (
-					!this.user.testaccount &&
+					!this.user?.testaccount &&
 					this.serverConfig.rights.routescount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.routescount
 				) {
@@ -529,7 +532,7 @@ export const useMainStore = defineStore('main', {
 			where?: Record<string, Folder>;
 			todb?: boolean;
 			mode?: AppendMode;
-		} = {}): Folder {
+		} = {}): Folder | undefined {
 
 			let folder: Folder;
 
@@ -541,12 +544,12 @@ export const useMainStore = defineStore('main', {
 			if (mode === 'new') {
 				// Check folders limit
 				if (
-					!this.user.testaccount &&
+					!this.user?.testaccount &&
 					this.serverConfig.rights.folderscount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.folderscount
 				) {
 					this.setMessage(this.t.m.popup.foldersCountExceeded);
-					return;
+					return undefined;
 				}
 			}
 
@@ -736,58 +739,66 @@ export const useMainStore = defineStore('main', {
 
 // SEC Changing Entities
 
-		async changePoint(payload: Record<string, any>) {
+		async changePoint(
+			{ entity, change }: { entity: Point; change: Partial<Point>; }
+		) {
 			const coordsChanged =
-				Object.hasOwn(payload.change, 'latitude') ||
-				Object.hasOwn(payload.change, 'longitude')
+				Object.hasOwn(change, 'latitude') ||
+				Object.hasOwn(change, 'longitude')
 			;
 			const altitudeMissing =
-				payload.point.altitude === null ||
-				payload.point.altitude === undefined
+				entity.altitude === null ||
+				entity.altitude === undefined
 			;
-			Object.assign(payload.point, payload.change);
+			Object.assign(entity, change);
 			if (coordsChanged || altitudeMissing) {
 				const altitude = await this.getAltitude(
-					payload.point.latitude,
-					payload.point.longitude,
+					entity.latitude,
+					entity.longitude,
 				);
-				payload.point.altitude = altitude;
-				payload.change.altitude = altitude;
+				entity.altitude = altitude;
+				change.altitude = altitude;
 			}
-			payload.point.updated = true;
-			if (this.newEntityPointId === payload.point.id) {
+			entity.updated = true;
+			if (this.newEntityPointId === entity.id) {
 				this.newEntityPointId = null;
 			}
 			this.saved = false;
 			this.backupState();
 		},
-		changePlace(payload: Record<string, any>) {
-			for (const key in payload.change) {
-				payload.place[key] = key === 'srt'
-					? (Number(payload.change[key]) || 0)
-					: payload.change[key]
+		changePlace(
+			{ entity, change }: { entity: Place; change: Partial<Place>; }
+		) {
+			for (const key in change) {
+				entity[key] = key === 'srt'
+					? (Number(change[key]) || 0)
+					: change[key]
 				;
 			}
-			payload.place.updated = true;
+			entity.updated = true;
 			this.saved = false;
 			this.backupState();
 		},
-		changeRoute(payload: Record<string, any>) {
-			for (const key in payload.change) {
-				payload.route[key] = key === 'srt'
-					? (Number(payload.change[key]) || 0)
-					: payload.change[key]
+		changeRoute(
+			{ entity, change }: { entity: Route; change: Partial<Route>; }
+		) {
+			for (const key in change) {
+				entity[key] = key === 'srt'
+					? (Number(change[key]) || 0)
+					: change[key]
 				;
 			}
-			payload.route.updated = true;
+			entity.updated = true;
 			this.saved = false;
 			this.backupState();
 		},
-		changeFolder(payload: Record<string, any>) {
-			for (const key in payload.change) {
-				payload.folder[key] = payload.change[key];
+		changeFolder(
+			{ folder, change }: { folder: Folder; change: Partial<Folder>; }
+		) {
+			for (const key in change) {
+				folder[key] = change[key];
 			}
-			payload.folder.updated = true;
+			folder.updated = true;
 			this.saved = false;
 			this.backupState();
 		},
@@ -1643,7 +1654,7 @@ export const useMainStore = defineStore('main', {
 						object['geomark'] = show;
 						return;
 					case 'route':
-						object['geomarks'] = show;
+						object['geomarks'] = !show ? 0 : 1;
 						return;
 					case 'folder':
 						object['geomarks'] = !show ? 0 : 1;
@@ -2132,7 +2143,7 @@ export const useMainStore = defineStore('main', {
 			const tree: Folder = this.createFolder({
 				virtual: true,
 				context: 'places',
-				id: 'placesroot',
+				id: null,
 				parent: null,
 				srt: 20,
 				name: this.t.i.captions.places,
@@ -2158,7 +2169,7 @@ export const useMainStore = defineStore('main', {
 			const tree: Folder = this.createFolder({
 				virtual: true,
 				context: 'routes',
-				id: 'routesroot',
+				id: null,
 				parent: null,
 				srt: 10,
 				name: this.t.i.captions.routes,

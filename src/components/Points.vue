@@ -187,22 +187,21 @@
 				v-else-if="type === 'measure'"
 				v-for="(point, idx) in mainStore.measure.points"
 				:key="idx"
-				:data-point="point.id"
-				:data-pointidx="idx"
-				:data-pointof="'measure'"
+				:data-entity-id="point.id"
+				:data-entity-type="'point'"
+				:data-entity-index="idx"
+				:data-entity-context="'measure'"
 				:title="
 // TODO Get the name and description of the Entity referencing the Point and put it in this attribute
 					(false && point.name ? `${point.name}&#013;` : '') +
 					(point.description ? point.description : '')
 				"
 				:draggable="true"
-				@dragstart="e => handleDragStart(e, 'points')"
-				@dragenter="e => {
-					highlighted = point.id;
-					handleDragEnter(e);
-				}"
+				@dragstart="e => handleDragStart(e, point, idx, 'measure')"
+				@dragenter="highlighted = point.id"
 				@dragend="highlighted = null"
-				@drop="handleDrop"
+				@dragover.prevent
+				@drop.prevent.stop="handleDropExt"
 				:class="
 					point.id === highlighted ||
 					point.id ===
@@ -224,18 +223,10 @@
 					popupProps.position.left = e.clientX + 5;
 				}"
 			>
-				<span
-					:data-point="point.id"
-					:data-pointidx="idx"
-					:data-pointof="'measure'"
-					@dragenter="highlighted = point.id"
-				>
+				<span @dragenter="highlighted = point.id">
 					{{ point.name }}
 				</span>
 				<span
-					:data-point="point.id"
-					:data-pointidx="idx"
-					:data-pointof="'measure'"
 					:title="mainStore.t.i.hints.deletePoint"
 					class="button-iconed icon icon-cross-45-circled"
 					@dragenter="highlighted = point.id"
@@ -251,17 +242,19 @@
 					p => !mainStore.getPointById(p.id).deleted
 				)"
 				:key="pn.id"
-				:data-point="pn.id"
-				:data-pointidx="idx"
-				:data-pointof="'route'"
+				:data-entity-id="pn.id"
+				:data-entity-type="'point'"
+				:data-entity-index="idx"
+				:data-entity-context="'routes'"
+				:data-entity-parent-id="mainStore.currentRoute.id"
 				:draggable="true"
-				@dragstart="e => handleDragStart(e, 'points')"
-				@dragenter="e => {
-					highlighted = pn.id;
-					handleDragEnter(e);
-				}"
+				@dragstart="e =>
+					handleDragStart(e, pn, idx, 'routes', mainStore.currentRoute.id)
+				"
+				@dragenter="highlighted = pn.id"
 				@dragend="highlighted = null"
-				@drop="handleDrop"
+				@dragover.prevent
+				@drop.prevent.stop="handleDropExt"
 				:class="
 					pn.id === highlighted ||
 					pn.id === mainStore.currentPoint?.id
@@ -294,18 +287,10 @@
 						e.clientX + 5;
 				}"
 			>
-				<span
-					:data-point="pn.id"
-					:data-pointidx="idx"
-					:data-pointof="'route'"
-					@dragenter="highlighted = pn.id"
-				>
+				<span @dragenter="highlighted = pn.id">
 					{{ pn.name }}
 				</span>
 				<span
-					:data-point="pn.id"
-					:data-pointidx="idx"
-					:data-pointof="'route'"
 					:title="mainStore.t.i.hints.deleteRoutePoint"
 					class="button-iconed icon icon-cross-45-circled"
 					@dragenter="highlighted = pn.id"
@@ -323,7 +308,7 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { IPlacesPopupProps } from '@/shared';
-import { PointName } from '@/stores/types';
+import { PointName, DragEntityPayload } from '@/stores/types';
 
 export interface IPlacesPointsProps {
 	type?: string;
@@ -332,9 +317,7 @@ const props = withDefaults(defineProps<IPlacesPointsProps>(), {
 	type: 'temps',
 });
 
-const handleDragStart = inject('handleDragStart') as (...args: any[]) => any;
-const handleDragEnter = inject('handleDragEnter') as (...args: any[]) => any;
-const handleDrop = inject('handleDrop') as (...args: any[]) => any;
+const handleDrop = inject<typeof handleDrop>('handleDrop');
 
 const mainStore = useMainStore();
 
@@ -365,6 +348,40 @@ const distance = computed(() => {
 		* 1000) / 1000
 	);
 });
+
+// SEC DnD
+
+const canAcceptDrop = (target: HTMLElement): boolean => {
+	const { currentDrag } = mainStore;
+	const { entityId, entityContext } = target.dataset;
+	return !(
+		currentDrag.id === entityId ||
+		currentDrag.context !== entityContext
+	);
+};
+const handleDropExt = (event: DragEvent) => {
+	const target = event.currentTarget as HTMLElement;
+	if (!canAcceptDrop(target)) return;
+	handleDrop(event);
+};
+const handleDragStart = (
+	event: DragEvent,
+	pn: PointName,
+	index: number,
+	context: 'measure' | 'routes',
+	parentId?: string,
+) => {
+	const entity = mainStore.getPointById(pn.id);
+	mainStore.currentDrag = {
+		id: entity.id,
+		type: entity.type,
+		index: index,
+		context: context,
+		parentId: parentId,
+	};
+	const payload: DragEntityPayload = { ...mainStore.currentDrag };
+	event.dataTransfer?.setData('application/my-app-dnd', JSON.stringify(payload));
+};
 </script>
 
 <style lang="scss" scoped>

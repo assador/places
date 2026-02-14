@@ -14,8 +14,8 @@ export * from '@/shared/reg';
 export * from '@/shared/forgot';
 export * from '@/shared/account';
 
-export * from '@/shared/bus';
+export * from '@/shared/dnd';
 
-export * from '@/shared/crutches';
+export * from '@/shared/bus';
 
 export * from '@/shared/usepwainstall';

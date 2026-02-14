@@ -15,13 +15,25 @@ import { ref, computed, provide, onMounted } from 'vue'
 import axios from 'axios';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { emitter, isAncestorOf, moveInArrayAfter, moveInObject, usePWAInstall } from '@/shared';
-import { Point, Place, Route, Folder, Image, DataToDB } from '@/stores/types';
+import {
+	emitter,
+	usePWAInstall,
+	handleFolderDropped,
+	handlePlaceRouteDropped,
+	handlePointInListDropped,
+	handleImageDropped,
+} from '@/shared';
+import {
+	Folder,
+	Point,
+	Place,
+	Image,
+	DataToDB,
+	DragPayload
+} from '@/stores/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
 // Refs and Provides
-const draggingElement = ref<null | Element>(null);
-const draggingType = ref<string | null>(null);
 const foldersEditMode = ref(false);
 const idleTimeInterval = ref(null);
 const currentPlaceCommon = ref(false);
@@ -235,250 +247,26 @@ const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 };
 provide('exportPlaces', exportPlaces);
 
-// SEC Drag & Drop Handlers
+// SEC DnD
 
-// SEC - handleDragStart
-const handleDragStart = (event: Event, type?: string): void => {
-	(event as any).dataTransfer.setData('text/plain', null);
-	draggingElement.value = event.target as Element;
-	if (type) draggingType.value = type;
-};
-provide('handleDragStart', handleDragStart);
+const handleDrop = (event: DragEvent) => {
+	const rawData = event.dataTransfer?.getData('application/my-app-dnd');
+	if (!rawData) return;
 
-// SEC - handleDragEnter
-const handleDragEnter = (event: Event): void => {
-	event.preventDefault();
-	event.stopPropagation();
-	const el = event.target as HTMLElement;
-	const dragEl = draggingElement.value as HTMLElement;
-	const dragPP = (draggingElement.value as Element).parentElement?.parentElement;
-	const addClass = (cls: string) => el.classList.add(cls);
-	if (
-		el.dataset.placesTreeFolderId &&
-		el.dataset.placesTreeType === dragEl.dataset.placesTreeType &&
-		(dragEl.dataset.placesTreeFolderId || dragEl.dataset.placesTreeItemId)
-	) {
-		addClass('highlighted');
-	}
-	if (dragEl.dataset.placesTreeItemId) {
-		if (el.dataset.placesTreeItemSortingAreaTop &&
-			el.parentElement !== draggingElement.value &&
-			el.parentElement !== (draggingElement.value as Element).nextElementSibling) {
-			addClass('dragenter-area_top_border');
-		} else if (el.dataset.placesTreeItemSortingAreaBottom &&
-			el.parentElement !== draggingElement.value &&
-			el.parentElement !== (draggingElement.value as Element).previousElementSibling) {
-			addClass('dragenter-area_bottom_border');
-		}
-	} else if (dragEl.dataset.placesTreeFolderId) {
-		if (el.dataset.placesTreeFolderSortingAreaTopFolderid &&
-			el.parentElement !== dragPP &&
-			el.parentElement !== dragPP?.nextElementSibling) {
-			addClass('dragenter-area_top_border');
-		} else if (el.dataset.placesTreeFolderSortingAreaTopFolderid &&
-			el.parentElement !== dragPP &&
-			el.parentElement !== dragPP?.previousElementSibling) {
-			addClass('dragenter-area_bottom_border');
-		}
-	}
-};
-provide('handleDragEnter', handleDragEnter);
+	const payload: DragPayload = JSON.parse(rawData);
+	const target = event.currentTarget as HTMLElement;
 
-// SEC - handleDragLeave
-const handleDragLeave = (event: Event): void => {
-	const el = event.target as Element;
-	if (el.nodeType === 1) {
-		event.preventDefault();
-		['highlighted', 'dragenter-area_top_border', 'dragenter-area_bottom_border']
-			.forEach(cls => el.classList.remove(cls));
-	}
-};
-provide('handleDragLeave', handleDragLeave);
-
-// SEC - handleDragOver
-const handleDragOver = (event: Event): void => {
-	event.preventDefault();
-};
-provide('handleDragOver', handleDragOver);
-
-// SEC - handleDrop
-const handleDrop = (event: Event, params?: Record<string, any>): void => {
-	draggingType.value = null;
-	if (!draggingElement.value) return;
-	event.preventDefault();
-	event.stopPropagation();
-	const el = event.target as Element;
-	if (el.nodeType !== 1 || (draggingElement.value === el && !(draggingElement.value as any).dataset.image)) return;
-
-	const folder: Record<string, any> = {};
-	const item: Record<string, any> = {};
-
-	const cleanup = () => {
-		el.dispatchEvent(new Event('dragleave'));
-		draggingElement.value = null;
+	const handlers = {
+		folder: handleFolderDropped,
+		place: handlePlaceRouteDropped,
+		route: handlePlaceRouteDropped,
+		point: handlePointInListDropped,
+		image: handleImageDropped, // TODO Refactor work with images at all.
 	};
+	const handler = handlers[payload.type];
+	if (handler) handler(payload, target);
 
-	// SEC -- Image thumbnail dropped on another image thumbnail
-	if (Object.hasOwn((draggingElement.value as HTMLElement).dataset, 'image')) {
-		const upperId = (draggingElement.value as HTMLElement).dataset.image;
-		const lowerId = (el as HTMLElement).dataset.image;
-		if (
-			!Object.hasOwn(mainStore.currentPlace.images, upperId) ||
-			!Object.hasOwn(mainStore.currentPlace.images, lowerId)
-		) {
-			return;
-		}
-		const images = mainStore.currentPlace.images;
-		moveInObject(
-			images,
-			images[upperId],
-			images[lowerId],
-			'srt',
-			params && params.before ? true : false
-		);
-// FIXME Refactor work with images at all.
-		mainStore.currentPlace.updated = true;
-		toDB({ images_update: Object.values(mainStore.currentPlace.images) });
-		mainStore.currentPlace.updated = false;
-		cleanup();
-		return;
-	}
-
-	// SEC -- Point on Point
-	if (Object.hasOwn((draggingElement.value as HTMLElement).dataset, 'point')) {
-		const upperId = (draggingElement.value as HTMLElement).dataset.point;
-		const upperIdx = Number((draggingElement.value as HTMLElement).dataset.pointidx);
-		const lowerId = (el as HTMLElement).dataset.point;
-		const lowerIdx = Number((el as HTMLElement).dataset.pointidx);
-		const pointOf = (draggingElement.value as HTMLElement).dataset.pointof;
-		const points =
-			pointOf === 'route'
-				? mainStore.currentRoute.points
-				: mainStore.measure.points
-		;
-		if (
-			!points.find(p => p.id === upperId) ||
-			!points.find(p => p.id === lowerId)
-		) {
-			return;
-		}
-		moveInArrayAfter(points, upperIdx, lowerIdx);
-		return;
-	}
-
-	// SEC -- Folder on Folder
-	if (
-		!!(folder.sourceId = (draggingElement.value as any).dataset.placesTreeFolderId) &&
-		!!(folder.targetId = (el as any).dataset.placesTreeFolderId) &&
-		folder.sourceId !== folder.targetId &&
-		(draggingElement.value as any).dataset.placesTreeType === (el as any).dataset.placesTreeType &&
-		!isAncestorOf({
-			ancestorId: folder.sourceId,
-			descendantId: folder.targetId,
-			relativesList: mainStore.folders,
-		})
-	) {
-		mainStore.backup = false;
-		const neighbours = Object.values(mainStore.folders).filter(
-			f => f.parent === folder.targetId
-		);
-
-		mainStore.folders[folder.sourceId].srt = Math.max(...neighbours.map(f => f.srt)) + 1;
-		mainStore.folders[folder.sourceId].parent = folder.targetId;
-		mainStore.folders[folder.sourceId].updated = true;
-		mainStore.saved = false;
-		mainStore.backup = true;
-		mainStore.backupState();
-		cleanup();
-		return;
-	}
-
-	// SEC -- Folder on sorting area of Folder
-	if (
-		!!(folder.sourceId = (draggingElement.value as any).dataset.placesTreeFolderId) && (
-		!!(folder.targetId = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid ||
-		(el as any).dataset.placesTreeFolderSortingAreaBottomFolderid))
-	) {
-		const top = (el as any).dataset.placesTreeFolderSortingAreaTopFolderid;
-		const srts = mainStore.getNeighboursSrts(folder.targetId, 'folder', top);
-		mainStore.changeFolder({
-			folder: mainStore.folders[folder.sourceId],
-			change: {
-				srt: srts.new,
-				parent: mainStore.folders[folder.targetId].parent
-			},
-		});
-		mainStore.folders[folder.sourceId].updated = true;
-		mainStore.saved = false;
-		mainStore.backupState();
-		cleanup();
-		return;
-	}
-
-	// SEC -- Item on Folder
-	if (
-		!!(item.sourceId = (draggingElement.value as any).dataset.placesTreeItemId) &&
-		!!(item.targetId = (el as any).dataset.placesTreeFolderId) &&
-		!!(item.sourceParentId = (draggingElement.value as any).dataset.placesTreeItemParentId) &&
-		item.sourceParentId !== item.targetId
-	) {
-		const sourceType = (draggingElement.value as any).dataset.placesTreeItemType;
-		const targetType = (el as any).dataset.placesTreeType;
-		if (sourceType !== targetType) return;
-
-		mainStore.backup = false;
-		const items: Record<string, Place | Route> = mainStore[targetType + 's'];
-		const neighbours = Object.values(items).filter(
-			i => i.folderid === item.targetId
-		);
-		items[item.sourceId].srt = neighbours.length
-			? Math.max(...neighbours.map(i => i.srt)) + 1
-			: 1
-		;
-		items[item.sourceId].folderid = item.targetId;
-
-		items[item.sourceId].updated = true;
-		mainStore.saved = false;
-
-		mainStore.backup = true;
-		mainStore.backupState();
-
-		cleanup();
-		return;
-	}
-
-	// SEC -- Item on sorting area of Item
-	if (
-		!!(item.sourceId = (draggingElement.value as any).dataset.placesTreeItemId) &&
-		!!(item.targetId = (el as any).dataset.placesTreeItemId) && (
-		(el as any).dataset.placesTreeItemSortingAreaTop ||
-		(el as any).dataset.placesTreeItemSortingAreaBottom)
-	) {
-		const sourceType = (draggingElement.value as any).dataset.placesTreeItemType;
-		const targetType = (el as any).dataset.placesTreeItemType;
-		if (sourceType !== targetType) return;
-
-		mainStore.backup = false;
-		const sourceItem = mainStore[sourceType + 's'][item.sourceId];
-		const targetItem = mainStore[targetType + 's'][item.targetId];
-		sourceItem.srt = mainStore.getNeighboursSrts(
-			item.targetId,
-			targetType,
-			!!(el as any).dataset.placesTreeItemSortingAreaTop
-		).new;
-		sourceItem.folderid = targetItem.folderid;
-
-		sourceItem.updated = true;
-		mainStore.saved = false;
-
-		mainStore.backup = true;
-		mainStore.backupState();
-
-		cleanup();
-		return;
-	}
-
-	cleanup();
+	mainStore.currentDrag = null;
 };
 provide('handleDrop', handleDrop);
 </script>

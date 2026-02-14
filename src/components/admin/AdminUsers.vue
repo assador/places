@@ -86,9 +86,9 @@
 								adminStore.change({
 									where: user,
 									what: 'checked',
-									to: (e.target as HTMLInputElement).checked,
+									to: (e.currentTarget as HTMLInputElement).checked,
 								});
-								if (!(e.target as HTMLInputElement).checked)
+								if (!(e.currentTarget as HTMLInputElement).checked)
 									checkedAll = false
 								;
 							}"

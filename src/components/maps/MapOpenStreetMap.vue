@@ -433,7 +433,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 const placemarkDragEnd = async (point: Place | Point, event: any) => {
 	const coordinates = event.target.getLatLng();
 	mainStore.changePoint({
-		point: (
+		entity: (
 			point.type === 'point'
 				? point
 				: mainStore.points[(point as Place).pointid]

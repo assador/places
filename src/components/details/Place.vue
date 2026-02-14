@@ -36,7 +36,7 @@
 						:disabled="!!currentPlaceCommon"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
-							place: mainStore.currentPlace,
+							entity: mainStore.currentPlace,
 							change: { [field]: mainStore.currentPlace[field] }
 						})"
 						:placeholder="field"
@@ -57,9 +57,9 @@
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
 								@change="e => mainStore.changePoint({
-									point: mainStore.points[mainStore.currentPlace.pointid],
+									entity: mainStore.points[mainStore.currentPlace.pointid],
 									change: {
-										latitude: Number((e.target as HTMLInputElement).value.trim())
+										latitude: Number((e.currentTarget as HTMLInputElement).value.trim())
 									},
 								})"
 							/>
@@ -77,9 +77,9 @@
 								:disabled="!!currentPlaceCommon"
 								class="fieldwidth_100"
 								@change="e => mainStore.changePoint({
-									point: mainStore.points[mainStore.currentPlace.pointid],
+									entity: mainStore.points[mainStore.currentPlace.pointid],
 									change: {
-										longitude: Number((e.target as HTMLInputElement).value.trim())
+										longitude: Number((e.currentTarget as HTMLInputElement).value.trim())
 									},
 								})"
 							/>
@@ -98,11 +98,11 @@
 								class="fieldwidth_100"
 								@change="e => {
 									const coords = string2coords(
-										(e.target as HTMLInputElement).value.trim()
+										(e.currentTarget as HTMLInputElement).value.trim()
 									);
 									if (coords === null) return;
 									mainStore.changePoint({
-										point: mainStore.points[mainStore.currentPlace.pointid],
+										entity: mainStore.points[mainStore.currentPlace.pointid],
 										change: {
 											latitude: coords[0],
 											longitude: coords[1],
@@ -133,7 +133,7 @@
 						:disabled="!!currentPlaceCommon"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
-							place: mainStore.currentPlace,
+							entity: mainStore.currentPlace,
 							change: { [field]: mainStore.currentPlace[field] },
 						})"
 					/>
@@ -148,7 +148,7 @@
 							type="checkbox"
 							:disabled="!!currentPlaceCommon"
 							@change="mainStore.changePlace({
-								place: mainStore.currentPlace,
+								entity: mainStore.currentPlace,
 								change: { [field]: mainStore.currentPlace[field] },
 							})"
 						/>
@@ -247,7 +247,7 @@
 						"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
-							place: mainStore.currentPlace,
+							entity: mainStore.currentPlace,
 							change: { [field]: mainStore.currentPlace[field] },
 						})"
 					/>

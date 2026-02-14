@@ -23,8 +23,26 @@ export interface PointName {
 	name?: string,
 	description?: string,
 }
-export interface Point {
+export interface Folder {
 	type: string;
+	context: string;
+	virtual?: boolean;
+	id: string;
+	parent: string | null;
+	userid: string;
+	name: string;
+	description?: string;
+	srt: number;
+	geomarks: number;
+	builded: boolean;
+	added: boolean;
+	deleted: boolean;
+	updated: boolean;
+	open: boolean;
+	children?: Record<string, Folder>;
+}
+export interface Point {
+	type: 'point';
 	id: string;
 	userid: string;
 	latitude: number;
@@ -38,7 +56,7 @@ export interface Point {
 	show: boolean;
 }
 export interface Place {
-	type: string;
+	type: 'place';
 	id: string;
 	folderid: string;
 	userid: string;
@@ -85,24 +103,6 @@ export interface Image {
 	size: number;
 	srt: number;
 }
-export interface Folder {
-	type: string;
-	context: string;
-	virtual?: boolean;
-	id: string;
-	parent: string | null;
-	userid: string;
-	name: string;
-	description?: string;
-	srt: number;
-	geomarks: number;
-	builded: boolean;
-	added: boolean;
-	deleted: boolean;
-	updated: boolean;
-	open: boolean;
-	children?: Record<string, Folder>;
-}
 export interface Tree {
 	name?: string;
 	open?: boolean;
@@ -144,4 +144,33 @@ export interface Measure {
 	points: PointName[];
 	choosing: number | null;
 	show: boolean;
+}
+export interface DragPayload {
+	id: string;
+	type: string;
+	context: string;
+}
+export interface DragEntityPayload extends DragPayload {
+	context: 'folders' | 'points' | 'places' | 'routes' | 'images' | 'measure';
+	parentId?: string;
+	index?: number;
+}
+export interface DragFolderPayload extends DragEntityPayload {
+	context: 'folders';
+}
+export interface DragPointPayload extends DragEntityPayload {
+	context: 'points';
+}
+export interface DragPlacePayload extends DragEntityPayload {
+	context: 'places';
+}
+export interface DragRoutePayload extends DragEntityPayload {
+	context: 'routes';
+}
+export interface DragPointInListPayload extends DragEntityPayload {
+	context: 'routes' | 'measure';
+	index: number;
+}
+export interface DragImagePayload extends DragEntityPayload {
+	context: 'images';
 }

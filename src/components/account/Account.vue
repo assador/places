@@ -40,7 +40,7 @@
 										class="button-iconed icon icon-eye-closed-circled"
 										@click.prevent="e => {
 											passwordShowHide(
-												(e.target as Element)
+												(e.currentTarget as HTMLElement)
 													.previousElementSibling as HTMLInputElement
 											);
 										}"
@@ -64,7 +64,7 @@
 										class="button-iconed icon icon-eye-closed-circled"
 										@click.prevent="e => {
 											passwordShowHide(
-												(e.target as Element)
+												(e.currentTarget as HTMLElement)
 													.previousElementSibling as HTMLInputElement
 											);
 										}"

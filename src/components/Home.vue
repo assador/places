@@ -378,7 +378,7 @@
 				<select
 					id="choose-map-input"
 					:title="mainStore.t.i.hints.mapProvider"
-					@change="e => mainStore.activeMapIndex = (e.target as HTMLSelectElement).selectedIndex"
+					@change="e => mainStore.activeMapIndex = (e.currentTarget as HTMLSelectElement).selectedIndex"
 				>
 					<option
 						v-for="(map, index) in maps"
@@ -796,7 +796,6 @@ const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
 const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
 const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
-const handleDragOver = inject('handleDragOver') as (...args: any[]) => any;
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const root = ref<HTMLElement | null>(null);
@@ -963,7 +962,6 @@ onMounted(async () => {
 	windowResize();
 	makeDropDowns(root);
 	// Register event listeners only once
-	document.addEventListener('dragover', handleDragOver, false);
 	document.addEventListener('drop', handleDrop, false);
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
@@ -971,7 +969,6 @@ onMounted(async () => {
 onUnmounted(() => {
 	['dragover', 'drop', 'keyup'].forEach(event =>
 		document.removeEventListener(event, {
-			dragover: handleDragOver,
 			drop: handleDrop,
 			keyup: keyup
 		}[event] as EventListener)
@@ -1168,7 +1165,7 @@ const uploadFiles = async (event: Event) => {
 				newImagesObject[image.id] = image;
 			}
 			mainStore.changePlace({
-				place: mainStore.currentPlace,
+				entity: mainStore.currentPlace,
 				change: { images: newImagesObject },
 			});
 			emitter.emit('toDB', { images_upload: filesArray });
@@ -1283,7 +1280,7 @@ const sidebarDragStop = (): void => {
 // Search places by name
 const searchInput = ref(null);
 const searchInputEvent = (event: KeyboardEvent): void => {
-	const input = event.target as HTMLInputElement;
+	const input = event.currentTarget as HTMLInputElement;
 	if (event.code === "Escape") {
 		input.value = '';
 		selectPlaces('');
