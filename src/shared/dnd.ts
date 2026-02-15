@@ -7,7 +7,7 @@ import {
 	DragRoutePayload,
 	DragImagePayload,
 } from '@/stores/types';
-import { isAncestorOf, moveInArrayAfter } from '@/shared';
+import { isAncestorOf, moveInArray, moveInObject } from '@/shared';
 import { useMainStore } from '@/stores/main';
 
 export const handleFolderDropped = (
@@ -131,7 +131,7 @@ export const handlePointInListDropped = (
 	if (payload.context === 'measure') parent = mainStore.measure;
 	if (payload.context === 'routes') parent = mainStore.routes[payload.parentId];
 	if (!parent) return;
-	moveInArrayAfter(parent.points, payload.index, targetIndex);
+	moveInArray(parent.points, payload.index, targetIndex, payload.before);
 	if (payload.context === 'routes') {
 		parent.updated = true;
 	}
@@ -142,4 +142,25 @@ export const handleImageDropped = (
 	target: HTMLElement,
 ) => {
 	const mainStore = useMainStore();
+	const targetId = target.dataset.entityId;
+	if (
+		targetId === payload.id ||
+		payload.context !== target.dataset.entityContext ||
+		typeof payload.parentId !== 'string'
+	) {
+		return;
+	}
+	let parent = undefined;
+	if (payload.context === 'places') parent = mainStore.places[payload.parentId];
+	if (payload.context === 'routes') parent = mainStore.routes[payload.parentId];
+	if (!parent) return;
+	moveInObject(
+		parent.images,
+		parent.images[payload.id],
+		parent.images[targetId],
+		'srt',
+		payload.before,
+	);
+	parent.updated = true;
+	mainStore.backupState();
 };

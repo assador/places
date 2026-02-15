@@ -85,7 +85,7 @@ export interface Route extends Entity {
 	geomarks: number;
 	images?: Record<string, Image>;
 }
-export interface Image {
+export interface Image { // TODO Refactor work with images at all.
 	type: string;
 	id: string;
 	placeid: string;
@@ -140,6 +140,7 @@ export interface DragPayload {
 	id: string;
 	type: string;
 	context: string;
+	before?: boolean;
 }
 export interface DragEntityPayload extends DragPayload {
 	context: 'folders' | 'points' | 'places' | 'routes' | 'images' | 'measure';
@@ -163,5 +164,9 @@ export interface DragPointInListPayload extends DragEntityPayload {
 	index: number;
 }
 export interface DragImagePayload extends DragEntityPayload {
-	context: 'images';
+	context: 'places' | 'routes';
+	index: number;
+}
+export interface DragEventCustom extends DragEvent {
+	dragBefore?: boolean;
 }

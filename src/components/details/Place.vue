@@ -156,6 +156,9 @@
 					</label>
 				</dd>
 			</template>
+
+<!-- SEC Images -->
+
 			<template v-else-if="field === 'images' && orderedImages.length">
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
 				<dd
@@ -166,7 +169,8 @@
 							v-for="image in orderedImages"
 							:id="image.id"
 							:key="image.id"
-							:data-image="image.id"
+							:data-entity-id="image.id"
+							:data-entity-context="'places'"
 							class="place-image"
 							:class="{
 								draggable: !currentPlaceCommon,
@@ -179,21 +183,23 @@
 							})"
 							@dragstart="e => {
 								dragging = true;
-								handleDragStart(e, 'images');
+								handleDragStart(
+									e,
+									image.id,
+									'image',
+									mainStore.currentPlace.id,
+								);
 							}"
 							@dragend="() => {
 								dragging = false;
 								highlightedLeft = null;
 								highlightedRight = null;
 							}"
-							@dragenter="handleDragEnter"
+							@dragover.prevent
+							@drop.prevent.stop="handleDropExt"
 						>
-							<div
-								:data-image="image.id"
-								class="block_02"
-							>
+							<div class="block_02">
 								<img
-									:data-image="image.id"
 									class="image-thumbnail border_1"
 									:draggable="false"
 									:src="constants.dirs.uploads.images.small + image.file"
@@ -202,7 +208,6 @@
 								/>
 								<div
 									v-if="!currentPlaceCommon"
-									:data-image="image.id"
 									class="dd-images__delete button"
 									:draggable="false"
 									@click.stop="
@@ -216,27 +221,25 @@
 								</div>
 							</div>
 							<div
-								:data-image="image.id"
 								class="sorting-area-left"
 								:class="{ highlighted: image.id === highlightedLeft }"
 								@dragenter="highlightedLeft = image.id"
 								@dragleave="highlightedLeft = null"
-								@drop="e => handleDrop(e, { before: true })"
+								@drop="($e: DragEventCustom) => $e.dragBefore = true"
 							/>
 							<div
-								:data-image="image.id"
 								class="sorting-area-right"
 								:class="{ highlighted: image.id === highlightedRight }"
 								@dragenter="highlightedRight = image.id"
 								@dragleave="highlightedRight = null"
-								@drop="e => handleDrop(e, { before: false })"
+								@drop="($e: DragEventCustom) => $e.dragBefore = false"
 							/>
 						</div>
 					</div>
 				</dd>
 			</template>
 
-<!-- SEC Field Name -->
+<!-- SEC Name -->
 
 			<template v-else-if="field !== 'images'">
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
@@ -315,12 +318,10 @@ import { orderBy } from 'lodash';
 import { emitter, constants, coords2string, string2coords } from '@/shared';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Image } from '@/stores/types';
+import { Image, DragEventCustom, DragEntityPayload } from '@/stores/types';
 
 const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;
 const deleteImages = inject('deleteImages') as (...args: any[]) => any;
-const handleDragStart = inject('handleDragStart') as (...args: any[]) => any;
-const handleDragEnter = inject('handleDragEnter') as (...args: any[]) => any;
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
 
@@ -361,6 +362,35 @@ const currentPlaceAlt = computed<number | null>(() => {
 const currentDegMinSec = computed(() =>
 	coords2string([currentPlaceLat.value, currentPlaceLon.value])
 );
+
+// SEC DnD
+
+const canAcceptDrop = (target: HTMLElement): boolean => {
+	const { currentDrag } = mainStore;
+	return !(
+		currentDrag.id === target.dataset.entityId
+	);
+};
+const handleDropExt = (event: DragEventCustom) => {
+	const target = event.currentTarget as HTMLElement;
+	if (!canAcceptDrop(target)) return;
+	handleDrop(event);
+};
+const handleDragStart = (
+	event: DragEvent,
+	id: string,
+	type: string,
+	parentId?: string,
+) => {
+	mainStore.currentDrag = {
+		id: id,
+		type: type,
+		context: 'places',
+		parentId: parentId,
+	};
+	const payload: DragEntityPayload = { ...mainStore.currentDrag };
+	event.dataTransfer?.setData('application/my-app-dnd', JSON.stringify(payload));
+};
 </script>
 
 <style lang="scss" scoped>

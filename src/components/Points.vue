@@ -327,14 +327,14 @@
 					:class="{ highlighted: pn.id === highlightedLeft }"
 					@dragenter="highlightedLeft = pn.id"
 					@dragleave="highlightedLeft = null"
-					@drop="e => handleDrop(e, { before: true })"
+					@drop="($e: DragEventCustom) => $e.dragBefore = true"
 				/>
 				<span
 					class="sorting-area-right"
 					:class="{ highlighted: pn.id === highlightedRight }"
 					@dragenter="highlightedRight = pn.id"
 					@dragleave="highlightedRight = null"
-					@drop="e => handleDrop(e, { before: false })"
+					@drop="($e: DragEventCustom) => $e.dragBefore = false"
 				/>
 			</button>
 		</div>
@@ -345,7 +345,7 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { IPlacesPopupProps } from '@/shared';
-import { PointName, DragEntityPayload } from '@/stores/types';
+import { PointName, DragEventCustom, DragEntityPayload } from '@/stores/types';
 
 export interface IPlacesPointsProps {
 	type?: string;
@@ -396,7 +396,7 @@ const canAcceptDrop = (target: HTMLElement): boolean => {
 		currentDrag.context !== entityContext
 	);
 };
-const handleDropExt = (event: DragEvent) => {
+const handleDropExt = (event: DragEventCustom) => {
 	const target = event.currentTarget as HTMLElement;
 	if (!canAcceptDrop(target)) return;
 	handleDrop(event);

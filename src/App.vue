@@ -29,7 +29,8 @@ import {
 	Place,
 	Image,
 	DataToDB,
-	DragPayload
+	DragPayload,
+	DragEventCustom,
 } from '@/stores/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 
@@ -249,11 +250,12 @@ provide('exportPlaces', exportPlaces);
 
 // SEC DnD
 
-const handleDrop = (event: DragEvent) => {
+const handleDrop = (event: DragEventCustom) => {
 	const rawData = event.dataTransfer?.getData('application/my-app-dnd');
 	if (!rawData) return;
 
 	const payload: DragPayload = JSON.parse(rawData);
+	payload.before = event.dragBefore ?? false;
 	const target = event.currentTarget as HTMLElement;
 
 	const handlers = {
@@ -261,7 +263,7 @@ const handleDrop = (event: DragEvent) => {
 		place: handlePlaceRouteDropped,
 		route: handlePlaceRouteDropped,
 		point: handlePointInListDropped,
-		image: handleImageDropped, // TODO Refactor work with images at all.
+		image: handleImageDropped,
 	};
 	const handler = handlers[payload.type];
 	if (handler) handler(payload, target);

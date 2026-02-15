@@ -122,7 +122,7 @@
 					:weight="0.5"
 				/>
 				<l-circle-marker
-					v-if="route.points.length > 1"
+					v-if="route.points.length"
 					:lat-lng="
 						mainStore.getPointCoords(
 							route.points[0].id

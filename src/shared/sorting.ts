@@ -15,8 +15,12 @@ export const sortObjects = (
 	});
 	return sorted;
 };
-export const moveInArrayAfter = (array: any[], from: number, to: number) => {
-	array.splice(to + (from > to ? 1 : 0), 0, array.splice(from, 1)[0]);
+export const moveInArray = (array: any[], from: number, to: number, before: boolean) => {
+	const item = array.splice(from, 1)[0];
+	let insertIndex = to;
+	if (!before) insertIndex += 1;
+	if (from < to) insertIndex -= 1;
+	array.splice(insertIndex, 0, item);
 };
 export const moveInObject = (
 	parent: Record<string, any>,
