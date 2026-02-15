@@ -9,9 +9,9 @@
 
 «**Места**» — это функциональное SPA-приложение для структурирования личных географических данных, персональная ГИС-платформа. Сервис позволяет создавать иерархическую структуру папок, строить сложные маршруты и привязывать к локациям фотоальбомы. Проект ориентирован на удобство работы с данными и высокую скорость интерфейса и сочетает в себе гибкость древовидной иерархии и строгость реляционной модели данных.
 
-![UI: Distance measurement mode](screenshots/places-screenshot-1.png)
+![UI: Distance measurement mode](public/raw/places-screenshot-1.png)
 
-![UI: Routes mode](screenshots/places-screenshot-2.png)
+![UI: Routes mode](public/raw/places-screenshot-2.png)
 
 ## Основные возможности
 

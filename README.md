@@ -8,9 +8,9 @@
 
 “**The Places**” is a feature-rich SPA for structuring personal geographic data, a personal GIS platform. The service allows creating a hierarchical folder structure, building complex routes, and attaching photo albums to locations. The project focuses on data usability and high interface speed, combining the flexibility of a tree hierarchy with the strictness of a relational data model.
 
-![UI: Distance measurement mode](screenshots/places-screenshot-1.png)
+![UI: Distance measurement mode](public/raw/places-screenshot-1.png)
 
-![UI: Routes mode](screenshots/places-screenshot-2.png)
+![UI: Routes mode](public/raw/places-screenshot-2.png)
 
 ## Core Features
 
