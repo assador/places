@@ -58,20 +58,23 @@ export const formFolderForImported = (
 	if (!imported || !imported.id) {
 		imported = {
 			type: 'folder',
-			id: 'imported',
-			parent: null,
 			context: 'places',
+			id: 'imported',
+			userid: sessionStorage.getItem('places-useruuid') as string,
+			parent: null,
+			name: voc.o.importedFolderName,
+			description: voc.o.importedFolderDescription,
+			children: {} as Record<string, Folder>,
+			srt: 99999,
+			geomarks: 1,
 			builded: false,
 			open: false,
+			common: false,
+			enabled: true,
+			show: true,
 			added: true,
 			deleted: false,
 			updated: false,
-			name: voc.o.importedFolderName,
-			description: voc.o.importedFolderDescription,
-			srt: 99999,
-			userid: sessionStorage.getItem('places-useruuid') as string,
-			geomarks: 1,
-			children: {} as Record<string, Folder>,
 		};
 	}
 	if (!time) {

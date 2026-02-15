@@ -632,6 +632,10 @@ $filter-brightness-03: brightness(0%);
 		box-shadow: 0 0 8px $color-40;
 		color: $color-68;
 	}
+	button .highlighted {
+		background-color: $color-25;
+		box-shadow: 0 0 12px $color-25;
+	}
 	input[type="hidden"] {
 		display: none;
 	}
@@ -1014,7 +1018,6 @@ $filter-brightness-03: brightness(0%);
 		line-height: 0.7;
 		font-size: 11px !important;
 		text-transform: lowercase;
-		overflow: hidden;
 		* {
 			text-align: center;
 			width: 100%;

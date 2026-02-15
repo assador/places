@@ -133,10 +133,10 @@
 				{{ mainStore.t.i.captions.coords }}
 			</a>
 		</div>
-		<div :class="
-			'points-list-buttons folder-subfolders ' +
-			(open ? 'open' : 'closed')
-		">
+		<div
+			class="points-list-buttons folder-subfolders"
+			:class="{ open: open, closed: !open, dragging: dragging }"
+		>
 
 <!-- SEC Buttons: Temps -->
 
@@ -197,9 +197,15 @@
 					(point.description ? point.description : '')
 				"
 				:draggable="true"
-				@dragstart="e => handleDragStart(e, point, idx, 'measure')"
-				@dragenter="highlighted = point.id"
-				@dragend="highlighted = null"
+				@dragstart="e => {
+					dragging = true;
+					handleDragStart(e, point, idx, 'measure')
+				}"
+				@dragend="() => {
+					dragging = false;
+					highlightedLeft = null;
+					highlightedRight = null;
+				}"
 				@dragover.prevent
 				@drop.prevent.stop="handleDropExt"
 				:class="
@@ -223,14 +229,28 @@
 					popupProps.position.left = e.clientX + 5;
 				}"
 			>
-				<span @dragenter="highlighted = point.id">
+				<span>
 					{{ point.name }}
 				</span>
 				<span
 					:title="mainStore.t.i.hints.deletePoint"
 					class="button-iconed icon icon-cross-45-circled"
-					@dragenter="highlighted = point.id"
+					@dragover.prevent
 					@click.stop="mainStore.deleteTemp(point.id)"
+				/>
+				<span
+					class="sorting-area-left"
+					:class="{ highlighted: point.id === highlightedLeft }"
+					@dragenter="highlightedLeft = point.id"
+					@dragleave="highlightedLeft = null"
+					@drop="e => handleDrop(e, { before: true })"
+				/>
+				<span
+					class="sorting-area-right"
+					:class="{ highlighted: point.id === highlightedRight }"
+					@dragenter="highlightedRight = point.id"
+					@dragleave="highlightedRight = null"
+					@drop="e => handleDrop(e, { before: false })"
 				/>
 			</button>
 
@@ -248,18 +268,22 @@
 				:data-entity-context="'routes'"
 				:data-entity-parent-id="mainStore.currentRoute.id"
 				:draggable="true"
-				@dragstart="e =>
-					handleDragStart(e, pn, idx, 'routes', mainStore.currentRoute.id)
-				"
-				@dragenter="highlighted = pn.id"
-				@dragend="highlighted = null"
+				@dragstart="e => {
+					dragging = true;
+					handleDragStart(
+						e, pn, idx, 'routes', mainStore.currentRoute.id
+					)
+				}"
+				@dragend="() => {
+					dragging = false;
+					highlightedLeft = null;
+					highlightedRight = null;
+				}"
 				@dragover.prevent
 				@drop.prevent.stop="handleDropExt"
-				:class="
-					pn.id === highlighted ||
-					pn.id === mainStore.currentPoint?.id
-						? 'button-pressed' : ''
-				"
+				:class="{
+					'button-pressed': pn.id === mainStore.currentPoint?.id,
+				}"
 				@click.prevent="() => {
 					pointInfo.point = mainStore.getPointById(pn.id);
 					mainStore.setCurrentPoint(pointInfo.point);
@@ -287,17 +311,30 @@
 						e.clientX + 5;
 				}"
 			>
-				<span @dragenter="highlighted = pn.id">
+				<span>
 					{{ pn.name }}
 				</span>
 				<span
 					:title="mainStore.t.i.hints.deleteRoutePoint"
 					class="button-iconed icon icon-cross-45-circled"
-					@dragenter="highlighted = pn.id"
 					@click.stop="() => {
 						const point = mainStore.getPointById(pn.id);
 						mainStore.deleteObjects({ [point.id]: point });
 					}"
+				/>
+				<span
+					class="sorting-area-left"
+					:class="{ highlighted: pn.id === highlightedLeft }"
+					@dragenter="highlightedLeft = pn.id"
+					@dragleave="highlightedLeft = null"
+					@drop="e => handleDrop(e, { before: true })"
+				/>
+				<span
+					class="sorting-area-right"
+					:class="{ highlighted: pn.id === highlightedRight }"
+					@dragenter="highlightedRight = pn.id"
+					@dragleave="highlightedRight = null"
+					@drop="e => handleDrop(e, { before: false })"
 				/>
 			</button>
 		</div>
@@ -382,6 +419,9 @@ const handleDragStart = (
 	const payload: DragEntityPayload = { ...mainStore.currentDrag };
 	event.dataTransfer?.setData('application/my-app-dnd', JSON.stringify(payload));
 };
+const dragging = ref(false);
+const highlightedLeft = ref(null);
+const highlightedRight = ref(null);
 </script>
 
 <style lang="scss" scoped>
@@ -423,20 +463,37 @@ const handleDragStart = (
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
 	gap: 8px;
+	&.dragging :is(.sorting-area-left, .sorting-area-right) {
+		z-index: 30;
+	}
 	button {
+		position: relative;
 		display: grid;
 		grid-template-columns: 1fr auto;
 		align-items: center;
 		margin: 0;
 		padding: 0 0 0 4px;
 		flex: 1 0 auto;
-		overflow: hidden;
 		& > *:last-child {
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			padding: 8px 6px;
 			line-height: 0;
+		}
+		* {
+			z-index: 20;
+		}
+		.sorting-area-left, .sorting-area-right {
+			position: absolute;
+			top: 0; bottom: 0;
+			z-index: 10;
+		}
+		.sorting-area-left {
+			left: 0; right: 50%;
+		}
+		.sorting-area-right {
+			right: 0; left: 50%;
 		}
 	}
 	&.closed {

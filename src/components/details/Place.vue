@@ -158,7 +158,9 @@
 			</template>
 			<template v-else-if="field === 'images' && orderedImages.length">
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
-				<dd id="place-images">
+				<dd
+					id="place-images"
+				>
 					<div class="dd-images">
 						<div
 							v-for="image in orderedImages"
@@ -166,15 +168,24 @@
 							:key="image.id"
 							:data-image="image.id"
 							class="place-image"
-							:class="
-								(currentPlaceCommon ? '' : ' draggable')
-							"
-							:draggable="currentPlaceCommon ? false : true"
+							:class="{
+								draggable: !currentPlaceCommon,
+								dragging: dragging,
+							}"
+							:draggable="!currentPlaceCommon"
 							@click="router.push({
 								name: 'HomeImages',
 								params: { imageId: image.id },
 							})"
-							@dragstart="e => handleDragStart(e, 'images')"
+							@dragstart="e => {
+								dragging = true;
+								handleDragStart(e, 'images');
+							}"
+							@dragend="() => {
+								dragging = false;
+								highlightedLeft = null;
+								highlightedRight = null;
+							}"
 							@dragenter="handleDragEnter"
 						>
 							<div
@@ -210,7 +221,7 @@
 								:class="{ highlighted: image.id === highlightedLeft }"
 								@dragenter="highlightedLeft = image.id"
 								@dragleave="highlightedLeft = null"
-								@drop="(e) => handleDrop(e, { before: true })"
+								@drop="e => handleDrop(e, { before: true })"
 							/>
 							<div
 								:data-image="image.id"
@@ -218,7 +229,7 @@
 								:class="{ highlighted: image.id === highlightedRight }"
 								@dragenter="highlightedRight = image.id"
 								@dragleave="highlightedRight = null"
-								@drop="(e) => handleDrop(e, { before: false })"
+								@drop="e => handleDrop(e, { before: false })"
 							/>
 						</div>
 					</div>
@@ -317,6 +328,7 @@ const mainStore = useMainStore();
 const router = useRouter();
 
 const linkEditing = ref(false);
+const dragging = ref(false);
 const highlightedLeft = ref(null);
 const highlightedRight = ref(null);
 
@@ -404,18 +416,16 @@ const currentDegMinSec = computed(() =>
 }
 .place-image {
 	position: relative;
-	* {
-		pointer-events: none;
+	&.dragging :is(.sorting-area-left, .sorting-area-right) {
+		z-index: 30 !important;
 	}
-	.image-thumbnail,
-	.dd-images__delete,
-	.sorting-area-left,
-	.sorting-area-right {
-		pointer-events: auto;
+	* {
+		z-index: 20;
 	}
 	.sorting-area-left, .sorting-area-right {
 		position: absolute;
 		top: 0; bottom: 0;
+		z-index: 10;
 	}
 	.sorting-area-left {
 		left: 0; right: 50%;

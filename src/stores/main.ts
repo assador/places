@@ -4,6 +4,7 @@ import {
 	FirstShow,
 	PointName,
 	User,
+	Entity,
 	Point,
 	Place,
 	Route,
@@ -179,10 +180,11 @@ export const useMainStore = defineStore('main', {
 				altitude: null,
 				time: new Date().toISOString().slice(0, -5),
 				common: false,
+				enabled: true,
+				show: true,
 				added: false,
 				deleted: false,
 				updated: false,
-				show: true,
 			};
 		},
 		_defaultPlace(): Place {
@@ -200,14 +202,15 @@ export const useMainStore = defineStore('main', {
 				pointid: '',
 				link: '',
 				time: new Date().toISOString().slice(0, -5),
-				srt: nextSrt,
-				common: false,
-				geomark: true,
 				images: {},
+				srt: nextSrt,
+				geomark: true,
+				common: false,
+				enabled: true,
+				show: true,
 				added: false,
 				deleted: false,
 				updated: false,
-				show: true,
 			};
 		},
 		_defaultRoute(): Route {
@@ -226,14 +229,15 @@ export const useMainStore = defineStore('main', {
 				description: '',
 				link: '',
 				time: new Date().toISOString().slice(0, -5),
-				srt: nextSrt,
-				common: false,
-				geomarks: 1,
 				images: {},
+				srt: nextSrt,
+				geomarks: 1,
+				common: false,
+				enabled: true,
+				show: true,
 				added: false,
 				deleted: false,
 				updated: false,
-				show: true,
 			};
 		},
 		_defaultFolder(): Folder {
@@ -244,18 +248,21 @@ export const useMainStore = defineStore('main', {
 			return {
 				type: 'folder',
 				id: crypto.randomUUID(),
-				parent: null,
 				userid: this.user?.id,
+				parent: null,
 				context: 'places',
 				name: '',
 				description: '',
 				srt: nextSrt,
 				geomarks: 1,
 				builded: false,
+				common: false,
+				open: false,
+				enabled: true,
+				show: true,
 				added: false,
 				deleted: false,
 				updated: false,
-				open: true,
 			};
 		},
 
@@ -1651,7 +1658,7 @@ export const useMainStore = defineStore('main', {
 			) => {
 				switch (object.type) {
 					case 'place':
-						object['geomark'] = show;
+						object['geomark'] = Boolean(show);
 						return;
 					case 'route':
 						object['geomarks'] = !show ? 0 : 1;
@@ -1806,6 +1813,11 @@ export const useMainStore = defineStore('main', {
 
 // SEC Other
 
+		collectModified<T extends Entity>(collection: Record<string, T>): T[] {
+			return Object.values(collection).filter(i =>
+				(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
+			);
+		},
 		changeLang(lang) {
 			const getLang = () => import(`@/lang/${lang}.ts`);
 			getLang().then(l => {
@@ -2082,18 +2094,10 @@ export const useMainStore = defineStore('main', {
 		},
 		getAllModifiedPackage(): DataToDB {
 			return {
-				points: Object.values<Point>(this.points).filter(i =>
-					(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
-				),
-				places: Object.values<Place>(this.places).filter(i =>
-					(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
-				),
-				routes: Object.values<Route>(this.routes).filter(i =>
-					(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
-				),
-				folders: Object.values<Folder>(this.folders).filter(i =>
-					(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
-				),
+				points: this.collectModified(this.points),
+				places: this.collectModified(this.places),
+				routes: this.collectModified(this.routes),
+				folders: this.collectModified(this.folders),
 			};
 		},
 		getDistance() {

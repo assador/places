@@ -23,13 +23,22 @@ export interface PointName {
 	name?: string,
 	description?: string,
 }
-export interface Folder {
+export interface Entity {
 	type: string;
+	id: string | null;
+	userid: string;
+	common: boolean;
+	enabled: boolean;
+	show: boolean;
+	added: boolean;
+	deleted: boolean;
+	updated: boolean;
+}
+export interface Folder extends Entity {
+	type: 'folder';
 	context: string;
 	virtual?: boolean;
-	id: string;
 	parent: string | null;
-	userid: string;
 	name: string;
 	description?: string;
 	srt: number;
@@ -41,44 +50,31 @@ export interface Folder {
 	open: boolean;
 	children?: Record<string, Folder>;
 }
-export interface Point {
+export interface Point extends Entity {
 	type: 'point';
 	id: string;
-	userid: string;
 	latitude: number;
 	longitude: number;
 	altitude?: number | null;
 	time?: string;
-	common: boolean;
-	added: boolean;
-	deleted: boolean;
-	updated: boolean;
-	show: boolean;
 }
-export interface Place {
+export interface Place extends Entity {
 	type: 'place';
 	id: string;
 	folderid: string;
-	userid: string;
 	pointid: string;
 	name: string;
 	description?: string;
 	link?: string;
 	time?: string;
 	srt: number;
-	common: boolean;
 	geomark: boolean;
 	images?: Record<string, Image>;
-	added: boolean;
-	deleted: boolean;
-	updated: boolean;
-	show: boolean;
 }
-export interface Route {
-	type: string;
+export interface Route extends Entity {
+	type: 'route';
 	id: string;
 	folderid: string;
-	userid: string;
 	points: PointName[];
 	choosing: number | null;
 	name: string;
@@ -86,13 +82,8 @@ export interface Route {
 	link?: string;
 	time?: string;
 	srt: number;
-	common: boolean;
 	geomarks: number;
 	images?: Record<string, Image>;
-	added: boolean;
-	deleted: boolean;
-	updated: boolean;
-	show: boolean;
 }
 export interface Image {
 	type: string;
