@@ -92,9 +92,9 @@
 		</div>
 		<div
 			v-if="
-				type === 'temps' && Object.keys(mainStore.temps).length > 0 ||
-				type === 'route' && mainStore.currentRoute.points.length > 0 ||
-				type === 'measure' && mainStore.measure.points.length > 0
+				type === 'temps' && Object.keys(mainStore.temps).length ||
+				type === 'measure' && mainStore.measure.points.length ||
+				type === 'route' && mainStore.currentRoute?.points.length
 			"
 			class="points-info"
 		>
@@ -258,8 +258,9 @@
  
 			<button
 				v-else-if="type === 'route'"
-				v-for="(pn, idx) in mainStore.currentRoute.points.filter(
-					p => !mainStore.getPointById(p.id).deleted
+				v-for="(pn, idx) in mainStore.currentRoute?.points.filter(p =>
+					mainStore.getPointById(p.id) &&
+					!mainStore.getPointById(p.id).deleted
 				)"
 				:key="pn.id"
 				:data-entity-id="pn.id"

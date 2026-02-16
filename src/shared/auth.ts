@@ -16,6 +16,10 @@ export const loginRoutine = async (
 				sessionStorage.clear();
 				login.message = voc.m.paged.wrongLoginPassword;
 				break;
+			case 1 :
+				sessionStorage.clear();
+				login.message = voc.m.paged.wrongLoginPassword;
+				break;
 			default :
 				if (typeof data === 'object') {
 					sessionStorage.setItem('places-useruuid', data.id);

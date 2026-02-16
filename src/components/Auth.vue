@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.3.3 alpha</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />{{ constants.version }}</p>
 		</div>
 		<Dashboard />
 		<div class="auth-forms">
@@ -210,6 +210,7 @@ import { ref, inject, nextTick, onBeforeMount, onMounted, onUpdated } from 'vue'
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import {
+	constants,
 	reg,
 	login,
 	forgot,

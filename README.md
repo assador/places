@@ -1,9 +1,7 @@
 # The Places (Geo-Organizer)
-[Русский версия](README.ru.md)
+**v6.3.3 alpha** | [Русский версия](README.ru.md) | [User manual](MANUAL.md)
 
-[User manual](MANUAL.md)
-
-**v6.3.3 alpha** A personal service for managing geomarks, routes, and photo albums.  
+ A personal service for managing geomarks, routes, and photo albums.  
 **Demo:** [places.scrofa-tridens.ru](https://places.scrofa-tridens.ru)
 
 ## Description

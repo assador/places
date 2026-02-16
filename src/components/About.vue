@@ -1,7 +1,7 @@
 <template>
 	<div class="popup-text about" @click.stop>
 		<h1 id="manual-top">Места</h1>
-		<p>Версия: 6.3.3 alpha</p>
+		<p>{{ constants.version }}</p>
 		<ol>
 			<li><a href="#1-%D0%BD%D0%B0%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D0%B5">Назначение</a></li>
 			<li><a
@@ -534,6 +534,10 @@
 		<p><a href="#manual-top">Наверх</a></p>
 	</div>
 </template>
+
+<script setup lang="ts">
+import { constants } from '@/shared/constants';
+</script>
 
 <style lang="scss" scoped>
 ol {
