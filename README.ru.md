@@ -1,7 +1,7 @@
 # Места (ГеоОрганайзер)
 [English version](README.md)
 
-**v6.3.2 alpha**  
+**v6.3.3 alpha**  
 Персональный сервис для управления геометками, маршрутами и фотоальбомами.  
 **Демо:** [places.scrofa-tridens.ru](https://places.scrofa-tridens.ru)
 

@@ -4,7 +4,7 @@
 			<h1 class="margin_bottom_0">
 				{{ mainStore.t.i.brand.header }}
 			</h1>
-			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.3.2 alpha</p>
+			<p>{{ mainStore.t.i.brand.slogan }}<br />v6.3.3 alpha</p>
 		</div>
 		<Dashboard />
 		<div class="auth-forms">
@@ -185,7 +185,10 @@
 		<div>
 			<button
 				:title="mainStore.t.i.hints.about"
-				@click="router.push({name: 'AuthText', params: {what: 'about'}})"
+				@click="router.push({
+					name: 'AuthText',
+					params: { what: 'about' },
+				})"
 			>
 				{{ mainStore.t.i.buttons.whatIsIt }}
 			</button>
