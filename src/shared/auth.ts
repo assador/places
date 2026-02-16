@@ -14,7 +14,7 @@ export const loginRoutine = async (
 		switch (data) {
 			case 0 :
 				sessionStorage.clear();
-				login.message = voc.m.paged.wrongLoginPassword;
+				login.message = voc.m.paged.authError;
 				break;
 			case 1 :
 				sessionStorage.clear();

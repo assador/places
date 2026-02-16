@@ -44,25 +44,15 @@ function checkSession(AppContext $ctx, string $sessionid): bool {
 	return (count($result) > 0 ? true : false);
 }
 function getById(AppContext $ctx, string $table, string $id) {
-	$sql = "
-		SELECT * FROM :table WHERE id = :id
-	";
+	$sql = "SELECT * FROM `$table` WHERE id = :id LIMIT 1";
 	$stmt = $ctx->db->prepare($sql);
-	$stmt->execute([
-		":table" => $table,
-		":id"    => uuidToBin($id),
-	]);
+	$stmt->execute([ ":id" => uuidToBin($id) ]);
 	return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 function deleteById(AppContext $ctx, string $table, string $id): void {
-	$sql = "
-		DELETE FROM :table WHERE id = :id
-	";
+	$sql = "DELETE FROM `$table` WHERE id = :id LIMIT 1";
 	$stmt = $ctx->db->prepare($sql);
-	$stmt->execute([
-		":table" => $table,
-		":id"    => uuidToBin($id),
-	]);
+	$stmt->execute([ ":id" => uuidToBin($id) ]);
 }
 function pointByCoords(AppContext $ctx, float $latitude, float $longitude) {
 	$stmt = $ctx->db->prepare("

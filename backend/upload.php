@@ -32,7 +32,7 @@ if (testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
 		IN (
 			SELECT `group`
 			FROM `usergroup`
-			WHERE `user` = ':userid'
+			WHERE `user` = :userid
 		)
 		AND `system` = 1
 	");

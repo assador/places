@@ -119,5 +119,5 @@ $rights = array(
 	),
 );
 function empty2null($variable) {
-	return (trim($variable) == "") ? NULL : $variable;
+	return (trim($variable) == "") ? null : $variable;
 }
