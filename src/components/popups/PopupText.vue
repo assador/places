@@ -1,6 +1,7 @@
 <template>
 	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
-		<About v-if="props.what === 'about'" />
+		<About v-if="props.what === 'about' && mainStore.lang === 'ru'" />
+		<AboutEn v-if="props.what === 'about' && mainStore.lang === 'en'" />
 		<a
 			href="javascript:void(0)"
 			class="close"
@@ -13,8 +14,10 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import About from '@/components/About.vue';
+import AboutEn from '@/components/AboutEn.vue';
 
 export interface IPlacesPopupTextProps {
 	what?: string;
@@ -25,6 +28,7 @@ const props = withDefaults(defineProps<IPlacesPopupTextProps>(), {
 
 const popuped = ref(false);
 
+const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 

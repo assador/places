@@ -1,412 +1,297 @@
-# Места
-Версия: 6.3.3 alpha
-
-- [Места](#места)
-	- [1. Назначение](#1-назначение)
-	- [2. Концепция системы](#2-концепция-системы)
-		- [Точка (Point)](#точка-point)
-		- [Место (Place)](#место-place)
-		- [Маршрут (Route)](#маршрут-route)
-		- [Папка (Folder)](#папка-folder)
-		- [Изображения (Images)](#изображения-images)
-		- [Независимые точки](#независимые-точки)
-		- [Активные точки](#активные-точки)
-	- [3. Режимы работы](#3-режимы-работы)
-		- [3.1 Нормальный режим](#31-нормальный-режим)
-		- [3.2 Режим маршрутов](#32-режим-маршрутов)
-		- [3.3 Режим линейки](#33-режим-линейки)
-	- [4. Интерфейс](#4-интерфейс)
-		- [4.1 Верхняя панель (шапка)](#41-верхняя-панель-шапка)
-			- [4.1.1 Левая верхняя область — кнопки-переключатели:](#411-левая-верхняя-область-кнопки-переключатели)
-			- [4.1.2 Правая верхняя область — кнопки глобальных действий:](#412-правая-верхняя-область-кнопки-глобальных-действий)
-			- [4.1.3 Средняя верхняя область](#413-средняя-верхняя-область)
-		- [4.2 Основная область](#42-основная-область)
-			- [4.2.1 Левая панель — структура](#421-левая-панель--структура)
-			- [4.2.2 Правая панель — просмотр/редактирование](#422-правая-панель--просмотрредактирование)
-			- [4.2.3 Центральная область — карта](#423-центральная-область-карта)
-		- [4.3 Нижняя панель (подвал)](#43-нижняя-панель-подвал)
-			- [4.3.1 Левая нижняя область — кнопки-переключатели:](#431-левая-нижняя-область-кнопки-переключатели)
-			- [4.3.2 Основная нижняя область](#432-основная-нижняя-область)
-	- [5. Принципы хранения и порядка](#5-принципы-хранения-и-порядка)
-		- [Разделение данных и порядка](#разделение-данных-и-порядка)
-		- [Явное сохранение изменений](#явное-сохранение-изменений)
-	- [6. Базовый сценарий работы](#6-базовый-сценарий-работы)
-		- [Создание места](#создание-места)
-		- [Создание маршрута](#создание-маршрута)
-		- [Работа с изображениями](#работа-с-изображениями)
-	- [7. Архитектурные особенности](#7-архитектурные-особенности)
-		- [Удаление и безопасность данных](#удаление-и-безопасность-данных)
-		- [Принцип сохранения](#принцип-сохранения)
-	- [8. Текущий статус](#8-текущий-статус)
+# The Places
+Version: 6.3.3 alpha
+
+- [1. Purpose](#1-purpose)
+- [2. System Concept](#2-system-concept)
+	- [Point (Point)](#point-point)
+	- [Place (Place)](#place-place)
+	- [Route (Route)](#route-route)
+	- [Folder (Folder)](#folder-folder)
+	- [Images (Images)](#images-images)
+	- [Independent Points](#independent-points)
+	- [Active Points](#active-points)
+- [3. Operating Modes](#3-operating-modes)
+	- [3.1 Normal Mode](#31-normal-mode)
+	- [3.2 Route Mode](#32-route-mode)
+	- [3.3 Ruler Mode](#33-ruler-mode)
+- [4. Interface](#4-interface)
+	- [4.1 Top Panel (Header)](#41-top-panel-header)
+		- [4.1.1 Left-Top Area — Toggle Buttons](#411-left-top-area--toggle-buttons)
+		- [4.1.2 Right-Top Area — System Buttons](#412-right-top-area--system-buttons)
+		- [4.1.3 Center Area](#413-center-area)
+	- [4.2 Main Area](#42-main-area)
+		- [4.2.1 Left Panel — Hierarchy and Structure](#421-left-panel--hierarchy-and-structure)
+		- [4.2.2 Right Panel — Content and Editing](#422-right-panel--content-and-editing)
+		- [4.2.3 Center — The Map](#423-center--the-map)
+	- [4.3 Bottom Panel (Footer)](#43-bottom-panel-footer)
+		- [4.3.1 Left side](#431-left-side)
+		- [4.3.2 Right side](#432-right-side)
+- [5. Storage and Ordering Principles](#5-storage-and-ordering-principles)
+- [6. Basic Workflow](#6-basic-workflow)
+	- [Creating a Place](#creating-a-place)
+	- [Creating a Route](#creating-a-route)
+	- [Working with Images](#working-with-images)
+- [7. Architectural Features](#7-architectural-features)
+	- [Deletion and Data Safety](#deletion-and-data-safety)
+	- [Saving Principle](#saving-principle)
+- [8. Current Status](#8-current-status)
 
-## 1\. Назначение
+## 1. Purpose
 
-**Места** — это ГеоОрганайзер.  Это персональная ГИС — инструмент для систематизации личных географических данных.
+**Places** is a GeoOrganizer. It is a personal GIS — a tool for systematizing personal geographic data.
 
-Это не социальная сеть.
-Это не «карта с метками».
-Это не трекер перемещений. 
+It is not a social network.
+It is not a "map with pins."
+It is not a movement tracker.
 
-Это инструмент для осмысленного хранения и организации пространственной информации. Вы управляете не просто маркерами на карте. Вы управляете и структурируете собственные коллекции географических точек, связанных с ними мест, маршрутов и сопутствующих материалов в единую логическую модель.
+It is a tool for meaningful storage and organization of spatial information. You are not just managing markers on a map. You are managing and structuring your own collections of geographic points, associated places, routes, and related materials into a unified logical model.
 
-**Пример**:
-Бар у реки, где вы периодически встречаетесь с друзьями.
-Можно сохранить саму точку на карте, добавить описание, фотографии, а затем включить её в маршрут вечерней прогулки.
+**Example**:
+A riverside bar where you occasionally meet friends.
+You can save the point itself on the map, add a description and photos, and then include it in a route for an evening stroll.
 
-## 2\. Концепция системы
+## 2. System Concept
 
-В основе «Мест» лежит разделение сущностей. Их всего четыре:
+The core of "Places" lies in the separation of entities. There are only four:
 
-- **Точка**
-- **Место**
-- **Маршрут**
-- **Папка**
+* **Point**
+* **Place**
+* **Route**
+* **Folder**
 
-Если вы понимаете разницу между ними — вы понимаете систему.
+If you understand the difference between them, you understand the system.
 
-### Точка (Point)
+### Point (Point)
 
-Географическая координата (широта, долгота, высота).  
-Это чистые пространственные данные без описания.
+Geographic coordinates (latitude, longitude, altitude).
+These are pure spatial data without description.
 
-Точка — это конкретные географически координаты: широта, долгота, высота. Плюс её собственный уникальный идентификатор — ID.
+A Point consists of specific geographic coordinates: latitude, longitude, and altitude. Plus its own unique identifier — an ID.
 
-И не более того. Она не «принадлежит» месту или маршруту. Она о них даже не знает.
-Она существует сама по себе.
+Nothing more. It doesn't "belong" to a place or a route. It isn't even aware of them.
+It exists on its own.
 
-Каждое Место связано с одной Точкой.  
-Маршруты состоят из последовательности Точек.
+Each Place is linked to one Point.
+Routes consist of a sequence of Points.
 
-Главный принцип:
+The main principle:
+**One Point — one geography. It can be reused multiple times.**
 
-**Одна точка — одна география. Она может использоваться многократно.**
+### Place (Place)
 
-### Место (Place)
+**Semantic description of a Point.** It contains: a name, text description, images, and a link to one specific Point. Plus a lot of other additional optional information you might want to add.
 
-**Смысловое описание Точки**.
+When a Place is created, the system automatically creates a new Point and "links" this Place to it. This technical detail is hidden from the user to simplify the interface. The **Place itself does not store geographic coordinates**. It is the meaning, the meta-description of a specific location in your life, which naturally has its own geography (the Point).
 
-Содержит:
+**Example**:
+"The gazebo where we first kissed Masha."
+You can save this place (already with a Point on the map), add a description and photos, and then include it in a "nostalgic evening stroll" route. Technically, when you include a Place in a route, it is the associated Point that is added, not the Place itself.
 
-- название,
-- текстовое описание,
-- изображения,
-- привязку к одной конкретной Точке.
+### Route (Route)
 
-И много ещё разной дополнительной необязательной информации, которую вы захотите добавить.
+**An ordered sequence of Points.**
+Features:
 
-При создании Места система автоматически создаёт новую Точку и «привязывает» это Место к этой точке. Эта техническая деталь скрыта от пользователя для упрощения интерфейса.
+* The same Point can be included in a Route multiple times.
+* A Route doesn't copy coordinates; it stores links to existing Points.
+* The order of Points matters.
 
-Само **Место не хранит географических координат**. Это смысл, метаописание именно места в вашей жизни. У которого, естественно, есть и своя география (Точка).
+This allows for building both linear routes and repetitive movement scenarios.
 
-**Пример**:
-«Беседка, в которой мы впервые поцеловались с Машей».
-Можно сохранить это место (уже с Точкой на карте), добавить описание, фотографии, а затем включить его в маршрут вечерней ностальгической прогулки.
+**Example**:
+"Friday evening stroll."
+You start from home (the Point linked to the "My Home" Place), go to a shop (Point), then a library (Point), wander through the park, and on the way back stop by the same library again (the same Point) before returning home.
 
-Технически же при включении Места в маршрут в этот маршрут попадает не само Место, а связанная с ним Точка. И таким образом, на одну и ту же Точку ссылаются уже две сущности: Место и Маршрут. И тут мы переходим к описанию Маршрутов:
+### Folder (Folder)
 
-### Маршрут (Route)
+**A hierarchical structure for organizing Places and Routes.**
+Each folder can contain:
 
-**Упорядоченная последовательность Точек**.
+* Multiple Places or Routes.
+* Other nested folders.
 
-Особенности:
+A tree model is supported, maintaining the order of elements.
 
-- одна и та же Точка может входить в Маршрут несколько раз;
-- Маршрут не копирует координаты, а хранит ссылки на существующие Точки;
-- порядок Точек имеет значение.
+Technically, **a Folder does not "contain" other Folders**. The entire hierarchy is built on the "parent link" principle. Each folder has a Parent ID. The same applies to Places and Routes. A regular user doesn't need to worry about this.
 
-Это позволяет строить как линейные маршруты, так и повторяющиеся сценарии движения.
+### Images (Images)
 
-**Пример**:
-«Вечерняя прогулка в пятницу вечером».
-Вы начинаете из дома (Точка, к которой, например, таже привязано Место «Мой дом» с фотографиями кошек и ободранных обоев), заходите в магазин купить воды (Точка), заходите в библиотеку (Точка), шатаетесь по парку (Точка, Точка, Точка…), на обратном пути опять заходите в ту же библиотеку (**та же самая Точка библиотеки**, просто ссылка на неё) и возвращаетесь домой (опять та же самая первая Точка, к которой до кучи привязано Место «Мой дом»). Ну, вот так провели вечер пятницы.
+**Photo album for a Place or a Route.**
+An ordered list of images you have uploaded.
 
-### Папка (Folder)
+* Drag & Drop is supported to change the display order of previews.
+* The display order is updated and stored in the database based on a sorting index.
+* Clicking a preview opens the image in full-screen mode with the ability to scroll through the album.
 
-**Иерархическая структура для организации Мест и Маршрутов**.
- 
-Каждая папка может содержать:
+### Independent Points
 
-- несколько Мест или Маршрутов (в зависимости от дерева, куда входит папка),
-- таких же вложенных папок.
+Temporary markers — a tool for planning.
 
-Поддерживается древовидная модель с сохранением порядка элементов. В местах есть несколько разных деревьев, состоящих из Папок — в частности, есть дерево для Мест и есть дерево для Маршрутов.
+* Not saved in the database; exist only in the current session.
+* Can be converted into permanent entities (planned feature).
 
-На самом деле, технически, **Папка не содержит в себе другие Папки, Места или Маршруты**. Вся иерархия разных деревьев строится опять же по принципу «ссылок на родителя». У каждой папки есть информация, в какую другую папку она входит (просто уникальный идентификатор, ID, этой другой папки). Так же, как и у Места или Маршрута есть такая же информация, в какую Папку они входят. Но обычному пользователю об этих технических нюансах можно не задумываться.
+### Active Points
 
-### Изображения (Images)
+There are "current" (active) entities in the system: Place, Route, Point.
+Active markers are displayed in green. Activity for Places and Routes is independent.
 
-**Фотоальбом Места или Маршрута**.
+## 3. Operating Modes
 
-Упорядоченный список загруженных вами к конкретному месту или маршруту картинок — фотографий, например. К тому же Месту «Мой дом» — подранные обои, кошки, «порядок» в кухонной раковине.
+The system has three modes: **Normal**, **Routes**, and **Ruler**.
+The mode determines the map behavior and Right-Click (RMB) actions.
 
-Поддерживается перетаскивание (Drag & Drop) для изменения порядка.
+### 3.1 Normal Mode
 
-Порядок изображений хранится по порядковый индексу каждого изображения, но пользователь просто видит готовый отсортированный список «превьюшек» этих изображений в фотоальбоме Места или Маршрута.
+Working with Places and temporary Points.
 
-При клике на превьюшку изображение открывается во всё окно браузера. При наведении мышки на левую и правую части изображения показываются стрелки — можно листать к предыдущей фотографии или следующей.
+* RMB on empty space: Creates a Point.
+* RMB on an existing Point: Shows coordinate information.
 
-### Независимые точки
+### 3.2 Route Mode
 
-Независимые точки — временные маркеры. Это быстрый инструмент для планирования и эксперимента без фиксации данных.
+Working with the current Route.
 
-Они:
-- не сохраняются в базе;
-- существуют только в текущей сессии;
-- могут использоваться для построения маршрутов;
-- могут быть преобразованы в постоянные сущности (планируется).
+* RMB on empty space or an existing Point: Adds it to the end of the route.
 
-Это способ быстро отметить что-то на карте без создания Места.
+### 3.3 Ruler Mode
 
-### Активные точки
+A service route for measuring distances.
 
-В системе есть активные (текущие) сущности:
+* Not saved in the database.
+* Allows you to quickly find the distance of a path without creating a permanent Route.
 
-- текущее Место
-- текущий Маршрут
-- текущая Точка
+## 4. Interface
 
-Активные маркеры отображаются зелёным.
-Для Мест и для Маршрутов активность независима.
+The application interface is divided into functional zones.
 
-## 3\. Режимы работы
+### 4.1 Top Panel (Header)
 
-Система имеет три режима:
+The header contains the main controls and settings.
 
-- Нормальный
-- Маршруты
-- Линейка
+#### 4.1.1 Left-Top Area — Toggle Buttons
 
-Режим определяет поведение карты и правой кнопки мыши.
+* **Places**: Toggle the visibility of the Places layer on the map.
+* **Routes**: Toggle the visibility of the Routes layer on the map.
+* **Points**: Toggle the visibility of the Points layer on the map.
+* **Radius**: Utility for circular area selection.
+* **Folder Names**: Toggle the display of folder names directly on the map.
+* **Mode Switcher**: Selection between **Normal**, **Route**, and **Ruler** (measuring) modes.
 
-### 3.1 Нормальный режим
+#### 4.1.2 Right-Top Area — System Buttons
 
-**Работа с Местами и временными («независимыми») Точками**.
+* **Undo / Redo**: Buttons to revert or repeat the last actions performed in the current session.
+* **Save**: The most important button. It initiates the batch synchronization of all changes made in the current session with the database.
+* **PWA / Install**: Button to install "Places" as a standalone application on your device.
+* **Export / Import**: Tools for working with external data formats (**GPX**, **JSON**).
+* **Help**: Opens this manual.
+* **Logout**: End the current session.
 
-- ПКМ (Правая Кнопка Мыши) по пустому месту карты — создаётся временная Точка.
-- ПКМ по существующей Точке — всплывающая информация о координатах с возможностью скопировать их в буфер обмена.
+#### 4.1.3 Center Area
 
-### 3.2 Режим маршрутов
+* **Profile**: Link to account settings (password change, e-mail management, account deletion).
+* **Language**: Toggle between **RU** (Russian) and **EN** (English).
+* **Theme**: Switch between **Dark** and **Light** interface themes.
 
-**Работа с текущим Маршрутом**.
+### 4.2 Main Area
 
-- ПКМ по пустому месту карты — создание и добавление новой Точки в текущий маршрут.
-- ПКМ по любой существующей Точке (Места, Маршрута, временной) — добавление её в маршрут.
+#### 4.2.1 Left Panel — Hierarchy and Structure
 
-Точка добавляется в конец списка.
+* **Search**: Quick search for entities by name.
+* **Radius Control**: Settings for the radius utility.
+* **Ruler Points**: List of points for the current measurement in Ruler mode.
+* **Folders Tree**: The main navigation tool through the hierarchy. Each folder has:
+* **Visibility Eye**: Toggle visibility for the folder's content on the map.
+* **Plus (+)**: Add a Place, Route, or Subfolder inside this folder.
+* **Delete (X)**: Remove the folder. When deleting, you can choose to transfer its content to the parent folder.
 
-### 3.3 Режим линейки
+#### 4.2.2 Right Panel — Content and Editing
 
-Линейка — служебный маршрут для измерения расстояний.
+* Appears only when a specific entity (Place or Route) is selected.
+* **Input Fields**: Name, description, external links.
+* **Coordinates**: Display and manual editing of the Point's location.
+* **System Fields**: Sorting index (`srt`) and the "Public" flag (visible to everyone or private).
+* **Photo Album**: Section for uploading and managing images.
 
-Она, аналогично независимым Точкам (которые, кстати, и использует):
+#### 4.2.3 Center — The Map
 
-- не сохраняется в базе данных,
-- живёт только в рамках сессии.
+Interactive area powered by **OpenStreetMap** or **Yandex Maps**. Displays all active and visible entities.
 
-ПКМ работает так же, как в режиме Маршрутов, но данные не сохраняются.
+### 4.3 Bottom Panel (Footer)
 
-Нужен этот режим, если вы просто захотели узнать расстояние, скажем, от одного места на карте (будь то просто произвольное место, или уже существующее Место или Точка Маршрута) до другого. А оттуда, например, ещё до Питера.
+#### 4.3.1 Left side
 
-В общем, чтобы просто посмотреть расстояние какого-то пути без необходимости заводить специальный Маршрут.
+**Show Own / Show All**: Independent toggle buttons to show only your markers/routes or all public data available in the system.
 
-## 4\. Интерфейс
+#### 4.3.2 Right side
 
-Экран разделён на три колонки и три строки:
+* Dropdown to select the map engine (**OSM**, **Yandex**).
+* Real-time display of the coordinates of the map center.
 
-### 4.1 Верхняя панель (шапка)
+## 5. Storage and Ordering Principles
 
-Здесь находится:
+**Data vs. Order**: Elements are stored by ID. Display order is determined by the `srt` field. This ensures stability during synchronization and independence from JS object ordering.
 
-#### 4.1.1 Левая верхняя область — кнопки-переключатели:
+**Explicit Saving**: An "offline-first" / "deferred saving" model. Changes are marked as "dirty" and sent to the server only when the "Save" button is clicked. This provides control over transactions and allows for batch updates.
 
-- **Места**, **Маршруты**, **Точки** — при клике по этим кнопкам на карте показываются или скрываются все маркеры соответственно Мест, Маршрутов или отдельных «независимых» Точек;
-- **Радиус** — при клике по этой кнопке в левой колоке основной области ниже показывается или скрывается панель соответствующей «утилиты»; там можно ввести количество километров вокруг активной выделенной точки (будь то Точка Места, Точка Маршрута или независимая Точка), и на карте показываются только маркеры, находящиеся в радиусе этого количества километров;
-- **Папки** — переключение режима отображения Папок в деревьях Мест и маршрутов; при нажатой кнопке «Папки» вместо просто названий папок показываются поля ввода этих названий, а также поля их описаний;
-- **Нормальный**, **Маршруты**, **Линейка** — кнопки переключения одного из трёх основных режимов работы сервиса, описанных выше.
+## 6. Basic Workflow
 
-#### 4.1.2 Правая верхняя область — кнопки глобальных действий:
+### Creating a Place
 
-- **Отменить**, **Вернуть** — ГеоОрганайзер поддерживает систему «undo/redo», систему отмены/возврата изменений;
-- **Сохранить** — кнопка сохранения сделанных изменений в базу данных. Изменения сохраняются **только вручную** и **только по этой кнопке**. Если есть несохранённые изменения, кнопка «Сохранить» активируется. При попытке выйти, не сохранив изменения, во всплывающем окне появится запрос подтверждения;
-- **Приложение** — по клике на кнопку вы сможете установить приложение ГеоОрганайзера «Места» к себе на мобильное устройство или ПК/ноутбук.
-- **Экспорт**, **Импорт** — система поддерживает импорт и экспорт точек в форматах GPX и JSON; вы можете, например, импортировать точки из вашего навигатора; или экспортировать места из ГеоОрганайзера в файл одного из этих форматов, чтобы скинуть их по почту другу;
-- Справка — этот мануал;
-- Выход — закончить рабочую сессию, разлогиниться; при этом вся ваша личная информация из памяти браузера (localStorage) удаляется; только из памяти браузера, не волнуйтесь, не из базы данных.
+1. Add a Place (into a folder or after another item).
+2. Fill in the data in the right panel.
+3. Add photos.
+4. Save.
 
-#### 4.1.3 Средняя верхняя область
+### Creating a Route
 
-Здесь находятся:
+1. Create a Route in the left column.
+2. Fill it with points via RMB on the map or buttons in the list.
+3. Adjust the order in the right panel if necessary by dragging Point buttons in their list.
+4. Save.
 
-- Ссылка с вашим именем (или логином, если вы не указывали имя при регистрации). По клику на ней всплывает контекстное меню с пунктами **Профиль** и **Выход**. По ссылке «Профиль» вы перейдёте на страницу вашего аккаунта, где можно менять информацию о себе: сменить свой пароль, добавить e-mail или номер телефона и т.д. А также удалить свой аккаунт из системы :(.
-- Выпадающий список текущего языка интерфейса. Сейчас поддерживаются только русский и английский.
-- Выпадающий список цветовых тем интерфейса.
+A Point can be added multiple times — the system does not create duplicates.
 
-### 4.2 Основная область
+### Working with Images
 
-#### 4.2.1 Левая панель — структура
+* Upload new images via the "Add Photos" button.
+* Use Drag & Drop to change the preview order.
+* The order is also synchronized with the database.
 
-Здесь отображаются:
+## 7. Architectural Features
 
-- Строка моментального поиска по названию (или его части) Места или Маршрута. При вводе в неё в соответствующих деревьях остаются показанными только Места или Маршруты, названия которых соответствуют введёному.
-- Поле ввода количества километров, в радиусе которого от текущей активной Точки показываются маркеры на карте (при нажатой соответствующей кнопке-переключателе, описанной выше).
-- Панель со списком кнопок Точек «Линейки» (если вы в соответствующем режиме) и, собственно, расстоянием между ними. Эти кнопки в списке можно сортировать между собой перетаскиванием (Drag & Drop). Соответственно, сразу меняется и значение расстояния этого «пути», и его отображение на карте.
-- Список независимых, временных, Точек.
-- Деревья Мест и Маршрутов в виде вложенных друг в друга Папок.
+* **Frontend**: Vue 3, Pinia, Axios.
+* Centralized state.
+* Frontend data model mirrors the database structure.
+* Batch synchronization of changes.
 
-В деревьях Мест и Маршрутов:    
+The system is designed with scalability and data consistency in mind.
 
-При наведении на папку появляются иконки-кнопки:
+### Deletion and Data Safety
 
-- показать/скрыть геометки,
-- добавить место/маршрут,
-- добавить подпапку,    
-- удалить папку.
+If you delete a Place or a Point from a Route:
 
-При удалении папки можно (вас об этом спросят во всплывающем окне):
+* If the corresponding Point is no longer used anywhere else, it is deleted.
+* If it is still in use, it remains in the database.
 
-- удалить всё содержимое
-- или перенести его в корневую папку.
+### Saving Principle
 
-При наведении на Место или Маршрут появляются иконки-кнопки:
+All changes (addition, modification, deletion) are first accumulated in memory.
+Only clicking the "Save" button in the top right writes them to the database.
 
-- показать/скрыть маркер(ы),
-- добавить элемент после текущего,
-- удалить.
+This allows you to:
 
-#### 4.2.2 Правая панель — просмотр/редактирование
+* Work fast.
+* Undo actions.
+* Control the moment of data commitment.
 
-Здесь располагается подробная информация о текущем выделенном Месте и текущем выделенном Маршруте. Она представлена в большинстве своём прямо в соответствующих полях ввода, так что вы её не только видите, но и можете сразу изменить.
+## 8. Current Status
 
-Основныы поля:
+Version 6.3.3 alpha.
 
-- Название
-- Описание
-- Координаты — мы же помним, что сами Места и Маршруты не хранят координаты; показываются координаты связанной с Местом Точки или связанной с Маршрутом текущей активной, выделенной Точки из его списка
-- Ссылка — ну, мало ли, может статья в Википедии об этой «библиотеке»
-- Сортировка — число, в соответствии с которым упорядочиваются Места и Маршруты в их деревьях в левой колонке
-- Видимость Места или Маршрута другим — ГеоОрганайзер поддерживает функцию «опубличивания» Мест или Маршрутов. Если поставить эту галку, другие пользователи смогут видеть это Место или Маршрут на карте, смотреть (но не менять, естественно!) информацию о нём
-- Фотографии — превьюшки фотоальбома Места или Маршрута
-- Домашнее место — эта галка отвечает за то, какое место будет выделенным, активным, при входе в ГеоОрганайзер; обычно это какое-то ваше основное место, дом, например; просто для удобства
+Main functionality is stable:
 
-Изменения применяются немедленно в интерфейсе, но сохраняются в базе данных только после нажатия кнопки «Сохранить».
-
-#### 4.2.3 Центральная область — карта
-
-Поддерживаются карты OpenStreetMap и Яндекс.Карты.
-
-### 4.3 Нижняя панель (подвал)
-
-Здесь находится:
-
-#### 4.3.1 Левая нижняя область — кнопки-переключатели:
-
-- **Показать / скрыть все свои геометки** — все маркеры Мест, независимых Точек, Точек Маршрутов на карте; иногда хочется просто поразглядывать карту
-- **Показвть / скрыть все другие места** — все маркеры на карте Мест других пользователей, которые они сделали «публичными», а также их список в левой колонке
-- **Показвть / скрыть все другие геометки** — все маркеры на карте Мест других пользователей, которые они сделали «публичными», но оставить их список в левой колонке
-- **Показвть / скрыть все другие маршруты** — все маркеры на карте Маршрутов других пользователей, которые они сделали «публичными»
-- **Показвть / скрыть метку центра карты** — это перекрестие в центре карты; оно тоже перетаскивается мышкой, а если вы «перетаскиваете» саму карту, следит за её текущим центром и «прыгает» в него; вручную координаты центра можно набрать числами в этом же подвале правее:
-
-#### 4.3.2 Основная нижняя область
-
-Здесь располагается выпадающий список выбора карты — OpenStreetMap или Яндекс.Карты — и координаты центра карты.
-
-## 5\. Принципы хранения и порядка
-
-### Разделение данных и порядка
-
-Элементы хранятся в виде объектов с доступом по ID.  
-Порядок отображения определяется не порядком хранения, а отдельным полем `srt`.
-
-Это обеспечивает:
-
-- предсказуемость,
-- устойчивость при синхронизации,
-- корректную работу после перезагрузки,
-- независимость от особенностей JavaScript-объектов.
-
-### Явное сохранение изменений
-
-Система использует модель «отложенного сохранения».
-
-Изменения помечаются как изменённые (dirty), но не отправляются на сервер автоматически.  
-Пользователь подтверждает сохранение вручную по **одной-единственной кнопке «Сохранить»** в правом верхнем углу окна. И только так!
-
-Это даёт:
-
-- контроль над транзакцией,
-- возможность пакетных изменений,
-- предсказуемое поведение интерфейса.
-
-## 6\. Базовый сценарий работы
-
-### Создание места
-
-1.  Создать Место. Если нажать «Добавить» у папки — Место создаётся в конце списка этой папки. Если нажать «Добавить» у конкретного Места — новое создаётся сразу после него. Точка создаётся автоматически в текущем центре карты.
-2.  Ввести название, описание, другую информацию в правой колонке.
-3.  Добавить фотографии.
-5.  Нажать «Сохранить» для сохранения изменений.
-
-### Создание маршрута
-
-1.  Создать Маршрут кликом по кнопке-иконке с плюсом в заголовке дерева Маршрутов в левой колонке.
-2.  Ввести название, описание, другую информацию в правой колонке, добавить фотографии.
-3.  Добавить Точки (кнопкой в списке точек Маршрута в правой колонке или кликом ПКМ на пустом месте на карте).
-6.  При необходимости поправить местоположение Точек перетаскиванием маркеров на карте.
-7.  При необходимости изменить порядок Точек перетаскиванием кнопок Точек в их списке в правой колонке.
-8.  Сохранить изменения.
-
-Точка может быть добавлена повторно — система не создаёт её дубликат.
-
-### Работа с изображениями
-
-- Загрузить новые изображения по кнопке «Добавить фотографии».
-- Поддерживается Drag & Drop для изменения порядка отображения превьюшек.
-- Порядок отображения обновляется также сохраняется в базе данных.
-
-## 7\. Архитектурные особенности
-
-- Frontend: Vue 3, Pinia, Axios.
-- Состояние централизовано.
-- Модель данных фронтенда отражает структуру базы данных.
-- Используется пакетная синхронизация изменений.
-
-Система спроектирована с учётом масштабируемости и консистентности данных.
-
-### Удаление и безопасность данных
-
-Если удалить Место или Точку из Маршрута:
-
-- Если соответствующая Точка больше нигде не используется — она удаляется.
-- Если используется — остаётся.
-
-### Принцип сохранения
-
-Все изменения:
-
-- добавление
-- изменение
-- удаление
-
-сначала накапливаются в памяти.
-
-Только при нажатии кнопки «Сохранить» в правой верхней области они записываются в базу данных.
-
-Это позволяет:
-
-- работать быстро,
-- отменять действия,
-- контролировать момент фиксации данных.
-
-## 8\. Текущий статус
-
-Версия 6.3.3 alpha.
-
-Основной функционал стабилен:
-
-- создание и редактирование сущностей;
-- иерархическая организация;
-- маршруты с упорядоченными точками;
-- сортировка изображений;
-- пакетное сохранение.
-
-Ведётся дальнейшая работа по улучшению UX и оптимизации внутренних механизмов.
+* Entity creation and editing.
+* Hierarchical organization.
+* Routes with ordered points.
+* Image sorting.
+* Batch saving.

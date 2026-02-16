@@ -1,5 +1,6 @@
 # The Places (Geo-Organizer)
 [Русский версия](README.ru.md)
+
 [User manual](MANUAL.md)
 
 **v6.3.3 alpha** A personal service for managing geomarks, routes, and photo albums.  
