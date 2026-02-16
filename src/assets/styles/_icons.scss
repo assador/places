@@ -23,9 +23,12 @@
 	&-ruler::before { mask-image: url('@/assets/icons/ruler.svg'); }
 	&-route::before { mask-image: url('@/assets/icons/route.svg'); }
 	&-plus-circled::before { mask-image: url('@/assets/icons/plus-circled.svg'); }
+	&-plus-circled-folder::before { mask-image: url('@/assets/icons/plus-circled-folder.svg'); }
 	&-minus-circled::before { mask-image: url('@/assets/icons/minus-circled.svg'); }
+	&-minus-circled-folder::before { mask-image: url('@/assets/icons/minus-circled-folder.svg'); }
 	&-cross::before { mask-image: url('@/assets/icons/cross.svg'); }
 	&-cross-45-circled::before { mask-image: url('@/assets/icons/cross-45-circled.svg'); }
+	&-cross-45-circled-folder::before { mask-image: url('@/assets/icons/cross-45-circled-folder.svg'); }
 	&-geomark-0-circled::before { mask-image: url('@/assets/icons/circle.svg'); }
 	&-geomark-1::before { mask-image: url('@/assets/icons/geomark-1.svg'); }
 	&-geomark-2::before { mask-image: url('@/assets/icons/geomark-2.svg'); }

@@ -167,7 +167,7 @@
 						}"
 					/>
 					<span
-						class="folder-button__control icon icon-plus-circled"
+						class="folder-button__control icon icon-plus-circled-folder"
 						:title="mainStore.t.i.hints.addFolderIn"
 						accesskey="f"
 						@click.stop="router.push({
@@ -179,7 +179,7 @@
 						})"
 					/>
 					<span
-						class="folder-button__control icon icon-cross-45-circled"
+						class="folder-button__control icon icon-cross-45-circled-folder"
 						:title="mainStore.t.i.buttons.deleteFolder"
 						accesskey="f"
 						@click.stop="router.push({
@@ -190,89 +190,65 @@
 				</div>
 			</div>
 			<div
-				v-if="folder.virtual && folder.context === 'places'"
+				v-if="folder.virtual && [ 'places', 'routes' ].includes(folder.context)"
 				class="control-buttons"
 			>
 				<button
-					class="button-iconed icon"
-					:class="
-						'icon-geomark-' +
-						(!folder.geomarks
-							? '0'
-							: (folder.geomarks === 1 ? '1' : '2')
-						) +
-						'-circled'
-					"
-					:title="
-						(folder.geomarks === 1
-							? mainStore.t.i.hints.hide
-							: mainStore.t.i.hints.show
-						) + ' ' +
-						mainStore.t.i.hints.onMap
-					"
-					accesskey="a"
-					@click.stop="() => {
-						mainStore.showHideGeomarks({
-							object: (folder.virtual
-								? mainStore.trees[what]
-								: folder
-							),
-							show: (folder.geomarks === 1 ? 0 : 1),
-						});
-					}"
-				/>
-				<button
 					class="button-iconed icon icon-plus-circled"
-					:title="mainStore.t.i.hints.addPlace"
+					:class="{ 'button-pressed': !Object.keys(mainStore[folder.context]).length }"
+					:title="
+						folder.context === 'places'
+							? mainStore.t.i.hints.addPlace
+							: mainStore.t.i.hints.addRoute
+					"
 					accesskey="a"
 					@click="() => {
-						mainStore.upsertPlace();
-						$nextTick(() => currentPlaceNameInputRef.focus());
-					}"
-				/>
-				<button
-					class="button-iconed icon icon-plus-circled"
-					:title="mainStore.t.i.hints.addFolder"
-					accesskey="f"
-					@click="router.push({
-						name: 'HomeFolder',
-						query: { parent: null, context: 'places' },
-					})"
-				/>
-			</div>
-			<div
-				v-else-if="folder.virtual && folder.context === 'routes'"
-				class="control-buttons"
-			>
-				<button
-					class="button-iconed icon icon-plus-circled"
-					:title="mainStore.t.i.hints.addRoute"
-					accesskey="a"
-					@click.stop="() => {
-						mainStore.upsertRoute();
-						$nextTick(() => currentRouteNameInputRef.focus());
+						if (folder.context === 'places') {
+							mainStore.upsertPlace();
+							$nextTick(() => currentPlaceNameInputRef.focus());
+						} else if (folder.context === 'routes') {
+							mainStore.upsertRoute();
+							$nextTick(() => currentRouteNameInputRef.focus());
+						}
 					}"
 				/>
 				<button
 					class="button-iconed icon icon-cross-45-circled"
-					:title="mainStore.t.i.hints.deleteRoute"
-					:disabled="!(
-						mainStore.user &&
-						mainStore.currentRoute &&
-						mainStore.currentRoute.userid === mainStore.user.id
-					)"
+					:title="
+						folder.context === 'places'
+							? mainStore.t.i.hints.deletePlace
+							: mainStore.t.i.hints.deleteRoute
+					"
+					:disabled="
+						!(mainStore.user && (
+							folder.context === 'places' &&
+							mainStore.currentPlace &&
+							mainStore.currentPlace.userid === mainStore.user.id ||
+							folder.context === 'routes' &&
+							mainStore.currentRoute &&
+							mainStore.currentRoute.userid === mainStore.user.id
+						))
+					"
 					accesskey="d"
-					@click.stop="mainStore.deleteObjects({
-						[mainStore.currentRoute.id]: mainStore.currentRoute,
-					})"
+					@click.stop="() => {
+						if (folder.context === 'places') {
+							mainStore.deleteObjects({
+								[mainStore.currentPlace.id]: mainStore.currentPlace,
+							});
+						} else if (folder.context === 'routes') {
+							mainStore.deleteObjects({
+								[mainStore.currentRoute.id]: mainStore.currentRoute,
+							});
+						}
+					}"
 				/>
 				<button
-					class="button-iconed icon icon-plus-circled"
+					class="button-iconed icon icon-plus-circled-folder"
 					:title="mainStore.t.i.hints.addFolder"
 					accesskey="f"
-					@click.stop="router.push({
+					@click="router.push({
 						name: 'HomeFolder',
-						query: { parent: null, context: 'routes' },
+						query: { parent: null, context: folder.context },
 					})"
 				/>
 			</div>

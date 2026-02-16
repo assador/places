@@ -38,7 +38,7 @@ Version: 6.3.3 alpha
 
 ## 1. Purpose
 
-**Places** is a GeoOrganizer. It is a personal GIS — a tool for systematizing personal geographic data.
+**The Places** is a GeoOrganizer. It is a personal GIS — a tool for systematizing personal geographic data.
 
 It is not a social network.
 It is not a "map with pins."
@@ -52,7 +52,7 @@ You can save the point itself on the map, add a description and photos, and then
 
 ## 2. System Concept
 
-The core of "Places" lies in the separation of entities. There are only four:
+The core of “The Places” lies in the separation of entities. There are only four:
 
 * **Point**
 * **Place**
@@ -181,7 +181,7 @@ The header contains the main controls and settings.
 
 * **Undo / Redo**: Buttons to revert or repeat the last actions performed in the current session.
 * **Save**: The most important button. It initiates the batch synchronization of all changes made in the current session with the database.
-* **PWA / Install**: Button to install "Places" as a standalone application on your device.
+* **PWA / Install**: Button to install “The Places” as a standalone application on your device.
 * **Export / Import**: Tools for working with external data formats (**GPX**, **JSON**).
 * **Help**: Opens this manual.
 * **Logout**: End the current session.

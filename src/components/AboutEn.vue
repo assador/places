@@ -64,7 +64,7 @@
 			<li><a href="#8-current-status">Current Status</a></li>
 		</ol>
 		<h2 id="1-purpose">1. Purpose</h2>
-		<p><strong>Places</strong> is a GeoOrganizer. It is a personal GIS — a tool for systematizing personal geographic data.
+		<p><strong>The Places</strong> is a GeoOrganizer. It is a personal GIS — a tool for systematizing personal geographic data.
 		</p>
 		<p>It is not a social network.
 			It is not a “map with pins.”
