@@ -57,7 +57,13 @@
 			>
 				<l-icon
 					v-bind="(
-						place === mainStore.currentPlace ? icon_01_green : icon_01
+						place.added && !place.updated
+							? icon_new
+							: (
+								place === mainStore.currentPlace
+									? icon_active
+									: icon_basic
+							)
 					) as {}"
 				/>
 				<l-tooltip permanent="true" v-if="place.name">
@@ -85,7 +91,7 @@
 						mainStore.mode === 'measure' &&
 						mainStore.measure.points.find(p => p.id === place.id) &&
 						place === mainStore.currentPlace
-							? icon_01_faded : icon_01_green_faded
+							? icon_common : icon_common_active
 					) as {}"
 				/>
 				<l-tooltip>
@@ -119,7 +125,7 @@
 						) as LatLngExpression[]
 					"
 					color="rgba(0, 0, 0, 1)"
-					:weight="0.5"
+					:weight="route === mainStore.currentRoute ? 0.6 : 0.3"
 				/>
 				<l-circle-marker
 					v-if="route.points.length"
@@ -129,7 +135,7 @@
 						) as LatLngExpression
 					"
 					class-name="route-start"
-					:radius="13"
+					:radius="route === mainStore.currentRoute ? 13 : 8"
 					:weight="1"
 				/>
 				<l-circle-marker
@@ -140,7 +146,7 @@
 						) as LatLngExpression
 					"
 					class-name="route-end"
-					:radius="13"
+					:radius="route === mainStore.currentRoute ? 13 : 8"
 					:weight="1"
 				/>
 				<template
@@ -172,8 +178,16 @@
 						@moveend="e => placemarkDragEnd(point, e)"
 					>
 						<l-icon
-							v-bind="(point === mainStore.currentPoint
-								? icon_01_green : icon_null
+							v-bind="(
+								point.added &&
+								!point.updated &&
+								point.id === route.points.at(-1).id
+									? icon_new
+									: (
+										point === mainStore.currentPoint
+											? icon_active
+											: icon_null
+									)
 							) as {}"
 						/>
 						<l-circle-marker
@@ -183,7 +197,7 @@
 							"
 							:lat-lng="[ point.latitude, point.longitude ]"
 							class-name="route-intermediate"
-							:radius="10"
+							:radius="route === mainStore.currentRoute ? 10 : 6"
 							:weight="1"
 						/>
 						<l-tooltip v-if="!popupProps.show" permanent="true">
@@ -236,9 +250,9 @@
 					>
 					<l-icon
 						v-bind="(point === mainStore.currentPoint
-							? icon_01_green
+							? icon_active
 							: (mainStore.isMeasurePoint(point.id)
-								? icon_null : icon_01_blue
+								? icon_null : icon_temp
 							)
 						) as {}"
 					/>
@@ -467,7 +481,37 @@ const ready = (): void => {
 	(map as Ref).value.leafletObject.panTo(mapCenter.value.coords);
 };
 
-const icon_01 = ref({
+const icon_null = ref({
+	iconUrl: '/img/markers/marker_null.svg',
+	iconSize: [20, 20],
+	iconAnchor: [10, 10],
+	popupAnchor: [0, -0],
+});
+const icon_center = ref({
+	iconUrl: '/img/markers/marker_center.svg',
+	iconSize: [50, 50],
+	iconAnchor: [25, 25],
+	popupAnchor: [25, -25],
+});
+const icon_new = ref({
+	iconUrl: '/img/markers/marker_01_pink.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_active = ref({
+	iconUrl: '/img/markers/marker_01_green.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_basic = ref({
 	iconUrl: '/img/markers/marker_01.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
@@ -476,8 +520,26 @@ const icon_01 = ref({
 	shadowSize: [25, 38],
 	shadowAnchor: [2, 24],
 });
-const icon_01_faded = ref({
-	iconUrl: '/img/markers/marker_01_faded.svg',
+const icon_temp = ref({
+	iconUrl: '/img/markers/marker_01_blue.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_common = ref({
+	iconUrl: '/img/markers/marker_01_grey.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_common_active = ref({
+	iconUrl: '/img/markers/marker_01_green_faded.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
 	popupAnchor: [0, -34],
@@ -496,17 +558,8 @@ const icon_01_grey = ref({
 	shadowAnchor: [2, 24],
 });
 */
-const icon_01_blue = ref({
-	iconUrl: '/img/markers/marker_01_blue.svg',
-	iconSize: [25, 38],
-	iconAnchor: [13, 38],
-	popupAnchor: [0, -34],
-	shadowUrl: '/img/markers/marker_01_shadow.svg',
-	shadowSize: [25, 38],
-	shadowAnchor: [2, 24],
-});
 /*
-const icon_01_blue_faded = ref({
+const icon_temp_faded = ref({
 	iconUrl: '/img/markers/marker_01_blue_faded.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],
@@ -516,36 +569,6 @@ const icon_01_blue_faded = ref({
 	shadowAnchor: [2, 24],
 });
 */
-const icon_null = ref({
-	iconUrl: '/img/markers/marker_null.svg',
-	iconSize: [20, 20],
-	iconAnchor: [10, 10],
-	popupAnchor: [0, -0],
-});
-const icon_01_green = ref({
-	iconUrl: '/img/markers/marker_01_green.svg',
-	iconSize: [25, 38],
-	iconAnchor: [13, 38],
-	popupAnchor: [0, -34],
-	shadowUrl: '/img/markers/marker_01_shadow.svg',
-	shadowSize: [25, 38],
-	shadowAnchor: [2, 24],
-});
-const icon_01_green_faded = ref({
-	iconUrl: '/img/markers/marker_01_green_faded.svg',
-	iconSize: [25, 38],
-	iconAnchor: [13, 38],
-	popupAnchor: [0, -34],
-	shadowUrl: '/img/markers/marker_01_shadow.svg',
-	shadowSize: [25, 38],
-	shadowAnchor: [2, 24],
-});
-const icon_center = ref({
-	iconUrl: '/img/markers/marker_center.svg',
-	iconSize: [50, 50],
-	iconAnchor: [25, 25],
-	popupAnchor: [25, -25],
-});
 const providers = ref([{
 	name: mainStore.t.i.maps.osm,
 	url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -580,3 +603,9 @@ const providers = ref([{
 	visible: false,
 }]);
 </script>
+
+<style lang="scss" scoped>
+.asdfasdf {
+	opacity: 0.5;
+}
+</style>

@@ -1,5 +1,5 @@
 # Места (ГеоОрганайзер)
-**v6.3.3 alpha** | [English version](README.md) | [Руководство пользователя](MANUAL.ru.md)
+**v6.3.4 alpha** | [English version](README.md) | [Руководство пользователя](MANUAL.ru.md)
 
 Персональный сервис для управления геометками, маршрутами и фотоальбомами.  
 **Демо:** [places.scrofa-tridens.ru](https://places.scrofa-tridens.ru)
