@@ -11,7 +11,7 @@
 					<li><a href="#route-route">Route (Route)</a></li>
 					<li><a href="#folder-folder">Folder (Folder)</a></li>
 					<li><a href="#images-images">Images (Images)</a></li>
-					<li><a href="#independent-points">Independent Points</a></li>
+					<li><a href="#temporary-points">Temporary Points</a></li>
 					<li><a href="#active-points">Active Points</a></li>
 				</ol>
 			</li>
@@ -61,7 +61,6 @@
 					<li><a href="#saving-principle">Saving Principle</a></li>
 				</ol>
 			</li>
-			<li><a href="#8-current-status">Current Status</a></li>
 		</ol>
 		<h2 id="1-purpose">1. Purpose</h2>
 		<p><strong>The Places</strong> is a GeoOrganizer. It is a personal GIS — a tool for systematizing personal geographic data.
@@ -142,11 +141,11 @@
 			<li>The display order is updated and stored in the database based on a sorting index.</li>
 			<li>Clicking a preview opens the image in full-screen mode with the ability to scroll through the album.</li>
 		</ul>
-		<h3 id="independent-points">Independent Points</h3>
-		<p>Temporary markers — a tool for planning.</p>
+		<h3 id="temporary-points">Temporary Points</h3>
+		<p>These are like temporary stickers attached to a map on the wall. They’re simply a way to quickly mark something on the map without creating a separate Place with a name, position in the tree, etc.</p>
 		<ul>
 			<li>Not saved in the database; exist only in the current session.</li>
-			<li>Can be converted into permanent entities (planned feature).</li>
+			<li>Can be converted into permanent entities.</li>
 		</ul>
 		<h3 id="active-points">Active Points</h3>
 		<p>There are “current” (active) entities in the system: Place, Route, Point.
@@ -287,16 +286,6 @@
 			<li>Work fast.</li>
 			<li>Undo actions.</li>
 			<li>Control the moment of data commitment.</li>
-		</ul>
-		<h2 id="8-current-status">8. Current Status</h2>
-		<p>Version 6.3.3 alpha.</p>
-		<p>Main functionality is stable:</p>
-		<ul>
-			<li>Entity creation and editing.</li>
-			<li>Hierarchical organization.</li>
-			<li>Routes with ordered points.</li>
-			<li>Image sorting.</li>
-			<li>Batch saving.</li>
 		</ul>
 		<p><a href="#manual-top">Up</a></p>
 	</div>

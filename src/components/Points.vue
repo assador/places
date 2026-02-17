@@ -7,7 +7,7 @@
 			/>
 			<h2 @click="open = !open">
 				<template v-if="type === 'temps'">
-					{{ mainStore.t.i.captions.pointsIndependent }}
+					{{ mainStore.t.i.captions.pointsTemporary }}
 				</template>
 				<template v-else-if="type === 'route'">
 					{{ mainStore.t.i.captions.pointsRoute }}

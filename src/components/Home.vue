@@ -482,7 +482,7 @@
 				id="actions-points"
 				class="action-button"
 				:class="{ 'button-pressed': mainStore.tempsShow.show }"
-				:title="mainStore.t.i.buttons.independentPoints"
+				:title="mainStore.t.i.buttons.temporaryPoints"
 				accesskey="t"
 				@click="() => mainStore.tempsShow.show = !mainStore.tempsShow.show"
 			>

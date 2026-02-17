@@ -1,40 +1,39 @@
 # The Places
-Version: 6.3.3 alpha
 
-- [1. Purpose](#1-purpose)
-- [2. System Concept](#2-system-concept)
-	- [Point (Point)](#point-point)
-	- [Place (Place)](#place-place)
-	- [Route (Route)](#route-route)
-	- [Folder (Folder)](#folder-folder)
-	- [Images (Images)](#images-images)
-	- [Independent Points](#independent-points)
-	- [Active Points](#active-points)
-- [3. Operating Modes](#3-operating-modes)
-	- [3.1 Normal Mode](#31-normal-mode)
-	- [3.2 Route Mode](#32-route-mode)
-	- [3.3 Ruler Mode](#33-ruler-mode)
-- [4. Interface](#4-interface)
-	- [4.1 Top Panel (Header)](#41-top-panel-header)
-		- [4.1.1 Left-Top Area — Toggle Buttons](#411-left-top-area--toggle-buttons)
-		- [4.1.2 Right-Top Area — System Buttons](#412-right-top-area--system-buttons)
-		- [4.1.3 Center Area](#413-center-area)
-	- [4.2 Main Area](#42-main-area)
-		- [4.2.1 Left Panel — Hierarchy and Structure](#421-left-panel--hierarchy-and-structure)
-		- [4.2.2 Right Panel — Content and Editing](#422-right-panel--content-and-editing)
-		- [4.2.3 Center — The Map](#423-center--the-map)
-	- [4.3 Bottom Panel (Footer)](#43-bottom-panel-footer)
-		- [4.3.1 Left side](#431-left-side)
-		- [4.3.2 Right side](#432-right-side)
-- [5. Storage and Ordering Principles](#5-storage-and-ordering-principles)
-- [6. Basic Workflow](#6-basic-workflow)
-	- [Creating a Place](#creating-a-place)
-	- [Creating a Route](#creating-a-route)
-	- [Working with Images](#working-with-images)
-- [7. Architectural Features](#7-architectural-features)
-	- [Deletion and Data Safety](#deletion-and-data-safety)
-	- [Saving Principle](#saving-principle)
-- [8. Current Status](#8-current-status)
+- [The Places](#the-places)
+	- [1. Purpose](#1-purpose)
+	- [2. System Concept](#2-system-concept)
+		- [Point (Point)](#point-point)
+		- [Place (Place)](#place-place)
+		- [Route (Route)](#route-route)
+		- [Folder (Folder)](#folder-folder)
+		- [Images (Images)](#images-images)
+		- [Temporary Points](#temporary-points)
+		- [Active Points](#active-points)
+	- [3. Operating Modes](#3-operating-modes)
+		- [3.1 Normal Mode](#31-normal-mode)
+		- [3.2 Route Mode](#32-route-mode)
+		- [3.3 Ruler Mode](#33-ruler-mode)
+	- [4. Interface](#4-interface)
+		- [4.1 Top Panel (Header)](#41-top-panel-header)
+			- [4.1.1 Left-Top Area — Toggle Buttons](#411-left-top-area--toggle-buttons)
+			- [4.1.2 Right-Top Area — System Buttons](#412-right-top-area--system-buttons)
+			- [4.1.3 Center Area](#413-center-area)
+		- [4.2 Main Area](#42-main-area)
+			- [4.2.1 Left Panel — Hierarchy and Structure](#421-left-panel--hierarchy-and-structure)
+			- [4.2.2 Right Panel — Content and Editing](#422-right-panel--content-and-editing)
+			- [4.2.3 Center — The Map](#423-center--the-map)
+		- [4.3 Bottom Panel (Footer)](#43-bottom-panel-footer)
+			- [4.3.1 Left side](#431-left-side)
+			- [4.3.2 Right side](#432-right-side)
+	- [5. Storage and Ordering Principles](#5-storage-and-ordering-principles)
+	- [6. Basic Workflow](#6-basic-workflow)
+		- [Creating a Place](#creating-a-place)
+		- [Creating a Route](#creating-a-route)
+		- [Working with Images](#working-with-images)
+	- [7. Architectural Features](#7-architectural-features)
+		- [Deletion and Data Safety](#deletion-and-data-safety)
+		- [Saving Principle](#saving-principle)
 
 ## 1. Purpose
 
@@ -123,12 +122,12 @@ An ordered list of images you have uploaded.
 * The display order is updated and stored in the database based on a sorting index.
 * Clicking a preview opens the image in full-screen mode with the ability to scroll through the album.
 
-### Independent Points
+### Temporary Points
 
-Temporary markers — a tool for planning.
+These are like temporary stickers attached to a map on the wall. They’re simply a way to quickly mark something on the map without creating a separate Place with a name, position in the tree, etc.
 
 * Not saved in the database; exist only in the current session.
-* Can be converted into permanent entities (planned feature).
+* Can be converted into permanent entities.
 
 ### Active Points
 
@@ -283,15 +282,3 @@ This allows you to:
 * Work fast.
 * Undo actions.
 * Control the moment of data commitment.
-
-## 8. Current Status
-
-Version 6.3.3 alpha.
-
-Main functionality is stable:
-
-* Entity creation and editing.
-* Hierarchical organization.
-* Routes with ordered points.
-* Image sorting.
-* Batch saving.

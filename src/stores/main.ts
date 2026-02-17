@@ -837,6 +837,15 @@ export const useMainStore = defineStore('main', {
 				id: point.id,
 				name: name,
 			};
+			// In routes mode, add the Point to the points dict
+			// if it is not already there (for example, if the Point is temp)
+			// and update the current route:
+			if (this.mode === 'routes' && !Object.hasOwn(this.points, point.id)) {
+				this.points[point.id] = point;
+				if (Object.hasOwn(this.temps, point.id)) delete this.temps[point.id];
+				this.points[point.id].added = true;
+				(entity as Route).updated = true;
+			}
 		},
 		removePointFromPoints({
 			point = this.currentPoint,
@@ -2046,7 +2055,7 @@ export const useMainStore = defineStore('main', {
 				return points;
 			}
 		},
-		// Since the route points can be either its own or independent
+		// Since the route points can be either its own or temporary
 		// or points of other places, we collect them all in one array
 		routeAllPointsArray() {
 			return (route: Route): { point: Point, of: string }[] => {

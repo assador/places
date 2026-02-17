@@ -59,7 +59,7 @@ const t = {
 			currentRoute: 'Current route',
 			center: 'Center',
 			points: 'Points',
-			independentPoints: 'Independent points',
+			temporaryPoints: 'Temporary points',
 			places: 'Places',
 			routes: 'Routes',
 			altitude: 'Altitude',

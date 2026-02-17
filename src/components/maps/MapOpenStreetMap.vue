@@ -444,7 +444,7 @@ const placemarkDragEnd = async (point: Place | Point, event: any) => {
 		},
 	});
 };
-const updateState = (payload?: {coords?: Array<number>, zoom?: number}): void => {
+const updateState = (payload?: { coords?: Array<number>, zoom?: number }) => {
 	mainStore.updateMap({
 		latitude: Number(
 			payload && payload.coords
