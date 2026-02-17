@@ -183,10 +183,7 @@ const close = (event?: Event): void => {
 	router.push({name: 'Home'});
 };
 const keyup = (event: Event): void => {
-	if (
-		(constants.shortcuts as Record<string, string>)
-			[(event as KeyboardEvent).code] === 'close'
-	) close(event);
+	if ((constants.shortcuts as Record<string, string>)[(event as KeyboardEvent).code] === 'close') close(event);
 };
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';

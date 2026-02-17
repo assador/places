@@ -258,7 +258,7 @@
 				v-if="folder.children && Object.keys(folder.children).length"
 				class="margin_bottom_0"
 			>
-				<subfolder
+				<TreeSubfolder
 					v-for="child in children"
 					:key="child.id"
 					:instanceid="instanceid"
@@ -510,7 +510,7 @@
 
 <script lang="ts">
 export default {
-	name: 'Subfolder',
+	name: 'TreeSubfolder',
 };
 </script>
 

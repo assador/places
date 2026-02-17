@@ -7,10 +7,10 @@ $host = "http://localhost:5173";
 $dirs = array(
 	"uploads" => array(
 		"images" => array(
-			"big"            => "/uploads/images/big/",
-			"small"          => "/uploads/images/small/",
-			"orphaned_big"   => "/uploads/images/big/orphaned/",
-			"orphaned_small" => "/uploads/images/small/orphaned/",
+			"big"            => "../uploads/images/big/",
+			"small"          => "../uploads/images/small/",
+			"orphaned_big"   => "../uploads/images/big/orphaned/",
+			"orphaned_small" => "../uploads/images/small/orphaned/",
 		),
 	),
 );
@@ -28,7 +28,7 @@ $testaccountuuid = "f201c875-8d80-11f0-9d45-01d62c5c4751";
 $mail = array(
 	"from" => "noreply@places.earth",
 	"name" => "Сервис «Места»",
-	"logs" => "/tmp/mails",
+	"logs" => "../log/mails",
 	"smtp" => null,
 /* example:
 	"smtp" => [

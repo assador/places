@@ -4,7 +4,7 @@ export const generateRandomString = (length = 32): string => {
 	const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	const numChars: number = chars.length;
 	let string = '';
-	let index = 0;
+	let index: number;
 	for (let i = 0; i < length; i++) {
 		index = Math.floor(Math.random() * numChars);
 		string += chars.substring(index, index + 1);
@@ -14,7 +14,7 @@ export const generateRandomString = (length = 32): string => {
 export const formFoldersCheckedIds = (): string[] => {
 	const foldersCheckedIds = [];
 	if (document.getElementById('popup-export__tree')) {
-		let check = false;
+		let check: boolean;
 		for (const folder of
 			document.getElementById('popup-export__tree')
 				.getElementsByClassName('folder')

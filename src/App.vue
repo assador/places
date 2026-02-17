@@ -111,7 +111,6 @@ emitter.on('toDB', (payload: DataToDB) => {
 });
 emitter.on('homeToDB', (id: string) => homeToDB(id));
 emitter.on('getFolderById', (id: string) => mainStore.folders[id]);
-mainStore.changeLang(mainStore.lang);
 
 // Lifecycle
 onMounted(() => {

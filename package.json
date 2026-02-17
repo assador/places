@@ -9,14 +9,16 @@
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
-		"test": "vitest"
+		"test": "vitest",
+		"lint": "eslint"
 	},
 	"dependencies": {
 		"css-element-queries": "^1.2.3",
+		"jiti": "^2.6.1",
 		"leaflet": "^1.9.4",
 		"mitt": "*",
-		"pinia": "^3.0.4",
 		"pinia-plugin-persistedstate": "^4.7.1",
+		"pinia": "^3.0.4",
 		"register-service-worker": "^1.7.2",
 		"sass": "^1.97.3",
 		"vue-router": "^5.0.1",
@@ -24,6 +26,7 @@
 		"yorkie": "^2.0.0"
 	},
 	"devDependencies": {
+		"@eslint/js": "^10.0.1",
 		"@pinia/testing": "^1.0.3",
 		"@types/leaflet": "^1.9.21",
 		"@types/lodash": "^4.17.23",
@@ -34,13 +37,18 @@
 		"@vue/test-utils": "^2.4.6",
 		"@vue/tsconfig": "^0.8.1",
 		"chromedriver": "^145.0.0",
+		"eslint-plugin-vue": "^10.8.0",
+		"eslint": "^10.0.0",
 		"geckodriver": "^6.1.0",
+		"globals": "^17.3.0",
 		"happy-dom": "^20.4.0",
 		"lodash": "^4.17.23",
 		"ts-node": "^10.9.2",
+		"typescript-eslint": "^8.56.0",
 		"typescript": "^5.9.3",
 		"vite-plugin-pwa": "^1.2.0",
 		"vitest": "^4.0.18",
+		"vue-eslint-parser": "^10.4.0",
 		"vue-tsc": "^3.2.4"
 	}
 }

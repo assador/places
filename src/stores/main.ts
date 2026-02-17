@@ -728,7 +728,7 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 		deleteAllTemps() {
-			for (let id in this.temps) {
+			for (const id in this.temps) {
 				this.deleteTemp(id);
 			}
 		},
@@ -854,7 +854,7 @@ export const useMainStore = defineStore('main', {
 					return;
 				}
 			}
-			let idx = entity.points.map(p => p.id).indexOf(point.id);
+			const idx = entity.points.map(p => p.id).indexOf(point.id);
 			if (idx === -1) return;
 			entity.points.splice(idx, 1);
 			if (entity.choosing > entity.points.length - 1) {
@@ -877,11 +877,11 @@ export const useMainStore = defineStore('main', {
 			}
 			if (idx === null) return;
 			route.points.splice(idx, 1);
-			if (idx > route.points.length - 1) idx =  route.points.length - 1;
+			if (idx > route.points.length - 1) idx = route.points.length - 1;
 			this.backupState();
 		},
 		wherePointIsUsed(id: string) {
-			let uses: (Place | Route)[] = [];
+			const uses: (Place | Route)[] = [];
 			uses.push(
 				...(Object.values(this.places) as Place[]).filter(place =>
 					place.pointid === id
@@ -1408,7 +1408,7 @@ export const useMainStore = defineStore('main', {
 					.then((alt: number) => point.altitude = alt)
 				;
 			}
-			let idx = -1;
+			let idx: number;
 			if (this.currentRoute) {
 				idx = this.currentRoute.points.map((p: PointName) => p.id).indexOf(point.id);
 				if (idx !== -1) this.currentRoute.choosing = idx;
@@ -1424,7 +1424,7 @@ export const useMainStore = defineStore('main', {
 			param: T,
 			center?: boolean | undefined,
 		) {
-			let place = null;
+			let place: Place | null;
 			if (typeof param === 'string') {
 				place = this.getPlaceById(param) ?? null;
 			} else {
@@ -1437,7 +1437,7 @@ export const useMainStore = defineStore('main', {
 			param: T,
 			center?: boolean | undefined,
 		) {
-			let route = null;
+			let route: Route | null;
 			if (typeof param === 'string') {
 				route = this.getRouteById(param) ?? null;
 			} else {
@@ -1692,7 +1692,7 @@ export const useMainStore = defineStore('main', {
 				const objectParentKey =
 					Object.hasOwn(object, 'folderid') ? 'folderid' : 'parent'
 				;
-				let neibours =
+				const neibours =
 					Object.values({ ...this.places, ...this.routes, ...this.folders })
 						.filter(
 							(neibour: Place | Route | Folder) => {
@@ -1722,7 +1722,7 @@ export const useMainStore = defineStore('main', {
 						break;
 					}
 				}
-				let parent: Folder =
+				const parent: Folder =
 					this.folders[object[objectParentKey]] ??
 					this.trees.places[object[objectParentKey]] ??
 					this.trees.routes[object[objectParentKey]] ??
@@ -1964,7 +1964,7 @@ export const useMainStore = defineStore('main', {
 		getNeighboursSrts() {
 			return (id: string, type: string, top?: boolean) => {
 				let fellows: Record<string, Folder | Place | Route> = this[type + 's'];
-				let neighbours = Object.values(fellows);
+				let neighbours: (Folder | Place | Route)[];
 				let item = fellows[id];
 				if (!fellows[id] && type === 'folder') {
 					fellows = id === 'routesroot'
@@ -1989,7 +1989,7 @@ export const useMainStore = defineStore('main', {
 					next: all[currentIndex + 1],
 					new: 0,
 				};
-				if (!!top) {result.new = !result.previous
+				if (top) {result.new = !result.previous
 					? result.own / 2
 					: (result.own - result.previous) / 2 + result.previous;
 				} else {result.new = !result.next
@@ -2038,7 +2038,7 @@ export const useMainStore = defineStore('main', {
 		routePoints() {
 			return (route: Route): Point[] => {
 				if (route === null) return [];
-				let points: Point[] = [];
+				const points: Point[] = [];
 				for (const p of route.points) {
 					if (p.id in this.points) points.push(this.points[p.id]);
 						else if (p.id in this.temps) points.push(this.temps[p.id]);
@@ -2050,7 +2050,7 @@ export const useMainStore = defineStore('main', {
 		// or points of other places, we collect them all in one array
 		routeAllPointsArray() {
 			return (route: Route): { point: Point, of: string }[] => {
-				let points: { point: Point, of: string }[] = [];
+				const points: { point: Point, of: string }[] = [];
 				let of: string;
 				for (const p of route.points) {
 					if (p.id in this.temps) of = 'temps';
@@ -2070,7 +2070,7 @@ export const useMainStore = defineStore('main', {
 		},
 		getPointCoords() {
 			return (pointId: string): number[] => {
-				let point = this.getPointById(pointId);
+				const point = this.getPointById(pointId);
 				return [ point.latitude, point.longitude ];
 			}
 		},

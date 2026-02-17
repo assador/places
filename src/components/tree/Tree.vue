@@ -18,7 +18,7 @@ import TreeNode from '@/components/tree/TreeNode.vue';
 
 export interface IPlacesTreeProps {
 	instanceid?: string;
-	what?: string;
+	what?: 'places' | 'routes';
 }
 const props = withDefaults(defineProps<IPlacesTreeProps>(), {
 	instanceid: '',

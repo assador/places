@@ -39,7 +39,7 @@
 						class="fieldwidth_100"
 						@change="
 							mainStore.changeRoute({
-								route: mainStore.currentRoute,
+								entity: mainStore.currentRoute,
 								change: {
 									[field]: mainStore.currentRoute[field],
 								},
@@ -59,7 +59,7 @@
 						class="fieldwidth_100"
 						@change="
 							mainStore.changeRoute({
-								route: mainStore.currentRoute,
+								entity: mainStore.currentRoute,
 								change: {
 									[field]: mainStore.currentRoute[field],
 								},
@@ -78,7 +78,7 @@
 							:disabled="!!currentRouteCommon"
 							@change="
 								mainStore.changeRoute({
-									route: mainStore.currentRoute,
+									entity: mainStore.currentRoute,
 									change: {
 										[field]: mainStore.currentRoute[field],
 									},
@@ -110,7 +110,7 @@
 						class="fieldwidth_100"
 						@change="
 							mainStore.changeRoute({
-								route: mainStore.currentRoute,
+								entity: mainStore.currentRoute,
 								change: {
 									[field]: mainStore.currentRoute[field],
 								},

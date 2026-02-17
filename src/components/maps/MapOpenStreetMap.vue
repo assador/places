@@ -204,7 +204,7 @@
 			<template
 				v-for="point in mainStore.temps"
 				:key="`${point.id}_${mainStore.measure.points.length}`"
-			">
+			>
 				<l-marker
 					v-if="
 						mainStore.mode === 'measure' && mainStore.isMeasurePoint(point.id) ||

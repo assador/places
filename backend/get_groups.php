@@ -21,7 +21,6 @@ if(testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
 				":userid" => $_POST["userid"],
 			]);
 			$groups = $query->fetchAll(PDO::FETCH_COLUMN);
-			echo $groups;
 			break;
 		default :
 			$query = $ctx->db->query("
@@ -38,10 +37,11 @@ if(testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
 				":userid" => $_POST["userid"],
 			]);
 			$groups = $query->fetchAll(PDO::FETCH_COLUMN);
-			echo json_encode(
-				$groups,
-				JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
-			);
+			break;
 	}
+	echo json_encode(
+		$groups,
+		JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
+	);
 	exit;
 }

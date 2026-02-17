@@ -39,8 +39,8 @@
 			/>
 		</yandex-map-marker>
 		<yandex-map-marker
-			v-for="(point, id) in mainStore.temps"
 			v-if="mainStore.placemarksShow"
+			v-for="(point, id) in mainStore.temps"
 			:key="id"
 			v-model="markers[point.id]"
 			:settings="{
@@ -309,7 +309,7 @@ const popupProps = ref<IPlacesPopupProps>({
 const placemarkDragEnd = async (point: Place | Point) => {
 	const coordinates = markers.value[point.id].coordinates.slice().reverse();
 	mainStore.changePoint({
-		point: (
+		entity: (
 			point.type === 'point'
 				? point
 				: mainStore.points[(point as Place).pointid]

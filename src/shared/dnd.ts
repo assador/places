@@ -33,7 +33,7 @@ export const handleFolderDropped = (
 	const neighbours = Object.values(mainStore.folders).filter(
 		f => f.parent === targetId
 	);
-	let srt = 10, parentId = targetId;
+	let srt: number, parentId = targetId;
 
 	switch (target.dataset.entitySortArea) {
 		case 'top':
@@ -73,13 +73,13 @@ export const handlePlaceRouteDropped = (
 	) {
 		return;
 	}
-	let parentId = (target.dataset.entityType !== 'folder'
+	const parentId = (target.dataset.entityType !== 'folder'
 		? mainStore[payload.context][targetId].folderid
 		: (target.dataset.entitySortArea
 			? mainStore.folders[targetId]?.parent ?? null
 			: targetId
 	));
-	let srt = 10;
+	let srt: number;
 	const entity = mainStore[payload.context][payload.id];
 	const neighbours = Object.values<Place | Route>(mainStore[payload.context])
 		.filter(f => f.folderid === parentId)
