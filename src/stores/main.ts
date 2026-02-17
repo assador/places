@@ -722,6 +722,7 @@ export const useMainStore = defineStore('main', {
 				};
 				this.measure.points.splice(measureIndex, 1);
 			}
+			delete this.temps[id];
 			if (this.currentPoint && this.currentPoint.id === id) {
 				this.setCurrentPoint(null);
 			}

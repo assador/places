@@ -236,7 +236,10 @@
 					:title="mainStore.t.i.hints.deletePoint"
 					class="button-iconed icon icon-cross-45-circled"
 					@dragover.prevent
-					@click.stop="mainStore.deleteTemp(point.id)"
+					@click.stop="mainStore.removePointFromPoints({
+						point: mainStore.temps[point.id],
+						entity: mainStore.measure,
+					})"
 				/>
 				<span
 					class="sorting-area-left"

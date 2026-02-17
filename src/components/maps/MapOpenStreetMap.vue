@@ -57,7 +57,10 @@
 			>
 				<l-icon
 					v-bind="(
-						place.added && !place.updated
+						place.added &&
+						!place.updated &&
+						mainStore.points[place.pointid].added &&
+						!mainStore.points[place.pointid].updated
 							? icon_new
 							: (
 								place === mainStore.currentPlace
@@ -250,7 +253,7 @@
 					>
 					<l-icon
 						v-bind="(point === mainStore.currentPoint
-							? icon_active
+							? icon_temp_active
 							: (mainStore.isMeasurePoint(point.id)
 								? icon_null : icon_temp
 							)
@@ -521,6 +524,15 @@ const icon_basic = ref({
 	shadowAnchor: [2, 24],
 });
 const icon_temp = ref({
+	iconUrl: '/img/markers/marker_01_blue_faded.svg',
+	iconSize: [25, 38],
+	iconAnchor: [13, 38],
+	popupAnchor: [0, -34],
+	shadowUrl: '/img/markers/marker_01_shadow.svg',
+	shadowSize: [25, 38],
+	shadowAnchor: [2, 24],
+});
+const icon_temp_active = ref({
 	iconUrl: '/img/markers/marker_01_blue.svg',
 	iconSize: [25, 38],
 	iconAnchor: [13, 38],

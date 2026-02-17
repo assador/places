@@ -13,7 +13,7 @@
 					class="points-coordinates-copy"
 					@click="copyCoords(pointInfo.point)"
 				>
-					{{ mainStore.t.i.text.copy }}
+					{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
 				</a>
 				<h3>
 					<span class="un_color">
