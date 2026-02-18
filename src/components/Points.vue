@@ -142,7 +142,8 @@
 
 			<button
 				v-if="type === 'temps'"
-				v-for="(temp, idx) in mainStore.lonelyTemps"
+				v-for="temp in tempPoints"
+				:key="temp.key"
 				:class="{ 'button-pressed': mainStore.currentPoint?.id === temp.id }"
 				@click.prevent="mainStore.setCurrentPoint(temp.id)"
 				@contextmenu.prevent="e => {
@@ -165,7 +166,7 @@
 						return;
 					}
 					pointInfo.point = temp;
-					pointInfo.name = (idx + 1).toString();
+					pointInfo.name = (temp.idx + 1).toString();
 					popupProps.show = true;
 					popupProps.position.right = 'auto';
 					popupProps.position.bottom = 'auto';
@@ -173,7 +174,7 @@
 					popupProps.position.left = e.clientX + 5;
 				}"
 			>
-				<span>{{ idx + 1 }}</span>
+				<span>{{ temp.idx + 1 }}</span>
 				<span
 					class="button-iconed icon icon-cross-45-circled"
 					:title="mainStore.t.i.hints.deleteTemp"
@@ -185,21 +186,21 @@
  
 			<button
 				v-else-if="type === 'measure'"
-				v-for="(point, idx) in mainStore.measure.points"
-				:key="idx"
-				:data-entity-id="point.id"
+				v-for="pn in measurePoints"
+				:key="pn.key"
+				:data-entity-id="pn.id"
 				:data-entity-type="'point'"
-				:data-entity-index="idx"
+				:data-entity-index="pn.idx"
 				:data-entity-context="'measure'"
 				:title="
 // TODO Get the name and description of the Entity referencing the Point and put it in this attribute
-					(false && point.name ? `${point.name}&#013;` : '') +
-					(point.description ? point.description : '')
+					(false && pn.name ? `${pn.name}&#013;` : '') +
+					(pn.description ? pn.description : '')
 				"
 				:draggable="true"
 				@dragstart="e => {
 					dragging = true;
-					handleDragStart(e, point, idx, 'measure')
+					handleDragStart(e, pn, pn.idx, 'measure')
 				}"
 				@dragend="() => {
 					dragging = false;
@@ -209,19 +210,19 @@
 				@dragover.prevent
 				@drop.prevent.stop="handleDropExt"
 				:class="
-					point.id === highlighted ||
-					point.id ===
+					pn.id === highlighted ||
+					pn.id ===
 						mainStore.measure.points[mainStore.measure.choosing].id
 							? 'button-pressed' : ''
 				"
-				@click.prevent="mainStore.setCurrentPoint(point.id)"
+				@click.prevent="mainStore.setCurrentPoint(pn.id)"
 				@contextmenu.prevent="e => {
-					if (pointInfo.point?.id === point.id) {
+					if (pointInfo.point?.id === pn.id) {
 						popupProps.show = !popupProps.show;
 						return;
 					}
-					pointInfo.point = mainStore.getPointById(point.id);
-					pointInfo.name = point.name;
+					pointInfo.point = mainStore.getPointById(pn.id);
+					pointInfo.name = pn.name;
 					popupProps.show = true;
 					popupProps.position.right = 'auto';
 					popupProps.position.bottom = 'auto';
@@ -230,30 +231,30 @@
 				}"
 			>
 				<span>
-					{{ point.name }}
+					{{ pn.name }}
 				</span>
 				<span
 					:title="mainStore.t.i.hints.deletePoint"
 					class="button-iconed icon icon-cross-45-circled"
 					@dragover.prevent
 					@click.stop="mainStore.removePointFromPoints({
-						point: mainStore.temps[point.id],
+						point: mainStore.temps[pn.id],
 						entity: mainStore.measure,
 					})"
 				/>
 				<span
 					class="sorting-area-left"
-					:class="{ highlighted: point.id === highlightedLeft }"
-					@dragenter="highlightedLeft = point.id"
+					:class="{ highlighted: pn.key === highlightedLeft }"
+					@dragenter="highlightedLeft = pn.key"
 					@dragleave="highlightedLeft = null"
-					@drop="e => handleDrop(e, { before: true })"
+					@drop="($e: DragEventCustom) => $e.dragBefore = true"
 				/>
 				<span
 					class="sorting-area-right"
-					:class="{ highlighted: point.id === highlightedRight }"
-					@dragenter="highlightedRight = point.id"
+					:class="{ highlighted: pn.key === highlightedRight }"
+					@dragenter="highlightedRight = pn.key"
 					@dragleave="highlightedRight = null"
-					@drop="e => handleDrop(e, { before: false })"
+					@drop="($e: DragEventCustom) => $e.dragBefore = false"
 				/>
 			</button>
 
@@ -261,21 +262,18 @@
  
 			<button
 				v-else-if="type === 'route'"
-				v-for="(pn, idx) in mainStore.currentRoute?.points.filter(p =>
-					mainStore.getPointById(p.id) &&
-					!mainStore.getPointById(p.id).deleted
-				)"
-				:key="pn.id"
+				v-for="pn in routePoints"
+				:key="pn.idx"
 				:data-entity-id="pn.id"
 				:data-entity-type="'point'"
-				:data-entity-index="idx"
+				:data-entity-index="pn.idx"
 				:data-entity-context="'routes'"
 				:data-entity-parent-id="mainStore.currentRoute.id"
 				:draggable="true"
 				@dragstart="e => {
 					dragging = true;
 					handleDragStart(
-						e, pn, idx, 'routes', mainStore.currentRoute.id
+						e, pn, pn.idx, 'routes', mainStore.currentRoute.id
 					)
 				}"
 				@dragend="() => {
@@ -328,15 +326,15 @@
 				/>
 				<span
 					class="sorting-area-left"
-					:class="{ highlighted: pn.id === highlightedLeft }"
-					@dragenter="highlightedLeft = pn.id"
+					:class="{ highlighted: pn.key === highlightedLeft }"
+					@dragenter="highlightedLeft = pn.key"
 					@dragleave="highlightedLeft = null"
 					@drop="($e: DragEventCustom) => $e.dragBefore = true"
 				/>
 				<span
 					class="sorting-area-right"
-					:class="{ highlighted: pn.id === highlightedRight }"
-					@dragenter="highlightedRight = pn.id"
+					:class="{ highlighted: pn.key === highlightedRight }"
+					@dragenter="highlightedRight = pn.key"
 					@dragleave="highlightedRight = null"
 					@drop="($e: DragEventCustom) => $e.dragBefore = false"
 				/>
@@ -367,6 +365,34 @@ const highlighted = ref(null);
 
 const pointInfo = inject<Ref<PointName>>('pointInfo')!;
 const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
+
+const tempPoints = computed(() => {
+	if (!mainStore.tempsShow.show) return [];
+	const ids = new Set(mainStore.measure.points.map(pn => pn.id));
+	return Object.values(mainStore.temps)
+		.filter(pn => !ids.has(pn.id))
+		.map((pn, index) => ({
+			...pn,
+			idx: index,
+			key: `${pn.id}-${index}`,
+		})) || []
+});
+const preparePoints = (points: any[]) => {
+	return points
+		.filter(pn => {
+			const point = mainStore.getPointById(pn.id);
+			return point && !point.deleted;
+		})
+		.map((pn, index) => ({
+			...pn,
+			idx: index,
+			key: `${pn.id}-${index}`,
+		}))
+	;
+};
+
+const measurePoints = computed(() => preparePoints(mainStore.measure.points));
+const routePoints = computed(() => preparePoints(mainStore.currentRoute?.points || []));
 
 const distance = computed(() => {
 	const idsArray = ref([]);

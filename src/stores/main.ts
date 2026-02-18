@@ -2094,13 +2094,6 @@ export const useMainStore = defineStore('main', {
 				return coords;
 			}
 		},
-		lonelyTemps(): Point[] {
-			if (!this.tempsShow.show) return [];
-			const ids = new Set(this.measure.points.map((p: PointName) => p.id));
-			return Object.values(this.temps).filter(
-				(temp): temp is Point => !ids.has((temp as Point).id)
-			);
-		},
 		getAllModifiedPackage(): DataToDB {
 			return {
 				points: this.collectModified(this.points),
