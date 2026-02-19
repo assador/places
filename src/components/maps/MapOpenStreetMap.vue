@@ -658,9 +658,3 @@ const providers = ref([{
 	visible: false,
 }]);
 </script>
-
-<style lang="scss" scoped>
-.asdfasdf {
-	opacity: 0.5;
-}
-</style>

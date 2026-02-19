@@ -6,6 +6,7 @@ require_once __DIR__ . "/common.php";
 
 $ctx = new AppContext();
 $ctx->db = $conn;
+$ctx->db->exec("SET time_zone = '+00:00'");
 
 // если есть сессия
 // $ctx->session = loadSession();
