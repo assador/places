@@ -1,7 +1,12 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
 
-$_POST = json_decode(file_get_contents("php://input"), true);
+$input = json_decode(
+	file_get_contents("php://input"),
+	true,
+	512,
+	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+);
 
 $query = $ctx->db->prepare("
 	SELECT u.id, u.name
@@ -15,7 +20,7 @@ $query = $ctx->db->prepare("
 				AND s.expiresat > UTC_TIMESTAMP()
 		);
 ");
-$query->bindValue(':email', $_POST["forgotEmail"]);
+$query->bindValue(':email', $input["forgotEmail"]);
 $query->execute();
 
 $result = $query->fetch(PDO::FETCH_ASSOC);
@@ -25,8 +30,7 @@ if(!$result) {
 }
 $id = $result["id"];
 $name = $result["name"];
-
-$result["sessionuuid"] = createSession($ctx, $id, ['lifetime' => 3600, 'reason' => 1]);
+$sessionUuid = createSession($ctx, $id, [ 'lifetime' => 3600, 'reason' => 1 ]);
 
 $message = '
 	<html>
@@ -41,14 +45,14 @@ $message = '
 			Ваш e-mail был указан для восстановления пароля пользователя
 			<a href="' . $host . '">Персонального ГеоОрганайзера «Места»</a>. Если вы этого не делали, просто проигнорируйте это письмо.
 			В противном случае для создания нового пароля вашего аккаунта перейдите по ссылке: 
-			<a href="' . $host . '/backend/change_password.php?session=' . $result["sessionuuid"] . '&reason=1">' . $host . '/backend/change_password.php?session=' . $result["sessionuuid"] . '&reason=1</a>
+			<a href="' . $host . '/backend/change_password.php?session=' . $sessionUuid . '">' . $host . '/backend/change_password.php?session=' . $sessionUuid . '</a> в течение часа.
 		</p>
 	</body>
 	</html>
 ';
 
 $sent = sendMail(
-	$_POST["forgotEmail"],
+	$input["forgotEmail"],
 	"Восстановление пароля пользователя сервиса «Места»",
 	$message,
 	$config["mail"]

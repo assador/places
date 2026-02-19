@@ -274,7 +274,7 @@ const authRegSubmit = (): boolean => {
 };
 const authForgot = (): void => {
 	if (!document.getElementById('forgot-email-input')!.classList.contains('value_wrong')) {
-		forgotRoutine({forgotEmail: forgotEmail.value}, mainStore.t);
+		forgotRoutine({ forgotEmail: forgotEmail.value }, mainStore.t);
 	} else {
 		forgot.message = mainStore.t.m.paged.incorrectEmail;
 	}

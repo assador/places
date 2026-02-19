@@ -102,26 +102,24 @@ function deleteSession(AppContext $ctx, string $sessionIdBin, string $userIdBin)
 	$query->bindValue(':userid', $userIdBin, PDO::PARAM_LOB);
 	$query->execute();
 }
-function validateSession(AppContext $ctx, string $sessionIdBin, $reason = null): ?array {
-// Присобачить написанную процедуру assert_session
+function getSession(AppContext $ctx, string $sessionIdBin, $reason = null) {
 	$query = $ctx->db->prepare("
-		SELECT s.id, s.userid, s.expiresat, u.login, u.name
+		SELECT 
+			s.userid, 
+			u.login, 
+			u.name, 
+			u.email
 		FROM `sessions` s
 		JOIN `users` u ON u.id = s.userid
 		WHERE s.id = :id
 			AND s.reason <=> :reason
 			AND (s.expiresat IS NULL OR s.expiresat > UTC_TIMESTAMP())
 	");
-	$query->bindValue(':id', sessionIdBin, PDO::PARAM_LOB);
+	$query->bindValue(':id', $sessionIdBin, PDO::PARAM_LOB);
 	$query->bindValue(':reason', $reason);
 	$query->execute();
 
-	$result = $query->fetch(PDO::FETCH_ASSOC);
-
-	if (!$result) {
-		return null;
-	}
-	return $result;
+	return $query->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 function sendMail($to, $subject, $message, $config) {
 	$headers = "MIME-Version: 1.0\r\n";

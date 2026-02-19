@@ -5,34 +5,19 @@ ini_set('display_errors', '1');
 
 require_once __DIR__ . '/bootstrap.php';
 
-$sessionId = uuidToBin($_GET["session"]) ?? null;
-$reason = (int)$_GET["reason"] ?? null;
+$sessionId = $_GET["session"] ?? null;
 if (!$sessionId) {
-	echo 0;
-	exit;
+	die("Некорректная ссылка.");
 }
-$session = validateSession($ctx, $sessionId, $reason);
+$sessionIdBin = uuidToBin($sessionId) ?? null;
+$session = getSession($ctx, $sessionIdBin, 1);
 if ($session === null) {
-	echo 1;
-	exit;
-}
-$query = $ctx->db->prepare("
-	SELECT `id`, `login`, `name`
-	FROM `users`
-	WHERE `id` = :id
-");
-$query->bindValue(':id', $session["userid"], PDO::PARAM_LOB);
-$query->execute();
-
-$result = $query->fetch(PDO::FETCH_ASSOC);
-if(!$result) {
-	echo 2;
-	exit;
+	die("Ссылка устарела или уже была использована.");
 }
 
-$id = $result["id"];
-$login = $result["login"];
-$name = $result["name"];
+$userIdBin = $session["userid"];
+$login = $session["login"];
+$name = $session["name"];
 $password = generateRandomString(8);
 
 $query = $ctx->db->prepare("
@@ -40,7 +25,7 @@ $query = $ctx->db->prepare("
 	SET `password` = :password
 	WHERE `id` = :id
 ");
-$query->bindValue(':id', $id, PDO::PARAM_LOB);
+$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
 $query->bindValue(':password', password_hash($password, PASSWORD_DEFAULT));
 $query->execute();
 
@@ -60,11 +45,4 @@ echo "
 		При желении вы сможете изменить их в личном кабинете после авторизации.
 	</p>
 ";
-if ($reason === 1) {
-	$query = $ctx->db->prepare("
-		DELETE FROM `sessions`
-		WHERE `id` = :id
-	");
-	$query->bindValue(':id', $sessionId, PDO::PARAM_LOB);
-	$query->execute();
-}
+deleteSession($ctx, $sessionIdBin, $userIdBin);
