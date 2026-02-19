@@ -267,11 +267,6 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 			}
 		}
 	}
-	$ctx->db->prepare("
-		UPDATE users SET lastupdates = NOW() WHERE id = :userid
-	")->execute([
-		":userid" => $userIdBin,
-	]);
 }
 function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$idBin = uuidToBin($row["id"]);
@@ -332,11 +327,6 @@ function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 	foreach (array_unique($oldPointIds) as $pointIdBin) {
 		cleanupPointIfOrphaned($ctx, $pointIdBin);
 	}
-	$ctx->db->prepare("
-		UPDATE users SET lastupdates = NOW() WHERE id = :userid
-	")->execute([
-		":userid" => $userIdBin,
-	]);
 }
 function deleteRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$idBin = uuidToBin($row["id"]);

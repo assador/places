@@ -7,10 +7,10 @@ export const login = reactive({
 });
 export const loginRoutine = async (
 	user: { authLogin: string, authPassword: string },
-	voc: Record<string, any>
+	voc: Record<string, any>,
 ) => {
 	try {
-		const { data } = await axios.post('/backend/auth.php', user);
+		const { data } = await axios.post('/backend/login.php', user);
 		switch (data) {
 			case 0 :
 				localStorage.clear();
@@ -27,6 +27,16 @@ export const loginRoutine = async (
 					emitter.emit('logged');
 				}
 		}
+	} catch (error) {
+		console.error(error);
+		localStorage.clear();
+	}
+};
+export const logoutRoutine = async (
+	ids: { userId: string, sessionId: string },
+) => {
+	try {
+		await axios.post('/backend/logout.php', ids);
 	} catch (error) {
 		console.error(error);
 		localStorage.clear();

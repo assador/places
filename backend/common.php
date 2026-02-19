@@ -3,7 +3,6 @@ declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-
 function testAccountCheck(AppContext $ctx, $testaccountuuid, $uuid) {
 	$query = $ctx->db->prepare("SELECT id FROM users WHERE id = :id");
 	$query->bindValue(':id', uuidToBin($uuid), PDO::PARAM_LOB);
@@ -61,7 +60,7 @@ function binToUuid(?string $bin): ?string {
 		substr($hex, 20, 12)
 	);
 }
-function createSession(AppContext $ctx, string $userId, array $payload = []): string {
+function createSession(AppContext $ctx, string $userIdBin, array $payload = []): string {
 	/*
 		$payload['reason'] === null  -- Ordinary session
 		$payload['reason'] === 1     -- Forgot password
@@ -74,34 +73,46 @@ function createSession(AppContext $ctx, string $userId, array $payload = []): st
 	$payload = array_merge($defaults, $payload);
 
 	$sessionUuid = uuidv4();
-	$sessionId = uuidToBin($sessionUuid);
+	$sessionIdBin = uuidToBin($sessionUuid);
 
-	$expires = (new DateTime('now', new DateTimeZone("UTC")))
-		->add(new DateInterval('PT' . $payload['lifetime'] . 'S'))
-		->format('Y-m-d H:i:s');
+	$lifetime = (int)$payload['lifetime'];
 
 	$query = $ctx->db->prepare("
 		INSERT INTO `sessions` (`id`, `userid`, `expiresat`, `reason`)
-		VALUES (:id, :userid, :expiresat, :reason)
+		VALUES (
+			:id,
+			:userid,
+			DATE_ADD(UTC_TIMESTAMP(), INTERVAL $lifetime SECOND),
+			:reason
+		)
 	");
-	$query->bindValue(':id', $sessionId, PDO::PARAM_LOB);
-	$query->bindValue(':userid', $userId, PDO::PARAM_LOB);
-	$query->bindValue(':expiresat', $expires);
+	$query->bindValue(':id', $sessionIdBin, PDO::PARAM_LOB);
+	$query->bindValue(':userid', $userIdBin, PDO::PARAM_LOB);
 	$query->bindValue(':reason', $payload['reason']);
 	$query->execute();
 
 	return $sessionUuid;
 }
-function validateSession(AppContext $ctx, string $sessionId, $reason = null): ?array {
+function deleteSession(AppContext $ctx, string $sessionIdBin, string $userIdBin): void {
+	$query = $ctx->db->prepare("
+		DELETE FROM `sessions`
+		WHERE id = :id AND userid = :userid
+	");
+	$query->bindValue(':id', $sessionIdBin, PDO::PARAM_LOB);
+	$query->bindValue(':userid', $userIdBin, PDO::PARAM_LOB);
+	$query->execute();
+}
+function validateSession(AppContext $ctx, string $sessionIdBin, $reason = null): ?array {
+// Присобачить написанную процедуру assert_session
 	$query = $ctx->db->prepare("
 		SELECT s.id, s.userid, s.expiresat, u.login, u.name
 		FROM `sessions` s
 		JOIN `users` u ON u.id = s.userid
 		WHERE s.id = :id
-			AND s.reason = :reason
+			AND s.reason <=> :reason
 			AND (s.expiresat IS NULL OR s.expiresat > UTC_TIMESTAMP())
 	");
-	$query->bindValue(':id', $sessionId, PDO::PARAM_LOB);
+	$query->bindValue(':id', sessionIdBin, PDO::PARAM_LOB);
 	$query->bindValue(':reason', $reason);
 	$query->execute();
 
@@ -198,26 +209,3 @@ function sendMailSmtp($to, $subject, $message, $headers, $config) {
 
 	return true;
 }
-
-/* Использование проверки сессии
-
-$sessionId = uuidToBin($_POST["session"]) ?? null;
-
-if ($sessionId) {
-	$session = validateSession($ctx->db, $sessionId);
-	if ($session) {
-		echo json_encode([
-			"ok" => true,
-			"user" => [
-				"id" => $session["userid"],
-				"login" => $session["login"],
-				"name" => $session["name"],
-			]
-		], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-	} else {
-		echo json_encode(["ok" => false, "error" => "Session expired or not found"]);
-	}
-} else {
-	echo json_encode(["ok" => false, "error" => "No session provided"]);
-}
-*/

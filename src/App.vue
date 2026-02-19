@@ -18,6 +18,7 @@ import { useRouter } from 'vue-router';
 import {
 	emitter,
 	usePWAInstall,
+	logoutRoutine,
 	handleFolderDropped,
 	handlePlaceRouteDropped,
 	handlePointInListDropped,
@@ -89,9 +90,12 @@ emitter.on('logged', async () => {
 	router.push({ name: 'Home' });
 });
 emitter.on('logout', () => {
-	const getOut = () => {
-		router.push({ name: 'Auth' });
+	const getOut = async () => {
+		const userId = localStorage.getItem('places-useruuid');
+		const sessionId = localStorage.getItem('places-session');
 		mainStore.unload();
+		router.push({ name: 'Auth' });
+		await logoutRoutine({ userId: userId, sessionId: sessionId });
 	};
 	(mainStore.saved || mainStore.user.testaccount)
 		? getOut()

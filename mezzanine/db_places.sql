@@ -282,8 +282,8 @@ DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE `sessions` (
   `id` binary(16) NOT NULL,
   `userid` binary(16) NOT NULL,
-  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
-  `expiresat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `createdat` timestamp NOT NULL DEFAULT utc_timestamp(),
+  `expiresat` timestamp NOT NULL,
   `reason` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_userid` (`userid`),
@@ -364,6 +364,37 @@ CREATE TABLE `userschange` (
 --
 -- Dumping routines for database 'db_places'
 --
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `assert_session` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+DELIMITER ;;
+CREATE  PROCEDURE `assert_session`(
+    p_userid BINARY(16),
+    p_sessionid BINARY(16)
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sessions
+        WHERE id = p_sessionid
+          AND userid = p_userid
+          AND expiresat > UTC_TIMESTAMP()
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Invalid or expired session';
+    END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -374,4 +405,4 @@ CREATE TABLE `userschange` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-12 11:41:14
+-- Dump completed on 2026-02-19 19:46:03
