@@ -76,7 +76,7 @@ const router = useRouter();
 const getUsers = async () => {
 	const { data } = await axios.post('/backend/get_users.php', {
 		user: {
-			id: sessionStorage.getItem('places-useruuid'),
+			id: localStorage.getItem('places-useruuid'),
 			password: mainStore.user.password,
 		},
 	});
@@ -92,7 +92,7 @@ provide('getUsers', getUsers);
 const getGroups = async () => {
 	const { data } = await axios.post('/backend/get_allgroups.php', {
 		user: {
-			id: sessionStorage.getItem('places-useruuid'),
+			id: localStorage.getItem('places-useruuid'),
 			password: mainStore.user.password,
 		},
 	});

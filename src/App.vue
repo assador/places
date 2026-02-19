@@ -156,8 +156,8 @@ const toDB = async (payload: DataToDB): Promise<void> => {
 		if (!mainStore.user.testaccount) {
 			await axios.post(`/backend/set_places.php`, {
 				data: payload,
-				userid: sessionStorage.getItem('places-useruuid'),
-				sessionid: sessionStorage.getItem('places-session'),
+				userid: localStorage.getItem('places-useruuid'),
+				sessionid: localStorage.getItem('places-session'),
 			});
 		}
 		mainStore.savedToDB(payload);
@@ -171,7 +171,7 @@ const homeToDB = async (id: string): Promise<void> => {
 	if (mainStore.user.testaccount) return;
 	try {
 		await axios.post('/backend/set_home.php', {
-			id: sessionStorage.getItem('places-useruuid'),
+			id: localStorage.getItem('places-useruuid'),
 			data: id
 		});
 	} catch (error) {

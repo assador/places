@@ -192,7 +192,7 @@ const accountSubmit = (): void => {
 	if (!document.querySelector('.value_wrong')) {
 		if (accountNewPassword.value === accountNewPasswordRepeat.value) {
 			accountSaveRoutine({
-				accountId: sessionStorage.getItem('places-useruuid') as string,
+				accountId: localStorage.getItem('places-useruuid') as string,
 				accountLogin: accountLogin.value,
 				accountNewPassword: accountNewPassword.value,
 				accountName: accountName.value,

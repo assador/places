@@ -907,7 +907,7 @@ export const useMainStore = defineStore('main', {
 		unload() {
 			this.refreshing = true;
 			this.reset();
-			sessionStorage.clear();
+			localStorage.clear();
 		},
 		reset() {
 			this.saved = true;
@@ -995,7 +995,7 @@ export const useMainStore = defineStore('main', {
 			try {
 				const { data } = await axios.get(
 					'/backend/get_config.php?useruuid=' +
-					sessionStorage.getItem('places-useruuid')
+					localStorage.getItem('places-useruuid')
 				);
 				this.serverConfig = data;
 			} catch (error) {
@@ -1035,7 +1035,7 @@ export const useMainStore = defineStore('main', {
 			try {
 				const { data } = await axios.get(
 					'/backend/get_account.php?id=' +
-					sessionStorage.getItem('places-useruuid')
+					localStorage.getItem('places-useruuid')
 				);
 				this.user = data;
 			} catch (error) {
@@ -1050,7 +1050,7 @@ export const useMainStore = defineStore('main', {
 				try {
 					const { data } = await axios.get(
 						'/backend/get_places.php?id=' +
-						sessionStorage.getItem('places-useruuid')
+						localStorage.getItem('places-useruuid')
 					);
 					this.placesReady({
 						points: Object.assign({}, data.points),
@@ -1177,7 +1177,7 @@ export const useMainStore = defineStore('main', {
 					const newPlaceId = crypto.randomUUID();
 					const newPoint = {
 						id: newPointId,
-						userid: sessionStorage.getItem('places-useruuid'),
+						userid: localStorage.getItem('places-useruuid'),
 						latitude:
 							Number(wpt.getAttribute('lat')) ||
 							Number(constants.map.initial.latitude) ||
@@ -1214,7 +1214,7 @@ export const useMainStore = defineStore('main', {
 						),
 						common: false,
 						geomark: true,
-						userid: sessionStorage.getItem('places-useruuid'),
+						userid: localStorage.getItem('places-useruuid'),
 						images: {},
 						type: 'place',
 						added: true,
@@ -1265,7 +1265,7 @@ export const useMainStore = defineStore('main', {
 									) {
 										const newFolder: Folder = {
 											type: 'folder',
-											userid: sessionStorage.getItem('places-useruuid') as string,
+											userid: localStorage.getItem('places-useruuid') as string,
 											name: folder.name,
 											description: folder.description,
 											id: folder.id,
@@ -1347,7 +1347,7 @@ export const useMainStore = defineStore('main', {
 							}
 							const newPlace: Place = {
 								type: 'place',
-								userid: sessionStorage.getItem('places-useruuid') as string,
+								userid: localStorage.getItem('places-useruuid') as string,
 								name: place.name,
 								description: place.description,
 								pointid: place.pointid,

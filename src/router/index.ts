@@ -90,7 +90,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _, next) => {
-	if (!sessionStorage.getItem('places-session')) {
+	if (!localStorage.getItem('places-session')) {
 		if (
 			to.name !== 'Auth' &&
 			to.name !== 'About' &&

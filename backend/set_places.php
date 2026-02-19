@@ -90,6 +90,9 @@ function cleanupPointIfOrphaned(AppContext $ctx, string $pointIdBin): void {
 		}
 	}
 }
+
+// SEC Points
+
 function addPoint(AppContext $ctx, array $row): void {
 	$sql = "
 		INSERT INTO points (
@@ -133,6 +136,9 @@ function updatePoint(AppContext $ctx, array $row): void {
 		":altitude"  => $row["altitude"] ?? null,
 	]);
 }
+
+// SEC Places
+
 function addPlace(AppContext $ctx, array $row): void {
 	$sql = "
 		INSERT INTO places (
@@ -223,6 +229,9 @@ function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
 	;
 	cleanupPointIfOrphaned($ctx, $pointIdBin);
 }
+
+// SEC Routes
+
 function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$idBin = uuidToBin($row["id"]);
 	$userIdBin = uuidToBin($myuserid);
@@ -355,6 +364,9 @@ function deleteRoute(AppContext $ctx, array $row, string $myuserid): void {
 		cleanupPointIfOrphaned($ctx, $pointIdBin);
 	}
 }
+
+// SEC Folders
+
 function addFolder(AppContext $ctx, array $row): void {
 	$sql = "
 		INSERT INTO folders (
@@ -424,6 +436,9 @@ function updateFolder(AppContext $ctx, array $row, string $myuserid): void {
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
 	]);
 }
+
+// SEC Images
+
 function addImage(AppContext $ctx, array $img): void {
 	$sql = "
 		INSERT INTO images (id, placeid, file, size, type, lastmodified, srt)
@@ -492,7 +507,7 @@ if (checkSession($ctx, $data["sessionid"]) === false) {
 	echo 5; exit;
 }
 
-// Transaction
+// SEC Transaction
 
 try {
 	$ctx->db->beginTransaction();

@@ -13,22 +13,22 @@ export const loginRoutine = async (
 		const { data } = await axios.post('/backend/auth.php', user);
 		switch (data) {
 			case 0 :
-				sessionStorage.clear();
+				localStorage.clear();
 				login.message = voc.m.paged.authError;
 				break;
 			case 1 :
-				sessionStorage.clear();
+				localStorage.clear();
 				login.message = voc.m.paged.wrongLoginPassword;
 				break;
 			default :
 				if (typeof data === 'object') {
-					sessionStorage.setItem('places-useruuid', data.id);
-					sessionStorage.setItem('places-session', data.session);
+					localStorage.setItem('places-useruuid', data.id);
+					localStorage.setItem('places-session', data.session);
 					emitter.emit('logged');
 				}
 		}
 	} catch (error) {
 		console.error(error);
-		sessionStorage.clear();
+		localStorage.clear();
 	}
 };

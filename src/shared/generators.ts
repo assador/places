@@ -60,7 +60,7 @@ export const formFolderForImported = (
 			type: 'folder',
 			context: 'places',
 			id: 'imported',
-			userid: sessionStorage.getItem('places-useruuid') as string,
+			userid: localStorage.getItem('places-useruuid') as string,
 			parent: null,
 			name: voc.o.importedFolderName,
 			description: voc.o.importedFolderDescription,
