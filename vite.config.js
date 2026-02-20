@@ -31,6 +31,15 @@ export default defineConfig({
 					},
 				],
 			},
+			workbox: {
+				navigateFallbackDenylist: [/^\/backend/],
+				runtimeCaching: [
+					{
+						urlPattern: /^\/backend\/.*$/,
+						handler: 'NetworkOnly',
+					},
+				],
+			},
 		}),
 	],
 	resolve: {
