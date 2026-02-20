@@ -540,8 +540,8 @@ try {
 			FROM folders
 			WHERE userid = {$ctx->db->quote(uuidToBin($data['userid']))}
 		")->fetch(PDO::FETCH_ASSOC)["c"];
-		$foldersLimit = $groupId && isset($rights["folderscount"][$groupId])
-			? (int)$rights["folderscount"][$groupId] : 0;
+		$foldersLimit = $groupId && isset($config["rights"]["folderscount"][$groupId])
+			? (int)$config["rights"]["folderscount"][$groupId] : 0;
 
 		$delta = 0;
 
@@ -579,8 +579,8 @@ try {
 			FROM places
 			WHERE userid = {$ctx->db->quote(uuidToBin($data['userid']))}
 		")->fetch(PDO::FETCH_ASSOC)["c"];
-		$placesLimit = $groupId && isset($rights["placescount"][$groupId])
-			? (int)$rights["placescount"][$groupId] : 0;
+		$placesLimit = $groupId && isset($config["rights"]["placescount"][$groupId])
+			? (int)$config["rights"]["placescount"][$groupId] : 0;
 
 		$delta = 0;
 
@@ -616,8 +616,8 @@ try {
 			FROM routes
 			WHERE userid = {$ctx->db->quote(uuidToBin($data['userid']))}
 		")->fetch(PDO::FETCH_ASSOC)["c"];
-		$routesLimit = $groupId && isset($rights["routescount"][$groupId])
-			? (int)$rights["routescount"][$groupId] : 0;
+		$routesLimit = $groupId && isset($config["rights"]["routescount"][$groupId])
+			? (int)$config["rights"]["routescount"][$groupId] : 0;
 
 		$delta = 0;
 

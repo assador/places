@@ -1,4 +1,8 @@
 <?php
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 require_once __DIR__ . '/bootstrap.php';
 
 $input = json_decode(
@@ -43,9 +47,9 @@ $message = '
 			Здравствуйте' . ($name != "" && $name != null ? ', ' . $name : '') . '!
 		<p>
 			Ваш e-mail был указан для восстановления пароля пользователя
-			<a href="' . $host . '">Персонального ГеоОрганайзера «Места»</a>. Если вы этого не делали, просто проигнорируйте это письмо.
+			<a href="' . $config['host'] . '">Персонального ГеоОрганайзера «Места»</a>. Если вы этого не делали, просто проигнорируйте это письмо.
 			В противном случае для создания нового пароля вашего аккаунта перейдите по ссылке: 
-			<a href="' . $host . '/backend/change_password.php?session=' . $sessionUuid . '">' . $host . '/backend/change_password.php?session=' . $sessionUuid . '</a> в течение часа.
+			<a href="' . $config['host'] . '/backend/change_password.php?session=' . $sessionUuid . '">' . $config['host'] . '/backend/change_password.php?session=' . $sessionUuid . '</a> в течение часа.
 		</p>
 	</body>
 	</html>
@@ -55,7 +59,7 @@ $sent = sendMail(
 	$input["forgotEmail"],
 	"Восстановление пароля пользователя сервиса «Места»",
 	$message,
-	$config["mail"]
+	$config,
 );
 if (!$sent) {
 	echo 1;

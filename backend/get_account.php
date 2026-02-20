@@ -14,7 +14,7 @@ if (!$result) {
 }
 $result["id"] = binToUuid($result["id"]);
 $result["homeplace"] = binToUuid($result["homeplace"]);
-$result["testaccount"] = $result["id"] === $testaccountuuid ? true : false;
+$result["testaccount"] = $result["id"] === $config["testaccountuuid"] ? true : false;
 
 $query = $ctx->db->prepare("
 	SELECT * FROM `usergroup`

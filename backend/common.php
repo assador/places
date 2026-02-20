@@ -122,18 +122,21 @@ function getSession(AppContext $ctx, string $sessionIdBin, $reason = null) {
 	return $query->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 function sendMail($to, $subject, $message, $config) {
-	$headers = "MIME-Version: 1.0\r\n";
-	$headers .= "Content-type: text/html; charset=utf-8\r\n";
-	$headers .= "From: =?utf-8?B?" .
-		base64_encode($config["mail"]["name"])
-			? base64_encode($config["mail"]["name"])
-			: ""
-	. "?= <{$config["mail"]["from"]}>";
-
+	$encodedName = base64_encode($config["mail"]["name"]);
+	$headers = implode("\r\n", [
+		"MIME-Version: 1.0",
+		"Content-type: text/html; charset=utf-8",
+		"From: =?utf-8?B?"
+			. base64_encode($config["mail"]["name"])
+			. "?= <{$config["mail"]["from"]}>"
+		,
+		"Reply-To: <{$config["mail"]["from"]}>",
+		"X-Mailer: PHP/" . phpversion(),
+	]);
 	if (!empty($config["mail"]["smtp"])) {
 		return sendMailSmtp($to, $subject, $message, $headers, $config);
 	}
-	if (@mail($to, $subject, $message, $headers)) {
+	if (@mail($to, $subject, $message, $headers, "-f " . $config["mail"]["from"])) {
 		return true;
 	}
 	if (!empty($config["mail"]["logs"])) {
@@ -150,15 +153,19 @@ function sendMail($to, $subject, $message, $config) {
 	return false;
 }
 function sendMailSmtp($to, $subject, $message, $headers, $config) {
-	$host = $config["host"];
-	$port = $config["port"] ?? 587;
-	$username = $config["username"] ?? null;
-	$password = $config["password"] ?? null;
-	$secure   = $config["secure"] ?? null;
+	$smtp = $config["mail"]["smtp"];
 
-	$remote = ($secure === "ssl" ? "ssl://" : "") . $host;
+	$smtpHost = $smtp["host"];
+    $port     = $smtp["port"] ?? 587;
+    $username = $smtp["username"] ?? null;
+    $password = $smtp["password"] ?? null;
+    $secure   = $smtp["secure"] ?? null;
+
+	$remote = ($secure === "ssl" ? "ssl://" : "") . $smtpHost;
 	$fp = fsockopen($remote, $port, $errno, $errstr, 30);
+
 	if (!$fp) {
+		error_log("SMTP Connection Error: $errstr ($errno)");
 		return false;
 	}
 	$read = function($fp) {
@@ -175,7 +182,7 @@ function sendMailSmtp($to, $subject, $message, $headers, $config) {
 	};
 
 	$read($fp);
-	$write($fp, "EHLO " . $host);
+	$write($fp, "EHLO " . $_SERVER['SERVER_NAME']);
 
 	if ($secure === "tls") {
 		$write($fp, "STARTTLS");
@@ -195,15 +202,18 @@ function sendMailSmtp($to, $subject, $message, $headers, $config) {
 	$write($fp, "RCPT TO:<{$to}>");
 	$write($fp, "DATA");
 
-	$data  = "Subject: {$subject}\r\n";
+
+	$data  = "Subject: =?utf-8?B?" . base64_encode($subject) . "?=\r\n";
+	$data .= "To: <{$to}>\r\n";
 	$data .= $headers . "\r\n";
+	$data .= "\r\n";
 	$data .= $message . "\r\n.\r\n";
 
 	fwrite($fp, $data);
-	$read($fp);
+	$result = $read($fp);
 
 	$write($fp, "QUIT");
 	fclose($fp);
 
-	return true;
+	return strpos($result, '250') !== false;
 }

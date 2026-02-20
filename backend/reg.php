@@ -66,14 +66,14 @@ $message = '
 	<body>
 		<h1>Подтверждение регистрации в сервисе «Места»</h1>
 		<p>
-			Ваш e-mail был указан при регистрации в <a href="' . $host . '">
+			Ваш e-mail был указан при регистрации в <a href="' . $config['host'] . '">
 			Персональном ГеоОрганайзере «Места»</a>.
 			Если вы этого не делали, просто проигнорируйте это письмо.
 		</p>
 		<p>
 			Для подтверждения регистрации в сервисе перейдите по ссылке:<br />
-			<a href="' . $host . '/backend/confirm.php?token=' . $token . '">
-				' . $host . '/backend/confirm.php?token=' . $token . '
+			<a href="' . $config['host'] . '/backend/confirm.php?token=' . $token . '">
+				' . $config['host'] . '/backend/confirm.php?token=' . $token . '
 			</a>
 		</p>
 	</body>
@@ -83,7 +83,7 @@ $sent = sendMail(
 	$_POST["regEmail"],
 	"Подтверждение регистрации в сервисе «Места»",
 	$message,
-	$config["mail"]
+	$config,
 );
 if (!$sent) {
 	echo 0;

@@ -10,7 +10,7 @@ $date->add(new DateInterval("P1D"));
 
 $_POST = json_decode(file_get_contents("php://input"), true);
 $idBin = uuidToBin($_POST["accountId"]);
-if (testAccountCheck($ctx, $testaccountuuid, $_POST["accountId"])) {
+if (testAccountCheck($ctx, $config["testaccountuuid"], $_POST["accountId"])) {
 	echo 2; exit;
 } else {
 	$query = $ctx->db->prepare("
@@ -114,8 +114,8 @@ if (testAccountCheck($ctx, $testaccountuuid, $_POST["accountId"])) {
 			<p>
 				Ваш e-mail был указан как e-mail пользователя Персонального ГеоОрганайзера «Места». Если это были вы,
 				для подтверждения изменения данных аккаунта перейдите по ссылке:<br />
-				<a href="' . $host . '/backend/confirmaccount.php?token=' . $token . '">
-					' . $host . '/backend/confirmaccount.php?token=' . $token . '
+				<a href="' . $config['host'] . '/backend/confirmaccount.php?token=' . $token . '">
+					' . $config['host'] . '/backend/confirmaccount.php?token=' . $token . '
 				</a>
 			</p>
 		</body>
@@ -125,7 +125,7 @@ if (testAccountCheck($ctx, $testaccountuuid, $_POST["accountId"])) {
 		$_POST["accountEmail"],
 		"Подтверждение изменения данных аккаунта в сервисе «Места»",
 		$message,
-		$config["mail"]
+		$config,
 	);
 	if (!$sent) {
 		echo 0;

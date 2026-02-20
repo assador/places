@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
 
-if(testAccountCheck($ctx, $testaccountuuid, $_POST["userid"])) {
+if(testAccountCheck($ctx, $config["testaccountuuid"], $_POST["userid"])) {
 	echo 2; exit;
 } else {
 	switch ($_POST["need"]) {
