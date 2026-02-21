@@ -99,11 +99,11 @@ body {
 #bottom-basic {
 	grid-area: bottom-basic;
 	display: grid;
-	grid-template-columns: auto auto 1fr auto;
+	grid-template-columns: auto auto 1fr auto auto;
 	grid-template-areas:
 		"bottom-basic__control-buttons-bottom  bottom-choose-map  bottom-center-coordinates  bottom-altitude"
 	;
-	gap: 0;
+	gap: 12px;
 	align-items: baseline;
 	z-index: 200;
 	input {
@@ -126,7 +126,6 @@ body {
 		align-items: baseline;
 		justify-content: right;
 		gap: 12px;
-		margin-right: 24px;
 		& > * {
 			flex: 0 1 auto;
 		}
@@ -348,11 +347,10 @@ body {
 			display: none;
 		}
 		#bottom-basic {
-			grid-template-columns: 150px auto 1fr auto;
+			grid-template-columns: 200px auto 1fr auto auto;
 			gap: 12px;
 			#bottom-center-coordinates {
 				flex-wrap: wrap;
-				margin-right: 12px;
 				& > span > span {
 					display: inline-block;
 					width: 1.2em;
@@ -381,10 +379,12 @@ body {
 			"bottom-basic  bottom-basic  bottom-basic"
 		;
 		#bottom-basic {
+			grid-template-columns: 200px 1fr;
 			grid-template-areas:
 				"bottom-basic__control-buttons-bottom  bottom-choose-map"
 				"bottom-basic__control-buttons-bottom  bottom-center-coordinates"
 				"bottom-basic__control-buttons-bottom  bottom-altitude"
+				"bottom-basic__control-buttons-bottom  bottom-donate"
 			;
 		}
 		#sbb-top, #sbb-right, #sbb-bottom, #sbb-left {

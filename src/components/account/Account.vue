@@ -240,19 +240,21 @@ const accountSubmit = (): void => {
 		}
 	}
 	.button-iconed {
-		right: 3px;
-		margin-top: -20px;
+		right: 5px;
+		margin-top: -22px;
 		&:hover {
-			right: 1px;
-			margin-top: -18px;
+			right: 5px;
+			margin-top: -22px;
+			filter: brightness(130%);
 		}
 		&::before {
 			margin-top: 0;
-			transform: scale(1);
+			transform: scale(0.8);
+			background-color: var(--color-25);
 		}
 	}
 	input[type=text] + .button-iconed::before {
-		content: url('@/assets/icons/eye-open-1-circled.svg');
+		mask-image: url('@/assets/icons/eye-open-1-circled.svg');
 	}
 }
 @media screen and (max-width: 1000px) {

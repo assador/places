@@ -1,20 +1,33 @@
 <template>
-	<div
-		class="popup"
-		:class="props.show ? 'appear' : 'disappear'"
-		:style="style"
-		@click="() => {if (closeOnClick) close();}"
-	>
-		<a
-			href="javascript:void(0)"
-			class="close"
-			@click="close()"
+	<Teleport to="#container">
+		<div
+			v-if="props.show"
+			v-bind="$attrs"
+			class="popup"
+			:class="props.show ? 'appear' : 'disappear'"
+			:style="style"
+			@click="handleBackdropClick"
 		>
-			×
-		</a>
-		{{ props.what }}
-		<slot name="slot" />
-	</div>
+			<a
+				href="javascript:void(0)"
+				class="close"
+				@click.stop="close()"
+			>
+				×
+			</a>
+			<div
+				v-if="props.what"
+				class="popup-title"
+			>
+				{{ props.what }}
+			</div>
+			<div
+				class="popup-content"
+			>
+				<slot name="popupSlot" />
+			</div>
+		</div>
+	</Teleport>
 </template>
 
 <script setup lang="ts">
@@ -34,20 +47,35 @@ const props = withDefaults(defineProps<IPlacesPopupProps>(), {
 });
 const emit = defineEmits(['update:show']);
 
+defineOptions({
+	inheritAttrs: false,
+});
+
 const close = (): void => {
 	emit('update:show', false);
+};
+const handleBackdropClick = (e: MouseEvent) => {
+	if (props.closeOnClick) {
+		if ((e.target as HTMLElement).classList.contains('popup')) {
+			close();
+		}
+	}
 };
 const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
 };
-const style = computed((): CSSProperties  => ({
-    position: 'absolute',
-    top: isNaN(Number(props.position.top)) ? props.position.top : `${props.position.top}px`,
-    right: isNaN(Number(props.position.right)) ? props.position.right : `${props.position.right}px`,
-    bottom: isNaN(Number(props.position.bottom)) ? props.position.bottom : `${props.position.bottom}px`,
-    left: isNaN(Number(props.position.left)) ? props.position.left : `${props.position.left}px`,
-	zIndex: 999999,
-}));
+const style = computed((): CSSProperties => {
+	const format = (val: string | number) => isNaN(Number(val)) ? val : `${val}px`;
+	return {
+		position: 'absolute',
+		top: format(props.position.top),
+		right: format(props.position.right || 'auto'),
+		bottom: format(props.position.bottom || 'auto'),
+		left: format(props.position.left),
+		zIndex: 999999,
+		transform: props.position.left === '50%' ? 'translateX(-50%)' : 'none',
+	};
+});
 
 onMounted(() => {
 	document.addEventListener('keyup', keyup, false);

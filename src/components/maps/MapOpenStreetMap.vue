@@ -478,8 +478,10 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 			;
 			break;
 	}
+	popupProps.value.show = pointInfo.value.point?.id === point.id
+		? !popupProps.value.show : true
+	;
 	pointInfo.value.point = point;
-	popupProps.value.show = !popupProps.value.show;
 	popupProps.value.position.left = 'auto';
 	popupProps.value.position.bottom = 'auto';
 	popupProps.value.position.top = e.originalEvent.clientY + 5;

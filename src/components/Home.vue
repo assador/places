@@ -1,59 +1,4 @@
 <template>
-	<Teleport to="#container">
-		<Popup
-			:show="popupProps.show"
-			:position="popupProps.position"
-			:closeOnClick="false"
-			class="points-coordinates messages"
-			@update:show="popupProps.show = $event"
-		>
-			<template #slot>
-				<a
-					href="javascript:void(0)"
-					class="points-coordinates-copy"
-					@click="copyCoords(pointInfo.point)"
-				>
-					{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
-				</a>
-				<h3>
-					<span class="un_color">
-						{{ mainStore.t.i.captions.measurePoint }}:
-					</span>
-					<span class="color-01">
-						{{ pointInfo.name }}
-					</span>
-				</h3>
-				<div class="nobr">
-					<span class="un_color">
-						{{ mainStore.t.i.captions.latitude }}:
-					</span>
-					<span class="color-01">
-						{{ latitude2string(pointInfo.point?.latitude) }}°
-					</span>
-				</div>
-				<div class="nobr">
-					<span class="un_color">
-						{{ mainStore.t.i.captions.longitude }}:
-					</span>
-					<span class="color-01">
-						{{ longitude2string(pointInfo.point?.longitude) }}°
-					</span>
-				</div>
-				<div
-					v-if="pointInfo.point?.altitude"
-					class="nobr"
-				>
-					<span class="un_color">
-						{{ mainStore.t.i.captions.altitude }}:
-					</span>
-					<span class="color-01">
-						{{ pointInfo.point?.altitude }}
-						{{ mainStore.t.i.text.m }}
-					</span>
-				</div>
-			</template>
-		</Popup>
-	</Teleport>
 	<div
 		id="grid"
 		ref="root"
@@ -417,6 +362,27 @@
 				{{ mainStore.t.i.captions.altitude }}:
 				{{ centerAltitude }}
 			</span>
+			<span id="bottom-donate" class="nobr">
+				<button
+					@click="popupDonate.show = !popupDonate.show"
+				>
+					{{ mainStore.t.i.buttons.donate }}
+				</button>
+			</span>
+			<Popup
+				:show="popupDonate.show"
+				:position="popupDonate.position"
+				:closeOnClick="true"
+				class="center"
+				@update:show="popupDonate.show = $event"
+			>
+				<template #popupSlot>
+					<h2>Boosty</h2>
+					<div>
+						<img src="@/assets/images/assador-donate.png" />
+					</div>
+				</template>
+			</Popup>
 		</div>
 		<div
 			id="sbs-top"
@@ -733,6 +699,62 @@
 			</button>
 		</div>
 	</Teleport>
+
+<!-- SEC Popup Point Coords -->
+
+	<Popup
+		:show="popupProps.show"
+		:position="popupProps.position"
+		:closeOnClick="false"
+		class="points-coordinates messages"
+		@update:show="popupProps.show = $event"
+	>
+		<template #popupSlot>
+			<a
+				href="javascript:void(0)"
+				class="points-coordinates-copy"
+				@click="copyCoords(pointInfo.point)"
+			>
+				{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
+			</a>
+			<h3>
+				<span class="un_color">
+					{{ mainStore.t.i.captions.measurePoint }}:
+				</span>
+				<span class="color-01">
+					{{ pointInfo.name }}
+				</span>
+			</h3>
+			<div class="nobr">
+				<span class="un_color">
+					{{ mainStore.t.i.captions.latitude }}:
+				</span>
+				<span class="color-01">
+					{{ latitude2string(pointInfo.point?.latitude) }}°
+				</span>
+			</div>
+			<div class="nobr">
+				<span class="un_color">
+					{{ mainStore.t.i.captions.longitude }}:
+				</span>
+				<span class="color-01">
+					{{ longitude2string(pointInfo.point?.longitude) }}°
+				</span>
+			</div>
+			<div
+				v-if="pointInfo.point?.altitude"
+				class="nobr"
+			>
+				<span class="un_color">
+					{{ mainStore.t.i.captions.altitude }}:
+				</span>
+				<span class="color-01">
+					{{ pointInfo.point?.altitude }}
+					{{ mainStore.t.i.text.m }}
+				</span>
+			</div>
+		</template>
+	</Popup>
 </template>
 
 <script setup lang="ts">
@@ -840,6 +862,15 @@ const popupProps = ref<IPlacesPopupProps>({
 	},
 });
 provide('popupProps', popupProps);
+const popupDonate = ref<IPlacesPopupProps>({
+	show: false,
+	position: {
+		top: '0',
+		right: '0',
+		bottom: '0',
+		left: '0',
+	},
+});
 
 const copied = ref(false);
 const copyCoords = async (point: Point) => {
@@ -1394,22 +1425,6 @@ const selectPlaces = (text: string): void => {
 .helpers-search, .helpers-range {
 	.control-buttons button {
 		width: 22px;
-	}
-}
-.points-coordinates {
-	padding: 30px 20px 10px 20px;
-	text-align: right;
-	h3 {
-		text-align: center;
-		margin-bottom: 8px;
-	}
-	&-degminsecalt, &-copy {
-		margin-top: 12px;
-	}
-	&-copy {
-		display: block;
-		position: absolute;
-		top: -6px; left: 10px;
 	}
 }
 </style>

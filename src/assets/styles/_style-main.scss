@@ -665,8 +665,9 @@ $filter-brightness-03: brightness(0%);
 	.hidden {display: none !important;}
 	.nobr {white-space: nowrap;}
 	.center {
-		display: table-cell;
-		vertical-align: middle;
+		display: flex !important;
+		align-items: center;
+		justify-content: center;
 		text-align: center;
 	}
 	.aligned-children {
@@ -1190,6 +1191,25 @@ $filter-brightness-03: brightness(0%);
 	}
 	#messages {
 		text-align: right;
+	}
+	.points-coordinates {
+		padding: 30px 20px 10px 20px !important;
+		text-align: right;
+		h3 {
+			text-align: center;
+			margin-bottom: 8px;
+		}
+		&-degminsecalt, &-copy {
+			margin-top: 12px;
+		}
+		&-copy {
+			display: block;
+			position: absolute;
+			top: -6px; left: 10px;
+		}
+	}
+	.menu-link {
+		display: block;
 	}
 	#placemarksShowHideButton,
 	#commonPlacesShowHideButton,

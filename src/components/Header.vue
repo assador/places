@@ -5,12 +5,13 @@
 				{{ mainStore.t.i.brand.header }} —
 				<span class="brand-login">
 					<Popup
-						:show="popuped"
+						:show="popupProps.show"
+						:position="popupProps.position"
 						:closeOnClick="false"
 						class="messages fontsize_n"
-						@update:show="popuped = $event"
+						@update:show="popupProps.show = $event"
 					>
-						<template #slot>
+						<template #popupSlot>
 							<router-link
 								to="/account"
 								class="menu-link message border_1"
@@ -40,7 +41,13 @@
 						</template>
 					</Popup>
 				</span>
-				<a href="javascript:void(0)" @click="popuped = !popuped">
+				<a href="javascript:void(0)" @click="e => {
+					popupProps.show = !popupProps.show;
+					popupProps.position.right = 'auto';
+					popupProps.position.bottom = 'auto';
+					popupProps.position.top = e.clientY + 5;
+					popupProps.position.left = e.clientX + 5;
+				}">
 					{{
 						mainStore.user
 							? (mainStore.user.name
@@ -59,14 +66,22 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { emitter } from '@/shared';
+import { emitter, IPlacesPopupProps } from '@/shared';
 import { useMainStore } from '@/stores/main';
 import Dashboard from '@/components/Dashboard.vue';
 import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
 
-const popuped = ref(false);
+const popupProps = ref<IPlacesPopupProps>({
+	show: false,
+	position: {
+		top: 'auto',
+		right: 'auto',
+		bottom: 'auto',
+		left: 'auto',
+	},
+});
 </script>
 
 <style lang="scss" scoped>
@@ -77,14 +92,5 @@ const popuped = ref(false);
 .brand-login {
 	display: inline-block;
 	position: relative;
-	.menu-link {
-		display: block;
-	}
-}
-.admin-link {
-	position: relative;
-	top: -10px; left: 5px;
-	font-size: 55%;
-	text-transform: lowercase;
 }
 </style>
