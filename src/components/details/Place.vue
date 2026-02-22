@@ -279,9 +279,10 @@
 					ref="inputUploadFiles"
 					type="file"
 					name="files"
+					accept="image/*"
 					multiple
 					class="images-add__input"
-					@change="e => uploadFiles(e)"
+					@change="e => uploadFiles(e, inputUploadFiles)"
 				/>
 			</div>
 		</div>
@@ -324,6 +325,7 @@ const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;
 const deleteImages = inject('deleteImages') as (...args: any[]) => any;
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
+const currentPlaceNameInputRef = inject('currentPlaceNameInputRef');
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -332,8 +334,7 @@ const linkEditing = ref(false);
 const dragging = ref(false);
 const highlightedLeft = ref(null);
 const highlightedRight = ref(null);
-
-const currentPlaceNameInputRef = inject('currentPlaceNameInputRef');
+const inputUploadFiles = ref<HTMLInputElement | null>(null);
 
 const currentPlaceLat = computed<number | null>(() =>
 	mainStore.currentPlace

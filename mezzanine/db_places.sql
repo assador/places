@@ -606,15 +606,15 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `login` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `name` varchar(100) DEFAULT '',
-  `email` varchar(100) DEFAULT '',
-  `phone` varchar(20) DEFAULT '',
+  `name` varchar(100) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
   `confirmed` tinyint(1) NOT NULL DEFAULT 0,
   `confirmbefore` datetime NOT NULL,
-  `token` varchar(32) NOT NULL,
+  `token` varchar(32) DEFAULT NULL,
   `homeplace` binary(16) DEFAULT NULL,
   `id` binary(16) NOT NULL,
-  `lastupdates` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `lastupdates` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_login` (`login`),
   UNIQUE KEY `uniq_email` (`email`),
@@ -633,13 +633,13 @@ CREATE TABLE `userschange` (
   `id` binary(16) NOT NULL,
   `login` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `name` varchar(100) NOT NULL DEFAULT '',
+  `name` varchar(100) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
-  `phone` varchar(20) NOT NULL DEFAULT '',
+  `phone` varchar(20) DEFAULT NULL,
   `confirmed` tinyint(1) NOT NULL DEFAULT 0,
   `confirmbefore` datetime NOT NULL,
-  `token` varchar(32) NOT NULL,
-  `homeplace` varchar(32) NOT NULL DEFAULT '',
+  `token` varchar(32) DEFAULT NULL,
+  `homeplace` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `U_users_change` (`id`,`login`,`email`,`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -711,4 +711,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-21  2:37:08
+-- Dump completed on 2026-02-22 21:43:20

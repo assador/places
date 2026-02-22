@@ -5,12 +5,18 @@ ini_set('display_errors', '1');
 
 require_once __DIR__ . '/bootstrap.php';
 
+$input = json_decode(
+	file_get_contents("php://input"),
+	true,
+	512,
+	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+);
+
 $date = new DateTime();
 $date->add(new DateInterval("P1D"));
 
-$_POST = json_decode(file_get_contents("php://input"), true);
-$idBin = uuidToBin($_POST["accountId"]);
-if (testAccountCheck($ctx, $config["testaccountuuid"], $_POST["accountId"])) {
+$idBin = uuidToBin($input["accountId"]);
+if (testAccountCheck($ctx, $config["testaccountuuid"], $input["accountId"])) {
 	echo 2; exit;
 } else {
 	$query = $ctx->db->prepare("
@@ -23,27 +29,27 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $_POST["accountId"])) {
 	$result = $query->fetch(PDO::FETCH_ASSOC);
 	if(!!$result) {
 		$passwordchange =
-			$_POST["accountNewPassword"] == "" ||
-			password_verify($_POST["accountNewPassword"], $result["password"])
+			$input["accountNewPassword"] == "" ||
+			password_verify($input["accountNewPassword"], $result["password"])
 				? false : true;
 	}
 	if (
 		count($result) == 0 ||
-		$result["login" ] == $_POST["accountLogin" ] &&
-		$result["name"  ] == $_POST["accountName"  ] &&
-		$result["email" ] == $_POST["accountEmail" ] &&
-		$result["phone" ] == $_POST["accountPhone" ] &&
+		$result["login" ] == $input["accountLogin" ] &&
+		$result["name"  ] == $input["accountName"  ] &&
+		$result["email" ] == $input["accountEmail" ] &&
+		$result["phone" ] == $input["accountPhone" ] &&
 		!$passwordchange
 	) {
 		echo 0; exit;
 	}
 	$currentuser = $result;
-	if ($currentuser["login" ] != $_POST["accountLogin" ]) {
+	if ($currentuser["login" ] != $input["accountLogin" ]) {
 		$query = $ctx->db->prepare("
 			SELECT `id` FROM `users`
 			WHERE `login` = :login
 		");
-		$query->bindValue(':login', $_POST["accountLogin"], PDO::PARAM_LOB);
+		$query->bindValue(':login', $input["accountLogin"], PDO::PARAM_LOB);
 		$query->execute();
 		$result = $query->fetch(PDO::FETCH_ASSOC);
 		if(!!$result) {
@@ -90,15 +96,15 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $_POST["accountId"])) {
 		)"
 	);
 	$query->bindValue(':id', $idBin, PDO::PARAM_LOB);
-	$query->bindValue(':login', $_POST["accountLogin"]);
+	$query->bindValue(':login', $input["accountLogin"]);
 	$query->bindValue(':password', (
 		$passwordchange
-			? password_hash($_POST["accountNewPassword"], PASSWORD_DEFAULT)
+			? password_hash($input["accountNewPassword"], PASSWORD_DEFAULT)
 			: $currentuser["password"]
 	));
-	$query->bindValue(':name', $_POST["accountName"]);
-	$query->bindValue(':email', $_POST["accountEmail"]);
-	$query->bindValue(':phone', $_POST["accountPhone"]);
+	$query->bindValue(':name', $input["accountName"]);
+	$query->bindValue(':email', $input["accountEmail"]);
+	$query->bindValue(':phone', $input["accountPhone"]);
 	$query->bindValue(':confirmed', 0);
 	$query->bindValue(':confirmbefore', $date->format("Y-m-d H:i:s"));
 	$query->bindValue(':token', $token);
@@ -122,7 +128,7 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $_POST["accountId"])) {
 		</html>
 	';
 	$sent = sendMail(
-		$_POST["accountEmail"],
+		$input["accountEmail"],
 		"Подтверждение изменения данных аккаунта в сервисе «Места»",
 		$message,
 		$config,

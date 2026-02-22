@@ -832,7 +832,6 @@ const showMap = ref(true);
 provide('showMap', showMap);
 
 const importFromFileInput = ref<HTMLInputElement | null>(null);
-const inputUploadFiles = ref<HTMLInputElement | null>(null);
 const commonPlacesPagesCount = ref(0);
 const commonRoutesPage = ref(1);
 provide('commonRoutesPage', commonRoutesPage);
@@ -1080,13 +1079,14 @@ const importFromFile = async () => {
 	};
 	reader.readAsText(file);
 };
-const uploadFiles = async (event: Event) => {
+const uploadFiles = async (event: Event, inputElement?: HTMLInputElement | null) => {
 	event.preventDefault();
 	if (mainStore.user.testaccount) {
 		mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads);
 		return;
 	}
-	const files = (inputUploadFiles.value as HTMLInputElement).files;
+	const input = inputElement || (event.target as HTMLInputElement);
+	const files = input.files;
 	if (!files || files.length === 0) return;
 	const data = new FormData();
 	const filesArray: Array<Image> = [];
@@ -1138,7 +1138,7 @@ const uploadFiles = async (event: Event) => {
 	try {
 		if (imagesAddInput) imagesAddInput.value = '';
 		if (imagesUploading) imagesUploading.classList.add('hidden');
-		const [errorCodes, uploadedFiles] = response.data;
+		const [ errorCodes, uploadedFiles ] = response.data;
 		// Remove from the array those files that were not downloaded
 		const uploadedIds = new Set(uploadedFiles.map((f: any) => f.id));
 		for (let i = filesArray.length - 1; i >= 0; i--) {
@@ -1178,6 +1178,7 @@ const uploadFiles = async (event: Event) => {
 			emitter.emit('toDB', { images_upload: filesArray });
 			mainStore.setMessage(popup.filesUploadedSuccessfully);
 		}
+		input.value = '';
 	} catch(error) {
 		mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);
 		if (imagesAddInput) imagesAddInput.value = '';
