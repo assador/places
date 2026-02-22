@@ -1,5 +1,6 @@
 <template>
 	<div ref="container" id="container" :class="`colortheme-${colortheme}`">
+		<div id="popup-root" />
 		<PopupConfirm
 			v-if="confirmPopup"
 			:callback="confirmCallback"

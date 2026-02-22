@@ -251,6 +251,7 @@
 				⤧
 			</div>
 			<component
+				v-if="showMap"
 				:is="maps[mainStore.activeMapIndex].component"
 				:style="cells.left && cells.right && compact === 2 ? 'display: none' : ''"
 			/>
@@ -958,9 +959,6 @@ const commonRoutes = computed<Record<string, Route>>(() => {
 });
 */
 const centerAltitude = ref<number | null>(null);
-watch(() => mainStore.ready, async () => {
-	await stateReadyChanged();
-});
 watchEffect(async () => {
 	if (
 		typeof mainStore.center.latitude === 'number' &&
@@ -976,7 +974,6 @@ watchEffect(async () => {
 // SEC Hooks
 
 onMounted(async () => {
-	if (mainStore.ready) stateReadyChanged();
 	mainStore.idleTime = 0;
 	if (!idleTimeInterval.value) {
 		idleTimeInterval.value = window.setInterval(() => {
@@ -1021,27 +1018,6 @@ onUpdated(() => {
 const blur = (el?: HTMLElement): void => {
 	if (el) (el as HTMLElement).blur();
 		else document.querySelectorAll<HTMLElement>(':focus').forEach(el => el.blur());
-};
-const stateReadyChanged = async () => {
-	if (!mainStore.ready) return;
-	mainStore.restoreObjectsAsLinks();
-	if (!mainStore.currentPlace) mainStore.setFirstCurrentPlace();
-	const commonPlacesKeys = Object.keys(mainStore.commonPlaces);
-	const commonPlacesLen = commonPlacesKeys.length;
-	const perPage = mainStore.commonPlacesOnPageCount;
-	commonPlacesPagesCount.value = Math.ceil(commonPlacesLen / perPage);
-	const cp = mainStore.currentPlace;
-	if (cp && cp.common && cp.userid !== mainStore.user.id) {
-		const idx = commonPlacesKeys.indexOf(cp.id);
-		const inPaginator = idx / perPage;
-		mainStore.commonPlacesPage =
-			Number.isInteger(inPaginator) ? inPaginator + 1 : Math.ceil(inPaginator);
-	}
-	if (mainStore.user.testaccount) {
-		setTimeout(() => {
-			mainStore.setMessage(mainStore.t.m.popup.testAccount);
-		}, 3000);
-	}
 };
 const openTreeTo = (object: Place | Route): void => {
 	if (!object) return;

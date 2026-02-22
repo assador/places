@@ -319,17 +319,6 @@
 					} else if (what === 'routes') {
 						mainStore.setCurrentRoute(object as Route);
 					}
-					const point = mainStore.getPointById(
-						what === 'places'
-							? object['pointid']
-							: object['points'][object['choosing']]
-					);
-					if (point) {
-						mainStore.updateMap({
-							latitude: point.latitude,
-							longitude: point.longitude,
-						});
-					}
 				}"
 				@contextmenu.prevent="() => {
 					if (what === 'places' && instanceid !== 'popupexporttree') {

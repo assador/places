@@ -1,12 +1,11 @@
 <template>
-<div>
-	<div v-if="showMap" id="mapblock">
+	<div id="mapblock">
 		<l-map
 			ref="map"
 			v-model:zoom="mapCenter.zoom"
 			:center="mapCenter.coords as PointExpression"
 			@ready="ready()"
-			@moveend="updateState()"
+			@dragend="updateState()"
 			@contextmenu="mapContextMenu"
 		>
 			<l-control-layers />
@@ -18,12 +17,14 @@
 				:visible="provider.visible"
 				layer-type="base"
 			/>
+
+<!-- SEC Markers: Center Marker  -->
+
 			<l-marker
-				ref="centerMarker"
 				:lat-lng="mapCenter.coords as LatLngExpression"
 				draggable
 				:visible="mainStore.centerPlacemarkShow"
-				@moveend="e => updateState({
+				@dragend="e => updateState({
 					coords: [
 						e.target.getLatLng().lat,
 						e.target.getLatLng().lng,
@@ -51,9 +52,11 @@
 				@contextmenu="e =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
-				@mousedown="() => dragging = true"
-				@mouseup="() => dragging = false"
-				@moveend="e => placemarkDragEnd(place, e)"
+				@dragstart="dragging = true"
+				@dragend="e => {
+					dragging = false;
+					markerDragEnd(place, e);
+				}"
 			>
 				<l-icon
 					v-bind="(
@@ -83,7 +86,7 @@
 					mainStore.points[place.pointid].latitude,
 					mainStore.points[place.pointid].longitude,
 				]"
-				:visible="mainStore.commonPlacemarksShow && !!place.geomark"
+				:visible="mainStore.commonPlacemarksShow && place.geomark"
 				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
 				@contextmenu="e =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
@@ -118,6 +121,7 @@
 				>
 					<l-polyline
 						v-if="route.points.length"
+						:ref="el => setRouteLineRef(route.id, el)"
 						:lat-lngs="
 							mainStore.getPointsCoords(
 								route.points.map(p => p.id) ?? []
@@ -128,23 +132,25 @@
 					/>
 					<l-circle-marker
 						v-if="route.points.length"
+						:ref="el => setCircleMarkerRef(route.points[0].id, el)"
 						:lat-lng="
 							mainStore.getPointCoords(
 								route.points[0].id
 							) as LatLngExpression
 						"
-						class-name="route-start"
+						class-name="marker-start"
 						:radius="route.id === mainStore.currentRoute.id ? 13 : 8"
 						:weight="1"
 					/>
 					<l-circle-marker
 						v-if="route.points.length > 1"
+						:ref="el => setCircleMarkerRef(route.points.at(-1).id, el)"
 						:lat-lng="
 							mainStore.getPointCoords(
 								route.points.at(-1).id
 							) as LatLngExpression
 						"
-						class-name="route-end"
+						class-name="marker-end"
 						:radius="route.id === mainStore.currentRoute.id ? 13 : 8"
 						:weight="1"
 					/>
@@ -153,7 +159,7 @@
 						:key="point.key"
 					>
 						<l-marker
-							:lat-lng="[point.latitude, point.longitude]"
+							:lat-lng="[ point.latitude, point.longitude ]"
 							:visible="
 								mainStore.placemarksShow &&
 								mainStore.tempsPlacemarksShow &&
@@ -168,17 +174,26 @@
 								mainStore.getPointById(point.id),
 								mainStore.currentRoute
 							)"
-							@mousedown="() => dragging = true"
-							@mouseup="() => dragging = false"
-							@move="e => {
-								const p = mainStore.getPointById(point.id);
-								const { lat, lng } = e.target.getLatLng();
-								p.latitude = lat;
-								p.longitude = lng;
+							@dragstart="dragging = true"
+							@dragend="e => {
+								dragging = false;
+								markerDragEnd(mainStore.getPointById(point.id), e);
 							}"
-							@moveend="e => placemarkDragEnd(
-								mainStore.getPointById(point.id), e
-							)"
+							@move="e => {
+								const { lat, lng } = e.target.getLatLng();
+								const polyline = routeLineRefs[route.id];
+								if (polyline) {
+									const latLngs = polyline.getLatLngs();
+									const pointIndex = route.points.findIndex(
+										p => p.id === point.id
+									);
+									if (pointIndex !== -1) {
+										latLngs[pointIndex] = [ lat, lng ];
+										polyline.setLatLngs(latLngs);
+									}
+								}
+								markerRefs[point.id].setLatLng([ lat, lng ]);
+							}"
 						>
 							<l-icon
 								v-bind="(
@@ -198,8 +213,9 @@
 									point.id !== route.points[0].id &&
 									point.id !== route.points.at(-1).id
 								"
+								:ref="el => setCircleMarkerRef(point.id, el)"
 								:lat-lng="[ point.latitude, point.longitude ]"
-								class-name="route-intermediate"
+								class-name="marker-intermediate"
 								:radius="route.id === mainStore.currentRoute.id ? 10 : 6"
 								:weight="1"
 							/>
@@ -240,18 +256,27 @@
 					@contextmenu="e =>
 						markerContextMenu(e, mainStore.getPointById(point.id), null
 					)"
-					@mousedown="() => dragging = true"
-					@mouseup="() => dragging = false"
+					@dragstart="dragging = true"
+					@dragend="e => {
+						dragging = false;
+						markerDragEnd(mainStore.getPointById(point.id), e);
+					}"
 					@move="e => {
 						if (mainStore.mode !== 'measure') return;
-						const p = mainStore.getPointById(point.id);
 						const { lat, lng } = e.target.getLatLng();
-						p.latitude = lat;
-						p.longitude = lng;
+						const polyline = routeLineRefs['measureId'];
+						if (polyline) {
+							const latLngs = polyline.getLatLngs();
+							const pointIndex = mainStore.measure.points.findIndex(
+								p => p.id === point.id
+							);
+							if (pointIndex !== -1) {
+								latLngs[pointIndex] = [ lat, lng ];
+								polyline.setLatLngs(latLngs);
+							}
+						}
+						markerRefs[point.id].setLatLng([ lat, lng ]);
 					}"
-					@moveend="e =>
-						placemarkDragEnd(mainStore.getPointById(point.id), e
-					)"
 				>
 					<l-icon
 						v-bind="(point.id === mainStore.currentPoint.id
@@ -264,10 +289,13 @@
 					<l-circle-marker
 						v-if="
 							mainStore.mode === 'measure' &&
-							mainStore.isMeasurePoint(point.id)
+							mainStore.isMeasurePoint(point.id) &&
+							point.id !== mainStore.measure.points[0].id &&
+							point.id !== mainStore.measure.points.at(-1).id
 						"
+						:ref="el => setCircleMarkerRef(point.id, el)"
 						:lat-lng="[ point.latitude, point.longitude ]"
-						class-name="route-intermediate"
+						class-name="marker-intermediate"
 						:radius="10"
 						:weight="1"
 					/>
@@ -281,12 +309,13 @@
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.length
 				"
+				:ref="el => setCircleMarkerRef(mainStore.measure.points[0].id, el)"
 				:lat-lng="
 					mainStore.getPointCoords(
 						mainStore.measure.points[0].id
 					) as LatLngExpression
 				"
-				class-name="measure-start"
+				class-name="marker-start"
 				:radius="13"
 				:weight="1"
 			/>
@@ -295,12 +324,13 @@
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.length
 				"
+				:ref="el => setCircleMarkerRef(mainStore.measure.points.at(-1).id, el)"
 				:lat-lng="
 					mainStore.getPointCoords(
 						mainStore.measure.points.at(-1).id
 					) as LatLngExpression
 				"
-				class-name="measure-end"
+				class-name="marker-end"
 				:radius="13"
 				:weight="1"
 			/>
@@ -309,6 +339,7 @@
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.length
 				"
+				:ref="el => setRouteLineRef('measureId', el)"
 				:lat-lngs="
 					mainStore.getPointsCoords(
 						mainStore.measure.points.map(p => p.id)
@@ -319,7 +350,6 @@
 			/>
 		</l-map>
 	</div>
-</div>
 </template>
 
 <script setup lang="ts">
@@ -350,7 +380,6 @@ const pointInfo = inject<Ref<PointName>>('pointInfo')!;
 const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
 
 const map = inject('extmap');
-const showMap = inject('showMap');
 
 const mapCenter = computed(() => ({
 	coords: [
@@ -401,6 +430,17 @@ const computedRoutes = computed(() => {
 });
 
 const dragging = ref(false);
+
+const markerRefs = {} as Record<string, any>;
+const setCircleMarkerRef = (id: string, el: any) => {
+	if (el) markerRefs[id] = el.leafletObject;
+		else delete markerRefs[id];
+};
+const routeLineRefs = {} as Record<string, any>;
+const setRouteLineRef = (id: string, el: any) => {
+	if (el) routeLineRefs[id] = el.leafletObject;
+		else delete routeLineRefs[id];
+};
 
 // SEC Right clicks
 
@@ -492,7 +532,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 
 // SEC Other
 
-const placemarkDragEnd = async (point: Place | Point, event: any) => {
+const markerDragEnd = async (point: Place | Point, event: any) => {
 	const coordinates = event.target.getLatLng();
 	mainStore.changePoint({
 		entity: (
@@ -660,3 +700,40 @@ const providers = ref([{
 	visible: false,
 }]);
 </script>
+
+<style lang="scss">
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	box-shadow: 0 1px 5px var(--color-02);
+	border: none;
+}
+.leaflet-control-geosearch form {
+	height: 100% !important;
+}
+.leaflet-control-geosearch .glass {
+	height: 100%;
+	background-color: var(--color-65);
+}
+.marker-start {
+	fill: rgb(0, 165, 242) !important;
+	fill-opacity: 0.7;
+	stroke: rgb(255, 255, 255) !important;
+	stroke-opacity: 0.7;
+	stroke-width: 2px;
+}
+.marker-end {
+	fill: rgb(242 156 0) !important;
+	fill-opacity: 0.7;
+	stroke: rgb(255, 255, 255) !important;
+	stroke-opacity: 0.7;
+	stroke-width: 2px;
+}
+.marker-intermediate {
+	fill: rgb(0, 0, 0) !important;
+	fill-opacity: 0.2;
+	stroke: rgb(255, 255, 255) !important;
+	stroke-opacity: 0.5;
+	stroke-width: 2px;
+}
+</style>

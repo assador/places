@@ -35,7 +35,7 @@ export default defineConfig({
 				navigateFallbackDenylist: [/^\/backend/],
 				runtimeCaching: [
 					{
-						urlPattern: /^\/backend\/.*$/,
+						urlPattern: /^\/(backend|raw)\/.*$/,
 						handler: 'NetworkOnly',
 					},
 				],

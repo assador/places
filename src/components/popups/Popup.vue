@@ -1,5 +1,5 @@
 <template>
-	<Teleport to="#container">
+	<Teleport to="#popup-root">
 		<div
 			v-if="props.show"
 			v-bind="$attrs"

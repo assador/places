@@ -1064,14 +1064,8 @@ export const useMainStore = defineStore('main', {
 						id: this.user.homeplace ? this.user.homeplace : null,
 					});
 					this.backup = true;
-					this.setFirstCurrentPlace();
 					this.setCurrentRoute(Object.values(this.routes)[0] ?? null);
-					if (this.currentPlace) {
-						this.updateMap({
-							latitude: this.points[this.currentPlace.pointid].latitude,
-							longitude: this.points[this.currentPlace.pointid].longitude,
-						});
-					}
+					this.setFirstCurrentPlace();
 				} catch (error) {
 					console.error(error);
 					this.setMessage(this.t.m.popup.cannotGetDataFromDb);
@@ -1576,12 +1570,6 @@ export const useMainStore = defineStore('main', {
 			this.$state = payload;
 			this.changeLang(this.lang);
 			this.restoreObjectsAsLinks();
-			if (this.currentPlace) {
-				this.updateMap({
-					latitude: this.points[this.currentPlace.pointid].latitude,
-					longitude: this.points[this.currentPlace.pointid].longitude,
-				});
-			}
 		},
 		undo() {
 			this.restoreState(this.stateBackupsIndex - 1);
