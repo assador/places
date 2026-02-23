@@ -566,8 +566,8 @@ DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE `sessions` (
   `id` binary(16) NOT NULL,
   `userid` binary(16) NOT NULL,
-  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
-  `expiresat` timestamp NOT NULL,
+  `createdat` bigint(20) unsigned NOT NULL,
+  `expiresat` bigint(20) unsigned NOT NULL,
   `reason` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_userid` (`userid`),
@@ -713,4 +713,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-24  1:12:43
+-- Dump completed on 2026-02-24  1:28:58

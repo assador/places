@@ -78,16 +78,18 @@ function createSession(AppContext $ctx, string $userIdBin, array $payload = []):
 	$lifetime = (int)$payload['lifetime'];
 
 	$query = $ctx->db->prepare("
-		INSERT INTO `sessions` (`id`, `userid`, `expiresat`, `reason`)
+		INSERT INTO `sessions` (`id`, `userid`, `createdat`, `expiresat`, `reason`)
 		VALUES (
 			:id,
 			:userid,
+			:createdat,
 			:expiresat,
 			:reason
 		)
 	");
 	$query->bindValue(':id', $sessionIdBin, PDO::PARAM_LOB);
 	$query->bindValue(':userid', $userIdBin, PDO::PARAM_LOB);
+	$query->bindValue(':createdat', (int)(microtime(true) * 1000));
 	$query->bindValue(':expiresat', (int)((microtime(true) + $lifetime) * 1000));
 	$query->bindValue(':reason', $payload['reason']);
 	$query->execute();
