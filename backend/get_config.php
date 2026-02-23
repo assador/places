@@ -23,12 +23,12 @@ $query->execute();
 $group = $query->fetch(PDO::FETCH_ASSOC);
 $groupId = $group['id'] ?? null;
 
-$conf = array(
+$conf = [
 	"mail"       => $config["mail"],
 	"lengths"    => $config["lengths"],
 	"mimes"      => $config["mimes"],
 	"uploadsize" => $config["uploadsize"],
-);
+];
 foreach ($config['rights'] as $key => $value) {
 	$conf["rights"][$key] = $groupId !== null
 		? ($config['rights'][$key][$groupId] ?? 0)

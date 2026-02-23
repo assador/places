@@ -1,5 +1,6 @@
 dist
 node_modules
+log/mails/*
 uploads/images/big/*
 uploads/images/big/orphaned/*
 uploads/images/small/*

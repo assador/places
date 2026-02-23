@@ -49,7 +49,7 @@ try {
 			0,
 			:confirmbefore,
 			:token,
-			FLOOR(UNIX_TIMESTAMP(NOW(3)) * 1000)
+			:lastupdates
 		)
 	");
 	$query->execute([
@@ -61,6 +61,7 @@ try {
 		":phone"         => trim($input["regPhone"] ?? ""),
 		":confirmbefore" => $confirmBefore,
 		":token"         => $token,
+		":lastupdates"   => (int)(microtime(true) * 1000),
 	]);
 } catch (PDOException $e) {
 	if ($e->getCode() == 23000) {
@@ -79,8 +80,8 @@ $message = '
 	<body>
 		<h1>Подтверждение регистрации на сервисе «Места»</h1>
 		<p>
-			Ваш e-mail был указан при регистрации в <a href="' . $config['host'] . '">
-			Персональном ГеоОрганайзере «Места»</a>.
+			Ваш e-mail был указан при регистрации в
+			<a href="' . $config['host'] . '">Персональном ГеоОрганайзере «Места»</a>.
 			Если вы этого не делали, просто проигнорируйте это письмо.
 		</p>
 		<p>

@@ -282,13 +282,19 @@
 					accept="image/*"
 					multiple
 					class="images-add__input"
-					@change="e => uploadFiles(e, inputUploadFiles)"
+					@change="e => uploadFiles(
+						e,
+						mainStore.currentPlace,
+						inputUploadFiles,
+						ref(uploading)
+					)"
 				/>
 			</div>
 		</div>
 		<div
 			id="images-uploading"
-			class="block_02 waiting hidden"
+			class="block_02 waiting"
+			:class="{ hidden: !uploading }"
 		>
 			<span>… {{ mainStore.t.i.buttons.loading }} …</span>
 		</div>
@@ -332,6 +338,7 @@ const router = useRouter();
 
 const linkEditing = ref(false);
 const dragging = ref(false);
+const uploading = ref(false);
 const highlightedLeft = ref(null);
 const highlightedRight = ref(null);
 const inputUploadFiles = ref<HTMLInputElement | null>(null);

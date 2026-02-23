@@ -779,7 +779,6 @@ import { throttle } from 'lodash';
 import {
 	emitter,
 	constants,
-	generateRandomString,
 	sortObjects,
 	makeDropDowns,
 	makeFieldsValidatable,
@@ -1061,7 +1060,7 @@ provide('commonPlacesShowHide', commonPlacesShowHide);
 
 const importFromFile = async () => {
 	const input = importFromFileInput.value as HTMLInputElement;
-	const file = input.files && input.files[0];
+	const file = input.files[0] ?? null;
 	if (!file) return;
 	const mime = file.type;
 	if (mime !== 'application/json' && mime !== 'application/gpx+xml') {
@@ -1079,33 +1078,33 @@ const importFromFile = async () => {
 	};
 	reader.readAsText(file);
 };
-const uploadFiles = async (event: Event, inputElement?: HTMLInputElement | null) => {
+const uploadFiles = async (
+	event: Event,
+	target: Place | Route,
+	inputElement?: HTMLInputElement,
+	uploading: Ref<boolean> = ref(false),
+) => {
 	event.preventDefault();
 	if (mainStore.user.testaccount) {
 		mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads);
 		return;
 	}
-	const input = inputElement || (event.target as HTMLInputElement);
-	const files = input.files;
-	if (!files || files.length === 0) return;
+	const input = inputElement || (event.currentTarget as HTMLInputElement);
+	if (!input.files || input.files.length === 0) return;
 	const data = new FormData();
-	const filesArray: Array<Image> = [];
+	const filesArray: Image[] = [];
 	let srt = 0;
-	if (
-		mainStore.currentPlace.images &&
-		Object.keys(mainStore.currentPlace.images).length
-	) {
-		const storeImages = Object.values(mainStore.currentPlace.images);
+	if (target.images && Object.keys(target.images).length) {
+		const storeImages = Object.values(target.images);
 		const lastImage = sortObjects(storeImages, 'srt').pop();
 		srt = lastImage ? Number(lastImage.srt) || 0 : 0;
 	}
 	const mimes = mainStore.serverConfig.mimes;
 	const uploadSize = mainStore.serverConfig.uploadsize;
 	const popup = mainStore.t.m.popup;
-	const placeId = mainStore.currentPlace.id || null;
 	// Validating files and creating an array for uploading
-	for (let i = 0; i < files.length; i++) {
-		const file = files[i];
+	for (let i = 0; i < input.files.length; i++) {
+		const file = input.files[i];
 		const mimeType = file.type;
 		const fileName = file.name;
 		const fileSize = file.size;
@@ -1117,27 +1116,25 @@ const uploadFiles = async (event: Event, inputElement?: HTMLInputElement | null)
 			mainStore.setMessage(`${popup.file} ${fileName} ${popup.fileTooLarge}`);
 			continue;
 		}
-		const rndname = generateRandomString(32);
-		data.append(rndname, file);
+		const uuid = crypto.randomUUID();
+		data.append(uuid, file);
 		filesArray.push({
-			id: rndname,
-			file: `${rndname}.${mimes[mimeType]}`,
+			id: uuid,
+			file: `${uuid}.${mimes[mimeType]}`,
 			size: Number(fileSize) || null,
 			type: mimeType,
 			lastmodified: Number(file.lastModified) || null,
 			srt: ++srt,
-			placeid: placeId,
+			[`${target.type}id`]: target.id,
 		});
 	}
 	if (!filesArray.length) return;
-	const imagesUploading = document.getElementById('images-uploading');
-	const imagesAddInput = document.getElementById('images-add__input') as HTMLInputElement;
-	if (imagesUploading) imagesUploading.classList.remove('hidden');
 	data.append('userid', mainStore.user.id);
-	const response = await axios.post('/backend/upload.php', data);
 	try {
-		if (imagesAddInput) imagesAddInput.value = '';
-		if (imagesUploading) imagesUploading.classList.add('hidden');
+		uploading.value = true;
+		const response = await axios.post('/backend/upload.php', data);
+		input.value = '';
+		uploading.value = false;
 		const [ errorCodes, uploadedFiles ] = response.data;
 		// Remove from the array those files that were not downloaded
 		const uploadedIds = new Set(uploadedFiles.map((f: any) => f.id));
@@ -1164,25 +1161,29 @@ const uploadFiles = async (event: Event, inputElement?: HTMLInputElement | null)
 					break;
 			}
 		});
-		if (uploadedFiles.length > 0 && mainStore.currentPlace) {
+		if (uploadedFiles.length) {
 			const newImagesObject: Record<string, Image> = {
-				...(mainStore.currentPlace.images || {})
+				...(target.images || {})
 			};
 			for (const image of filesArray) {
 				newImagesObject[image.id] = image;
 			}
-			mainStore.changePlace({
-				entity: mainStore.currentPlace,
-				change: { images: newImagesObject },
-			});
+			if (target.type === 'place') {
+				mainStore.changePlace({
+					entity: target,
+					change: { images: newImagesObject },
+				});
+			} else if (target.type === 'route') {
+				mainStore.changeRoute({
+					entity: target,
+					change: { images: newImagesObject },
+				});
+			}
 			emitter.emit('toDB', { images_upload: filesArray });
 			mainStore.setMessage(popup.filesUploadedSuccessfully);
 		}
-		input.value = '';
 	} catch(error) {
 		mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);
-		if (imagesAddInput) imagesAddInput.value = '';
-		if (imagesUploading) imagesUploading.classList.add('hidden');
 	}
 };
 provide('uploadFiles', uploadFiles);

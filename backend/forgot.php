@@ -21,10 +21,11 @@ $query = $ctx->db->prepare("
 			FROM `sessions` s
 			WHERE s.userid = u.id
 				AND s.reason = 1
-				AND s.expiresat > UTC_TIMESTAMP()
+				AND s.expiresat > :now
 		);
 ");
 $query->bindValue(':email', $input["forgotEmail"]);
+$query->bindValue(':now', (int)(microtime(true) * 1000));
 $query->execute();
 
 $result = $query->fetch(PDO::FETCH_ASSOC);

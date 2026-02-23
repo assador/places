@@ -82,12 +82,13 @@ function createSession(AppContext $ctx, string $userIdBin, array $payload = []):
 		VALUES (
 			:id,
 			:userid,
-			DATE_ADD(UTC_TIMESTAMP(), INTERVAL $lifetime SECOND),
+			:expiresat,
 			:reason
 		)
 	");
 	$query->bindValue(':id', $sessionIdBin, PDO::PARAM_LOB);
 	$query->bindValue(':userid', $userIdBin, PDO::PARAM_LOB);
+	$query->bindValue(':expiresat', (int)((microtime(true) + $lifetime) * 1000));
 	$query->bindValue(':reason', $payload['reason']);
 	$query->execute();
 
@@ -113,10 +114,11 @@ function getSession(AppContext $ctx, string $sessionIdBin, $reason = null) {
 		JOIN `users` u ON u.id = s.userid
 		WHERE s.id = :id
 			AND s.reason <=> :reason
-			AND (s.expiresat IS NULL OR s.expiresat > UTC_TIMESTAMP())
+			AND (s.expiresat IS NULL OR s.expiresat > :now)
 	");
 	$query->bindValue(':id', $sessionIdBin, PDO::PARAM_LOB);
 	$query->bindValue(':reason', $reason);
+	$query->bindValue(':now', (int)(microtime(true) * 1000));
 	$query->execute();
 
 	return $query->fetch(PDO::FETCH_ASSOC) ?: null;

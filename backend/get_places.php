@@ -7,11 +7,9 @@ ini_set('display_errors', '1');
 set_exception_handler(function($e) {
 	header('Content-Type: application/json');
 	http_response_code(500);
-	echo json_encode([
-		'error' => $e->getMessage(),
-		'file' => $e->getFile(),
-		'line' => $e->getLine(),
-	]);
+	echo $e->getMessage();
+	echo "\nfile: {$e->getFile()}";
+	echo "\nline: {$e->getLine()}";
 	exit;
 });
 */

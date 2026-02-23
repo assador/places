@@ -223,7 +223,7 @@ CREATE TABLE `images` (
   `file` varchar(40) NOT NULL,
   `size` int(10) unsigned NOT NULL,
   `type` varchar(32) NOT NULL,
-  `lastmodified` int(10) unsigned NOT NULL,
+  `lastmodified` bigint(20) unsigned NOT NULL,
   `srt` double NOT NULL DEFAULT 0,
   `id` binary(16) NOT NULL,
   `placeid` binary(16) DEFAULT NULL,
@@ -663,12 +663,14 @@ CREATE  PROCEDURE `assert_session`(
     p_sessionid BINARY(16)
 )
 BEGIN
+    DECLARE v_now BIGINT;
+    SET v_now = (UNIX_TIMESTAMP(NOW()) * 1000) + FLOOR(MICROSECOND(NOW(6)) / 1000);
     IF NOT EXISTS (
         SELECT 1
         FROM sessions
         WHERE id = p_sessionid
           AND userid = p_userid
-          AND expiresat > UTC_TIMESTAMP()
+          AND expiresat > v_now
     ) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Invalid or expired session';
@@ -693,7 +695,7 @@ CREATE  PROCEDURE `touch_user`(p_userid BINARY(16))
     SQL SECURITY INVOKER
 BEGIN
     UPDATE users
-    SET lastupdates = FLOOR(UNIX_TIMESTAMP(NOW(3)) * 1000)
+    SET lastupdates = (UNIX_TIMESTAMP(NOW()) * 1000) + FLOOR(MICROSECOND(NOW(6)) / 1000)
     WHERE id = p_userid;
 END ;;
 DELIMITER ;
@@ -711,4 +713,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-22 21:43:20
+-- Dump completed on 2026-02-24  1:12:43

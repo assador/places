@@ -28,9 +28,9 @@ $groups = $query->fetchAll(PDO::FETCH_ASSOC);
 
 $result["groups"] = [];
 foreach	($groups as $key => $value) {
-	$result["groups"][] = array(
+	$result["groups"][] = [
 		"group"  => $value["group"],
-		"parent" => $value["parent"]
-	);
+		"parent" => $value["parent"],
+	];
 }
 echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

@@ -88,11 +88,12 @@ export interface Route extends Entity {
 export interface Image { // TODO Refactor work with images at all.
 	type: string;
 	id: string;
-	placeid: string;
 	file: string;
 	lastmodified: number;
 	size: number;
 	srt: number;
+	placeid?: string;
+	routeid?: string;
 }
 export interface Tree {
 	name?: string;

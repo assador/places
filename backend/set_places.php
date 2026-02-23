@@ -3,18 +3,16 @@ declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
+/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.*/
+
 set_exception_handler(function($e) {
 	header('Content-Type: application/json');
 	http_response_code(500);
-	echo json_encode([
-		'error' => $e->getMessage(),
-		'file' => $e->getFile(),
-		'line' => $e->getLine(),
-	]);
+	echo $e->getMessage();
+	echo "\nfile: {$e->getFile()}";
+	echo "\nline: {$e->getLine()}";
 	exit;
 });
-*/
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -238,7 +236,7 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$folderId = uuidToBin($row["folderid"]);
 	$ctx->db->prepare("
 		INSERT INTO routes (id, userid, name, description, folderid, srt, time, link, geomarks, common)
-		VALUES (:id, :userid, :name, :description, :folderid, :srt, NOW(), :link, :geomarks, :common)
+		VALUES (:id, :userid, :name, :description, :folderid, :srt, :time, :link, :geomarks, :common)
 	")->execute([
 		":id"          => $idBin,
 		":userid"      => $userIdBin,
@@ -246,6 +244,7 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 		":description" => $row["description"] ?? "",
 		":folderid"    => $folderId,
 		":srt"         => (int)($row["srt"] ?? 0),
+		":time"        => (int)(microtime(true) * 1000),
 		":link"        => $row["link"] ?? "",
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
 		":common"      => (int)($row["common"] ?? 0),
@@ -434,7 +433,7 @@ function addImage(AppContext $ctx, array $img): void {
 		INSERT INTO images (id, placeid, file, size, type, lastmodified, srt)
 		VALUES (:id, :placeid, :file, :size, :type, :lastmodified, :srt)
 		ON DUPLICATE KEY UPDATE
-			placeid      = VALUES(placeid)
+			placeid      = VALUES(placeid),
 			file         = VALUES(file),
 			size         = VALUES(size),
 			type         = VALUES(type),
@@ -499,7 +498,7 @@ if (checkSession($ctx, $data["sessionid"]) === false) {
 
 // SEC Transaction
 
-try {
+// try {
 	$ctx->db->beginTransaction();
 
 	$visiting = $ctx->db->query("
@@ -663,12 +662,12 @@ try {
 	}
 
 	$ctx->db->commit();
-
+/*
 } catch (Throwable $e) {
 	error_log($e->getMessage());
 	$ctx->db->rollBack();
 	if (!in_array(1, $faults)) $faults[] = 1;
-}
+}*/
 echo json_encode(
 	$faults,
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK

@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
 
+$now = (int)(microtime(true) * 1000);
+
 // Disable FK checks during cleaning.
 $ctx->db->exec("SET FOREIGN_KEY_CHECKS = 0");
 
@@ -16,17 +18,17 @@ $ctx->db->exec("
 ");
 
 // Clean out unconfirmed users.
-$ctx->db->exec("
+$ctx->db->prepare("
 	DELETE FROM users
 	WHERE confirmed = 0
-		AND confirmbefore < UTC_TIMESTAMP()
-");
+		AND confirmbefore < :now
+")->execute([ ':now' => $now ]);
 
 // Clean out expired sessions.
-$ctx->db->exec("
+$ctx->db->prepare("
 	DELETE FROM sessions 
-	WHERE expiresat < UTC_TIMESTAMP()
-");
+	WHERE expiresat < :now
+")->execute([ ':now' => $now ]);
 
 $ctx->db->exec("
  	DELETE s
