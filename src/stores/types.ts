@@ -5,13 +5,11 @@ export type AppendMode =
 	| 'new'    // create new
 ;
 export interface DataToDB {
+	folders?: Folder[],
 	points?: Point[],
 	places?: Place[],
 	routes?: Route[],
 	images?: Image[],
-	images_delete?: Image[],
-	images_update?: Image[],
-	folders?: Folder[],
 }
 export interface FirstShow {
 	show: boolean,

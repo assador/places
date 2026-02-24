@@ -56,52 +56,68 @@ function getPoints(AppContext $ctx, string $userIdBin): array {
 	return $points;
 }
 
-// SEC Places (own and common)
+// SEC Images
+
+function getImages(AppContext $ctx, string $userIdBin): array {
+	$stmt = $ctx->db->prepare("
+		SELECT i.*
+		FROM images i
+		WHERE i.committed = 1
+		AND (
+			EXISTS (
+				SELECT 1
+				FROM places p
+				WHERE p.id = i.placeid
+				AND (p.userid = :uid OR p.common = 1)
+			)
+			OR
+			EXISTS (
+				SELECT 1
+				FROM routes r
+				WHERE r.id = i.routeid
+				AND (r.userid = :uid OR r.common = 1)
+			)
+		)
+	");
+	$stmt->bindValue(':uid', $userIdBin, PDO::PARAM_LOB);
+	$stmt->execute();
+
+	$images = [];
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		$row['id'] = binToUuid($row['id']);
+		$row['placeid'] = binToUuid($row['placeid']);
+		$row['routeid'] = binToUuid($row['routeid']);
+		$images[$row['id']] = $row;
+	}
+	return $images;
+}
+
+// SEC Places
 
 function getPlaces(AppContext $ctx, string $userIdBin): array {
 	$stmt = $ctx->db->prepare("
-		SELECT *
-		FROM `places` `pl`
-		WHERE `pl`.`userid` = :uid OR `pl`.`common` = 1
+		SELECT p.*
+		FROM places p
+		WHERE p.userid = :uid OR p.common = 1
 	");
-	$stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
+	$stmt->bindValue(':uid', $userIdBin, PDO::PARAM_LOB);
 	$stmt->execute();
-	$places_bin = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 	$places = [
 		'places'       => [],
 		'commonPlaces' => [],
 	];
-	foreach ($places_bin as $idx => $row) {
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 		$row["id"] = binToUuid($row["id"]);
 		$row["userid"] = binToUuid($row["userid"]);
 		$row["pointid"] = binToUuid($row["pointid"]);
 		$row["folderid"] = binToUuid($row["folderid"]);
-		if ($row["userid"] == $_GET["id"]) {
+		if ($row["userid"] === $_GET["id"]) {
 			$places['places'][$row["id"]] = $row;
 		} elseif ($row["common"] == 1) {
 			$places['commonPlaces'][$row["id"]] = $row;
 		}
 	}
-
-	// SEC Places Images
-
-	$stmt = $ctx->db->query("
-		SELECT * FROM images
-	");
-	$images_bin = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-	foreach ($images_bin as $idx => $row) {
-		$row['id'] = binToUuid($row['id']);
-		$row['placeid'] = binToUuid($row['placeid']);
-		if (isset($places['places'][$row['placeid']])) {
-			$places['places'][$row['placeid']]['images'][$row['id']] = $row;
-		}
-		if (isset($places['commonPlaces'][$row['placeid']])) {
-			$places['commonPlaces'][$row['placeid']]['images'][$row['id']] = $row;
-		}
-	}
-
 	return $places;
 }
 
@@ -109,15 +125,31 @@ function getPlaces(AppContext $ctx, string $userIdBin): array {
 
 function getRoutes(AppContext $ctx, string $userIdBin): array {
 	$stmt = $ctx->db->prepare("
-		SELECT *
-		FROM routes
-		WHERE userid = :userid
-		ORDER BY srt ASC
+		SELECT r.*
+		FROM routes r
+		WHERE r.userid = :uid OR r.common = 1
 	");
-	$stmt->execute([
-		':userid' => $userIdBin,
-	]);
-	$routeRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	$stmt->bindValue(':uid', $userIdBin, PDO::PARAM_LOB);
+	$stmt->execute();
+
+	$routes = [
+		'routes'       => [],
+		'commonRoutes' => [],
+	];
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		$row["id"] = binToUuid($row["id"]);
+		$row["userid"] = binToUuid($row["userid"]);
+		$row["folderid"] = binToUuid($row["folderid"]);
+		if ($row["userid"] === $_GET["id"]) {
+			$routes['routes'][$row["id"]] = $row;
+		} elseif ($row["common"] == 1) {
+			$routes['commonRoutes'][$row["id"]] = $row;
+		}
+	}
+	$all = function & (array &$a, array &$b) {
+		foreach ($a as &$val) yield $val;
+		foreach ($b as &$val) yield $val;
+	};
 
 	$routePointsStmt = $ctx->db->prepare("
 		SELECT
@@ -129,37 +161,21 @@ function getRoutes(AppContext $ctx, string $userIdBin): array {
 		WHERE pr.routeid = :routeid
 		ORDER BY pr.srt ASC
 	");
-
-	$routes = [];
-	foreach ($routeRows as $routeRow) {
-		$routePointsStmt->execute([
-			':routeid' => $routeRow['id'],
-		]);
+	foreach ($all($routes['routes'], $routes['commonRoutes']) as &$row) {
+		$routePointsStmt->bindValue(':routeid', uuidToBin($row['id']), PDO::PARAM_LOB);
+		$routePointsStmt->execute();
 		$pointRows = $routePointsStmt->fetchAll(PDO::FETCH_ASSOC);
 		$points = [];
 		foreach ($pointRows as $pointRow) {
 			$points[] = [
-				"id"          => binToUuid($pointRow['pointid']),
-				"name"        => $pointRow['name'] ?? "",
-				"description" => $pointRow['description'] ?? "",
+				'id'          => binToUuid($pointRow['pointid']),
+				'name'        => $pointRow['name'] ?? '',
+				'description' => $pointRow['description'] ?? '',
 			];
 		}
-		$routeId = binToUuid($routeRow['id']);
-		$routes[$routeId] = [
-			'id'          => $routeId,
-			'folderid'    => binToUuid($routeRow['folderid']),
-			'userid'      => $_GET["id"],
-			'name'        => $routeRow['name'] ?? "",
-			'description' => $routeRow['description'] ?? "",
-			'link'        => $routeRow['link'] ?? "",
-			'time'        => $routeRow['time'],
-			'srt'         => (int)$routeRow['srt'],
-			'geomarks'    => (int)$routeRow['geomarks'],
-			'common'      => (bool)$routeRow['common'],
-			'points'      => $points,
-			'images'      => [] // TODO Implement when they are refactored
-		];
+		$row['points'] = $points;
 	}
+	unset($row);
 	return $routes;
 }
 
@@ -184,11 +200,34 @@ function getFolders(AppContext $ctx, string $userIdBin): array {
 
 // SEC JSON to front
 
+$images = getImages($ctx, $userIdBin);
 $places = getPlaces($ctx, $userIdBin);
+$routes = getRoutes($ctx, $userIdBin);
+
+foreach ($images as $img) {
+	if ($img['placeid']) {
+		if (isset($places['places'][$img['placeid']])) {
+			$places['places'][$img['placeid']]['images'][$img['id']] = $img;
+		}
+		if (isset($places['commonPlaces'][$img['placeid']])) {
+			$places['commonPlaces'][$img['placeid']]['images'][$img['id']] = $img;
+		}
+	}
+	if ($img['routeid']) {
+		if (isset($routes['routes'][$img['routeid']])) {
+			$routes['routes'][$img['routeid']]['images'][$img['id']] = $img;
+		}
+		if (isset($routes['commonRoutes'][$img['routeid']])) {
+			$routes['commonRoutes'][$img['routeid']]['images'][$img['id']] = $img;
+		}
+	}
+}
+
 echo json_encode([
+	'folders'      => getFolders($ctx, $userIdBin),
 	'points'       => getPoints($ctx, $userIdBin),
 	'places'       => $places['places'],
 	'commonPlaces' => $places['commonPlaces'],
-	'routes'       => getRoutes($ctx, $userIdBin),
-	'folders'      => getFolders($ctx, $userIdBin),
+	'routes'       => $routes['routes'],
+	'commonRoutes' => $routes['commonRoutes'],
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);

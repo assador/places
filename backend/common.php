@@ -44,21 +44,20 @@ function uuidToBin(?string $uuid): ?string {
 	) {
 		return null;
 	}
-	return hex2bin(str_replace('-', '', $uuid));
+	$bin = hex2bin(str_replace('-', '', $uuid));
+	return $bin === false ? null : $bin;
 }
 function binToUuid(?string $bin): ?string {
 	if (!is_string($bin) || strlen($bin) !== 16) {
 		return null;
 	}
 	$hex = bin2hex($bin);
-	return sprintf(
-		'%s-%s-%s-%s-%s',
-		substr($hex, 0, 8),
-		substr($hex, 8, 4),
-		substr($hex, 12, 4),
-		substr($hex, 16, 4),
-		substr($hex, 20, 12)
-	);
+	return
+		substr($hex, 0, 8) . '-' .
+		substr($hex, 8, 4) . '-' .
+		substr($hex, 12, 4) . '-' .
+		substr($hex, 16, 4) . '-' .
+		substr($hex, 20, 12);
 }
 function createSession(AppContext $ctx, string $userIdBin, array $payload = []): string {
 	/*

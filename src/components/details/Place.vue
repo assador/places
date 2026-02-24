@@ -213,7 +213,7 @@
 									@click.stop="
 										emitter.emit('confirm', {
 											func: deleteImages,
-											args: [{[image.id]: image}],
+											args: [ { [image.id]: image } ],
 										})
 									"
 								>

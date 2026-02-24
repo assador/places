@@ -3,8 +3,7 @@ declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.*/
-
+/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
 set_exception_handler(function($e) {
 	header('Content-Type: application/json');
 	http_response_code(500);
@@ -13,6 +12,7 @@ set_exception_handler(function($e) {
 	echo "\nline: {$e->getLine()}";
 	exit;
 });
+*/
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -428,29 +428,6 @@ function updateFolder(AppContext $ctx, array $row, string $myuserid): void {
 
 // SEC Images
 
-function addImage(AppContext $ctx, array $img): void {
-	$sql = "
-		INSERT INTO images (id, placeid, file, size, type, lastmodified, srt)
-		VALUES (:id, :placeid, :file, :size, :type, :lastmodified, :srt)
-		ON DUPLICATE KEY UPDATE
-			placeid      = VALUES(placeid),
-			file         = VALUES(file),
-			size         = VALUES(size),
-			type         = VALUES(type),
-			lastmodified = VALUES(lastmodified),
-			srt          = VALUES(srt)
-	";
-	$stmt = $ctx->db->prepare($sql);
-	$stmt->execute([
-		":id"           => uuidToBin($img["id"]),
-		":placeid"      => uuidToBin($img["placeid"]),
-		":file"         => $img["file"] ?? "",
-		":size"         => (int)($img["size"] ?? 0),
-		":type"         => $img["type"] ?? "",
-		":lastmodified" => (int)($img["lastmodified"] ?? 0),
-		":srt"          => (int)($img["srt"] ?? 0),
-	]);
-}
 function updateImage(AppContext $ctx, array $img): void {
 	$placeIdBin = null;
 	$routeIdBin = null;
@@ -498,7 +475,7 @@ if (checkSession($ctx, $data["sessionid"]) === false) {
 
 // SEC Transaction
 
-// try {
+try {
 	$ctx->db->beginTransaction();
 
 	$visiting = $ctx->db->query("
@@ -600,11 +577,6 @@ if (checkSession($ctx, $data["sessionid"]) === false) {
 			elseif (!empty($row["updated"])) {
 				updatePlace($ctx, $row, $data["userid"]);
 			}
-			elseif (!empty($row["images"]) && is_array($row["images"])) {
-				foreach ($row["images"] as $img) {
-					addImage($ctx, $img);
-				}
-			}
 		}
 	}
 
@@ -637,13 +609,6 @@ if (checkSession($ctx, $data["sessionid"]) === false) {
 			elseif (!empty($row["updated"])) {
 				updateRoute($ctx, $row, $data["userid"]);
 			}
-/* TODO Uncomment after refactoring, remembering to adapt the functions to the routes.
-			elseif (!empty($row["images"]) && is_array($row["images"])) {
-				foreach ($row["images"] as $img) {
-					addImage($ctx, $img);
-				}
-			}
-*/
 		}
 	}
 
@@ -657,17 +622,13 @@ if (checkSession($ctx, $data["sessionid"]) === false) {
 		}
 	}
 
-	if (!empty($list['images_upload'])) {
-		foreach ($list['images_upload'] as $img) addImage($ctx, $img);
-	}
-
 	$ctx->db->commit();
-/*
+
 } catch (Throwable $e) {
 	error_log($e->getMessage());
 	$ctx->db->rollBack();
 	if (!in_array(1, $faults)) $faults[] = 1;
-}*/
+}
 echo json_encode(
 	$faults,
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK

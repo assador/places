@@ -1090,7 +1090,7 @@ const uploadFiles = async (
 		return;
 	}
 	const input = inputElement || (event.currentTarget as HTMLInputElement);
-	if (!input.files || input.files.length === 0) return;
+	if (!input.files || !input.files.length) return;
 	const data = new FormData();
 	const filesArray: Image[] = [];
 	let srt = 0;
@@ -1179,9 +1179,9 @@ const uploadFiles = async (
 					change: { images: newImagesObject },
 				});
 			}
-			emitter.emit('toDB', { images_upload: filesArray });
 			mainStore.setMessage(popup.filesUploadedSuccessfully);
 		}
+		target.updated = true;
 	} catch(error) {
 		mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);
 	}

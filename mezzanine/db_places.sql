@@ -228,6 +228,7 @@ CREATE TABLE `images` (
   `id` binary(16) NOT NULL,
   `placeid` binary(16) DEFAULT NULL,
   `routeid` binary(16) DEFAULT NULL,
+  `committed` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `idx_images_placeid` (`placeid`),
   KEY `idx_images_routeid` (`routeid`),
@@ -664,7 +665,7 @@ CREATE  PROCEDURE `assert_session`(
 )
 BEGIN
     DECLARE v_now BIGINT;
-    SET v_now = (UNIX_TIMESTAMP(NOW()) * 1000) + FLOOR(MICROSECOND(NOW(6)) / 1000);
+    SET v_now = ROUND(UNIX_TIMESTAMP(NOW(6)) * 1000);
     IF NOT EXISTS (
         SELECT 1
         FROM sessions
@@ -695,7 +696,7 @@ CREATE  PROCEDURE `touch_user`(p_userid BINARY(16))
     SQL SECURITY INVOKER
 BEGIN
     UPDATE users
-    SET lastupdates = (UNIX_TIMESTAMP(NOW()) * 1000) + FLOOR(MICROSECOND(NOW(6)) / 1000)
+    SET lastupdates = ROUND(UNIX_TIMESTAMP(NOW(6)) * 1000)
     WHERE id = p_userid;
 END ;;
 DELIMITER ;
@@ -713,4 +714,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-24  1:28:58
+-- Dump completed on 2026-02-24 23:19:53

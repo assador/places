@@ -191,7 +191,6 @@ const deleteImages = async (images: Record<string, Image>, family?: boolean) => 
 	if (!mainStore.user.testaccount) {
 		try {
 			await axios.post('/backend/delete.php', data);
-			toDB({ images_delete: Object.values(images) });
 		} catch (error) {
 			console.error(error);
 		}
