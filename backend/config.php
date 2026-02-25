@@ -8,10 +8,10 @@ return [
 	"dirs" => [
 		"uploads" => [
 			"images" => [
-				"big"            => "../uploads/images/big/",
-				"small"          => "../uploads/images/small/",
-				"orphaned_big"   => "../uploads/images/big/orphaned/",
-				"orphaned_small" => "../uploads/images/small/orphaned/",
+				"big"            => __DIR__ . "/../uploads/images/big/",
+				"small"          => __DIR__ . "/../uploads/images/small/",
+				"orphaned_big"   => __DIR__ . "/../uploads/images/big/orphaned/",
+				"orphaned_small" => __DIR__ . "/../uploads/images/small/orphaned/",
 			],
 		],
 	],
@@ -29,7 +29,7 @@ return [
 	"mail" => [
 		"from" => "noreply@places.earth",
 		"name" => "Сервис «Места»",
-		"logs" => "../log/mails",
+		"logs" => __DIR__ . "/../log/mails",
 		"smtp" => null,
 	/* example:
 		"smtp" => [

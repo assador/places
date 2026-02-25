@@ -35,6 +35,14 @@ function uuidv4(): string {
 	$bin[8] = chr((ord($bin[8]) & 0x3f) | 0x80);
 	return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bin), 4));
 }
+function isUuid(string $uuid): bool {
+	return (
+		preg_match(
+			'/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+			$uuid
+		) === 1
+	);
+}
 function uuidToBin(?string $uuid): ?string {
 	if (
 		!is_string($uuid) || !preg_match(
