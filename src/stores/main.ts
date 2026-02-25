@@ -732,15 +732,22 @@ export const useMainStore = defineStore('main', {
 				this.deleteTemp(id);
 			}
 		},
-		deleteImages(payload: Record<string, any>) {
-			if (!payload.images || !Object.keys(payload.images).length) return;
-			for (const id in payload.images) {
-				if (
-					this.places[payload.images[id].placeid] &&
-					this.places[payload.images[id].placeid].images[id]
-				) {
-					delete this.places[payload.images[id].placeid].images[id];
+		deleteImages(
+			{ imageIds, entity } :
+			{ imageIds: string[]; entity: Place | Route; }
+		) {
+			if (!entity.images) return;
+			let updated = false;
+			for (const id of imageIds) {
+				if (entity.images[id]) {
+					delete entity.images[id];
+					updated = true;
 				}
+			}
+			if (updated) {
+				entity.updated = true;
+				this.saved = false;
+				this.backupState();
 			}
 		},
 
@@ -1502,7 +1509,7 @@ export const useMainStore = defineStore('main', {
 				routes: this.routes,
 				folders: this.folders,
 			};
-			for (const [key, stateDict] of Object.entries(collections)) {
+			for (const [ key, stateDict ] of Object.entries(collections)) {
 				const items = payload[key as keyof DataToDB];
 				if (!items) continue;
 				items.forEach((item: any) => {
@@ -1519,6 +1526,8 @@ export const useMainStore = defineStore('main', {
 				});
 			}
 			this.updateSavedStatus();
+			this.stateBackups = [];
+			this.stateBackupsIndex = -1;
 		},
 		updateSavedStatus() {
 			const pkg = this.getAllModifiedPackage;

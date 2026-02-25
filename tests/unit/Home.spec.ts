@@ -198,7 +198,6 @@ async function mountHome(options: { shallow?: boolean } = {}) {
 		foldersEditMode: ref(false),
 		toDB: vi.fn(),
 		toDBCompletely: vi.fn(),
-		deleteImages: vi.fn(),
 		handleDragStart: vi.fn(),
 		handleDragEnter: vi.fn(),
 		handleDrop: vi.fn(),

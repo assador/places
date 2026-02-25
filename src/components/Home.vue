@@ -1116,11 +1116,11 @@ const uploadFiles = async (
 			mainStore.setMessage(`${popup.file} ${fileName} ${popup.fileTooLarge}`);
 			continue;
 		}
-		const uuid = crypto.randomUUID();
-		data.append(uuid, file);
+		const imageId = crypto.randomUUID();
+		data.append(imageId, file);
 		filesArray.push({
-			id: uuid,
-			file: `${uuid}.${mimes[mimeType]}`,
+			id: imageId,
+			file: `${imageId}.${mimes[mimeType]}`,
 			size: Number(fileSize) || null,
 			type: mimeType,
 			lastmodified: Number(file.lastModified) || null,
@@ -1130,6 +1130,8 @@ const uploadFiles = async (
 	}
 	if (!filesArray.length) return;
 	data.append('userid', mainStore.user.id);
+	data.append('entityid', target.id);
+	data.append('entitytype', target.type);
 	try {
 		uploading.value = true;
 		const response = await axios.post('/backend/upload.php', data);
@@ -1179,9 +1181,8 @@ const uploadFiles = async (
 					change: { images: newImagesObject },
 				});
 			}
-			mainStore.setMessage(popup.filesUploadedSuccessfully);
+			// mainStore.setMessage(popup.filesUploadedSuccessfully);
 		}
-		target.updated = true;
 	} catch(error) {
 		mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);
 	}

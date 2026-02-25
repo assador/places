@@ -30,11 +30,31 @@ $ctx->db->prepare("
 	WHERE expiresat < :now
 ")->execute([ ':now' => $now ]);
 
+// Clean out orphan sessions.
 $ctx->db->exec("
  	DELETE s
 	FROM sessions s
 	LEFT JOIN users u ON s.userid = u.id
 	WHERE u.id IS NULL
 ");
+
+// Clean out uncommitted images.
+$stmt = $ctx->db->prepare("
+	SELECT id, file FROM images
+	WHERE committed = 0
+		AND lastmodified < :dayago
+");
+$stmt->execute([ ':dayago' => $now - 86400000 ]);
+$orphanImages = $stmt->fetchAll();
+foreach ($orphanImages as $img) {
+	$pathBig =  $config['dirs']['uploads']['images']['big'] . $img['file'];
+	$pathSmall = $config['dirs']['uploads']['images']['small'] . $img['file'];
+	if (is_file($pathBig)) unlink($pathBig);
+	if (is_file($pathSmall)) unlink($pathSmall);
+	$ctx->db->prepare("
+		DELETE FROM images
+		WHERE id = :id
+	")->execute([ ':id' => $img['id'] ]);
+}
 
 $ctx->db->exec("SET FOREIGN_KEY_CHECKS = 1");

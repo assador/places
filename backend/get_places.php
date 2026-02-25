@@ -68,14 +68,14 @@ function getImages(AppContext $ctx, string $userIdBin): array {
 				SELECT 1
 				FROM places p
 				WHERE p.id = i.placeid
-				AND (p.userid = :uid OR p.common = 1)
+					AND (p.userid = :uid OR p.common = 1)
 			)
 			OR
 			EXISTS (
 				SELECT 1
 				FROM routes r
 				WHERE r.id = i.routeid
-				AND (r.userid = :uid OR r.common = 1)
+					AND (r.userid = :uid OR r.common = 1)
 			)
 		)
 	");

@@ -210,12 +210,10 @@
 									v-if="!currentPlaceCommon"
 									class="dd-images__delete button"
 									:draggable="false"
-									@click.stop="
-										emitter.emit('confirm', {
-											func: deleteImages,
-											args: [ { [image.id]: image } ],
-										})
-									"
+									@click.stop="mainStore.deleteImages({
+										imageIds: [ image.id ],
+										entity: mainStore.currentPlace,
+									})"
 								>
 									×
 								</div>
@@ -322,13 +320,12 @@
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
 import { orderBy } from 'lodash';
-import { emitter, constants, coords2string, string2coords } from '@/shared';
+import { constants, coords2string, string2coords } from '@/shared';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { Image, DragEventCustom, DragEntityPayload } from '@/stores/types';
 
 const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;
-const deleteImages = inject('deleteImages') as (...args: any[]) => any;
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
 const currentPlaceNameInputRef = inject('currentPlaceNameInputRef');
@@ -357,7 +354,7 @@ const currentPlaceLon = computed<number | null>(() =>
 const orderedCurrentPlaceFields = ref([
 	'name', 'description', 'point', 'link', 'time', 'srt', 'common', 'images',
 ]);
-const orderedImages = computed<Array<Image>>(() =>
+const orderedImages = computed<Image[]>(() =>
 	mainStore.currentPlace ? orderBy(mainStore.currentPlace.images, 'srt') : []
 );
 const currentPlaceAlt = computed<number | null>(() => {

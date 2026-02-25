@@ -162,5 +162,6 @@ export const handleImageDropped = (
 		payload.before,
 	);
 	parent.updated = true;
+	mainStore.saved = false;
 	mainStore.backupState();
 };

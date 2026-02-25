@@ -29,7 +29,6 @@ import {
 	Folder,
 	Point,
 	Place,
-	Image,
 	DataToDB,
 	DragPayload,
 	DragEventCustom,
@@ -183,21 +182,6 @@ const homeToDB = async (id: string): Promise<void> => {
 		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${error}`);
 	}
 };
-
-const deleteImages = async (images: Record<string, Image>, family?: boolean) => {
-	const data = new FormData();
-	Object.entries(images).forEach(([id, image]) => data.append('file_' + id, image.file));
-	data.append('userid', mainStore.user.id);
-	if (!mainStore.user.testaccount) {
-		try {
-			await axios.post('/backend/delete.php', data);
-		} catch (error) {
-			console.error(error);
-		}
-	}
-	mainStore.deleteImages({ images, family });
-};
-provide('deleteImages', deleteImages);
 
 const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
 	const a = document.createElement('a');

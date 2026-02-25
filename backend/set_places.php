@@ -16,9 +16,9 @@ set_exception_handler(function($e) {
 
 require_once __DIR__ . '/bootstrap.php';
 
-$raw = file_get_contents("php://input");
+$raw = file_get_contents('php://input');
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-$list = $data["data"] ?? [];
+$list = $data['data'] ?? [];
 
 $faults = [];
 /*
@@ -36,7 +36,7 @@ function checkSession(AppContext $ctx, string $sessionid): bool {
 		SELECT * FROM sessions
 		WHERE id = :sessionid
 	");
-	$stmt->bindValue(":sessionid", uuidToBin($sessionid), PDO::PARAM_LOB);
+	$stmt->bindValue(':sessionid', uuidToBin($sessionid), PDO::PARAM_LOB);
 	$stmt->execute();
 	$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	return (count($result) > 0 ? true : false);
@@ -44,13 +44,13 @@ function checkSession(AppContext $ctx, string $sessionid): bool {
 function getById(AppContext $ctx, string $table, string $id) {
 	$sql = "SELECT * FROM `$table` WHERE id = :id LIMIT 1";
 	$stmt = $ctx->db->prepare($sql);
-	$stmt->execute([ ":id" => uuidToBin($id) ]);
+	$stmt->execute([ ':id' => uuidToBin($id) ]);
 	return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 function deleteById(AppContext $ctx, string $table, string $id): void {
 	$sql = "DELETE FROM `$table` WHERE id = :id LIMIT 1";
 	$stmt = $ctx->db->prepare($sql);
-	$stmt->execute([ ":id" => uuidToBin($id) ]);
+	$stmt->execute([ ':id' => uuidToBin($id) ]);
 }
 function pointByCoords(AppContext $ctx, float $latitude, float $longitude) {
 	$stmt = $ctx->db->prepare("
@@ -58,8 +58,8 @@ function pointByCoords(AppContext $ctx, float $latitude, float $longitude) {
 		WHERE latitude = :latitude AND longitude = :longitude
 	");
 	$stmt->execute([
-		":latitude" => $latitude,
-		":longitude" => $longitude,
+		':latitude'  => $latitude,
+		':longitude' => $longitude,
 	]);
 	return $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -74,17 +74,70 @@ function cleanupPointIfOrphaned(AppContext $ctx, string $pointIdBin): void {
 			) t;
 		");
 		$pointRefsStmt->execute([
-			":pointid" => $pointIdBin,
+			':pointid' => $pointIdBin,
 		]);
 		$pointRefs = $pointRefsStmt->fetch(PDO::FETCH_ASSOC);
 
-		if ((int)$pointRefs["refcount"] === 0) {
+		if ((int)$pointRefs['refcount'] === 0) {
 			$delPointStmt = $ctx->db->prepare("
 				DELETE FROM points WHERE id = :pointid
 			");
 			$delPointStmt->execute([
-				":pointid" => $pointIdBin,
+				':pointid' => $pointIdBin,
 			]);
+		}
+	}
+}
+
+// SEC Images
+
+function updateImagesOf(AppContext $ctx, array $entity) {
+	if ($entity['type'] !== 'place' && $entity['type'] !== 'route') return;
+	global $config;
+
+	$entityIdBin = uuidToBin($entity['id']);
+	$idField = $entity['type'] === 'place' ? 'placeid' : 'routeid';
+
+	$keepIds = array_keys($entity['images'] ?? []);
+	if ($entity['deleted'] === true) $keepIds = [];
+
+	if (!empty($keepIds)) {
+		$keepIdsBin = array_map('uuidToBin', $keepIds);
+		$placeholders = implode(',', array_fill(0, count($keepIdsBin), '?'));
+		$sqlAdopt = "
+			UPDATE images
+			SET $idField = ?
+			WHERE $idField IS NULL
+				AND id IN ($placeholders)
+		";
+		$adoptStmt = $ctx->db->prepare($sqlAdopt);
+		$adoptStmt->execute(array_merge([ $entityIdBin ], $keepIdsBin));
+	}
+
+	$stmt = $ctx->db->prepare("
+		SELECT id, file
+		FROM images
+		WHERE $idField = :entityid
+	");
+	$stmt->execute([ ':entityid' => $entityIdBin ]);
+	$images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+	foreach ($images as $img) {
+		$uuid = binToUuid($img['id']);
+
+		if (!in_array($uuid, $keepIds)) {
+			$del = $ctx->db->prepare("DELETE FROM images WHERE id = :id");
+			$del->execute([ ':id' => $img['id'] ]);
+
+			$pathBig = $config['dirs']['uploads']['images']['big'] . $img['file'];
+			$pathSmall = $config['dirs']['uploads']['images']['small'] . $img['file'];
+
+			if (is_file($pathBig)) unlink($pathBig);
+			if (is_file($pathSmall)) unlink($pathSmall);
+
+		} else {
+			$upd = $ctx->db->prepare("UPDATE images SET committed = 1 WHERE id = :id");
+			$upd->execute([ ':id' => $img['id'] ]);
 		}
 	}
 }
@@ -169,16 +222,17 @@ function addPlace(AppContext $ctx, array $row): void {
 		":userid"      => uuidToBin($row["userid"]),
 		":folderid"    => uuidToBin($row["folderid"]) ?? null,
 	]);
+	updateImagesOf($ctx, $row);
 }
 function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
-	$pointIdBin = !empty($row["pointid"])
-		? uuidToBin($row["pointid"])
+	$pointIdBin = !empty($row['pointid'])
+		? uuidToBin($row['pointid'])
 		: null
 	;
 	$sql = "
 		UPDATE places
 		SET
-			" . ($pointIdBin !== null ? "pointid = :pointid," : "") . "
+			" . ($pointIdBin !== null ? 'pointid = :pointid,' : '') . "
 			folderid    = :folderid,
 			name        = :name,
 			description = :description,
@@ -193,24 +247,26 @@ function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
 	";
 	$stmt = $ctx->db->prepare($sql);
 	$bindingArray = [
-		":id"          => uuidToBin($row["id"]),
-		":name"        => $row["name"] ?? "",
-		":description" => $row["description"] ?? "",
-		":link"        => $row["link"] ?? "",
-		":time"        => $row["time"] ?? "",
-		":srt"         => $row["srt"] ?? 0,
-		":geomark"     => (int)($row["geomark"] ?? 0),
-		":common"      => (int)($row["common"] ?? 0),
-		":userid"      => uuidToBin($row["userid"]),
-		":myuserid"    => uuidToBin($myuserid),
-		":folderid"    => uuidToBin($row["folderid"]) ?? null,
+		':id'          => uuidToBin($row['id']),
+		':name'        => $row['name'] ?? '',
+		':description' => $row['description'] ?? '',
+		':link'        => $row['link'] ?? '',
+		':time'        => $row['time'] ?? '',
+		':srt'         => $row['srt'] ?? 0,
+		':geomark'     => (int)($row['geomark'] ?? 0),
+		':common'      => (int)($row['common'] ?? 0),
+		':userid'      => uuidToBin($row['userid']),
+		':myuserid'    => uuidToBin($myuserid),
+		':folderid'    => uuidToBin($row['folderid']) ?? null,
 	];
 	if ($pointIdBin !== null) {
-		$bindingArray[":pointid"] = $pointIdBin;
+		$bindingArray[':pointid'] = $pointIdBin;
 	}
 	$stmt->execute($bindingArray);
+	updateImagesOf($ctx, $row);
 }
 function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
+	updateImagesOf($ctx, $row);
 	$delPlaceStmt = $ctx->db->prepare("
 		DELETE FROM places
 		WHERE id = :id
@@ -266,6 +322,7 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 			}
 		}
 	}
+	updateImagesOf($ctx, $row);
 }
 function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$idBin = uuidToBin($row["id"]);
@@ -326,8 +383,10 @@ function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 	foreach (array_unique($oldPointIds) as $pointIdBin) {
 		cleanupPointIfOrphaned($ctx, $pointIdBin);
 	}
+	updateImagesOf($ctx, $row);
 }
 function deleteRoute(AppContext $ctx, array $row, string $myuserid): void {
+	updateImagesOf($ctx, $row);
 	$idBin = uuidToBin($row["id"]);
 	$routePointIdsStmt = $ctx->db->prepare("
 		SELECT pointid FROM pointroute WHERE routeid = :id
@@ -426,48 +485,7 @@ function updateFolder(AppContext $ctx, array $row, string $myuserid): void {
 	]);
 }
 
-// SEC Images
-
-function updateImage(AppContext $ctx, array $img): void {
-	$placeIdBin = null;
-	$routeIdBin = null;
-	if (!empty($img["placeid"])) {
-		$placeIdBin = uuidToBin($img["placeid"]);
-	}
-	if (!empty($img["routeid"])) {
-		$routeIdBin = uuidToBin($img["routeid"]);
-	}
-	$sql = "
-		UPDATE images
-		SET
-			" . ($placeIdBin !== null ? "placeid = :placeid," : "") . "
-			" . ($routeIdBin !== null ? "routeid = :routeid," : "") . "
-			file         = :file,
-			size         = :size,
-			type         = :type,
-			lastmodified = :lastmodified,
-			srt          = :srt
-		WHERE id = :id
-	";
-	$stmt = $ctx->db->prepare($sql);
-	$bindingArray = [
-		":id"           => uuidToBin($img["id"]),
-		":file"         => $img["file"] ?? "",
-		":size"         => (int)($img["size"] ?? 0),
-		":type"         => $img["type"] ?? "",
-		":lastmodified" => (int)($img["lastmodified"] ?? 0),
-		":srt"          => (int)($img["srt"] ?? 0),
-	];
-	if ($placeIdBin !== null) {
-		$bindingArray[":placeid"] = $placeIdBin;
-	}
-	if ($routeIdBin !== null) {
-		$bindingArray[":routeid"] = $routeIdBin;
-	}
-	$stmt->execute($bindingArray);
-}
-
-// Session check
+// SEC Session check
 
 if (checkSession($ctx, $data["sessionid"]) === false) {
 	echo 5; exit;
@@ -609,16 +627,6 @@ try {
 			elseif (!empty($row["updated"])) {
 				updateRoute($ctx, $row, $data["userid"]);
 			}
-		}
-	}
-
-	if (!empty($list['images_update'])) {
-		foreach ($list['images_update'] as $img) updateImage($ctx, $img);
-	}
-
-	if (!empty($list['images_delete'])) {
-		foreach ($list['images_delete'] as $row) {
-			deleteById($ctx, "images", $row["id"]);
 		}
 	}
 
