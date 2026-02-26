@@ -13,7 +13,7 @@ import {
 	DataToDB,
 	Measure,
 	DragEntityPayload,
-} from './types';
+} from '../types';
 import {
 	emitter,
 	constants,
@@ -29,6 +29,7 @@ import { t } from '@/lang/ru';
 export interface IMainState {
 	activeMapIndex: number,
 	backup: boolean,
+	busyCount: number,
 	center: Record<string, number>,
 	centerPlacemarkShow: boolean,
 	colortheme: string,
@@ -90,6 +91,7 @@ export const useMainStore = defineStore('main', {
 	state: (): IMainState => ({
 		activeMapIndex: 0,
 		backup: true,
+		busyCount: 0,
 		center: {
 			latitude: Number(constants.map.initial.latitude),
 			longitude: Number(constants.map.initial.longitude),
@@ -1056,7 +1058,7 @@ export const useMainStore = defineStore('main', {
 			if (!payload) {
 				try {
 					const { data } = await axios.get(
-						'/backend/get_places.php?id=' +
+						'/backend/get_entities.php?id=' +
 						localStorage.getItem('places-useruuid')
 					);
 					this.placesReady({
@@ -1819,6 +1821,14 @@ export const useMainStore = defineStore('main', {
 
 // SEC Other
 
+		setBusy(busy: boolean = true) {
+			if (busy) {
+				this.timer = setTimeout(() => { this.busyCount++ }, 200);
+			} else {
+				clearTimeout(this.timer);
+				this.busyCount = Math.max(0, this.busyCount - 1);
+			}
+		},
 		collectModified<T extends Entity>(collection: Record<string, T>): T[] {
 			return Object.values(collection).filter(i =>
 				(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
@@ -1926,6 +1936,9 @@ export const useMainStore = defineStore('main', {
 // SEC --- getters
 
 	getters: {
+		busy() {
+			return this.busyCount > 0;
+		},
 		descriptionFields() {
 			const descriptionFields = {
 				name               : this.t.i.captions.name,

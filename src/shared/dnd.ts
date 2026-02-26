@@ -6,7 +6,7 @@ import {
 	DragPlacePayload,
 	DragRoutePayload,
 	DragImagePayload,
-} from '@/stores/types';
+} from '@/types';
 import { isAncestorOf, moveInArray, moveInObject } from '@/shared';
 import { useMainStore } from '@/stores/main';
 

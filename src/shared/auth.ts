@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
-import axios from 'axios';
-import { emitter } from './bus';
+import api from '@/api';
+import { emitter } from '@/shared/bus';
 
 export const login = reactive({
 	message: '',
@@ -10,7 +10,7 @@ export const loginRoutine = async (
 	voc: Record<string, any>,
 ) => {
 	try {
-		const { data } = await axios.post('/backend/login.php', user);
+		const { data } = await api.post('login.php', user);
 		switch (data) {
 			case 0 :
 				localStorage.clear();
@@ -36,7 +36,7 @@ export const logoutRoutine = async (
 	ids: { userId: string, sessionId: string },
 ) => {
 	try {
-		await axios.post('/backend/logout.php', ids);
+		await api.post('logout.php', ids);
 	} catch (error) {
 		console.error(error);
 		localStorage.clear();

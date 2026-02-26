@@ -1,6 +1,7 @@
 export interface IPlacesPopupProps {
 	show: boolean;
 	what?: any;
+	closeButton?: boolean;
 	closeOnClick?: boolean;
 	position?: {
 		top?: number | string | null,

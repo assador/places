@@ -368,7 +368,7 @@ import {
 	LTooltip,
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Place, Route, Point, PointName } from '@/stores/types';
+import { Place, Route, Point, PointName } from '@/types';
 import {
 	coords2string,
 	IPlacesPopupProps,

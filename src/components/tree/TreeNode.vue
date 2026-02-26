@@ -508,7 +508,7 @@ import _ from 'lodash';
 import { computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Place, Route, Folder, DragEntityPayload } from '@/stores/types';
+import { Place, Route, Folder, DragEntityPayload } from '@/types';
 import { formFoldersCheckedIds } from '@/shared';
 
 export interface IPlacesTreeNodeProps {

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { User, Group } from './types';
+import { User, Group } from '../types';
 
 export interface IAdminState {
 	users: User[],

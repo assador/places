@@ -84,7 +84,7 @@
 import { ref, watch, computed, inject, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
-import { User } from '@/stores/types';
+import { User } from '@/types';
 
 export interface IAdminGroupsProps {
 	prop: 0,

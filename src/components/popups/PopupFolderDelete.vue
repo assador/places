@@ -63,7 +63,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
-import { Place, Route, Folder } from '@/stores/types';
+import { Place, Route, Folder } from '@/types';
 
 export interface IPlacesPopupFolderDeleteProps {
 	id: string;

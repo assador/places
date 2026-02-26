@@ -1,4 +1,4 @@
-import { Folder } from '@/stores/types';
+import { Folder } from '@/types';
 
 export const generateRandomString = (length = 32): string => {
 	const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

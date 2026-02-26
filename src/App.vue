@@ -7,6 +7,18 @@
 			:arguments="confirmCallbackArgs"
 			:message="confirmMessage"
 		/>
+		<Popup
+			v-if="isMounted"
+			:show="mainStore.busy"
+			:position="popupBusy.position"
+			:closeButton="false"
+			:closeOnClick="false"
+		>
+			<template #popupSlot>
+				<!-- <div class="spinner icon icon-eye-open-circled" /> -->
+				<div class="spinner icon icon-geomark-1-circled" />
+			</template>
+		</Popup>
 		<router-view />
 	</div>
 </template>
@@ -24,6 +36,7 @@ import {
 	handlePlaceRouteDropped,
 	handlePointInListDropped,
 	handleImageDropped,
+	IPlacesPopupProps,
 } from '@/shared';
 import {
 	Folder,
@@ -32,10 +45,12 @@ import {
 	DataToDB,
 	DragPayload,
 	DragEventCustom,
-} from '@/stores/types';
+} from '@/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
+import Popup from '@/components/popups/Popup.vue';
 
 // Refs and Provides
+const isMounted = ref(false);
 const foldersEditMode = ref(false);
 const idleTimeInterval = ref(null);
 const currentPlaceCommon = ref(false);
@@ -79,6 +94,15 @@ const confirm = (func: Function, args: any[] = [], msg: string = ''): boolean =>
 	confirmMessage.value = msg;
 	return true;
 };
+const popupBusy = ref<IPlacesPopupProps>({
+	show: false,
+	position: {
+		top: '0',
+		right: '0',
+		bottom: '0',
+		left: '0',
+	},
+});
 
 // Event Bus Handlers
 emitter.on('logged', async () => {
@@ -118,6 +142,7 @@ emitter.on('getFolderById', (id: string) => mainStore.folders[id]);
 
 // Lifecycle
 onMounted(() => {
+	isMounted.value = true;
 	mainStore.$onAction(({
 		// name,
 		// store,
@@ -158,7 +183,7 @@ const toDB = async (payload: DataToDB): Promise<void> => {
 	if (!payload) payload = mainStore.getAllModifiedPackage;
 	try {
 		if (!mainStore.user.testaccount) {
-			await axios.post(`/backend/set_places.php`, {
+			await axios.post(`/backend/set_entities.php`, {
 				data: payload,
 				userid: localStorage.getItem('places-useruuid'),
 				sessionid: localStorage.getItem('places-session'),

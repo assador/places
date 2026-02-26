@@ -323,7 +323,7 @@ import { orderBy } from 'lodash';
 import { constants, coords2string, string2coords } from '@/shared';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Image, DragEventCustom, DragEntityPayload } from '@/stores/types';
+import { Image, DragEventCustom, DragEntityPayload } from '@/types';
 
 const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;

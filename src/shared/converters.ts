@@ -1,5 +1,5 @@
 import { isPlainTreeCorrect } from '@/shared/checkers';
-import { Point, Folder } from '@/stores/types';
+import { Point, Folder } from '@/types';
 
 let resultForRecursive: unknown;
 

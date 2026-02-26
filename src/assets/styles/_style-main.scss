@@ -344,6 +344,30 @@ $filter-brightness-03: brightness(0%);
 	.table .active {
 		background-color: $color-27;
 	}
+	.spinner {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		--size: 100px;
+		width: var(--size); height: var(--size);
+		&::before {
+			display: block;
+			position: absolute;
+			top: 0; right: 0; bottom: 0; left: 0;
+			opacity: 0.3;
+		}
+		animation: rotation 3s linear infinite;
+	}
+	@keyframes rotation {
+		0% {
+			transform: rotate(0deg);
+		}
+
+		100% {
+			transform: rotate(360deg);
+		}
+	}
 
 	/* Шрифты */
 
@@ -913,6 +937,14 @@ $filter-brightness-03: brightness(0%);
 		)
 	):first-child:last-child {
 		width: 100%;
+	}
+	.fade-enter-active,
+	.fade-leave-active {
+		transition: all 0.5s ease;
+	}
+	.fade-enter-from,
+	.fade-leave-to {
+		opacity: 0;
 	}
 	.showhide {
 		display: block;

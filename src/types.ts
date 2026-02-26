@@ -1,3 +1,14 @@
+import 'axios';
+
+declare module 'axios' {
+	export interface AxiosRequestConfig {
+		silent?: boolean;
+	}
+	export interface InternalAxiosRequestConfig {
+		silent?: boolean;
+	}
+}
+
 export type AppendMode =
 	| 'change' // change the existing one
 	| 'clone'  // create new based on the existing one

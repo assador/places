@@ -787,7 +787,7 @@ import {
 	latitude2string,
 	longitude2string,
 } from '@/shared';
-import { Point, Place, Route, Image, PointName } from '@/stores/types';
+import { Point, Place, Route, Image, PointName } from '@/types';
 import Header from '@/components/Header.vue';
 import Measure from '@/components/helpers/Measure.vue';
 import Points from '@/components/Points.vue';

@@ -1,5 +1,5 @@
 import { findInTree } from '@/shared/searchers';
-import { Folder } from '@/stores/types';
+import { Folder } from '@/types';
 
 /**
  * Checks if descendantId is a descendant of ancestorId

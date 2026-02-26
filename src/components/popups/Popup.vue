@@ -1,32 +1,34 @@
 <template>
 	<Teleport to="#popup-root">
-		<div
-			v-if="props.show"
-			v-bind="$attrs"
-			class="popup"
-			:class="props.show ? 'appear' : 'disappear'"
-			:style="style"
-			@click="handleBackdropClick"
-		>
-			<a
-				href="javascript:void(0)"
-				class="close"
-				@click.stop="close()"
-			>
-				×
-			</a>
+		<transition name="fade">
 			<div
-				v-if="props.what"
-				class="popup-title"
+				v-if="props.show"
+				v-bind="$attrs"
+				class="popup"
+				:style="style"
+				@click="handleBackdropClick"
 			>
-				{{ props.what }}
+				<a
+					v-if="props.closeButton"
+					href="javascript:void(0)"
+					class="close"
+					@click.stop="close()"
+				>
+					×
+				</a>
+				<div
+					v-if="props.what"
+					class="popup-title"
+				>
+					{{ props.what }}
+				</div>
+				<div
+					class="popup-content"
+				>
+					<slot name="popupSlot" />
+				</div>
 			</div>
-			<div
-				class="popup-content"
-			>
-				<slot name="popupSlot" />
-			</div>
-		</div>
+		</transition>
 	</Teleport>
 </template>
 
@@ -37,6 +39,7 @@ import { IPlacesPopupProps } from '@/shared';
 const props = withDefaults(defineProps<IPlacesPopupProps>(), {
 	show: false,
 	what: '',
+	closeButton: true,
 	closeOnClick: true,
 	position: () => ({
 		top: 'calc(100% + 8px)',

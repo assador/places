@@ -347,7 +347,7 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { IPlacesPopupProps } from '@/shared';
-import { PointName, DragEventCustom, DragEntityPayload } from '@/stores/types';
+import { PointName, DragEventCustom, DragEntityPayload } from '@/types';
 
 export interface IPlacesPointsProps {
 	type?: string;

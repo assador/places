@@ -362,7 +362,7 @@ import {
 	YandexMapZoomControl,
 } from 'vue-yandex-maps';
 import type { YMap, LngLat } from '@yandex/ymaps3-types';
-import { Place, Route, Point, PointName } from '@/stores/types';
+import { Place, Route, Point, PointName } from '@/types';
 import { IPlacesPopupProps } from '@/shared';
 
 const mainStore = useMainStore();
