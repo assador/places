@@ -65,7 +65,7 @@ import { ref, defineAsyncComponent, provide, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '@/api';
 import Header from '@/components/Header.vue';
 import AdminNavigation from '@/components/admin/AdminNavigation.vue';
 
@@ -74,12 +74,12 @@ const adminStore = useAdminStore();
 const router = useRouter();
 
 const getUsers = async () => {
-	const { data } = await axios.post('/backend/get_users.php', {
+	const { data } = await api.post('get_users.php', {
 		user: {
 			id: localStorage.getItem('places-useruuid'),
 			password: mainStore.user.password,
 		},
-	});
+	}, { silent: true });
 	switch (data) {
 		case false :
 			throw new Error('Administrator’s password failed the verification');
@@ -90,12 +90,12 @@ const getUsers = async () => {
 provide('getUsers', getUsers);
 
 const getGroups = async () => {
-	const { data } = await axios.post('/backend/get_allgroups.php', {
+	const { data } = await api.post('get_allgroups.php', {
 		user: {
 			id: localStorage.getItem('places-useruuid'),
 			password: mainStore.user.password,
 		},
-	});
+	}, { silent: true });
 	switch (data) {
 		case false :
 			throw new Error('Administrator’s password failed the verification');

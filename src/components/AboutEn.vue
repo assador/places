@@ -1,5 +1,5 @@
 <template>
-	<div class="popup-text about" @click.stop>
+	<div class="popup-text about readable" @click.stop>
 		<h1 id="manual-top">The Places</h1>
 		<p>{{ constants.version }}</p>
 		<ol>

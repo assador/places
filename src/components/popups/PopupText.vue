@@ -1,15 +1,20 @@
 <template>
-	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
-		<About v-if="props.what === 'about' && mainStore.lang === 'ru'" />
-		<AboutEn v-if="props.what === 'about' && mainStore.lang === 'en'" />
-		<a
-			href="javascript:void(0)"
-			class="close"
-			@click="close()"
+	<transition name="fade">
+		<div
+			v-if="popuped"
+			class="popup"
 		>
-			×
-		</a>
-	</div>
+			<About v-if="props.what === 'about' && mainStore.lang === 'ru'" />
+			<AboutEn v-if="props.what === 'about' && mainStore.lang === 'en'" />
+			<a
+				href="javascript:void(0)"
+				class="close"
+				@click="close()"
+			>
+				×
+			</a>
+		</div>
+	</transition>
 </template>
 
 <script setup lang="ts">

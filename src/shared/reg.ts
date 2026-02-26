@@ -1,12 +1,12 @@
 import { reactive } from 'vue';
-import axios from 'axios';
+import api from '@/api';
 
 export const reg = reactive({
 	message: '',
 });
 export const regRoutine = async (payload: Record<string, string>, voc) => {
 	try {
-		const { data } = await axios.post('/backend/reg.php', payload);
+		const { data } = await api.post('reg.php', payload);
 		switch (data) {
 			case 0 :
 				reg.message = voc.m.paged.regError;

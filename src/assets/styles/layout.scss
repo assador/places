@@ -387,6 +387,9 @@ body {
 				"bottom-basic__control-buttons-bottom  bottom-donate"
 			;
 		}
+		#sbs-top, #sbs-right, #sbs-bottom, #sbs-left {
+			display: none;
+		}
 		#sbb-top, #sbb-right, #sbb-bottom, #sbb-left {
 			display: block;
 		}

@@ -1,12 +1,12 @@
 import { reactive } from 'vue';
-import axios from 'axios';
+import api from '@/api';
 
 export const forgot = reactive({
 	message: '',
 });
 export const forgotRoutine = async (payload: Record<string, string>, voc) => {
 	try {
-		const { data } = await axios.post('/backend/forgot.php', payload);
+		const { data } = await api.post('forgot.php', payload);
 		switch (data) {
 			case 1 :
 				forgot.message = voc.m.paged.letterError;

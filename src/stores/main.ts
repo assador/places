@@ -23,7 +23,7 @@ import {
 	formFolderForImported,
 */
 } from '@/shared';
-import axios from 'axios';
+import api from '@/api';
 import { t } from '@/lang/ru';
 
 export interface IMainState {
@@ -1002,8 +1002,8 @@ export const useMainStore = defineStore('main', {
 		},
 		async setServerConfig() {
 			try {
-				const { data } = await axios.get(
-					'/backend/get_config.php?useruuid=' +
+				const { data } = await api.get(
+					'get_config.php?useruuid=' +
 					localStorage.getItem('places-useruuid')
 				);
 				this.serverConfig = data;
@@ -1026,9 +1026,9 @@ export const useMainStore = defineStore('main', {
 					break;
 			}
 			try {
-				const { data } = await axios.post(
-					'/backend/get_users.php',
-					Array.isArray(ids) ? { users: ids } : null
+				const { data } = await api.post(
+					'get_users.php',
+					Array.isArray(ids) ? { users: ids } : null,
 				);
 				for (let idx = 0; idx < data.length; idx++) {
 					this.users[data[idx].id] = {
@@ -1042,8 +1042,8 @@ export const useMainStore = defineStore('main', {
 		},
 		async setUser() {
 			try {
-				const { data } = await axios.get(
-					'/backend/get_account.php?id=' +
+				const { data } = await api.get(
+					'get_account.php?id=' +
 					localStorage.getItem('places-useruuid')
 				);
 				this.user = data;
@@ -1057,8 +1057,8 @@ export const useMainStore = defineStore('main', {
 			// If reading from database, not importing
 			if (!payload) {
 				try {
-					const { data } = await axios.get(
-						'/backend/get_entities.php?id=' +
+					const { data } = await api.get(
+						'get_entities.php?id=' +
 						localStorage.getItem('places-useruuid')
 					);
 					this.placesReady({
@@ -1844,8 +1844,9 @@ export const useMainStore = defineStore('main', {
 		},
 		async getAltitude (lat: number, lon: number): Promise<number | null> {
 			try {
-				const { data } = await axios.get(
-					`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
+				const { data } = await api.get(
+					`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`,
+					{ silent: true },
 				);
 				const alt = Number(data.elevation);
 				return isNaN(alt) ? null : alt;

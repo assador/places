@@ -1,125 +1,128 @@
 <template>
-	<div
-		:class="'popup ' + (popuped ? 'appear' : 'disappear')"
-		@click="e => close(e)"
-	>
-		<div class="centered">
-			<div class="narrower">
-				<div class="brand">
-					<h1 class="margin_bottom_0">
-						{{ mainStore.t.i.captions.deletingAccount }}
-					</h1>
-					<p>{{ mainStore.t.i.text.whatToDoWithAll }}</p>
-				</div>
-				<form
-					@submit.prevent="accountDeletionSubmit()"
-					@click.stop
-				>
-					<div class="account-form margin_bottom">
-						<fieldset>
-							<h2>
-								{{ mainStore.t.i.captions.places }}
-							</h2>
-							<label>
-								<input
-									id="placesLeaveNone"
-									v-model="leavePlaces"
-									name="places"
-									type="radio"
-									value="none"
-									@change="e => accountDeletionConditionsChange(e)"
-								/>
-								<span>
-									{{ mainStore.t.i.inputs.daDeletePlaces }}
-								</span>
-							</label>
-							<label>
-								<input
-									id="placesLeaveCommon"
-									v-model="leavePlaces"
-									name="places"
-									type="radio"
-									value="common"
-									@change="e => accountDeletionConditionsChange(e)"
-								/>
-								<span>
-									{{ mainStore.t.i.inputs.daLeaveOnlyCommonPlaces }}
-								</span>
-							</label>
-							<label>
-								<input
-									id="placesLeaveAll"
-									v-model="leavePlaces"
-									name="places"
-									type="radio"
-									value="all"
-									@change="e => accountDeletionConditionsChange(e)"
-								/>
-								<span>
-									{{ mainStore.t.i.inputs.daLeaveAllPlaces }}
-								</span>
-							</label>
-						</fieldset>
-						<fieldset>
-							<h2>
-								{{ mainStore.t.i.captions.images }}
-							</h2>
-							<label>
-								<input
-									id="imagesLeaveNone"
-									v-model="leaveImages"
-									name="images"
-									type="radio"
-									value="none"
-									@change="e => accountDeletionConditionsChange(e)"
-								/>
-								<span>
-									{{ mainStore.t.i.inputs.daDeleteImages }}
-								</span>
-							</label>
-							<label>
-								<input
-									id="imagesLeaveAll"
-									v-model="leaveImages"
-									name="images"
-									type="radio"
-									value="all"
-									@change="e => accountDeletionConditionsChange(e)"
-								/>
-								<span>
-									{{ mainStore.t.i.inputs.daLeaveImages }}
-								</span>
-							</label>
-						</fieldset>
+	<transition name="fade">
+		<div
+			v-if="popuped"
+			class="popup"
+			@click="e => close(e)"
+		>
+			<div class="centered">
+				<div class="narrower">
+					<div class="brand">
+						<h1 class="margin_bottom_0">
+							{{ mainStore.t.i.captions.deletingAccount }}
+						</h1>
+						<p>{{ mainStore.t.i.text.whatToDoWithAll }}</p>
 					</div>
+					<form
+						@submit.prevent="accountDeletionSubmit()"
+						@click.stop
+					>
+						<div class="account-form margin_bottom">
+							<fieldset>
+								<h2>
+									{{ mainStore.t.i.captions.places }}
+								</h2>
+								<label>
+									<input
+										id="placesLeaveNone"
+										v-model="leavePlaces"
+										name="places"
+										type="radio"
+										value="none"
+										@change="e => accountDeletionConditionsChange(e)"
+									/>
+									<span>
+										{{ mainStore.t.i.inputs.daDeletePlaces }}
+									</span>
+								</label>
+								<label>
+									<input
+										id="placesLeaveCommon"
+										v-model="leavePlaces"
+										name="places"
+										type="radio"
+										value="common"
+										@change="e => accountDeletionConditionsChange(e)"
+									/>
+									<span>
+										{{ mainStore.t.i.inputs.daLeaveOnlyCommonPlaces }}
+									</span>
+								</label>
+								<label>
+									<input
+										id="placesLeaveAll"
+										v-model="leavePlaces"
+										name="places"
+										type="radio"
+										value="all"
+										@change="e => accountDeletionConditionsChange(e)"
+									/>
+									<span>
+										{{ mainStore.t.i.inputs.daLeaveAllPlaces }}
+									</span>
+								</label>
+							</fieldset>
+							<fieldset>
+								<h2>
+									{{ mainStore.t.i.captions.images }}
+								</h2>
+								<label>
+									<input
+										id="imagesLeaveNone"
+										v-model="leaveImages"
+										name="images"
+										type="radio"
+										value="none"
+										@change="e => accountDeletionConditionsChange(e)"
+									/>
+									<span>
+										{{ mainStore.t.i.inputs.daDeleteImages }}
+									</span>
+								</label>
+								<label>
+									<input
+										id="imagesLeaveAll"
+										v-model="leaveImages"
+										name="images"
+										type="radio"
+										value="all"
+										@change="e => accountDeletionConditionsChange(e)"
+									/>
+									<span>
+										{{ mainStore.t.i.inputs.daLeaveImages }}
+									</span>
+								</label>
+							</fieldset>
+						</div>
+						<div style="text-align: center;">
+							<fieldset>
+								<button type="submit">
+									{{ mainStore.t.i.buttons.deleteAccount }}
+								</button>
+								&#160;
+								<button
+									type="button"
+									@click="e => close(e)"
+								>
+									{{ mainStore.t.i.buttons.cancel }}
+								</button>
+							</fieldset>
+						</div>
+					</form>
 					<div style="text-align: center;">
-						<fieldset>
-							<button type="submit">
-								{{ mainStore.t.i.buttons.deleteAccount }}
-							</button>
-							&#160;
-							<button
-								type="button"
-								@click="e => close(e)"
-							>
-								{{ mainStore.t.i.buttons.cancel }}
-							</button>
-						</fieldset>
+						{{ acc.message }}
 					</div>
-				</form>
-				<div style="text-align: center;">
-					{{ acc.message }}
+					<a
+						href="javascript:void(0)"
+						class="close"
+						@click="e => close(e)"
+					>
+						×
+					</a>
 				</div>
-				<a
-					href="javascript:void(0)"
-					class="close"
-					@click="e => close(e)"
-				>
-					×
-				</a>
 			</div>
 		</div>
-	</div>
+	</transition>
 </template>
 
 <script setup lang="ts">

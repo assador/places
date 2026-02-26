@@ -1,87 +1,92 @@
 <template>
-	<div :class="'popup ' + (popuped ? 'appear' : 'disappear')">
-		<div class="popup-content centered">
-			<div class="brand">
-				<h1 class="margin_bottom_0">
-					{{ mainStore.t.i.captions.exportPlaces }}
-				</h1>
-			</div>
-			<p class="margin_bottom_0">
-				{{ mainStore.t.i.text.specifyFormatToExport }}:
-			</p>
-			<form
-				class="popup-export__form"
-				@submit.prevent="e => exportPlaces(
-					selectedToExport,
-					(e.currentTarget as HTMLFormElement).elements['mime'].value
-				)"
-			>
-				<fieldset class="margin_bottom">
-					<label>
-						<input
-							name="mime"
-							type="radio"
-							:checked="true"
-							value="application/gpx+xml"
-						/>
-						&#160;
-						<span>GPX</span>
-					</label>
-					<p>
-						{{ mainStore.t.i.text.descGpx }}
-					</p>
-					<label>
-						<input
-							name="mime"
-							type="radio"
-							value="application/json"
-						/>
-						&#160;
-						<span>JSON</span>
-					</label>
-					<p>
-						{{ mainStore.t.i.text.descJson }}
-					</p>
-				</fieldset>
-				<p>{{ mainStore.t.i.text.specifyPlacesToExport }}:</p>
-				<div
-					v-if="
-						Object.keys(mainStore.places).length ||
-						Object.keys(mainStore.folders).length
-					"
-					id="popup-export__tree"
-					class="menu"
+	<transition name="fade">
+		<div
+			v-if="popuped"
+			class="popup"
+		>
+			<div class="popup-content centered">
+				<div class="brand">
+					<h1 class="margin_bottom_0">
+						{{ mainStore.t.i.captions.exportPlaces }}
+					</h1>
+				</div>
+				<p class="margin_bottom_0">
+					{{ mainStore.t.i.text.specifyFormatToExport }}:
+				</p>
+				<form
+					class="popup-export__form"
+					@submit.prevent="e => exportPlaces(
+						selectedToExport,
+						(e.currentTarget as HTMLFormElement).elements['mime'].value
+					)"
 				>
-					<Tree
-						instanceid="popupexporttree"
-						what="places"
-						:data="mainStore.trees.places || {}"
-					/>
-				</div>
-				<div style="text-align: center;">
-					<fieldset>
-						<button type="submit">
-							{{ mainStore.t.i.buttons.export }}
-						</button>
-						&#160;
-						<button
-							type="button"
-							@click="close()"
-						>
-							{{ mainStore.t.i.buttons.cancel }}
-						</button>
+					<fieldset class="margin_bottom">
+						<label>
+							<input
+								name="mime"
+								type="radio"
+								:checked="true"
+								value="application/gpx+xml"
+							/>
+							&#160;
+							<span>GPX</span>
+						</label>
+						<p>
+							{{ mainStore.t.i.text.descGpx }}
+						</p>
+						<label>
+							<input
+								name="mime"
+								type="radio"
+								value="application/json"
+							/>
+							&#160;
+							<span>JSON</span>
+						</label>
+						<p>
+							{{ mainStore.t.i.text.descJson }}
+						</p>
 					</fieldset>
-				</div>
-			</form>
-			<a
-				href="javascript:void(0);"
-				class="close"
-				@click="close()"
-			>
-				×
-			</a>
+					<p>{{ mainStore.t.i.text.specifyPlacesToExport }}:</p>
+					<div
+						v-if="
+							Object.keys(mainStore.places).length ||
+							Object.keys(mainStore.folders).length
+						"
+						id="popup-export__tree"
+						class="menu"
+					>
+						<Tree
+							instanceid="popupexporttree"
+							what="places"
+							:data="mainStore.trees.places || {}"
+						/>
+					</div>
+					<div style="text-align: center;">
+						<fieldset>
+							<button type="submit">
+								{{ mainStore.t.i.buttons.export }}
+							</button>
+							&#160;
+							<button
+								type="button"
+								@click="close()"
+							>
+								{{ mainStore.t.i.buttons.cancel }}
+							</button>
+						</fieldset>
+					</div>
+				</form>
+				<a
+					href="javascript:void(0);"
+					class="close"
+					@click="close()"
+				>
+					×
+				</a>
+			</div>
 		</div>
-	</div>
+	</transition>
 </template>
 
 <script setup lang="ts">

@@ -598,6 +598,7 @@
 				class="action-button"
 				:title="mainStore.t.i.hints.importPlaces"
 				accesskey="i"
+				disabled
 				@click="importFromFileInput.click()"
 			>
 				<span class="icon icon-import" />
@@ -608,6 +609,7 @@
 				class="action-button"
 				:title="mainStore.t.i.hints.exportPlaces"
 				accesskey="e"
+				disabled
 				@click="router.push({name: 'HomeExport'})"
 			>
 				<span class="icon icon-export" />
@@ -772,7 +774,7 @@ import {
 	defineAsyncComponent,
 	watchEffect,
 } from 'vue';
-import axios from 'axios';
+import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { throttle } from 'lodash';
@@ -1134,7 +1136,7 @@ const uploadFiles = async (
 	data.append('entitytype', target.type);
 	try {
 		uploading.value = true;
-		const response = await axios.post('/backend/upload.php', data);
+		const response = await api.post('upload.php', data, { silent: true });
 		input.value = '';
 		uploading.value = false;
 		const [ errorCodes, uploadedFiles ] = response.data;

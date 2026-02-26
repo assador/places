@@ -15,8 +15,8 @@
 			:closeOnClick="false"
 		>
 			<template #popupSlot>
-				<!-- <div class="spinner icon icon-eye-open-circled" /> -->
-				<div class="spinner icon icon-geomark-1-circled" />
+				<div class="spinner icon icon-eye-open-circled" />
+				<!-- <div class="spinner icon icon-geomark-1-circled" /> -->
 			</template>
 		</Popup>
 		<router-view />
@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { ref, computed, provide, onMounted } from 'vue'
-import axios from 'axios';
+import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import {
@@ -183,11 +183,15 @@ const toDB = async (payload: DataToDB): Promise<void> => {
 	if (!payload) payload = mainStore.getAllModifiedPackage;
 	try {
 		if (!mainStore.user.testaccount) {
-			await axios.post(`/backend/set_entities.php`, {
-				data: payload,
-				userid: localStorage.getItem('places-useruuid'),
-				sessionid: localStorage.getItem('places-session'),
-			});
+			await api.post(
+				`set_entities.php`,
+				{
+					data: payload,
+					userid: localStorage.getItem('places-useruuid'),
+					sessionid: localStorage.getItem('places-session'),
+				},
+				{ silent: true },
+			);
 		}
 		mainStore.savedToDB(payload);
 	} catch (error: any) {
@@ -199,10 +203,11 @@ const toDB = async (payload: DataToDB): Promise<void> => {
 const homeToDB = async (id: string): Promise<void> => {
 	if (mainStore.user.testaccount) return;
 	try {
-		await axios.post('/backend/set_home.php', {
-			id: localStorage.getItem('places-useruuid'),
-			data: id
-		});
+		await api.post(
+			'set_home.php',
+			{ id: localStorage.getItem('places-useruuid'), data: id },
+			{ silent: true },
+		);
 	} catch (error) {
 		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${error}`);
 	}

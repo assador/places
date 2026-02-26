@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import axios from 'axios';
+import api from '@/api';
 
 export const acc = reactive({
 	message: '',
@@ -7,7 +7,7 @@ export const acc = reactive({
 export const accountSaveRoutine = async (account: Record<string, string>, voc) => {
 	if (account.accountNewPassword === undefined) account.accountNewPassword = '';
 	try {
-		const { data } = await axios.post('/backend/set_account.php', account);
+		const { data } = await api.post('set_account.php', account);
 		switch (data) {
 			case 0 :
 				acc.message = voc.m.paged.savingDataError;
@@ -31,8 +31,8 @@ export const accountDeletionRoutine = (
 	leavePlaces: string,
 	leaveImages: string
 ) => {
-	axios.post(
-		'/backend/delete_account.php',
-		{ userId: userId, leavePlaces: leavePlaces, leaveImages: leaveImages }
+	api.post(
+		'delete_account.php',
+		{ userId: userId, leavePlaces: leavePlaces, leaveImages: leaveImages },
 	);
 };
