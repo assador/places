@@ -4,8 +4,8 @@
 @font-face {
 	font-family: 'PTSansWebBoldItalic';
 	src: 
-		url('PT-Sans_Bold-Italic.woff2') format('woff2'),
-		url('PT-Sans_Bold-Italic.woff') format('woff');
+		url('pt-sans_bold-italic.woff2') format('woff2'),
+		url('pt-sans_bold-italic.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
 }

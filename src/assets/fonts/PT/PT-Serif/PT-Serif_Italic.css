@@ -4,8 +4,8 @@
 @font-face {
 	font-family: 'PTSerifWebItalic';
 	src: 
-		url('PT-Serif_Italic.woff2') format('woff2'),
-		url('PT-Serif_Italic.woff') format('woff');
+		url('pt-serif_italic.woff2') format('woff2'),
+		url('pt-serif_italic.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
 }

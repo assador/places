@@ -4,8 +4,8 @@
 @font-face {
 	font-family: 'PTMonoWebBold';
 	src: 
-		url('PT-Mono_Bold.woff2') format('woff2'),
-		url('PT-Mono_Bold.woff') format('woff');
+		url('pt-mono_bold.woff2') format('woff2'),
+		url('pt-mono_bold.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
 }

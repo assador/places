@@ -4,8 +4,8 @@
 @font-face {
 	font-family: 'PTSerifWebBold';
 	src: 
-		url('PT-Serif_Bold.woff2') format('woff2'),
-		url('PT-Serif_Bold.woff') format('woff');
+		url('pt-serif_bold.woff2') format('woff2'),
+		url('pt-serif_bold.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
 }

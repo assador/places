@@ -207,7 +207,7 @@ $filter-brightness-03: brightness(0%);
 	--filter-03: #{$filter-03};
 
 	.readable {
-		font-family: 'PT Serif';
+		font-family: 'PTSerifWebRegular';
 		font-size: 1rem;
 		line-height: 1.4;
 		h1 { font-size: 200%; }
@@ -386,7 +386,8 @@ $filter-brightness-03: brightness(0%);
 		font-size: 14px;
 	}
 	& {
-		font-family: "PT Sans", Tahoma, Arial, sans-serif; line-height: 1.286;
+		font-family: "PTSansWebRegular", Tahoma, Arial, sans-serif;
+		line-height: 1.286;
 		text-indent: 0;
 		text-align: left;
 	}
@@ -467,7 +468,7 @@ $filter-brightness-03: brightness(0%);
 		border: none;
 	}
 	code, pre, .pre, .code {
-		font-family: "PT Mono", "Courier New", monospace;
+		font-family: "PTMonoWebRegular", "Courier New", monospace;
 	}
 	pre, .pre {
 		overflow: auto;
@@ -481,7 +482,7 @@ $filter-brightness-03: brightness(0%);
 		border-style: solid;
 		border-radius: 3px;
 		vertical-align: middle;
-		font-family: "PT Sans", Tahoma, Arial, sans-serif;
+		font-family: "PTSansWebRegular", Tahoma, Arial, sans-serif;
 		font-size: 100%;
 		line-height: 1.286;
 		transition: all 0.3s;

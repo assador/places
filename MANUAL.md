@@ -3,11 +3,11 @@
 - [The Places](#the-places)
 	- [1. Purpose](#1-purpose)
 	- [2. System Concept](#2-system-concept)
-		- [Point (Point)](#point-point)
-		- [Place (Place)](#place-place)
-		- [Route (Route)](#route-route)
-		- [Folder (Folder)](#folder-folder)
-		- [Images (Images)](#images-images)
+		- [Point](#point-point)
+		- [Place](#place-place)
+		- [Route](#route-route)
+		- [Folder](#folder-folder)
+		- [Images](#images-images)
 		- [Temporary Points](#temporary-points)
 		- [Active Points](#active-points)
 	- [3. Operating Modes](#3-operating-modes)
@@ -60,7 +60,7 @@ The core of “The Places” lies in the separation of entities. There are only 
 
 If you understand the difference between them, you understand the system.
 
-### Point (Point)
+### Point
 
 Geographic coordinates (latitude, longitude, altitude).
 These are pure spatial data without description.
@@ -76,7 +76,7 @@ Routes consist of a sequence of Points.
 The main principle:
 **One Point — one geography. It can be reused multiple times.**
 
-### Place (Place)
+### Place
 
 **Semantic description of a Point.** It contains: a name, text description, images, and a link to one specific Point. Plus a lot of other additional optional information you might want to add.
 
@@ -86,7 +86,7 @@ When a Place is created, the system automatically creates a new Point and "links
 "The gazebo where we first kissed Masha."
 You can save this place (already with a Point on the map), add a description and photos, and then include it in a "nostalgic evening stroll" route. Technically, when you include a Place in a route, it is the associated Point that is added, not the Place itself.
 
-### Route (Route)
+### Route
 
 **An ordered sequence of Points.**
 Features:
@@ -101,7 +101,7 @@ This allows for building both linear routes and repetitive movement scenarios.
 "Friday evening stroll."
 You start from home (the Point linked to the "My Home" Place), go to a shop (Point), then a library (Point), wander through the park, and on the way back stop by the same library again (the same Point) before returning home.
 
-### Folder (Folder)
+### Folder
 
 **A hierarchical structure for organizing Places and Routes.**
 Each folder can contain:
@@ -113,7 +113,7 @@ A tree model is supported, maintaining the order of elements.
 
 Technically, **a Folder does not "contain" other Folders**. The entire hierarchy is built on the "parent link" principle. Each folder has a Parent ID. The same applies to Places and Routes. A regular user doesn't need to worry about this.
 
-### Images (Images)
+### Images
 
 **Photo album for a Place or a Route.**
 An ordered list of images you have uploaded.

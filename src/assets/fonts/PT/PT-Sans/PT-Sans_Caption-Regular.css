@@ -4,8 +4,8 @@
 @font-face {
 	font-family: 'PTSansWebCaptionRegular';
 	src: 
-		url('PT-Sans_Caption-Regular.woff2') format('woff2'),
-		url('PT-Sans_Caption-Regular.woff') format('woff');
+		url('pt-sans_caption-regular.woff2') format('woff2'),
+		url('pt-sans_caption-regular.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
 }

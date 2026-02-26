@@ -6,11 +6,11 @@
 			<li><a href="#1-purpose">Purpose</a></li>
 			<li><a href="#2-system-concept">System Concept</a>
 				<ol>
-					<li><a href="#point-point">Point (Point)</a></li>
-					<li><a href="#place-place">Place (Place)</a></li>
-					<li><a href="#route-route">Route (Route)</a></li>
-					<li><a href="#folder-folder">Folder (Folder)</a></li>
-					<li><a href="#images-images">Images (Images)</a></li>
+					<li><a href="#point-point">Point</a></li>
+					<li><a href="#place-place">Place</a></li>
+					<li><a href="#route-route">Route</a></li>
+					<li><a href="#folder-folder">Folder</a></li>
+					<li><a href="#images-images">Images</a></li>
 					<li><a href="#temporary-points">Temporary Points</a></li>
 					<li><a href="#active-points">Active Points</a></li>
 				</ol>
@@ -84,7 +84,7 @@
 			<li><strong>Folder</strong></li>
 		</ul>
 		<p>If you understand the difference between them, you understand the system.</p>
-		<h3 id="point-point">Point (Point)</h3>
+		<h3 id="point-point">Point</h3>
 		<p>Geographic coordinates (latitude, longitude, altitude).
 			These are pure spatial data without description.</p>
 		<p>A Point consists of specific geographic coordinates: latitude, longitude, and altitude. Plus its own unique
@@ -96,7 +96,7 @@
 		<p>The main principle:
 			<strong>One Point — one geography. It can be reused multiple times.</strong>
 		</p>
-		<h3 id="place-place">Place (Place)</h3>
+		<h3 id="place-place">Place</h3>
 		<p><strong>Semantic description of a Point.</strong> It contains: a name, text description, images, and a link to one
 			specific Point. Plus a lot of other additional optional information you might want to add.</p>
 		<p>When a Place is created, the system automatically creates a new Point and “links” this Place to it. This
@@ -108,7 +108,7 @@
 			You can save this place (already with a Point on the map), add a description and photos, and then include it in a
 			“nostalgic evening stroll” route. Technically, when you include a Place in a route, it is the associated
 			Point that is added, not the Place itself.</p>
-		<h3 id="route-route">Route (Route)</h3>
+		<h3 id="route-route">Route</h3>
 		<p><strong>An ordered sequence of Points.</strong>
 			Features:</p>
 		<ul>
@@ -122,7 +122,7 @@
 			You start from home (the Point linked to the “My Home” Place), go to a shop (Point), then a library
 			(Point), wander through the park, and on the way back stop by the same library again (the same Point) before
 			returning home.</p>
-		<h3 id="folder-folder">Folder (Folder)</h3>
+		<h3 id="folder-folder">Folder</h3>
 		<p><strong>A hierarchical structure for organizing Places and Routes.</strong>
 			Each folder can contain:</p>
 		<ul>
@@ -133,7 +133,7 @@
 		<p>Technically, <strong>a Folder does not “contain” other Folders</strong>. The entire hierarchy is built on
 			the “parent link” principle. Each folder has a Parent ID. The same applies to Places and Routes. A regular
 			user doesn't need to worry about this.</p>
-		<h3 id="images-images">Images (Images)</h3>
+		<h3 id="images-images">Images</h3>
 		<p><strong>Photo album for a Place or a Route.</strong>
 			An ordered list of images you have uploaded.</p>
 		<ul>
