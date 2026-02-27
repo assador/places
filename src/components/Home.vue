@@ -31,22 +31,27 @@
 			:style="sidebarSize.top === 0 || !cells.top ? 'display: none' : ''"
 		>
 			<Header />
-			<div
-				id="messages"
-				class="invisible"
-				@mouseover="mainStore.setMouseOverMessages(true)"
-				@mouseout="mainStore.setMouseOverMessages(false)"
-				@click="mainStore.clearMessages();"
-			>
+			<transition name="fade">
 				<div
-					v-for="(message, index) in mainStore.messages"
-					:id="'message-' + index"
-					:key="index"
-					class="message border_1"
+					v-if="mainStore.messages.length || mainStore.messagesMouseOver"
+					id="messages"
+					@mouseenter="mainStore.messagesMouseOver = true"
+					@mouseleave="() => {
+						mainStore.messagesMouseOver = false;
+						mainStore.clearMessages();
+					}"
+					@click="mainStore.clearMessages(true)"
 				>
-					{{ message }}
+					<div
+						v-for="(message, index) in mainStore.messages"
+						:id="'message-' + index"
+						:key="'message-' + index"
+						class="message border_1"
+					>
+						{{ message }}
+					</div>
 				</div>
-			</div>
+			</transition>
 		</div>
 
 <!-- SEC Top-Right -->
@@ -1088,7 +1093,7 @@ const uploadFiles = async (
 ) => {
 	event.preventDefault();
 	if (mainStore.user.testaccount) {
-		mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads);
+		mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
 		return;
 	}
 	const input = inputElement || (event.currentTarget as HTMLInputElement);
@@ -1111,11 +1116,11 @@ const uploadFiles = async (
 		const fileName = file.name;
 		const fileSize = file.size;
 		if (!mimes[mimeType]) {
-			mainStore.setMessage(`${popup.file} ${fileName} ${popup.fileNotImage}`);
+			mainStore.setMessage(`${popup.file} ${fileName} ${popup.fileNotImage}`, 3);
 			continue;
 		}
 		if (fileSize > uploadSize) {
-			mainStore.setMessage(`${popup.file} ${fileName} ${popup.fileTooLarge}`);
+			mainStore.setMessage(`${popup.file} ${fileName} ${popup.fileTooLarge}`, 3);
 			continue;
 		}
 		const imageId = crypto.randomUUID();
@@ -1151,17 +1156,17 @@ const uploadFiles = async (
 		errorCodes.forEach((code: number) => {
 			switch (code) {
 				case 2:
-					mainStore.setMessage(popup.taNotAllowFileUploads);
+					mainStore.setMessage(popup.taNotAllowFileUploads, 3);
 					break;
 				case 3:
-					mainStore.setMessage(popup.filesNotImages);
+					mainStore.setMessage(popup.filesNotImages, 3);
 					break;
 				case 4:
 					mainStore.setMessage(
 						`${popup.filesTooLarge} ${(
 							(mainStore.serverConfig.rights.photosize / 1048576).toFixed(3)
 						) || 0} Mb.`
-					);
+					, 3);
 					break;
 			}
 		});
@@ -1183,7 +1188,7 @@ const uploadFiles = async (
 					change: { images: newImagesObject },
 				});
 			}
-			// mainStore.setMessage(popup.filesUploadedSuccessfully);
+			// mainStore.setMessage(popup.filesUploadedSuccessfully, 3);
 		}
 	} catch(error) {
 		mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);

@@ -53,9 +53,10 @@ export interface IMainState {
 	langs: Record<string, string>[],
 	measure: Measure,
 	messages: string[],
-	messageTimer: number,
+	messagesMouseOver: boolean,
+	messagesInterval: number,
+	messagesTimeout: number,
 	mode: string,
-	mouseOverMessages: boolean,
 	newEntityPointId: string | null,
 	placemarksShow: boolean,
 	places: Record<string, Place>,
@@ -129,9 +130,10 @@ export const useMainStore = defineStore('main', {
 			show: false,
 		},
 		messages: [],
-		messageTimer: 0,
+		messagesMouseOver: false,
+		messagesInterval: null,
+		messagesTimeout: null,
 		mode: 'normal',
-		mouseOverMessages: false,
 		newEntityPointId: null,
 		placemarksShow: true,
 		places: {},
@@ -337,7 +339,7 @@ export const useMainStore = defineStore('main', {
 					this.serverConfig.rights.pointscount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.pointscount
 				) {
-					this.setMessage(this.t.m.popup.pointsCountExceeded);
+					this.setMessage(this.t.m.popup.pointsCountExceeded, 3);
 					return;
 				}
 			}
@@ -427,7 +429,7 @@ export const useMainStore = defineStore('main', {
 					this.serverConfig.rights.placescount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.placescount
 				) {
-					this.setMessage(this.t.m.popup.placesCountExceeded);
+					this.setMessage(this.t.m.popup.placesCountExceeded, 3);
 					return;
 				}
 			}
@@ -502,7 +504,7 @@ export const useMainStore = defineStore('main', {
 					this.serverConfig.rights.routescount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.routescount
 				) {
-					this.setMessage(this.t.m.popup.routesCountExceeded);
+					this.setMessage(this.t.m.popup.routesCountExceeded, 3);
 					return;
 				}
 			}
@@ -557,7 +559,7 @@ export const useMainStore = defineStore('main', {
 					this.serverConfig.rights.folderscount > 0 &&
 					Object.keys(where).length >= this.serverConfig.rights.folderscount
 				) {
-					this.setMessage(this.t.m.popup.foldersCountExceeded);
+					this.setMessage(this.t.m.popup.foldersCountExceeded, 3);
 					return undefined;
 				}
 			}
@@ -940,8 +942,9 @@ export const useMainStore = defineStore('main', {
 			this.centerPlacemarkShow = false;
 			this.ready = false;
 			this.messages = [];
-			this.messageTimer = 0;
-			this.mouseOverMessages = false;
+			this.messagesMouseOver = false;
+			this.messagesInterval = null,
+			this.messagesTimeout = null,
 			this.serverConfig = null;
 			this.routes = {};
 		},
@@ -1288,7 +1291,7 @@ export const useMainStore = defineStore('main', {
 									} else {
 										this.setMessage(
 											this.t.m.popup.foldersCountExceeded
-										);
+										, 3);
 										break;
 									}
 									allParentsAdded = false;
@@ -1304,7 +1307,7 @@ export const useMainStore = defineStore('main', {
 						default :
 							this.setMessage(`
 								o_O
-							`);
+							`, 3);
 							return false;
 					}
 					for (const place of (parsed.places as Array<Place>)) {
@@ -1373,7 +1376,7 @@ export const useMainStore = defineStore('main', {
 						} else {
 							this.setMessage(
 								this.t.m.popup.placesCountExceeded
-							);
+							, 3);
 						}
 					}
 				} catch (e) {
@@ -1394,7 +1397,7 @@ export const useMainStore = defineStore('main', {
 				default :
 					this.setMessage(
 						this.t.m.popup.invalidImportFileType
-					);
+					, 3);
 					return false;
 			}
 			addImported(payload.mime, parsed);
@@ -1764,59 +1767,39 @@ export const useMainStore = defineStore('main', {
 
 // SEC Messages
 
-		setMessage(message: string, freeze?: boolean) {
-			message = message.replace(/[\t\n]/g, ' ');
-			message = message.replace(/[ ]{2,}/g, ' ').trim();
+		setMessage(
+			message: string,
+			secondsForAll: number = 0,
+			secondsForOne: number = 0.5,
+		) {
 			if (!message) return;
-			const messagesContainer = document.getElementById('messages');
-			if (messagesContainer) {
-				messagesContainer.classList.remove('invisible');
-				messagesContainer.classList.add('visible');
-			}
 			const messageIndex = this.messages.indexOf(message);
-			if (messageIndex !== -1) {
-				const messageContainer = document.getElementById('message-' + messageIndex);
-				if (messageContainer) {
-					messageContainer.classList.add('highlight');
-					window.setTimeout(() => {
-						messageContainer.classList.remove('highlight');
-					}, 500);
-				}
-			} else {
-				this.messages.push(message);
-			}
-			if (this.messageTimer) {
-				clearInterval(this.messageTimer);
-			}
-			this.messageTimer = window.setInterval(() => {
-				if (!this.mouseOverMessages && !freeze) {
+			if (messageIndex === -1) this.messages.push(message);
+			clearInterval(this.messagesInterval);
+			clearTimeout(this.messagesTimeout);
+			if (!this.messagesMouseOver && secondsForAll) {
+				this.messagesTimeout = setTimeout(() => {
 					if (this.messages.length === 1) {
 						this.clearMessages();
+						return;
 					}
-					window.setTimeout(() => {
-						this.deleteMessage(
-							this.messages[this.messages.length - 1]
-						);
-					}, 500);
-				}
-			}, 5000);
+					this.messagesInterval = setInterval(() => {
+						if (this.messages.length > 1) {
+							this.deleteMessage(this.messages.length - 1);
+						} else {
+							this.clearMessages();
+						}
+					}, secondsForOne * 1000);
+				}, secondsForAll * 1000);
+			}
 		},
 		deleteMessage(index: number) {
-			this.messages.splice(index, 1);
+			if (index >= 0 && this.messages[index]) this.messages.splice(index, 1);
 		},
-		clearMessages() {
-			clearInterval(this.messageTimer);
-			const messagesContainer = document.getElementById('messages');
-			if (messagesContainer) {
-				messagesContainer.classList.remove('visible');
-				messagesContainer.classList.add('invisible');
-			}
-			window.setTimeout(() => {
-				this.messages = [];
-			}, 500);
-		},
-		setMouseOverMessages(over?: boolean) {
-			this.mouseOverMessages = (over === false ? false : true);
+		clearMessages(polyupasu: boolean = false) {
+			clearInterval(this.messagesInterval);
+			clearTimeout(this.messagesTimeout);
+			if (polyupasu || !this.messagesMouseOver) this.messages = [];
 		},
 
 // SEC Other

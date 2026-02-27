@@ -136,7 +136,6 @@ function createMainStoreState() {
 		ready: true,
 		messages: [],
 		setMessage: vi.fn(),
-		setMouseOverMessages: vi.fn(),
 		clearMessages: vi.fn(),
 		user: { id: 'user-1', testaccount: true },
 		center: { latitude: 0, longitude: 0 },

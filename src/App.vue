@@ -177,7 +177,7 @@ onMounted(() => {
 
 const toDB = async (payload: DataToDB): Promise<void> => {
 	if (document.querySelector('.value_wrong')) {
-		mainStore.setMessage(mainStore.t.m.paged.incorrectFields);
+		mainStore.setMessage(mainStore.t.m.paged.incorrectFields, 3);
 		return;
 	}
 	if (!payload) payload = mainStore.getAllModifiedPackage;

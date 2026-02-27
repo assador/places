@@ -13,9 +13,12 @@
 				<div
 					id="messages"
 					class="invisible"
-					@mouseover="mainStore.setMouseOverMessages(true)"
-					@mouseout="mainStore.setMouseOverMessages(false)"
-					@click="mainStore.clearMessages();"
+					@mouseenter="mainStore.messagesMouseOver = true"
+					@mouseleave="() => {
+						mainStore.messagesMouseOver = false;
+						mainStore.clearMessages();
+					}"
+					@click="mainStore.clearMessages(true)"
 				>
 					<div
 						v-for="(message, index) in mainStore.messages"
