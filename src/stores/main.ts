@@ -54,8 +54,8 @@ export interface IMainState {
 	measure: Measure,
 	messages: string[],
 	messagesMouseOver: boolean,
-	messagesInterval: number,
-	messagesTimeout: number,
+	messagesInterval: number | null,
+	messagesTimeout: number | null,
 	mode: string,
 	newEntityPointId: string | null,
 	placemarksShow: boolean,
@@ -396,7 +396,6 @@ export const useMainStore = defineStore('main', {
 				})
 			;
 			where = { ...where };
-// FIXME Remove mainStore.saved = … / this.saved = … throughout the project and centralize this matter as completely as possible.
 			this.saved = false;
 			this.backupState();
 			return point;
@@ -1915,6 +1914,16 @@ export const useMainStore = defineStore('main', {
 				this.zoom = payload.zoom;
 			}
 		},
+		getEntitiesReferencingPoint(pointId: string): Record<string, Place | Route> {
+			const entities: Record<string, Place | Route> = {};
+			Object.values<Place>(this.places).forEach(p => {
+				if (p.pointid === pointId) entities[p.id] = p;
+			});
+			Object.values<Route>(this.routes).forEach(r => {
+				if (r.points.some(p => p.id === pointId)) entities[r.id] = r;
+			});
+			return entities;
+		},
 	},
 
 // SEC --- getters
@@ -2002,7 +2011,7 @@ export const useMainStore = defineStore('main', {
 				return result;
 			}
 		},
-		sharingPointsIds(): string[] {
+		getSharedPointIds(): string[] {
 			const counts = new Map<string, number>();
 			const count = (id: string) => counts.set(id, (counts.get(id) || 0) + 1);
 

@@ -192,12 +192,14 @@
 				:data-entity-type="'point'"
 				:data-entity-index="pn.idx"
 				:data-entity-context="'measure'"
-				:title="
-// TODO Get the name and description of the Entity referencing the Point and put it in this attribute
-					(false && pn.name ? `${pn.name}&#013;` : '') +
-					(pn.description ? pn.description : '')
-				"
 				:draggable="true"
+				:title="measurePointTitles[pn.id]"
+				:class="
+					pn.id === highlighted ||
+					pn.id ===
+						mainStore.measure.points[mainStore.measure.choosing].id
+							? 'button-pressed' : ''
+				"
 				@dragstart="e => {
 					dragging = true;
 					handleDragStart(e, pn, pn.idx, 'measure')
@@ -209,12 +211,6 @@
 				}"
 				@dragover.prevent
 				@drop.prevent.stop="handleDropExt"
-				:class="
-					pn.id === highlighted ||
-					pn.id ===
-						mainStore.measure.points[mainStore.measure.choosing].id
-							? 'button-pressed' : ''
-				"
 				@click.prevent="mainStore.setCurrentPoint(pn.id)"
 				@contextmenu.prevent="e => {
 					if (pointInfo.point?.id === pn.id) {
@@ -270,6 +266,10 @@
 				:data-entity-context="'routes'"
 				:data-entity-parent-id="mainStore.currentRoute.id"
 				:draggable="true"
+				:title="routePointTitles[pn.id]"
+				:class="{
+					'button-pressed': pn.id === mainStore.currentPoint?.id,
+				}"
 				@dragstart="e => {
 					dragging = true;
 					handleDragStart(
@@ -283,9 +283,6 @@
 				}"
 				@dragover.prevent
 				@drop.prevent.stop="handleDropExt"
-				:class="{
-					'button-pressed': pn.id === mainStore.currentPoint?.id,
-				}"
 				@click.prevent="() => {
 					pointInfo.point = mainStore.getPointById(pn.id);
 					mainStore.setCurrentPoint(pointInfo.point);
@@ -390,9 +387,25 @@ const preparePoints = (points: any[]) => {
 		}))
 	;
 };
-
+const pointTitles = (points: PointName[]) => {
+	const map: Record<string, string> = {};
+		points.forEach(pn => {
+		if (!pn.id) return;
+		const names = Object.values(mainStore.getEntitiesReferencingPoint(pn.id))
+			.filter(e => e.type === 'place')
+			.map(p => p.name)
+		;
+		const blocks: string[] = [];
+		if (names.length) blocks.push(names.join("\n"));
+		if (pn.description) blocks.push(pn.description);
+		map[pn.id] = blocks.join("\n\n");
+	});
+	return map;
+};
 const measurePoints = computed(() => preparePoints(mainStore.measure.points));
 const routePoints = computed(() => preparePoints(mainStore.currentRoute?.points || []));
+const measurePointTitles = computed(() => pointTitles(measurePoints.value));
+const routePointTitles = computed(() => pointTitles(routePoints.value));
 
 const distance = computed(() => {
 	const idsArray = ref([]);

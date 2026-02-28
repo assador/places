@@ -56,8 +56,6 @@ export const handleFolderDropped = (
 			parent: parentId,
 		},
 	});
-	folder.updated = true;
-	mainStore.backupState();
 };
 export const handlePlaceRouteDropped = (
 	payload: DragPlacePayload | DragRoutePayload,
@@ -111,8 +109,6 @@ export const handlePlaceRouteDropped = (
 			folderid: parentId,
 		},
 	});
-	entity.updated = true;
-	mainStore.backupState();
 };
 export const handlePointInListDropped = (
 	payload: DragPointInListPayload,
