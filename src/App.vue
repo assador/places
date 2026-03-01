@@ -32,6 +32,8 @@ import {
 	emitter,
 	usePWAInstall,
 	logoutRoutine,
+	generateGpx,
+	generateJson,
 	handleFolderDropped,
 	handlePlaceRouteDropped,
 	handlePointInListDropped,
@@ -39,12 +41,11 @@ import {
 	IPlacesPopupProps,
 } from '@/shared';
 import {
-	Folder,
-	Point,
 	Place,
 	DataToDB,
 	DragPayload,
 	DragEventCustom,
+	ImportExportFormat,
 } from '@/types';
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 import Popup from '@/components/popups/Popup.vue';
@@ -213,55 +214,33 @@ const homeToDB = async (id: string): Promise<void> => {
 	}
 };
 
-const exportPlaces = (places: Record<string, Place>, mime?: string): void => {
-	const a = document.createElement('a');
+const exportPlaces = (
+	places: Record<string, Place>,
+	format: ImportExportFormat = 'json'
+): void => {
 	let content = '';
-	if (mime === 'application/gpx+xml') {
-		a.download = 'places.gpx';
-		a.dataset.downloadurl = ['application/gpx+xml', a.download, a.href].join(':');
-		content = [
-			'<?xml version="1.0" encoding="utf-8" standalone="yes"?>',
-			'<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
-		].join('');
-		for (const p of Object.values(places)) {
-			const wp = mainStore.points[p.pointid];
-			content += `<wpt lat="${wp.latitude}" lon="${wp.longitude}">`;
-			if (p.name) content += `<name>${p.name}</name>`;
-			if (p.description) content += `<desc>${p.description}</desc>`;
-			if (p.link) content += `<link href="${p.link}"></link>`;
-			if (p.time) content += `<time>${p.time}</time>`;
-			content += '</wpt>';
-		}
-		content += '</gpx>';
+	let filename = 'places.json';
+	let mimeType = 'application/json';
+	if (format === 'gpx') {
+		content = generateGpx({
+			places: places,
+			points: mainStore.points,
+		});
+		filename = 'places.gpx';
+		mimeType = 'application/gpx+xml';
 	} else {
-		mime = 'application/json';
-		a.download = 'places.json';
-		a.dataset.downloadurl = ['application/json', a.download, a.href].join(':');
-		const points: Point[] = [];
-		const folders: Folder[] = [];
-		const placesArray: Place[] = [];
-		const foldersSet = new Set<string>();
-		for (const p of Object.values(places)) {
-			points.push({ ...mainStore.points[p.pointid] });
-			let folderId = p.folderid;
-			while (folderId && !foldersSet.has(folderId)) {
-				const folder = mainStore.folders[folderId];
-				folders.push({ ...folder });
-				foldersSet.add(folderId);
-				folderId = folder.parent;
-			}
-		}
-		for (const place of Object.values(places)) {
-			const p = { ...place };
-			['type', 'show', 'added', 'deleted', 'updated', 'geomark', 'images'].forEach(k => delete (p as any)[k]);
-			placesArray.push(p);
-		}
-		points.forEach(wp => ['type', 'show', 'added', 'deleted', 'updated'].forEach(k => delete (wp as any)[k]));
-		folders.forEach(f => ['type', 'added', 'deleted', 'updated', 'open', 'builded', 'geomarks', 'children'].forEach(k => delete (f as any)[k]));
-		content = JSON.stringify({ places: placesArray, points, folders });
+		content = generateJson({
+			places: places,
+			points: mainStore.points,
+		});
 	}
-	a.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
+	const blob = new Blob([content], { type: mimeType });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = filename;
 	a.click();
+	setTimeout(() => URL.revokeObjectURL(url), 100);
 };
 provide('exportPlaces', exportPlaces);
 

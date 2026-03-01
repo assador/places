@@ -1,4 +1,4 @@
-import { Folder } from '@/types';
+import { Folder, Point, Place } from '@/types';
 
 export const generateRandomString = (length = 32): string => {
 	const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -37,6 +37,74 @@ export const formFoldersCheckedIds = (): string[] => {
 	}
 	return foldersCheckedIds;
 };
+
+// SEC Import/Export
+
+const escapeXml = (str: string): string => {
+	return str.replace(/[<>&"']/g, (match) => {
+		const entities: Record<string, string> = {
+			'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;'
+		};
+		return entities[match];
+	});
+};
+export const generateGpx = ({
+	places,
+	points,
+}: {
+	places: Record<string, Place>;
+	points: Record<string, Point>;
+}): string => {
+	const header = [
+		'<?xml version="1.0" encoding="utf-8" standalone="yes"?>',
+		'<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">',
+	].join('');
+	const wpts = Object.values(places).map(p => {
+		const wp = points[p.pointid];
+		if (!wp) return '';
+		let node = `<wpt lat="${wp.latitude}" lon="${wp.longitude}">`;
+		if (p.name) node += `<name>${escapeXml(p.name)}</name>`;
+		if (p.description) node += `<desc>${escapeXml(p.description)}</desc>`;
+		if (p.link) node += `<link href="${escapeXml(p.link)}"></link>`;
+		if (p.time) node += `<time>${p.time}</time>`;
+		node += '</wpt>';
+		return node;
+	}).join('');
+	return `${header}${wpts}</gpx>`;
+};
+export const generateJson = ({
+	places,
+	points,
+	folders = {},
+}: {
+	places: Record<string, Place>;
+	points: Record<string, Point>;
+	folders?: Record<string, Folder>;
+}): string => {
+	const pointsSet = new Set<string>();
+	const pointsArray: Partial<Point>[] = [];
+	const foldersArray: Partial<Folder>[] = Object.values(folders);
+	const placesArray = Object.values(places).map(p => {
+		const { type, show, added, deleted, updated, geomark, images, ...cleanPlace } = p as any;
+		const pointId = p.pointid;
+		if (pointId && !pointsSet.has(pointId)) {
+			const wp = points[pointId];
+			if (wp) {
+				const { type, show, added, deleted, updated, ...cleanPoint } = wp as any;
+				pointsSet.add(pointId);
+				pointsArray.push(cleanPoint);
+			}
+		}
+		// TODO: Добавить экспорт папок (folderid)
+		return cleanPlace;
+	});
+	return JSON.stringify({
+		places: placesArray,
+		points: pointsArray,
+		folders: foldersArray,
+	}, null, 2);
+};
+
 // TODO Refactor.
 export const formFolderForImported = (
 	voc: Record<string, any>,

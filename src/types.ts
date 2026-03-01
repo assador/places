@@ -15,6 +15,8 @@ export type AppendMode =
 	| 'move'   // move the existing one to another object
 	| 'new'    // create new
 ;
+export type ImportExportFormat = 'json' | 'gpx';
+
 export interface DataToDB {
 	folders?: Folder[],
 	points?: Point[],

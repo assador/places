@@ -18,19 +18,16 @@
 				)
 			"
 			class="folder-subs"
-			:class="{ folder_editable: foldersEditMode }"
+			:class="{
+				'folder-editable': foldersEditMode,
+				'folder-subs-to-export': folder.virtual && instanceid === 'popupexporttree',
+			}"
 		>
 			<div
 				v-if="foldersEditMode"
 				class="icon icon-triangle"
 				:class="folder.open ? 'icon-triangle_down' : 'icon-triangle_right'"
-				@click="e => {
-					mainStore.folderOpenClose(
-						instanceid === 'popupexporttree'
-							? { target: (e.target as Node).parentNode.parentNode }
-							: { folder }
-					);
-				}"
+				@click="mainStore.folderOpenClose({ folder })"
 			/>
 			<label
 				v-if="instanceid === 'popupexporttree'"
@@ -84,13 +81,7 @@
 				@dragleave="handleDragLeave"
 				@dragover.prevent
 				@drop.prevent.stop="handleDropExt"
-				@click="e => {
-					mainStore.folderOpenClose(
-						instanceid === 'popupexporttree'
-							? { target: (e.target as Node).parentNode.parentNode }
-							: { folder }
-					);
-				}"
+				@click="mainStore.folderOpenClose({ folder })"
 			>
 				<div
 					:id="
@@ -114,7 +105,7 @@
 					</div>
 				</div>
 				<div
-					v-if="!folder.virtual"
+					v-if="!folder.virtual && instanceid !== 'popupexporttree'"
 					class="folder-button__controls"
 				>
 					<span
@@ -190,7 +181,11 @@
 				</div>
 			</div>
 			<div
-				v-if="folder.virtual && [ 'places', 'routes' ].includes(folder.context)"
+				v-if="
+					folder.virtual &&
+					instanceid !== 'popupexporttree' &&
+					[ 'places', 'routes' ].includes(folder.context)
+				"
 				class="control-buttons"
 			>
 				<button
@@ -358,7 +353,10 @@
 				<span class="place-button__content">
 					{{ object.name }}
 				</span>
-				<span class="place-button__controls">
+				<span
+					v-if="instanceid !== 'popupexporttree'"
+					class="place-button__controls"
+				>
 					<span
 						v-if="
 							Object.hasOwn(object, 'geomark') ||
@@ -669,6 +667,7 @@ const handleDragLeave = (event: DragEvent) => {
 		display: none;
 	}
 	& > .folder-subs {
+		display: flex;
 		z-index: 20;
 	}
 	&.folder_open:is(
@@ -818,33 +817,19 @@ const handleDragLeave = (event: DragEvent) => {
 		align-items: baseline;
 	}
 }
-.tree-item-checkbox {
-	position: relative;
-	margin: -2px 0 0 -2px;
-}
-.folder-subs .tree-item-checkbox-container {
-	position: relative;
-	width: 20px; height: 20px;
-	left: -20px;
-	&::before {
-		position: relative;
-	}
-	+ .folder-button {
-		margin-left: 10px;
-	}
-	.tree-item-checkbox {
-		position: relative;
-		margin-top: -38px;
-	}
-}
 :not(:is(.folder-root)) > .folder-places {
 	display: block;
 	margin-left: 18px;
 }
-#places-header, #routes-header {
+.folder-subs {
 	display: flex;
 	gap: 8px;
 	align-items: center;
+	&-to-export {
+		margin-bottom: 12px;
+	}
+}
+#places-header, #routes-header {
 	z-index: 10;
 	&.folder-subs {
 		z-index: 20;
@@ -858,16 +843,6 @@ const handleDragLeave = (event: DragEvent) => {
 			height: 44px;
 		}
 	}
-	.tree-item-checkbox-container {
-		left: 0;
-		&::before {
-			left: 1px;
-		}
-		+ .folder-button {
-			margin-left: 0;
-			margin-bottom: 12px;
-		}
-	}
 }
 .icon-triangle {
 	flex: 0 0 10px;
@@ -878,13 +853,17 @@ const handleDragLeave = (event: DragEvent) => {
 		background-color: var(--color-23);
 	}
 }
+.place-button .tree-item-checkbox-container {
+	margin-right: 8px;
+}
 .draggable,
 .dragenter-area,
 .place-button,
 .folder-button,
 .control-buttons *,
 .place-button__control,
-.folder-button__control {
+.folder-button__control,
+.tree-item-checkbox {
 	pointer-events: auto !important;
 }
 .dragenter-area_top, .dragenter-area_bottom {

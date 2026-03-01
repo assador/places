@@ -614,8 +614,7 @@
 				class="action-button"
 				:title="mainStore.t.i.hints.exportPlaces"
 				accesskey="e"
-				disabled
-				@click="router.push({name: 'HomeExport'})"
+				@click="router.push({ name: 'HomeExport' })"
 			>
 				<span class="icon icon-export" />
 				<span>{{ mainStore.t.i.buttons.export }}</span>

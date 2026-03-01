@@ -936,7 +936,7 @@ $filter-brightness-03: brightness(0%);
 			box-shadow: none;
 		}
 	}
-	.popup, .popup-text, .popup-folder, .popup-export {
+	.popup {
 		overflow: hidden;
 		z-index: 10000;
 	}
@@ -1222,14 +1222,6 @@ $filter-brightness-03: brightness(0%);
 		.place-delete__form
 	) label {
 		display: flex;
-	}
-	:is(
-		.account-form,
-		.folder-delete__form,
-		.popup-export__form,
-		.place-delete__form
-	) label input:is([type="radio"], [type="checkbox"]) {
-		margin-right: 0.7rem;
 	}
 	.popup-export__form {
 		max-width: 600px;

@@ -26,10 +26,9 @@
 								name="mime"
 								type="radio"
 								:checked="true"
-								value="application/gpx+xml"
+								value="gpx"
 							/>
-							&#160;
-							<span>GPX</span>
+							GPX
 						</label>
 						<p>
 							{{ mainStore.t.i.text.descGpx }}
@@ -38,10 +37,9 @@
 							<input
 								name="mime"
 								type="radio"
-								value="application/json"
+								value="json"
 							/>
-							&#160;
-							<span>JSON</span>
+							JSON
 						</label>
 						<p>
 							{{ mainStore.t.i.text.descJson }}
@@ -56,26 +54,19 @@
 						id="popup-export__tree"
 						class="menu"
 					>
-						<Tree
-							instanceid="popupexporttree"
-							what="places"
-							:data="mainStore.trees.places || {}"
-						/>
+						<Tree instanceid="popupexporttree" what="places" />
 					</div>
-					<div style="text-align: center;">
-						<fieldset>
-							<button type="submit">
-								{{ mainStore.t.i.buttons.export }}
-							</button>
-							&#160;
-							<button
-								type="button"
-								@click="close()"
-							>
-								{{ mainStore.t.i.buttons.cancel }}
-							</button>
-						</fieldset>
-					</div>
+					<fieldset class="popup-export__buttons">
+						<button type="submit">
+							{{ mainStore.t.i.buttons.export }}
+						</button>
+						<button
+							type="button"
+							@click="close()"
+						>
+							{{ mainStore.t.i.buttons.cancel }}
+						</button>
+					</fieldset>
 				</form>
 				<a
 					href="javascript:void(0);"
@@ -95,14 +86,6 @@ import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import Tree from '@/components/tree/Tree.vue';
 
-export interface IPlacesPopupExportProps {
-	mime?: string;
-}
-/*
-const props = withDefaults(defineProps<IPlacesPopupExportProps>(), {
-	mime: 'application/json',
-});
-*/
 const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
@@ -120,20 +103,18 @@ const keyup = (event: KeyboardEvent): void => {
 };
 
 onMounted(() => {
-	window.setTimeout(() => {
-		popuped.value = true;
-	}, 1);
-	for (
-		const f of
-		document.getElementById('popup-export__tree')!
-			.getElementsByClassName('folder')
-	) {
-		f.classList.add('folder_closed');
-		f.classList.remove('folder_open');
-	}
+	popuped.value = true;
 	document.addEventListener('keyup', keyup, false);
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);
 });
 </script>
+
+<style lang="scss" scoped>
+.popup-export__buttons {
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+}
+</style>
