@@ -146,13 +146,13 @@
 									mainStore.upsertPlace({
 										props: { folderid: folder.id },
 									});
-									$nextTick(() => currentPlaceNameInputRef.focus());
+									focusCurrent(currentPlaceNameInputRef);
 									break;
 								case 'routes':
 									mainStore.upsertRoute({
 										props: { folderid: folder.id },
 									});
-									$nextTick(() => currentRouteNameInputRef.focus());
+									focusCurrent(currentRouteNameInputRef);
 									break;
 							}
 						}"
@@ -200,10 +200,10 @@
 					@click="() => {
 						if (folder.context === 'places') {
 							mainStore.upsertPlace();
-							$nextTick(() => currentPlaceNameInputRef.focus());
+							focusCurrent(currentPlaceNameInputRef);
 						} else if (folder.context === 'routes') {
 							mainStore.upsertRoute();
-							$nextTick(() => currentRouteNameInputRef.focus());
+							focusCurrent(currentRouteNameInputRef);
 						}
 					}"
 				/>
@@ -350,8 +350,11 @@
 						@click.stop
 					/>
 				</span>
-				<span class="place-button__content">
-					{{ object.name }}
+				<span
+					class="place-button__content"
+					:class="{ placeholder: !object.name }"
+				>
+					{{ object.name || mainStore.t.i.captions.untitled }}
 				</span>
 				<span
 					v-if="instanceid !== 'popupexporttree'"
@@ -404,7 +407,7 @@
 									,
 								},
 							});
-							$nextTick(() => currentPlaceNameInputRef.focus());
+							focusCurrent(currentPlaceNameInputRef);
 						}"
 					/>
 					<span
@@ -421,7 +424,7 @@
 									,
 								},
 							});
-							$nextTick(() => currentRouteNameInputRef.focus());
+							focusCurrent(currentRouteNameInputRef);
 						}"
 					/>
 					<span
@@ -503,7 +506,7 @@ export default {
 
 <script setup lang="ts">
 import _ from 'lodash';
-import { computed, inject } from 'vue';
+import { computed, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { Place, Route, Folder, DragEntityPayload } from '@/types';
@@ -596,6 +599,18 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		(folderCheckbox as HTMLInputElement).checked = checked ? true : false;
 	}
 };
+const focusCurrent = async (input: HTMLElement | null) => {
+	if (!input) return;
+/*
+	input.classList.add('highlight');
+	input.addEventListener('blur', () => {
+		input.classList.remove('highlight');
+	}, { once: true });
+*/
+	mainStore.setMessage(mainStore.t.i.text.addedEnterName, 3);
+	await nextTick();
+	input.focus();
+}
 
 // SEC DnD
 

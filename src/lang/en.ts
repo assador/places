@@ -60,10 +60,12 @@ export const getT = () => ({
 			time: 'Geotag creation time (UTC)',
 			total: 'Total',
 			routes: 'Routes',
+			untitled: 'Untitled',
 			user: 'User',
 			users: 'Users',
 		},
 		text: {
+			addedEnterName: 'Added. Enter a name, at least… The cursor is in the input field.',
 			copied: 'Copied',
 			copy: 'Copy',
 			descGpx: 'Standard XML format for storing and exchanging GPS data. It is understood by most navigator programs (for example, Locus Map, Navitel, etc.). Only the places themselves are exported. The folder tree is not saved.',

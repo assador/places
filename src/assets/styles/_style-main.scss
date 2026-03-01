@@ -355,6 +355,10 @@ $filter-brightness-03: brightness(0%);
 	.table .active {
 		background-color: $color-27;
 	}
+	.placeholder {
+		font-style: italic;
+		opacity: 0.5;
+	}
 	.spinner {
 		display: flex;
 		align-items: center;
