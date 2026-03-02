@@ -12,6 +12,12 @@
 				},
 			}"
 		>
+			<yandex-map-listener
+				:settings="{
+					onActionEnd: () => updateState(),
+					onContextMenu: (_, e) => mapContextMenu(e.coordinates.reverse()),
+				}"
+			/>
 			<yandex-map-default-features-layer />
 			<yandex-map-default-scheme-layer />
 
@@ -22,7 +28,7 @@
 				:settings="{
 					...mapCenter,
 					draggable: true,
-					onDragEnd: e =>  updateState({ coords: e.reverse() }),
+					onDragEnd: e => updateState({ coords: e.reverse() }),
 				}"
 				:visible="mainStore.centerPlacemarkShow"
 			>
@@ -54,7 +60,7 @@
 				:visible="mainStore.placemarksShow && place.show && place.geomark"
 				class="place"
 				@click="mainStore.setCurrentPlace(place, false)"
-				@contextmenu="e =>
+				@contextmenu.prevent.stop="e =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
 			>
@@ -91,7 +97,7 @@
 				}"
 				:visible="mainStore.commonPlacemarksShow && place.geomark"
 				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-				@contextmenu="e =>
+				@contextmenu.prevent.stop="e =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
 			>
@@ -182,7 +188,7 @@
 							@click="mainStore.setCurrentPoint(
 								mainStore.getPointById(point.id), false)
 							"
-							@contextmenu="e =>markerContextMenu(
+							@contextmenu.prevent.stop="e =>markerContextMenu(
 								e,
 								mainStore.getPointById(point.id),
 								mainStore.currentRoute
@@ -210,18 +216,9 @@
 								}"
 							/>
 							<img
+								v-if="point.id === mainStore.currentPoint.id"
+								:src="placemarksOptions.icon_active.iconUrl"
 								class="marker"
-								:src="placemarksOptions[
-									point.added &&
-									!point.updated &&
-									point.id === route.points.at(-1).id
-										? 'icon_new'
-										: (
-											point.id === mainStore.currentPoint.id
-												? 'icon_active'
-												: 'icon_null'
-										)
-								].iconUrl"
 							/>
 						</yandex-map-marker>
 					</template>
@@ -295,37 +292,44 @@
 					@click="mainStore.setCurrentPoint(
 						mainStore.getPointById(point.id), false)
 					"
-					@contextmenu="e =>markerContextMenu(
+					@contextmenu.prevent.stop="e =>markerContextMenu(
 						e,
 						mainStore.getPointById(point.id),
 						mainStore.currentRoute
 					)"
 				>
-					<div
-						v-if="point.id === mainStore.measure.points[0].id"
-						class="marker-current marker-start"
-					/>
-					<div
-						v-else-if="point.id === mainStore.measure.points.at(-1).id"
-						class="marker-current marker-end"
-					/>
-					<div
-						v-else
-						class="marker-current marker-intermediate"
+					<template v-if="mainStore.mode === 'measure'">
+						<div
+							v-if="
+								point.id === mainStore.measure.points[0]?.id
+							"
+							class="marker-current marker-start"
+						/>
+						<div
+							v-else-if="point.id === mainStore.measure.points.at(-1)?.id"
+							class="marker-current marker-end"
+						/>
+						<div
+							v-else
+							class="marker-current marker-intermediate"
+						/>
+					</template>
+					<img
+						v-if="
+							mainStore.mode === 'measure' &&
+							mainStore.isMeasurePoint(point.id) &&
+							point.id === mainStore.currentPoint.id
+						"
+						:src="placemarksOptions.icon_active.iconUrl"
+						class="marker"
 					/>
 					<img
-						class="marker"
+						v-else-if="!mainStore.isMeasurePoint(point.id)"
 						:src="placemarksOptions[
-							point.added &&
-							!point.updated &&
-							point.id === mainStore.measure.points.at(-1).id
-								? 'icon_new'
-								: (
-									point.id === mainStore.currentPoint.id
-										? 'icon_active'
-										: 'icon_null'
-								)
+							point.id === mainStore.currentPoint.id
+								? 'icon_temp_active' : 'icon_temp'
 						].iconUrl"
+						class="marker"
 					/>
 				</yandex-map-marker>
 			</template>
@@ -350,6 +354,7 @@ import { ref, Ref, shallowRef, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import {
 	YandexMap,
+	YandexMapListener,
 	YandexMapMarker,
 	YandexMapFeature,
 	YandexMapDefaultSchemeLayer,
@@ -427,6 +432,29 @@ const dragging = ref(false);
 
 // SEC Right clicks
 
+const mapContextMenu = (coords: number[]) => {
+	const [ lat, lng ] = coords;
+	if (mainStore.mode === 'normal' ||  mainStore.mode === 'measure') {
+		const temp = mainStore.upsertPoint({
+			props: { latitude: lat, longitude: lng },
+			where: mainStore.temps,
+		});
+		if (mainStore.mode === 'measure') {
+			mainStore.addPointToPoints({
+				point: temp,
+				entity: mainStore.measure,
+			});
+		}
+		return;
+	}
+	if (mainStore.mode === 'routes' && mainStore.currentRoute) {
+		mainStore.upsertPoint({
+			props: { latitude: lat, longitude: lng },
+			where: mainStore.points,
+			whom: mainStore.currentRoute,
+		});
+	}
+}
 const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	switch (mainStore.mode) {
 		case 'routes':
@@ -484,10 +512,10 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	pointInfo.value.point = point;
 	popupProps.value.position.left = 'auto';
 	popupProps.value.position.bottom = 'auto';
-	popupProps.value.position.top = e.originalEvent.clientY + 5;
+	popupProps.value.position.top = e.clientY + 5;
 	popupProps.value.position.right =
-		e.originalEvent.view.document.documentElement.clientWidth -
-		e.originalEvent.clientX + 5;
+		e.view.document.documentElement.clientWidth -
+		e.clientX + 5;
 }
 
 // SEC Other

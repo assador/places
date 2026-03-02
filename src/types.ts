@@ -96,7 +96,7 @@ export interface Route extends Entity {
 	geomarks: number;
 	images?: Record<string, Image>;
 }
-export interface Image { // TODO Refactor work with images at all.
+export interface Image {
 	type: string;
 	id: string;
 	file: string;

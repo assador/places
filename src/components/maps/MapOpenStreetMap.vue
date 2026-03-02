@@ -4,8 +4,8 @@
 			ref="map"
 			v-model:zoom="mapCenter.zoom"
 			:center="mapCenter.coords as PointExpression"
-			@ready="ready()"
-			@dragend="updateState()"
+			@ready="ready"
+			@dragend="updateState"
 			@contextmenu="mapContextMenu"
 		>
 			<l-control-layers />
@@ -196,16 +196,8 @@
 							}"
 						>
 							<l-icon
-								v-bind="(
-									point.added &&
-									!point.updated &&
-									point.id === route.points.at(-1).id
-										? icon_new
-										: (
-											point.id === mainStore.currentPoint.id
-												? icon_active
-												: icon_null
-										)
+								v-bind="(point.id === mainStore.currentPoint.id
+									? icon_active : icon_null
 								) as {}"
 							/>
 							<l-circle-marker
@@ -216,18 +208,9 @@
 								:ref="el => setCircleMarkerRef(point.id, el)"
 								:lat-lng="[ point.latitude, point.longitude ]"
 								class-name="marker-intermediate"
-								:radius="route.id === mainStore.currentRoute.id ? 10 : 6"
+								:radius="10"
 								:weight="1"
 							/>
-							<l-tooltip v-if="!popupProps.show" permanent="true">
-								{{
-									route.points.find(
-										p => p.id === point.id
-									)?.description + ' — '
-								}}
-								{{ coords2string([point.latitude, point.longitude]) }}
-								{{ point.altitude ? ('| ' + point.altitude + ' ' + mainStore.t.i.text.m) : '' }}
-							</l-tooltip>
 						</l-marker>
 					</template>
 				</template>
@@ -369,10 +352,7 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Route, Point, PointName } from '@/types';
-import {
-	coords2string,
-	IPlacesPopupProps,
-} from '@/shared';
+import { IPlacesPopupProps } from '@/shared';
 
 const mainStore = useMainStore();
 
@@ -445,27 +425,27 @@ const setRouteLineRef = (id: string, el: any) => {
 // SEC Right clicks
 
 const mapContextMenu = (e: any) => {
-    const { lat, lng } = e.latlng;
-    if (mainStore.mode === 'normal' ||  mainStore.mode === 'measure') {
+	const { lat, lng } = e.latlng;
+	if (mainStore.mode === 'normal' ||  mainStore.mode === 'measure') {
 		const temp = mainStore.upsertPoint({
 			props: { latitude: lat, longitude: lng },
 			where: mainStore.temps,
 		});
-        if (mainStore.mode === 'measure') {
-            mainStore.addPointToPoints({
+		if (mainStore.mode === 'measure') {
+			mainStore.addPointToPoints({
 				point: temp,
 				entity: mainStore.measure,
 			});
-        }
-        return;
-    }
-    if (mainStore.mode === 'routes' && mainStore.currentRoute) {
-        mainStore.upsertPoint({
+		}
+		return;
+	}
+	if (mainStore.mode === 'routes' && mainStore.currentRoute) {
+		mainStore.upsertPoint({
 			props: { latitude: lat, longitude: lng },
 			where: mainStore.points,
 			whom: mainStore.currentRoute,
 		});
-    }
+	}
 }
 const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	switch (mainStore.mode) {
