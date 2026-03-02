@@ -120,6 +120,9 @@
 				</dd>
 			</template>
 		</dl>
+		<div class="margin_top">
+			<Images what="routes" />
+		</div>
 	</div>
 </template>
 
@@ -127,6 +130,7 @@
 import { ref, Ref, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import Points from '@/components/Points.vue';
+import Images from '@/components/details/Images.vue';
 
 const currentRouteCommon = inject('currentRouteCommon') as Ref<boolean>;
 
