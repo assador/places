@@ -140,7 +140,7 @@
 				</dd>
 			</template>
 			<template v-else-if="field === 'common'">
-				<dd class="margin_bottom">
+				<dd>
 					<label v-if="!currentPlaceCommon">
 						<input
 							:id="'detailed-' + field"
@@ -153,6 +153,29 @@
 							})"
 						/>
 						{{ mainStore.t.i.inputs.checkboxCommon }}
+					</label>
+				</dd>
+			</template>
+
+<!-- SEC Home -->
+
+			<template v-else-if="field === 'home' && !currentPlaceCommon">
+				<dd class="margin_bottom">
+					<label>
+						<input
+							id="checkbox-homeplace"
+							type="checkbox"
+							:checked="mainStore.currentPlace === mainStore.homePlace"
+							@change="e => {
+								mainStore.setHomePlace({
+									id: (e.target as HTMLInputElement).checked
+										? mainStore.currentPlace.id
+										: null
+								});
+								mainStore.backupState();
+							}"
+						/>
+						{{ mainStore.t.i.inputs.checkboxHome }}
 					</label>
 				</dd>
 			</template>
@@ -268,47 +291,29 @@
 		</dl>
 		<div
 			v-if="!currentPlaceCommon && !mainStore.currentPlace.deleted"
-			class="images-add margin_bottom"
+			class="images-add"
+			@click.stop="inputUploadFiles.click()"
 		>
-			<div
-				class="images-add__div button"
-				:class="{ disabled: uploading }"
-			>
-				<span>{{
-					!uploading
-						? mainStore.t.i.buttons.addPhotos
-						: mainStore.t.i.text.loading
-				}}</span>
-				<input
-					id="images-add__input"
-					ref="inputUploadFiles"
-					type="file"
-					name="files"
-					accept="image/*"
-					multiple
-					class="images-add__input"
-					:disabled="uploading"
-					@change="e => inputUploadFilesChanged(e)"
-				/>
+			<button
+				:disabled="uploading"
+				class="images-add__button button-iconed icon icon-plus-circled"
+			/>
+			<div class="images-add__text">
+				{{ !uploading
+					? mainStore.t.i.buttons.addPhotos
+					: mainStore.t.i.text.loading
+				}}
 			</div>
-		</div>
-		<div v-if="!currentPlaceCommon">
-			<label>
-				<input
-					id="checkbox-homeplace"
-					type="checkbox"
-					:checked="mainStore.currentPlace === mainStore.homePlace"
-					@change="e => {
-						mainStore.setHomePlace({
-							id: (e.target as HTMLInputElement).checked
-								? mainStore.currentPlace.id
-								: null
-						});
-						mainStore.backupState();
-					}"
-				/>
-				{{ mainStore.t.i.inputs.checkboxHome }}
-			</label>
+			<input
+				ref="inputUploadFiles"
+				type="file"
+				name="files"
+				accept="image/*"
+				multiple
+				class="images-add__input"
+				:disabled="uploading"
+				@change="e => inputUploadFilesChanged(e)"
+			/>
 		</div>
 	</div>
 </template>
@@ -348,7 +353,7 @@ const currentPlaceLon = computed<number | null>(() =>
 );
 
 const orderedCurrentPlaceFields = ref([
-	'name', 'description', 'point', 'link', 'time', 'srt', 'common', 'images',
+	'name', 'description', 'point', 'link', 'time', 'srt', 'common', 'home', 'images',
 ]);
 const orderedImages = computed<Image[]>(() =>
 	mainStore.currentPlace ? orderBy(mainStore.currentPlace.images, 'srt') : []
@@ -453,6 +458,7 @@ const handleDragStart = (
 }
 .place-image {
 	position: relative;
+	cursor: pointer;
 	&.dragging :is(.sorting-area-left, .sorting-area-right) {
 		z-index: 30 !important;
 	}
@@ -470,5 +476,40 @@ const handleDragStart = (
 	.sorting-area-right {
 		right: 0; left: 50%;
 	}
+}
+.dd-images {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+	grid-gap: 12px;
+	margin-top: 12px !important; margin-bottom: 12px !important;
+	padding: 0;
+}
+.dd-images *[class*="block_"] {
+	margin: 0;
+	padding: 7px;
+}
+.dd-images__delete {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: -5px; right: -5px;
+	width: 20px; height: 20px;
+	min-height: 0;
+	padding: 0;
+	border-radius: 50%;
+	font-size: 22px;
+}
+.images-add {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	cursor: pointer;
+}
+.images-add__text {
+	flex: 1 0 auto;
+}
+.images-add__input {
+	display: none;
 }
 </style>

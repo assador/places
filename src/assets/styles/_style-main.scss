@@ -1035,44 +1035,6 @@ $filter-brightness-03: brightness(0%);
 	.folder-button.over {
 		text-shadow: 0 0 3px $color-65;
 	}
-	.dd-images {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
-		grid-gap: 12px;
-		margin-top: 12px !important; margin-bottom: 12px !important;
-		padding: 0;
-	}
-	.place-image {
-		cursor: pointer;
-	}
-	.dd-images *[class*="block_"] {
-		margin: 0;
-		padding: 7px;
-	}
-	.dd-images__delete {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		position: absolute;
-		top: -5px; right: -5px;
-		width: 20px; height: 20px;
-		min-height: 0;
-		padding: 0;
-		border-radius: 50%;
-		font-size: 22px;
-	}
-	.images-add__div {
-		position: relative;
-		width: 100%;
-		cursor: default;
-	}
-	.images-add__input {
-		display: block;
-		position: absolute;
-		top: 0; right: 0; bottom: 0; left: 0;
-		height: auto !important;
-		opacity: 0;
-	}
 	.save-button {
 		margin-top: 18px;
 		width: 100%;
