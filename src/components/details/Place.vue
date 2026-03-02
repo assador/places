@@ -270,8 +270,15 @@
 			v-if="!currentPlaceCommon && !mainStore.currentPlace.deleted"
 			class="images-add margin_bottom"
 		>
-			<div class="images-add__div button">
-				<span>{{ mainStore.t.i.buttons.addPhotos }}</span>
+			<div
+				class="images-add__div button"
+				:class="{ disabled: uploading }"
+			>
+				<span>{{
+					!uploading
+						? mainStore.t.i.buttons.addPhotos
+						: mainStore.t.i.text.loading
+				}}</span>
 				<input
 					id="images-add__input"
 					ref="inputUploadFiles"
@@ -280,21 +287,10 @@
 					accept="image/*"
 					multiple
 					class="images-add__input"
-					@change="e => uploadFiles(
-						e,
-						mainStore.currentPlace,
-						inputUploadFiles,
-						ref(uploading)
-					)"
+					:disabled="uploading"
+					@change="e => inputUploadFilesChanged(e)"
 				/>
 			</div>
-		</div>
-		<div
-			id="images-uploading"
-			class="block_02 waiting"
-			:class="{ hidden: !uploading }"
-		>
-			<span>… {{ mainStore.t.i.buttons.loading }} …</span>
 		</div>
 		<div v-if="!currentPlaceCommon">
 			<label>
@@ -367,6 +363,12 @@ const currentPlaceAlt = computed<number | null>(() => {
 const currentDegMinSec = computed(() =>
 	coords2string([currentPlaceLat.value, currentPlaceLon.value])
 );
+const inputUploadFilesChanged = async (e: Event) => {
+	uploading.value = true;
+	await uploadFiles(e, mainStore.currentPlace, inputUploadFiles.value);
+	uploading.value = false;
+
+}
 
 // SEC DnD
 

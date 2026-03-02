@@ -2,9 +2,11 @@
 	<div class="popup">
 		<img
 			v-if="image"
+			ref="imgRef"
 			class="popup-image border_1"
 			:src="constants.dirs.uploads.images.big + image.file"
-			:onerror="`this.src = '${constants.dirs.uploads.images.orphanedbig + image.file}'`"
+			@load="mainStore.setBusy(false)"
+			@error="handleError"
 		/>
 		<a
 			class="prev"
@@ -58,6 +60,7 @@ const image = ref({} as Image);
 
 const prevOver = ref(false);
 const nextOver = ref(false);
+const imgRef = ref<HTMLImageElement | null>(null);
 
 const currentPlaceCommon = inject<Ref<boolean>>('currentPlaceCommon');
 
@@ -65,10 +68,17 @@ const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
+const handleError = () => {
+	mainStore.setBusy(false);
+	if (imgRef.value) {
+		imgRef.value.src = constants.dirs.uploads.images.orphanedbig + image.value.file;
+	}
+};
 const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
 const defineVars = (): void => {
+	mainStore.setBusy(true);
 	const places: Record<string, Place> = (
 		!currentPlaceCommon.value
 			? mainStore.places

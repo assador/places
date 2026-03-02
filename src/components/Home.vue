@@ -1088,7 +1088,6 @@ const uploadFiles = async (
 	event: Event,
 	target: Place | Route,
 	inputElement?: HTMLInputElement,
-	uploading: Ref<boolean> = ref(false),
 ) => {
 	event.preventDefault();
 	if (mainStore.user.testaccount) {
@@ -1139,10 +1138,8 @@ const uploadFiles = async (
 	data.append('entityid', target.id);
 	data.append('entitytype', target.type);
 	try {
-		uploading.value = true;
 		const response = await api.post('upload.php', data, { silent: true });
 		input.value = '';
-		uploading.value = false;
 		const [ errorCodes, uploadedFiles ] = response.data;
 		// Remove from the array those files that were not downloaded
 		const uploadedIds = new Set(uploadedFiles.map((f: any) => f.id));

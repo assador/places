@@ -13,14 +13,7 @@
 				<form
 					class="folder-new__form margin_bottom_0"
 					@click.stop
-					@submit.prevent="mainStore.upsertFolder({
-						props: {
-							parent: parent,
-							context: context,
-							name: folderName ? folderName : '',
-							description: folderDescription ? folderDescription : '',
-						},
-					})"
+					@submit.prevent="createFolder"
 				>
 					<table class="table_form">
 						<tbody>
@@ -28,7 +21,7 @@
 								<th>{{ mainStore.t.i.captions.name }}:</th>
 								<td>
 									<input
-										id="folderName"
+										ref="folderNameInput"
 										v-model="folderName"
 										class="fieldwidth_100"
 										required
@@ -96,14 +89,29 @@ const props = withDefaults(defineProps<IPlacesPopupFolderProps>(), {
 	context: 'places',
 });
 
+const folderNameInput = ref(null);
 const folderName = ref('');
 const folderDescription = ref('');
-const message = ref('');
+const message = ref(' ');
 const popuped = ref(false);
 
 const router = useRouter();
 const route = useRoute();
 
+const createFolder = (): void => {
+	mainStore.upsertFolder({
+		props: {
+			parent: props.parent,
+			context: props.context,
+			name: folderName.value,
+			description: folderDescription.value,
+		},
+	});
+	folderName.value = '';
+	message.value = mainStore.t.i.text.folderCreated;
+	if (folderNameInput.value) folderNameInput.value.focus();
+	setTimeout(() => message.value = ' ', 2000);
+};
 const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
@@ -114,7 +122,7 @@ onMounted(async () => {
 	popuped.value = true;
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
-	document.getElementById('folderName')!.focus();
+	if (folderNameInput.value) folderNameInput.value.focus();
 	document.addEventListener('keyup', keyup, false);
 });
 onUnmounted(() => {

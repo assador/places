@@ -1804,12 +1804,8 @@ export const useMainStore = defineStore('main', {
 // SEC Other
 
 		setBusy(busy: boolean = true) {
-			if (busy) {
-				this.timer = setTimeout(() => { this.busyCount++ }, 200);
-			} else {
-				clearTimeout(this.timer);
-				this.busyCount = Math.max(0, this.busyCount - 1);
-			}
+			if (busy) this.busyCount++;
+				else this.busyCount = Math.max(0, this.busyCount - 1);
 		},
 		collectModified<T extends Entity>(collection: Record<string, T>): T[] {
 			return Object.values(collection).filter(i =>
