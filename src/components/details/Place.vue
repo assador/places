@@ -1,5 +1,8 @@
 <template>
-	<div v-if="mainStore.placesShow.show && mainStore.currentPlace" id="place-description">
+	<div
+		v-if="mainStore.placesShow.show && mainStore.currentPlace"
+		id="place-description"
+	>
 		<h2
 			v-if="mainStore.routesShow"
 				class="color-01"
@@ -25,7 +28,7 @@
 						{{ mainStore.descriptionFields[field] }}
 					</a>
 					<span v-else>
-						{{ mainStore.descriptionFields[field] }}:
+						{{ mainStore.descriptionFields[field] }}
 					</span>
 				</dt>
 				<dd>
@@ -124,7 +127,7 @@
 				</div>
 			</template>
 			<template v-else-if="field === 'time'">
-				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
+				<dt>{{ mainStore.descriptionFields[field] }}</dt>
 				<dd>
 					<input
 						:id="'detailed-' + field"
@@ -160,7 +163,7 @@
 <!-- SEC Home -->
 
 			<template v-else-if="field === 'home' && !currentPlaceCommon">
-				<dd class="margin_bottom">
+				<dd>
 					<label>
 						<input
 							id="checkbox-homeplace"
@@ -180,90 +183,10 @@
 				</dd>
 			</template>
 
-<!-- SEC Images -->
-
-			<template v-else-if="field === 'images' && orderedImages.length">
-				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
-				<dd
-					id="place-images"
-				>
-					<div class="dd-images">
-						<div
-							v-for="image in orderedImages"
-							:id="image.id"
-							:key="image.id"
-							:data-entity-id="image.id"
-							:data-entity-context="'places'"
-							class="place-image"
-							:class="{
-								draggable: !currentPlaceCommon,
-								dragging: dragging,
-							}"
-							:draggable="!currentPlaceCommon"
-							@click="router.push({
-								name: 'HomeImages',
-								params: { imageId: image.id },
-							})"
-							@dragstart="e => {
-								dragging = true;
-								handleDragStart(
-									e,
-									image.id,
-									'image',
-									mainStore.currentPlace.id,
-								);
-							}"
-							@dragend="() => {
-								dragging = false;
-								highlightedLeft = null;
-								highlightedRight = null;
-							}"
-							@dragover.prevent
-							@drop.prevent.stop="handleDropExt"
-						>
-							<div class="block_02">
-								<img
-									class="image-thumbnail border_1"
-									:draggable="false"
-									:src="constants.dirs.uploads.images.small + image.file"
-									:alt="mainStore.currentPlace.name"
-									:title="mainStore.currentPlace.name"
-								/>
-								<div
-									v-if="!currentPlaceCommon"
-									class="dd-images__delete button"
-									:draggable="false"
-									@click.stop="mainStore.deleteImages({
-										imageIds: [ image.id ],
-										entity: mainStore.currentPlace,
-									})"
-								>
-									×
-								</div>
-							</div>
-							<div
-								class="sorting-area-left"
-								:class="{ highlighted: image.id === highlightedLeft }"
-								@dragenter="highlightedLeft = image.id"
-								@dragleave="highlightedLeft = null"
-								@drop="($e: DragEventCustom) => $e.dragBefore = true"
-							/>
-							<div
-								class="sorting-area-right"
-								:class="{ highlighted: image.id === highlightedRight }"
-								@dragenter="highlightedRight = image.id"
-								@dragleave="highlightedRight = null"
-								@drop="($e: DragEventCustom) => $e.dragBefore = false"
-							/>
-						</div>
-					</div>
-				</dd>
-			</template>
-
 <!-- SEC Name -->
 
-			<template v-else-if="field !== 'images'">
-				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
+			<template v-else>
+				<dt>{{ mainStore.descriptionFields[field] }}</dt>
 				<dd>
 					<textarea
 						:ref="el => {
@@ -289,57 +212,24 @@
 				</dd>
 			</template>
 		</dl>
-		<div
-			v-if="!currentPlaceCommon && !mainStore.currentPlace.deleted"
-			class="images-add"
-			@click.stop="inputUploadFiles.click()"
-		>
-			<button
-				:disabled="uploading"
-				class="images-add__button button-iconed icon icon-plus-circled"
-			/>
-			<div class="images-add__text">
-				{{ !uploading
-					? mainStore.t.i.buttons.addPhotos
-					: mainStore.t.i.text.loading
-				}}
-			</div>
-			<input
-				ref="inputUploadFiles"
-				type="file"
-				name="files"
-				accept="image/*"
-				multiple
-				class="images-add__input"
-				:disabled="uploading"
-				@change="e => inputUploadFilesChanged(e)"
-			/>
+		<div class="margin_top">
+			<Images what="places" />
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
-import { orderBy } from 'lodash';
-import { constants, coords2string, string2coords } from '@/shared';
+import { coords2string, string2coords } from '@/shared';
 import { useMainStore } from '@/stores/main';
-import { useRouter } from 'vue-router';
-import { Image, DragEventCustom, DragEntityPayload } from '@/types';
+import Images from '@/components/details/Images.vue';
 
-const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;
-const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
 const currentPlaceNameInputRef = inject('currentPlaceNameInputRef');
 
 const mainStore = useMainStore();
-const router = useRouter();
 
 const linkEditing = ref(false);
-const dragging = ref(false);
-const uploading = ref(false);
-const highlightedLeft = ref(null);
-const highlightedRight = ref(null);
-const inputUploadFiles = ref<HTMLInputElement | null>(null);
 
 const currentPlaceLat = computed<number | null>(() =>
 	mainStore.currentPlace
@@ -353,11 +243,8 @@ const currentPlaceLon = computed<number | null>(() =>
 );
 
 const orderedCurrentPlaceFields = ref([
-	'name', 'description', 'point', 'link', 'time', 'srt', 'common', 'home', 'images',
+	'name', 'description', 'point', 'link', 'time', 'srt', 'common', 'home',
 ]);
-const orderedImages = computed<Image[]>(() =>
-	mainStore.currentPlace ? orderBy(mainStore.currentPlace.images, 'srt') : []
-);
 const currentPlaceAlt = computed<number | null>(() => {
 	return (
 		mainStore.currentPlace
@@ -368,41 +255,6 @@ const currentPlaceAlt = computed<number | null>(() => {
 const currentDegMinSec = computed(() =>
 	coords2string([currentPlaceLat.value, currentPlaceLon.value])
 );
-const inputUploadFilesChanged = async (e: Event) => {
-	uploading.value = true;
-	await uploadFiles(e, mainStore.currentPlace, inputUploadFiles.value);
-	uploading.value = false;
-
-}
-
-// SEC DnD
-
-const canAcceptDrop = (target: HTMLElement): boolean => {
-	const { currentDrag } = mainStore;
-	return !(
-		currentDrag.id === target.dataset.entityId
-	);
-};
-const handleDropExt = (event: DragEventCustom) => {
-	const target = event.currentTarget as HTMLElement;
-	if (!canAcceptDrop(target)) return;
-	handleDrop(event);
-};
-const handleDragStart = (
-	event: DragEvent,
-	id: string,
-	type: string,
-	parentId?: string,
-) => {
-	mainStore.currentDrag = {
-		id: id,
-		type: type,
-		context: 'places',
-		parentId: parentId,
-	};
-	const payload: DragEntityPayload = { ...mainStore.currentDrag };
-	event.dataTransfer?.setData('application/my-app-dnd', JSON.stringify(payload));
-};
 </script>
 
 <style lang="scss" scoped>
@@ -455,61 +307,5 @@ const handleDragStart = (
 	.two-fields__combined {
 		grid-column: 1 / 3;
 	}
-}
-.place-image {
-	position: relative;
-	cursor: pointer;
-	&.dragging :is(.sorting-area-left, .sorting-area-right) {
-		z-index: 30 !important;
-	}
-	* {
-		z-index: 20;
-	}
-	.sorting-area-left, .sorting-area-right {
-		position: absolute;
-		top: 0; bottom: 0;
-		z-index: 10;
-	}
-	.sorting-area-left {
-		left: 0; right: 50%;
-	}
-	.sorting-area-right {
-		right: 0; left: 50%;
-	}
-}
-.dd-images {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
-	grid-gap: 12px;
-	margin-top: 12px !important; margin-bottom: 12px !important;
-	padding: 0;
-}
-.dd-images *[class*="block_"] {
-	margin: 0;
-	padding: 7px;
-}
-.dd-images__delete {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	position: absolute;
-	top: -5px; right: -5px;
-	width: 20px; height: 20px;
-	min-height: 0;
-	padding: 0;
-	border-radius: 50%;
-	font-size: 22px;
-}
-.images-add {
-	display: flex;
-	gap: 12px;
-	align-items: center;
-	cursor: pointer;
-}
-.images-add__text {
-	flex: 1 0 auto;
-}
-.images-add__input {
-	display: none;
 }
 </style>
