@@ -100,7 +100,7 @@ onUnmounted(() => {
 		}
 	}
 	.message {
-		padding-right: 30px; padding-left: 30px;
+		padding-right: 30px !important; padding-left: 30px !important;
 		&:last-child {
 			padding-bottom: 20px;
 		}

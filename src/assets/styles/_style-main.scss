@@ -583,12 +583,9 @@ $filter-brightness-03: brightness(0%);
 		border-color: $color-69 $color-70 $color-71 $color-72;
 	}
 	:is(input, select, textarea):is(:autofill, :autofill:focus, :autofill:hover, :autofill:active) {
-		box-shadow: 0 0 0px 1000px $color-48 inset;
-		border-color: $color-51;
-		-webkit-text-fill-color: $color-68 !important;
-		+ .password :is(button, button:hover) {
-			filter: saturate(200%) brightness(30%);
-		}
+		box-shadow: 0 0 0px 1000px $color-61 inset;
+		border-color: $color-49;
+		-webkit-text-fill-color: $color-15 !important;
 	}
 	option {
 		background-color: $color-42;

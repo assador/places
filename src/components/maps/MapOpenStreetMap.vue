@@ -117,7 +117,7 @@
 			>
 				<template
 					v-for="route in computedRoutes"
-					:key="route.key"
+					:key="route.id"
 				>
 					<l-polyline
 						v-if="route.points.length"
@@ -156,7 +156,7 @@
 					/>
 					<template
 						v-for="point in route.computedRoutePoints"
-						:key="point.key"
+						:key="point.idx"
 					>
 						<l-marker
 							:lat-lng="[ point.latitude, point.longitude ]"
@@ -392,17 +392,14 @@ const computedTemps = computed(() => {
 const computedRoutes = computed(() => {
 	return Object.values(mainStore.routes)
 		.filter(r => !r.deleted && r.geomarks === 1)
-		.map((r, index) => ({
+		.map(r => ({
 			...r,
-			idx: index,
-			key: `${r.id}-${index}`,
 			computedRoutePoints:
 				mainStore.routePoints(r)
 					.filter(p => !p.deleted)
 					.map((p, pindex) => ({
 						...p,
 						idx: pindex,
-						key: `${p.id}-${pindex}`,
 					}))
 			,
 		}))
