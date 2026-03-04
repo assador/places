@@ -603,6 +603,7 @@
 				class="action-button"
 				:title="mainStore.t.i.hints.importPlaces"
 				accesskey="i"
+				disabled
 				@click="importFromFileInput.click()"
 			>
 				<span class="icon icon-import" />

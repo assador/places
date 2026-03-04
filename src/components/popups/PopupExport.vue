@@ -2,17 +2,12 @@
 	<transition name="fade">
 		<div
 			v-if="popuped"
-			class="popup"
+			class="popup popup-export"
 		>
 			<div class="popup-content centered">
-				<div class="brand">
-					<h1 class="margin_bottom_0">
-						{{ mainStore.t.i.captions.exportPlaces }}
-					</h1>
-				</div>
-				<p class="margin_bottom_0">
-					{{ mainStore.t.i.text.specifyFormatToExport }}:
-				</p>
+				<h1>
+					{{ mainStore.t.i.captions.exportPlaces }}
+				</h1>
 				<form
 					class="popup-export__form"
 					@submit.prevent="e => exportPlaces(
@@ -20,6 +15,9 @@
 						(e.currentTarget as HTMLFormElement).elements['mime'].value
 					)"
 				>
+					<p class="margin_bottom_0">
+						{{ mainStore.t.i.text.specifyFormatToExport }}:
+					</p>
 					<fieldset class="margin_bottom">
 						<label>
 							<input
@@ -51,8 +49,7 @@
 							Object.keys(mainStore.places).length ||
 							Object.keys(mainStore.folders).length
 						"
-						id="popup-export__tree"
-						class="menu"
+						class="popup-export__tree menu"
 					>
 						<Tree instanceid="popupexporttree" what="places" />
 					</div>
@@ -68,14 +65,14 @@
 						</button>
 					</fieldset>
 				</form>
-				<a
-					href="javascript:void(0);"
-					class="close"
-					@click="close()"
-				>
-					×
-				</a>
 			</div>
+			<a
+				href="javascript:void(0)"
+				class="close"
+				@click="close()"
+			>
+				×
+			</a>
 		</div>
 	</transition>
 </template>
@@ -112,9 +109,20 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.popup-export__buttons {
-	display: flex;
-	gap: 12px;
-	justify-content: center;
-}
+	.popup-export__form {
+		display: grid;
+		grid-template-rows: auto auto auto 1fr auto;
+		max-height: 100%;
+	}
+	.popup-export__tree {
+		margin: 0 auto;
+		padding-right: 12px;
+		text-align: left;
+		overflow: auto;
+	}
+	.popup-export__buttons {
+		display: flex;
+		gap: 12px;
+		justify-content: center;
+	}
 </style>

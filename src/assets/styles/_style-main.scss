@@ -123,7 +123,7 @@ $filter-brightness-03: brightness(0%);
 	$color-70: rgba($col-35, $opacity-04);
 	$color-71: rgba($col-35, $opacity-10);
 	$color-72: rgba($col-35, $opacity-04);
-	
+
 	$filter-01: $filter-hue-rotate-01 $filter-saturate-01 $filter-brightness-01;
 	$filter-02: $filter-hue-rotate-01 $filter-saturate-02 $filter-brightness-02;
 	$filter-03: $filter-hue-rotate-01 $filter-saturate-03 $filter-brightness-03;
@@ -201,7 +201,7 @@ $filter-brightness-03: brightness(0%);
 	--color-70: #{$color-70};
 	--color-71: #{$color-71};
 	--color-72: #{$color-72};
-	
+
 	--filter-01: #{$filter-01};
 	--filter-02: #{$filter-02};
 	--filter-03: #{$filter-03};
@@ -770,7 +770,7 @@ $filter-brightness-03: brightness(0%);
 		display: block !important;
 		width: auto !important;
 		min-height: 0 !important;
-		margin-right: 0; margin-left: 0; 
+		margin-right: 0; margin-left: 0;
 	}
 	.floatleft {
 		float: left;
@@ -1198,10 +1198,6 @@ $filter-brightness-03: brightness(0%);
 	}
 	.popup-export__form label {
 		display: block;
-	}
-	#popup-export__tree {
-		display: inline-table;
-		text-align: left;
 	}
 	#to-export-places-menu-folder-link-root, #places-menu-folder-link-routesroot {
 		white-space: nowrap;
