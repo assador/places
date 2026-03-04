@@ -224,14 +224,15 @@ const exportPlaces = (
 	if (format === 'gpx') {
 		content = generateGpx({
 			places: places,
-			points: mainStore.points,
+			pointsDict: mainStore.points,
 		});
 		filename = 'places.gpx';
 		mimeType = 'application/gpx+xml';
 	} else {
 		content = generateJson({
 			places: places,
-			points: mainStore.points,
+			pointsDict: mainStore.points,
+			foldersDict: mainStore.folders,
 		});
 	}
 	const blob = new Blob([content], { type: mimeType });

@@ -603,7 +603,6 @@
 				class="action-button"
 				:title="mainStore.t.i.hints.importPlaces"
 				accesskey="i"
-				disabled
 				@click="importFromFileInput.click()"
 			>
 				<span class="icon icon-import" />
@@ -910,7 +909,7 @@ const gridStyle = computed(() => {
 		style += ' 1fr';
 		style += cells.value.bottom ? ' auto;' : ' 0;';
 	} else {
-		style = 
+		style =
 			`grid-template-columns:${sidebarSize.value.left}px 1fr ${sidebarSize.value.right}px;` +
 			`grid-template-rows:${sidebarSize.value.top}px 1fr ${sidebarSize.value.bottom}px;`
 		;
@@ -1344,11 +1343,11 @@ const selectPlaces = (text: string): void => {
 			align-items: center;
 			justify-content: center;
 			font-size: 15px;
-			
+
 		}
 		&-help {
 			font-size: 20px;
-			
+
 		}
 	}
 	.icon-compas {

@@ -606,7 +606,7 @@ export const useMainStore = defineStore('main', {
 				}
 			});
 			pointsToCheck.forEach(pid => {
-				const isPointStillNeeded = 
+				const isPointStillNeeded =
 					Object.values<Place>(this.places).some(
 						p => p.pointid === pid && !p.deleted
 					) ||
@@ -647,7 +647,7 @@ export const useMainStore = defineStore('main', {
 		fixCurrentsAfterDelete() {
 			if (this.currentPlace?.deleted) {
 				const fallbackId =
-					(this.homePlace && !this.homePlace.deleted) 
+					(this.homePlace && !this.homePlace.deleted)
 						? this.homePlace.id
 						: (
 							Object.values<Place>(this.places).find(
@@ -672,12 +672,12 @@ export const useMainStore = defineStore('main', {
 			const toDelete: Record<string, Place | Route | Folder> = {};
 			const rootFolder = this.folders[folderId];
 			if (!rootFolder) return {};
-		
+
 			const collectRecursive = (fId: string) => {
 				const folder = this.folders[fId];
 				if (!folder) return;
 				if (folder.parent !== null) toDelete[fId] = folder;
-		
+
 				Object.values<Place>(this.places).forEach(p => {
 					if (p.folderid === fId) toDelete[p.id] = p;
 				});
@@ -1505,7 +1505,7 @@ export const useMainStore = defineStore('main', {
 		},
 
 // SEC DB
- 
+
 		savedToDB(payload: DataToDB) {
 			const collections = {
 				points: this.points,
@@ -1536,9 +1536,9 @@ export const useMainStore = defineStore('main', {
 		updateSavedStatus() {
 			const pkg = this.getAllModifiedPackage;
 			this.saved = (
-				pkg.points.length === 0 && 
-				pkg.places.length === 0 && 
-				pkg.routes.length === 0 && 
+				pkg.points.length === 0 &&
+				pkg.places.length === 0 &&
+				pkg.routes.length === 0 &&
 				pkg.folders.length === 0
 			);
 		},
@@ -1611,7 +1611,7 @@ export const useMainStore = defineStore('main', {
 				if (this.routes[this.currentRoute.id]) {
 					route = this.routes[this.currentRoute.id];
 				}
-				this.setCurrentRoute(route); 
+				this.setCurrentRoute(route);
 			}
 			if (this.currentPoint) {
 				let point: Point = null;
@@ -1619,14 +1619,14 @@ export const useMainStore = defineStore('main', {
 					point = this.points[this.currentPoint.id];
 				if (this.temps[this.currentPoint.id])
 					point = this.temps[this.currentPoint.id];
-				this.setCurrentPoint(point); 
+				this.setCurrentPoint(point);
 			}
 			this.backup = true;
 			this.refreshing = false;
 		},
 
 // SEC Checkers
- 
+
 		isMeasurePoint(id: string) {
 			return this.measurePointIds.has(id);
 		},

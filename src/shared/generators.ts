@@ -50,17 +50,17 @@ const escapeXml = (str: string): string => {
 };
 export const generateGpx = ({
 	places,
-	points,
+	pointsDict,
 }: {
 	places: Record<string, Place>;
-	points: Record<string, Point>;
+	pointsDict: Record<string, Point>;
 }): string => {
 	const header = [
 		'<?xml version="1.0" encoding="utf-8" standalone="yes"?>',
 		'<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">',
 	].join('');
 	const wpts = Object.values(places).map(p => {
-		const wp = points[p.pointid];
+		const wp = pointsDict[p.pointid];
 		if (!wp) return '';
 		let node = `<wpt lat="${wp.latitude}" lon="${wp.longitude}">`;
 		if (p.name) node += `<name>${escapeXml(p.name)}</name>`;
@@ -74,30 +74,64 @@ export const generateGpx = ({
 };
 export const generateJson = ({
 	places,
-	points,
-	folders = {},
+	pointsDict,
+	foldersDict,
 }: {
 	places: Record<string, Place>;
-	points: Record<string, Point>;
-	folders?: Record<string, Folder>;
+	pointsDict: Record<string, Point>;
+	foldersDict: Record<string, Folder>;
 }): string => {
+
 	const pointsSet = new Set<string>();
-	const pointsArray: Partial<Point>[] = [];
-	const foldersArray: Partial<Folder>[] = Object.values(folders);
-	const placesArray = Object.values(places).map(p => {
-		const { type, show, added, deleted, updated, geomark, images, ...cleanPlace } = p as any;
-		const pointId = p.pointid;
-		if (pointId && !pointsSet.has(pointId)) {
-			const wp = points[pointId];
-			if (wp) {
-				const { type, show, added, deleted, updated, ...cleanPoint } = wp as any;
-				pointsSet.add(pointId);
-				pointsArray.push(cleanPoint);
-			}
+	const exportFoldersDict: Record<string, any> = {};
+
+	const addFolderWithParents = (folderId: string) => {
+		let currentId = folderId;
+		while (currentId && foldersDict[currentId]) {
+			if (exportFoldersDict[currentId]) break;
+			const f = foldersDict[currentId];
+			const {
+				type,
+				show,
+				added,
+				deleted,
+				updated,
+				geomarks,
+				open,
+				...cleanFolder
+			} = f as any;
+			exportFoldersDict[currentId] = cleanFolder;
+			currentId = f.parent as string;
 		}
-		// TODO: Добавить экспорт папок (folderid)
+	};
+	const placesArray = Object.values(places).map((p) => {
+		const {
+			type,
+			show,
+			added,
+			deleted,
+			updated,
+			geomark,
+			images,
+			...cleanPlace
+		} = p as any;
+		if (p.pointid && pointsDict[p.pointid]) pointsSet.add(p.pointid);
+		if (p.folderid) addFolderWithParents(p.folderid);
 		return cleanPlace;
 	});
+	const pointsArray = Array.from(pointsSet).map((id) => {
+		const {
+			type,
+			show,
+			added,
+			deleted,
+			updated,
+			...cleanPoint
+		} = pointsDict[id] as any;
+		return cleanPoint;
+	});
+	const foldersArray = Object.values(exportFoldersDict);
+
 	return JSON.stringify({
 		places: placesArray,
 		points: pointsArray,
