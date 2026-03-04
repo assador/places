@@ -109,20 +109,20 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-	.popup-export__form {
-		display: grid;
-		grid-template-rows: auto auto auto 1fr auto;
-		max-height: 100%;
-	}
-	.popup-export__tree {
-		margin: 0 auto;
-		padding-right: 12px;
-		text-align: left;
-		overflow: auto;
-	}
-	.popup-export__buttons {
-		display: flex;
-		gap: 12px;
-		justify-content: center;
-	}
+.popup-export__form {
+	display: grid;
+	grid-template-rows: auto auto auto 1fr auto;
+	max-height: 100%;
+}
+.popup-export__tree {
+	margin: 0 auto;
+	padding-right: 12px;
+	text-align: left;
+	overflow: auto;
+}
+.popup-export__buttons {
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+}
 </style>
