@@ -603,7 +603,6 @@
 				class="action-button"
 				:title="mainStore.t.i.hints.importPlaces"
 				accesskey="i"
-				disabled
 				@click="importFromFileInput.click()"
 			>
 				<span class="icon icon-import" />
@@ -1076,10 +1075,7 @@ const importFromFile = async () => {
 	const reader = new FileReader();
 	reader.onload = async (event: ProgressEvent<FileReader>) => {
 		await nextTick();
-		await mainStore.setPlaces({
-			text: event.target?.result,
-			mime,
-		});
+		mainStore.addImported({ mime, text: event.target?.result as string });
 		input.value = '';
 	};
 	reader.readAsText(file);

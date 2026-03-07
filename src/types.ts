@@ -17,7 +17,7 @@ export type AppendMode =
 ;
 export type ImportExportFormat = 'json' | 'gpx';
 
-export interface DataToDB {
+export interface EntityCollection {
 	folders?: Folder[],
 	points?: Point[],
 	places?: Place[],

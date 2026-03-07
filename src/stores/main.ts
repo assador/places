@@ -10,7 +10,7 @@ import {
 	Route,
 	Folder,
 	Tree,
-	DataToDB,
+	EntityCollection,
 	Measure,
 	DragEntityPayload,
 } from '../types';
@@ -19,9 +19,8 @@ import {
 	constants,
 	makeChildren,
 	distanceOnSphere,
-/* TODO Uncomment when importing from file is rewrited
-	formFolderForImported,
-*/
+	entitiesFromJSON,
+	entitiesFromGPX,
 } from '@/shared';
 import api from '@/api';
 import { t } from '@/lang/ru';
@@ -311,6 +310,7 @@ export const useMainStore = defineStore('main', {
 			name,
 			description,
 			mode = 'new',
+			silent = false,
 		}: {
 			object?: Point;
 			props?: Partial<Point>;
@@ -318,8 +318,8 @@ export const useMainStore = defineStore('main', {
 			whom?: Place | Route,
 			name?: string,
 			description?: string,
-			todb?: boolean;
 			mode?: AppendMode,
+			silent?: boolean;
 		} = {}) {
 
 			let point: Point;
@@ -390,14 +390,18 @@ export const useMainStore = defineStore('main', {
 					this.newEntityPointId = point.id;
 					break;
 			}
-			this.getAltitude(point.latitude, point.longitude)
-				.then((alt: number) => {
-					point.altitude = alt;
-				})
-			;
+			if (point.altitude === null) {
+				this.getAltitude(point.latitude, point.longitude)
+					.then((alt: number) => {
+						point.altitude = alt;
+					})
+				;
+			}
 			where = { ...where };
-			this.saved = false;
-			this.backupState();
+			if (!silent) {
+				this.saved = false;
+				this.backupState();
+			}
 			return point;
 		},
 		upsertPlace({
@@ -405,16 +409,17 @@ export const useMainStore = defineStore('main', {
 			props,
 			where = this.places,
 			mode = 'new',
+			silent = false,
 		}: {
 			object?: Place;
 			props?: Partial<Place>;
 			where?: Record<string, Place>;
-			todb?: boolean;
 			mode?: AppendMode,
+			silent?: boolean;
 		} = {}): Place {
 
 			let place: Place;
-			let point: Point;
+			let point: Point | null;
 
 			const folderId = props?.folderid || object?.folderid || null;
 			const nextSrt = Object.values(where)
@@ -442,7 +447,11 @@ export const useMainStore = defineStore('main', {
 					place = object!;
 					break;
 				case 'new':
-					point = this.createPoint({ added: true, ...props });
+					point = props?.pointid ? this.points[props.pointid] : null;
+					if (!point) {
+						point = this.createPoint({ added: true, ...props });
+						this.points[point.id] = point;
+					}
 					place = this.createPlace({
 						pointid: point.id,
 						folderid: folderId,
@@ -450,7 +459,6 @@ export const useMainStore = defineStore('main', {
 						added: true,
 						...props,
 					});
-					this.points[point.id] = point;
 					where[place.id] = place;
 					break;
 				case 'clone':
@@ -472,8 +480,10 @@ export const useMainStore = defineStore('main', {
 					break;
 			}
 			this.setCurrentPlace(place);
-			this.saved = false;
-			this.backupState();
+			if (!silent) {
+				this.saved = false;
+				this.backupState();
+			}
 			return place;
 		},
 		upsertRoute({
@@ -481,12 +491,13 @@ export const useMainStore = defineStore('main', {
 			props,
 			where = this.routes,
 			mode = 'new',
+			silent = false,
 		}: {
 			object?: Route;
 			props?: Partial<Route>;
 			where?: Record<string, Route>;
-			todb?: boolean;
 			mode?: AppendMode,
+			silent?: boolean;
 		} = {}): Route {
 
 			let route: Route;
@@ -527,8 +538,10 @@ export const useMainStore = defineStore('main', {
 					break;
 			}
 			this.setCurrentRoute(route);
-			this.saved = false;
-			this.backupState();
+			if (!silent) {
+				this.saved = false;
+				this.backupState();
+			}
 			return route;
 		},
 		upsertFolder({
@@ -536,12 +549,13 @@ export const useMainStore = defineStore('main', {
 			props,
 			where = this.folders,
 			mode = 'new',
+			silent = false,
 		}: {
 			object?: Folder;
 			props?: Partial<Folder>;
 			where?: Record<string, Folder>;
-			todb?: boolean;
 			mode?: AppendMode;
+			silent?: boolean;
 		} = {}): Folder | undefined {
 
 			let folder: Folder;
@@ -582,8 +596,10 @@ export const useMainStore = defineStore('main', {
 					where[folder.id] = folder;
 					break;
 			}
-			this.saved = false;
-			this.backupState();
+			if (!silent) {
+				this.saved = false;
+				this.backupState();
+			}
 			return folder;
 		},
 
@@ -816,6 +832,100 @@ export const useMainStore = defineStore('main', {
 				folder[key] = change[key];
 			}
 			folder.updated = true;
+			this.saved = false;
+			this.backupState();
+		},
+
+// SEC Inspections
+
+		inspectOrphanFolders() {
+			Object.values<Folder>(this.folders).forEach(f => {
+				if (f.parent && !this.folders[f.parent]) f.parent = null;
+			});
+		},
+		inspectOrphanPlaces() {
+			Object.values<Place>(this.places).forEach(p => {
+				if (p.folderid && !this.folders[p.folderid]) p.folderid = null;
+			});
+		},
+		inspectOrphanRoutes() {
+			Object.values<Route>(this.routes).forEach(r => {
+				if (r.folderid && !this.folders[r.folderid]) r.folderid = null;
+			});
+		},
+
+// SEC Import
+
+		getImportedPoint(pointsRecord: Record<string, Point>, pointId: string) {
+			let point: Point | null = null;
+			let modify = false;
+			let change = false;
+			const exists = Object.hasOwn(this.points, pointId);
+			if (pointsRecord[pointId]) {
+				point = pointsRecord[pointId];
+				modify = true;
+				change = exists;
+			} else if (exists) point = this.points[pointId];
+			return { point: point, modify: modify, change: change };
+		},
+		addImportedFolders(foldersArray: Folder[]) {
+			foldersArray.forEach(f => {
+				if (!this.folders[f.id]) {
+					this.upsertFolder({ props: { ...f }, silent: true });
+				}
+			});
+		},
+		addImportedPlaces(
+			placesArray: Place[],
+			pointsRecord: Record<string, Point>,
+		) {
+			placesArray.forEach(p => {
+				const pointGot = this.getImportedPoint(pointsRecord, p.pointid);
+				if (!pointGot.point) return;
+				if (pointGot.modify) this.upsertPoint({
+					props: { ...pointGot.point },
+					mode: pointGot.change ? 'change' : 'new',
+					silent: true,
+				});
+				this.upsertPlace({
+					props: { ...p },
+					silent: true,
+				});
+			});
+		},
+		addImported(
+			{ mime, text }: { mime: string; text: string; }
+		) {
+			let entities: EntityCollection = {};
+			switch (mime) {
+				case 'application/json' :
+					entities = entitiesFromJSON(text);
+					break;
+				case 'application/gpx+xml' :
+					entities = entitiesFromGPX(text);
+					break;
+			}
+			if (!entities) {
+				this.setMessage(this.t.m.popup.parsingImportError);
+				return;
+			}
+
+			if (entities.folders) this.addImportedFolders(entities.folders);
+			this.inspectOrphanFolders();
+
+			if (!entities.points) {
+				this.saved = false;
+				this.backupState();
+				return;
+			}
+			const points = entities.points.reduce((pts, pt) => {
+				pts[pt.id] = pt;
+				return pts;
+			}, {});
+
+			if (entities.places) this.addImportedPlaces(entities.places, points);
+			this.inspectOrphanPlaces();
+
 			this.saved = false;
 			this.backupState();
 		},
@@ -1055,352 +1165,37 @@ export const useMainStore = defineStore('main', {
 				this.user = null;
 			}
 		},
-		async setPlaces(payload?: { mime: string, text: string | ArrayBuffer }) {
-			// If reading from database, not importing
-			if (!payload) {
-				try {
-					const { data } = await api.get(
-						'get_entities.php?id=' +
-						localStorage.getItem('places-useruuid')
-					);
-					this.placesReady({
-						points: Object.assign({}, data.points),
-						places: Object.assign({}, data.places),
-						routes: Object.assign({}, data.routes),
-						folders: Object.assign({}, data.folders),
-						commonPlaces: Object.assign({}, data.common_places),
-					});
-					this.backup = false;
-					this.setHomePlace({
-						id: this.user.homeplace ? this.user.homeplace : null,
-					});
-					this.backup = true;
-					this.setCurrentRoute(Object.values(this.routes)[0] ?? null);
-					this.setFirstCurrentPlace();
-				} catch (error) {
-					console.error(error);
-					this.setMessage(this.t.m.popup.cannotGetDataFromDb);
-					this.placesReady({
-						points: {},
-						places: {},
-						routes: {},
-						folders: {},
-						commonPlaces: {},
-					});
-				}
-				return;
+		async setPlaces() {
+			try {
+				const { data } = await api.get(
+					'get_entities.php?id=' +
+					localStorage.getItem('places-useruuid')
+				);
+				this.placesReady({
+					points: Object.assign({}, data.points),
+					places: Object.assign({}, data.places),
+					routes: Object.assign({}, data.routes),
+					folders: Object.assign({}, data.folders),
+					commonPlaces: Object.assign({}, data.common_places),
+				});
+				this.backup = false;
+				this.setHomePlace({
+					id: this.user.homeplace ? this.user.homeplace : null,
+				});
+				this.backup = true;
+				this.setCurrentRoute(Object.values(this.routes)[0] ?? null);
+				this.setFirstCurrentPlace();
+			} catch (error) {
+				console.error(error);
+				this.setMessage(this.t.m.popup.cannotGetDataFromDb);
+				this.placesReady({
+					points: {},
+					places: {},
+					routes: {},
+					folders: {},
+					commonPlaces: {},
+				});
 			}
-		/* TODO Completely rewrite to take into account the new architecture (upserts, etc.)
-			// If importing from file.
-			// A payload parameter is present and is an object:
-			// {text: <file’s content as a text>, type: <file’s MIME-type>}
-
-			const parseJSON = (text: string) => {
-				try {
-					const result =
-						<Record<string, Array<Place | Route | Point | Folder>>>
-						JSON.parse(text)
-					;
-					return result;
-				} catch (e) {
-					console.error(e);
-					this.setMessage(this.t.m.popup.parsingImportError + ': ' + e);
-					return null;
-				}
-			}
-			const parseGPX = (text: string) => {
-				const result = {
-					points: [] as Array<Point>,
-					places: [] as Array<Place>,
-					tree: {} as Folder,
-				};
-				// Parsing XML text to a DOM tree
-				let dom = null;
-				try {
-					dom = (new DOMParser()).parseFromString(
-						text, 'text/xml'
-					);
-				} catch (e) {
-					console.error(e);
-					this.setMessage(this.t.m.popup.parsingImportError + ': ' + e);
-					return null;
-				}
-				if (this.trees.places.imported) {
-					result.tree = this.trees.places.imported;
-				}
-				let importedPlaceFolder, importedFolder: Folder;
-				let description = '', time = '';
-				for (const wpt of dom.getElementsByTagName('wpt')) {
-					// Parsing a time node in a place node
-					time = '';
-					if (wpt.getElementsByTagName('time').length) {
-						time = wpt.getElementsByTagName('time')[0].textContent.trim();
-					}
-					// Updating the tree branch of folders for imported places
-					// and get an ID of a folder for the importing place
-					importedPlaceFolder = formFolderForImported(
-						this.t,
-						time.slice(0, 10),
-						importedFolder
-					);
-					importedFolder = importedPlaceFolder.imported;
-					// Parsing a description node in a place node
-					description = '';
-					if (wpt.getElementsByTagName('desc').length) {
-						for (const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
-							try {
-								switch (desc.nodeType) {
-									case 1 : case 3 :
-										description +=
-											desc.textContent.trim() +
-											(desc.nextSibling ? '\n' : '');
-										break;
-									case 4 :
-										const reStr: string =
-											'desc_(?:user|test)' +
-											'\s*\:\s*start\s*--\s*>\s*' +
-											'(.*?)' +
-											'\s*<\s*\!\s*--\s*' +
-											'desc_(?:user|test)' +
-											'\s*\:\s*end'
-										;
-										const descs = desc.textContent.match(
-											new RegExp(reStr, 'gi')
-										);
-										for (let i = 0; i < descs.length; i++) {
-											description += descs[i].replace(
-												new RegExp(reStr, 'i'), '$1'
-											) + (desc.nextSibling ? '\n' : '');
-										}
-										break;
-								}
-							} catch (e) {console.error(e);}
-						}
-					}
-					// Forming an importing place as an object and pushing it in a structure
-					const newPointId = crypto.randomUUID();
-					const newPlaceId = crypto.randomUUID();
-					const newPoint = {
-						id: newPointId,
-						userid: localStorage.getItem('places-useruuid'),
-						latitude:
-							Number(wpt.getAttribute('lat')) ||
-							Number(constants.map.initial.latitude) ||
-							null,
-						longitude:
-							Number(wpt.getAttribute('lon')) ||
-							Number(constants.map.initial.longitude) ||
-							null,
-						time: time,
-						type: 'point',
-						common: false,
-						added: true,
-						deleted: false,
-						updated: false,
-						show: true,
-					};
-					const newPlace = {
-						id: newPlaceId,
-						pointid: newPointId,
-						folderid: importedPlaceFolder.folderid,
-						name: (wpt.getElementsByTagName('name').length
-							? wpt.getElementsByTagName('name')[0].textContent.trim()
-							: ''
-						),
-						description: description,
-						link: (wpt.getElementsByTagName('link').length
-							? wpt.getElementsByTagName('link')[0].getAttribute('href').trim()
-							: ''
-						),
-						time: time,
-						srt: (Object.keys(result.places).length
-							? Object.keys(result.places).length + 1
-							: 0
-						),
-						common: false,
-						geomark: true,
-						userid: localStorage.getItem('places-useruuid'),
-						images: {},
-						type: 'place',
-						added: true,
-						deleted: false,
-						updated: false,
-						show: true,
-					};
-					result.points.push(newPoint);
-					result.places.push(newPlace);
-				}
-				result.tree = importedPlaceFolder.imported;
-				return result;
-			}
-			const addImported = async (
-				mime: string,
-				parsed:
-					Record<string,
-						Array<Point | Place | Folder> |
-						Record<string, Array<Point | Place> | Folder>
-					> | null
-			) => {
-				try {
-					switch (mime) {
-						case 'application/json' :
-							let allParentsAdded = false;
-							while (!allParentsAdded) {
-								allParentsAdded = true;
-								for (const folder of (parsed.folders as Array<Folder>)) {
-
-									// Checking if such a folder already exists
-									// in the tree and user has rights
-									// to add a folder.
-
-									if (
-										this.folders[folder.id] ||
-										!this.folders[folder.parent] &&
-										(parsed.folders as Array<Folder>)
-											.find(f => f.id === folder.parent)
-									) {
-										continue;
-									}
-									if (
-										this.serverConfig.rights.folderscount < 0 ||
-										this.serverConfig.rights.folderscount
-											// length - 1 because there is a root folder too
-											> Object.keys(this.folders).length - 1 ||
-										this.user.testaccount
-									) {
-										const newFolder: Folder = {
-											type: 'folder',
-											userid: localStorage.getItem('places-useruuid') as string,
-											name: folder.name,
-											description: folder.description,
-											id: folder.id,
-											srt: Number(folder.srt) || 0,
-											parent: folder.parent,
-											open: false,
-											geomarks: 1,
-											added: true,
-											deleted: false,
-											updated: false,
-											builded: true,
-										};
-										this.upsertFolder({
-											what: newFolder,
-											where: this.folders,
-										});
-									} else {
-										this.setMessage(
-											this.t.m.popup.foldersCountExceeded
-										, 3);
-										break;
-									}
-									allParentsAdded = false;
-								}
-							}
-							break;
-						case 'application/gpx+xml' :
-							this.upsertFolder({
-								what: parsed.tree,
-								where: this.folders,
-							});
-							break;
-						default :
-							this.setMessage(`
-								o_O
-							`, 3);
-							return false;
-					}
-					for (const place of (parsed.places as Array<Place>)) {
-
-						// Checking if such a place already exists
-						// and user has rights to add a place.
-
-						if (this.places[place.id]) continue;
-						if (
-							this.serverConfig.rights.placescount < 0 ||
-							this.serverConfig.rights.placescount
-								> Object.keys(this.places).length ||
-							this.user.testaccount
-						) {
-							let newPoint: Point;
-							if (this.points[place.pointid]) {
-								newPoint = this.points[place.pointid];
-							} else {
-								const parsedPoint =
-									(parsed.points as Array<Point>)
-										.find(w => w.id === place.pointid)
-								;
-								newPoint = {
-									id: parsedPoint.id,
-									userid: parsedPoint.userid,
-									latitude:
-										Number(parsedPoint.latitude) ||
-										Number(constants.map.initial.latitude) ||
-										null,
-									longitude:
-										Number(parsedPoint.longitude) ||
-										Number(constants.map.initial.longitude) ||
-										null,
-									altitude: parsedPoint.altitude,
-									time: parsedPoint.time,
-									common: parsedPoint.common,
-									type: 'point',
-									added: true,
-									deleted: false,
-									updated: false,
-									show: true,
-								};
-							}
-							const newPlace: Place = {
-								type: 'place',
-								userid: localStorage.getItem('places-useruuid') as string,
-								name: place.name,
-								description: place.description,
-								pointid: place.pointid,
-								link: place.link,
-								time: place.time,
-								id: place.id,
-								folderid: place.folderid,
-								srt: Number(place.srt) || 0,
-								common: place.common,
-								geomark: true,
-								added: true,
-								deleted: false,
-								updated: false,
-								show: true,
-							};
-							if (!this.points[place.pointid]) {
-								this.upsertPoint({ what: newPoint });
-							}
-							this.upsertPlace({ object: newPlace });
-						} else {
-							this.setMessage(
-								this.t.m.popup.placesCountExceeded
-							, 3);
-						}
-					}
-				} catch (e) {
-					console.error(e);
-					this.setMessage(this.t.m.popup.parsingImportError + ': ' + e);
-					return false;
-				}
-				return true;
-			}
-			let parsed: Record<string, any>;
-			switch (payload.mime) {
-				case 'application/json' :
-					parsed = parseJSON(payload.text as string);
-					break;
-				case 'application/gpx+xml' :
-					parsed = parseGPX(payload.text as string);
-					break;
-				default :
-					this.setMessage(
-						this.t.m.popup.invalidImportFileType
-					, 3);
-					return false;
-			}
-			addImported(payload.mime, parsed);
-		*/
 		},
 
 // SEC Setting Current
@@ -1506,7 +1301,7 @@ export const useMainStore = defineStore('main', {
 
 // SEC DB
 
-		savedToDB(payload: DataToDB) {
+		savedToDB(payload: EntityCollection) {
 			const collections = {
 				points: this.points,
 				places: this.places,
@@ -1514,7 +1309,7 @@ export const useMainStore = defineStore('main', {
 				folders: this.folders,
 			};
 			for (const [ key, stateDict ] of Object.entries(collections)) {
-				const items = payload[key as keyof DataToDB];
+				const items = payload[key as keyof EntityCollection];
 				if (!items) continue;
 				items.forEach((item: any) => {
 					if (item.deleted) {
@@ -2093,7 +1888,7 @@ export const useMainStore = defineStore('main', {
 				return coords;
 			}
 		},
-		getAllModifiedPackage(): DataToDB {
+		getAllModifiedPackage(): EntityCollection {
 			return {
 				points: this.collectModified(this.points),
 				places: this.collectModified(this.places),

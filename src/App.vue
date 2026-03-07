@@ -32,8 +32,8 @@ import {
 	emitter,
 	usePWAInstall,
 	logoutRoutine,
-	generateGpx,
-	generateJson,
+	generateGPX,
+	generateJSON,
 	handleFolderDropped,
 	handlePlaceRouteDropped,
 	handlePointInListDropped,
@@ -42,7 +42,7 @@ import {
 } from '@/shared';
 import {
 	Place,
-	DataToDB,
+	EntityCollection,
 	DragPayload,
 	DragEventCustom,
 	ImportExportFormat,
@@ -131,7 +131,7 @@ emitter.on('confirm', (object: { func: Function, args: any[], msg: string }): vo
 	confirm(func, args, msg);
 });
 
-emitter.on('toDB', (payload: DataToDB) => {
+emitter.on('toDB', (payload: EntityCollection) => {
 	if (payload) {
 		toDB(payload);
 	} else {
@@ -176,7 +176,7 @@ onMounted(() => {
 
 // SEC DB operations
 
-const toDB = async (payload: DataToDB): Promise<void> => {
+const toDB = async (payload: EntityCollection): Promise<void> => {
 	if (document.querySelector('.value_wrong')) {
 		mainStore.setMessage(mainStore.t.m.paged.incorrectFields, 3);
 		return;
@@ -222,14 +222,14 @@ const exportPlaces = (
 	let filename = 'places.json';
 	let mimeType = 'application/json';
 	if (format === 'gpx') {
-		content = generateGpx({
+		content = generateGPX({
 			places: places,
 			pointsDict: mainStore.points,
 		});
 		filename = 'places.gpx';
 		mimeType = 'application/gpx+xml';
 	} else {
-		content = generateJson({
+		content = generateJSON({
 			places: places,
 			pointsDict: mainStore.points,
 			foldersDict: mainStore.folders,

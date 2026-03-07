@@ -8,6 +8,7 @@ export * from '@/shared/checkers';
 export * from '@/shared/searchers';
 export * from '@/shared/converters';
 export * from '@/shared/generators';
+export * from '@/shared/importexport';
 
 export * from '@/shared/auth';
 export * from '@/shared/reg';
