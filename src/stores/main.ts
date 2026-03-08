@@ -349,7 +349,7 @@ export const useMainStore = defineStore('main', {
 					point = object!;
 					break;
 				case 'change':
-					Object.assign(object!, { updated: true }, props);
+					Object.assign(object!, { updated: true, deleted: false }, props);
 					point = object!;
 					break;
 				case 'new':
@@ -443,7 +443,7 @@ export const useMainStore = defineStore('main', {
 					place = object!;
 					break;
 				case 'change':
-					Object.assign(object!, { updated: true }, props);
+					Object.assign(object!, { updated: true, deleted: false }, props);
 					place = object!;
 					break;
 				case 'new':
@@ -524,7 +524,7 @@ export const useMainStore = defineStore('main', {
 					route = object!;
 					break;
 				case 'change':
-					Object.assign(object!, { updated: true }, props);
+					Object.assign(object!, { updated: true, deleted: false }, props);
 					route = object!;
 					break;
 				case 'new':
@@ -583,7 +583,7 @@ export const useMainStore = defineStore('main', {
 					folder = object!;
 					break;
 				case 'change':
-					Object.assign(object!, { updated: true }, props);
+					Object.assign(object!, { updated: true, deleted: false }, props);
 					folder = object!;
 					break;
 				case 'new':
@@ -692,7 +692,7 @@ export const useMainStore = defineStore('main', {
 			const collectRecursive = (fId: string) => {
 				const folder = this.folders[fId];
 				if (!folder) return;
-				if (folder.parent !== null) toDelete[fId] = folder;
+				toDelete[fId] = folder;
 
 				Object.values<Place>(this.places).forEach(p => {
 					if (p.folderid === fId) toDelete[p.id] = p;
@@ -859,19 +859,27 @@ export const useMainStore = defineStore('main', {
 		getImportedPoint(pointsRecord: Record<string, Point>, pointId: string) {
 			let point: Point | null = null;
 			let modify = false;
-			let change = false;
-			const exists = Object.hasOwn(this.points, pointId);
+			const existing = this.points[pointId] ?? null;
 			if (pointsRecord[pointId]) {
 				point = pointsRecord[pointId];
 				modify = true;
-				change = exists;
-			} else if (exists) point = this.points[pointId];
-			return { point: point, modify: modify, change: change };
+			} else if (existing) point = this.points[pointId];
+			return { point: point, modify: modify, existing: existing };
 		},
 		addImportedFolders(foldersArray: Folder[]) {
 			foldersArray.forEach(f => {
-				if (!this.folders[f.id]) {
-					this.upsertFolder({ props: { ...f }, silent: true });
+				if (this.folders[f.id]) {
+					this.upsertFolder({
+						object: this.folders[f.id],
+						mode: 'change',
+						props: { ...f },
+						silent: true,
+					});
+				} else {
+					this.upsertFolder({
+						props: { ...f },
+						silent: true,
+					});
 				}
 			});
 		},
@@ -882,15 +890,34 @@ export const useMainStore = defineStore('main', {
 			placesArray.forEach(p => {
 				const pointGot = this.getImportedPoint(pointsRecord, p.pointid);
 				if (!pointGot.point) return;
-				if (pointGot.modify) this.upsertPoint({
-					props: { ...pointGot.point },
-					mode: pointGot.change ? 'change' : 'new',
-					silent: true,
-				});
-				this.upsertPlace({
-					props: { ...p },
-					silent: true,
-				});
+				if (pointGot.modify) {
+					if (pointGot.existing) {
+						this.upsertPoint({
+							object: pointGot.existing,
+							mode: 'change',
+							props: { ...pointGot.point },
+							silent: true,
+						});
+					} else {
+						this.upsertPoint({
+							props: { ...pointGot.point },
+							silent: true,
+						});
+					}
+				}
+				if (this.places[p.id]) {
+					this.upsertPlace({
+						object: this.places[p.id],
+						mode: 'change',
+						props: { ...p },
+						silent: true,
+					});
+				} else {
+					this.upsertPlace({
+						props: { ...p },
+						silent: true,
+					});
+				}
 			});
 		},
 		addImported(
@@ -903,6 +930,7 @@ export const useMainStore = defineStore('main', {
 					break;
 				case 'application/gpx+xml' :
 					entities = entitiesFromGPX(text);
+					console.log(entities); return; // TODO Delete after GPX import is done.
 					break;
 			}
 			if (!entities) {

@@ -285,6 +285,7 @@ onBeforeMount(() => {
 onMounted(async () => {
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
+	mainStore.setBusy(false);
 });
 onUpdated(async () => {
 	makeFieldsValidatable(mainStore.t);

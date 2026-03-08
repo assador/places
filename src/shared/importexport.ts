@@ -1,4 +1,4 @@
-import { EntityCollection, Folder, Point, Place } from '@/types';
+import { EntityCollection, Folder, Point, Place, Route } from '@/types';
 
 // SEC Export
 
@@ -25,6 +25,7 @@ export const generateGPX = ({
 		const wp = pointsDict[p.pointid];
 		if (!wp) return '';
 		let node = `<wpt lat="${wp.latitude}" lon="${wp.longitude}">`;
+		if (wp.altitude) node += `<ele>${wp.altitude}</ele>`;
 		if (p.name) node += `<name>${escapeXML(p.name)}</name>`;
 		if (p.description) node += `<desc>${escapeXML(p.description)}</desc>`;
 		if (p.link) node += `<link href="${escapeXML(p.link)}"></link>`;
@@ -114,137 +115,51 @@ export const entitiesFromJSON = (text: string): EntityCollection | null => {
 }
 export const entitiesFromGPX = (text: string): EntityCollection | null => {
 	try {
-		const entities: EntityCollection = {};
+		const entities: EntityCollection = {
+			points: [],
+			routes: [],
+		};
+		const parser = new DOMParser();
+		const xml = parser.parseFromString(text, 'application/xml');
+
+		if (xml.getElementsByTagName('parsererror').length) return null;
+
+		for (const wpt of Array.from(xml.getElementsByTagName('wpt'))) {
+			const pointId = crypto.randomUUID();
+			const point: Partial<Point> = {
+				id: pointId,
+				latitude: parseFloat(wpt.getAttribute('lat') || '0'),
+				longitude: parseFloat(wpt.getAttribute('lon') || '0'),
+				altitude:
+					parseFloat(
+						wpt.getElementsByTagName('ele')[0]?.textContent || '0',
+					) || null,
+				time: wpt.getElementsByTagName('time')[0]?.textContent || undefined,
+			};
+			entities.points.push(point);
+		}
+		for (const rte of Array.from(xml.getElementsByTagName('rte'))) {
+			const route: Partial<Route> = {
+				name: rte.getElementsByTagName('name')[0]?.textContent || '',
+				points: [],
+			};
+			for (const pt of Array.from(rte.getElementsByTagName('rtept'))) {
+				const pointId = crypto.randomUUID();
+				entities.points!.push({
+					id: pointId,
+					latitude: parseFloat(pt.getAttribute('lat') || '0'),
+					longitude: parseFloat(pt.getAttribute('lon') || '0'),
+				});
+				route.points!.push({
+					id: pointId,
+					name: pt.getElementsByTagName('name')[0]?.textContent || '',
+				});
+			}
+			entities.routes!.push(route);
+		}
 		return entities;
 	} catch (e) {
 		console.error(e);
 		return null;
 	}
 }
-/*
-const parseGPX = (text: string) => {
-	const result = {
-		points: [] as Array<Point>,
-		places: [] as Array<Place>,
-		tree: {} as Folder,
-	};
-	// Parsing XML text to a DOM tree
-	let dom = null;
-	try {
-		dom = (new DOMParser()).parseFromString(
-			text, 'text/xml'
-		);
-	} catch (e) {
-		console.error(e);
-		this.setMessage(this.t.m.popup.parsingImportError + ': ' + e);
-		return null;
-	}
-	if (this.trees.places.imported) {
-		result.tree = this.trees.places.imported;
-	}
-	let importedPlaceFolder, importedFolder: Folder;
-	let description = '', time = '';
-	for (const wpt of dom.getElementsByTagName('wpt')) {
-		// Parsing a time node in a place node
-		time = '';
-		if (wpt.getElementsByTagName('time').length) {
-			time = wpt.getElementsByTagName('time')[0].textContent.trim();
-		}
-		// Updating the tree branch of folders for imported places
-		// and get an ID of a folder for the importing place
-		importedPlaceFolder = formFolderForImported(
-			this.t,
-			time.slice(0, 10),
-			importedFolder
-		);
-		importedFolder = importedPlaceFolder.imported;
-		// Parsing a description node in a place node
-		description = '';
-		if (wpt.getElementsByTagName('desc').length) {
-			for (const desc of wpt.getElementsByTagName('desc')[0].childNodes) {
-				try {
-					switch (desc.nodeType) {
-						case 1 : case 3 :
-							description +=
-								desc.textContent.trim() +
-								(desc.nextSibling ? '\n' : '');
-							break;
-						case 4 :
-							const reStr: string =
-								'desc_(?:user|test)' +
-								'\s*\:\s*start\s*--\s*>\s*' +
-								'(.*?)' +
-								'\s*<\s*\!\s*--\s*' +
-								'desc_(?:user|test)' +
-								'\s*\:\s*end'
-							;
-							const descs = desc.textContent.match(
-								new RegExp(reStr, 'gi')
-							);
-							for (let i = 0; i < descs.length; i++) {
-								description += descs[i].replace(
-									new RegExp(reStr, 'i'), '$1'
-								) + (desc.nextSibling ? '\n' : '');
-							}
-							break;
-					}
-				} catch (e) {console.error(e);}
-			}
-		}
-		// Forming an importing place as an object and pushing it in a structure
-		const newPointId = crypto.randomUUID();
-		const newPlaceId = crypto.randomUUID();
-		const newPoint = {
-			id: newPointId,
-			userid: localStorage.getItem('places-useruuid'),
-			latitude:
-				Number(wpt.getAttribute('lat')) ||
-				Number(constants.map.initial.latitude) ||
-				null,
-			longitude:
-				Number(wpt.getAttribute('lon')) ||
-				Number(constants.map.initial.longitude) ||
-				null,
-			time: time,
-			type: 'point',
-			common: false,
-			added: true,
-			deleted: false,
-			updated: false,
-			show: true,
-		};
-		const newPlace = {
-			id: newPlaceId,
-			pointid: newPointId,
-			folderid: importedPlaceFolder.folderid,
-			name: (wpt.getElementsByTagName('name').length
-				? wpt.getElementsByTagName('name')[0].textContent.trim()
-				: ''
-			),
-			description: description,
-			link: (wpt.getElementsByTagName('link').length
-				? wpt.getElementsByTagName('link')[0].getAttribute('href').trim()
-				: ''
-			),
-			time: time,
-			srt: (Object.keys(result.places).length
-				? Object.keys(result.places).length + 1
-				: 0
-			),
-			common: false,
-			geomark: true,
-			userid: localStorage.getItem('places-useruuid'),
-			images: {},
-			type: 'place',
-			added: true,
-			deleted: false,
-			updated: false,
-			show: true,
-		};
-		result.points.push(newPoint);
-		result.places.push(newPlace);
-	}
-	result.tree = importedPlaceFolder.imported;
-	return result;
-}
-*/

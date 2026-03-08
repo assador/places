@@ -18,11 +18,11 @@ export type AppendMode =
 export type ImportExportFormat = 'json' | 'gpx';
 
 export interface EntityCollection {
-	folders?: Folder[],
-	points?: Point[],
-	places?: Place[],
-	routes?: Route[],
-	images?: Image[],
+	folders?: Partial<Folder>[],
+	points?: Partial<Point>[],
+	places?: Partial<Place>[],
+	routes?: Partial<Route>[],
+	images?: Partial<Image>[],
 }
 export interface FirstShow {
 	show: boolean,
@@ -55,9 +55,6 @@ export interface Folder extends Entity {
 	srt: number;
 	geomarks: number;
 	builded: boolean;
-	added: boolean;
-	deleted: boolean;
-	updated: boolean;
 	open: boolean;
 	children?: Record<string, Folder>;
 }

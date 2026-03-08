@@ -107,6 +107,7 @@ const popupBusy = ref<IPlacesPopupProps>({
 
 // Event Bus Handlers
 emitter.on('logged', async () => {
+	mainStore.setBusy(true);
 	await mainStore.setUser();
 	await mainStore.setServerConfig();
 	await mainStore.setPlaces();
@@ -116,6 +117,7 @@ emitter.on('logged', async () => {
 });
 emitter.on('logout', () => {
 	const getOut = async () => {
+		mainStore.setBusy(true);
 		const userId = localStorage.getItem('places-useruuid');
 		const sessionId = localStorage.getItem('places-session');
 		mainStore.unload();
