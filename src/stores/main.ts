@@ -982,6 +982,7 @@ export const useMainStore = defineStore('main', {
 		addImported(
 			{ mime, text }: { mime: string; text: string; }
 		) {
+			this.setBusy(true);
 			let entities: EntityCollection = {};
 			const idMap = new Map<string, string>();
 
@@ -1017,6 +1018,7 @@ export const useMainStore = defineStore('main', {
 
 			this.saved = false;
 			this.backupState();
+			this.setBusy(false);
 		},
 
 // SEC Collecting Points
