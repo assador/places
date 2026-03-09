@@ -853,10 +853,57 @@ export const useMainStore = defineStore('main', {
 				if (r.folderid && !this.folders[r.folderid]) r.folderid = null;
 			});
 		},
+		resolveId(
+			oldId: string,
+			idMap: Map<string, string>,
+			entityRecord: Record<string, any>,
+		): string {
+			if (idMap.has(oldId)) return idMap.get(oldId);
+			if (entityRecord[oldId]) {
+				idMap.set(oldId, oldId);
+				return oldId;
+			}
+			const newId = crypto.randomUUID();
+			idMap.set(oldId, newId);
+			return newId;
+		},
 
 // SEC Import
 
-		getImportedPoint(pointsRecord: Record<string, Point>, pointId: string) {
+		existingFolder(folder: Partial<Folder>, idMap: Map<string, string>) {
+			return Object.values<Folder>(this.folders).find(f => {
+				if (f.id === folder.id) return true;
+				const mapped = folder.parent ? idMap.get(folder.parent) : null;
+				return f.name === folder.name && f.parent === mapped;
+			});
+		},
+		existingPoint(point: Partial<Point>) {
+			return Object.values<Point>(this.points).find(pt =>
+				pt.id === point.id ||
+				pt.latitude === point.latitude &&
+				pt.longitude === point.longitude
+			);
+		},
+		existingPlace(place: Partial<Place>, pointsRecord: Record<string, Point>) {
+			return Object.values<Place>(this.places).find(pl => {
+				const pt = this.points[pl.pointid];
+				const ptImported = pointsRecord[place.pointid];
+				return (
+					pl.id === place.id ||
+					pl.name === place.name &&
+					pt.latitude.toFixed(4) === ptImported.latitude.toFixed(4) &&
+					pt.longitude.toFixed(4) === ptImported.longitude.toFixed(4)
+				);
+			});
+		},
+		getImportedPoint(
+			pointsRecord: Record<string, Point>,
+			pointId: string,
+		): {
+			point: Point | null,
+			modify: boolean,
+			existing: Point | null,
+		} {
 			let point: Point | null = null;
 			let modify = false;
 			const existing = this.points[pointId] ?? null;
@@ -866,28 +913,34 @@ export const useMainStore = defineStore('main', {
 			} else if (existing) point = this.points[pointId];
 			return { point: point, modify: modify, existing: existing };
 		},
-		addImportedFolders(foldersArray: Folder[]) {
+		addImportedFolders(
+			foldersArray: Folder[],
+			idMap: Map<string, string>,
+		) {
 			foldersArray.forEach(f => {
-				if (this.folders[f.id]) {
-					this.upsertFolder({
-						object: this.folders[f.id],
-						mode: 'change',
-						props: { ...f },
-						silent: true,
-					});
-				} else {
-					this.upsertFolder({
-						props: { ...f },
-						silent: true,
-					});
-				}
+				const existing = this.existingFolder(f, idMap);
+				const newFolderId = existing ? existing.id : crypto.randomUUID();
+				idMap.set(f.id, newFolderId);
+			});
+			foldersArray.forEach(f => {
+				const newFolderId = idMap.get(f.id) ?? crypto.randomUUID();
+				const newParentId = f.parent ? idMap.get(f.parent) : null;
+				this.upsertFolder({
+					object: this.folders[newFolderId],
+					mode: this.folders[newFolderId] ? 'change' : 'new',
+					props: { ...f, id: newFolderId, parent: newParentId },
+					silent: true,
+				});
 			});
 		},
 		addImportedPlaces(
 			placesArray: Place[],
+			idMap: Map<string, string>,
 			pointsRecord: Record<string, Point>,
 		) {
 			placesArray.forEach(p => {
+				const existing = this.existingPlace(p, pointsRecord);
+				if (existing) return; // Then, if we want, we can do something with what we find. Like change it, ask questions, tell all the people to fuck off.
 				const pointGot = this.getImportedPoint(pointsRecord, p.pointid);
 				if (!pointGot.point) return;
 				if (pointGot.modify) {
@@ -899,31 +952,39 @@ export const useMainStore = defineStore('main', {
 							silent: true,
 						});
 					} else {
+						const newPointId = this.resolveId(
+							pointGot.point.id,
+							idMap,
+							this.points,
+						);
 						this.upsertPoint({
-							props: { ...pointGot.point },
+							props: { ...pointGot.point, id: newPointId },
 							silent: true,
 						});
 					}
 				}
-				if (this.places[p.id]) {
-					this.upsertPlace({
-						object: this.places[p.id],
-						mode: 'change',
-						props: { ...p },
-						silent: true,
-					});
-				} else {
-					this.upsertPlace({
-						props: { ...p },
-						silent: true,
-					});
-				}
+				const newPlaceId = this.resolveId(
+					p.id,
+					idMap,
+					this.places,
+				);
+				this.upsertPlace({
+					props: {
+						...p,
+						id: newPlaceId,
+						pointid: idMap.get(p.pointid) || p.pointid,
+						folderid: p.folderid ? idMap.get(p.folderid) : null,
+					},
+					silent: true,
+				});
 			});
 		},
 		addImported(
 			{ mime, text }: { mime: string; text: string; }
 		) {
 			let entities: EntityCollection = {};
+			const idMap = new Map<string, string>();
+
 			switch (mime) {
 				case 'application/json' :
 					entities = entitiesFromJSON(text);
@@ -938,7 +999,7 @@ export const useMainStore = defineStore('main', {
 				return;
 			}
 
-			if (entities.folders) this.addImportedFolders(entities.folders);
+			if (entities.folders) this.addImportedFolders(entities.folders, idMap);
 			this.inspectOrphanFolders();
 
 			if (!entities.points) {
@@ -951,7 +1012,7 @@ export const useMainStore = defineStore('main', {
 				return pts;
 			}, {});
 
-			if (entities.places) this.addImportedPlaces(entities.places, points);
+			if (entities.places) this.addImportedPlaces(entities.places, idMap, points);
 			this.inspectOrphanPlaces();
 
 			this.saved = false;
