@@ -19,7 +19,7 @@
 			"
 			class="folder-subs"
 			:class="{
-				'folder-editable': foldersEditMode,
+				'folder_editable': foldersEditMode,
 				'folder-subs-to-export': folder.virtual && instanceid === 'popupexporttree',
 			}"
 		>
@@ -698,11 +698,10 @@ const handleDragLeave = (event: DragEvent) => {
 		}
 	}
 	&_editable {
-		display: grid;
+		display: grid !important;
 		grid-template-columns: auto 1fr;
-		gap: 8px;
-		align-items: start;
-		margin-top: 12px;
+		align-items: start !important;
+		margin: 6px 0;
 		.control-buttons {
 			flex: 0 1 auto;
 			flex-flow: column wrap;
@@ -729,7 +728,7 @@ const handleDragLeave = (event: DragEvent) => {
 			min-width: 0;
 		}
 		&#places-header, &#routes-header {
-			align-items: start;
+			grid-template-columns: auto 1fr auto;
 		}
 	}
 	.folder-distances {
