@@ -39,9 +39,9 @@ function getPoints(AppContext $ctx, string $userIdBin): array {
 		EXISTS (
 			SELECT 1
 			FROM pointroute ptk
-			JOIN routes tr ON tr.id = ptk.routeid
+			JOIN routes rt ON rt.id = ptk.routeid
 			WHERE ptk.pointid = pt.id
-				AND (tr.userid = :uid OR tr.common = 1)
+				AND (rt.userid = :uid OR rt.common = 1)
 		);
 	");
 	$stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
@@ -227,7 +227,7 @@ echo json_encode([
 	'folders'      => getFolders($ctx, $userIdBin),
 	'points'       => getPoints($ctx, $userIdBin),
 	'places'       => $places['places'],
-	'commonPlaces' => $places['commonPlaces'],
 	'routes'       => $routes['routes'],
+	'commonPlaces' => $places['commonPlaces'],
 	'commonRoutes' => $routes['commonRoutes'],
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);

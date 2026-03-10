@@ -992,7 +992,6 @@ export const useMainStore = defineStore('main', {
 					break;
 				case 'application/gpx+xml' :
 					entities = entitiesFromGPX(text);
-					console.log(entities); return; // TODO Delete after GPX import is done.
 					break;
 			}
 			if (!entities) {
@@ -1263,11 +1262,13 @@ export const useMainStore = defineStore('main', {
 					localStorage.getItem('places-useruuid')
 				);
 				this.placesReady({
-					points: Object.assign({}, data.points),
-					places: Object.assign({}, data.places),
-					routes: Object.assign({}, data.routes),
-					folders: Object.assign({}, data.folders),
-					commonPlaces: Object.assign({}, data.common_places),
+					points: { ...data.points },
+					places: { ...data.places },
+					routes: { ...data.routes },
+					folders: { ...data.folders },
+					// TODO Implement Commons:
+					// commonPlaces: { ...data.commonPlaces },
+					// commonRoutes: { ...data.commonRoutes },
 				});
 				this.backup = false;
 				this.setHomePlace({

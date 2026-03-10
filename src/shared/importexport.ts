@@ -115,9 +115,16 @@ export const entitiesFromJSON = (text: string): EntityCollection | null => {
 }
 export const entitiesFromGPX = (text: string): EntityCollection | null => {
 	try {
+		const folderId = crypto.randomUUID();
 		const entities: EntityCollection = {
 			points: [],
+			places: [],
 			routes: [],
+			folders: [{
+				id: folderId,
+				parent: null,
+				name: new Date().toUTCString(),
+			}],
 		};
 		const parser = new DOMParser();
 		const xml = parser.parseFromString(text, 'application/xml');
@@ -126,17 +133,31 @@ export const entitiesFromGPX = (text: string): EntityCollection | null => {
 
 		for (const wpt of Array.from(xml.getElementsByTagName('wpt'))) {
 			const pointId = crypto.randomUUID();
+			const placeId = crypto.randomUUID();
+			const ele = wpt.getElementsByTagName('ele')[0]?.textContent;
+			const time = wpt.getElementsByTagName('time')[0]?.textContent;
+			const name = wpt.getElementsByTagName('name')[0]?.textContent;
+			const desc = wpt.getElementsByTagName('desc')[0]?.textContent;
+			const href = wpt.getElementsByTagName('link')[0]?.getAttribute('href');
+
 			const point: Partial<Point> = {
 				id: pointId,
 				latitude: parseFloat(wpt.getAttribute('lat') || '0'),
 				longitude: parseFloat(wpt.getAttribute('lon') || '0'),
-				altitude:
-					parseFloat(
-						wpt.getElementsByTagName('ele')[0]?.textContent || '0',
-					) || null,
-				time: wpt.getElementsByTagName('time')[0]?.textContent || undefined,
+				altitude: ele ? parseFloat(ele) : null,
+				time: time || undefined,
 			};
 			entities.points.push(point);
+
+			const place: Partial<Place> = {
+				id: placeId,
+				pointid: pointId,
+				folderid: folderId,
+				name: name || '',
+				description: desc || '',
+				link: href || '',
+			};
+			entities.places.push(place);
 		}
 		for (const rte of Array.from(xml.getElementsByTagName('rte'))) {
 			const route: Partial<Route> = {
@@ -145,17 +166,17 @@ export const entitiesFromGPX = (text: string): EntityCollection | null => {
 			};
 			for (const pt of Array.from(rte.getElementsByTagName('rtept'))) {
 				const pointId = crypto.randomUUID();
-				entities.points!.push({
+				entities.points.push({
 					id: pointId,
 					latitude: parseFloat(pt.getAttribute('lat') || '0'),
 					longitude: parseFloat(pt.getAttribute('lon') || '0'),
 				});
-				route.points!.push({
+				route.points.push({
 					id: pointId,
 					name: pt.getElementsByTagName('name')[0]?.textContent || '',
 				});
 			}
-			entities.routes!.push(route);
+			entities.routes.push(route);
 		}
 		return entities;
 	} catch (e) {
