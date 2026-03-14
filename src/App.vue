@@ -112,6 +112,8 @@ emitter.on('logged', async () => {
 	await mainStore.setServerConfig();
 	await mainStore.setPlaces();
 	mainStore.ready = true;
+	mainStore.openTreeToCurrent(mainStore.currentPlace);
+	mainStore.openTreeToCurrent(mainStore.currentRoute);
 	mainStore.backupState();
 	router.push({ name: 'Home' });
 });

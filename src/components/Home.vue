@@ -1013,8 +1013,8 @@ const firstUpdate = ref(true);
 onUpdated(() => {
 	makeFieldsValidatable(mainStore.t);
 	if (firstUpdate.value) {
-		openTreeTo(mainStore.currentPlace);
-		openTreeTo(mainStore.currentRoute);
+		mainStore.openTreeToCurrent(mainStore.currentPlace);
+		mainStore.openTreeToCurrent(mainStore.currentRoute);
 		firstUpdate.value = false;
 	}
 });
@@ -1023,29 +1023,13 @@ const blur = (el?: HTMLElement): void => {
 	if (el) (el as HTMLElement).blur();
 		else document.querySelectorAll<HTMLElement>(':focus').forEach(el => el.blur());
 };
-const openTreeTo = (object: Place | Route): void => {
-	if (!object) return;
-	const context = object.type === 'place' ? 'places' : 'routes';
-	mainStore.folderOpenClose({
-		folder: mainStore.trees[context],
-		open: true,
-	});
-	let id = object.folderid;
-	while (id) {
-		const folder = mainStore.folders[id];
-		if (!folder) break;
-		mainStore.folderOpenClose({ folder, open: true });
-		id = folder.parent;
-	}
-};
-watch(() => mainStore.currentPlace, current => {
-	if (!current || (current.common && current.userid !== mainStore.user.id)) return;
-	openTreeTo(mainStore.currentPlace);
+watch(() => mainStore.currentPlace, () => {
+	mainStore.openTreeToCurrent(mainStore.currentPlace)
 });
-watch(() => mainStore.currentRoute, current => {
-	if (!current || (current.common && current.userid !== mainStore.user.id)) return;
-	openTreeTo(mainStore.currentRoute);
+watch(() => mainStore.currentRoute, () => {
+	mainStore.openTreeToCurrent(mainStore.currentRoute)
 });
+
 const commonPlacesShowHide = (show = null): void => {
 	commonPlacesShow.value =
 		show === null

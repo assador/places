@@ -121,7 +121,7 @@
 				>
 					<l-polyline
 						v-if="route.points.length"
-						:ref="el => setRouteLineRef(route.id, el)"
+						:ref="el => setRef(route.id, el, routeLineRefs)"
 						:lat-lngs="
 							mainStore.getPointsCoords(
 								route.points.map(p => p.id) ?? []
@@ -130,9 +130,20 @@
 						color="rgba(0, 0, 0, 1)"
 						:weight="route.id === mainStore.currentRoute.id ? 0.6 : 0.3"
 					/>
+					<l-polyline
+						v-if="route.points.length"
+						:ref="el => setRef(route.id, el, routeLineForEventsRefs)"
+						:lat-lngs="
+							mainStore.getPointsCoords(
+								route.points.map(p => p.id) ?? []
+							) as LatLngExpression[]
+						"
+						color="rgba(0, 0, 0, 0)"
+						:weight="20"
+					/>
 					<l-circle-marker
 						v-if="route.points.length"
-						:ref="el => setCircleMarkerRef(route.points[0].id, el)"
+						:ref="el => setRef(route.points[0].id, el, markerRefs)"
 						:lat-lng="
 							mainStore.getPointCoords(
 								route.points[0].id
@@ -144,7 +155,7 @@
 					/>
 					<l-circle-marker
 						v-if="route.points.length > 1"
-						:ref="el => setCircleMarkerRef(route.points.at(-1).id, el)"
+						:ref="el => setRef(route.points.at(-1).id, el, markerRefs)"
 						:lat-lng="
 							mainStore.getPointCoords(
 								route.points.at(-1).id
@@ -155,8 +166,8 @@
 						:weight="1"
 					/>
 					<template
-						v-for="point in route.computedRoutePoints"
-						:key="point.idx"
+						v-for="(point, pindex) in route.computedRoutePoints"
+						:key="`${route.id}-${point.id}-${pindex}`"
 					>
 						<l-marker
 							:lat-lng="[ point.latitude, point.longitude ]"
@@ -205,7 +216,7 @@
 									point.id !== route.points[0].id &&
 									point.id !== route.points.at(-1).id
 								"
-								:ref="el => setCircleMarkerRef(point.id, el)"
+								:ref="el => setRef(point.id, el, markerRefs)"
 								:lat-lng="[ point.latitude, point.longitude ]"
 								class-name="marker-intermediate"
 								:radius="10"
@@ -276,7 +287,7 @@
 							point.id !== mainStore.measure.points[0].id &&
 							point.id !== mainStore.measure.points.at(-1).id
 						"
-						:ref="el => setCircleMarkerRef(point.id, el)"
+						:ref="el => setRef(point.id, el, markerRefs)"
 						:lat-lng="[ point.latitude, point.longitude ]"
 						class-name="marker-intermediate"
 						:radius="10"
@@ -292,7 +303,7 @@
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.length
 				"
-				:ref="el => setCircleMarkerRef(mainStore.measure.points[0].id, el)"
+				:ref="el => setRef(mainStore.measure.points[0].id, el, markerRefs)"
 				:lat-lng="
 					mainStore.getPointCoords(
 						mainStore.measure.points[0].id
@@ -307,7 +318,7 @@
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.length
 				"
-				:ref="el => setCircleMarkerRef(mainStore.measure.points.at(-1).id, el)"
+				:ref="el => setRef(mainStore.measure.points.at(-1).id, el, markerRefs)"
 				:lat-lng="
 					mainStore.getPointCoords(
 						mainStore.measure.points.at(-1).id
@@ -322,7 +333,7 @@
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.length
 				"
-				:ref="el => setRouteLineRef('measureId', el)"
+				:ref="el => setRef('measureId', el, routeLineRefs)"
 				:lat-lngs="
 					mainStore.getPointsCoords(
 						mainStore.measure.points.map(p => p.id)
@@ -331,13 +342,28 @@
 				color="rgba(0, 0, 0, 1)"
 				:weight="0.5"
 			/>
+			<l-polyline
+				v-if="
+					mainStore.mode === 'measure' &&
+					mainStore.measure.points.length
+				"
+				:ref="el => setRef('measureId', el, routeLineForEventsRefs)"
+				:lat-lngs="
+					mainStore.getPointsCoords(
+						mainStore.measure.points.map(p => p.id)
+					) as LatLngExpression[]
+				"
+				color="rgba(0, 0, 0, 0)"
+				:weight="20"
+			/>
 		</l-map>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, computed, inject } from 'vue';
+import { ref, Ref, computed, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
+import L from "leaflet";
 import { LatLngExpression, PointExpression } from "leaflet";
 import {
 	LCircleMarker,
@@ -359,7 +385,7 @@ const mainStore = useMainStore();
 const pointInfo = inject<Ref<PointName>>('pointInfo')!;
 const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
 
-const map = inject('extmap');
+const map = inject('extmap') as Ref;
 
 const mapCenter = computed(() => ({
 	coords: [
@@ -409,14 +435,50 @@ const computedRoutes = computed(() => {
 const dragging = ref(false);
 
 const markerRefs = {} as Record<string, any>;
-const setCircleMarkerRef = (id: string, el: any) => {
-	if (el) markerRefs[id] = el.leafletObject;
-		else delete markerRefs[id];
-};
 const routeLineRefs = {} as Record<string, any>;
-const setRouteLineRef = (id: string, el: any) => {
-	if (el) routeLineRefs[id] = el.leafletObject;
-		else delete routeLineRefs[id];
+const routeLineForEventsRefs = {} as Record<string, any>;
+
+const setRef = async (id: string, el: any, refs: any) => {
+	await nextTick();
+	if (el) {
+		const elememt = el.leafletObject;
+		refs[id] = elememt;
+		if (refs === routeLineForEventsRefs) {
+			elememt.off('dblclick');
+			elememt.on('dblclick', (event: any) => {
+				L.DomEvent.stopPropagation(event);
+				const latlngs = elememt.getLatLngs();
+				let minDistance = Infinity;
+				let segmentIndex = 0;
+				for (let i = 0; i < latlngs.length - 1; i++) {
+					const d = L.LineUtil.pointToSegmentDistance(
+						event.layerPoint,
+						map.value.leafletObject.latLngToLayerPoint(latlngs[i]),
+						map.value.leafletObject.latLngToLayerPoint(latlngs[i + 1]),
+					);
+					if (d < minDistance) {
+						minDistance = d;
+						segmentIndex = i;
+					}
+				}
+				const { lat, lng } = event.latlng;
+				const route =
+					id === 'measureId' ? mainStore.measure : mainStore.routes[id]
+				;
+				const point = mainStore.upsertPoint({
+					props: { latitude: lat, longitude: lng },
+					where: id === 'measureId' ? mainStore.temps : mainStore.points,
+				});
+				mainStore.addPointToPoints({
+					point: point,
+					entity: route,
+					index: segmentIndex + 1,
+				});
+			});
+		}
+	} else {
+		delete refs[id];
+	}
 };
 
 // SEC Right clicks

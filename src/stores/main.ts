@@ -1025,9 +1025,11 @@ export const useMainStore = defineStore('main', {
 		addPointToPoints({
 			point = this.currentPoint,
 			entity,
+			index,
 		}: {
 			point: Point;
 			entity?: Route | Measure;
+			index?: number;
 		}) {
 			if (!entity) {
 				if (this.mode === 'routes' && this.currentRoute) {
@@ -1038,15 +1040,17 @@ export const useMainStore = defineStore('main', {
 					return;
 				}
 			}
+			if (!index) index = entity.points.length;
+
 			const numbers = entity.points
 				.filter(p => /^\d+$/.test(p.name))
 				.map(p => Number(p.name));
 			const name = (Math.max(0, ...numbers) + 1).toString();
-			entity.choosing = entity.points.length;
-			entity.points[entity.choosing] = {
+
+			entity.points.splice(index, 0, {
 				id: point.id,
 				name: name,
-			};
+			});
 			// In routes mode, add the Point to the points dict
 			// if it is not already there (for example, if the Point is temp)
 			// and update the current route:
@@ -1782,6 +1786,25 @@ export const useMainStore = defineStore('main', {
 					}
 				}
 			}
+		},
+		openTreeTo(object: Place | Route) {
+			if (!object) return;
+			const context = object.type === 'place' ? 'places' : 'routes';
+			this.folderOpenClose({
+				folder: this.trees[context],
+				open: true,
+			});
+			let id = object.folderid;
+			while (id) {
+				const folder = this.folders[id];
+				if (!folder) break;
+				this.folderOpenClose({ folder, open: true });
+				id = folder.parent;
+			}
+		},
+		openTreeToCurrent(current: Place | Route) {
+			if (!current || (current.common && current.userid !== this.user.id)) return;
+			this.openTreeTo(current);
 		},
 		swapSrts(payload: any[]) {
 			payload[0].srt = [ payload[1].srt, payload[1].srt = payload[0].srt ][0];
