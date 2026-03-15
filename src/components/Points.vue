@@ -183,7 +183,7 @@
 			</button>
 
 <!-- SEC Buttons: Measure -->
- 
+
 			<button
 				v-else-if="type === 'measure'"
 				v-for="pn in measurePoints"
@@ -194,12 +194,10 @@
 				:data-entity-context="'measure'"
 				:draggable="true"
 				:title="measurePointTitles[pn.id]"
-				:class="
+				:class="{ 'button-pressed':
 					pn.id === highlighted ||
-					pn.id ===
-						mainStore.measure.points[mainStore.measure.choosing].id
-							? 'button-pressed' : ''
-				"
+					pn.id === mainStore.measure.points[mainStore.measure.choosing]?.id
+				}"
 				@dragstart="e => {
 					dragging = true;
 					handleDragStart(e, pn, pn.idx, 'measure')
@@ -255,7 +253,7 @@
 			</button>
 
 <!-- SEC Buttons: Route -->
- 
+
 			<button
 				v-else-if="type === 'route'"
 				v-for="pn in routePoints"

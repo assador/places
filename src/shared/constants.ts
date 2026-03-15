@@ -64,4 +64,17 @@ export const constants = {
 	compact: 1000,
 	compactUltra: 800,
 	earthRadius: 6371,
+	links: {
+		service: 'https://places.scrofa-tridens.ru/',
+		repository: 'https://github.com/assador/places',
+		contacts: {
+			email: 'mailto:places@scrofa-tridens.ru',
+		},
+		publications: {
+			habr: 'https://habr.com/ru/articles/1009226/',
+		},
+		donate: {
+			boosty: 'https://boosty.to/assador/donate',
+		},
+	},
 };

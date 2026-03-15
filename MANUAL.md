@@ -1,5 +1,7 @@
 # The Places
 
+[Service](https://places.scrofa-tridens.ru/) | [Habr](https://habr.com/ru/articles/1009226/) | [Mail](mailto:places@scrofa-tridens.ru) | [Donate](https://boosty.to/assador/donate)
+
 - [The Places](#the-places)
 	- [1. Purpose](#1-purpose)
 	- [2. System Concept](#2-system-concept)
@@ -151,6 +153,7 @@ Working with Places and temporary Points.
 Working with the current Route.
 
 * RMB on empty space or an existing Point: Adds it to the end of the route.
+* Double-click on a route line segment: Add a new Point there.
 
 ### 3.3 Ruler Mode
 

@@ -2,7 +2,8 @@
 **v6.3.6 alpha** | [English version](README.md) | [Руководство пользователя](MANUAL.ru.md)
 
 Персональный сервис для управления геометками, маршрутами и фотоальбомами.  
-**Демо:** [places.scrofa-tridens.ru](https://places.scrofa-tridens.ru)
+
+[Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Написать](mailto:places@scrofa-tridens.ru) | [Boosty](https://boosty.to/assador/donate)
 
 ## Описание
 

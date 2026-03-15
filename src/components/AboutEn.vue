@@ -2,6 +2,12 @@
 	<div class="popup-text about readable" @click.stop>
 		<h1 id="manual-top">The Places</h1>
 		<p>{{ constants.version }}</p>
+		<p>
+			<a :href="constants.links.repository" target="_blank">GitHub</a>
+			<a :href="constants.links.publications.habr" target="_blank">Habr</a>
+			<a :href="constants.links.contacts.email" target="_blank">Mail</a>
+			<a :href="constants.links.donate.boosty" target="_blank">Donate</a>
+		</p>
 		<ol>
 			<li><a href="#1-purpose">Purpose</a></li>
 			<li><a href="#2-system-concept">System Concept</a>
@@ -163,6 +169,7 @@
 		<p>Working with the current Route.</p>
 		<ul>
 			<li>RMB on empty space or an existing Point: Adds it to the end of the route.</li>
+			<li>Double-click on a route line segment: Add a new Point there.</li>
 		</ul>
 		<h3 id="33-ruler-mode">3.3 Ruler Mode</h3>
 		<p>A service route for measuring distances.</p>

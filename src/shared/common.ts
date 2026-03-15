@@ -130,3 +130,12 @@ export const makeDropDowns = (parent: any): void => {
 		}, false);
 	}
 }
+export const getPointToSegmentDistance = (p: number[], a: number[], b: number[]) => {
+	const dx = b[0] - a[0];
+	const dy = b[1] - a[1];
+	if (dx === 0 && dy === 0) return Math.hypot(p[0] - a[0], p[1] - a[1]);
+	let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy);
+	t = Math.max(0, Math.min(1, t));
+	const projection = [a[0] + t * dx, a[1] + t * dy];
+	return Math.hypot(p[0] - projection[0], p[1] - projection[1]);
+};

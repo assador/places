@@ -18,8 +18,6 @@
 					onContextMenu: (_, e) => mapContextMenu(e.coordinates.reverse()),
 				}"
 			/>
-			<yandex-map-default-features-layer />
-			<yandex-map-default-scheme-layer />
 
 <!-- SEC Markers: Center Marker  -->
 
@@ -142,6 +140,28 @@
 							}
 						}"
 					/>
+					<yandex-map-feature
+						v-model="routeLines[route.id]"
+						:settings="{
+							geometry: {
+								type: 'LineString',
+								coordinates: mainStore.getPointsCoords(
+									route.points.map(p => p.id) ?? []
+								).map(coords => coords.reverse()) as unknown as LngLat[],
+							},
+							style: {
+								stroke: [{
+									color: '#00000000',
+									width: 20,
+								}],
+								cursor: 'pointer',
+							},
+							onDoubleClick: (_, e) => {
+								e.stopPropagation();
+								addPointToRoute(route, e.coordinates);
+							},
+						}"
+					/>
 					<template
 						v-for="point in route.computedRoutePoints"
 						:key="point.idx"
@@ -246,6 +266,30 @@
 					}
 				}"
 			/>
+			<yandex-map-feature
+				v-if="mainStore.mode === 'measure'"
+				v-model="routeLines['measureId']"
+				:settings="{
+					geometry: {
+						type: 'LineString',
+						coordinates: mainStore.getPointsCoords(
+							mainStore.measure.points.map(p => p.id) ?? []
+						).map(coords => coords.reverse()) as unknown as LngLat[],
+					},
+					style: {
+						stroke: [{
+							color: '#00000000',
+							width: 20
+							,
+						}],
+						cursor: 'pointer',
+					},
+					onDoubleClick: (_, e) => {
+						e.stopPropagation();
+						addPointToRoute(mainStore.measure, e.coordinates);
+					},
+				}"
+			/>
 			<template
 				v-for="point in computedTemps"
 				:key="point.key"
@@ -334,6 +378,8 @@
 				</yandex-map-marker>
 			</template>
 
+			<yandex-map-default-features-layer />
+			<yandex-map-default-scheme-layer />
 			<yandex-map-controls :settings="{ position: 'top left' }">
 				<yandex-map-geolocation-control />
 				<yandex-map-zoom-control />
@@ -367,8 +413,8 @@ import {
 	YandexMapZoomControl,
 } from 'vue-yandex-maps';
 import type { YMap, LngLat } from '@yandex/ymaps3-types';
-import { Place, Route, Point, PointName } from '@/types';
-import { IPlacesPopupProps } from '@/shared';
+import { Place, Route, Measure, Point, PointName } from '@/types';
+import { IPlacesPopupProps, getPointToSegmentDistance } from '@/shared';
 
 const mainStore = useMainStore();
 
@@ -528,6 +574,36 @@ const markerDragEnd = async (point: Place | Point, event) => {
 			latitude: Number(event[1].toFixed(7)),
 			longitude: Number(event[0].toFixed(7)),
 		},
+	});
+};
+const addPointToRoute = (route: Route | Measure, coordinates: any) => {
+	const routePointCoordinates =
+		mainStore.getPointsCoords(route.points.map(p => p.id) ?? [])
+			.map(coords => coords.reverse())
+	;
+	let minDistance = Infinity;
+	let segmentIndex = -1;
+	for (let i = 0; i < routePointCoordinates.length - 1; i++) {
+		const p1 = routePointCoordinates[i];
+		const p2 = routePointCoordinates[i + 1];
+		const dist = getPointToSegmentDistance(
+			coordinates,
+			[p1[0], p1[1]],
+			[p2[0], p2[1]],
+		);
+		if (dist < minDistance) {
+			minDistance = dist;
+			segmentIndex = i;
+		}
+	}
+	const point = mainStore.upsertPoint({
+		props: { latitude: coordinates[1], longitude: coordinates[0] },
+		where: route.type === 'measure' ? mainStore.temps : mainStore.points,
+	});
+	mainStore.addPointToPoints({
+		point: point,
+		entity: route,
+		index: segmentIndex + 1,
 	});
 };
 const updateState = (payload?: { coords?: Array<number>, zoom?: number }) => {
