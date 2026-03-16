@@ -1,9 +1,7 @@
 # The Places (Geo-Organizer)
-**v6.3.6 alpha** | [Русская версия](README.ru.md) | [User manual](MANUAL.md)
+**v6.3.6 alpha** | [Русская версия](README.ru.md) | [User manual](MANUAL.md) | [Service](https://places.scrofa-tridens.ru/) | [Habr](https://habr.com/ru/articles/1009226/) | [Mail](mailto:places@scrofa-tridens.ru) | [Donate](https://boosty.to/assador/donate)
 
  A personal service for managing geomarks, routes, and photo albums.  
-
-[Service](https://places.scrofa-tridens.ru/) | [Habr](https://habr.com/ru/articles/1009226/) | [Mail](mailto:places@scrofa-tridens.ru) | [Donate](https://boosty.to/assador/donate)
 
 ## Description
 

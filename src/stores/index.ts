@@ -6,10 +6,10 @@ import { useMainStore } from './main';
 interface State {
 };
 export const mainStore = useMainStore();
-export const adminStore = useMainStore();
+// export const adminStore = useAdminStore();
 export const store = defineStore('store', {
 	state: (): State => ({
 		...mainStore.$state,
-		...adminStore.$state,
+		// ...adminStore.$state,
 	})
 });

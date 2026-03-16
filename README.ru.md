@@ -1,9 +1,7 @@
 # Места (ГеоОрганайзер)
-**v6.3.6 alpha** | [English version](README.md) | [Руководство пользователя](MANUAL.ru.md)
+**v6.3.6 alpha** | [English version](README.md) | [Руководство пользователя](MANUAL.ru.md) | [Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Написать](mailto:places@scrofa-tridens.ru) | [Boosty](https://boosty.to/assador/donate)
 
 Персональный сервис для управления геометками, маршрутами и фотоальбомами.  
-
-[Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Написать](mailto:places@scrofa-tridens.ru) | [Boosty](https://boosty.to/assador/donate)
 
 ## Описание
 

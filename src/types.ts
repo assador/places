@@ -17,6 +17,8 @@ export type AppendMode =
 ;
 export type ImportExportFormat = 'json' | 'gpx';
 
+// SEC Entities
+
 export interface EntityCollection {
 	folders?: Partial<Folder>[],
 	points?: Partial<Point>[],
@@ -178,4 +180,62 @@ export interface DragImagePayload extends DragEntityPayload {
 }
 export interface DragEventCustom extends DragEvent {
 	dragBefore?: boolean;
+}
+
+// SEC Store
+
+export interface IMainState {
+	activeMapIndex: number,
+	backup: boolean,
+	busyCount: number,
+	center: Record<string, number>,
+	centerPlacemarkShow: boolean,
+	colortheme: string,
+	commonPlacemarksShow: boolean,
+	commonPlaces: Record<string, Place>,
+	commonPlacesOnPageCount: number,
+	commonPlacesPage: number,
+	commonPlacesShow: boolean,
+	commonRoutes: Record<string, Route>,
+	commonRoutesOnPageCount: number,
+	commonRoutesPage: number,
+	commonRoutesShow: boolean,
+	currentDrag: DragEntityPayload,
+	currentPlace: Place | null,
+	currentPoint: Point | null,
+	currentRoute: Route | null,
+	folders: Record<string, Folder>,
+	homePlace: Place | null,
+	idleTime: number,
+	lang: string,
+	langs: Record<string, string>[],
+	measure: Measure,
+	messages: string[],
+	messagesMouseOver: boolean,
+	messagesInterval: number | null,
+	messagesTimeout: number | null,
+	mode: string,
+	newEntityPointId: string | null,
+	placemarksShow: boolean,
+	places: Record<string, Place>,
+	placesShow: FirstShow,
+	points: Record<string, Point>,
+	range: number | null,
+	rangeShow: boolean,
+	ready: boolean,
+	refreshing: boolean,
+	routes: Record<string, Route>,
+	routesShow: boolean,
+	saved: boolean,
+	serverConfig: any | null,
+	stateBackups: any[],
+	stateBackupsIndex: number,
+	t: any,
+	temps: Record<string, Point>,
+	tempsPlacemarksShow: boolean,
+	tempsShow: FirstShow,
+	treeParams: Record<string, Tree>,
+	user: User | null,
+	users: Record<string, User>,
+	zoom: number,
 }
