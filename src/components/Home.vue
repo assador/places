@@ -1030,7 +1030,7 @@ watch(() => mainStore.currentRoute, () => {
 	mainStore.openTreeToCurrent(mainStore.currentRoute)
 });
 
-const commonPlacesShowHide = (show = null): void => {
+const commonPlacesShowHide = (show: boolean | null = null): void => {
 	commonPlacesShow.value =
 		show === null
 			? !commonPlacesShow.value
@@ -1038,7 +1038,7 @@ const commonPlacesShowHide = (show = null): void => {
 	;
 	mainStore.commonPlacemarksShowHide(commonPlacesShow.value);
 };
-const commonRoutesShowHide = (show = null): void => {
+const commonRoutesShowHide = (show: boolean | null = null): void => {
 	commonRoutesShow.value =
 		show === null
 			? !commonRoutesShow.value

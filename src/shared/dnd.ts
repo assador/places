@@ -1,6 +1,8 @@
 import {
 	Place,
 	Route,
+	Measure,
+	DragHandler,
 	DragPointInListPayload,
 	DragFolderPayload,
 	DragPlacePayload,
@@ -10,9 +12,9 @@ import {
 import { isAncestorOf, moveInArray, moveInObject } from '@/shared';
 import { useMainStore } from '@/stores/main';
 
-export const handleFolderDropped = (
+export const handleFolderDropped: DragHandler = (
 	payload: DragFolderPayload,
-	target: HTMLElement,
+	target,
 ) => {
 	const mainStore = useMainStore();
 	const targetId = target.dataset.entityId === 'null'
@@ -57,9 +59,9 @@ export const handleFolderDropped = (
 		},
 	});
 };
-export const handlePlaceRouteDropped = (
+export const handlePlaceRouteDropped: DragHandler = (
 	payload: DragPlacePayload | DragRoutePayload,
-	target: HTMLElement,
+	target,
 ) => {
 	const mainStore = useMainStore();
 	const targetId = target.dataset.entityId === 'null'
@@ -110,9 +112,9 @@ export const handlePlaceRouteDropped = (
 		},
 	});
 };
-export const handlePointInListDropped = (
+export const handlePointInListDropped: DragHandler = (
 	payload: DragPointInListPayload,
-	target: HTMLElement,
+	target,
 ) => {
 	const mainStore = useMainStore();
 	const targetIndex = Number(target.dataset.entityIndex);
@@ -123,19 +125,19 @@ export const handlePointInListDropped = (
 	) {
 		return;
 	}
-	let parent = undefined;
+	let parent: Route | Measure = undefined;
 	if (payload.context === 'measure') parent = mainStore.measure;
 	if (payload.context === 'routes') parent = mainStore.routes[payload.parentId];
 	if (!parent) return;
 	moveInArray(parent.points, payload.index, targetIndex, payload.before);
 	if (payload.context === 'routes') {
-		parent.updated = true;
+		(parent as Route).updated = true;
 	}
 	mainStore.backupState();
 };
-export const handleImageDropped = (
+export const handleImageDropped: DragHandler = (
 	payload: DragImagePayload,
-	target: HTMLElement,
+	target,
 ) => {
 	const mainStore = useMainStore();
 	const targetId = target.dataset.entityId;

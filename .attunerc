@@ -1,0 +1,23 @@
+# Attune Configuration File
+# This file specifies default flags for attune analyze
+# Lines starting with # are comments
+# Each flag should be on its own line
+
+# Output format (uncomment your preference)
+# --json       # JSON output (good for CI/CD)
+# --html       # HTML report (good for sharing)
+# --markdown   # Markdown output
+# --sarif      # SARIF format (for CI integration)
+# Default: terminal-friendly output
+
+# Default scan mode
+--lite          # Run lite checks (~25s) - fast feedback
+# --full          # Run full checks - comprehensive analysis
+
+# Include .attuneignore patterns (this is the default behavior)
+--use-attuneignore
+
+# Safety options for output
+# --public-safe   # Redact paths and secrets for public sharing
+# --no-paths      # Strip file paths from output
+# --redact-secrets # Redact detected secrets in code snippets

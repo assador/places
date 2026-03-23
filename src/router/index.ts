@@ -57,7 +57,7 @@ const routes: RouteRecordRaw[] = [
 				name: 'HomeExport',
 				component: PopupExport,
 				props: true,
-			}, 
+			},
 		],
 	}, {
 		path: '/account',
@@ -89,20 +89,13 @@ const router = createRouter({
 	routes,
 });
 
-router.beforeEach((to, _, next) => {
-	if (!localStorage.getItem('places-session')) {
-		if (
-			to.name !== 'Auth' &&
-			to.name !== 'About' &&
-			to.name !== 'AuthText'
-		) {
-			next({name: 'Auth'});
-		} else {
-			next();
-		}
-	} else {
-		next();
+router.beforeEach((to) => {
+	const isAuthenticated = !!localStorage.getItem('places-session');
+	const allowedWithoutAuth = ['Auth', 'About', 'AuthText'];
+	if (!isAuthenticated && !allowedWithoutAuth.includes(to.name as string)) {
+		return { name: 'Auth' };
 	}
+	return true;
 });
 
 export default router;

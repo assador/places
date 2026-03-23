@@ -336,7 +336,7 @@
 					@click="mainStore.setCurrentPoint(
 						mainStore.getPointById(point.id), false)
 					"
-					@contextmenu.prevent.stop="e =>markerContextMenu(
+					@contextmenu.prevent.stop="e => markerContextMenu(
 						e,
 						mainStore.getPointById(point.id),
 						mainStore.currentRoute
@@ -425,7 +425,7 @@ const map = shallowRef<YMap | null>(null);
 const markers = shallowRef({});
 const markerCenter = shallowRef(null);
 const routeLines = ref({});
-createYmapsOptions({apikey: 'f81dd454-9378-4883-86ae-c84eb24d72d6'});
+createYmapsOptions({ apikey: 'f81dd454-9378-4883-86ae-c84eb24d72d6' });
 
 const mapCenter = computed(() => ({
 	coordinates: [

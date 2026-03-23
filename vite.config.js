@@ -57,7 +57,11 @@ export default defineConfig({
 		},
 	},
 	test: {
-		testTimeout: 10000,
-		environment: 'happy-dom',
+		environment: 'jsdom',
+		globals: true,
+		coverage: {
+			provider: 'v8',
+			reporter: ['text', 'json', 'html'],
+		},
 	},
 });

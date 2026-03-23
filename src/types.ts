@@ -9,6 +9,14 @@ declare module 'axios' {
 	}
 }
 
+export type EntitiesContext =
+	| 'folders'
+	| 'points'
+	| 'places'
+	| 'routes'
+	| 'images'
+	| 'measure'
+;
 export type AppendMode =
 	| 'change' // change the existing one
 	| 'clone'  // create new based on the existing one
@@ -154,7 +162,7 @@ export interface DragPayload {
 	before?: boolean;
 }
 export interface DragEntityPayload extends DragPayload {
-	context: 'folders' | 'points' | 'places' | 'routes' | 'images' | 'measure';
+	context: EntitiesContext;
 	parentId?: string;
 	index?: number;
 }
@@ -181,6 +189,7 @@ export interface DragImagePayload extends DragEntityPayload {
 export interface DragEventCustom extends DragEvent {
 	dragBefore?: boolean;
 }
+export type DragHandler = (payload: DragPayload, target: HTMLElement) => void;
 
 // SEC Store
 

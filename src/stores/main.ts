@@ -215,12 +215,12 @@ export const useMainStore = defineStore('main', {
 						: this.trees.places.children
 					;
 					item = fellows[id];
-					neighbours = Object.values(fellows).filter(
-						i => i['parent'] === item['parent']
+					neighbours = Object.values(fellows as Record<string, Folder>).filter(
+						i => i.parent === (item as Folder).parent
 					);
 				} else {
-					neighbours = Object.values(fellows).filter(
-						i => i['folderid'] === item['folderid']
+					neighbours = Object.values(fellows as Record<string, Place | Route>).filter(
+						i => i.folderid === (item as Place | Route).folderid
 					);
 				}
 				const all = neighbours.map(i => i.srt).sort((a, b) => a - b);

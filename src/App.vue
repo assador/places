@@ -44,6 +44,7 @@ import {
 	Place,
 	EntityCollection,
 	DragPayload,
+	DragHandler,
 	DragEventCustom,
 	ImportExportFormat,
 } from '@/types';
@@ -259,7 +260,7 @@ const handleDrop = (event: DragEventCustom) => {
 	payload.before = event.dragBefore ?? false;
 	const target = event.currentTarget as HTMLElement;
 
-	const handlers = {
+	const handlers: Record<string, DragHandler> = {
 		folder: handleFolderDropped,
 		place: handlePlaceRouteDropped,
 		route: handlePlaceRouteDropped,
