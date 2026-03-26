@@ -50,15 +50,15 @@
 					],
 					draggable: true,
 					onDragStart: () => { dragging = true },
-					onDragEnd: e => {
+					onDragEnd: coords => {
 						dragging = false;
-						markerDragEnd(place, e);
+						markerDragEnd(place, coords);
 					},
 				}"
 				:visible="mainStore.placemarksShow && place.show && place.geomark"
 				class="place"
 				@click="mainStore.setCurrentPlace(place, false)"
-				@contextmenu.prevent.stop="e =>
+				@contextmenu.prevent.stop="(e: MouseDomEvent) =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
 			>
@@ -95,7 +95,7 @@
 				}"
 				:visible="mainStore.commonPlacemarksShow && place.geomark"
 				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-				@contextmenu.prevent.stop="e =>
+				@contextmenu.prevent.stop="(e: MouseDomEvent) =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
 			>
@@ -175,9 +175,9 @@
 								],
 								draggable: true,
 								onDragStart: () => { dragging = true },
-								onDragEnd: e => {
+								onDragEnd: coords => {
 									dragging = false;
-									markerDragEnd(mainStore.getPointById(point.id), e);
+									markerDragEnd(mainStore.getPointById(point.id), coords);
 								},
 								onDragMove: e => {
 									const lineInstance = routeLines[route.id];
@@ -193,7 +193,7 @@
 											lineInstance.update({
 												geometry: {
 													type: 'LineString',
-													coordinates: coords,
+													coordinates: coords as LngLat[],
 												},
 											});
 										}
@@ -208,7 +208,7 @@
 							@click="mainStore.setCurrentPoint(
 								mainStore.getPointById(point.id), false)
 							"
-							@contextmenu.prevent.stop="e =>markerContextMenu(
+							@contextmenu.prevent.stop="(e: MouseDomEvent) =>markerContextMenu(
 								e,
 								mainStore.getPointById(point.id),
 								mainStore.currentRoute
@@ -303,9 +303,9 @@
 						],
 						draggable: true,
 						onDragStart: () => { dragging = true },
-						onDragEnd: e => {
+						onDragEnd: coords => {
 							dragging = false;
-							markerDragEnd(mainStore.getPointById(point.id), e);
+							markerDragEnd(mainStore.getPointById(point.id), coords);
 						},
 						onDragMove: e => {
 							const lineInstance = routeLines['measureId'];
@@ -321,7 +321,7 @@
 									lineInstance.update({
 										geometry: {
 											type: 'LineString',
-											coordinates: coords,
+											coordinates: coords as LngLat[],
 										},
 									});
 								}
@@ -336,7 +336,7 @@
 					@click="mainStore.setCurrentPoint(
 						mainStore.getPointById(point.id), false)
 					"
-					@contextmenu.prevent.stop="e => markerContextMenu(
+					@contextmenu.prevent.stop="(e: MouseDomEvent) => markerContextMenu(
 						e,
 						mainStore.getPointById(point.id),
 						mainStore.currentRoute
@@ -398,6 +398,8 @@
 <script setup lang="ts">
 import { ref, Ref, shallowRef, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { Place, Route, Measure, Point, PointName } from '@/types';
+import { IPlacesPopupProps, getPointToSegmentDistance } from '@/shared';
 import {
 	YandexMap,
 	YandexMapListener,
@@ -412,9 +414,13 @@ import {
 	YandexMapScaleControl,
 	YandexMapZoomControl,
 } from 'vue-yandex-maps';
-import type { YMap, LngLat } from '@yandex/ymaps3-types';
-import { Place, Route, Measure, Point, PointName } from '@/types';
-import { IPlacesPopupProps, getPointToSegmentDistance } from '@/shared';
+import type {
+	YMap,
+	YMapMarker,
+	YMapFeature,
+	LngLat,
+	MouseDomEvent,
+} from '@yandex/ymaps3-types';
 
 const mainStore = useMainStore();
 
@@ -422,9 +428,9 @@ const pointInfo = inject<Ref<PointName>>('pointInfo')!;
 const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
 
 const map = shallowRef<YMap | null>(null);
-const markers = shallowRef({});
-const markerCenter = shallowRef(null);
-const routeLines = ref({});
+const markers = shallowRef<Record<string, YMapMarker | null>>({});
+const markerCenter = shallowRef<YMapMarker | null>(null);
+const routeLines = ref<Record<string, YMapFeature | null>>({});
 createYmapsOptions({ apikey: 'f81dd454-9378-4883-86ae-c84eb24d72d6' });
 
 const mapCenter = computed(() => ({
@@ -563,7 +569,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 
 // SEC Other
 
-const markerDragEnd = async (point: Place | Point, event) => {
+const markerDragEnd = async (point: Place | Point, coords: LngLat) => {
 	mainStore.changePoint({
 		entity: (
 			point.type === 'point'
@@ -571,8 +577,8 @@ const markerDragEnd = async (point: Place | Point, event) => {
 				: mainStore.points[(point as Place).pointid]
 		),
 		change: {
-			latitude: Number(event[1].toFixed(7)),
-			longitude: Number(event[0].toFixed(7)),
+			latitude: Number(coords[1].toFixed(7)),
+			longitude: Number(coords[0].toFixed(7)),
 		},
 	});
 };

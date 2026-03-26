@@ -1,9 +1,9 @@
 /*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19-12.1.2-MariaDB, for Linux (x86_64)
+-- MariaDB dump 10.19-12.2.2-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: db_places
 -- ------------------------------------------------------
--- Server version	12.1.2-MariaDB
+-- Server version	12.2.2-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -437,9 +437,9 @@ DROP TABLE IF EXISTS `points`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `points` (
   `id` binary(16) NOT NULL,
-  `latitude` decimal(9,6) NOT NULL,
-  `longitude` decimal(9,6) NOT NULL,
-  `altitude` double DEFAULT NULL,
+  `latitude` decimal(10,7) NOT NULL,
+  `longitude` decimal(10,7) NOT NULL,
+  `altitude` decimal(8,3) DEFAULT NULL,
   `location` point NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -714,4 +714,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-25 20:26:17
+-- Dump completed on 2026-03-25 10:10:28
