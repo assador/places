@@ -1,27 +1,26 @@
 import axios from 'axios';
-import { useMainStore } from '@/stores/main';
+import { emitter } from '@/shared';
 
 const api = axios.create({
 	baseURL: '/backend/',
 	timeout: 10000,
 });
-const getStore = () => useMainStore();
 
 api.interceptors.request.use(config => {
-	if (!config.silent) getStore().setBusy(true);
+	if (!config.silent) emitter.emit('busy', true);
 	return config;
 }, error => {
-	if (!error.config?.silent) getStore().setBusy(false);
+	if (!error.config?.silent) emitter.emit('busy', false);
 	return Promise.reject(error);
 });
 
 api.interceptors.response.use(
 	response => {
-		if (!response.config.silent) getStore().setBusy(false);
+		if (!response.config.silent) emitter.emit('busy', false);
 		return response;
 	},
 	error => {
-		if (!error.config?.silent) getStore().setBusy(false);
+		if (!error.config?.silent) emitter.emit('busy', false);
 		return Promise.reject(error);
 	}
 );

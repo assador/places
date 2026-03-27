@@ -5,7 +5,7 @@
 			ref="imgRef"
 			class="popup-image border_1"
 			:src="constants.dirs.uploads.images.big + image.file"
-			@load="mainStore.setBusy(false)"
+			@load="emitter.emit('busy', false)"
 			@error="handleError"
 		/>
 		<a
@@ -45,7 +45,7 @@ import {
 import { useRouter, useRoute } from 'vue-router';
 import { useMainStore } from '@/stores/main';
 import _ from 'lodash';
-import { constants } from '@/shared';
+import { emitter, constants } from '@/shared';
 import { Place, Image } from '@/types';
 
 export interface IPlacesPopupImageProps {
@@ -69,7 +69,7 @@ const router = useRouter();
 const route = useRoute();
 
 const handleError = () => {
-	mainStore.setBusy(false);
+	emitter.emit('busy', false);
 	if (imgRef.value) {
 		imgRef.value.src = constants.dirs.uploads.images.orphanedbig + image.value.file;
 	}
@@ -78,7 +78,7 @@ const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
 const defineVars = (): void => {
-	mainStore.setBusy(true);
+	emitter.emit('busy', true);
 	const places: Record<string, Place> = (
 		!currentPlaceCommon.value
 			? mainStore.places

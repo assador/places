@@ -996,7 +996,7 @@ onMounted(async () => {
 	document.addEventListener('drop', handleDrop, false);
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
-	mainStore.setBusy(false);
+	emitter.emit('busy', false);
 });
 onUnmounted(() => {
 	['dragover', 'drop', 'keyup'].forEach(event =>

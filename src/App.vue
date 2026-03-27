@@ -107,6 +107,9 @@ const popupBusy = ref<IPlacesPopupProps>({
 });
 
 // Event Bus Handlers
+emitter.on('busy', (value?: boolean) => {
+	mainStore.setBusy(value);
+});
 emitter.on('logged', async () => {
 	mainStore.setBusy(true);
 	await mainStore.setUser();

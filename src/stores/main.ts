@@ -25,7 +25,6 @@ import { dbActions } from './actions/db';
 import { uiActions } from './actions/ui';
 
 import { treeGetters } from './getters/tree';
-
 export const useMainStore = defineStore('main', {
 	state: (): IMainState => ({
 		activeMapIndex: 0,

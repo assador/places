@@ -210,6 +210,7 @@ import { ref, inject, nextTick, onBeforeMount, onMounted, onUpdated } from 'vue'
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import {
+	emitter,
 	constants,
 	reg,
 	login,
@@ -285,7 +286,7 @@ onBeforeMount(() => {
 onMounted(async () => {
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
-	mainStore.setBusy(false);
+	emitter.emit('busy', false);
 });
 onUpdated(async () => {
 	makeFieldsValidatable(mainStore.t);
