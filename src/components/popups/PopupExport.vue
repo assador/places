@@ -90,7 +90,7 @@ const route = useRoute();
 const popuped = ref(false);
 
 const selectedToExport = inject('selectedToExport');
-const exportPlaces = inject<typeof exportPlaces>('exportPlaces');
+const exportPlaces = inject('exportPlaces');
 
 const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);

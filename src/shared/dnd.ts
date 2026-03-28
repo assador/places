@@ -97,11 +97,8 @@ export const handlePlaceRouteDropped: DragHandler = (
 			srt = Math.max(0, ...neighbours.map(f => f.srt)) + 10;
 			break;
 	}
-	let changeFunc = (
-		{}: { entity: Place | Route; change: Partial<Place | Route>; }
-	) => {
-		return;
-	};
+	type ChangePayload = { entity: Place | Route; change: Partial<Place | Route> };
+	let changeFunc: (p: ChangePayload) => void = () => {};
 	if (payload.context === 'places') changeFunc = mainStore.changePlace;
 	if (payload.context === 'routes') changeFunc = mainStore.changeRoute;
 	changeFunc({

@@ -1,28 +1,27 @@
 export const childrenCount = (
 	tree: Record<string, any>,
 	childrenKey: string,
-	result = 0
 ): number => {
-	if (Array.isArray(tree[childrenKey])) {
-		for (let i = 0; i < tree[childrenKey].length; i++) {
-			result = childrenCount(
-				tree[childrenKey][i], childrenKey, ++result
-			);
+	let count = 0;
+	const children = tree[childrenKey];
+	if (Array.isArray(children)) {
+		for (const child of children) {
+			count += 1 + childrenCount(child, childrenKey);
 		}
 	}
-	return result;
+	return count;
 };
 export const changeByKeyValue = (
 	tree: Record<string, any>,
 	childrenKey: string,
 	key: string,
 	value: unknown,
-	what: string
+	what: string,
 ): void => {
 	if (tree[childrenKey] && Object.keys(tree[childrenKey]).length > 0) {
 		for (const id in tree[childrenKey]) {
 			switch (what) {
-				case "delete" :
+				case 'delete' :
 					if (tree[childrenKey][id][key] === value) {
 						delete tree[childrenKey][id];
 					} else {
@@ -35,7 +34,7 @@ export const changeByKeyValue = (
 						);
 					}
 					break;
-				case "change" :
+				case 'change' :
 					tree[childrenKey][id][key] = value;
 					changeByKeyValue(
 						tree[childrenKey][id],
@@ -102,7 +101,7 @@ export const numbersMinMax = (
 export const distanceOnSphere = (
 	lat1: number, lon1: number,
 	lat2: number, lon2: number,
-	radius: number
+	radius: number,
 ): number => {
 	const a = Math.abs(90 - lat1) * Math.PI / 180;
 	const b = Math.abs(90 - lat2) * Math.PI / 180;

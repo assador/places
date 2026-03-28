@@ -5,7 +5,7 @@ import pluginVue from "eslint-plugin-vue";
 
 export default tseslint.config(
 	{
-		ignores: ["**/node_modules/**", "dist/", "build/", "*.config.*"]
+		ignores: ["**/node_modules/**", "dist/", "build/", "*.config.*", ".dependency-cruiser.*"]
 	},
 	js.configs.recommended,
 	...tseslint.configs.recommended,

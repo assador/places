@@ -84,7 +84,6 @@ export const relateActions = {
 		}
 		if (idx === null) return;
 		route.points.splice(idx, 1);
-		if (idx > route.points.length - 1) idx = route.points.length - 1;
 		this.backupState();
 	},
 	wherePointIsUsed(id: string) {

@@ -1,5 +1,5 @@
 export const constants = {
-	version: 'v6.3.6 alpha',
+	version: 'v6.3.6 beta',
 	shortcuts: {
 		65  : 'add',
 		68  : 'delete',

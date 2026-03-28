@@ -17,7 +17,7 @@ export const regRoutine = async (payload: Record<string, string>, voc) => {
 			default :
 				reg.message = voc.m.paged.regLetterSent;
 		}
-	} catch (error) {
+	} catch {
 		reg.message = voc.m.paged.regError;
 	}
 };

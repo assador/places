@@ -38,8 +38,8 @@ export const initActions = {
 		this.ready = false;
 		this.messages = [];
 		this.messagesMouseOver = false;
-		this.messagesInterval = null,
-		this.messagesTimeout = null,
+		this.messagesInterval = null;
+		this.messagesTimeout = null;
 		this.serverConfig = null;
 		this.routes = {};
 	},

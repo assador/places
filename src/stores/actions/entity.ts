@@ -6,12 +6,8 @@ import {
 	PointName,
 	AppendMode,
 } from '@/types';
+import { isPoint, isPlace, isRoute } from '@/guards';
 import { emitter } from '@/shared';
-
-const isPoint = (obj: any): obj is Point => obj?.type === 'point';
-const isPlace = (obj: any): obj is Place => obj?.type === 'place';
-const isRoute = (obj: any): obj is Route => obj?.type === 'route';
-// const isFolder = (obj: any): obj is Folder => obj?.type === 'folder';
 
 export const entityActions = {
 
@@ -241,7 +237,6 @@ export const entityActions = {
 				})
 			;
 		}
-		where = { ...where };
 		if (!silent) {
 			this.saved = false;
 			this.backupState();
@@ -305,7 +300,7 @@ export const entityActions = {
 				});
 				where[place.id] = place;
 				break;
-			case 'clone':
+			case 'clone': {
 				const pointOriginal = this.getPointById(object!.pointid);
 				point = this.createPoint({
 					...(pointOriginal ? pointOriginal : {}),
@@ -322,6 +317,7 @@ export const entityActions = {
 				});
 				where[place.id] = place;
 				break;
+			}
 		}
 		this.setCurrentPlace(place);
 		if (!silent) {

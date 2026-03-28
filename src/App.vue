@@ -42,6 +42,7 @@ import {
 } from '@/shared';
 import {
 	Place,
+	Route,
 	EntityCollection,
 	DragPayload,
 	DragHandler,
@@ -57,7 +58,7 @@ const foldersEditMode = ref(false);
 const idleTimeInterval = ref(null);
 const currentPlaceCommon = ref(false);
 const currentRouteCommon = ref(false);
-const selectedToExport = ref({});
+const selectedToExport = ref<Record<string, Place | Route>>({});
 const pwa = usePWAInstall();
 
 provide('foldersEditMode', foldersEditMode);
@@ -84,12 +85,12 @@ const colorthemes = computed(() => [
 provide('colorthemes', colorthemes);
 
 const confirmPopup = ref(false);
-const confirmCallback = ref<Function | null>(null);
+const confirmCallback = ref<(() => void) | null>(null);
 const confirmCallbackArgs = ref<any[] | null>(null);
 const confirmMessage = ref<string | null>(null);
 provide('confirmPopup', confirmPopup);
 
-const confirm = (func: Function, args: any[] = [], msg: string = ''): boolean => {
+const confirm = (func: (...args: any[]) => void, args: any[] = [], msg: string = ''): boolean => {
 	confirmPopup.value = true;
 	confirmCallback.value = func;
 	confirmCallbackArgs.value = args;
@@ -130,11 +131,15 @@ emitter.on('logout', () => {
 		router.push({ name: 'Auth' });
 		await logoutRoutine({ userId: userId, sessionId: sessionId });
 	};
-	(mainStore.saved || mainStore.user.testaccount)
-		? getOut()
-		: confirm(getOut, [], mainStore.t.i.text.notSaved);
+	if (mainStore.saved || mainStore.user.testaccount) {
+		getOut();
+	} else {
+		confirm(getOut, [], mainStore.t.i.text.notSaved);
+	}
 });
-emitter.on('confirm', (object: { func: Function, args: any[], msg: string }): void => {
+emitter.on('confirm', (
+	object: { func: (...args: any[]) => void, args: any[], msg: string }
+): void => {
 	const { func, args, msg } = object;
 	confirm(func, args, msg);
 });
@@ -226,7 +231,7 @@ const exportPlaces = (
 	places: Record<string, Place>,
 	format: ImportExportFormat = 'json'
 ): void => {
-	let content = '';
+	let content: string;
 	let filename = 'places.json';
 	let mimeType = 'application/json';
 	if (format === 'gpx') {

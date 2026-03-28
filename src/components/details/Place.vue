@@ -192,7 +192,7 @@
 						:ref="el => {
 							if (field === 'name') currentPlaceNameInputRef = el;
 						}"
-						v-model.trim="mainStore.currentPlace[field]"
+						v-model.trim="mainStore.currentPlace[field] as string"
 						:id="'place-detailed-' + field"
 						:disabled="!!currentPlaceCommon"
 						:placeholder="
@@ -222,6 +222,7 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { coords2string, string2coords } from '@/shared';
 import { useMainStore } from '@/stores/main';
+import { Place } from '@/types'
 import Images from '@/components/details/Images.vue';
 
 const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
@@ -242,7 +243,14 @@ const currentPlaceLon = computed<number | null>(() =>
 		: null
 );
 
-const orderedCurrentPlaceFields = ref([
+type FieldKeys<T> = {
+	[K in keyof T]: T[K] extends string | number | boolean | undefined ? K : never
+}[keyof T];
+
+type VirtualFields = 'point' | 'home';
+type ValidField = (FieldKeys<Place> & keyof typeof mainStore.descriptionFields) | VirtualFields;
+
+const orderedCurrentPlaceFields = ref<ValidField[]>([
 	'name', 'description', 'point', 'link', 'time', 'srt', 'common', 'home',
 ]);
 const currentPlaceAlt = computed<number | null>(() => {

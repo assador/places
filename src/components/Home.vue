@@ -974,39 +974,39 @@ watchEffect(async () => {
 	}
 });
 
+const stopIdleTimer = () => {
+	if (idleTimeInterval.value) {
+		window.clearInterval(idleTimeInterval.value);
+		idleTimeInterval.value = undefined;
+	}
+};
+
 // SEC Hooks
 
 onMounted(async () => {
 	mainStore.idleTime = 0;
-	if (!idleTimeInterval.value) {
-		idleTimeInterval.value = window.setInterval(() => {
-			if (++mainStore.idleTime >= constants.sessionlifetime) {
-				window.clearInterval(idleTimeInterval.value);
-				idleTimeInterval.value = undefined;
-				mainStore.unload();
-				router.push({ name: 'Auth' });
-			}
-		}, 1000);
-	}
+	stopIdleTimer();
+	idleTimeInterval.value = window.setInterval(() => {
+		if (++mainStore.idleTime >= constants.sessionlifetime) {
+			stopIdleTimer();
+			mainStore.unload();
+			router.push({ name: 'Auth' });
+		}
+	}, 1000);
 	await nextTick();
 	makeFieldsValidatable(mainStore.t);
 	windowResize();
 	makeDropDowns(root);
-	// Register event listeners only once
 	document.addEventListener('drop', handleDrop, false);
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
 	emitter.emit('busy', false);
 });
 onUnmounted(() => {
-	['dragover', 'drop', 'keyup'].forEach(event =>
-		document.removeEventListener(event, {
-			drop: handleDrop,
-			keyup: keyup
-		}[event] as EventListener)
-	);
+	document.removeEventListener('drop', handleDrop);
+	document.removeEventListener('keyup', keyup);
 	window.removeEventListener('resize', windowResize);
-	window.clearInterval(idleTimeInterval.value);
+	stopIdleTimer();
 });
 
 const firstUpdate = ref(true);
@@ -1248,22 +1248,26 @@ const rootMouseOver = (event: Event): void => {
 			? (event as TouchEvent).changedTouches[0][`page${axis}`]
 			: (event as MouseEvent)[`screen${axis}`];
 	switch (sidebarDrag.value.what) {
-		case 'top':
+		case 'top': {
 			const newTop = sidebarDrag.value.h - sidebarDrag.value.y + getCoord('Y');
 			sidebarSize.value.top = newTop < constants.sidebars.top ? 0 : newTop;
 			break;
-		case 'bottom':
+		}
+		case 'bottom': {
 			const newBottom = sidebarDrag.value.h + sidebarDrag.value.y - getCoord('Y');
 			sidebarSize.value.bottom = newBottom < constants.sidebars.bottom ? 0 : newBottom;
 			break;
-		case 'left':
+		}
+		case 'left': {
 			const newLeft = sidebarDrag.value.w - sidebarDrag.value.x + getCoord('X');
 			sidebarSize.value.left = newLeft < constants.sidebars.top ? 0 : newLeft;
 			break;
-		case 'right':
+		}
+		case 'right': {
 			const newRight = sidebarDrag.value.w + sidebarDrag.value.x - getCoord('X');
 			sidebarSize.value.right = newRight < constants.sidebars.top ? 0 : newRight;
 			break;
+		}
 	}
 };
 const rootMouseOverTrottled = throttle(rootMouseOver, 10);

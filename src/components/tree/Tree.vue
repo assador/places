@@ -20,7 +20,7 @@ export interface IPlacesTreeProps {
 	instanceid?: string;
 	what?: 'places' | 'routes';
 }
-const props = withDefaults(defineProps<IPlacesTreeProps>(), {
+withDefaults(defineProps<IPlacesTreeProps>(), {
 	instanceid: '',
 	what: 'places',
 });

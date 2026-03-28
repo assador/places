@@ -140,200 +140,203 @@
 
 <!-- SEC Buttons: Temps -->
 
-			<button
-				v-if="type === 'temps'"
-				v-for="temp in tempPoints"
-				:key="temp.key"
-				:class="{ 'button-pressed': mainStore.currentPoint?.id === temp.id }"
-				@click.prevent="mainStore.setCurrentPoint(temp.id)"
-				@contextmenu.prevent="e => {
-					if (pointInfo.point?.id === temp.id) {
-						popupProps.show = !popupProps.show;
-						return;
-					}
-					if (mainStore.mode === 'measure') {
-						mainStore.addPointToPoints({
-							point: temp,
-							entity: mainStore.measure,
-						});
-						return;
-					}
-					if (mainStore.mode === 'routes') {
-						mainStore.addPointToPoints({
-							point: temp,
-							entity: mainStore.currentRoute,
-						});
-						return;
-					}
-					pointInfo.point = temp;
-					pointInfo.name = (temp.idx + 1).toString();
-					popupProps.show = true;
-					popupProps.position.right = 'auto';
-					popupProps.position.bottom = 'auto';
-					popupProps.position.top = e.clientY + 5;
-					popupProps.position.left = e.clientX + 5;
-				}"
-			>
-				<span>{{ temp.idx + 1 }}</span>
-				<span
-					class="button-iconed icon icon-cross-45-circled"
-					:title="mainStore.t.i.hints.deleteTemp"
-					@click.stop="mainStore.deleteTemp(temp.id)"
-				/>
-			</button>
+			<template v-if="type === 'temps'">
+				<button
+					v-for="temp in tempPoints"
+					:key="temp.key"
+					:class="{ 'button-pressed': mainStore.currentPoint?.id === temp.id }"
+					@click.prevent="mainStore.setCurrentPoint(temp.id)"
+					@contextmenu.prevent="e => {
+						if (pointInfo.point?.id === temp.id) {
+							popupProps.show = !popupProps.show;
+							return;
+						}
+						if (mainStore.mode === 'measure') {
+							mainStore.addPointToPoints({
+								point: temp,
+								entity: mainStore.measure,
+							});
+							return;
+						}
+						if (mainStore.mode === 'routes') {
+							mainStore.addPointToPoints({
+								point: temp,
+								entity: mainStore.currentRoute,
+							});
+							return;
+						}
+						pointInfo.point = temp;
+						pointInfo.name = (temp.idx + 1).toString();
+						popupProps.show = true;
+						popupProps.position.right = 'auto';
+						popupProps.position.bottom = 'auto';
+						popupProps.position.top = e.clientY + 5;
+						popupProps.position.left = e.clientX + 5;
+					}"
+				>
+					<span>{{ temp.idx + 1 }}</span>
+					<span
+						class="button-iconed icon icon-cross-45-circled"
+						:title="mainStore.t.i.hints.deleteTemp"
+						@click.stop="mainStore.deleteTemp(temp.id)"
+					/>
+				</button>
+			</template>
 
 <!-- SEC Buttons: Measure -->
 
-			<button
-				v-else-if="type === 'measure'"
-				v-for="pn in measurePoints"
-				:key="pn.key"
-				:data-entity-id="pn.id"
-				:data-entity-type="'point'"
-				:data-entity-index="pn.idx"
-				:data-entity-context="'measure'"
-				:draggable="true"
-				:title="measurePointTitles[pn.id]"
-				:class="{ 'button-pressed':
-					pn.id === highlighted ||
-					pn.id === mainStore.measure.points[mainStore.measure.choosing]?.id
-				}"
-				@dragstart="e => {
-					dragging = true;
-					handleDragStart(e, pn, pn.idx, 'measure')
-				}"
-				@dragend="() => {
-					dragging = false;
-					highlightedLeft = null;
-					highlightedRight = null;
-				}"
-				@dragover.prevent
-				@drop.prevent.stop="handleDropExt"
-				@click.prevent="mainStore.setCurrentPoint(pn.id)"
-				@contextmenu.prevent="e => {
-					if (pointInfo.point?.id === pn.id) {
-						popupProps.show = !popupProps.show;
-						return;
-					}
-					pointInfo.point = mainStore.getPointById(pn.id);
-					pointInfo.name = pn.name;
-					popupProps.show = true;
-					popupProps.position.right = 'auto';
-					popupProps.position.bottom = 'auto';
-					popupProps.position.top = e.clientY + 5;
-					popupProps.position.left = e.clientX + 5;
-				}"
-			>
-				<span>
-					{{ pn.name }}
-				</span>
-				<span
-					:title="mainStore.t.i.hints.deletePoint"
-					class="button-iconed icon icon-cross-45-circled"
+			<template v-else-if="type === 'measure'">
+				<button
+					v-for="pn in measurePoints"
+					:key="pn.key"
+					:data-entity-id="pn.id"
+					:data-entity-type="'point'"
+					:data-entity-index="pn.idx"
+					:data-entity-context="'measure'"
+					:draggable="true"
+					:title="measurePointTitles[pn.id]"
+					:class="{ 'button-pressed':
+						pn.id === highlighted ||
+						pn.id === mainStore.measure.points[mainStore.measure.choosing]?.id
+					}"
+					@dragstart="e => {
+						dragging = true;
+						handleDragStart(e, pn, pn.idx, 'measure')
+					}"
+					@dragend="() => {
+						dragging = false;
+						highlightedLeft = null;
+						highlightedRight = null;
+					}"
 					@dragover.prevent
-					@click.stop="mainStore.removePointFromPoints({
-						point: mainStore.temps[pn.id],
-						entity: mainStore.measure,
-					})"
-				/>
-				<span
-					class="sorting-area-left"
-					:class="{ highlighted: pn.key === highlightedLeft }"
-					@dragenter="highlightedLeft = pn.key"
-					@dragleave="highlightedLeft = null"
-					@drop="($e: DragEventCustom) => $e.dragBefore = true"
-				/>
-				<span
-					class="sorting-area-right"
-					:class="{ highlighted: pn.key === highlightedRight }"
-					@dragenter="highlightedRight = pn.key"
-					@dragleave="highlightedRight = null"
-					@drop="($e: DragEventCustom) => $e.dragBefore = false"
-				/>
-			</button>
+					@drop.prevent.stop="handleDropExt"
+					@click.prevent="mainStore.setCurrentPoint(pn.id)"
+					@contextmenu.prevent="e => {
+						if (pointInfo.point?.id === pn.id) {
+							popupProps.show = !popupProps.show;
+							return;
+						}
+						pointInfo.point = mainStore.getPointById(pn.id);
+						pointInfo.name = pn.name;
+						popupProps.show = true;
+						popupProps.position.right = 'auto';
+						popupProps.position.bottom = 'auto';
+						popupProps.position.top = e.clientY + 5;
+						popupProps.position.left = e.clientX + 5;
+					}"
+				>
+					<span>
+						{{ pn.name }}
+					</span>
+					<span
+						:title="mainStore.t.i.hints.deletePoint"
+						class="button-iconed icon icon-cross-45-circled"
+						@dragover.prevent
+						@click.stop="mainStore.removePointFromPoints({
+							point: mainStore.temps[pn.id],
+							entity: mainStore.measure,
+						})"
+					/>
+					<span
+						class="sorting-area-left"
+						:class="{ highlighted: pn.key === highlightedLeft }"
+						@dragenter="highlightedLeft = pn.key"
+						@dragleave="highlightedLeft = null"
+						@drop="($e: DragEventCustom) => $e.dragBefore = true"
+					/>
+					<span
+						class="sorting-area-right"
+						:class="{ highlighted: pn.key === highlightedRight }"
+						@dragenter="highlightedRight = pn.key"
+						@dragleave="highlightedRight = null"
+						@drop="($e: DragEventCustom) => $e.dragBefore = false"
+					/>
+				</button>
+			</template>
 
 <!-- SEC Buttons: Route -->
 
-			<button
-				v-else-if="type === 'route'"
-				v-for="pn in routePoints"
-				:key="pn.idx"
-				:data-entity-id="pn.id"
-				:data-entity-type="'point'"
-				:data-entity-index="pn.idx"
-				:data-entity-context="'routes'"
-				:data-entity-parent-id="mainStore.currentRoute.id"
-				:draggable="true"
-				:title="routePointTitles[pn.id]"
-				:class="{
-					'button-pressed': pn.id === mainStore.currentPoint?.id,
-				}"
-				@dragstart="e => {
-					dragging = true;
-					handleDragStart(
-						e, pn, pn.idx, 'routes', mainStore.currentRoute.id
-					)
-				}"
-				@dragend="() => {
-					dragging = false;
-					highlightedLeft = null;
-					highlightedRight = null;
-				}"
-				@dragover.prevent
-				@drop.prevent.stop="handleDropExt"
-				@click.prevent="() => {
-					pointInfo.point = mainStore.getPointById(pn.id);
-					mainStore.setCurrentPoint(pointInfo.point);
-				}"
-				@contextmenu.prevent="e => {
-					if (pointInfo.point?.id === pn.id) {
-						popupProps.show = !popupProps.show;
-						return;
-					}
-					pointInfo.point = mainStore.getPointById(pn.id);
-					if (mainStore.mode === 'measure') {
-						mainStore.addPointToPoints({
-							point: pointInfo.point,
-							entity: mainStore.measure,
-						});
-						return;
-					}
-					pointInfo.name = pn.name;
-					popupProps.show = true;
-					popupProps.position.left = 'auto';
-					popupProps.position.bottom = 'auto';
-					popupProps.position.top = e.clientY + 5;
-					popupProps.position.right =
-						e.view.document.documentElement.clientWidth -
-						e.clientX + 5;
-				}"
-			>
-				<span>
-					{{ pn.name }}
-				</span>
-				<span
-					:title="mainStore.t.i.hints.deleteRoutePoint"
-					class="button-iconed icon icon-cross-45-circled"
-					@click.stop="() => {
-						const point = mainStore.getPointById(pn.id);
-						mainStore.deleteObjects({ [point.id]: point });
+			<template v-else-if="type === 'route'">
+				<button
+					v-for="pn in routePoints"
+					:key="pn.idx"
+					:data-entity-id="pn.id"
+					:data-entity-type="'point'"
+					:data-entity-index="pn.idx"
+					:data-entity-context="'routes'"
+					:data-entity-parent-id="mainStore.currentRoute.id"
+					:draggable="true"
+					:title="routePointTitles[pn.id]"
+					:class="{
+						'button-pressed': pn.id === mainStore.currentPoint?.id,
 					}"
-				/>
-				<span
-					class="sorting-area-left"
-					:class="{ highlighted: pn.key === highlightedLeft }"
-					@dragenter="highlightedLeft = pn.key"
-					@dragleave="highlightedLeft = null"
-					@drop="($e: DragEventCustom) => $e.dragBefore = true"
-				/>
-				<span
-					class="sorting-area-right"
-					:class="{ highlighted: pn.key === highlightedRight }"
-					@dragenter="highlightedRight = pn.key"
-					@dragleave="highlightedRight = null"
-					@drop="($e: DragEventCustom) => $e.dragBefore = false"
-				/>
-			</button>
+					@dragstart="e => {
+						dragging = true;
+						handleDragStart(
+							e, pn, pn.idx, 'routes', mainStore.currentRoute.id
+						)
+					}"
+					@dragend="() => {
+						dragging = false;
+						highlightedLeft = null;
+						highlightedRight = null;
+					}"
+					@dragover.prevent
+					@drop.prevent.stop="handleDropExt"
+					@click.prevent="() => {
+						pointInfo.point = mainStore.getPointById(pn.id);
+						mainStore.setCurrentPoint(pointInfo.point);
+					}"
+					@contextmenu.prevent="e => {
+						if (pointInfo.point?.id === pn.id) {
+							popupProps.show = !popupProps.show;
+							return;
+						}
+						pointInfo.point = mainStore.getPointById(pn.id);
+						if (mainStore.mode === 'measure') {
+							mainStore.addPointToPoints({
+								point: pointInfo.point,
+								entity: mainStore.measure,
+							});
+							return;
+						}
+						pointInfo.name = pn.name;
+						popupProps.show = true;
+						popupProps.position.left = 'auto';
+						popupProps.position.bottom = 'auto';
+						popupProps.position.top = e.clientY + 5;
+						popupProps.position.right =
+							e.view.document.documentElement.clientWidth -
+							e.clientX + 5;
+					}"
+				>
+					<span>
+						{{ pn.name }}
+					</span>
+					<span
+						:title="mainStore.t.i.hints.deleteRoutePoint"
+						class="button-iconed icon icon-cross-45-circled"
+						@click.stop="() => {
+							const point = mainStore.getPointById(pn.id);
+							mainStore.deleteObjects({ [point.id]: point });
+						}"
+					/>
+					<span
+						class="sorting-area-left"
+						:class="{ highlighted: pn.key === highlightedLeft }"
+						@dragenter="highlightedLeft = pn.key"
+						@dragleave="highlightedLeft = null"
+						@drop="($e: DragEventCustom) => $e.dragBefore = true"
+					/>
+					<span
+						class="sorting-area-right"
+						:class="{ highlighted: pn.key === highlightedRight }"
+						@dragenter="highlightedRight = pn.key"
+						@dragleave="highlightedRight = null"
+						@drop="($e: DragEventCustom) => $e.dragBefore = false"
+					/>
+				</button>
+			</template>
 		</div>
 	</div>
 </template>
@@ -351,7 +354,7 @@ const props = withDefaults(defineProps<IPlacesPointsProps>(), {
 	type: 'temps',
 });
 
-const handleDrop = inject<typeof handleDrop>('handleDrop');
+const handleDrop = inject<(event: DragEventCustom) => void>('handleDrop');
 
 const mainStore = useMainStore();
 

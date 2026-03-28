@@ -17,7 +17,7 @@ export const forgotRoutine = async (payload: Record<string, string>, voc) => {
 			default :
 				forgot.message = voc.m.paged.forgotLetterSent;
 		}
-	} catch (error) {
+	} catch {
 		forgot.message = voc.m.paged.letterError;
 	}
 };

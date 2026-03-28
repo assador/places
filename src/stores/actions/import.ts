@@ -147,7 +147,7 @@ export const importActions = {
 			this.backupState();
 			return;
 		}
-		const points = entities.points.reduce((pts, pt) => {
+		const points = entities.points.reduce((pts: Record<string, Point>, pt: Point) => {
 			pts[pt.id] = pt;
 			return pts;
 		}, {});

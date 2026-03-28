@@ -119,7 +119,6 @@
 				<template
 					v-for="route in computedRoutes"
 					:key="route.id"
-					class="route"
 				>
 					<yandex-map-feature
 						v-model="routeLines[route.id]"

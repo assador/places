@@ -25,6 +25,7 @@ import { dbActions } from './actions/db';
 import { uiActions } from './actions/ui';
 
 import { treeGetters } from './getters/tree';
+
 export const useMainStore = defineStore('main', {
 	state: (): IMainState => ({
 		activeMapIndex: 0,
@@ -158,6 +159,8 @@ export const useMainStore = defineStore('main', {
 				srt                : this.t.i.captions.srt,
 				common             : this.t.i.captions.common,
 				images             : this.t.i.captions.images,
+				point              : this.t.i.captions.point,
+				home               : this.t.i.inputs.checkboxHome,
 			}
 			return descriptionFields;
 		},

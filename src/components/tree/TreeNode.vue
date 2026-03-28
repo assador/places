@@ -361,17 +361,13 @@
 					class="place-button__controls"
 				>
 					<span
-						v-if="
-							Object.hasOwn(object, 'geomark') ||
-							Object.hasOwn(object, 'geomarks')
-						"
 						class="place-button__control icon"
-						:class="'icon-geomark-' + (what === 'places'
-							? (!object['geomark'] ? '0' : '1')
-							: (!object['geomarks'] ? '0' : '1')
+						:class="'icon-geomark-' + (isPlace(object)
+							? (!object.geomark ? '0' : '1')
+							: (!object.geomarks ? '0' : '1')
 						) + '-circled'"
 						:title="
-							(!object['geomark']
+							(!isPlace(object)
 								? mainStore.t.i.hints.show
 								: mainStore.t.i.hints.hide
 							) + ' ' +
@@ -381,9 +377,9 @@
 							if (what === 'places') {
 								mainStore.showHideGeomarks({
 									object: object,
-									show: !(object['geomark']
-										? object['geomark']
-										: object['geomarks']
+									show: !(isPlace(object)
+										? object.geomark
+										: object.geomarks
 									),
 								});
 							} else if (what === 'routes') {
@@ -506,15 +502,23 @@ export default {
 
 <script setup lang="ts">
 import _ from 'lodash';
-import { computed, inject, nextTick } from 'vue';
+import { Ref, computed, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Place, Route, Folder, DragEntityPayload } from '@/types';
+import {
+	Place,
+	Route,
+	Folder,
+	FolderContext,
+	DragEventCustom,
+	DragEntityPayload,
+} from '@/types';
+import { isPlace } from '@/guards';
 import { formFoldersCheckedIds } from '@/shared';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;
-	what: 'places' | 'routes';
+	what: FolderContext;
 	folder?: Folder;
 	parent?: Folder;
 }
@@ -531,10 +535,10 @@ const router = useRouter();
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
 
-const selectedToExport = inject<typeof selectedToExport>('selectedToExport');
+const handleDrop = inject<(event: DragEventCustom) => void>('handleDrop');
+const selectedToExport = inject<Ref<Record<string, Place | Route>>>('selectedToExport');
 const foldersCheckedIds: string[] = inject('foldersCheckedIds');
 const foldersEditMode = inject('foldersEditMode');
-const handleDrop = inject<typeof handleDrop>('handleDrop');
 
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));
 const places = computed(() =>
@@ -561,7 +565,7 @@ const distance = computed(() => {
 			return Math.round(mainStore.distanceBetweenPoints(
 				places.value.map(place => place.pointid)
 			) * 1000) / 1000;
-		case 'routes':
+		case 'routes': {
 			const isTotalPath = false; // TODO Implement checkbox: Include distances between routes.
 			if (isTotalPath) {
 				return Math.round(mainStore.distanceBetweenPoints(
@@ -571,6 +575,9 @@ const distance = computed(() => {
 				const sum = routes.value.reduce((s, r) => s + mainStore.distanceBetweenPoints(r.points.map(p => p.id)), 0);
 				return Math.round(sum * 1000) / 1000;
 			}
+		}
+		default:
+			return 0;
 	}
 });
 

@@ -17,6 +17,10 @@ export type EntitiesContext =
 	| 'images'
 	| 'measure'
 ;
+export type FolderContext =
+	| 'places'
+	| 'routes'
+;
 export type AppendMode =
 	| 'change' // change the existing one
 	| 'clone'  // create new based on the existing one
@@ -57,7 +61,7 @@ export interface Entity {
 }
 export interface Folder extends Entity {
 	type: 'folder';
-	context: string;
+	context: FolderContext;
 	virtual?: boolean;
 	parent: string | null;
 	name: string;
@@ -88,6 +92,7 @@ export interface Place extends Entity {
 	srt: number;
 	geomark: boolean;
 	images?: Record<string, Image>;
+	home?: boolean;
 }
 export interface Route extends Entity {
 	type: 'route';

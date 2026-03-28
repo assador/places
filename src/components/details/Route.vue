@@ -68,7 +68,7 @@
 					/>
 				</dd>
 			</template>
-			<template v-else-if="field === 'common'" class="margin_bottom">
+			<template v-else-if="field === 'common'">
 				<dd>
 					<label v-if="!currentRouteCommon">
 						<input
@@ -129,6 +129,7 @@
 <script setup lang="ts">
 import { ref, Ref, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { Route } from '@/types'
 import Points from '@/components/Points.vue';
 import Images from '@/components/details/Images.vue';
 
@@ -138,7 +139,13 @@ const mainStore = useMainStore();
 
 const currentRouteNameInputRef = inject('currentRouteNameInputRef');
 
-const orderedCurrentRouteFields = ref([
+type FieldKeys<T> = {
+	[K in keyof T]: T[K] extends string | number | boolean | undefined ? K : never
+}[keyof T];
+
+type ValidField = FieldKeys<Route> & keyof typeof mainStore.descriptionFields;
+
+const orderedCurrentRouteFields = ref<ValidField[]>([
 	'name', 'description', 'link', 'time', 'srt', 'common',
 ]);
 const linkEditing = ref(false);

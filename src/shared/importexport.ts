@@ -53,46 +53,51 @@ export const generateJSON = ({
 		while (currentId && foldersDict[currentId]) {
 			if (exportFoldersDict[currentId]) break;
 			const f = foldersDict[currentId];
-			const {
-				type,
-				show,
-				added,
-				deleted,
-				updated,
-				geomarks,
-				open,
-				...cleanFolder
-			} = f as any;
+			const cleanFolder = Object.fromEntries(
+				Object.entries(f).filter(([key]) =>
+					![
+						'type',
+						'show',
+						'added',
+						'deleted',
+						'updated',
+						'geomarks',
+						'open',
+					].includes(key),
+				),
+			);
 			exportFoldersDict[currentId] = cleanFolder;
 			currentId = f.parent as string;
 		}
 	};
 	const placesArray = Object.values(places).map((p) => {
-		const {
-			type,
-			show,
-			added,
-			deleted,
-			updated,
-			geomark,
-			images,
-			...cleanPlace
-		} = p as any;
+		const cleanPlace = Object.fromEntries(
+			Object.entries(p).filter(([key]) =>
+				![
+					'type',
+					'show',
+					'added',
+					'deleted',
+					'updated',
+					'geomark',
+					'images',
+				].includes(key),
+			),
+		);
 		if (p.pointid && pointsDict[p.pointid]) pointsSet.add(p.pointid);
 		if (p.folderid) addFolderWithParents(p.folderid);
 		return cleanPlace;
 	});
 	const pointsArray = Array.from(pointsSet).map((id) => {
-		const {
-			type,
-			show,
-			added,
-			deleted,
-			updated,
-			...cleanPoint
-		} = pointsDict[id] as any;
-		return cleanPoint;
-	});
+		const p = pointsDict[id];
+		if (!p) return null;
+		return Object.fromEntries(
+			Object.entries(p).filter(([key]) =>
+				![ 'type', 'show', 'added', 'deleted', 'updated' ].includes(key),
+			),
+		);
+	}).filter((p) => p !== null);
+
 	const foldersArray = Object.values(exportFoldersDict);
 
 	return JSON.stringify({
