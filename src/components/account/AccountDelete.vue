@@ -129,7 +129,7 @@
 import { ref, onMounted, onBeforeUpdate } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
-import { accountDeletionRoutine, acc } from '@/shared';
+import { acc, accountDeletionRoutine } from '@/shared/account';
 
 const mainStore = useMainStore();
 const router = useRouter();

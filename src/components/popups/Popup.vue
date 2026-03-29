@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, type CSSProperties } from 'vue';
-import { IPlacesPopupProps } from '@/shared';
+import { IPlacesPopupProps } from '@/shared/interfaces';
 
 const props = withDefaults(defineProps<IPlacesPopupProps>(), {
 	show: false,

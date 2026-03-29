@@ -28,18 +28,22 @@ import { ref, computed, provide, onMounted } from 'vue'
 import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
+
+import { emitter } from '@/shared/bus';
+import { usePWAInstall } from '@/shared/usepwainstall';
+import { logoutRoutine } from '@/shared/auth';
+import { IPlacesPopupProps } from '@/shared/interfaces';
 import {
-	emitter,
-	usePWAInstall,
-	logoutRoutine,
 	generateGPX,
 	generateJSON,
+} from '@/shared/importexport';
+import {
 	handleFolderDropped,
 	handlePlaceRouteDropped,
 	handlePointInListDropped,
 	handleImageDropped,
-	IPlacesPopupProps,
-} from '@/shared';
+} from '@/shared/dnd';
+
 import {
 	Place,
 	Route,
@@ -49,6 +53,7 @@ import {
 	DragEventCustom,
 	ImportExportFormat,
 } from '@/types';
+
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 import Popup from '@/components/popups/Popup.vue';
 

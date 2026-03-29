@@ -514,7 +514,7 @@ import {
 	DragEntityPayload,
 } from '@/types';
 import { isPlace } from '@/guards';
-import { formFoldersCheckedIds } from '@/shared';
+import { formFoldersCheckedIds } from '@/shared/generators';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;

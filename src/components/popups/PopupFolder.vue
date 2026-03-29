@@ -76,7 +76,7 @@
 import { ref, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
-import { makeFieldsValidatable } from '@/shared';
+import { makeFieldsValidatable } from '@/shared/generators';
 
 const mainStore = useMainStore();
 

@@ -4,9 +4,7 @@ import {
 	Route,
 	IMainState,
 } from '@/types';
-import {
-	constants,
-} from '@/shared';
+import { constants } from '@/shared/constants';
 
 export const backupActions = {
 	backupState() {

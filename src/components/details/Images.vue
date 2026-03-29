@@ -105,7 +105,7 @@
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
 import { orderBy } from 'lodash';
-import { constants } from '@/shared';
+import { constants } from '@/shared/constants';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { Image, DragEventCustom, DragEntityPayload } from '@/types';

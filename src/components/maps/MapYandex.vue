@@ -398,7 +398,8 @@
 import { ref, Ref, shallowRef, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Place, Route, Measure, Point, PointName } from '@/types';
-import { IPlacesPopupProps, getPointToSegmentDistance } from '@/shared';
+import { IPlacesPopupProps } from '@/shared/interfaces';
+import { getPointToSegmentDistance } from '@/shared/common';
 import {
 	YandexMap,
 	YandexMapListener,

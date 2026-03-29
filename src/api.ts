@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { emitter } from '@/shared';
+import { emitter } from '@/shared/bus';
 
 const api = axios.create({
 	baseURL: '/backend/',

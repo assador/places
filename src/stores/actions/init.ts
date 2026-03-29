@@ -1,13 +1,11 @@
+import api from '@/api';
+import { constants } from '@/shared/constants';
 import {
 	Point,
 	Place,
 	Route,
 	Folder,
 } from '@/types';
-import {
-	constants,
-} from '@/shared';
-import api from '@/api';
 
 export const initActions = {
 	unload() {

@@ -378,7 +378,7 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Route, Point, PointName } from '@/types';
-import { IPlacesPopupProps } from '@/shared';
+import { IPlacesPopupProps } from '@/shared/interfaces';
 
 const mainStore = useMainStore();
 

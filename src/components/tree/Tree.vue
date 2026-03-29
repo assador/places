@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { formFoldersCheckedIds } from '@/shared';
+import { formFoldersCheckedIds } from '@/shared/generators';
 import TreeNode from '@/components/tree/TreeNode.vue';
 
 export interface IPlacesTreeProps {

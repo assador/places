@@ -209,17 +209,14 @@
 import { ref, inject, nextTick, onBeforeMount, onMounted, onUpdated } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import {
-	emitter,
-	constants,
-	reg,
-	login,
-	forgot,
-	regRoutine,
-	loginRoutine,
-	forgotRoutine,
-	makeFieldsValidatable,
-} from '@/shared';
+
+import { emitter } from '@/shared/bus';
+import { constants } from '@/shared/constants';
+import { reg, regRoutine } from '@/shared/reg';
+import { login, loginRoutine } from '@/shared/auth';
+import { forgot, forgotRoutine } from '@/shared/forgot';
+import { makeFieldsValidatable, } from '@/shared/generators';
+
 import Dashboard from '@/components/Dashboard.vue';
 
 const mainStore = useMainStore();

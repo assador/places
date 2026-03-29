@@ -7,7 +7,7 @@ import {
 import {
 	entitiesFromJSON,
 	entitiesFromGPX,
-} from '@/shared';
+} from '@/shared/importexport';
 
 export const importActions = {
 	existingFolder(folder: Partial<Folder>, idMap: Map<string, string>) {

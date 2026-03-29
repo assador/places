@@ -9,12 +9,10 @@ import {
 	Folder,
 	EntityCollection,
 } from '@/types';
-import {
-	constants,
-	distanceOnSphere,
-} from '@/shared';
-import api from '@/api';
+import { constants } from '@/shared/constants';
+import { distanceOnSphere } from '@/shared/common';
 import { t } from '@/lang/ru';
+import api from '@/api';
 
 import { entityActions } from './actions/entity';
 import { relateActions } from './actions/relate';

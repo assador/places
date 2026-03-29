@@ -9,7 +9,8 @@ import {
 	DragRoutePayload,
 	DragImagePayload,
 } from '@/types';
-import { isAncestorOf, moveInArray, moveInObject } from '@/shared';
+import { isAncestorOf } from '@/shared/checkers';
+import { moveInArray, moveInObject } from '@/shared/sorting';
 import { useMainStore } from '@/stores/main';
 
 export const handleFolderDropped: DragHandler = (

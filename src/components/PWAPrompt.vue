@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { usePWAInstall } from '@/shared';
+import { usePWAInstall } from '@/shared/usepwainstall';
 import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();

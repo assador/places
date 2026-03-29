@@ -7,7 +7,7 @@ import {
 	AppendMode,
 } from '@/types';
 import { isPoint, isPlace, isRoute } from '@/guards';
-import { emitter } from '@/shared';
+import { emitter } from '@/shared/bus';
 
 export const entityActions = {
 

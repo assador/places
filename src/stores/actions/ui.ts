@@ -3,10 +3,8 @@ import {
 	Route,
 	Folder,
 } from '@/types';
-import {
-	constants,
-	distanceOnSphere,
-} from '@/shared';
+import { constants } from '@/shared/constants';
+import { distanceOnSphere } from '@/shared/common';
 
 export const uiActions = {
 	setBusy(busy: boolean = true) {

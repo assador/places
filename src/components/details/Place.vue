@@ -220,7 +220,7 @@
 
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
-import { coords2string, string2coords } from '@/shared';
+import { coords2string, string2coords } from '@/shared/converters';
 import { useMainStore } from '@/stores/main';
 import { Place } from '@/types'
 import Images from '@/components/details/Images.vue';

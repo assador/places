@@ -1,7 +1,7 @@
 import {
 	Folder,
 } from '@/types';
-import { makeChildren } from '@/shared';
+import { makeChildren } from '@/shared/converters';
 
 export const treeGetters = {
 	childrened() {

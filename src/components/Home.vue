@@ -781,18 +781,21 @@ import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { throttle } from 'lodash';
+
+import { emitter } from '@/shared/bus';
+import { constants } from '@/shared/constants';
+import { makeFieldsValidatable } from '@/shared/generators';
+import { sortObjects } from '@/shared/sorting';
+import { makeDropDowns } from '@/shared/common';
+import { IPlacesPopupProps } from '@/shared/interfaces';
 import {
-	emitter,
-	constants,
-	sortObjects,
-	makeDropDowns,
-	makeFieldsValidatable,
-	IPlacesPopupProps,
 	point2coords,
 	latitude2string,
 	longitude2string,
-} from '@/shared';
+} from '@/shared/converters';
+
 import { Point, Place, Route, Image, PointName } from '@/types';
+
 import Header from '@/components/Header.vue';
 import Measure from '@/components/helpers/Measure.vue';
 import Points from '@/components/Points.vue';

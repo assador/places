@@ -66,7 +66,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { emitter, IPlacesPopupProps } from '@/shared';
+import { emitter } from '@/shared/bus';
+import { IPlacesPopupProps } from '@/shared/interfaces';
 import { useMainStore } from '@/stores/main';
 import Dashboard from '@/components/Dashboard.vue';
 import Popup from '@/components/popups/Popup.vue';
