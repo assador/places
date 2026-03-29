@@ -113,7 +113,7 @@ const popupBusy = ref<IPlacesPopupProps>({
 });
 
 // Event Bus Handlers
-emitter.on('busy', (value?: boolean) => {
+emitter.on('busy', value => {
 	mainStore.setBusy(value);
 });
 emitter.on('logged', async () => {
@@ -142,22 +142,18 @@ emitter.on('logout', () => {
 		confirm(getOut, [], mainStore.t.i.text.notSaved);
 	}
 });
-emitter.on('confirm', (
-	object: { func: (...args: any[]) => void, args: any[], msg: string }
-): void => {
-	const { func, args, msg } = object;
+emitter.on('confirm', ({ func, args, msg }) => {
 	confirm(func, args, msg);
 });
-
-emitter.on('toDB', (payload: EntityCollection) => {
-	if (payload) {
-		toDB(payload);
-	} else {
-		toDB(mainStore.getAllModifiedPackage);
-	}
+emitter.on('toDB', payload => {
+	toDB(payload);
 });
-emitter.on('homeToDB', (id: string) => homeToDB(id));
-emitter.on('getFolderById', (id: string) => mainStore.folders[id]);
+emitter.on('toDBAll', () => {
+	toDB(mainStore.getAllModifiedPackage);
+});
+emitter.on('homeToDB', id => {
+	homeToDB(id);
+});
 
 // Lifecycle
 onMounted(() => {

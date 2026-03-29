@@ -583,7 +583,7 @@
 					mainStore.t.i.hints.saveToDb
 				"
 				accesskey="s"
-				@click="emitter.emit('toDB')"
+				@click="emitter.emit('toDBAll')"
 			>
 				<span class="icon icon-save" />
 				<span>{{ mainStore.t.i.buttons.save }}</span>
@@ -1189,7 +1189,7 @@ const keyup = (event: Event): void => {
 		'edit mode': () => foldersEditMode.value = !foldersEditMode.value,
 		'import': () => importFromFileInput.value.click(),
 		'export': () => router.push({ name: 'HomeExport' }),
-		'save': () => emitter.emit('toDB'),
+		'save': () => emitter.emit('toDBAll'),
 		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
 		'revert': () => document.location.reload(),
 		'quit': () => emitter.emit('logout'),

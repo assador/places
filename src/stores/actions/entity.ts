@@ -573,7 +573,7 @@ export const entityActions = {
 		return toDelete;
 	},
 	deleteTemp(id: string) {
-		const measureIndex = this.measure.points.map(p => p.id).indexOf(id);
+		const measureIndex = this.measure.points.map((p: PointName) => p.id).indexOf(id);
 		if (measureIndex !== -1) {
 			if (this.measure.choosing > this.measure.points.length - 2) {
 				this.measure.choosing = this.measure.points.length - 2
