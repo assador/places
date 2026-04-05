@@ -39,7 +39,7 @@
 
 ## 1. Purpose
 
-**The Places** is a GeoOrganizer. It is a personal GIS — a tool for systematizing personal geographic data.
+**The Places** is a Geo-Organizer. It is a personal GIS — a tool for systematizing personal geographic data.
 
 It is not a social network.
 It is not a "map with pins."

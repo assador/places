@@ -1,7 +1,7 @@
 # Места (ГеоОрганайзер)
 **v6.3.6 beta** | [English version](README.md) | [Руководство пользователя](MANUAL.ru.md) | [Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Написать](mailto:places@scrofa-tridens.ru) | [Boosty](https://boosty.to/assador/donate)
 
-Персональный сервис для управления геометками, маршрутами и фотоальбомами.  
+ГеоОрганайзер. Персональный ГИС-инструмент для систематизации и визуализации личных географических данных.
 
 ## Описание
 
