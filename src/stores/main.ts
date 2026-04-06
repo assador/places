@@ -328,6 +328,25 @@ export const useMainStore = defineStore('main', {
 				return coords;
 			}
 		},
+		pointReferences() {
+			const refs = new Map<string, Set<string>>();
+			Object.values(this.places).forEach((place: Place) => {
+				if (!place.deleted) {
+					if (!refs.has(place.pointid)) refs.set(place.pointid, new Set());
+					refs.get(place.pointid).add(place.id);
+				}
+			});
+			Object.values(this.routes).forEach((route: Route) => {
+				if (!route.deleted) {
+					route.points.forEach(p => {
+						const pid = this.places[p.id]?.pointid || p.id;
+						if (!refs.has(pid)) refs.set(pid, new Set());
+						refs.get(pid).add(route.id);
+					});
+				}
+			});
+			return refs;
+		},
 		getAllModifiedPackage(): EntityCollection {
 			return {
 				points: this.collectModified(this.points),

@@ -235,7 +235,7 @@
 								}"
 							/>
 							<img
-								v-if="point.id === mainStore.currentPoint.id"
+								v-if="point.id === mainStore.currentPoint?.id"
 								:src="placemarksOptions.icon_active.iconUrl"
 								class="marker"
 							/>
@@ -361,7 +361,7 @@
 						v-if="
 							mainStore.mode === 'measure' &&
 							mainStore.isMeasurePoint(point.id) &&
-							point.id === mainStore.currentPoint.id
+							point.id === mainStore.currentPoint?.id
 						"
 						:src="placemarksOptions.icon_active.iconUrl"
 						class="marker"
@@ -369,7 +369,7 @@
 					<img
 						v-else-if="!mainStore.isMeasurePoint(point.id)"
 						:src="placemarksOptions[
-							point.id === mainStore.currentPoint.id
+							point.id === mainStore.currentPoint?.id
 								? 'icon_temp_active' : 'icon_temp'
 						].iconUrl"
 						class="marker"

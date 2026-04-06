@@ -446,9 +446,6 @@ export const entityActions = {
 // SEC Deleting Entities
 
 	deleteObjects(objects: Record<string, Point | Place | Route | Folder>) {
-		Object.values(objects).forEach(obj => {
-			obj.deleted = true;
-		});
 		const pointsToCheck = new Set<string>();
 		Object.values(objects).forEach(obj => {
 			if (isPlace(obj)) {
@@ -461,22 +458,18 @@ export const entityActions = {
 				pointsToCheck.add(obj.id);
 			}
 		});
+		Object.values(objects).forEach(obj => {
+			obj.deleted = true;
+		});
+		this.cleanupRoutesFromDeletedPoints();
 		pointsToCheck.forEach(pid => {
-			const isPointStillNeeded =
-				Object.values<Place>(this.places).some(
-					p => p.pointid === pid && !p.deleted
-				) ||
-				Object.values<Route>(this.routes).some(
-					r => !r.deleted && r.points.some(rp => (
-						this.places[rp.id]?.pointid || rp.id) === pid
-					)
-				)
-			;
-			if (!isPointStillNeeded && this.points[pid]) {
+			const isPointStillNeeded = (this.pointReferences.get(pid)?.size || 0) > 0;
+			if (isPointStillNeeded && this.points[pid]) {
+				this.points[pid].deleted = false;
+			} else if (!isPointStillNeeded && this.points[pid]) {
 				this.points[pid].deleted = true;
 			}
 		});
-		this.cleanupRoutesFromDeletedPoints();
 		this.fixCurrentsAfterDelete();
 		this.updateSavedStatus();
 		this.backupState();
@@ -642,12 +635,8 @@ export const entityActions = {
 	changePlace(
 		{ entity, change }: { entity: Place; change: Partial<Place>; }
 	) {
-		for (const key in change) {
-			entity[key] = key === 'srt'
-				? (Number(change[key]) || 0)
-				: change[key]
-			;
-		}
+		if ('srt' in change) entity.srt = Number(change.srt) || 0;
+		Object.assign(entity, change);
 		entity.updated = true;
 		this.saved = false;
 		this.backupState();
@@ -655,12 +644,8 @@ export const entityActions = {
 	changeRoute(
 		{ entity, change }: { entity: Route; change: Partial<Route>; }
 	) {
-		for (const key in change) {
-			entity[key] = key === 'srt'
-				? (Number(change[key]) || 0)
-				: change[key]
-			;
-		}
+		if ('srt' in change) entity.srt = Number(change.srt) || 0;
+		Object.assign(entity, change);
 		entity.updated = true;
 		this.saved = false;
 		this.backupState();
@@ -668,9 +653,7 @@ export const entityActions = {
 	changeFolder(
 		{ folder, change }: { folder: Folder; change: Partial<Folder>; }
 	) {
-		for (const key in change) {
-			folder[key] = change[key];
-		}
+		Object.assign(folder, change);
 		folder.updated = true;
 		this.saved = false;
 		this.backupState();

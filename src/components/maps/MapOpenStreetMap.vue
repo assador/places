@@ -24,7 +24,7 @@
 				:lat-lng="mapCenter.coords as LatLngExpression"
 				draggable
 				:visible="mainStore.centerPlacemarkShow"
-				@dragend="e => updateState({
+				@dragend="(e: LeafletEvent) => updateState({
 					coords: [
 						e.target.getLatLng().lat,
 						e.target.getLatLng().lng,
@@ -49,11 +49,11 @@
 				draggable
 				:visible="mainStore.placemarksShow && place.show && place.geomark"
 				@click="mainStore.setCurrentPlace(place, false)"
-				@contextmenu="e =>
+				@contextmenu="(e: LeafletEvent) =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
 				@dragstart="dragging = true"
-				@dragend="e => {
+				@dragend="(e: LeafletEvent) => {
 					dragging = false;
 					markerDragEnd(place, e);
 				}"
@@ -88,7 +88,7 @@
 				]"
 				:visible="mainStore.commonPlacemarksShow && place.geomark"
 				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-				@contextmenu="e =>
+				@contextmenu="(e: LeafletEvent) =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
 			>
@@ -180,17 +180,17 @@
 							@click="mainStore.setCurrentPoint(
 								mainStore.getPointById(point.id), false)
 							"
-							@contextmenu="e =>markerContextMenu(
+							@contextmenu="(e: LeafletEvent) =>markerContextMenu(
 								e,
 								mainStore.getPointById(point.id),
 								mainStore.currentRoute
 							)"
 							@dragstart="dragging = true"
-							@dragend="e => {
+							@dragend="(e: LeafletEvent) => {
 								dragging = false;
 								markerDragEnd(mainStore.getPointById(point.id), e);
 							}"
-							@move="e => {
+							@move="(e: LeafletEvent) => {
 								const { lat, lng } = e.target.getLatLng();
 								const polyline = routeLineRefs[route.id];
 								if (polyline) {
@@ -207,7 +207,7 @@
 							}"
 						>
 							<l-icon
-								v-bind="(point.id === mainStore.currentPoint.id
+								v-bind="(point.id === mainStore.currentPoint?.id
 									? icon_active : icon_null
 								) as {}"
 							/>
@@ -247,15 +247,15 @@
 					@click="mainStore.setCurrentPoint(
 						mainStore.getPointById(point.id), false
 					)"
-					@contextmenu="e =>
+					@contextmenu="(e: LeafletEvent) =>
 						markerContextMenu(e, mainStore.getPointById(point.id), null
 					)"
 					@dragstart="dragging = true"
-					@dragend="e => {
+					@dragend="(e: LeafletEvent) => {
 						dragging = false;
 						markerDragEnd(mainStore.getPointById(point.id), e);
 					}"
-					@move="e => {
+					@move="(e: LeafletEvent) => {
 						if (mainStore.mode !== 'measure') return;
 						const { lat, lng } = e.target.getLatLng();
 						const polyline = routeLineRefs['measureId'];
@@ -273,7 +273,7 @@
 					}"
 				>
 					<l-icon
-						v-bind="(point.id === mainStore.currentPoint.id
+						v-bind="(point.id === mainStore.currentPoint?.id
 							? icon_temp_active
 							: (mainStore.isMeasurePoint(point.id)
 								? icon_null : icon_temp
@@ -364,7 +364,7 @@
 import { ref, Ref, computed, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import L from "leaflet";
-import { LatLngExpression, PointExpression } from "leaflet";
+import { LatLngExpression, PointExpression, LeafletEvent } from "leaflet";
 import {
 	LCircleMarker,
 	LControlLayers,
