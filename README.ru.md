@@ -1,5 +1,5 @@
 # Места (ГеоОрганайзер)
-**v6.3.6 beta** | [English version](README.md) | [Руководство пользователя](MANUAL.ru.md) | [Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Написать](mailto:places@scrofa-tridens.ru) | [Boosty](https://boosty.to/assador/donate)
+**v6.3.6 beta** | [English version](README.md) | [Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Руководство пользователя](MANUAL.ru.md) | [Написать](mailto:places@scrofa-tridens.ru) | [Open Collective](https://opencollective.com/places) | [Boosty](https://boosty.to/assador/donate)
 
 ГеоОрганайзер. Персональный ГИС-инструмент для систематизации и визуализации личных географических данных.
 

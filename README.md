@@ -1,5 +1,5 @@
 # The Places (Geo-Organizer)
-**v6.3.6 beta** | [Русская версия](README.ru.md) | [User manual](MANUAL.md) | [Service](https://places.scrofa-tridens.ru/) | [Habr](https://habr.com/ru/articles/1009226/) | [Mail](mailto:places@scrofa-tridens.ru) | [Donate](https://boosty.to/assador/donate)
+**v6.3.6 beta** | [Русская версия](README.ru.md) | [Service](https://places.scrofa-tridens.ru/) | [Habr](https://habr.com/ru/articles/1009226/) | [User manual](MANUAL.md) | [Mail](mailto:places@scrofa-tridens.ru) | [Open Collective](https://opencollective.com/places) | [Donate](https://boosty.to/assador/donate)
 
 Geo-Organizer: A personal GIS tool for systematizing and visualizing personal geographic data.
 
