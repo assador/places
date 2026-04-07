@@ -271,7 +271,8 @@ export const getT = () => ({
 			file: 'File',
 			fileNotImage: 'is not an image and will not be uploaded.',
 			filesNotImages: 'Some files are not images and have not been uploaded.',
-			filesTooLarge: 'Some files are too large and have not been uploaded. For your role file size is limited',
+			filesTooLarge: `Some files are too large and have not been uploaded.
+For your role file size is limited.`,
 			filesUploadedSuccessfully: 'Files was uploaded successfully.',
 			filesUploadError: 'An error has occurred when uploading files.',
 			fileTooLarge: 'is too large and will not be uploaded.',
@@ -284,8 +285,10 @@ export const getT = () => ({
 			routesCountExceeded: 'The maximum number of routes allowed for your current role has been exceeded.',
 			savedToDb: 'Changes have been saved to the database.',
 			taNotAllowFileUploads: 'The test account does not allow file uploads.',
-			testAccount: 'This is a demo account — you can freely try everything. Data is saved only temporarily and will disappear after you log out.',
-			testOnSave: 'Saved locally only (demo mode). Data is not saved to your account and will disappear after you log out.',
+			testAccount: `This is a demo account — feel free to try everything.
+Your data is temporary and will be cleared when you log out.`,
+			testOnSave: `Saved locally only (demo mode).
+Your data won’t be saved to your account and will be cleared when you log out.`,
 		},
 	},
 	o: {

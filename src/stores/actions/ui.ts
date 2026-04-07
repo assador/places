@@ -40,7 +40,7 @@ export const uiActions = {
 				}
 				this.messagesInterval = setInterval(() => {
 					if (this.messages.length > 1) {
-						this.deleteMessage(this.messages.length - 1);
+						this.deleteMessage(0);
 					} else {
 						this.clearMessages();
 					}

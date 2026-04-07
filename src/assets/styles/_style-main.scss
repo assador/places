@@ -1129,6 +1129,7 @@ $filter-brightness-03: brightness(0%);
 		cursor: default;
 		.message {
 			padding: 7px;
+			white-space: pre-line;
 			&.border_1 {
 				border-right-width: 0; border-bottom-width: 0; border-left-width: 0;
 				&:first-child {
