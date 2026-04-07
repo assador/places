@@ -379,13 +379,25 @@
 				:show="popupDonate.show"
 				:position="popupDonate.position"
 				:closeOnClick="true"
-				class="center"
+				class="center column"
 				@update:show="popupDonate.show = $event"
 			>
 				<template #popupSlot>
-					<h2>Boosty</h2>
 					<div>
-						<img src="@/assets/images/assador-donate.png" />
+						<h2>Boosty</h2>
+						<div>
+							<img src="@/assets/images/assador-donate.png" />
+						</div>
+					</div>
+					<div>
+						<h2>Open Collective</h2>
+						<div>
+							Поддержать через
+							<a href="https://opencollective.com/places" target="_blank">
+								Open Collective
+							</a>
+							(USD/EUR)
+						</div>
 					</div>
 				</template>
 			</Popup>

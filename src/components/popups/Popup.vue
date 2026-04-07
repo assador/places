@@ -106,4 +106,9 @@ onUnmounted(() => {
 		}
 	}
 }
+.column .popup-content {
+	display: flex;
+	flex-direction: column;
+    gap: 32px;
+}
 </style>
