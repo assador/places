@@ -591,7 +591,12 @@
 					mainStore.t.i.hints.saveToDb
 				"
 				accesskey="s"
-				@click="emitter.emit('toDBAll')"
+				@click="() => {
+					if (mainStore.user.testaccount) {
+						mainStore.setMessage(mainStore.t.m.popup.testOnSave, 8);
+					}
+					emitter.emit('toDBAll');
+				}"
 			>
 				<span class="icon icon-save" />
 				<span>{{ mainStore.t.i.buttons.save }}</span>
@@ -783,7 +788,6 @@ import {
 	inject,
 	nextTick,
 	defineAsyncComponent,
-	watchEffect,
 } from 'vue';
 import api from '@/api';
 import { useMainStore } from '@/stores/main';
@@ -1000,6 +1004,9 @@ onMounted(async () => {
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
 	emitter.emit('busy', false);
+	setTimeout(() => {
+		mainStore.setMessage(mainStore.t.m.popup.testAccount, 8);
+	}, 1000);
 });
 onUnmounted(() => {
 	document.removeEventListener('drop', handleDrop);

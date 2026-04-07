@@ -284,7 +284,8 @@ export const getT = () => ({
 			routesCountExceeded: 'The maximum number of routes allowed for your current role has been exceeded.',
 			savedToDb: 'Changes have been saved to the database.',
 			taNotAllowFileUploads: 'The test account does not allow file uploads.',
-			testAccount: 'This is a demo account. Nothing can be broken. But nothing can be saved either…',
+			testAccount: 'This is a demo account — you can freely try everything. Data is saved only temporarily and will disappear after you log out.',
+			testOnSave: 'Saved locally only (demo mode). Data is not saved to your account and will disappear after you log out.',
 		},
 	},
 	o: {
