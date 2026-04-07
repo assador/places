@@ -12,7 +12,6 @@ import {
 import { constants } from '@/shared/constants';
 import { distanceOnSphere } from '@/shared/common';
 import { t } from '@/lang/ru';
-import api from '@/api';
 
 import { entityActions } from './actions/entity';
 import { relateActions } from './actions/relate';
@@ -21,6 +20,7 @@ import { backupActions } from './actions/backup';
 import { initActions } from './actions/init';
 import { dbActions } from './actions/db';
 import { uiActions } from './actions/ui';
+import { serviceActions } from './actions/service';
 
 import { treeGetters } from './getters/tree';
 
@@ -114,23 +114,12 @@ export const useMainStore = defineStore('main', {
 		...initActions,
 		...dbActions,
 		...uiActions,
+		...serviceActions,
 
 		collectModified<T extends Entity>(collection: Record<string, T>): T[] {
 			return Object.values(collection).filter(i =>
 				(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
 			);
-		},
-		async getAltitude (lat: number, lon: number): Promise<number | null> {
-			try {
-				const { data } = await api.get(
-					`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`,
-					{ silent: true },
-				);
-				const alt = Number(data.elevation);
-				return isNaN(alt) ? null : alt;
-			} catch {
-				return null;
-			}
 		},
 		swapSrts(payload: any[]) {
 			payload[0].srt = [ payload[1].srt, payload[1].srt = payload[0].srt ][0];
