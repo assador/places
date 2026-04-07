@@ -99,9 +99,9 @@ body {
 #bottom-basic {
 	grid-area: bottom-basic;
 	display: grid;
-	grid-template-columns: auto auto 1fr auto auto;
+	grid-template-columns: auto 1fr auto;
 	grid-template-areas:
-		"bottom-basic__control-buttons-bottom  bottom-choose-map  bottom-center-coordinates  bottom-altitude"
+		"bottom-choose-map  bottom-center-coordinates"
 	;
 	gap: 12px;
 	align-items: baseline;
@@ -115,6 +115,7 @@ body {
 	}
 	#bottom-basic__control-buttons-bottom {
 		grid-area: bottom-basic__control-buttons-bottom;
+		display: none;
 	}
 	#bottom-choose-map {
 		grid-area: bottom-choose-map;
@@ -347,7 +348,10 @@ body {
 			display: none;
 		}
 		#bottom-basic {
-			grid-template-columns: 200px auto 1fr auto auto;
+			grid-template-columns: 200px auto 1fr auto;
+			grid-template-areas:
+				"bottom-basic__control-buttons-bottom  bottom-choose-map  bottom-center-coordinates"
+			;
 			gap: 12px;
 			#bottom-center-coordinates {
 				flex-wrap: wrap;
@@ -356,6 +360,9 @@ body {
 					width: 1.2em;
 					text-align: left;
 				}
+			}
+			#bottom-basic__control-buttons-bottom {
+				display: flex;
 			}
 		}
 	}
@@ -379,11 +386,10 @@ body {
 			"bottom-basic  bottom-basic  bottom-basic"
 		;
 		#bottom-basic {
-			grid-template-columns: 200px 1fr;
+			grid-template-columns: auto auto;
 			grid-template-areas:
 				"bottom-basic__control-buttons-bottom  bottom-choose-map"
 				"bottom-basic__control-buttons-bottom  bottom-center-coordinates"
-				"bottom-basic__control-buttons-bottom  bottom-altitude"
 				"bottom-basic__control-buttons-bottom  bottom-donate"
 			;
 		}

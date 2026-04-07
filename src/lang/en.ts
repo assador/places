@@ -138,6 +138,7 @@ export const getT = () => ({
 			sendPassword: 'Send',
 			specify: 'Specify',
 			todb: 'Save',
+			try: 'Try it',
 			routes: 'Routes',
 			uncheckAll: 'Uncheck all',
 			undo: 'Undo',
@@ -283,7 +284,7 @@ export const getT = () => ({
 			routesCountExceeded: 'The maximum number of routes allowed for your current role has been exceeded.',
 			savedToDb: 'Changes have been saved to the database.',
 			taNotAllowFileUploads: 'The test account does not allow file uploads.',
-			testAccount: 'You are logged in with a test account; you can’t save changes to the database or upload files, including photos.',
+			testAccount: 'This is a demo account. Nothing can be broken. But nothing can be saved either…',
 		},
 	},
 	o: {

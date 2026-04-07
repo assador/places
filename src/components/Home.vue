@@ -364,10 +364,6 @@
 					<span>°E</span>
 				</span>
 			</div>
-			<span id="bottom-altitude" class="nobr">
-				{{ mainStore.t.i.captions.altitude }}:
-				{{ centerAltitude }}
-			</span>
 			<span id="bottom-donate" class="nobr">
 				<button
 					@click="popupDonate.show = !popupDonate.show"
@@ -976,18 +972,6 @@ const commonRoutes = computed<Record<string, Route>>(() => {
 	}, {} as Record<string, Route>);
 });
 */
-const centerAltitude = ref<number | null>(null);
-watchEffect(async () => {
-	if (
-		typeof mainStore.center.latitude === 'number' &&
-		typeof mainStore.center.longitude === 'number'
-	) {
-		centerAltitude.value = await mainStore.getAltitude(
-			mainStore.center.latitude,
-			mainStore.center.longitude,
-		);
-	}
-});
 
 const stopIdleTimer = () => {
 	if (idleTimeInterval.value) {

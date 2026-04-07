@@ -22,10 +22,7 @@
 							class="fieldwidth_100"
 							required
 							type="text"
-							:placeholder="
-								mainStore.t.i.inputs.regLogin + ' ' +
-								mainStore.t.i.inputs.authTest
-							"
+							:placeholder="mainStore.t.i.inputs.regLogin"
 							autofocus
 						/>
 						<div class="password nobr">
@@ -35,10 +32,7 @@
 								class="fieldwidth_100"
 								required
 								type="password"
-								:placeholder="
-									mainStore.t.i.inputs.regPassword + ' ' +
-									mainStore.t.i.inputs.authTest
-								"
+								:placeholder="mainStore.t.i.inputs.regPassword"
 							/>
 							<button
 								type="button"
@@ -52,22 +46,28 @@
 							/>
 						</div>
 					</div>
-					<div class="margin_bottom">
+					<div class="buttons">
 						<button type="submit">
 							{{ mainStore.t.i.buttons.login }}
 						</button>
+						<button
+							type="button"
+							@click="testAuth"
+						>
+							{{ mainStore.t.i.buttons.try }}
+						</button>
+						<div v-if="login.message">
+							{{ login.message }}
+						</div>
+						<button
+							type="button"
+							onclick="document.querySelector('.auth-forgot')
+								.classList.toggle('hidden');
+							"
+						>
+							{{ mainStore.t.i.buttons.forgot }}
+						</button>
 					</div>
-					<div class="margin_bottom">
-						{{ login.message }}
-					</div>
-					<button
-						type="button"
-						onclick="document.querySelector('.auth-forgot')
-							.classList.toggle('hidden');
-						"
-					>
-						{{ mainStore.t.i.buttons.forgot }}
-					</button>
 				</form>
 				<form
 					class="auth-forgot hidden"
@@ -244,6 +244,10 @@ const authLoginSubmit = async () => {
 		authPassword: authPassword.value,
 	}, mainStore.t);
 };
+const testAuth = (): void => {
+	authLogin.value = authPassword.value = 'test';
+	authLoginSubmit();
+}
 const authRegSubmit = (): boolean => {
 	if (
 		!regLogin.value ||
@@ -336,6 +340,12 @@ onUpdated(async () => {
 }
 .auth-forgot-message:not(:empty) {
 	margin-top: 12px;
+}
+.buttons {
+	display: flex;
+	flex-flow: row wrap;
+	gap: 12px;
+	justify-content: right;
 }
 #dashboard {
 	margin: -40px 0 40px 0;
