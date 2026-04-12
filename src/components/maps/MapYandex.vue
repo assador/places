@@ -58,7 +58,7 @@
 				:visible="mainStore.placemarksShow && place.show && place.geomark"
 				class="place"
 				@click="mainStore.setCurrentPlace(place, false)"
-				@contextmenu.prevent.stop="(e: MouseDomEvent) =>
+				@contextmenu.prevent.stop="(e: PointerEvent) =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
 			>
@@ -95,7 +95,7 @@
 				}"
 				:visible="mainStore.commonPlacemarksShow && place.geomark"
 				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-				@contextmenu.prevent.stop="(e: MouseDomEvent) =>
+				@contextmenu.prevent.stop="(e: PointerEvent) =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
 				"
 			>
@@ -207,7 +207,7 @@
 							@click="mainStore.setCurrentPoint(
 								mainStore.getPointById(point.id), false)
 							"
-							@contextmenu.prevent.stop="(e: MouseDomEvent) =>markerContextMenu(
+							@contextmenu.prevent.stop="(e: PointerEvent) =>markerContextMenu(
 								e,
 								mainStore.getPointById(point.id),
 								mainStore.currentRoute
@@ -335,7 +335,7 @@
 					@click="mainStore.setCurrentPoint(
 						mainStore.getPointById(point.id), false)
 					"
-					@contextmenu.prevent.stop="(e: MouseDomEvent) => markerContextMenu(
+					@contextmenu.prevent.stop="(e: PointerEvent) => markerContextMenu(
 						e,
 						mainStore.getPointById(point.id),
 						mainStore.currentRoute
@@ -419,7 +419,6 @@ import type {
 	YMapMarker,
 	YMapFeature,
 	LngLat,
-	MouseDomEvent,
 } from '@yandex/ymaps3-types';
 
 const mainStore = useMainStore();

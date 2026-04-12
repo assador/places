@@ -57,7 +57,7 @@ defineOptions({
 const close = (): void => {
 	emit('update:show', false);
 };
-const handleBackdropClick = (e: MouseEvent) => {
+const handleBackdropClick = (e: PointerEvent) => {
 	if (props.closeOnClick) {
 		if ((e.target as HTMLElement).classList.contains('popup')) {
 			close();

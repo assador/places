@@ -4,10 +4,8 @@
 		ref="root"
 		:class="`sbs_${sbs}`"
 		:style="gridStyle"
-		@mousemove="rootMouseOverTrottled"
-		@touchmove="rootMouseOverTrottled"
-		@mouseup="sidebarDragStop"
-		@touchend="sidebarDragStop"
+		@pointermove="rootPointerOverTrottled"
+		@pointerup="sidebarDragStop"
 	>
 
 <!-- SEC Top-Left -->
@@ -405,26 +403,22 @@
 				left: ${compactControlButtons ? sidebarSize.left : 0}px;
 				right: ${compactControlButtons ? sidebarSize.right : 0}px;
 			`"
-			@mousedown="e => sidebarDragStart(e, 'top')"
-			@touchstart="e => sidebarDragStart(e, 'top')"
+			@pointerdown="e => sidebarDragStart(e, 'top')"
 		/>
 		<div
 			id="sbs-right"
 			:style="`right: ${sidebarSize.right - 11}px`"
-			@mousedown="e => sidebarDragStart(e, 'right')"
-			@touchstart="e => sidebarDragStart(e, 'right')"
+			@pointerdown="e => sidebarDragStart(e, 'right')"
 		/>
 		<div
 			id="sbs-bottom"
 			:style="`bottom: ${sidebarSize.bottom - 11}px`"
-			@mousedown="e => sidebarDragStart(e, 'bottom')"
-			@touchstart="e => sidebarDragStart(e, 'bottom')"
+			@pointerdown="e => sidebarDragStart(e, 'bottom')"
 		/>
 		<div
 			id="sbs-left"
 			:style="`left: ${sidebarSize.left - 11}px`"
-			@mousedown="e => sidebarDragStart(e, 'left')"
-			@touchstart="e => sidebarDragStart(e, 'left')"
+			@pointerdown="e => sidebarDragStart(e, 'left')"
 		/>
 		<router-view />
 	</div>
@@ -1225,8 +1219,8 @@ const sidebarDragStart = (event: Event, what: string): void => {
 		x = touch.pageX;
 		y = touch.pageY;
 	} else {
-		x = (event as MouseEvent).screenX;
-		y = (event as MouseEvent).screenY;
+		x = (event as PointerEvent).screenX;
+		y = (event as PointerEvent).screenY;
 	}
 	sidebarDrag.value.x = x;
 	sidebarDrag.value.y = y;
@@ -1246,13 +1240,13 @@ const sidebarDragStart = (event: Event, what: string): void => {
 			break;
 	}
 };
-const rootMouseOver = (event: Event): void => {
+const rootPointerOver = (event: Event): void => {
 	if (!sidebarDrag.value.what) return;
 	const isTouch = (event as TouchEvent).changedTouches !== undefined;
 	const getCoord = (axis: 'X' | 'Y') =>
 		isTouch
 			? (event as TouchEvent).changedTouches[0][`page${axis}`]
-			: (event as MouseEvent)[`screen${axis}`];
+			: (event as PointerEvent)[`screen${axis}`];
 	switch (sidebarDrag.value.what) {
 		case 'top': {
 			const newTop = sidebarDrag.value.h - sidebarDrag.value.y + getCoord('Y');
@@ -1276,7 +1270,7 @@ const rootMouseOver = (event: Event): void => {
 		}
 	}
 };
-const rootMouseOverTrottled = throttle(rootMouseOver, 10);
+const rootPointerOverTrottled = throttle(rootPointerOver, 10);
 
 const sidebarDragStop = (): void => {
 	sidebarDrag.value.what = null;
