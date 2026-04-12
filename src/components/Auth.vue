@@ -359,7 +359,7 @@ onUpdated(async () => {
 	}
 }
 @media screen and (max-width: 450px) {
-	.auth-forms {
+	.auth-forms, .buttons {
 		flex-wrap: wrap;
 		justify-content: center;
 	}

@@ -1,5 +1,5 @@
 # Места (ГеоОрганайзер)
-**v6.3.6 beta** | [English version](README.md) | [Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Руководство пользователя](MANUAL.ru.md) | [Написать](mailto:places@scrofa-tridens.ru) | [Open Collective](https://opencollective.com/places) | [Boosty](https://boosty.to/assador/donate)
+**v6.3.6 beta** | [English version](README.md) | [Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Руководство пользователя](MANUAL.ru.md) | [Написать](mailto:places@scrofa-tridens.ru) | [Boosty](https://boosty.to/assador/donate) | [Open Collective](https://opencollective.com/places)
 
 ГеоОрганайзер. Персональный ГИС-инструмент для систематизации и визуализации личных географических данных.
 
@@ -71,10 +71,8 @@
 4.  **Права доступа:** Убедитесь, что директории в `/dist/uploads/images/` доступны для записи.
 5.  **Cron:** Настройте запуск `/backend/dist/cron.php` по расписанию для очистки временных данных.
 6.  **Сборка:**
-    
     ```bash
     npm install
     npm run build
     ```
-
 7.  **Сервер:** Настройте веб-сервер, указав `/dist` в качестве корневой директории.
