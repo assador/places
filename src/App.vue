@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, onMounted } from 'vue'
+import { ref, computed, provide, onMounted, nextTick } from 'vue'
 import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
@@ -48,9 +48,7 @@ import {
 	Place,
 	Route,
 	EntityCollection,
-	DragPayload,
 	DragHandler,
-	DragEventCustom,
 	ImportExportFormat,
 } from '@/types';
 
@@ -124,8 +122,8 @@ emitter.on('logged', async () => {
 	mainStore.ready = true;
 	mainStore.openTreeToCurrent(mainStore.currentPlace);
 	mainStore.openTreeToCurrent(mainStore.currentRoute);
-	mainStore.backupState();
 	router.push({ name: 'Home' });
+	await nextTick();
 });
 emitter.on('logout', () => {
 	const getOut = async () => {
@@ -159,33 +157,13 @@ emitter.on('homeToDB', id => {
 onMounted(() => {
 	isMounted.value = true;
 	mainStore.$onAction(({
-		// name,
-		// store,
-		// args,
 		after,
-		// onError,
 	}): void => {
-/*
-		const actions = [
-			'upsertFolder',
-			'upsertPlace',
-			'upsertPoint',
-			'upsertRoute',
-			'changeFolder',
-			'changePlace',
-			'changePoint',
-			'changeRoute',
-			'deleteObjects',
-			'setHomePlace',
-			'swapSrts',
-		];
-*/
 		after(() => {
-			// if (actions.includes(name)) {
 				mainStore.idleTime = 0;
-			// }
 		});
 	});
+	mainStore.restoreObjectsAsLinks();
 });
 
 // SEC DB operations
@@ -261,14 +239,9 @@ provide('exportPlaces', exportPlaces);
 
 // SEC DnD
 
-const handleDrop = (event: DragEventCustom) => {
-	const rawData = event.dataTransfer?.getData('application/my-app-dnd');
-	if (!rawData) return;
-
-	const payload: DragPayload = JSON.parse(rawData);
-	payload.before = event.dragBefore ?? false;
-	const target = event.currentTarget as HTMLElement;
-
+const handleDrop = (target: HTMLElement) => {
+	const payload = mainStore.currentDrag;
+	if (!payload) return;
 	const handlers: Record<string, DragHandler> = {
 		folder: handleFolderDropped,
 		place: handlePlaceRouteDropped,
@@ -278,7 +251,6 @@ const handleDrop = (event: DragEventCustom) => {
 	};
 	const handler = handlers[payload.type];
 	if (handler) handler(payload, target);
-
 	mainStore.currentDrag = null;
 };
 provide('handleDrop', handleDrop);

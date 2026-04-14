@@ -24,32 +24,38 @@ export const moveInArray = (array: any[], from: number, to: number, before: bool
 };
 export const moveInObject = (
 	parent: Record<string, any>,
-	change: Record<string, any>,
-	target: Record<string, any>,
+	changeId: string,
+	targetId: string,
 	key: string,
 	before: boolean = false,
 ) => {
+	const changeObj = parent[changeId];
+	const targetObj = parent[targetId];
+	if (!changeObj || !targetObj) return;
+
 	let nearest = before ? -Infinity : Infinity;
+	const targetKey = targetObj[key];
+
 	for (const obj of Object.values(parent)) {
-		if (
-			before && obj[key] < target[key] && obj[key] > nearest ||
-			!before && obj[key] > target[key] && obj[key] < nearest
-		) {
-			nearest = obj[key];
+		const val = obj[key];
+		if (before) {
+			if (val < targetKey && val > nearest) nearest = val;
+		} else {
+			if (val > targetKey && val < nearest) nearest = val;
 		}
 	}
 	if (before) {
-		if (nearest !== -Infinity) {
-			change[key] = (target[key] - nearest) / 2 + nearest;
-		} else {
-			change[key] = target[key] / 2;
-		}
+		changeObj[key] =
+			nearest !== -Infinity
+				? (targetKey - nearest) / 2 + nearest
+				: targetKey / 2
+		;
 	} else {
-		if (nearest !== Infinity) {
-			change[key] = (nearest - target[key]) / 2 + target[key];
-		} else {
-			change[key] = target[key] + 10;
-		}
+		changeObj[key] =
+			nearest !== Infinity
+				? (nearest - targetKey) / 2 + targetKey
+				: targetKey + 10
+		;
 	}
 };
 export const sortObjectsByProximity = (array: Array<Record<string, any>>): void => {

@@ -741,22 +741,13 @@ export const entityActions = {
 		if (!firstPlaceInRoot) this.setCurrentPlace(this.places[Object.keys(this.places)[0]]);
 		this.setCurrentPlace(firstPlaceInRoot);
 	},
-	async setHomePlace({
-		id,
-		todb = false,
-	}: {
-		id: string | null;
-		todb?: boolean;
-	}) {
-		if (this.places[id]) {
-			this.homePlace = this.places[id];
-			this.user.homeplace = id;
-			if (todb !== false) emitter.emit('homeToDB', id);
-		} else {
-			this.homePlace = null;
-			this.user.homeplace = null;
-			if (todb !== false) emitter.emit('homeToDB', null);
-		}
+	async setHomePlace(
+		{ id, todb = false }:
+		{ id: string | null; todb?: boolean; }
+	) {
+		if (!this.user) return;
+		this.user.homeplace = (id && this.places[id]) ? id  : null;
+		if (todb) emitter.emit('homeToDB', this.user.homeplace);
 		this.backupState();
 	},
 

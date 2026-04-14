@@ -58,7 +58,7 @@ export const backupActions = {
 		this.refreshing = true;
 		this.backup = false;
 		this.setHomePlace({
-			id: this.user.homeplace ? this.user.homeplace : null,
+			id: (this.user?.homeplace ?? null),
 		});
 		if (this.currentPlace) {
 			let place: Place = null;

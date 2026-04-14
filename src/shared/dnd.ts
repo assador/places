@@ -152,12 +152,90 @@ export const handleImageDropped: DragHandler = (
 	if (!parent) return;
 	moveInObject(
 		parent.images,
-		parent.images[payload.id],
-		parent.images[targetId],
+		payload.id,
+		targetId,
 		'srt',
 		payload.before,
 	);
 	parent.updated = true;
 	mainStore.saved = false;
 	mainStore.backupState();
+};
+
+// SEC UI
+
+export const usePointerDnD = (config: {
+	canAcceptDrop: (target: HTMLElement) => boolean,
+	handleDrop: (target: HTMLElement) => void,
+	updateHighlights?: (target: HTMLElement | null) => void,
+	onDragStateChange?: (isDragging: boolean) => void,
+	threshold?: number,
+}) => {
+	const mainStore = useMainStore();
+	const threshold = config.threshold ?? 7;
+    let startPos = { x: 0, y: 0 };
+    let ghostEl: HTMLElement | null = null;
+
+	const onPointerDown = (event: PointerEvent, payload: any) => {
+		const el = event.currentTarget as HTMLElement;
+		el.setPointerCapture(event.pointerId);
+		startPos = { x: event.clientX, y: event.clientY };
+		mainStore.currentDrag = { ...payload, dragging: false };
+	};
+	const onPointerMove = (event: PointerEvent) => {
+		const payload = mainStore.currentDrag;
+		if (!payload) return;
+		if (!payload.dragging) {
+			const dist = Math.hypot(
+				event.clientX - startPos.x, event.clientY - startPos.y
+			);
+			if (dist < threshold) return;
+			payload.dragging = true;
+			config.onDragStateChange?.(true);
+
+			const originalEl = event.currentTarget as HTMLElement;
+			const targetToClone = payload.ghostSelector
+				? originalEl.querySelector(payload.ghostSelector)
+				: originalEl
+			;
+			ghostEl = (targetToClone || originalEl).cloneNode(true) as HTMLElement;
+			ghostEl.removeAttribute('id');
+			ghostEl.className = 'drag-clone';
+			Object.assign(ghostEl.style, {
+				width: `${(targetToClone as HTMLElement).offsetWidth}px`,
+				height: `${(targetToClone as HTMLElement).offsetHeight}px`,
+			});
+			document.getElementById('container').appendChild(ghostEl);
+		}
+		if (ghostEl) {
+			ghostEl.style.transform = `translate3d(
+				${event.clientX - (ghostEl.offsetWidth / 2)}px,
+				${event.clientY - (ghostEl.offsetHeight / 2)}px,
+			0)`;
+		}
+		const target = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;
+		config.updateHighlights?.(target);
+	};
+	const onPointerUp = (event: PointerEvent, click?: () => void) => {
+		const payload = mainStore.currentDrag;
+		if (!payload) return;
+		if (!payload.dragging) {
+			click?.();
+		} else {
+			const el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;
+			const dropTarget = el?.closest('[data-entity-id]') as HTMLElement;
+			if (dropTarget && config.canAcceptDrop(dropTarget)) {
+				config.handleDrop(dropTarget);
+			}
+		}
+		mainStore.currentDrag = null;
+		config.onDragStateChange?.(false);
+		config.updateHighlights?.(null);
+		(event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+		if (ghostEl) {
+			ghostEl.remove();
+			ghostEl = null;
+		}
+	};
+	return { onPointerDown, onPointerMove, onPointerUp };
 };

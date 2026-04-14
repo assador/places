@@ -164,12 +164,14 @@ export interface DragPayload {
 	id: string;
 	type: string;
 	context: string;
-	before?: boolean;
 }
 export interface DragEntityPayload extends DragPayload {
 	context: EntitiesContext;
 	parentId?: string;
 	index?: number;
+	dragging?: boolean;
+	before?: boolean;
+	ghostSelector?: string;
 }
 export interface DragFolderPayload extends DragEntityPayload {
 	context: 'folders';
@@ -190,9 +192,6 @@ export interface DragPointInListPayload extends DragEntityPayload {
 export interface DragImagePayload extends DragEntityPayload {
 	context: 'places' | 'routes';
 	index: number;
-}
-export interface DragEventCustom extends DragEvent {
-	dragBefore?: boolean;
 }
 export type DragHandler = (payload: DragPayload, target: HTMLElement) => void;
 
@@ -218,8 +217,8 @@ export interface IMainState {
 	currentPlace: Place | null,
 	currentPoint: Point | null,
 	currentRoute: Route | null,
+	first: boolean,
 	folders: Record<string, Folder>,
-	homePlace: Place | null,
 	idleTime: number,
 	lang: string,
 	langs: Record<string, string>[],

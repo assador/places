@@ -998,9 +998,15 @@ onMounted(async () => {
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
 	emitter.emit('busy', false);
-	setTimeout(() => {
-		mainStore.setMessage(mainStore.t.m.popup.testAccount, 8);
-	}, 1000);
+	if (mainStore.first) {
+		mainStore.first = false;
+		mainStore.backupState();
+		if (mainStore.user.testaccount) {
+			setTimeout(() => {
+				mainStore.setMessage(mainStore.t.m.popup.testAccount, 8);
+			}, 1000);
+		}
+	}
 });
 onUnmounted(() => {
 	document.removeEventListener('drop', handleDrop);

@@ -20,7 +20,6 @@ export const initActions = {
 		this.stateBackupsIndex = -1;
 		this.user = null;
 		this.currentPlace = null;
-		this.homePlace = null;
 		this.points = {};
 		this.places = {};
 		this.folders = {};
@@ -110,7 +109,7 @@ export const initActions = {
 		}
 	},
 	async setUsers(payload?: string) {
-		let ids = null;
+		let ids: string[] | null = null;
 		switch (payload) {
 			case 'common':
 				ids = [];

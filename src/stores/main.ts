@@ -48,8 +48,8 @@ export const useMainStore = defineStore('main', {
 		currentPlace: null,
 		currentPoint: null,
 		currentRoute: null,
+		first: true,
 		folders: {},
-		homePlace: null,
 		idleTime: 0,
 		lang: 'ru',
 		langs: [{
@@ -249,6 +249,9 @@ export const useMainStore = defineStore('main', {
 				if (num > 1) shared.push(id);
 			}
 			return shared;
+		},
+		homePlace(): Place | null {
+			return this.places[this.user?.homeplace] ?? null;
 		},
 		measureTemps() {
 			return Object.values(this.temps).filter(

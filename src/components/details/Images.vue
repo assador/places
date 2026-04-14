@@ -15,27 +15,19 @@
 					draggable: !currentCommon,
 					dragging: dragging,
 				}"
-				:draggable="!currentCommon"
-				@click="router.push({
+				@pointerdown="e => onPointerDown(e, {
+					id: image.id,
+					type: 'image',
+					context: what,
+					parentId: current.id,
+					ghostSelector: '.image-thumbnail',
+				})"
+			    @pointermove="onPointerMove"
+			    @pointerup="e => onPointerUp(e, () => router.push({
 					name: 'HomeImages',
 					params: { imageId: image.id },
-				})"
-				@dragstart="e => {
-					dragging = true;
-					handleDragStart(
-						e,
-						image.id,
-						'image',
-						(current.id),
-					);
-				}"
-				@dragend="() => {
-					dragging = false;
-					highlightedLeft = null;
-					highlightedRight = null;
-				}"
-				@dragover.prevent
-				@drop.prevent.stop="handleDropExt"
+				}))"
+			    @pointercancel="onPointerUp"
 			>
 				<div class="block_02">
 					<img
@@ -48,8 +40,9 @@
 					<div
 						v-if="!currentCommon"
 						class="dd-images__delete button"
-						:draggable="false"
-						@click.stop="mainStore.deleteImages({
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="mainStore.deleteImages({
 							imageIds: [ image.id ],
 							entity: current,
 						})"
@@ -60,16 +53,10 @@
 				<div
 					class="sorting-area-left"
 					:class="{ highlighted: image.id === highlightedLeft }"
-					@dragenter="highlightedLeft = image.id"
-					@dragleave="highlightedLeft = null"
-					@drop="($e: DragEventCustom) => $e.dragBefore = true"
 				/>
 				<div
 					class="sorting-area-right"
 					:class="{ highlighted: image.id === highlightedRight }"
-					@dragenter="highlightedRight = image.id"
-					@dragleave="highlightedRight = null"
-					@drop="($e: DragEventCustom) => $e.dragBefore = false"
 				/>
 			</div>
 		</div>
@@ -105,21 +92,20 @@
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
 import { orderBy } from 'lodash';
-import { constants } from '@/shared/constants';
-import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Image, DragEventCustom, DragEntityPayload } from '@/types';
+import { useMainStore } from '@/stores/main';
+import { constants } from '@/shared/constants';
+import { usePointerDnD } from '@/shared/dnd';
+import { Image } from '@/types';
 
 export interface IImagesProps {
-	what?: 'folders' | 'points' | 'places' | 'routes';
+	what?: 'places' | 'routes';
 }
 const props = withDefaults(defineProps<IImagesProps>(), {
 	what: 'places',
 });
 
 const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;
-const handleDrop = inject('handleDrop') as (...args: any[]) => any;
-
 const current = computed(() => {
 	const map = {
 		places: mainStore.currentPlace,
@@ -142,10 +128,7 @@ const currentCommon = computed(() => {
 const mainStore = useMainStore();
 const router = useRouter();
 
-const dragging = ref(false);
 const uploading = ref(false);
-const highlightedLeft = ref(null);
-const highlightedRight = ref(null);
 const inputUploadFiles = ref<HTMLInputElement | null>(null);
 
 const orderedImages = computed<Image[]>(() =>
@@ -160,38 +143,38 @@ const inputUploadFilesChanged = async (e: Event) => {
 
 // SEC DnD
 
-const canAcceptDrop = (target: HTMLElement): boolean => {
-	const { currentDrag } = mainStore;
-	return !(
-		currentDrag.id === target.dataset.entityId
-	);
+const handleDrop = inject('handleDrop') as (...args: any[]) => any;
+
+const dragging = ref(false);
+const highlightedLeft = ref(null);
+const highlightedRight = ref(null);
+
+const updateHighlights = (target: HTMLElement | null) => {
+	highlightedLeft.value = null;
+	highlightedRight.value = null;
+	if (!target || !mainStore.currentDrag) return;
+	const area = target.closest('.sorting-area-left, .sorting-area-right');
+	if (area) {
+		const imageId = (area.closest('.image') as HTMLElement)?.dataset.entityId;
+		const isLeft = area.classList.contains('sorting-area-left');
+		mainStore.currentDrag.before = isLeft;
+		if (isLeft) highlightedLeft.value = imageId;
+		else highlightedRight.value = imageId;
+	}
 };
-const handleDropExt = (event: DragEventCustom) => {
-	const target = event.currentTarget as HTMLElement;
-	if (!canAcceptDrop(target)) return;
-	handleDrop(event);
-};
-const handleDragStart = (
-	event: DragEvent,
-	id: string,
-	type: string,
-	parentId?: string,
-) => {
-	mainStore.currentDrag = {
-		id: id,
-		type: type,
-		context: props.what,
-		parentId: parentId,
-	};
-	const payload: DragEntityPayload = { ...mainStore.currentDrag };
-	event.dataTransfer?.setData('application/my-app-dnd', JSON.stringify(payload));
-};
+const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
+    handleDrop,
+    updateHighlights,
+    canAcceptDrop: (target) => target.dataset.entityId !== mainStore.currentDrag?.id,
+    onDragStateChange: (value) => { dragging.value = value; },
+});
 </script>
 
 <style lang="scss" scoped>
 .image {
 	position: relative;
 	cursor: pointer;
+	user-select: none;
 	&.dragging :is(.sorting-area-left, .sorting-area-right) {
 		z-index: 30 !important;
 	}

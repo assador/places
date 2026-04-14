@@ -193,24 +193,21 @@
 					:data-entity-type="'point'"
 					:data-entity-index="pn.idx"
 					:data-entity-context="'measure'"
-					:draggable="true"
 					:title="measurePointTitles[pn.id]"
+					class="point-button"
 					:class="{ 'button-pressed':
 						pn.id === highlighted ||
 						pn.id === mainStore.measure.points[mainStore.measure.choosing]?.id
 					}"
-					@dragstart="e => {
-						dragging = true;
-						handleDragStart(e, pn, pn.idx, 'measure')
-					}"
-					@dragend="() => {
-						dragging = false;
-						highlightedLeft = null;
-						highlightedRight = null;
-					}"
-					@dragover.prevent
-					@drop.prevent.stop="handleDropExt"
-					@click.prevent="mainStore.setCurrentPoint(pn.id)"
+					@pointerdown="e => onPointerDown(e, {
+						id: pn.id,
+						index: pn.idx,
+						type: 'point',
+						context: 'measure',
+					})"
+				    @pointermove="onPointerMove"
+				    @pointerup="e => onPointerUp(e, () => mainStore.setCurrentPoint(pn.id))"
+				    @pointercancel="onPointerUp"
 					@contextmenu.prevent="e => {
 						if (pointInfo.point?.id === pn.id) {
 							popupProps.show = !popupProps.show;
@@ -231,25 +228,20 @@
 					<span
 						:title="mainStore.t.i.hints.deletePoint"
 						class="button-iconed icon icon-cross-45-circled"
-						@dragover.prevent
-						@click.stop="mainStore.removePointFromPoints({
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="mainStore.removePointFromPoints({
 							point: mainStore.temps[pn.id],
 							entity: mainStore.measure,
 						})"
 					/>
 					<span
 						class="sorting-area-left"
-						:class="{ highlighted: pn.key === highlightedLeft }"
-						@dragenter="highlightedLeft = pn.key"
-						@dragleave="highlightedLeft = null"
-						@drop="($e: DragEventCustom) => $e.dragBefore = true"
+						:class="{ highlighted: pn.id === highlightedLeft }"
 					/>
 					<span
 						class="sorting-area-right"
-						:class="{ highlighted: pn.key === highlightedRight }"
-						@dragenter="highlightedRight = pn.key"
-						@dragleave="highlightedRight = null"
-						@drop="($e: DragEventCustom) => $e.dragBefore = false"
+						:class="{ highlighted: pn.id === highlightedRight }"
 					/>
 				</button>
 			</template>
@@ -265,28 +257,24 @@
 					:data-entity-index="pn.idx"
 					:data-entity-context="'routes'"
 					:data-entity-parent-id="mainStore.currentRoute.id"
-					:draggable="true"
 					:title="routePointTitles[pn.id]"
+					class="point-button"
 					:class="{
 						'button-pressed': pn.id === mainStore.currentPoint?.id,
 					}"
-					@dragstart="e => {
-						dragging = true;
-						handleDragStart(
-							e, pn, pn.idx, 'routes', mainStore.currentRoute.id
-						)
-					}"
-					@dragend="() => {
-						dragging = false;
-						highlightedLeft = null;
-						highlightedRight = null;
-					}"
-					@dragover.prevent
-					@drop.prevent.stop="handleDropExt"
-					@click.prevent="() => {
+					@pointerdown="e => onPointerDown(e, {
+						id: pn.id,
+						index: pn.idx,
+						type: 'point',
+						context: 'routes',
+						parentId: mainStore.currentRoute.id,
+					})"
+				    @pointermove="onPointerMove"
+				    @pointerup="e => onPointerUp(e, () => {
 						pointInfo.point = mainStore.getPointById(pn.id);
 						mainStore.setCurrentPoint(pointInfo.point);
-					}"
+					})"
+				    @pointercancel="onPointerUp"
 					@contextmenu.prevent="e => {
 						if (pointInfo.point?.id === pn.id) {
 							popupProps.show = !popupProps.show;
@@ -316,24 +304,20 @@
 					<span
 						:title="mainStore.t.i.hints.deleteRoutePoint"
 						class="button-iconed icon icon-cross-45-circled"
-						@click.stop="() => {
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="() => {
 							const point = mainStore.getPointById(pn.id);
 							mainStore.deleteObjects({ [point.id]: point });
 						}"
 					/>
 					<span
 						class="sorting-area-left"
-						:class="{ highlighted: pn.key === highlightedLeft }"
-						@dragenter="highlightedLeft = pn.key"
-						@dragleave="highlightedLeft = null"
-						@drop="($e: DragEventCustom) => $e.dragBefore = true"
+						:class="{ highlighted: pn.id === highlightedLeft }"
 					/>
 					<span
 						class="sorting-area-right"
-						:class="{ highlighted: pn.key === highlightedRight }"
-						@dragenter="highlightedRight = pn.key"
-						@dragleave="highlightedRight = null"
-						@drop="($e: DragEventCustom) => $e.dragBefore = false"
+						:class="{ highlighted: pn.id === highlightedRight }"
 					/>
 				</button>
 			</template>
@@ -344,8 +328,9 @@
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { usePointerDnD } from '@/shared/dnd';
 import { IPlacesPopupProps } from '@/shared/interfaces';
-import { PointName, DragEventCustom, DragEntityPayload } from '@/types';
+import { PointName } from '@/types';
 
 export interface IPlacesPointsProps {
 	type?: string;
@@ -353,8 +338,6 @@ export interface IPlacesPointsProps {
 const props = withDefaults(defineProps<IPlacesPointsProps>(), {
 	type: 'temps',
 });
-
-const handleDrop = inject<(event: DragEventCustom) => void>('handleDrop');
 
 const mainStore = useMainStore();
 
@@ -432,6 +415,12 @@ const distance = computed(() => {
 
 // SEC DnD
 
+const handleDrop = inject('handleDrop') as (...args: any[]) => any;
+
+const dragging = ref(false);
+const highlightedLeft = ref(null);
+const highlightedRight = ref(null);
+
 const canAcceptDrop = (target: HTMLElement): boolean => {
 	const { currentDrag } = mainStore;
 	const { entityId, entityContext } = target.dataset;
@@ -440,32 +429,26 @@ const canAcceptDrop = (target: HTMLElement): boolean => {
 		currentDrag.context !== entityContext
 	);
 };
-const handleDropExt = (event: DragEventCustom) => {
-	const target = event.currentTarget as HTMLElement;
-	if (!canAcceptDrop(target)) return;
-	handleDrop(event);
+
+const updateHighlights = (target: HTMLElement | null) => {
+    highlightedLeft.value = null;
+    highlightedRight.value = null;
+    if (!target || !mainStore.currentDrag) return;
+    const area = target.closest('.sorting-area-left, .sorting-area-right');
+    if (area) {
+		const pointId = (area.closest('.point-button') as HTMLElement)?.dataset.entityId;
+		const isLeft = area.classList.contains('sorting-area-left');
+		mainStore.currentDrag.before = isLeft;
+		if (isLeft) highlightedLeft.value = pointId;
+		else highlightedRight.value = pointId;
+    }
 };
-const handleDragStart = (
-	event: DragEvent,
-	pn: PointName,
-	index: number,
-	context: 'measure' | 'routes',
-	parentId?: string,
-) => {
-	const entity = mainStore.getPointById(pn.id);
-	mainStore.currentDrag = {
-		id: entity.id,
-		type: entity.type,
-		index: index,
-		context: context,
-		parentId: parentId,
-	};
-	const payload: DragEntityPayload = { ...mainStore.currentDrag };
-	event.dataTransfer?.setData('application/my-app-dnd', JSON.stringify(payload));
-};
-const dragging = ref(false);
-const highlightedLeft = ref(null);
-const highlightedRight = ref(null);
+const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
+    handleDrop,
+    updateHighlights,
+    canAcceptDrop,
+    onDragStateChange: (value) => { dragging.value = value; },
+});
 </script>
 
 <style lang="scss" scoped>

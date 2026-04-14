@@ -256,6 +256,18 @@ $filter-brightness-03: brightness(0%);
 		border-style: solid;
 		border-color: $color-08 $color-10 $color-11 $color-10;
 	}
+	.drag-clone {
+		pointer-events: none;
+		touch-action: none;
+		user-select: none;
+		position: fixed;
+		z-index: 10000;
+		opacity: 0.8;
+		transition: none;
+		.icon {
+			display: none;
+		}
+	}
 	.dragenter-area_top_border {
 		border-top: 1px solid $color-14;
 	}

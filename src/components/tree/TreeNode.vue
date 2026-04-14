@@ -510,7 +510,6 @@ import {
 	Route,
 	Folder,
 	FolderContext,
-	DragEventCustom,
 	DragEntityPayload,
 } from '@/types';
 import { isPlace } from '@/guards';
@@ -535,7 +534,6 @@ const router = useRouter();
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
 
-const handleDrop = inject<(event: DragEventCustom) => void>('handleDrop');
 const selectedToExport = inject<Ref<Record<string, Place | Route>>>('selectedToExport');
 const foldersCheckedIds: string[] = inject('foldersCheckedIds');
 const foldersEditMode = inject('foldersEditMode');
@@ -620,6 +618,8 @@ const focusCurrent = async (input: HTMLElement | null) => {
 }
 
 // SEC DnD
+
+const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const canAcceptDrop = (target: HTMLElement): boolean => {
 	const { currentDrag } = mainStore;
