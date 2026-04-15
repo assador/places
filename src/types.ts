@@ -170,7 +170,7 @@ export interface DragEntityPayload extends DragPayload {
 	parentId?: string;
 	index?: number;
 	dragging?: boolean;
-	before?: boolean;
+	position?: 'before' | 'onto' | 'after';
 	ghostSelector?: string;
 }
 export interface DragFolderPayload extends DragEntityPayload {

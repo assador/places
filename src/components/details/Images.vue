@@ -3,22 +3,22 @@
 		<h3 class="margin_bottom_0">
 			{{ mainStore.descriptionFields['images'] }}
 		</h3>
-		<div class="dd-images">
+		<div
+			class="dd-images"
+			:class="{ dragging: dragging }"
+		>
 			<div
 				v-for="image in orderedImages"
 				:id="image.id"
 				:key="image.id"
 				:data-entity-id="image.id"
-				:data-entity-context="what"
+				:data-entity-context="props.what"
 				class="image"
-				:class="{
-					draggable: !currentCommon,
-					dragging: dragging,
-				}"
+				:class="{ draggable: !currentCommon }"
 				@pointerdown="e => onPointerDown(e, {
 					id: image.id,
 					type: 'image',
-					context: what,
+					context: props.what,
 					parentId: current.id,
 					ghostSelector: '.image-thumbnail',
 				})"
@@ -51,12 +51,20 @@
 					</div>
 				</div>
 				<div
-					class="sorting-area-left"
-					:class="{ highlighted: image.id === highlightedLeft }"
+					class="sorting-area-before"
+					:class="{
+						highlighted:
+							image.id === dragTargetId &&
+							mainStore.currentDrag.position === 'before'
+					}"
 				/>
 				<div
-					class="sorting-area-right"
-					:class="{ highlighted: image.id === highlightedRight }"
+					class="sorting-area-after"
+					:class="{
+						highlighted:
+							image.id === dragTargetId &&
+							mainStore.currentDrag.position === 'after'
+					}"
 				/>
 			</div>
 		</div>
@@ -146,20 +154,17 @@ const inputUploadFilesChanged = async (e: Event) => {
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const dragging = ref(false);
-const highlightedLeft = ref(null);
-const highlightedRight = ref(null);
+const dragTargetId = ref(null);
 
 const updateHighlights = (target: HTMLElement | null) => {
-	highlightedLeft.value = null;
-	highlightedRight.value = null;
+	dragTargetId.value = null;
 	if (!target || !mainStore.currentDrag) return;
-	const area = target.closest('.sorting-area-left, .sorting-area-right');
+	const area = target.closest('.sorting-area-before, .sorting-area-after');
 	if (area) {
-		const imageId = (area.closest('.image') as HTMLElement)?.dataset.entityId;
-		const isLeft = area.classList.contains('sorting-area-left');
-		mainStore.currentDrag.before = isLeft;
-		if (isLeft) highlightedLeft.value = imageId;
-		else highlightedRight.value = imageId;
+		const item = area.closest('[data-entity-id]') as HTMLElement;
+		dragTargetId.value = item?.dataset.entityId;
+		if (area.classList.contains('sorting-area-before')) mainStore.currentDrag.position = 'before';
+		else if (area.classList.contains('sorting-area-after')) mainStore.currentDrag.position = 'after';
 	}
 };
 const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
@@ -171,34 +176,38 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 </script>
 
 <style lang="scss" scoped>
-.image {
-	position: relative;
-	cursor: pointer;
-	user-select: none;
-	&.dragging :is(.sorting-area-left, .sorting-area-right) {
-		z-index: 30 !important;
-	}
-	* {
-		z-index: 20;
-	}
-	.sorting-area-left, .sorting-area-right {
-		position: absolute;
-		top: 0; bottom: 0;
-		z-index: 10;
-	}
-	.sorting-area-left {
-		left: 0; right: 50%;
-	}
-	.sorting-area-right {
-		right: 0; left: 50%;
-	}
-}
 .dd-images {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
 	grid-gap: 12px;
 	margin-top: 12px !important; margin-bottom: 12px !important;
 	padding: 0;
+	* {
+		touch-action: none;
+		user-select: none;
+	}
+	&.dragging :is(.sorting-area-before, .sorting-area-after) {
+		z-index: 30 !important;
+	}
+}
+.image {
+	position: relative;
+	cursor: pointer;
+	user-select: none;
+	* {
+		z-index: 20;
+	}
+	.sorting-area-before, .sorting-area-after {
+		position: absolute;
+		top: 0; bottom: 0;
+		z-index: 10;
+	}
+	.sorting-area-before {
+		left: 0; right: 50%;
+	}
+	.sorting-area-after {
+		right: 0; left: 50%;
+	}
 }
 .dd-images *[class*="block_"] {
 	margin: 0;

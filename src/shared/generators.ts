@@ -53,7 +53,7 @@ export const validateField = (value: string, type: string): boolean => {
 	if (typeof value !== 'string' || typeof re[type] === 'undefined') {throw 'Illegal function attributes';}
 	return re[type].test(value);
 };
-export const makeFieldsValidatable = (voc, anyway?: boolean): void => {
+export const makeFieldsValidatable = (voc: any, anyway?: boolean): void => {
 	const fields: Record<string, string[]> = {
 		'authLogin'                : ['login',       voc.i.hints.fvNotMore24],
 		'forgotEmail'              : ['e-mail',      voc.i.hints.fvEmailExample],

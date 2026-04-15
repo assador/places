@@ -6,8 +6,15 @@
 		"
 		:srt="folder.srt"
 		:title="folder.description"
+		:data-entity-id="folder.id === null ? 'null' : folder.id"
+		:data-entity-type="folder.type"
+		:data-entity-context="props.what"
 		class="folder"
-		:class="folder.open ? 'folder_open' : 'folder_closed'"
+		:class="{
+			'folder_open': folder.open,
+			'folder_closed': !folder.open,
+			'folder-unparented': !folder.parent,
+		}"
 	>
 		<div
 			:id="folder.virtual && folder.context === 'places'
@@ -27,7 +34,9 @@
 				v-if="foldersEditMode"
 				class="icon icon-triangle"
 				:class="folder.open ? 'icon-triangle_down' : 'icon-triangle_right'"
-				@click="mainStore.folderOpenClose({ folder })"
+				@click.stop.prevent
+				@pointerdown.stop
+				@pointerup.stop="mainStore.folderOpenClose({ folder })"
 			/>
 			<label
 				v-if="instanceid === 'popupexporttree'"
@@ -39,7 +48,10 @@
 					type="checkbox"
 					class="tree-item-checkbox"
 					:checked="foldersCheckedIds.includes(folder.id)"
-					@change="e => selectUnselectFolder(folder.id, (e.currentTarget as HTMLInputElement).checked)"
+					@change="e => selectUnselectFolder(
+						folder.id,
+						(e.currentTarget as HTMLInputElement).checked,
+					)"
 				/>
 			</label>
 			<div
@@ -54,16 +66,26 @@
 					:value="folder.name"
 					:placeholder="mainStore.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
-					@change="e => {mainStore.changeFolder({folder: folder, change: {name: (e.currentTarget as HTMLInputElement).value}});}"
-					@click.stop
+					@change="e => {
+						mainStore.changeFolder({
+							folder: folder,
+							change: { name: (e.currentTarget as HTMLInputElement).value },
+						});
+					}"
+					@click.stop.prevent
 				/>
 				<textarea
 					:value="folder.description"
 					rows="2"
 					:placeholder="mainStore.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
-					@change="e => {mainStore.changeFolder({folder: folder, change: {description: (e.currentTarget as HTMLInputElement).value}});}"
-					@click.stop
+					@change="e => {
+						mainStore.changeFolder({
+							folder: folder,
+							change: { description: (e.currentTarget as HTMLInputElement).value },
+						});
+					}"
+					@click.stop.prevent
 				/>
 			</div>
 
@@ -71,17 +93,22 @@
 
 			<div
 				v-if="!foldersEditMode"
-				class="folder-button drag draggable"
-				:draggable="!folder.virtual ? true : false"
-				:data-entity-id="folder.id === null ? 'null' : folder.id"
-				:data-entity-type="folder.type"
-				:data-entity-context="what"
-				@dragstart="e => handleDragStart(e, folder)"
-				@dragenter="handleDragEnter"
-				@dragleave="handleDragLeave"
-				@dragover.prevent
-				@drop.prevent.stop="handleDropExt"
-				@click="mainStore.folderOpenClose({ folder })"
+				class="folder-button sorting-area-onto"
+				:class="{
+					draggable: !folder.virtual,
+					highlighted:
+						(folder.id === dragTargetId || folder.virtual && dragTargetId === 'null') &&
+						folder.context === dragTargetContext &&
+						mainStore.currentDrag?.position === 'onto'
+				}"
+				@pointerdown="e => onPointerDown(e, {
+					id: folder.id,
+					type: folder.type,
+					context: props.what,
+				})"
+			    @pointermove="onPointerMove"
+			    @pointerup="e => onPointerUp(e, () => mainStore.folderOpenClose({ folder }))"
+			    @pointercancel="onPointerUp"
 			>
 				<div
 					:id="
@@ -126,10 +153,12 @@
 							mainStore.t.i.hints.onMap
 						"
 						accesskey="a"
-						@click.stop="
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="
 							mainStore.showHideGeomarks({
 								object: (folder.virtual
-									? mainStore.trees[what]
+									? mainStore.trees[props.what]
 									: folder
 								),
 								show: (folder.geomarks === 1 ? 0 : 1),
@@ -138,10 +167,12 @@
 					/>
 					<span
 						class="folder-button__control icon icon-plus-circled"
-						:title="mainStore.t.i.hints[(what === 'places' ? 'addPlace' : 'addRoute')]"
+						:title="mainStore.t.i.hints[props.what === 'places' ? 'addPlace' : 'addRoute']"
 						accesskey="a"
-						@click.stop="() => {
-							switch (what) {
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="() => {
+							switch (props.what) {
 								case 'places':
 									mainStore.upsertPlace({
 										props: { folderid: folder.id },
@@ -161,7 +192,9 @@
 						class="folder-button__control icon icon-plus-circled-folder"
 						:title="mainStore.t.i.hints.addFolderIn"
 						accesskey="f"
-						@click.stop="router.push({
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="router.push({
 							name: 'HomeFolder',
 							params: {
 								parent: folder.id,
@@ -173,9 +206,11 @@
 						class="folder-button__control icon icon-cross-45-circled-folder"
 						:title="mainStore.t.i.buttons.deleteFolder"
 						accesskey="f"
-						@click.stop="router.push({
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="router.push({
 							name: 'HomeDeleteFolder',
-							params: { id: folder.id, type: what },
+							params: { id: folder.id, type: props.what },
 						})"
 					/>
 				</div>
@@ -197,7 +232,9 @@
 							: mainStore.t.i.hints.addRoute
 					"
 					accesskey="a"
-					@click="() => {
+					@click.stop.prevent
+					@pointerdown.stop
+					@pointerup.stop="() => {
 						if (folder.context === 'places') {
 							mainStore.upsertPlace();
 							focusCurrent(currentPlaceNameInputRef);
@@ -225,7 +262,9 @@
 						))
 					"
 					accesskey="d"
-					@click.stop="() => {
+					@click.stop.prevent
+					@pointerdown.stop
+					@pointerup.stop="() => {
 						if (folder.context === 'places') {
 							mainStore.deleteObjects({
 								[mainStore.currentPlace.id]: mainStore.currentPlace,
@@ -241,7 +280,9 @@
 					class="button-iconed icon icon-plus-circled-folder"
 					:title="mainStore.t.i.hints.addFolder"
 					accesskey="f"
-					@click="router.push({
+					@click.stop.prevent
+					@pointerdown.stop
+					@pointerup.stop="router.push({
 						name: 'HomeFolder',
 						query: { parent: null, context: folder.context },
 					})"
@@ -257,7 +298,7 @@
 					v-for="child in children"
 					:key="child.id"
 					:instanceid="instanceid"
-					:what="what"
+					:what="props.what"
 					:folder="child"
 					:parent="folder"
 				/>
@@ -274,7 +315,7 @@
 <!-- SEC place/route-button  -->
 
 			<label
-				v-for="(object, index) in (what === 'places' ? places : routes)"
+				v-for="(object, index) in (props.what === 'places' ? places : routes)"
 				:id="
 					(instanceid === 'popupexporttree' ? 'to-export-place-' : '') +
 					object.id
@@ -284,44 +325,24 @@
 				:srt="object.srt"
 				:title="object.description"
 				class="place-button block_01 draggable"
-				:class="
-					(what === 'places'
-						? (
-							mainStore.currentPlace &&
-							object.id == mainStore.currentPlace.id
-								? 'active' : ''
-						)
-						: (
-							mainStore.currentRoute &&
-							object.id == mainStore.currentRoute.id
-								? 'active' : ''
-						)
-					) + (
+				:class="{
+					active:
+						props.what === 'places' &&
+						mainStore.currentPlace &&
+						object.id == mainStore.currentPlace.id ||
+						props.what === 'routes' &&
+						mainStore.currentRoute &&
+						object.id == mainStore.currentRoute.id
+					,
+					chosen:
 						mainStore.mode === 'measure' &&
 						mainStore.measure.points.find(p => p.id === object.id)
-							? ' chosen' : ''
-					)
-				"
-				:draggable="true"
+					,
+					dragging: dragging,
+				}"
 				:data-entity-id="object.id"
 				:data-entity-type="object.type"
-				:data-entity-context="what"
-				@dragstart="e => handleDragStart(e, object)"
-				@click="() => {
-					if (instanceid === 'popupexporttree') return;
-					if (what === 'places') {
-						mainStore.setCurrentPlace(object as Place);
-					} else if (what === 'routes') {
-						mainStore.setCurrentRoute(object as Route);
-					}
-				}"
-				@contextmenu.prevent="() => {
-					if (what === 'places' && instanceid !== 'popupexporttree') {
-						mainStore.addPointToPoints({
-							point: mainStore.points[(object as Place).pointid],
-						});
-					}
-				}"
+				:data-entity-context="props.what"
 			>
 				<span
 					v-if="instanceid === 'popupexporttree'"
@@ -334,7 +355,7 @@
 						class="to-export-place-checkbox tree-item-checkbox"
 						:checked="Object.hasOwn(selectedToExport, object.id)"
 						@change="e => {
-							if (what === 'places') {
+							if (props.what === 'places') {
 								selectUnselect(
 									object as Place,
 									(e.currentTarget as HTMLInputElement).checked
@@ -373,8 +394,10 @@
 							) + ' ' +
 								mainStore.t.i.hints.onMap
 						"
-						@click.stop="() => {
-							if (what === 'places') {
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="() => {
+							if (props.what === 'places') {
 								mainStore.showHideGeomarks({
 									object: object,
 									show: !(isPlace(object)
@@ -382,7 +405,7 @@
 										: object.geomarks
 									),
 								});
-							} else if (what === 'routes') {
+							} else if (props.what === 'routes') {
 								(object as Route).geomarks =
 									(object as Route).geomarks !== 0 ? 0 : 1
 								;
@@ -390,10 +413,12 @@
 						}"
 					/>
 					<span
-						v-if="what === 'places'"
+						v-if="props.what === 'places'"
 						class="place-button__control icon icon-plus-circled"
 						:title="mainStore.t.i.hints.addPlaceNext"
-						@click.stop="() => {
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="() => {
 							mainStore.upsertPlace({
 								props: {
 									folderid: folder.id,
@@ -407,10 +432,12 @@
 						}"
 					/>
 					<span
-						v-else-if="what === 'routes'"
+						v-else-if="props.what === 'routes'"
 						class="place-button__control icon icon-plus-circled"
 						:title="mainStore.t.i.hints.addRouteNext"
-						@click.stop="() => {
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="() => {
 							mainStore.upsertRoute({
 								props: {
 									folderid: folder.id,
@@ -425,36 +452,54 @@
 					/>
 					<span
 						class="place-button__control icon icon-cross-45-circled"
-						:title="mainStore.t.i.hints[what === 'places'
+						:title="mainStore.t.i.hints[props.what === 'places'
 							? 'deletePlace'
 							: 'deleteRoute'
 						]"
-						@click.stop="mainStore.deleteObjects({
+						@click.stop.prevent
+						@pointerdown.stop
+						@pointerup.stop="mainStore.deleteObjects({
 							[object.id]: object,
 						})"
 					/>
 				</span>
 				<span
-					:data-entity-id="object.id"
-					:data-entity-type="object.type"
-					:data-entity-context="what"
-					:data-entity-sort-area="'top'"
-					class="drag dragenter-area dragenter-area_top"
-					@dragover.prevent
-					@drop.prevent.stop="handleDropExt"
-					@dragenter="handleDragEnter"
-					@dragleave="handleDragLeave"
+					class="dragging-area"
+					@pointerdown="e => onPointerDown(e, {
+						id: object.id,
+						type: object.type,
+						context: props.what,
+					})"
+				    @pointermove="onPointerMove"
+				    @pointerup="e => onPointerUp(e, () => {
+						if (instanceid === 'popupexporttree') return;
+						if (props.what === 'places') {
+							mainStore.setCurrentPlace(object as Place);
+						} else if (props.what === 'routes') {
+							mainStore.setCurrentRoute(object as Route);
+						}
+					})"
+					@pointercancel="onPointerUp"
+				>
+					{{ object.name || mainStore.t.i.captions.untitled }}
+				</span>
+				<span
+					class="sorting-area sorting-area-before"
+					:class="{
+						'sorting-area-border-top':
+							object.id === dragTargetId &&
+							object.type === mainStore.currentDrag?.type &&
+							mainStore.currentDrag?.position === 'before'
+					}"
 				/>
 				<span
-					:data-entity-id="object.id"
-					:data-entity-type="object.type"
-					:data-entity-context="what"
-					:data-entity-sort-area="'bottom'"
-					class="drag dragenter-area dragenter-area_bottom"
-					@dragover.prevent
-					@drop.prevent.stop="handleDropExt"
-					@dragenter="handleDragEnter"
-					@dragleave="handleDragLeave"
+					class="sorting-area sorting-area-after"
+					:class="{
+						'sorting-area-border-bottom':
+							object.id === dragTargetId &&
+							object.type === mainStore.currentDrag?.type &&
+							mainStore.currentDrag?.position === 'after'
+					}"
 				/>
 			</label>
 		</div>
@@ -469,27 +514,23 @@
 		</div>
 		<div
 			v-if="!folder.virtual"
-			:data-entity-id="folder.id"
-			:data-entity-type="folder.type"
-			:data-entity-context="what"
-			:data-entity-sort-area="'top'"
-			class="drag dragenter-area dragenter-area_top"
-			@dragover.prevent
-			@drop.prevent.stop="handleDropExt"
-			@dragenter="handleDragEnter"
-			@dragleave="handleDragLeave"
+			class="sorting-area sorting-area-before"
+			:class="{
+				'sorting-area-border-top':
+					folder.id === dragTargetId &&
+					mainStore.currentDrag?.type === 'folder' &&
+					mainStore.currentDrag?.position === 'before'
+			}"
 		/>
 		<div
 			v-if="!folder.virtual"
-			:data-entity-id="folder.id"
-			:data-entity-type="folder.type"
-			:data-entity-context="what"
-			:data-entity-sort-area="'bottom'"
-			class="drag dragenter-area dragenter-area_bottom"
-			@dragover.prevent
-			@drop.prevent.stop="handleDropExt"
-			@dragenter="handleDragEnter"
-			@dragleave="handleDragLeave"
+			class="sorting-area sorting-area-after"
+			:class="{
+				'sorting-area-border-bottom':
+					folder.id === dragTargetId &&
+					mainStore.currentDrag?.type === 'folder' &&
+					mainStore.currentDrag?.position === 'after'
+			}"
 		/>
 	</li>
 </template>
@@ -510,9 +551,9 @@ import {
 	Route,
 	Folder,
 	FolderContext,
-	DragEntityPayload,
 } from '@/types';
 import { isPlace } from '@/guards';
+import { usePointerDnD } from '@/shared/dnd';
 import { formFoldersCheckedIds } from '@/shared/generators';
 
 export interface IPlacesTreeNodeProps {
@@ -606,12 +647,6 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 };
 const focusCurrent = async (input: HTMLElement | null) => {
 	if (!input) return;
-/*
-	input.classList.add('highlight');
-	input.addEventListener('blur', () => {
-		input.classList.remove('highlight');
-	}, { once: true });
-*/
 	mainStore.setMessage(mainStore.t.i.text.addedEnterName, 3);
 	await nextTick();
 	input.focus();
@@ -620,6 +655,10 @@ const focusCurrent = async (input: HTMLElement | null) => {
 // SEC DnD
 
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
+
+const dragging = inject<Ref<boolean>>('dragging');
+const dragTargetId = inject<Ref<string | null>>('dragTargetId');
+const dragTargetContext = inject<Ref<string | null>>('dragTargetContext');
 
 const canAcceptDrop = (target: HTMLElement): boolean => {
 	const { currentDrag } = mainStore;
@@ -630,53 +669,25 @@ const canAcceptDrop = (target: HTMLElement): boolean => {
 		(currentDrag.type === 'folder' && ['place', 'route'].includes(entityType))
 	);
 };
-const removeDragClasses = (targets?: HTMLElement[]) => {
-	const drags = targets ? targets : document.querySelectorAll('.drag');
-	drags.forEach((element: Element) => {
-		[
-			'highlighted',
-			'dragenter-area_top_border',
-			'dragenter-area_bottom_border',
-		]
-			.forEach(cls => element.classList.remove(cls))
-		;
-	});
-};
-const handleDropExt = (event: DragEvent) => {
-	const target = event.currentTarget as HTMLElement;
-	removeDragClasses([ target ]);
-	if (!canAcceptDrop(target)) return;
-	handleDrop(event);
-};
-const handleDragStart = (event: DragEvent, entity: Folder | Place | Route) => {
-	mainStore.currentDrag = {
-		id: entity.id,
-		type: entity.type,
-		context: props.what,
-	};
-	const payload: DragEntityPayload = { ...mainStore.currentDrag };
-	event.dataTransfer?.setData('application/my-app-dnd', JSON.stringify(payload));
-};
-const handleDragEnter = (event: DragEvent) => {
-	const target = event.currentTarget as HTMLElement;
-	if (!canAcceptDrop(target)) return;
-	const area = target.dataset.entitySortArea;
-	if (!area) {
-		target.classList.add('highlighted');
-	} else {
-		target.classList.add(area === 'top'
-			? 'dragenter-area_top_border' : 'dragenter-area_bottom_border'
-		);
+const updateHighlights = (target: HTMLElement | null) => {
+	dragTargetId.value = null;
+	if (!target || !mainStore.currentDrag) return;
+	const area = target.closest('.sorting-area-onto, .sorting-area-before, .sorting-area-after');
+	if (area) {
+		const item = area.closest('[data-entity-id]') as HTMLElement;
+		dragTargetId.value = item?.dataset.entityId;
+		dragTargetContext.value = item?.dataset.entityContext;
+		if (area.classList.contains('sorting-area-onto')) mainStore.currentDrag.position = 'onto';
+		else if (area.classList.contains('sorting-area-before')) mainStore.currentDrag.position = 'before';
+		else if (area.classList.contains('sorting-area-after')) mainStore.currentDrag.position = 'after';
 	}
 };
-const handleDragLeave = (event: DragEvent) => {
-	const target = event.currentTarget as HTMLElement;
-	target.classList.remove(
-		'highlighted',
-		'dragenter-area_top_border',
-		'dragenter-area_bottom_border',
-	);
-};
+const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
+    handleDrop,
+    canAcceptDrop,
+    updateHighlights,
+    onDragStateChange: (value) => { dragging.value = value; },
+});
 </script>
 
 <style lang="scss" scoped>
@@ -692,6 +703,9 @@ const handleDragLeave = (event: DragEvent) => {
 		display: flex;
 		z-index: 20;
 	}
+	&.folder-unparented {
+		padding: 0;
+	} // So poetic and sad!
 	&.folder_open:is(
 		.points,
 		#places-menu-folder-null
@@ -743,17 +757,17 @@ const handleDragLeave = (event: DragEvent) => {
 		align-self: end;
 		text-align: right;
 	}
-	& > .dragenter-area_top, & > .dragenter-area_bottom {
+	& > .sorting-area {
 		height: 4px;
 		z-index: 20;
 	}
-	& > .dragenter-area_top {
+	& > .sorting-area-before {
 		top: 0; bottom: auto;
 	}
-	& > .dragenter-area_bottom {
+	& > .sorting-area-after {
 		top: auto; bottom: -1px;
 	}
-	&:has( > .dragenter-area:hover) > .folder-subs > .folder-button .folder-button__control {
+	&:has( > .sorting-area:hover) > .folder-subs > .folder-button .folder-button__control {
 		opacity: 1 !important;
 	}
 }
@@ -785,6 +799,8 @@ const handleDragLeave = (event: DragEvent) => {
 	align-items: start;
 	justify-content: center;
 	cursor: pointer !important;
+	touch-action: none;
+	user-select: none;
 	&:hover :is(.place-button__control, .folder-button__control) {
 		opacity: 1 !important;
 	}
@@ -821,10 +837,10 @@ const handleDragLeave = (event: DragEvent) => {
 		margin: 7px 0 10px 0;
 		padding: 4px 8px;
 	}
-	&[class*="block_"] .dragenter-area_top {
+	&[class*="block_"] .sorting-area-before {
 		top: -6px;
 	}
-	&[class*="block_"] .dragenter-area_bottom {
+	&[class*="block_"] .sorting-area-after {
 		bottom: -7px;
 	}
 }
@@ -878,7 +894,7 @@ const handleDragLeave = (event: DragEvent) => {
 	margin-right: 8px;
 }
 .draggable,
-.dragenter-area,
+.sorting-area,
 .place-button,
 .folder-button,
 .control-buttons *,
@@ -887,16 +903,25 @@ const handleDragLeave = (event: DragEvent) => {
 .tree-item-checkbox {
 	pointer-events: auto !important;
 }
-.dragenter-area_top, .dragenter-area_bottom {
+.sorting-area {
 	position: absolute;
 	right: 0; left: 0;
 	z-index: 10;
 	cursor: pointer;
 }
-.dragenter-area_top {
+.sorting-area-before {
 	top: 0; bottom: 50%;
 }
-.dragenter-area_bottom {
+.sorting-area-after {
 	top: 50%; bottom: 0;
+}
+.dragging-area {
+	position: absolute;
+	top: 0; right: 0; bottom: 0; left: 0;
+	z-index: 30;
+	opacity: 0;
+}
+.dragging .dragging-area {
+	z-index: 0;
 }
 </style>

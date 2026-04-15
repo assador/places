@@ -1,11 +1,9 @@
 <template>
-	<ul class="places-tree">
+	<ul class="tree">
 		<TreeNode
 			:instanceid="instanceid"
 			:what="what"
 			:folder="mainStore.trees[what]"
-			:folders-checked-ids="foldersCheckedIds"
-			class="folder-root"
 		/>
 	</ul>
 </template>
@@ -29,16 +27,16 @@ const mainStore = useMainStore();
 const foldersCheckedIds = ref([]);
 provide('foldersCheckedIds', foldersCheckedIds);
 
+const dragging = ref(false);
+provide('dragging', dragging);
+
+const dragTargetId = ref(null);
+provide('dragTargetId', dragTargetId);
+
+const dragTargetContext = ref(null);
+provide('dragTargetContext', dragTargetContext);
+
 onMounted(() => {
 	foldersCheckedIds.value = formFoldersCheckedIds();
 });
 </script>
-
-<style lang="scss" scoped>
-.places-tree:not(:has(.folder_editable)) * {
-	pointer-events: none;
-}
-.folder-root {
-	padding: 0;
-}
-</style>

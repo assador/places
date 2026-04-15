@@ -38,13 +38,13 @@ export const handleFolderDropped: DragHandler = (
 	);
 	let srt: number, parentId = targetId;
 
-	switch (target.dataset.entitySortArea) {
-		case 'top':
-		case 'bottom':
+	switch (payload.position) {
+		case 'before':
+		case 'after':
 			srt = mainStore.getNeighboursSrts(
 				targetId,
 				target.dataset.entityType,
-				target.dataset.entitySortArea === 'top' ? true : false,
+				payload.position === 'before',
 			).new;
 			parentId = mainStore.folders[targetId]?.parent ?? null;
 			break;
@@ -85,13 +85,13 @@ export const handlePlaceRouteDropped: DragHandler = (
 	const neighbours = Object.values<Place | Route>(mainStore[payload.context])
 		.filter(f => f.folderid === parentId)
 	;
-	switch (target.dataset.entitySortArea) {
-		case 'top':
-		case 'bottom':
+	switch (payload.position) {
+		case 'before':
+		case 'after':
 			srt = mainStore.getNeighboursSrts(
 				targetId,
 				target.dataset.entityType,
-				target.dataset.entitySortArea === 'top' ? true : false,
+				payload.position === 'before',
 			).new;
 			break;
 		default:
@@ -127,7 +127,12 @@ export const handlePointInListDropped: DragHandler = (
 	if (payload.context === 'measure') parent = mainStore.measure;
 	if (payload.context === 'routes') parent = mainStore.routes[payload.parentId];
 	if (!parent) return;
-	moveInArray(parent.points, payload.index, targetIndex, payload.before);
+	moveInArray(
+		parent.points,
+		payload.index,
+		targetIndex,
+		payload.position === 'before',
+	);
 	if (payload.context === 'routes') {
 		(parent as Route).updated = true;
 	}
@@ -155,7 +160,7 @@ export const handleImageDropped: DragHandler = (
 		payload.id,
 		targetId,
 		'srt',
-		payload.before,
+		payload.position === 'before',
 	);
 	parent.updated = true;
 	mainStore.saved = false;
@@ -173,13 +178,16 @@ export const usePointerDnD = (config: {
 }) => {
 	const mainStore = useMainStore();
 	const threshold = config.threshold ?? 7;
-    let startPos = { x: 0, y: 0 };
+    let start = { x: 0, y: 0 };
+    let offset = { x: 0, y: 0 };
     let ghostEl: HTMLElement | null = null;
 
 	const onPointerDown = (event: PointerEvent, payload: any) => {
 		const el = event.currentTarget as HTMLElement;
+		const rect = el.getBoundingClientRect();
 		el.setPointerCapture(event.pointerId);
-		startPos = { x: event.clientX, y: event.clientY };
+		start = { x: event.clientX, y: event.clientY };
+		offset = { x: event.clientX - rect.left, y: event.clientY - rect.top };
 		mainStore.currentDrag = { ...payload, dragging: false };
 	};
 	const onPointerMove = (event: PointerEvent) => {
@@ -187,7 +195,7 @@ export const usePointerDnD = (config: {
 		if (!payload) return;
 		if (!payload.dragging) {
 			const dist = Math.hypot(
-				event.clientX - startPos.x, event.clientY - startPos.y
+				event.clientX - start.x, event.clientY - start.y
 			);
 			if (dist < threshold) return;
 			payload.dragging = true;
@@ -209,8 +217,8 @@ export const usePointerDnD = (config: {
 		}
 		if (ghostEl) {
 			ghostEl.style.transform = `translate3d(
-				${event.clientX - (ghostEl.offsetWidth / 2)}px,
-				${event.clientY - (ghostEl.offsetHeight / 2)}px,
+				${event.clientX - offset.x}px,
+				${event.clientY - offset.y}px,
 			0)`;
 		}
 		const target = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;

@@ -236,12 +236,20 @@
 						})"
 					/>
 					<span
-						class="sorting-area-left"
-						:class="{ highlighted: pn.id === highlightedLeft }"
+						class="sorting-area-before"
+						:class="{
+							highlighted:
+								pn.id === dragTargetId &&
+								mainStore.currentDrag.position === 'before'
+						}"
 					/>
 					<span
-						class="sorting-area-right"
-						:class="{ highlighted: pn.id === highlightedRight }"
+						class="sorting-area-after"
+						:class="{
+							highlighted:
+								pn.id === dragTargetId &&
+								mainStore.currentDrag.position === 'after'
+						}"
 					/>
 				</button>
 			</template>
@@ -312,12 +320,20 @@
 						}"
 					/>
 					<span
-						class="sorting-area-left"
-						:class="{ highlighted: pn.id === highlightedLeft }"
+						class="sorting-area-before"
+						:class="{
+							highlighted:
+								pn.id === dragTargetId &&
+								mainStore.currentDrag.position === 'before'
+						}"
 					/>
 					<span
-						class="sorting-area-right"
-						:class="{ highlighted: pn.id === highlightedRight }"
+						class="sorting-area-after"
+						:class="{
+							highlighted:
+								pn.id === dragTargetId &&
+								mainStore.currentDrag.position === 'after'
+						}"
 					/>
 				</button>
 			</template>
@@ -418,8 +434,7 @@ const distance = computed(() => {
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const dragging = ref(false);
-const highlightedLeft = ref(null);
-const highlightedRight = ref(null);
+const dragTargetId = ref(null);
 
 const canAcceptDrop = (target: HTMLElement): boolean => {
 	const { currentDrag } = mainStore;
@@ -431,28 +446,30 @@ const canAcceptDrop = (target: HTMLElement): boolean => {
 };
 
 const updateHighlights = (target: HTMLElement | null) => {
-    highlightedLeft.value = null;
-    highlightedRight.value = null;
+    dragTargetId.value = null;
     if (!target || !mainStore.currentDrag) return;
-    const area = target.closest('.sorting-area-left, .sorting-area-right');
+    const area = target.closest('.sorting-area-before, .sorting-area-after');
     if (area) {
-		const pointId = (area.closest('.point-button') as HTMLElement)?.dataset.entityId;
-		const isLeft = area.classList.contains('sorting-area-left');
-		mainStore.currentDrag.before = isLeft;
-		if (isLeft) highlightedLeft.value = pointId;
-		else highlightedRight.value = pointId;
+		const item = area.closest('[data-entity-id]') as HTMLElement;
+		dragTargetId.value = item?.dataset.entityId;
+		if (area.classList.contains('sorting-area-before')) mainStore.currentDrag.position = 'before';
+		else if (area.classList.contains('sorting-area-after')) mainStore.currentDrag.position = 'after';
     }
 };
 const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
     handleDrop,
-    updateHighlights,
     canAcceptDrop,
+    updateHighlights,
     onDragStateChange: (value) => { dragging.value = value; },
 });
 </script>
 
 <style lang="scss" scoped>
 .points {
+	* {
+		touch-action: none;
+		user-select: none;
+	}
 	&:has(.points-list-buttons:empty) {
 		margin-bottom: 0 !important;
 	}
@@ -490,7 +507,7 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
 	gap: 8px;
-	&.dragging :is(.sorting-area-left, .sorting-area-right) {
+	&.dragging :is(.sorting-area-before, .sorting-area-after) {
 		z-index: 30;
 	}
 	button {
@@ -511,15 +528,15 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 		* {
 			z-index: 20;
 		}
-		.sorting-area-left, .sorting-area-right {
+		.sorting-area-before, .sorting-area-after {
 			position: absolute;
 			top: 0; bottom: 0;
 			z-index: 10;
 		}
-		.sorting-area-left {
+		.sorting-area-before {
 			left: 0; right: 50%;
 		}
-		.sorting-area-right {
+		.sorting-area-after {
 			right: 0; left: 50%;
 		}
 	}

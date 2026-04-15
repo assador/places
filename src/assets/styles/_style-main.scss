@@ -251,7 +251,8 @@ $filter-brightness-03: brightness(0%);
 		border: 1px solid $color-12;
 	}
 	.border_2,
-	.block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
+	.pre, pre, .drag-clone,
+	.block_01, .block_02, .block_03, .block_04, .block_05, .block_11 {
 		border-width: 1px;
 		border-style: solid;
 		border-color: $color-08 $color-10 $color-11 $color-10;
@@ -264,14 +265,17 @@ $filter-brightness-03: brightness(0%);
 		z-index: 10000;
 		opacity: 0.8;
 		transition: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		.icon {
 			display: none;
 		}
 	}
-	.dragenter-area_top_border {
+	.sorting-area-border-top {
 		border-top: 1px solid $color-14;
 	}
-	.dragenter-area_bottom_border {
+	.sorting-area-border-bottom  {
 		border-bottom: 1px solid $color-14;
 	}
 	.borderh,
@@ -297,6 +301,7 @@ $filter-brightness-03: brightness(0%);
 		background: none !important;
 	}
 	.back_1,
+	.drag-clone,
 	.block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre,
 	:is(#sbs-top, #sbs-bottom, #sbs-right, #sbs-left):hover,
 	::-webkit-scrollbar, ::-webkit-scrollbar-corner {
@@ -1002,12 +1007,6 @@ $filter-brightness-03: brightness(0%);
 			content: '\25e4';
 		}
 	}
-	.dragenter-area_top {
-		top: 0; bottom: 50%;
-	}
-	.dragenter-area_bottom {
-		top: 50%; bottom: 0;
-	}
 	.action-button {
 		display: flex;
 		flex-direction: column;
@@ -1074,8 +1073,8 @@ $filter-brightness-03: brightness(0%);
 	}
 
 	/* Оформление декорирования */
-
-	.block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
+	pre, .pre, .drag-clone,
+	.block_01, .block_02, .block_03, .block_04, .block_05, .block_11 {
 		border-radius: 3px;
 		box-shadow: 0 0 6px $color-56;
 	}

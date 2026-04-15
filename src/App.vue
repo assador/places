@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, onMounted, nextTick } from 'vue'
+import { ref, computed, provide, onMounted } from 'vue'
 import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
@@ -123,7 +123,6 @@ emitter.on('logged', async () => {
 	mainStore.openTreeToCurrent(mainStore.currentPlace);
 	mainStore.openTreeToCurrent(mainStore.currentRoute);
 	router.push({ name: 'Home' });
-	await nextTick();
 });
 emitter.on('logout', () => {
 	const getOut = async () => {
