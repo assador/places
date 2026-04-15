@@ -817,7 +817,7 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 		flex-wrap: wrap;
 		align-items: start;
 		justify-content: right;
-		z-index: 30;
+		z-index: 40;
 	}
 	&__control {
 		width: 14px;
