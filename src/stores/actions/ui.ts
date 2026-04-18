@@ -2,7 +2,9 @@ import {
 	Place,
 	Route,
 	Folder,
+	GeomarksState,
 } from '@/types';
+import { isFolder, isPlace, isRoute } from '@/guards';
 import { constants } from '@/shared/constants';
 import { distanceOnSphere } from '@/shared/common';
 
@@ -134,60 +136,54 @@ export const uiActions = {
 			: show
 		;
 	},
-	showHideGeomarks(payload: Record<string, any>) {
+	showHideGeomarks(payload: { object: Folder | Place | Route, show: GeomarksState }) {
 		let visibility: number;
-		const showHideSubGeomarks = (
-			object: Place | Route | Folder,
-			show: number | boolean
-		) => {
+		const showHideSubGeomarks = (object: Folder | Place | Route, show: GeomarksState) => {
 			switch (object.type) {
-				case 'place':
-					object['geomark'] = Boolean(show);
+				case 'place': {
+					object.geomark = Boolean(show);
 					return;
-				case 'route':
-					object['geomarks'] = !show ? 0 : 1;
+				}
+				case 'route': {
+					object.geomarks = show;
 					return;
-				case 'folder':
-					object['geomarks'] = !show ? 0 : 1;
+				}
+				case 'folder': {
+					object.geomarks = show;
 					for (const item of
-						Object.values({ ...this.places, ...this.routes })
-							.filter((item: Place | Route) => {
-								if (
-									item.folderid === object.id ||
-									item.folderid === null &&
-									!object['parent']
-								) {
-									return true;
-								} else {
-									return false;
-								}
-							})
+						Object.values<Place | Route>({ ...this.places, ...this.routes })
+							.filter((item: Place | Route) => item.folderid === object.id)
 					) {
-						item[item['type'] !== 'place' ? 'geomarks' : 'geomark'] = show;
+						if (isPlace(item)) item.geomark = Boolean(show);
+						else if (
+							show === GeomarksState.None ||
+							show === GeomarksState.All
+						) {
+							item.geomarks = show;
+						}
 					}
-					if (!object['children']) return;
-					for (const folder of Object.values(object['children'])) {
-						showHideSubGeomarks(folder as Folder, !show ? 0 : 1);
+					const ids = this.getChildIds(object.id);
+					if (!ids.length) return;
+					for (const id of ids) {
+						showHideSubGeomarks(this.folders[id], show);
 					}
-					break;
+					return;
+				}
 			}
 		}
-		const showHideParentGeomarks = (object: Place | Route | Folder) => {
-			const objectParentKey =
-				Object.hasOwn(object, 'folderid') ? 'folderid' : 'parent'
-			;
-			const neibours =
-				Object.values({ ...this.places, ...this.routes, ...this.folders })
+		const showHideParentGeomarks = (object: Folder | Place | Route) => {
+			const objectParentId = (isFolder(object) ? object.parent : object.folderid);
+			const neibours: (Folder | Place | Route)[] =
+				Object.values({ ...this.folders, ...this.places, ...this.routes })
 					.filter(
 						(neibour: Place | Route | Folder) => {
-							const neibourParentKey =
-								Object.hasOwn(neibour, 'folderid')
-									? 'folderid' : 'parent'
+							const neibourParentId =
+								isFolder(neibour) ? neibour.parent : neibour.folderid
 							;
 							if (
-								neibour[neibourParentKey] === object[objectParentKey] ||
-								neibour[neibourParentKey] === null &&
-								object[objectParentKey] === null
+								neibourParentId === objectParentId ||
+								neibourParentId === null &&
+								objectParentId === null
 							) {
 								return true;
 							} else {
@@ -198,40 +194,42 @@ export const uiActions = {
 			;
 			for (let i = 0; i < neibours.length; i++) {
 				if (i === 0) {
-					visibility = (neibours[i]['geomark'] ?? neibours[i]['geomarks']);
+					visibility = !isPlace(neibours[i])
+						? (neibours[i] as Folder | Route).geomarks
+						: Number((neibours[i] as Place).geomark)
+					;
 					continue;
 				}
-				if (visibility != (neibours[i]['geomark'] ?? neibours[i]['geomarks'])) {
-					visibility = 2;
+				if (visibility != (isPlace(neibours[i])
+					? (neibours[i] as Place).geomark
+					: (neibours[i] as Folder | Route).geomarks
+				)) {
+					visibility = GeomarksState.Partial;
 					break;
 				}
 			}
 			const parent: Folder =
-				this.folders[object[objectParentKey]] ??
-				this.trees.places[object[objectParentKey]] ??
-				this.trees.routes[object[objectParentKey]] ??
+				this.folders[objectParentId] ??
+				this.trees.places[objectParentId] ??
+				this.trees.routes[objectParentId] ??
 				null
 			;
 			if (parent === null) {
 				if (
-					object['parent'] === null &&
-					object['context'] === 'places'  ||
-					object.type === 'place' &&
-					object['folderid'] === null
+					isPlace(object) && object.folderid === null ||
+					isFolder(object) && object.parent === null && object.context === 'places'
 				) {
-					this.trees.places.geomarks = Number(visibility);
+					this.trees.places.geomarks = visibility;
 				}
 				if (
-					object['parent'] === null &&
-					object['context'] === 'places'  ||
-					object.type === 'place' &&
-					object['folderid'] === null
+					isRoute(object) && object.folderid === null ||
+					isFolder(object) && object.parent === null && object.context === 'routes'
 				) {
-					this.trees.routes.geomarks = Number(visibility);
+					this.trees.routes.geomarks = visibility;
 				}
 				return;
 			}
-			parent.geomarks = Number(visibility);
+			parent.geomarks = visibility;
 			showHideParentGeomarks(parent);
 		}
 		showHideSubGeomarks(payload.object, payload.show);

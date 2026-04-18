@@ -21,12 +21,22 @@ export type FolderContext =
 	| 'places'
 	| 'routes'
 ;
+export type TreeItemType =
+	| 'folder'
+	| 'place'
+	| 'route'
+;
 export type AppendMode =
 	| 'change' // change the existing one
 	| 'clone'  // create new based on the existing one
 	| 'move'   // move the existing one to another object
 	| 'new'    // create new
 ;
+export enum GeomarksState {
+	None = 0,
+	All = 1,
+	Partial = 2,
+};
 export type ImportExportFormat = 'json' | 'gpx';
 
 // SEC Entities
@@ -67,7 +77,7 @@ export interface Folder extends Entity {
 	name: string;
 	description?: string;
 	srt: number;
-	geomarks: number;
+	geomarks: GeomarksState;
 	builded: boolean;
 	open: boolean;
 	children?: Record<string, Folder>;
@@ -90,7 +100,7 @@ export interface Place extends Entity {
 	link?: string;
 	time?: string;
 	srt: number;
-	geomark: boolean;
+	geomark: number | boolean;
 	images?: Record<string, Image>;
 	home?: boolean;
 }
@@ -105,7 +115,7 @@ export interface Route extends Entity {
 	link?: string;
 	time?: string;
 	srt: number;
-	geomarks: number;
+	geomarks: GeomarksState;
 	images?: Record<string, Image>;
 }
 export interface Image {
@@ -172,6 +182,7 @@ export interface DragEntityPayload extends DragPayload {
 	dragging?: boolean;
 	position?: 'before' | 'onto' | 'after';
 	ghostSelector?: string;
+	startTime?: number;
 }
 export interface DragFolderPayload extends DragEntityPayload {
 	context: 'folders';

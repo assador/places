@@ -8,6 +8,7 @@ import {
 	DragPlacePayload,
 	DragRoutePayload,
 	DragImagePayload,
+	TreeItemType,
 } from '@/types';
 import { isAncestorOf } from '@/shared/checkers';
 import { moveInArray, moveInObject } from '@/shared/sorting';
@@ -90,7 +91,7 @@ export const handlePlaceRouteDropped: DragHandler = (
 		case 'after':
 			srt = mainStore.getNeighboursSrts(
 				targetId,
-				target.dataset.entityType,
+				target.dataset.entityType as TreeItemType,
 				payload.position === 'before',
 			).new;
 			break;
@@ -183,20 +184,28 @@ export const usePointerDnD = (config: {
     let ghostEl: HTMLElement | null = null;
 
 	const onPointerDown = (event: PointerEvent, payload: any) => {
+		if (event.buttons !== 1 || event.ctrlKey || event.metaKey) return;
 		const el = event.currentTarget as HTMLElement;
 		const rect = el.getBoundingClientRect();
 		el.setPointerCapture(event.pointerId);
 		start = { x: event.clientX, y: event.clientY };
 		offset = { x: event.clientX - rect.left, y: event.clientY - rect.top };
-		mainStore.currentDrag = { ...payload, dragging: false };
+		mainStore.currentDrag = {
+			...payload,
+			dragging: false,
+			startTime: Date.now(),
+		};
 	};
 	const onPointerMove = (event: PointerEvent) => {
 		const payload = mainStore.currentDrag;
 		if (!payload) return;
 		if (!payload.dragging) {
-			const dist = Math.hypot(
-				event.clientX - start.x, event.clientY - start.y
-			);
+			const duration = Date.now() - (payload?.startTime ?? Date.now());
+			if (duration > 500) {
+				mainStore.currentDrag = null;
+				return;
+			}
+			const dist = Math.hypot(event.clientX - start.x, event.clientY - start.y);
 			if (dist < threshold) return;
 			payload.dragging = true;
 			config.onDragStateChange?.(true);
@@ -213,7 +222,7 @@ export const usePointerDnD = (config: {
 				width: `${(targetToClone as HTMLElement).offsetWidth}px`,
 				height: `${(targetToClone as HTMLElement).offsetHeight}px`,
 			});
-			document.getElementById('container').appendChild(ghostEl);
+			document.getElementById('container')?.appendChild(ghostEl);
 		}
 		if (ghostEl) {
 			ghostEl.style.transform = `translate3d(
@@ -225,16 +234,17 @@ export const usePointerDnD = (config: {
 		config.updateHighlights?.(target);
 	};
 	const onPointerUp = (event: PointerEvent, click?: () => void) => {
+		if (event.button !== 0) return;
 		const payload = mainStore.currentDrag;
-		if (!payload) return;
-		if (!payload.dragging) {
-			click?.();
-		} else {
+		const duration = Date.now() - (payload?.startTime ?? Date.now());
+	 	if (payload?.dragging) {
 			const el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;
 			const dropTarget = el?.closest('[data-entity-id]') as HTMLElement;
 			if (dropTarget && config.canAcceptDrop(dropTarget)) {
 				config.handleDrop(dropTarget);
 			}
+		} else if (payload && duration <= 500) {
+			click?.();
 		}
 		mainStore.currentDrag = null;
 		config.onDragStateChange?.(false);

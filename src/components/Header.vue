@@ -67,14 +67,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { emitter } from '@/shared/bus';
-import { IPlacesPopupProps } from '@/shared/interfaces';
+import { IPopupProps } from '@/shared/interfaces';
 import { useMainStore } from '@/stores/main';
 import Dashboard from '@/components/Dashboard.vue';
 import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
 
-const popupProps = ref<IPlacesPopupProps>({
+const popupProps = ref<IPopupProps>({
 	show: false,
 	position: {
 		top: 'auto',

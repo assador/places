@@ -1,4 +1,6 @@
-export interface IPlacesPopupProps {
+import { Folder, Place, Route } from '@/types';
+
+export interface IPopupProps {
 	show: boolean;
 	what?: string;
 	closeButton?: boolean;
@@ -9,4 +11,7 @@ export interface IPlacesPopupProps {
 		bottom?: number | string | null,
 		left?: number | string | null,
 	};
+}
+export interface IEntityPopupProps extends IPopupProps {
+	object: Folder | Place | Route;
 }

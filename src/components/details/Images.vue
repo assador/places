@@ -40,9 +40,9 @@
 					<div
 						v-if="!currentCommon"
 						class="dd-images__delete button"
-						@click.stop.prevent
 						@pointerdown.stop
-						@pointerup.stop="mainStore.deleteImages({
+						@pointerup.stop
+						@click.stop="mainStore.deleteImages({
 							imageIds: [ image.id ],
 							entity: current,
 						})"

@@ -47,7 +47,7 @@
 					mainStore.points[place.pointid].longitude,
 				]"
 				draggable
-				:visible="mainStore.placemarksShow && place.show && place.geomark"
+				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
 				@click="mainStore.setCurrentPlace(place, false)"
 				@contextmenu="(e: LeafletEvent) =>
 					markerContextMenu(e, mainStore.points[place.pointid], place)
@@ -378,12 +378,12 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Route, Point, PointName } from '@/types';
-import { IPlacesPopupProps } from '@/shared/interfaces';
+import { IPopupProps } from '@/shared/interfaces';
 
 const mainStore = useMainStore();
 
 const pointInfo = inject<Ref<PointName>>('pointInfo')!;
-const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
+const popupProps = inject<Ref<IPopupProps>>('popupProps')!;
 
 const map = inject('extmap') as Ref;
 

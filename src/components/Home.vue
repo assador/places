@@ -793,7 +793,7 @@ import { constants } from '@/shared/constants';
 import { makeFieldsValidatable } from '@/shared/generators';
 import { sortObjects } from '@/shared/sorting';
 import { makeDropDowns } from '@/shared/common';
-import { IPlacesPopupProps } from '@/shared/interfaces';
+import { IPopupProps } from '@/shared/interfaces';
 import {
 	point2coords,
 	latitude2string,
@@ -865,7 +865,7 @@ const pointInfo = ref<PointName>({
 	description: null,
 });
 provide('pointInfo', pointInfo);
-const popupProps = ref<IPlacesPopupProps>({
+const popupProps = ref<IPopupProps>({
 	show: false,
 	position: {
 		top: 'auto',
@@ -875,7 +875,7 @@ const popupProps = ref<IPlacesPopupProps>({
 	},
 });
 provide('popupProps', popupProps);
-const popupDonate = ref<IPlacesPopupProps>({
+const popupDonate = ref<IPopupProps>({
 	show: false,
 	position: {
 		top: '0',

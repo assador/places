@@ -32,7 +32,7 @@ import { useRouter } from 'vue-router';
 import { emitter } from '@/shared/bus';
 import { usePWAInstall } from '@/shared/usepwainstall';
 import { logoutRoutine } from '@/shared/auth';
-import { IPlacesPopupProps } from '@/shared/interfaces';
+import { IPopupProps } from '@/shared/interfaces';
 import {
 	generateGPX,
 	generateJSON,
@@ -100,7 +100,7 @@ const confirm = (func: (...args: any[]) => void, args: any[] = [], msg: string =
 	confirmMessage.value = msg;
 	return true;
 };
-const popupBusy = ref<IPlacesPopupProps>({
+const popupBusy = ref<IPopupProps>({
 	show: false,
 	position: {
 		top: '0',

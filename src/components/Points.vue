@@ -228,9 +228,9 @@
 					<span
 						:title="mainStore.t.i.hints.deletePoint"
 						class="button-iconed icon icon-cross-45-circled"
-						@click.stop.prevent
 						@pointerdown.stop
-						@pointerup.stop="mainStore.removePointFromPoints({
+					    @pointerup.stop
+						@click.stop="mainStore.removePointFromPoints({
 							point: mainStore.temps[pn.id],
 							entity: mainStore.measure,
 						})"
@@ -312,9 +312,9 @@
 					<span
 						:title="mainStore.t.i.hints.deleteRoutePoint"
 						class="button-iconed icon icon-cross-45-circled"
-						@click.stop.prevent
 						@pointerdown.stop
-						@pointerup.stop="() => {
+					    @pointerup.stop
+						@click.stop="() => {
 							const point = mainStore.getPointById(pn.id);
 							mainStore.deleteObjects({ [point.id]: point });
 						}"
@@ -345,7 +345,7 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { usePointerDnD } from '@/shared/dnd';
-import { IPlacesPopupProps } from '@/shared/interfaces';
+import { IPopupProps } from '@/shared/interfaces';
 import { PointName } from '@/types';
 
 export interface IPlacesPointsProps {
@@ -361,7 +361,7 @@ const open = ref(true);
 const highlighted = ref(null);
 
 const pointInfo = inject<Ref<PointName>>('pointInfo')!;
-const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
+const popupProps = inject<Ref<IPopupProps>>('popupProps')!;
 
 const tempPoints = computed(() => {
 	if (!mainStore.tempsShow.show) return [];

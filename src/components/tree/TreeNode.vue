@@ -13,7 +13,7 @@
 		:class="{
 			'folder_open': folder.open,
 			'folder_closed': !folder.open,
-			'folder-unparented': !folder.parent,
+			'unparented': !folder.parent,
 		}"
 	>
 		<div
@@ -34,9 +34,9 @@
 				v-if="foldersEditMode"
 				class="icon icon-triangle"
 				:class="folder.open ? 'icon-triangle_down' : 'icon-triangle_right'"
-				@click.stop.prevent
 				@pointerdown.stop
-				@pointerup.stop="mainStore.folderOpenClose({ folder })"
+				@pointerup.stop
+				@click.stop="mainStore.folderOpenClose({ folder })"
 			/>
 			<label
 				v-if="instanceid === 'popupexporttree'"
@@ -109,6 +109,15 @@
 			    @pointermove="onPointerMove"
 			    @pointerup="e => onPointerUp(e, () => mainStore.folderOpenClose({ folder }))"
 			    @pointercancel="onPointerUp"
+				@contextmenu.stop.prevent="e => {
+					contextMenu.show = !contextMenu.show;
+					contextMenu.object = mainStore.folders[folder.id] ?? mainStore.trees[folder.context];
+					contextMenu.closeOnClick = false;
+					contextMenu.position.right = 'auto';
+					contextMenu.position.bottom = 'auto';
+					contextMenu.position.top = e.clientY + 5;
+					contextMenu.position.left = e.clientX + 5;
+				}"
 			>
 				<div
 					:id="
@@ -130,89 +139,6 @@
 					<div v-else>
 						{{ folder.name }}
 					</div>
-				</div>
-				<div
-					v-if="!folder.virtual && instanceid !== 'popupexporttree'"
-					class="folder-button__controls"
-				>
-					<span
-						class="folder-button__control icon"
-						:class="
-							'icon-geomark-' +
-							(!folder.geomarks
-								? '0'
-								: (folder.geomarks === 1 ? '1' : '2')
-							)
-							+ '-circled'
-						"
-						:title="
-							(folder.geomarks === 1
-								? mainStore.t.i.hints.hide
-								: mainStore.t.i.hints.show
-							) + ' ' +
-							mainStore.t.i.hints.onMap
-						"
-						accesskey="a"
-						@click.stop.prevent
-						@pointerdown.stop
-						@pointerup.stop="
-							mainStore.showHideGeomarks({
-								object: (folder.virtual
-									? mainStore.trees[props.what]
-									: folder
-								),
-								show: (folder.geomarks === 1 ? 0 : 1),
-							})
-						"
-					/>
-					<span
-						class="folder-button__control icon icon-plus-circled"
-						:title="mainStore.t.i.hints[props.what === 'places' ? 'addPlace' : 'addRoute']"
-						accesskey="a"
-						@click.stop.prevent
-						@pointerdown.stop
-						@pointerup.stop="() => {
-							switch (props.what) {
-								case 'places':
-									mainStore.upsertPlace({
-										props: { folderid: folder.id },
-									});
-									focusCurrent(currentPlaceNameInputRef);
-									break;
-								case 'routes':
-									mainStore.upsertRoute({
-										props: { folderid: folder.id },
-									});
-									focusCurrent(currentRouteNameInputRef);
-									break;
-							}
-						}"
-					/>
-					<span
-						class="folder-button__control icon icon-plus-circled-folder"
-						:title="mainStore.t.i.hints.addFolderIn"
-						accesskey="f"
-						@click.stop.prevent
-						@pointerdown.stop
-						@pointerup.stop="router.push({
-							name: 'HomeFolder',
-							params: {
-								parent: folder.id,
-								context: folder.context,
-							},
-						})"
-					/>
-					<span
-						class="folder-button__control icon icon-cross-45-circled-folder"
-						:title="mainStore.t.i.buttons.deleteFolder"
-						accesskey="f"
-						@click.stop.prevent
-						@pointerdown.stop
-						@pointerup.stop="router.push({
-							name: 'HomeDeleteFolder',
-							params: { id: folder.id, type: props.what },
-						})"
-					/>
 				</div>
 			</div>
 			<div
@@ -244,49 +170,6 @@
 						}
 					}"
 				/>
-				<button
-					class="button-iconed icon icon-cross-45-circled"
-					:title="
-						folder.context === 'places'
-							? mainStore.t.i.hints.deletePlace
-							: mainStore.t.i.hints.deleteRoute
-					"
-					:disabled="
-						!(mainStore.user && (
-							folder.context === 'places' &&
-							mainStore.currentPlace &&
-							mainStore.currentPlace.userid === mainStore.user.id ||
-							folder.context === 'routes' &&
-							mainStore.currentRoute &&
-							mainStore.currentRoute.userid === mainStore.user.id
-						))
-					"
-					accesskey="d"
-					@click.stop.prevent
-					@pointerdown.stop
-					@pointerup.stop="() => {
-						if (folder.context === 'places') {
-							mainStore.deleteObjects({
-								[mainStore.currentPlace.id]: mainStore.currentPlace,
-							});
-						} else if (folder.context === 'routes') {
-							mainStore.deleteObjects({
-								[mainStore.currentRoute.id]: mainStore.currentRoute,
-							});
-						}
-					}"
-				/>
-				<button
-					class="button-iconed icon icon-plus-circled-folder"
-					:title="mainStore.t.i.hints.addFolder"
-					accesskey="f"
-					@click.stop.prevent
-					@pointerdown.stop
-					@pointerup.stop="router.push({
-						name: 'HomeFolder',
-						query: { parent: null, context: folder.context },
-					})"
-				/>
 			</div>
 		</div>
 		<div class="folder-subfolders">
@@ -310,12 +193,17 @@
 				folder.id
 			"
 			class="folder-places"
+			:class="{
+				'folder_open': folder.open,
+				'folder_closed': !folder.open,
+				'unparented': !folder.id,
+			}"
 		>
 
 <!-- SEC place/route-button  -->
 
 			<label
-				v-for="(object, index) in (props.what === 'places' ? places : routes)"
+				v-for="object in (props.what === 'places' ? places : routes)"
 				:id="
 					(instanceid === 'popupexporttree' ? 'to-export-place-' : '') +
 					object.id
@@ -378,100 +266,14 @@
 					{{ object.name || mainStore.t.i.captions.untitled }}
 				</span>
 				<span
-					v-if="instanceid !== 'popupexporttree'"
-					class="place-button__controls"
-				>
-					<span
-						class="place-button__control icon"
-						:class="'icon-geomark-' + (isPlace(object)
-							? (!object.geomark ? '0' : '1')
-							: (!object.geomarks ? '0' : '1')
-						) + '-circled'"
-						:title="
-							(!isPlace(object)
-								? mainStore.t.i.hints.show
-								: mainStore.t.i.hints.hide
-							) + ' ' +
-								mainStore.t.i.hints.onMap
-						"
-						@click.stop.prevent
-						@pointerdown.stop
-						@pointerup.stop="() => {
-							if (props.what === 'places') {
-								mainStore.showHideGeomarks({
-									object: object,
-									show: !(isPlace(object)
-										? object.geomark
-										: object.geomarks
-									),
-								});
-							} else if (props.what === 'routes') {
-								(object as Route).geomarks =
-									(object as Route).geomarks !== 0 ? 0 : 1
-								;
-							}
-						}"
-					/>
-					<span
-						v-if="props.what === 'places'"
-						class="place-button__control icon icon-plus-circled"
-						:title="mainStore.t.i.hints.addPlaceNext"
-						@click.stop.prevent
-						@pointerdown.stop
-						@pointerup.stop="() => {
-							mainStore.upsertPlace({
-								props: {
-									folderid: folder.id,
-									srt: index === places.length - 1
-										? object.srt + 1
-										: object.srt + (places[index + 1].srt - object.srt) / 2
-									,
-								},
-							});
-							focusCurrent(currentPlaceNameInputRef);
-						}"
-					/>
-					<span
-						v-else-if="props.what === 'routes'"
-						class="place-button__control icon icon-plus-circled"
-						:title="mainStore.t.i.hints.addRouteNext"
-						@click.stop.prevent
-						@pointerdown.stop
-						@pointerup.stop="() => {
-							mainStore.upsertRoute({
-								props: {
-									folderid: folder.id,
-									srt: index === routes.length - 1
-										? object.srt + 1
-										: object.srt + (routes[index + 1].srt - object.srt) / 2
-									,
-								},
-							});
-							focusCurrent(currentRouteNameInputRef);
-						}"
-					/>
-					<span
-						class="place-button__control icon icon-cross-45-circled"
-						:title="mainStore.t.i.hints[props.what === 'places'
-							? 'deletePlace'
-							: 'deleteRoute'
-						]"
-						@click.stop.prevent
-						@pointerdown.stop
-						@pointerup.stop="mainStore.deleteObjects({
-							[object.id]: object,
-						})"
-					/>
-				</span>
-				<span
 					class="dragging-area"
-					@pointerdown="e => onPointerDown(e, {
+					@pointerdown.stop="e => onPointerDown(e, {
 						id: object.id,
 						type: object.type,
 						context: props.what,
 					})"
-				    @pointermove="onPointerMove"
-				    @pointerup="e => onPointerUp(e, () => {
+				    @pointermove.stop="onPointerMove"
+				    @pointerup.stop="e => onPointerUp(e, () => {
 						if (instanceid === 'popupexporttree') return;
 						if (props.what === 'places') {
 							mainStore.setCurrentPlace(object as Place);
@@ -479,7 +281,16 @@
 							mainStore.setCurrentRoute(object as Route);
 						}
 					})"
-					@pointercancel="onPointerUp"
+					@pointercancel.stop="onPointerUp"
+					@contextmenu.stop.prevent="e => {
+						contextMenu.show = !contextMenu.show;
+						contextMenu.object = object;
+						contextMenu.closeOnClick = false;
+						contextMenu.position.right = 'auto';
+						contextMenu.position.bottom = 'auto';
+						contextMenu.position.top = e.clientY + 5;
+						contextMenu.position.left = e.clientX + 5;
+					}"
 				>
 					{{ object.name || mainStore.t.i.captions.untitled }}
 				</span>
@@ -543,18 +354,17 @@ export default {
 
 <script setup lang="ts">
 import _ from 'lodash';
-import { Ref, computed, inject, nextTick } from 'vue';
+import { Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { useRouter } from 'vue-router';
 import {
 	Place,
 	Route,
 	Folder,
 	FolderContext,
 } from '@/types';
-import { isPlace } from '@/guards';
 import { usePointerDnD } from '@/shared/dnd';
 import { formFoldersCheckedIds } from '@/shared/generators';
+import { IEntityPopupProps } from '@/shared/interfaces';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;
@@ -570,14 +380,17 @@ const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 });
 
 const mainStore = useMainStore();
-const router = useRouter();
 
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
 
+const foldersEditMode = inject('foldersEditMode');
+
 const selectedToExport = inject<Ref<Record<string, Place | Route>>>('selectedToExport');
 const foldersCheckedIds: string[] = inject('foldersCheckedIds');
-const foldersEditMode = inject('foldersEditMode');
+const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
+
+const contextMenu = inject<Ref<IEntityPopupProps>>('contextMenu');
 
 const children = computed(() => _.sortBy(props.folder.children, 'srt'));
 const places = computed(() =>
@@ -645,12 +458,6 @@ const selectUnselectFolder = (folderid: string, checked: boolean): void => {
 		(folderCheckbox as HTMLInputElement).checked = checked ? true : false;
 	}
 };
-const focusCurrent = async (input: HTMLElement | null) => {
-	if (!input) return;
-	mainStore.setMessage(mainStore.t.i.text.addedEnterName, 3);
-	await nextTick();
-	input.focus();
-}
 
 // SEC DnD
 
@@ -703,7 +510,7 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 		display: flex;
 		z-index: 20;
 	}
-	&.folder-unparented {
+	&.unparented {
 		padding: 0;
 	} // So poetic and sad!
 	&.folder_open:is(
@@ -734,9 +541,6 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 				flex-direction: column;
 				gap: 8px;
 			}
-			&__controls {
-				display: none;
-			}
 			input, textarea {
 				display: block;
 			}
@@ -766,9 +570,6 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 	}
 	& > .sorting-area-after {
 		top: auto; bottom: -1px;
-	}
-	&:has( > .sorting-area:hover) > .folder-subs > .folder-button .folder-button__control {
-		opacity: 1 !important;
 	}
 }
 .folder_closed {
@@ -801,9 +602,6 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 	cursor: pointer !important;
 	touch-action: none;
 	user-select: none;
-	&:hover :is(.place-button__control, .folder-button__control) {
-		opacity: 1 !important;
-	}
 	h2 {
 		line-height: 1;
 	}
@@ -818,17 +616,6 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 		align-items: start;
 		justify-content: right;
 		z-index: 40;
-	}
-	&__control {
-		width: 14px;
-		height: 14px;
-		opacity: 0;
-		&::before {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			line-height: 0;
-		}
 	}
 }
 .place-button {
@@ -854,7 +641,7 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 		align-items: baseline;
 	}
 }
-:not(:is(.folder-root)) > .folder-places {
+:not(:is(.folder-root)) > .folder-places:is(:not(.unparented )) {
 	display: block;
 	margin-left: 18px;
 }

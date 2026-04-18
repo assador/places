@@ -4,6 +4,15 @@ import {
 import { makeChildren } from '@/shared/converters';
 
 export const treeGetters = {
+	getChildIds() {
+		return (id: string) => {
+			const ids: string[] = [];
+			for (const fId in this.folders) {
+				if (this.folders[fId].parent === id) ids.push(fId);
+			}
+			return ids;
+		}
+	},
 	childrened() {
 		const aliveFolders: Record<string, Folder> = {};
 		for (const id in this.folders) {

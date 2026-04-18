@@ -8,7 +8,9 @@ import {
 	Route,
 	Folder,
 	EntityCollection,
+	TreeItemType,
 } from '@/types';
+import { isFolder } from '@/guards';
 import { constants } from '@/shared/constants';
 import { distanceOnSphere } from '@/shared/common';
 import { t } from '@/lang/ru';
@@ -194,41 +196,36 @@ export const useMainStore = defineStore('main', {
 			}
 		},
 		getNeighboursSrts() {
-			return (id: string, type: string, top?: boolean) => {
-				let fellows: Record<string, Folder | Place | Route> = this[type + 's'];
-				let neighbours: (Folder | Place | Route)[];
-				let item = fellows[id];
-				if (!fellows[id] && type === 'folder') {
-					fellows = id === 'routesroot'
-						? this.trees.routes.children
-						: this.trees.places.children
-					;
-					item = fellows[id];
-					neighbours = Object.values(fellows as Record<string, Folder>).filter(
-						i => i.parent === (item as Folder).parent
-					);
+			return (id: string, type: TreeItemType, top?: boolean) => {
+				const collection: Record<string, Folder | Place | Route> = this[type + 's'];
+				const item = collection[id];
+				if (!item) return null;
+				const parentId = isFolder(item) ? item.parent : item.folderid;
+				const neighboursSrts: number[] = [];
+				for (const key in collection) {
+					const i = collection[key];
+					const iParentId = isFolder(i) ? i.parent : i.folderid;
+					if (iParentId === parentId) neighboursSrts.push(i.srt);
+				}
+				neighboursSrts.sort((a, b) => a - b);
+				const currentIndex = neighboursSrts.indexOf(item.srt);
+				const previous = neighboursSrts[currentIndex - 1];
+				const next = neighboursSrts[currentIndex + 1];
+				let newSrt: number;
+				if (top) {
+					newSrt = !previous
+						? item.srt / 2
+						: (item.srt - previous) / 2 + previous;
 				} else {
-					neighbours = Object.values(fellows as Record<string, Place | Route>).filter(
-						i => i.folderid === (item as Place | Route).folderid
-					);
+					newSrt = !next ? item.srt + 1 : (next - item.srt) / 2 + item.srt;
 				}
-				const all = neighbours.map(i => i.srt).sort((a, b) => a - b);
-				const currentIndex = all.indexOf(item.srt);
-				const result = {
-					all: all,
+				return {
+					all: neighboursSrts,
 					own: item.srt,
-					previous: all[currentIndex - 1],
-					next: all[currentIndex + 1],
-					new: 0,
+					previous,
+					next,
+					new: newSrt,
 				};
-				if (top) {result.new = !result.previous
-					? result.own / 2
-					: (result.own - result.previous) / 2 + result.previous;
-				} else {result.new = !result.next
-					? result.own + 1
-					: (result.next - result.own) / 2 + result.own;
-				}
-				return result;
 			}
 		},
 		getSharedPointIds(): string[] {

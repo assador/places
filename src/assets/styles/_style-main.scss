@@ -262,9 +262,10 @@ $filter-brightness-03: brightness(0%);
 		touch-action: none;
 		user-select: none;
 		position: fixed;
-		z-index: 10000;
+		z-index: 9999;
 		opacity: 0.8;
 		transition: none;
+		will-change: transform;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -1215,12 +1216,6 @@ $filter-brightness-03: brightness(0%);
 		white-space: nowrap;
 	}
 
-	@media (pointer: coarse) {
-		.folder-button__control,
-		.place-button__control {
-			opacity: 1 !important;
-		}
-	}
 	@media screen and (max-width: 700px) {
 		#basic-left {
 			box-shadow: inset -100px -100px 20px -100px $color-57;

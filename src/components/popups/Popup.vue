@@ -4,9 +4,10 @@
 			<div
 				v-if="props.show"
 				v-bind="$attrs"
+				ref="popupRef"
 				class="popup"
 				:style="style"
-				@click="handleBackdropClick"
+				@pointerup="handleInsideClick"
 			>
 				<a
 					v-if="props.closeButton"
@@ -33,10 +34,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, type CSSProperties } from 'vue';
-import { IPlacesPopupProps } from '@/shared/interfaces';
+import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue';
+import { IPopupProps } from '@/shared/interfaces';
 
-const props = withDefaults(defineProps<IPlacesPopupProps>(), {
+const props = withDefaults(defineProps<IPopupProps>(), {
 	show: false,
 	what: '',
 	closeButton: true,
@@ -54,15 +55,19 @@ defineOptions({
 	inheritAttrs: false,
 });
 
-const close = (): void => {
+const popupRef = ref<HTMLElement | null>(null);
+
+const close = () => {
 	emit('update:show', false);
 };
-const handleBackdropClick = (e: PointerEvent) => {
-	if (props.closeOnClick) {
-		if ((e.target as HTMLElement).classList.contains('popup')) {
-			close();
-		}
-	}
+const handleInsideClick = () => {
+	if (props.closeOnClick) close();
+};
+const handleClickOutside = (event: PointerEvent) => {
+	if (!props.show || !popupRef.value) return;
+	const target = event.target as Node;
+	if ((target as HTMLElement).closest(".draggable")) return;
+	if (!popupRef.value.contains(target)) close();
 };
 const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
@@ -82,9 +87,11 @@ const style = computed((): CSSProperties => {
 
 onMounted(() => {
 	document.addEventListener('keyup', keyup, false);
+	document.addEventListener('pointerdown', handleClickOutside, false);
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);
+	document.removeEventListener('pointerdown', handleClickOutside, false);
 });
 </script>
 
@@ -99,8 +106,8 @@ onUnmounted(() => {
 			border-top: none;
 		}
 	}
-	.message {
-		padding-right: 30px !important; padding-left: 30px !important;
+	.popup-content .message {
+		padding-right: 30px; padding-left: 30px;
 		&:last-child {
 			padding-bottom: 20px;
 		}

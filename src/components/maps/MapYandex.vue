@@ -398,7 +398,7 @@
 import { ref, Ref, shallowRef, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Place, Route, Measure, Point, PointName } from '@/types';
-import { IPlacesPopupProps } from '@/shared/interfaces';
+import { IPopupProps } from '@/shared/interfaces';
 import { getPointToSegmentDistance } from '@/shared/common';
 import {
 	YandexMap,
@@ -424,7 +424,7 @@ import type {
 const mainStore = useMainStore();
 
 const pointInfo = inject<Ref<PointName>>('pointInfo')!;
-const popupProps = inject<Ref<IPlacesPopupProps>>('popupProps')!;
+const popupProps = inject<Ref<IPopupProps>>('popupProps')!;
 
 const map = shallowRef<YMap | null>(null);
 const markers = shallowRef<Record<string, YMapMarker | null>>({});
