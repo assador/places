@@ -78,7 +78,6 @@ export interface Folder extends Entity {
 	description?: string;
 	srt: number;
 	geomarks: GeomarksState;
-	builded: boolean;
 	open: boolean;
 	children?: Record<string, Folder>;
 }

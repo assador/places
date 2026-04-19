@@ -1,26 +1,17 @@
-import {
-	Folder,
-} from '@/types';
-import { makeChildren } from '@/shared/converters';
+import { Folder } from '@/types';
 
 export const treeGetters = {
-	getChildIds() {
-		return (id: string) => {
-			const ids: string[] = [];
-			for (const fId in this.folders) {
-				if (this.folders[fId].parent === id) ids.push(fId);
-			}
-			return ids;
-		}
-	},
-	childrened() {
-		const aliveFolders: Record<string, Folder> = {};
+	allChildrenMap() {
+		const map: Record<string, Record<string, Folder>> = {};
 		for (const id in this.folders) {
-			if (!this.folders[id].deleted) {
-				aliveFolders[id] = this.folders[id];
-			}
+			const pId = this.folders[id].parent || null;
+			if (!map[pId]) map[pId] = {};
+			map[pId][id] = this.folders[id];
 		}
-		return makeChildren(aliveFolders);
+		return map;
+	},
+	folderChildren() {
+		return (fId: string) => this.allChildrenMap[fId || null] || {};
 	},
 	treePlaces() {
 		const tree: Folder = this.createFolder({
@@ -30,7 +21,6 @@ export const treeGetters = {
 			parent: null,
 			srt: 20,
 			name: this.t.i.captions.places,
-			children: {},
 		});
 		Object.defineProperty(tree, 'open', {
 			get: () => this.treeParams.places.open,
@@ -38,14 +28,6 @@ export const treeGetters = {
 			enumerable: true,
 			configurable: true,
 		});
-		for (const id in this.childrened) {
-			if (
-				!this.childrened[id].parent &&
-				this.childrened[id].context === 'places'
-			) {
-				tree.children[id] = this.childrened[id];
-			}
-		}
 		return tree;
 	},
 	treeRoutes() {
@@ -56,7 +38,6 @@ export const treeGetters = {
 			parent: null,
 			srt: 10,
 			name: this.t.i.captions.routes,
-			children: {},
 		});
 		Object.defineProperty(tree, 'open', {
 			get: () => this.treeParams.routes.open,
@@ -64,14 +45,6 @@ export const treeGetters = {
 			enumerable: true,
 			configurable: true,
 		});
-		for (const id in this.childrened) {
-			if (
-				!this.childrened[id].parent &&
-				this.childrened[id].context === 'routes'
-			) {
-				tree.children[id] = this.childrened[id];
-			}
-		}
 		return tree;
 	},
 	trees() {

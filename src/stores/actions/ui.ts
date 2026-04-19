@@ -162,9 +162,7 @@ export const uiActions = {
 							item.geomarks = show;
 						}
 					}
-					const ids = this.getChildIds(object.id);
-					if (!ids.length) return;
-					for (const id of ids) {
+					for (const id in object.children) {
 						showHideSubGeomarks(this.folders[id], show);
 					}
 					return;

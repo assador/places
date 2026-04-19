@@ -93,6 +93,11 @@ export const initActions = {
 			folder.deleted = deleted;
 			folder.updated = updated;
 			folder.open = false;
+			Object.defineProperty(folder, 'children', {
+				get: () => this.folderChildren(folder.id),
+				enumerable: true,
+				configurable: true
+			});
 		}
 	},
 	async setServerConfig() {

@@ -1,5 +1,4 @@
-import { isPlainTreeCorrect } from '@/shared/checkers';
-import { Point, Folder } from '@/types';
+import { Point } from '@/types';
 
 let resultForRecursive: unknown;
 
@@ -66,19 +65,6 @@ export const point2coords = (p: Point, m: string, h: string): string => {
 		(p.altitude ? `, ${h} ${p.altitude} ${m}` : '')
 	);
 }
-export const makeChildren = (plain: Record<string, Folder>): Record<string, Folder> => {
-	if (!isPlainTreeCorrect(plain)) return {};
-	const copy = JSON.parse(JSON.stringify(plain));
-	for (const id in copy) {
-		const parent = copy[copy[id].parent];
-		if (parent) {
-			if (!Object.hasOwn(parent, 'children')) parent['children'] = {};
-			parent.children[id] = copy[id];
-		}
-		copy[id].builded = true;
-	}
-	return copy;
-};
 export const treeToPlain = (
 	tree: Record<string, any>,
 	childrenKey: string,

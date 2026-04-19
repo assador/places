@@ -98,7 +98,6 @@ export const entityActions = {
 			description: '',
 			srt: nextSrt,
 			geomarks: 1,
-			builded: false,
 			common: false,
 			open: false,
 			enabled: true,
@@ -137,6 +136,11 @@ export const entityActions = {
 			...this._defaultFolder(),
 			...overrides,
 		};
+		Object.defineProperty(folder, 'children', {
+			get: () => this.folderChildren(folder.id),
+			enumerable: true,
+			configurable: true
+		});
 		return folder;
 	},
 

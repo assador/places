@@ -76,13 +76,14 @@
 import { ref, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
+import { FolderContext } from '@/types';
 import { makeFieldsValidatable } from '@/shared/generators';
 
 const mainStore = useMainStore();
 
 export interface IPlacesPopupFolderProps {
 	parent?: string | null;
-	context?: string;
+	context?: FolderContext;
 }
 const props = withDefaults(defineProps<IPlacesPopupFolderProps>(), {
 	parent: null,
