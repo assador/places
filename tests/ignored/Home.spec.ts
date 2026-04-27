@@ -1,10 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, shallowMount } from '@vue/test-utils';
-import Home from '@/components/Home.vue';
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises } from '@vue/test-utils';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import { h, ref } from 'vue';
+
+import { IMainState } from '@/types';
+import { constants } from '@/shared/constants';
+import { t } from '@/lang/ru';
+import Home from '@/components/Home.vue';
 
 // Minimal router
 const router = createRouter({
@@ -26,98 +30,6 @@ const stubs = {
 	Teleport: true,
 };
 
-// Common translations used by Home.vue
-const t = {
-	i: {
-		inputs: {
-			searchPlaces: 'Search places',
-			checkboxCommon: 'Common',
-			placeName: 'Place name',
-			placeDescription: 'Place description',
-			routeName: 'Route name',
-			routeDescription: 'Route description',
-		},
-		buttons: {
-			find: 'Find',
-			clear: 'Clear',
-			clearAll: 'Clear all',
-			range: 'Range',
-			measure: 'Measure',
-			install: 'Install',
-			import: 'Import',
-			export: 'Export',
-			save: 'Save',
-			undo: 'Undo',
-			redo: 'Redo',
-			addPhotos: 'Add photos',
-			help: 'Help',
-		},
-		captions: {
-			range: 'Range',
-			measure: 'Measure',
-			currentPlace: 'Current place',
-			currentRoute: 'Current route',
-			center: 'Center',
-			points: 'Points',
-			temporaryPoints: 'Temporary points',
-			places: 'Places',
-			routes: 'Routes',
-			altitude: 'Altitude',
-			latitude: 'Latitude',
-			longitude: 'Longitude',
-		},
-		hints: {
-			editFolders: 'Edit folders',
-			mapProvider: 'Map provider',
-			notSaved: 'Not saved',
-			sabeToDb: 'Save to DB',
-			install: 'Install app',
-			importPlaces: 'Import',
-			exportPlaces: 'Export',
-			about: 'About',
-			exit: 'Exit',
-			shPlacemarks: 'Show placemarks',
-			shCommonPlaces: 'Show common places',
-			shCommonPlacemarks: 'Show common placemarks',
-			shCommonRoutes: 'Show common routes',
-			shCenter: 'Show center',
-			fullscreen: 'Fullscreen',
-		},
-		text: { km: 'km' },
-	},
-	m: {
-		popup: {
-			testAccount: 'Test account',
-			invalidImportFileType: 'Invalid file type',
-			filesUploadedSuccessfully: 'Uploaded',
-			file: 'File',
-			fileNotImage: 'is not an image',
-			fileTooLarge: 'is too large',
-			filesNotImages: 'Files are not images',
-			filesTooLarge: 'Files too large',
-			filesUploadError: 'Upload error',
-			taNotAllowFileUploads: 'Not allowed',
-		},
-	},
-};
-
-// Minimal constants used by component
-vi.mock('@/shared/constants', () => ({
-	constants: {
-		compact: 1100,
-		compactUltra: 800,
-		compactControlButtons: 700,
-		sidebars: { top: 80, right: 320, bottom: 40, left: 320 },
-		sidebarsCompact: { top: 60, right: 240, bottom: 30, left: 240 },
-		sidebarsCompactUltra: { top: 0, right: 0, bottom: 0, left: 0 },
-		commonplacesonpagecount: 10,
-		commonroutesonpagecount: 10,
-		shortcuts: {},
-		dirs: { uploads: { images: { small: '/img/' } } },
-		map: { initial: { latitude : 0, longitude : 0, zoom : 15 } },
-	},
-}));
-
 // Mock shared helpers used directly
 vi.mock('@/shared/common', () => ({
 	makeDropDowns: vi.fn(),
@@ -131,55 +43,84 @@ vi.mock('@/shared/common', () => ({
 vi.mock('axios', () => ({ default: { get: vi.fn().mockResolvedValue({ data: { elevation: 0 } }), post: vi.fn().mockResolvedValue({ data: [[], []] }) } }));
 
 // Pinia store shape minimal implementation
-function createMainStoreState() {
+function createMainStoreState(): IMainState {
 	return {
-		ready: true,
-		messages: [],
-		setMessage: vi.fn(),
-		clearMessages: vi.fn(),
-		user: { id: 'user-1', testaccount: true },
-		center: { latitude: 0, longitude: 0 },
-		points: {},
-		places: {},
-		commonPlaces: {},
-		commonRoutes: {},
-		folders: {},
-		descriptionFields: { name: 'Name', description: 'Description', link: 'Link', time: 'Time', srt: 'Order', common: 'Common', latitude: 'Lat', longitude: 'Lon', coordsMinSec: 'Coords', altitudecapability: 'Altitude capability', images: 'Images' },
-		measure: { show: false, points: [], choosing: 0, distance: 0 },
-		mode: 'normal',
-		centerPlacemarkShow: false,
+		activeMapIndex: 0,
+		backup: true,
+		busyCount: 0,
+		center: {
+			latitude: Number(constants.map.initial.latitude),
+			longitude: Number(constants.map.initial.longitude),
+		},
+		centerPlacemarkShow: true,
+		colortheme: 'brown',
 		commonPlacemarksShow: false,
-		placemarksShow: true,
-		pointsShow: true,
-		placesShow: true,
-		routesShow: true,
-		tempsShow: false,
-		rangeShow: false,
-		range: null,
-		saved: true,
-		serverConfig: { rights: { placescount: 100, routescount: 100, photosize: 10_000_000 }, mimes: { 'image/png': 'png' }, uploadsize: 10_000_000 },
+		commonPlaces: {},
+		commonPlacesOnPageCount: constants.commonplacesonpagecount,
+		commonPlacesPage: 1,
+		commonPlacesShow: false,
+		commonRoutes: {},
+		commonRoutesOnPageCount: constants.commonroutesonpagecount,
+		commonRoutesPage: 1,
+		commonRoutesShow: false,
+		currentDrag: null,
 		currentPlace: null,
-		currentRoute: null,
 		currentPoint: null,
-		getDistance: vi.fn(),
-		updateMap: vi.fn(),
+		currentRoute: null,
+		first: true,
+		folders: {},
+		idleTime: 0,
+		lang: 'ru',
+		langs: [{
+			value: 'ru',
+			title: 'Русский',
+		}, {
+			value: 'en',
+			title: 'English',
+		}],
+		measure: {
+			type: 'measure',
+			points: [],
+			choosing: null,
+			show: false,
+		},
+		messages: [],
+		messagesMouseOver: false,
+		messagesInterval: null,
+		messagesTimeout: null,
+		mode: 'normal',
+		newEntityPointId: null,
+		placemarksShow: true,
+		places: {},
+		placesShow: { show: true, first: true },
+		points: {},
+		range: null,
+		rangeShow: false,
+		ready: false,
+		refreshing: false,
+		routes: {},
+		routesShow: false,
+		saved: true,
+		serverConfig: null,
+		stateBackups: [],
+		stateBackupsIndex: -1,
 		t: t,
-		backupState: vi.fn(),
-		setHomePlace: vi.fn(),
-		commonPlacemarksShowHide: vi.fn(),
-		commonRoutesShowHide: vi.fn(),
-		placemarksShowHide: vi.fn(),
-		centerPlacemarkShowHide: vi.fn(),
-		undo: vi.fn(),
-		redo: vi.fn(),
-		restoreObjectsAsLinks: vi.fn(),
-		setFirstCurrentPlace: vi.fn(),
-		folderOpenClose: vi.fn(),
-		addPlace: vi.fn(),
-		addPoint: vi.fn(),
-		changePlace: vi.fn().mockResolvedValue(undefined),
-		addRoute: vi.fn(),
-		changeRoute: vi.fn().mockResolvedValue(undefined),
+		temps: {},
+		tempsPlacemarksShow: true,
+		tempsShow: { show: false, first: true },
+		treeParams: {
+			places: {
+				context: 'places',
+				open: false,
+			},
+			routes: {
+				context: 'routes',
+				open: false,
+			},
+		},
+		user: null,
+		users: {},
+		zoom: Number(constants.map.initial.zoom),
 	};
 }
 
@@ -197,8 +138,6 @@ async function mountHome(options: { shallow?: boolean } = {}) {
 		foldersEditMode: ref(false),
 		toDB: vi.fn(),
 		toDBCompletely: vi.fn(),
-		handleDragStart: vi.fn(),
-		handleDragEnter: vi.fn(),
 		handleDrop: vi.fn(),
 		installEvent: ref<any>(undefined),
 	};

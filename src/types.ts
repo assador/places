@@ -182,6 +182,7 @@ export interface DragEntityPayload extends DragPayload {
 	position?: 'before' | 'onto' | 'after';
 	ghostSelector?: string;
 	startTime?: number;
+	nondraggable?: boolean;
 }
 export interface DragFolderPayload extends DragEntityPayload {
 	context: 'folders';

@@ -97,14 +97,16 @@
 				:class="{
 					draggable: !folder.virtual,
 					highlighted:
-						(folder.id === dragTargetId || folder.virtual && dragTargetId === 'null') &&
+						String(folder.id) === dragTargetId &&
 						folder.context === dragTargetContext &&
 						mainStore.currentDrag?.position === 'onto'
+					,
 				}"
 				@pointerdown="e => onPointerDown(e, {
 					id: folder.id,
 					type: folder.type,
 					context: props.what,
+					nondraggable: folder.virtual,
 				})"
 			    @pointermove="onPointerMove"
 			    @pointerup="e => onPointerUp(e, () => mainStore.folderOpenClose({ folder }))"
@@ -679,16 +681,6 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 }
 .place-button .tree-item-checkbox-container {
 	margin-right: 8px;
-}
-.draggable,
-.sorting-area,
-.place-button,
-.folder-button,
-.control-buttons *,
-.place-button__control,
-.folder-button__control,
-.tree-item-checkbox {
-	pointer-events: auto !important;
 }
 .sorting-area {
 	position: absolute;

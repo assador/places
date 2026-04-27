@@ -6,12 +6,20 @@ export const treeGetters = {
 		for (const id in this.folders) {
 			const pId = this.folders[id].parent || null;
 			if (!map[pId]) map[pId] = {};
-			map[pId][id] = this.folders[id];
+			if (!this.folders[id].deleted) map[pId][id] = this.folders[id];
 		}
 		return map;
 	},
 	folderChildren() {
-		return (fId: string) => this.allChildrenMap[fId || null] || {};
+		return (fId: string | null, context?: string) => {
+			const children = this.allChildrenMap[String(fId || null)] || {};
+			if (!context) return children;
+			return Object.fromEntries(
+				Object.values(children)
+					.filter((folder: Folder) => folder.context === context)
+					.map((folder: Folder) => [folder.id, folder])
+			);
+		};
 	},
 	treePlaces() {
 		const tree: Folder = this.createFolder({
@@ -25,6 +33,11 @@ export const treeGetters = {
 		Object.defineProperty(tree, 'open', {
 			get: () => this.treeParams.places.open,
 			set: (val) => { this.treeParams.places.open = val; },
+			enumerable: true,
+			configurable: true,
+		});
+		Object.defineProperty(tree, 'children', {
+			get: () => this.folderChildren(null, 'places'),
 			enumerable: true,
 			configurable: true,
 		});
@@ -42,6 +55,11 @@ export const treeGetters = {
 		Object.defineProperty(tree, 'open', {
 			get: () => this.treeParams.routes.open,
 			set: (val) => { this.treeParams.routes.open = val; },
+			enumerable: true,
+			configurable: true,
+		});
+		Object.defineProperty(tree, 'children', {
+			get: () => this.folderChildren(null, 'routes'),
 			enumerable: true,
 			configurable: true,
 		});

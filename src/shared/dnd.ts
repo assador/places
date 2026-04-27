@@ -198,7 +198,7 @@ export const usePointerDnD = (config: {
 	};
 	const onPointerMove = (event: PointerEvent) => {
 		const payload = mainStore.currentDrag;
-		if (!payload) return;
+		if (!payload || payload.nondraggable) return;
 		if (!payload.dragging) {
 			const duration = Date.now() - (payload?.startTime ?? Date.now());
 			if (duration > 500) {
