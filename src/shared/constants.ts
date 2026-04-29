@@ -41,6 +41,7 @@ export const constants = {
 			longitude : 0,
 			zoom      : 15,
 		},
+		precision: 7,
 	},
 	sidebars: {
 		top    : 95,

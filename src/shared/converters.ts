@@ -1,3 +1,4 @@
+import { roundTo } from '@/shared/common';
 import { Point } from '@/types';
 
 export const normalizeLon = (longitude: number): number => {
@@ -23,7 +24,7 @@ export const deg2dms = (frac: number): number[] => {
 export const dms2deg = (dms: number[]): number => {
 	const [ d, m = 0, s = 0 ] = dms;
 	if (!Number.isFinite(d) || !Number.isFinite(m) || !Number.isFinite(s)) return NaN;
-	return (Math.abs(d) + m / 60 + s / 3600) * (d < 0 ? -1 : 1);
+	return roundTo((Math.abs(d) + m / 60 + s / 3600) * (d < 0 ? -1 : 1));
 };
 export const coords2string = (coords: number[]): string => {
 	const lat = normalizeLat(coords[0]);

@@ -1,3 +1,5 @@
+import { constants } from '@/shared/constants';
+
 export const childrenCount = (
 	tree: Record<string, any>,
 	childrenKey: string,
@@ -47,6 +49,9 @@ export const changeByKeyValue = (
 			}
 		}
 	}
+};
+export const roundTo = (num: number, prc: number = constants.map.precision): number => {
+	return Number(Math.round(Number(num + 'e+' + prc)) + 'e-' + prc);
 };
 /**
  * Finds N extreme values ​​(minimums or maximums) in an array.
