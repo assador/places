@@ -1,84 +1,73 @@
 import { Point } from '@/types';
 
-let resultForRecursive: unknown;
-
-export const num2deg = (num: number, lat = false): number => {
-	const n = num % 360;
-	if (Math.abs(n) <= (lat ? 90 : 180)) return n;
-	if (lat && Math.abs(n) < 180) return -n % 90 + 90 * (n < 0 ? -1 : 1);
-	if (lat && Math.abs(n) < 270) return -n % 90;
-	if (lat) return n % 90 + 90 * (n < 0 ? 1 : -1);
-	return n % 180 + 180 * (n < 0 ? 1 : -1);
+export const normalizeLon = (longitude: number): number => {
+	return ((longitude + 180) % 360 + 360) % 360 - 180;
 };
-export const deg2degMinSec = (frac: number): number[] => {
-	const deg = Math.trunc(frac);
-	const minFrac = Math.abs(frac - deg) * 60;
-	const min = Math.trunc(minFrac);
-	const secFrac = (minFrac - min) * 60;
-	return [deg, min, secFrac];
+export const normalizeLat = (latitude: number): number => {
+	let x = ((latitude + 90) % 360 + 360) % 360 - 90;
+	if (x > 90) x = 180 - x;
+	if (x < -90) x = -180 - x;
+	return x;
 };
-export const degMinSec2deg = (dms: number[]): number => {
-	return (Math.abs(dms[0]) + dms[1] / 60 + dms[2] / 3600) * (dms[0] < 0 ? -1 : 1);
+export const deg2dms = (frac: number): number[] => {
+	if (!Number.isFinite(frac)) return [ NaN, NaN, NaN ];
+	const absFrac = Math.abs(frac);
+	let d = Math.floor(absFrac);
+	const minFull = (absFrac - d) * 60;
+	let m = Math.floor(minFull);
+	let s = Math.round((minFull - m) * 60 * 100) / 100;
+	if (s >= 60) { s = 0; m += 1; }
+	if (m >= 60) { m = 0; d += 1; }
+	return [ frac < 0 ? -d : d, m, s ];
+};
+export const dms2deg = (dms: number[]): number => {
+	const [ d, m = 0, s = 0 ] = dms;
+	if (!Number.isFinite(d) || !Number.isFinite(m) || !Number.isFinite(s)) return NaN;
+	return (Math.abs(d) + m / 60 + s / 3600) * (d < 0 ? -1 : 1);
 };
 export const coords2string = (coords: number[]): string => {
-	const lat = num2deg(coords[0], true);
-	const lon = num2deg(coords[1]);
-	const latDMS = deg2degMinSec(Math.abs(lat));
-	const lonDMS = deg2degMinSec(Math.abs(lon));
-	return (
-		`${latDMS[0]}°${latDMS[1]}'${latDMS[2].toFixed(2)}"${lat < 0 ? 'S' : 'N'}, ` +
-		`${lonDMS[0]}°${lonDMS[1]}'${lonDMS[2].toFixed(2)}"${lon < 0 ? 'W' : 'E'}`
-	);
+	const lat = normalizeLat(coords[0]);
+	const lon = normalizeLon(coords[1]);
+	const format = (deg: number, pos: string, neg: string) => {
+		const dms = deg2dms(Math.abs(deg));
+		return `${dms[0]}°${dms[1]}'${dms[2].toFixed(2)}"${deg < 0 ? neg : pos}`;
+	};
+	return `${format(lat, 'N', 'S')}, ${format(lon, 'E', 'W')}`;
 };
 export const latitude2string = (latitude: number): string => {
-	const lat = num2deg(latitude, true);
-	const latDMS = deg2degMinSec(Math.abs(lat));
-	return `${latDMS[0]}°${latDMS[1]}'${latDMS[2].toFixed(2)}"${lat < 0 ? 'S' : 'N'}`;
+	const lat = normalizeLat(latitude);
+	const [ d, m, s ] = deg2dms(lat);
+	return `${Math.abs(d)}°${m}'${s.toFixed(2)}"${lat < 0 ? 'S' : 'N'}`;
 };
 export const longitude2string = (longitude: number): string => {
-	const lon = num2deg(longitude);
-	const lonDMS = deg2degMinSec(Math.abs(lon));
-	return `${lonDMS[0]}°${lonDMS[1]}'${lonDMS[2].toFixed(2)}"${lon < 0 ? 'W' : 'E'}`;
+	const lon = normalizeLon(longitude);
+	const [ d, m, s ] = deg2dms(lon);
+	return `${Math.abs(d)}°${m}'${s.toFixed(2)}"${lon < 0 ? 'W' : 'E'}`;
 };
 export const string2coords = (coords: string): number[] | null => {
-	const reLat = /\s*(\d{1,2})\s*°(?:\s*(\d{1,2}(?:[.,]\d+)*)\s*\'(?:\s*(\d{1,2}(?:[.,]\d+)*(?:[.,]\d+)*)\s*\")*)*\s*([nNsS])\s*/;
-	const reLon = /\s*(\d{1,3})\s*°(?:\s*(\d{1,2}(?:[.,]\d+)*)\s*\'(?:\s*(\d{1,2}(?:[.,]\d+)*(?:[.,]\d+)*)\s*\")*)*\s*([eEwW])\s*/;
-	const latArr = reLat.exec(coords);
-	const lonArr = reLon.exec(coords);
-	if (!latArr || !lonArr) return null;
-	for (let i = 1; i < 4; i++) {
-		if (!latArr[i]) latArr[i] = '0';
-		if (!lonArr[i]) lonArr[i] = '0';
-	}
+	const parseSafe = (v: string | undefined): number => {
+		if (!v) return 0;
+		const n = parseFloat(v.replace(/,/, '.'));
+		return Number.isFinite(n) ? n : 0;
+	};
+	const re = /\s*°\s*(?:(\d{1,2}(?:[.,]\d+)?)\s*['′])?\s*(?:(\d{1,2}(?:[.,]\d+)?)\s*["″])?\s*/;
+	const reLat = new RegExp('(\\d{1,2})' + re.source + '([nNsSсСюЮ])', 'i');
+	const reLon = new RegExp('(\\d{1,3})' + re.source + '([eEwWвВзЗ])', 'i');
+	const latMatch = coords.match(reLat);
+	const lonMatch = coords.match(reLon);
+	if (!latMatch || !lonMatch) return null;
+	const latVals = latMatch.slice(1, 4).map(parseSafe);
+	const lonVals = lonMatch.slice(1, 4).map(parseSafe);
+	const isSouth = /[sSюЮ]/.test(latMatch[4]);
+	const isWest = /[wWзЗ]/.test(lonMatch[4]);
 	return [
-		degMinSec2deg(
-			latArr.slice(1, 4).map(n => parseFloat(n.replace(/,/, '.')))
-		) * (/[sS]/.test(latArr[4]) ? -1 : 1),
-		degMinSec2deg(
-			lonArr.slice(1, 4).map(n => parseFloat(n.replace(/,/, '.')))
-		) * (/[wW]/.test(lonArr[4]) ? -1 : 1),
+		dms2deg(latVals) * (isSouth ? -1 : 1),
+		dms2deg(lonVals) * (isWest ? -1 : 1),
 	];
 };
 export const point2coords = (p: Point, m: string, h: string): string => {
 	return (
-		coords2string([p.latitude, p.longitude]) +
-		(p.altitude ? `, ${h} ${p.altitude} ${m}` : '')
+		coords2string([ p.latitude, p.longitude ]) +
+		(typeof p.altitude === 'number' ? `, ${h} ${p.altitude} ${m}` : '')
 	);
 }
-export const treeToPlain = (
-	tree: Record<string, any>,
-	childrenKey: string,
-	plain: Array<Record<string, any>>
-): Array<Record<string, any>> => {
-	if (tree[childrenKey] && Object.keys(tree[childrenKey]).length > 0) {
-		let plained;
-		for (const obj of Object.values(tree[childrenKey])) {
-			plained = JSON.parse(JSON.stringify(obj));
-			delete plained[childrenKey];
-			plain[plained.id] = plained;
-			(resultForRecursive as Array<Record<string, any>>) =
-				treeToPlain(obj, childrenKey, plain);
-		}
-	}
-	return (resultForRecursive as Array<Record<string, any>>);
-};
