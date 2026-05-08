@@ -88,7 +88,8 @@ const popupProps = ref<IPopupProps>({
 <style lang="scss" scoped>
 .header {
 	display: grid;
-	grid-template-columns: 1fr auto;
+	grid-template-columns: minmax(120px, 1fr) auto;
+	gap: 12px;
 }
 .brand-login {
 	display: inline-block;

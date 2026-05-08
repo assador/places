@@ -1,11 +1,26 @@
+*, *::before, *::after {
+	box-sizing: border-box;
+}
 * {
 	margin: 0;
 	padding: 0;
 }
+html, body {
+	height: 100%;
+}
+body {
+	position: relative;
+	min-height: 100dvh;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+img, picture, video, canvas, svg {
+	display: block;
+	max-width: 100%;
+}
+input, button, textarea, select {
+	font: inherit;
+}
 :focus {
 	outline-style: none;
-}
-::-moz-focus-inner {
-	border: none;
-	padding: 0;
 }

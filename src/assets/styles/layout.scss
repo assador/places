@@ -1,17 +1,7 @@
-
-/* Основные стили */
-
-* {
-	box-sizing: border-box;
-}
-html, body {
-	height: 100%;
-}
-body {
-	position: relative;
-	min-height: 100%;
-}
-.brand, .app-cell, .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
+.brand,
+.app-cell,
+.block_01, .block_02, .block_03, .block_04, .block_05, .block_11,
+pre, .pre {
 	position: relative;
 }
 .narrower, .auth-forms {
@@ -29,10 +19,7 @@ body {
 	top: 12px; right: 12px; bottom: 12px; left: 12px;
 }
 .app-cell {
-	box-sizing: border-box;
 	padding: 12px;
-	vertical-align: top;
-	text-align: left;
 	overflow: auto;
 }
 #app, #container {
@@ -53,15 +40,11 @@ body {
 	grid-template-columns: auto 1fr auto;
 	overflow: hidden;
 }
-#basic-basic {
-	overflow: visible;
-}
 #top-left {
 	grid-area: top-left;
 }
 #top-basic {
 	grid-area: top-basic;
-	overflow: visible;
 }
 #top-right {
 	grid-area: top-right;
@@ -69,35 +52,51 @@ body {
 #basic-left {
 	grid-area: basic-left;
 }
-#basic-left {
-	grid-area: basic-left;
-}
 #basic-basic {
 	grid-area: basic-basic;
-	.basic-on-full {
-		position: absolute;
-		top: 24px; right: 80px;
-		z-index: 1000;
-	}
-}
-.basic-fulled {
-	grid-template-rows: 0 1fr 0 !important;
-	grid-template-columns: 0 1fr 0 !important;
-	#top-left, #top-basic, #top-right, #basic-left, #basic-right, #bottom-left, #bottom-center, #bottom-right {
-		display: none;
-	}
 }
 #basic-right {
 	grid-area: basic-right;
-}
-#bottom-left, #bottom-center, #bottom-right {
-	min-height: 50px;
 }
 #bottom-left {
 	grid-area: bottom-left;
 }
 #bottom-basic {
 	grid-area: bottom-basic;
+}
+#bottom-right {
+	grid-area: bottom-right;
+}
+#top-left,
+#top-basic,
+#top-right,
+#basic-left,
+#basic-right,
+#bottom-left,
+#bottom-basic,
+#bottom-right {
+	min-width: 0;
+	min-height: 0;
+	overflow: auto;
+}
+#basic-basic {
+	overflow: hidden;
+}
+.basic-fulled {
+	grid-template-rows: 0 1fr 0 !important;
+	grid-template-columns: 0 1fr 0 !important;
+	#top-left,
+	#top-basic,
+	#top-right,
+	#basic-left,
+	#basic-right,
+	#bottom-left,
+	#bottom-basic,
+	#bottom-right {
+		display: none;
+	}
+}
+#bottom-basic {
 	display: grid;
 	grid-template-columns: auto 1fr auto;
 	grid-template-areas:
@@ -135,33 +134,37 @@ body {
 		grid-area: bottom-altitude;
 	}
 }
-#bottom-right {
-	grid-area: bottom-right;
-}
 #top-left h3 {
 	margin: -8px 0 4px 0;
 }
-#top-right, #bottom-left {
-	text-align: center;
-}
-#top-basic > *:first-child {
+#top-basic {
 	display: grid;
-	grid-template-columns: minmax(120px, 1fr) auto;
+	grid-template-areas:
+		"top-basic-header        top-basic-header"
+		"top-basic-buttons-left  top-basic-buttons-right"
+	;
+	grid-template-columns: auto auto;
+	grid-template-rows: auto auto;
+	gap: 12px;
+	.header {
+		grid-area: top-basic-header;
+	}
+	#top-basic__control-buttons-top-left {
+		grid-area: top-basic-buttons-left;
+	}
+	#top-basic__control-buttons-top-right {
+		grid-area: top-basic-buttons-right;
+	}
 }
 #dashboard {
 	display: grid;
 	grid-template-rows: auto 1fr;
-}
-#langs {
-	margin-bottom: 12px;
+	gap: 12px;
 }
 .brand {
-	box-sizing: border-box;
 	min-width: 38.2%;
-	padding: 0 12px;
 }
 #messages, .messages {
-	box-sizing: border-box;
 	padding: 10px 20px 12px 20px;
 	z-index: 100000;
 }
@@ -175,7 +178,6 @@ body {
 #messages.invisible {top: -100%;}
 #imp {
 	display: block;
-	box-sizing: border-box;
 	position: absolute;
 	top: -12px; right: -2px;
 	padding: 12px;
@@ -183,7 +185,6 @@ body {
 	z-index: 20;
 }
 #input-unfocus {
-	box-sizing: border-box;
 	width: 0;
 	height: 0;
 	margin: 0;
@@ -196,9 +197,22 @@ body {
 	padding: 12px;
 	overflow: auto;
 }
-#sbb-top, #sbb-right, #sbb-bottom, #sbb-left {
-	display: none;
+#ui-buttons {
+	grid-area: basic-basic;
 	position: absolute;
+	bottom: 24px; left: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	z-index: 1000;
+	button {
+		width: 32px;
+		height: 32px;
+	}
+}
+#sbb-top, #sbb-bottom {
+	position: absolute;
+	width: 40px; height: 20px;
 	min-width: 0; min-height: 0;
 	z-index: 1000;
 	&::before {
@@ -210,36 +224,21 @@ body {
 		opacity: 0.5;
 	}
 }
-#sbb-top, #sbb-bottom {
-	left: calc(50% - 20px);
-	width: 40px;
-	height: 20px;
-}
-#sbb-right, #sbb-left {
-	width: 20px;
-	height: 40px;
-}
 #sbb-top {
-	top: 0;
+	grid-area: top-basic;
+	justify-self: center;
+    top: 100%;
 	&::before {
 		transform: scale(75%) rotate(90deg);
 	}
 	&.disclosed::before {
 		transform: scale(75%) rotate(-90deg);
-	}
-}
-#sbb-right {
-	bottom: calc(50% + 6px);
-	right: 0;
-	&::before {
-		transform: scale(40%) rotate(180deg);
-	}
-	&.disclosed::before {
-		transform: scale(40%) rotate(0deg);
 	}
 }
 #sbb-bottom {
-	bottom: 0;
+	grid-area: bottom-basic;
+	justify-self: center;
+	bottom: 100%;
 	&::before {
 		transform: scale(75%) rotate(-90deg);
 	}
@@ -247,22 +246,10 @@ body {
 		transform: scale(75%) rotate(90deg);
 	}
 }
-#sbb-left {
-	top: calc(50% + 6px);
-	left: 0;
-	&::before {
-		transform: scale(40%) rotate(0deg);
-	}
-	&.disclosed::before {
-		transform: scale(40%) rotate(180deg);
-	}
-}
-#sbs-up, #sbs-down {
-	display: none;
-}
 #sbs-top, #sbs-right, #sbs-bottom, #sbs-left {
+	touch-action: none;
 	position: absolute;
-	transition: all 0.5s;
+	transition: background-color 0.5s;
 }
 #sbs-top, #sbs-bottom {
 	right: 0; left: 0;
@@ -275,16 +262,16 @@ body {
 	cursor: col-resize;
 }
 #sbs-top {
-	top: -11px;
+	transform: translateY(-50%);
 }
 #sbs-right {
-	right: -11px;
+	transform: translateX(50%);
 }
 #sbs-bottom {
-	bottom: -11px;
+	transform: translateY(50%);
 }
 #sbs-left {
-	left: -11px;
+	transform: translateX(-50%);
 }
 #sbs-top, #sbs-right {
 	z-index: 100;
@@ -293,7 +280,7 @@ body {
 	z-index: 300;
 }
 
-/* Разные стили */
+/* Other */
 
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	display: block;
@@ -311,7 +298,7 @@ body {
 }
 .popup {
 	position: absolute;
-	z-index: 1000;
+	z-index: 2000;
 }
 #scroll-up, #scroll-down {
 	position: fixed;
@@ -332,6 +319,9 @@ body {
 .centered {
 	flex-direction: column;
 }
+
+/* Adaptive */
+
 @media screen and (max-width: 1600px) {
 	.narrower, .auth-forms {
 		width: 75%;
@@ -340,11 +330,11 @@ body {
 @media screen and (max-width: 1000px) {
 	#grid {
 		grid-template-areas:
-			"basic-left    top-basic     basic-right"
+			"top-left      top-basic     top-right"
 			"basic-left    basic-basic   basic-right"
 			"bottom-basic  bottom-basic  bottom-basic"
 		;
-		#top-left, #top-right, #bottom-left {
+		#bottom-left {
 			display: none;
 		}
 		#bottom-basic {
@@ -385,21 +375,38 @@ body {
 			"basic-left    basic-basic   basic-right"
 			"bottom-basic  bottom-basic  bottom-basic"
 		;
-		#bottom-basic {
-			grid-template-columns: auto auto;
-			grid-template-areas:
-				"bottom-basic__control-buttons-bottom  bottom-choose-map"
-				"bottom-basic__control-buttons-bottom  bottom-center-coordinates"
-				"bottom-basic__control-buttons-bottom  bottom-donate"
-			;
-		}
-		#sbs-top, #sbs-right, #sbs-bottom, #sbs-left {
+		#top-left, #top-right {
 			display: none;
 		}
-		#sbb-top, #sbb-right, #sbb-bottom, #sbb-left {
-			display: block;
+		#basic-left, #basic-right {
+			margin-bottom: 44px;
+		}
+		#ui-buttons {
+			grid-area: basic-left;
+			bottom: 0; left: 12px;
+			flex-direction: row;
+		}
+		#bottom-basic {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: start;
+			* {
+				margin: 0;
+			}
+			> * {
+				flex: 1 1 calc(25% - 24px);
+			}
+			#bottom-center-coordinates {
+				flex-basis: auto;
+				align-items: start;
+				justify-content: left;
+				& > :first-child {
+					display: none;
+				}
+			}
+			#bottom-choose-map {
+				flex-grow: 0;
+			}
 		}
 	}
-}
-@media screen and (max-width: 450px) {
 }

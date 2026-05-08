@@ -50,9 +50,14 @@ export const changeByKeyValue = (
 		}
 	}
 };
+
+export const clamp = (val: number, min: number, max: number): number => {
+	return Math.min(max, Math.max(min, val));
+};
 export const roundTo = (num: number, prc: number = constants.map.precision): number => {
 	return Number(Math.round(Number(num + 'e+' + prc)) + 'e-' + prc);
 };
+
 /**
  * Finds N extreme values ​​(minimums or maximums) in an array.
  * More efficient than deep sort for large arrays when only a few values ​​are needed.

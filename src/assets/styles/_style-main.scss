@@ -499,6 +499,7 @@ $filter-brightness-03: brightness(0%);
 		display: inline-block;
 		box-sizing: border-box;
 		height: 22px;
+		min-width: 0;
 		padding: 0 7px 2px 7px;
 		border-width: 1px;
 		border-style: solid;
@@ -620,10 +621,17 @@ $filter-brightness-03: brightness(0%);
 		border-color: $color-49 $color-50 $color-51 $color-52;
 		color: $color-68;
 	}
-	:is(
-		.button, button,
-		input:is([type="button"], [type="submit"], [type="reset"])
-	):hover,
+	@media (hover: hover) {
+		:is(
+			.button, button,
+			input:is([type="button"], [type="submit"], [type="reset"])
+		):hover {
+			background-color: $color-29;
+			border-color: $color-31 $color-33 $color-35 $color-37;
+			box-shadow: 0 0 8px $color-40;
+			color: $color-68;
+		}
+	}
 	.button-pressed,
 	input.important:is([type="button"], [type="reset"], [type="submit"]),
 	.button.important,

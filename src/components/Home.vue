@@ -1,11 +1,9 @@
 <template>
 	<div
-		id="grid"
 		ref="root"
+		id="grid"
 		:class="`sbs_${sbs}`"
 		:style="gridStyle"
-		@pointermove="rootPointerOverTrottled"
-		@pointerup="sidebarDragStop"
 	>
 
 <!-- SEC Top-Left -->
@@ -13,7 +11,7 @@
 		<div
 			id="top-left"
 			class="app-cell"
-			:style="sidebarSize.top === 0 || sidebarSize.left === 0 || !cells.top || !cells.left ? 'display: none' : ''"
+			:style="!cells.top || !cells.left || !sidebarSizes.top.act || !sidebarSizes.left.act ? 'display: none' : ''"
 		>
 			<div
 				class="basic-action-buttons action-buttons"
@@ -26,9 +24,17 @@
 		<div
 			id="top-basic"
 			class="app-cell"
-			:style="sidebarSize.top === 0 || !cells.top ? 'display: none' : ''"
+			:style="!cells.top || !sidebarSizes.top.act ? 'display: none' : ''"
 		>
 			<Header />
+			<div
+				class="basic-action-buttons action-buttons"
+				id="top-basic__control-buttons-top-left"
+			/>
+			<div
+				class="basic-action-buttons action-buttons"
+				id="top-basic__control-buttons-top-right"
+			/>
 			<transition name="fade">
 				<div
 					v-if="mainStore.messages.length || mainStore.messagesMouseOver"
@@ -57,7 +63,7 @@
 		<div
 			id="top-right"
 			class="app-cell"
-			:style="sidebarSize.top === 0 || sidebarSize.right === 0 || !cells.top || !cells.right ? 'display: none' : ''"
+			:style="!cells.top || !cells.right || !sidebarSizes.top.act || !sidebarSizes.right.act ? 'display: none' : ''"
 		>
 			<div
 				class="basic-action-buttons action-buttons"
@@ -70,12 +76,8 @@
 		<div
 			id="basic-left"
 			class="app-cell"
-			:style="sidebarSize.left !== 0 || cells.left ? 'display: block' : 'display: none'"
+			:style="!cells.left || !sidebarSizes.left.act ? 'display: none' : ''"
 		>
-			<div
-				class="basic-action-buttons action-buttons"
-				id="basic-left__control-buttons-left"
-			/>
 			<div class="helpers-search">
 				<input
 					id="search-input"
@@ -243,44 +245,10 @@
 		<div
 			id="basic-basic"
 			class="app-cell"
-			:style="(cells.left ? 'padding-left: 0;' : '') + (cells.right ? 'padding-right: 0;' : '')"
 		>
-			<div
-				class="basic-on-full button"
-				:title="mainStore.t.i.hints.fullscreen"
-				:style="cells.left && cells.right && compact === 2 ? 'display: none' : ''"
-				@click="basicOnFull"
-			>
-				⤧
-			</div>
 			<component
 				v-if="showMap"
 				:is="maps[mainStore.activeMapIndex].component"
-				:style="cells.left && cells.right && compact === 2 ? 'display: none' : ''"
-			/>
-			<button
-				id="sbb-top"
-				:class="{ disclosed: cells.top }"
-				:style="(cells.top ? 'top: -10px;' : '')"
-				@click="() => cells.top = !cells.top"
-			/>
-			<button
-				id="sbb-right"
-				:class="{ disclosed: cells.right }"
-				:style="(cells.right ? 'right: -10px;' : '')"
-				@click="() => cells.right = !cells.right"
-			/>
-			<button
-				id="sbb-bottom"
-				:class="{ disclosed: cells.bottom }"
-				:style="(cells.bottom ? 'bottom: -10px;' : '')"
-				@click="() => cells.bottom = !cells.bottom"
-			/>
-			<button
-				id="sbb-left"
-				:class="{ disclosed: cells.left }"
-				:style="(cells.left ? 'left: -10px;' : '')"
-				@click="() => cells.left = !cells.left"
 			/>
 		</div>
 
@@ -289,12 +257,8 @@
 		<div
 			id="basic-right"
 			class="app-cell"
-			:style="sidebarSize.right !== 0 || cells.right ? 'display: block' : 'display: none'"
+			:style="!cells.right || !sidebarSizes.right.act ? 'display: none' : ''"
 		>
-			<div
-				class="basic-action-buttons action-buttons"
-				id="basic-right__control-buttons-right"
-			/>
 			<RouteDetails />
 			<PlaceDetails />
 		</div>
@@ -304,7 +268,7 @@
 		<div
 			id="bottom-left"
 			class="app-cell"
-			:style="sidebarSize.bottom === 0 || sidebarSize.left === 0 || !cells.left || !cells.bottom ? 'display: none' : ''"
+			:style="!cells.bottom || !cells.left || !sidebarSizes.bottom.act || !sidebarSizes.left.act ? 'display: none' : ''"
 		>
 			<div
 				class="basic-action-buttons action-buttons"
@@ -317,7 +281,7 @@
 		<div
 			id="bottom-basic"
 			class="app-cell"
-			:style="sidebarSize.bottom === 0 || !cells.bottom ? 'display: none' : ''"
+			:style="!cells.bottom || !sidebarSizes.bottom.act ? 'display: none' : ''"
 		>
 			<div
 				class="basic-action-buttons action-buttons"
@@ -397,36 +361,84 @@
 			</Popup>
 		</div>
 		<div
+			id="ui-buttons"
+		>
+			<button
+				v-if="compact !== 2"
+				class="basic-on-full button"
+				:title="mainStore.t.i.hints.fullscreen"
+				@click="basicOnFull"
+			>
+				⤧
+			</button>
+			<button
+				v-if="compact === 2"
+				id="sbb-left"
+				:class="{ 'button-pressed': cells.left }"
+				@click="sideShowHide('left')"
+			>
+				Л
+			</button>
+			<button
+				v-if="compact === 2"
+				id="sbb-right"
+				:class="{ 'button-pressed': cells.right }"
+				@click="sideShowHide('right')"
+			>
+				П
+			</button>
+		</div>
+		<button
+			v-if="compact === 2"
+			id="sbb-top"
+			:class="{ disclosed: cells.top }"
+			@click="sideShowHide('top')"
+		/>
+		<button
+			v-if="compact === 2"
+			id="sbb-bottom"
+			:class="{ disclosed: cells.bottom }"
+			@click="sideShowHide('bottom')"
+		/>
+		<div
+			v-if="compact !== 2"
 			id="sbs-top"
-			:style="`
-				top: ${sidebarSize.top - 11}px;
-				left: ${compactControlButtons ? sidebarSize.left : 0}px;
-				right: ${compactControlButtons ? sidebarSize.right : 0}px;
-			`"
-			@pointerdown="e => sidebarDragStart(e, 'top')"
+			:style="`top: ${sidebarSizes.top.act}px`"
+			@pointerdown="sidebarDragTop.onPointerDown"
+			@pointermove="sidebarDragTop.onPointerMove"
+			@pointerup="sidebarDragTop.onPointerUp"
 		/>
 		<div
+			v-if="compact !== 2"
 			id="sbs-right"
-			:style="`right: ${sidebarSize.right - 11}px`"
-			@pointerdown="e => sidebarDragStart(e, 'right')"
+			:style="`right: ${sidebarSizes.right.act}px`"
+			@pointerdown="sidebarDragRight.onPointerDown"
+			@pointermove="sidebarDragRight.onPointerMove"
+			@pointerup="sidebarDragRight.onPointerUp"
 		/>
 		<div
+			v-if="compact !== 2"
 			id="sbs-bottom"
-			:style="`bottom: ${sidebarSize.bottom - 11}px`"
-			@pointerdown="e => sidebarDragStart(e, 'bottom')"
+			:style="`bottom: ${sidebarSizes.bottom.act}px`"
+			@pointerdown="sidebarDragBottom.onPointerDown"
+			@pointermove="sidebarDragBottom.onPointerMove"
+			@pointerup="sidebarDragBottom.onPointerUp"
 		/>
 		<div
+			v-if="compact !== 2"
 			id="sbs-left"
-			:style="`left: ${sidebarSize.left - 11}px`"
-			@pointerdown="e => sidebarDragStart(e, 'left')"
+			:style="`left: ${sidebarSizes.left.act}px`"
+			@pointerdown="sidebarDragLeft.onPointerDown"
+			@pointermove="sidebarDragLeft.onPointerMove"
+			@pointerup="sidebarDragLeft.onPointerUp"
 		/>
 		<router-view />
 	</div>
 
 <!-- SEC Controls Top-Left -->
 
-	<Teleport :to="compactControlButtons
-		? '#basic-left__control-buttons-left'
+	<Teleport :to="compact === 2
+		? '#top-basic__control-buttons-top-left'
 		: '#top-left__control-buttons-left'
 	">
 		<div class="control-buttons">
@@ -540,8 +552,8 @@
 
 <!-- SEC Controls Top-Right -->
 
-	<Teleport :to="compactControlButtons
-		? '#basic-right__control-buttons-right'
+	<Teleport :to="compact === 2
+		? '#top-basic__control-buttons-top-right'
 		: '#top-right__control-buttons-right'
 	">
 		<div class="control-buttons">
@@ -660,7 +672,7 @@
 
 <!-- SEC Controls Bottom-Left -->
 
-	<Teleport :to="compactControlButtons
+	<Teleport :to="compact > 0
 		? '#bottom-basic__control-buttons-bottom'
 		: '#bottom-left__control-buttons-bottom'
 	">
@@ -786,13 +798,13 @@ import {
 import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { throttle } from 'lodash';
 
 import { emitter } from '@/shared/bus';
 import { constants } from '@/shared/constants';
+import { useLightPointerDnD } from '@/shared/dnd';
 import { makeFieldsValidatable } from '@/shared/generators';
 import { sortObjects } from '@/shared/sorting';
-import { makeDropDowns } from '@/shared/common';
+import { clamp, makeDropDowns } from '@/shared/common';
 import { IPopupProps } from '@/shared/interfaces';
 import {
 	point2coords,
@@ -894,62 +906,6 @@ const copyCoords = async (point: Point) => {
 	setTimeout(() => copied.value = false, 2000);
 };
 
-const cells = ref({
-	top: true,
-	right: true,
-	bottom: true,
-	left: true,
-});
-const sidebarSize = ref({
-	top: constants.sidebars.top,
-	right: constants.sidebars.right,
-	bottom: constants.sidebars.bottom,
-	left: constants.sidebars.left,
-});
-const gridStyle = computed(() => {
-	let style = '';
-	if (compact.value === 2) {
-		style += 'grid-template-columns:';
-		style += cells.value.left ? ' 48%' : ' 0';
-		style += ' 1fr';
-		style += cells.value.right ? ' 48%; ' : ' 0; ';
-		style += 'grid-template-rows:';
-		style += cells.value.top ? ' 80px' : ' 0';
-		style += ' 1fr';
-		style += cells.value.bottom ? ' auto;' : ' 0;';
-	} else {
-		style =
-			`grid-template-columns:${sidebarSize.value.left}px 1fr ${sidebarSize.value.right}px;` +
-			`grid-template-rows:${sidebarSize.value.top}px 1fr ${sidebarSize.value.bottom}px;`
-		;
-	}
-	return style;
-});
-const compact = ref(0);
-const compactControlButtons = ref(false);
-const sidebarDrag = ref({ what: null as unknown, x: 0, y: 0, w: 0, h: 0 });
-const sbs = ref('all');
-
-watch(compact, () => {
-	if (compact.value === 2) {
-		cells.value.top = false;
-		cells.value.right = false;
-		cells.value.bottom = false;
-		cells.value.left = false;
-	} else {
-		cells.value.top = true;
-		cells.value.right = true;
-		cells.value.bottom = true;
-		cells.value.left = true;
-	}
-	const sidebars =
-		compact.value === 0
-			? constants.sidebars
-			: compact.value === 1
-				? constants.sidebarsCompact
-				: constants.sidebarsCompactUltra;
-	Object.assign(sidebarSize.value, sidebars);
-});
 const commonPlaces = computed<Record<string, Place>>(() => {
 	const ids = Object.keys(mainStore.commonPlaces);
 	const start = mainStore.commonPlacesOnPageCount * (mainStore.commonPlacesPage - 1);
@@ -1207,81 +1163,117 @@ const keyup = (event: Event): void => {
 	const action = actions[shortcut];
 	if (action) action();
 };
-const windowResize = (): void => {
-	const width = window.innerWidth;
-	compact.value = width > constants.compact
-		? 0
-		: width > constants.compactUltra
-			? 1
-			: 2;
-	compactControlButtons.value = width <= constants.compactControlButtons;
-};
-const sidebarDragStart = (event: Event, what: string): void => {
-	event.preventDefault();
-	sidebarDrag.value.what = what;
-	let x: number, y: number;
-	const touch = (event as TouchEvent).changedTouches?.[0];
-	if (touch) {
-		x = touch.pageX;
-		y = touch.pageY;
-	} else {
-		x = (event as PointerEvent).screenX;
-		y = (event as PointerEvent).screenY;
+
+const compact = ref(0);
+const sbs = ref('all');
+
+const cells = ref({
+	top: true,
+	right: true,
+	bottom: true,
+	left: true,
+});
+const sidebarSizes = ref(structuredClone(constants.sidebars));
+
+watch(compact, (valNew, valOld) => {
+	(Object.keys(cells.value) as Array<keyof typeof cells.value>).forEach(key => {
+		cells.value[key] = valNew !== 2;
+	});
+	if (valOld === 2 && valNew < 2) {
+		windowResize();
 	}
-	sidebarDrag.value.x = x;
-	sidebarDrag.value.y = y;
-	const { value: size } = sidebarSize;
-	switch (what) {
+});
+
+const windowResize = (): void => {
+	updateSidebarSizes('top', 0);
+	updateSidebarSizes('right', 0);
+	updateSidebarSizes('bottom', 0);
+	updateSidebarSizes('left', 0);
+	const width = window.innerWidth;
+	compact.value = width > constants.compact ? 0 : width > constants.compactUltra ? 1 : 2;
+};
+
+// SEC Sidebars
+
+const sideShowHide = (side: 'top' | 'right' | 'bottom' | 'left') => {
+	cells.value[side] = !cells.value[side];
+	if (cells.value[side]) {
+		if (side === 'left') cells.value.right = false;
+		if (side === 'right') cells.value.left = false;
+	}
+};
+const gridStyle = computed(() => {
+	const s = sidebarSizes.value;
+	const c = cells.value;
+	if (compact.value === 2) {
+		const cols = c.left ? '1fr 0 0' : (c.right ? '0 0 1fr' : '0 1fr 0');
+		const rows = `${c.top ? 'auto' : '0'} 1fr ${c.bottom ? 'auto' : '0'}`;
+		return `grid-template-columns: ${cols}; grid-template-rows: ${rows};`;
+	}
+	return `
+		grid-template-columns: ${s.left.act}px 1fr ${s.right.act}px;
+		grid-template-rows: ${s.top.act}px 1fr ${s.bottom.act}px;
+	`;
+});
+
+// SEC Sidebars DnD
+
+const updateSidebarSizes = (
+	side: 'top' | 'right' | 'bottom' | 'left',
+	delta: number,
+) => {
+	const grid = root.value;
+	if (!grid) return;
+	const vw = grid.clientWidth;
+	const vh = grid.clientHeight;
+	const s = sidebarSizes.value;
+
+	switch (side) {
 		case 'top':
-			sidebarDrag.value.h = size.top;
-			break;
-		case 'bottom':
-			sidebarDrag.value.h = size.bottom;
-			break;
-		case 'left':
-			sidebarDrag.value.w = size.left;
+			s.top.act = clamp(
+				s.top.act + delta,
+				s.top.min,
+				Math.min(s.top.max, vh - s.bottom.act - s.center.min),
+			);
 			break;
 		case 'right':
-			sidebarDrag.value.w = size.right;
+			s.right.act = clamp(
+				s.right.act - delta,
+				s.right.min,
+				Math.min(s.right.max, vw - s.left.act - s.center.min),
+			);
+			break;
+		case 'bottom':
+			s.bottom.act = clamp(
+				s.bottom.act - delta,
+				s.bottom.min,
+				Math.min(s.bottom.max, vh - s.top.act - s.center.min),
+			);
+			break;
+		case 'left':
+			s.left.act = clamp(
+				s.left.act + delta,
+				s.left.min,
+				Math.min(s.left.max, vw - s.right.act - s.center.min),
+			);
 			break;
 	}
 };
-const rootPointerOver = (event: Event): void => {
-	if (!sidebarDrag.value.what) return;
-	const isTouch = (event as TouchEvent).changedTouches !== undefined;
-	const getCoord = (axis: 'X' | 'Y') =>
-		isTouch
-			? (event as TouchEvent).changedTouches[0][`page${axis}`]
-			: (event as PointerEvent)[`screen${axis}`];
-	switch (sidebarDrag.value.what) {
-		case 'top': {
-			const newTop = sidebarDrag.value.h - sidebarDrag.value.y + getCoord('Y');
-			sidebarSize.value.top = newTop < constants.sidebars.top ? 0 : newTop;
-			break;
-		}
-		case 'bottom': {
-			const newBottom = sidebarDrag.value.h + sidebarDrag.value.y - getCoord('Y');
-			sidebarSize.value.bottom = newBottom < constants.sidebars.bottom ? 0 : newBottom;
-			break;
-		}
-		case 'left': {
-			const newLeft = sidebarDrag.value.w - sidebarDrag.value.x + getCoord('X');
-			sidebarSize.value.left = newLeft < constants.sidebars.top ? 0 : newLeft;
-			break;
-		}
-		case 'right': {
-			const newRight = sidebarDrag.value.w + sidebarDrag.value.x - getCoord('X');
-			sidebarSize.value.right = newRight < constants.sidebars.top ? 0 : newRight;
-			break;
-		}
-	}
-};
-const rootPointerOverTrottled = throttle(rootPointerOver, 10);
+const sidebarDragLeft = useLightPointerDnD({
+	onDrag: ({ deltaX }) => updateSidebarSizes('left', deltaX),
+});
+const sidebarDragRight = useLightPointerDnD({
+	onDrag: ({ deltaX }) => updateSidebarSizes('right', deltaX),
+});
+const sidebarDragTop = useLightPointerDnD({
+	onDrag: ({ deltaY }) => updateSidebarSizes('top', deltaY),
+});
+const sidebarDragBottom = useLightPointerDnD({
+	onDrag: ({ deltaY }) => updateSidebarSizes('bottom', deltaY),
+});
 
-const sidebarDragStop = (): void => {
-	sidebarDrag.value.what = null;
-};
-// Search places by name
+// SEC Search
+
 const searchInput = ref(null);
 const searchInputEvent = (event: KeyboardEvent): void => {
 	const input = event.currentTarget as HTMLInputElement;

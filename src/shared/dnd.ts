@@ -257,3 +257,40 @@ export const usePointerDnD = (config: {
 	};
 	return { onPointerDown, onPointerMove, onPointerUp };
 };
+
+export const useLightPointerDnD = (config: {
+	onDrag: (move: { x: number, y: number, deltaX: number, deltaY: number }) => void,
+	onDragStart?: () => void,
+	onDragEnd?: () => void,
+}) => {
+	let isDragging = false;
+	let lastPos = { x: 0, y: 0 };
+
+	const onPointerDown = (event: PointerEvent) => {
+		if (event.buttons !== 1 || event.ctrlKey || event.metaKey) return;
+		const el = event.currentTarget as HTMLElement;
+		el.setPointerCapture(event.pointerId);
+		isDragging = true;
+		lastPos = { x: event.clientX, y: event.clientY };
+		config.onDragStart?.();
+	};
+	const onPointerMove = (event: PointerEvent) => {
+		if (!isDragging) return;
+		const deltaX = event.clientX - lastPos.x;
+		const deltaY = event.clientY - lastPos.y;
+		lastPos = { x: event.clientX, y: event.clientY };
+		config.onDrag({
+			x: event.clientX,
+			y: event.clientY,
+			deltaX,
+			deltaY,
+		});
+	};
+	const onPointerUp = (event: PointerEvent) => {
+		if (!isDragging) return;
+		isDragging = false;
+		(event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+		config.onDragEnd?.();
+	};
+	return { onPointerDown, onPointerMove, onPointerUp };
+};

@@ -16,7 +16,7 @@ export const deg2dms = (frac: number): number[] => {
 	let d = Math.floor(absFrac);
 	const minFull = (absFrac - d) * 60;
 	let m = Math.floor(minFull);
-	let s = Math.round((minFull - m) * 60 * 100) / 100;
+	let s = roundTo((minFull - m) * 60, 2);
 	if (s >= 60) { s = 0; m += 1; }
 	if (m >= 60) { m = 0; d += 1; }
 	return [ frac < 0 ? -d : d, m, s ];
