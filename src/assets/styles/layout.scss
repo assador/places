@@ -205,15 +205,16 @@ pre, .pre {
 	flex-direction: column;
 	gap: 8px;
 	z-index: 1000;
-	button {
-		width: 32px;
-		height: 32px;
+	.action-button {
+		width: 44px;
+		height: 44px;
 	}
 }
 #sbb-top, #sbb-bottom {
 	position: absolute;
 	width: 40px; height: 20px;
 	min-width: 0; min-height: 0;
+	justify-self: center;
 	z-index: 1000;
 	&::before {
 		content: '';
@@ -226,7 +227,6 @@ pre, .pre {
 }
 #sbb-top {
 	grid-area: top-basic;
-	justify-self: center;
     top: 100%;
 	&::before {
 		transform: scale(75%) rotate(90deg);
@@ -237,7 +237,6 @@ pre, .pre {
 }
 #sbb-bottom {
 	grid-area: bottom-basic;
-	justify-self: center;
 	bottom: 100%;
 	&::before {
 		transform: scale(75%) rotate(-90deg);

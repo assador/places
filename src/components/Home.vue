@@ -11,7 +11,7 @@
 		<div
 			id="top-left"
 			class="app-cell"
-			:style="!cells.top || !cells.left || !sidebarSizes.top.act || !sidebarSizes.left.act ? 'display: none' : ''"
+			:style="!cells.top || !cells.left || !sidebarSizes.top.act || !sidebarSizes.left.act ? { display: 'none' } : null"
 		>
 			<div
 				class="basic-action-buttons action-buttons"
@@ -24,7 +24,7 @@
 		<div
 			id="top-basic"
 			class="app-cell"
-			:style="!cells.top || !sidebarSizes.top.act ? 'display: none' : ''"
+			:style="!cells.top || !sidebarSizes.top.act ? { display: 'none' } : null"
 		>
 			<Header />
 			<div
@@ -63,7 +63,7 @@
 		<div
 			id="top-right"
 			class="app-cell"
-			:style="!cells.top || !cells.right || !sidebarSizes.top.act || !sidebarSizes.right.act ? 'display: none' : ''"
+			:style="!cells.top || !cells.right || !sidebarSizes.top.act || !sidebarSizes.right.act ? { display: 'none' } : null"
 		>
 			<div
 				class="basic-action-buttons action-buttons"
@@ -76,7 +76,7 @@
 		<div
 			id="basic-left"
 			class="app-cell"
-			:style="!cells.left || !sidebarSizes.left.act ? 'display: none' : ''"
+			:style="!cells.left || !sidebarSizes.left.act ? { display: 'none' } : null"
 		>
 			<div class="helpers-search">
 				<input
@@ -257,7 +257,7 @@
 		<div
 			id="basic-right"
 			class="app-cell"
-			:style="!cells.right || !sidebarSizes.right.act ? 'display: none' : ''"
+			:style="!cells.right || !sidebarSizes.right.act ? { display: 'none' } : null"
 		>
 			<RouteDetails />
 			<PlaceDetails />
@@ -268,7 +268,7 @@
 		<div
 			id="bottom-left"
 			class="app-cell"
-			:style="!cells.bottom || !cells.left || !sidebarSizes.bottom.act || !sidebarSizes.left.act ? 'display: none' : ''"
+			:style="!cells.bottom || !cells.left || !sidebarSizes.bottom.act || !sidebarSizes.left.act ? { display: 'none' } : null"
 		>
 			<div
 				class="basic-action-buttons action-buttons"
@@ -281,7 +281,7 @@
 		<div
 			id="bottom-basic"
 			class="app-cell"
-			:style="!cells.bottom || !sidebarSizes.bottom.act ? 'display: none' : ''"
+			:style="!cells.bottom || !sidebarSizes.bottom.act ? { display: 'none' } : null"
 		>
 			<div
 				class="basic-action-buttons action-buttons"
@@ -360,32 +360,33 @@
 				</template>
 			</Popup>
 		</div>
-		<div
-			id="ui-buttons"
-		>
+		<div id="ui-buttons">
 			<button
 				v-if="compact !== 2"
-				class="basic-on-full button"
+				class="action-button basic-on-full"
+				:class="{ 'button-pressed': basicFulled }"
 				:title="mainStore.t.i.hints.fullscreen"
 				@click="basicOnFull"
 			>
-				⤧
+				<span class="icon icon-full" />
 			</button>
 			<button
 				v-if="compact === 2"
 				id="sbb-left"
+				class="action-button"
 				:class="{ 'button-pressed': cells.left }"
 				@click="sideShowHide('left')"
 			>
-				Л
+				<span class="icon icon-list" />
 			</button>
 			<button
 				v-if="compact === 2"
 				id="sbb-right"
+				class="action-button"
 				:class="{ 'button-pressed': cells.right }"
 				@click="sideShowHide('right')"
 			>
-				П
+				<span class="icon icon-text" />
 			</button>
 		</div>
 		<button
@@ -403,7 +404,7 @@
 		<div
 			v-if="compact !== 2"
 			id="sbs-top"
-			:style="`top: ${sidebarSizes.top.act}px`"
+			:style="{ top: sidebarSizes.top.act + 'px' }"
 			@pointerdown="sidebarDragTop.onPointerDown"
 			@pointermove="sidebarDragTop.onPointerMove"
 			@pointerup="sidebarDragTop.onPointerUp"
@@ -411,7 +412,7 @@
 		<div
 			v-if="compact !== 2"
 			id="sbs-right"
-			:style="`right: ${sidebarSizes.right.act}px`"
+			:style="{ right: sidebarSizes.right.act + 'px' }"
 			@pointerdown="sidebarDragRight.onPointerDown"
 			@pointermove="sidebarDragRight.onPointerMove"
 			@pointerup="sidebarDragRight.onPointerUp"
@@ -419,7 +420,7 @@
 		<div
 			v-if="compact !== 2"
 			id="sbs-bottom"
-			:style="`bottom: ${sidebarSizes.bottom.act}px`"
+			:style="{ bottom: sidebarSizes.bottom.act + 'px' }"
 			@pointerdown="sidebarDragBottom.onPointerDown"
 			@pointermove="sidebarDragBottom.onPointerMove"
 			@pointerup="sidebarDragBottom.onPointerUp"
@@ -427,7 +428,7 @@
 		<div
 			v-if="compact !== 2"
 			id="sbs-left"
-			:style="`left: ${sidebarSizes.left.act}px`"
+			:style="{ left: sidebarSizes.left.act + 'px' }"
 			@pointerdown="sidebarDragLeft.onPointerDown"
 			@pointermove="sidebarDragLeft.onPointerMove"
 			@pointerup="sidebarDragLeft.onPointerUp"
@@ -499,7 +500,7 @@
 				accesskey="c"
 				@click="foldersEditMode = !foldersEditMode;"
 			>
-				<span class="icon icon-text">abc|</span>
+				<span class="icon icon-empty icon-empty-small">abc|</span>
 				<span>{{ mainStore.t.i.buttons.editFolders }}</span>
 			</button>
 		</div>
@@ -649,7 +650,7 @@
 					});
 				"
 			>
-				<span class="icon icon-text icon-help">?</span>
+				<span class="icon icon-empty">?</span>
 				<span>{{ mainStore.t.i.buttons.help }}</span>
 			</button>
 			<button
@@ -847,7 +848,9 @@ const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const root = ref<HTMLElement | null>(null);
+const basicFulled = ref(false);
 const basicOnFull = () => {
+	basicFulled.value = !basicFulled.value;
 	root.value?.classList.toggle('basic-fulled');
 };
 const extmap = ref(null);
@@ -1313,30 +1316,27 @@ const selectPlaces = (text: string): void => {
 	gap: 8px;
 	align-items: stretch;
 }
+.icon {
+	&, &::before {
+		display: block;
+	}
+	&-empty {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		justify-content: center;
+		font-size: 20px;
+	}
+	&-empty-small {
+		font-size: 15px;
+	}
+	&-compas {
+		transform: rotate(45deg);
+	}
+}
 .basic-action-buttons {
 	flex-direction: column;
 	flex: 1 1 calc(20% - 16px);
-	.icon {
-		&, &::before {
-			display: block;
-			width: 15px; height: 15px;
-		}
-		&-text {
-			display: flex;
-			width: 100%;
-			align-items: center;
-			justify-content: center;
-			font-size: 15px;
-
-		}
-		&-help {
-			font-size: 20px;
-
-		}
-	}
-	.icon-compas {
-		transform: rotate(45deg);
-	}
 	.control-buttons {
 		flex-grow: 1;
 		display: grid;
@@ -1351,6 +1351,11 @@ const selectPlaces = (text: string): void => {
 		justify-content: center;
 		min-width: 0;
 		padding: 2px 0 0 0;
+	}
+	.icon {
+		&, &::before {
+			width: 15px; height: 15px;
+		}
 	}
 }
 .mode-buttons {

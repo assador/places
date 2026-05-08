@@ -12,7 +12,10 @@
 		mask-repeat: no-repeat;
 		mask-position: center;
 	}
-	&-text::before { mask-image: url('@/assets/icons/empty.svg'); }
+	&-empty::before { mask-image: url('@/assets/icons/empty.svg'); }
+	&-full::before { mask-image: url('@/assets/icons/full.svg'); }
+	&-text::before { mask-image: url('@/assets/icons/text.svg'); }
+	&-list::before { mask-image: url('@/assets/icons/list.svg'); }
 	&-save::before { mask-image: url('@/assets/icons/save.svg'); }
 	&-exit::before { mask-image: url('@/assets/icons/exit.svg'); }
 	&-undo::before, &-redo::before { mask-image: url('@/assets/icons/undo.svg'); }
