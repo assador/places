@@ -7,7 +7,6 @@ import {
 	AppendMode,
 } from '@/types';
 import { isPoint, isPlace, isRoute } from '@/guards';
-import { emitter } from '@/shared/bus';
 
 export const entityActions = {
 
@@ -746,13 +745,15 @@ export const entityActions = {
 		this.setCurrentPlace(firstPlaceInRoot);
 	},
 	async setHomePlace(
-		{ id, todb = false }:
-		{ id: string | null; todb?: boolean; }
+		{ id, silent = false }:
+		{ id: string | null; silent?: boolean; }
 	) {
 		if (!this.user) return;
 		this.user.homeplace = (id && this.places[id]) ? id  : null;
-		if (todb) emitter.emit('homeToDB', this.user.homeplace);
-		this.backupState();
+		if (!silent) {
+			this.saved = false;
+			this.backupState();
+		}
 	},
 
 // SEC Inspections

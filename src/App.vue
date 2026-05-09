@@ -118,7 +118,7 @@ emitter.on('logged', async () => {
 	mainStore.setBusy(true);
 	await mainStore.setUser();
 	await mainStore.setServerConfig();
-	await mainStore.setPlaces();
+	await mainStore.setEntities();
 	mainStore.ready = true;
 	mainStore.openTreeToCurrent(mainStore.currentPlace);
 	mainStore.openTreeToCurrent(mainStore.currentRoute);
@@ -147,6 +147,7 @@ emitter.on('toDB', payload => {
 });
 emitter.on('toDBAll', () => {
 	toDB(mainStore.getAllModifiedPackage);
+	homeToDB(mainStore.user.homeplace);
 });
 emitter.on('homeToDB', id => {
 	homeToDB(id);
@@ -159,7 +160,7 @@ onMounted(() => {
 		after,
 	}): void => {
 		after(() => {
-				mainStore.idleTime = 0;
+			mainStore.idleTime = 0;
 		});
 	});
 	mainStore.restoreObjectsAsLinks();

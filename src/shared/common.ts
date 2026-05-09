@@ -61,11 +61,11 @@ export const roundTo = (num: number, prc: number = constants.map.precision): num
 /**
  * Finds N extreme values ​​(minimums or maximums) in an array.
  * More efficient than deep sort for large arrays when only a few values ​​are needed.
- * * @param array - Original array of numbers
+ * @param array - Original array of numbers
  * @param count - How many elements need to be found
  * @param order - If < 0, searches for maxima, if >= 0 (or undefined), searches for minima
  * @returns Array of found elements
- * * @example
+ * @example
  * numbersMinMax([10, 2, 5, 1, 9], 2); // [1, 2] (2 smallest)
  * numbersMinMax([10, 2, 5, 1, 9], 2, -1); // [10, 9] (2 largest)
  */

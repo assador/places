@@ -40,7 +40,7 @@ export const initActions = {
 		this.serverConfig = null;
 		this.routes = {};
 	},
-	placesReady(payload: Record<string, any>) {
+	entitiesReady(payload: Record<string, any>) {
 		const { points, places, commonPlaces, routes, commonRoutes, folders, what } = payload;
 
 		this.points = points ? points : {};
@@ -153,13 +153,13 @@ export const initActions = {
 			this.user = null;
 		}
 	},
-	async setPlaces() {
+	async setEntities() {
 		try {
 			const { data } = await api.get(
 				'get_entities.php?id=' +
 				localStorage.getItem('places-useruuid')
 			);
-			this.placesReady({
+			this.entitiesReady({
 				points: { ...data.points },
 				places: { ...data.places },
 				routes: { ...data.routes },
@@ -168,17 +168,16 @@ export const initActions = {
 				// commonPlaces: { ...data.commonPlaces },
 				// commonRoutes: { ...data.commonRoutes },
 			});
-			this.backup = false;
 			this.setHomePlace({
 				id: this.user.homeplace ? this.user.homeplace : null,
+				silent: true,
 			});
-			this.backup = true;
 			this.setCurrentRoute(Object.values(this.routes)[0] ?? null);
 			this.setFirstCurrentPlace();
 		} catch (error) {
 			console.error(error);
 			this.setMessage(this.t.m.popup.cannotGetDataFromDb);
-			this.placesReady({
+			this.entitiesReady({
 				points: {},
 				places: {},
 				routes: {},

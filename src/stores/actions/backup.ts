@@ -59,6 +59,7 @@ export const backupActions = {
 		this.backup = false;
 		this.setHomePlace({
 			id: (this.user?.homeplace ?? null),
+			silent: true,
 		});
 		if (this.currentPlace) {
 			let place: Place = null;
@@ -66,14 +67,14 @@ export const backupActions = {
 				place = this.commonPlaces[this.currentPlace.id];
 			if (this.places[this.currentPlace.id])
 				place = this.places[this.currentPlace.id];
-			this.setCurrentPlace(place);
+			this.setCurrentPlace(place, false);
 		}
 		if (this.currentRoute) {
 			let route: Route = null;
 			if (this.routes[this.currentRoute.id]) {
 				route = this.routes[this.currentRoute.id];
 			}
-			this.setCurrentRoute(route);
+			this.setCurrentRoute(route, false);
 		}
 		if (this.currentPoint) {
 			let point: Point = null;
@@ -81,7 +82,7 @@ export const backupActions = {
 				point = this.points[this.currentPoint.id];
 			if (this.temps[this.currentPoint.id])
 				point = this.temps[this.currentPoint.id];
-			this.setCurrentPoint(point);
+			this.setCurrentPoint(point, false);
 		}
 		this.backup = true;
 		this.refreshing = false;

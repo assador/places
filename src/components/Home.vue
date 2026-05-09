@@ -1188,12 +1188,14 @@ watch(compact, (valNew, valOld) => {
 });
 
 const windowResize = (): void => {
-	updateSidebarSizes('top', 0);
-	updateSidebarSizes('right', 0);
-	updateSidebarSizes('bottom', 0);
-	updateSidebarSizes('left', 0);
 	const width = window.innerWidth;
 	compact.value = width > constants.compact ? 0 : width > constants.compactUltra ? 1 : 2;
+	if (compact.value !== 2) {
+		updateSidebarSizes('top', 0);
+		updateSidebarSizes('right', 0);
+		updateSidebarSizes('bottom', 0);
+		updateSidebarSizes('left', 0);
+	}
 };
 
 // SEC Sidebars
