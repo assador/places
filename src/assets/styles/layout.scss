@@ -1,36 +1,14 @@
-.brand,
-.app-cell,
-.block_01, .block_02, .block_03, .block_04, .block_05, .block_11,
-pre, .pre {
-	position: relative;
+#app, #container, #grid {
+	top: 0; right: 0; bottom: 0; left: 0;
+	overflow: hidden;
 }
-.narrower, .auth-forms {
-	width: 50%;
+#app {
+	position: fixed;
 }
-.auth .brand, .popup-content .brand  {
-	top: -50px;
-	text-align: center;
-}
-#a {
+#container, #grid {
 	position: absolute;
-}
-#mapblock {
-	position: absolute;
-	top: 12px; right: 12px; bottom: 12px; left: 12px;
-}
-.app-cell {
-	padding: 12px;
-	overflow: auto;
-}
-#app, #container {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	overflow: auto;
 }
 #grid {
-	position: absolute;
-	top: 0; right: 0; bottom: 0; left: 0;
 	display: grid;
 	grid-template-areas:
 		"top-left     top-basic     top-right"
@@ -38,7 +16,6 @@ pre, .pre {
 		"bottom-left  bottom-basic  bottom-basic"
 	;
 	grid-template-columns: auto 1fr auto;
-	overflow: hidden;
 }
 #top-left {
 	grid-area: top-left;
@@ -281,6 +258,30 @@ pre, .pre {
 
 /* Other */
 
+.brand,
+.app-cell,
+.block_01, .block_02, .block_03, .block_04, .block_05, .block_11,
+pre, .pre {
+	position: relative;
+}
+.narrower, .auth-forms {
+	width: 50%;
+}
+.auth .brand, .popup-content .brand  {
+	top: -50px;
+	text-align: center;
+}
+#a {
+	position: absolute;
+}
+#mapblock {
+	position: absolute;
+	top: 12px; right: 12px; bottom: 12px; left: 12px;
+}
+.app-cell {
+	padding: 12px;
+	overflow: auto;
+}
 .block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre {
 	display: block;
 	margin-bottom: 18px;
