@@ -71,7 +71,7 @@
 						!mainStore.points[place.pointid].updated
 							? 'icon_new'
 							: (
-								place.id === mainStore.currentPlace.id
+								place.id === mainStore.currentPlaceId
 									? 'icon_active'
 									: 'icon_basic'
 							)
@@ -104,7 +104,7 @@
 					:src="placemarksOptions[
 						mainStore.mode === 'measure' &&
 						mainStore.measure.points.find(p => p.id === place.id) &&
-						place === mainStore.currentPlace
+						place.id === mainStore.currentPlaceId
 							? 'icon_common' : 'icon_common_active'
 					].iconUrl"
 					:title="place.name"
@@ -132,7 +132,7 @@
 							style: {
 								stroke: [{
 									color: '#000000',
-									width: route.id === mainStore.currentRoute.id
+									width: route.id === mainStore.currentRouteId
 										? 0.6 : 0.3
 									,
 								}]
@@ -217,25 +217,25 @@
 								v-if="point.id === route.points[0].id"
 								class="marker-start"
 								:class="{
-									'marker-current': route.id === mainStore.currentRoute.id
+									'marker-current': route.id === mainStore.currentRouteId
 								}"
 							/>
 							<div
 								v-else-if="point.id === route.points.at(-1).id"
 								class="marker-end"
 								:class="{
-									'marker-current': route.id === mainStore.currentRoute.id
+									'marker-current': route.id === mainStore.currentRouteId
 								}"
 							/>
 							<div
 								v-else
 								class="marker-intermediate"
 								:class="{
-									'marker-current': route.id === mainStore.currentRoute.id
+									'marker-current': route.id === mainStore.currentRouteId
 								}"
 							/>
 							<img
-								v-if="point.id === mainStore.currentPoint?.id"
+								v-if="point.id === mainStore.currentPointId"
 								:src="placemarksOptions.icon_active.iconUrl"
 								class="marker"
 							/>
@@ -361,7 +361,7 @@
 						v-if="
 							mainStore.mode === 'measure' &&
 							mainStore.isMeasurePoint(point.id) &&
-							point.id === mainStore.currentPoint?.id
+							point.id === mainStore.currentPointId
 						"
 						:src="placemarksOptions.icon_active.iconUrl"
 						class="marker"
@@ -369,7 +369,7 @@
 					<img
 						v-else-if="!mainStore.isMeasurePoint(point.id)"
 						:src="placemarksOptions[
-							point.id === mainStore.currentPoint?.id
+							point.id === mainStore.currentPointId
 								? 'icon_temp_active' : 'icon_temp'
 						].iconUrl"
 						class="marker"
@@ -495,7 +495,7 @@ const mapContextMenu = (coords: number[]) => {
 		}
 		return;
 	}
-	if (mainStore.mode === 'routes' && mainStore.currentRoute) {
+	if (mainStore.mode === 'routes' && mainStore.currentRouteId) {
 		mainStore.upsertPoint({
 			props: { latitude: lat, longitude: lng },
 			where: mainStore.points,
@@ -507,9 +507,9 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	switch (mainStore.mode) {
 		case 'routes':
 			if (
-				point.id !== mainStore.currentRoute.points.at(-1)?.id &&
+				point.id !== mainStore.currentRoute?.points.at(-1)?.id &&
 				!(
-					point.id === mainStore.currentPoint?.id &&
+					point.id === mainStore.currentPointId &&
 					mainStore.isRoutePoint(point.id, mainStore.currentRoute)
 				)
 			) {
@@ -524,7 +524,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 			if (
 				point.id !== mainStore.measure.points.at(-1)?.id &&
 				!(
-					point.id === mainStore.currentPoint?.id &&
+					point.id === mainStore.currentPointId &&
 					mainStore.isMeasurePoint(point.id)
 				)
 			) {
@@ -541,8 +541,8 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	switch (of?.type) {
 		case 'route':
 			pointInfo.value.name =
-				mainStore.currentRoute.points.find(
-					p => p.id === point.id
+				mainStore.currentRoute?.points.find(
+					(p: PointName) => p.id === point.id
 				).name
 			;
 			break;

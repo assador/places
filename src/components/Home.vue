@@ -988,10 +988,10 @@ const blur = (el?: HTMLElement): void => {
 	if (el) (el as HTMLElement).blur();
 		else document.querySelectorAll<HTMLElement>(':focus').forEach(el => el.blur());
 };
-watch(() => mainStore.currentPlace, () => {
+watch(() => mainStore.currentPlaceId, () => {
 	mainStore.openTreeToCurrent(mainStore.currentPlace)
 });
-watch(() => mainStore.currentRoute, () => {
+watch(() => mainStore.currentRouteId, () => {
 	mainStore.openTreeToCurrent(mainStore.currentRoute)
 });
 

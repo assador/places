@@ -66,7 +66,7 @@
 						!mainStore.points[place.pointid].updated
 							? icon_new
 							: (
-								place.id === mainStore.currentPlace.id
+								place.id === mainStore.currentPlaceId
 									? icon_active
 									: icon_basic
 							)
@@ -96,7 +96,7 @@
 					v-bind="(
 						mainStore.mode === 'measure' &&
 						mainStore.measure.points.find(p => p.id === place.id) &&
-						place === mainStore.currentPlace
+						place.id === mainStore.currentPlaceId
 							? icon_common : icon_common_active
 					) as {}"
 				/>
@@ -128,7 +128,7 @@
 							) as LatLngExpression[]
 						"
 						color="rgba(0, 0, 0, 1)"
-						:weight="route.id === mainStore.currentRoute.id ? 0.6 : 0.3"
+						:weight="route.id === mainStore.currentRouteId ? 0.6 : 0.3"
 					/>
 					<l-polyline
 						v-if="route.points.length"
@@ -150,7 +150,7 @@
 							) as LatLngExpression
 						"
 						class-name="marker-start"
-						:radius="route.id === mainStore.currentRoute.id ? 13 : 8"
+						:radius="route.id === mainStore.currentRouteId ? 13 : 8"
 						:weight="1"
 					/>
 					<l-circle-marker
@@ -162,7 +162,7 @@
 							) as LatLngExpression
 						"
 						class-name="marker-end"
-						:radius="route.id === mainStore.currentRoute.id ? 13 : 8"
+						:radius="route.id === mainStore.currentRouteId ? 13 : 8"
 						:weight="1"
 					/>
 					<template
@@ -180,7 +180,7 @@
 							@click="mainStore.setCurrentPoint(
 								mainStore.getPointById(point.id), false)
 							"
-							@contextmenu="(e: LeafletEvent) =>markerContextMenu(
+							@contextmenu="(e: LeafletEvent) => markerContextMenu(
 								e,
 								mainStore.getPointById(point.id),
 								mainStore.currentRoute
@@ -207,7 +207,7 @@
 							}"
 						>
 							<l-icon
-								v-bind="(point.id === mainStore.currentPoint?.id
+								v-bind="(point.id === mainStore.currentPointId
 									? icon_active : icon_null
 								) as {}"
 							/>
@@ -241,7 +241,7 @@
 						point.show
 					"
 					:z-index-offset="
-						point.id === mainStore.currentPoint?.id ? 10000 : 0
+						point.id === mainStore.currentPointId ? 10000 : 0
 					"
 					draggable
 					@click="mainStore.setCurrentPoint(
@@ -273,7 +273,7 @@
 					}"
 				>
 					<l-icon
-						v-bind="(point.id === mainStore.currentPoint?.id
+						v-bind="(point.id === mainStore.currentPointId
 							? icon_temp_active
 							: (mainStore.isMeasurePoint(point.id)
 								? icon_null : icon_temp
@@ -498,7 +498,7 @@ const mapContextMenu = (e: any) => {
 		}
 		return;
 	}
-	if (mainStore.mode === 'routes' && mainStore.currentRoute) {
+	if (mainStore.mode === 'routes' && mainStore.currentRouteId) {
 		mainStore.upsertPoint({
 			props: { latitude: lat, longitude: lng },
 			where: mainStore.points,
@@ -510,9 +510,9 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	switch (mainStore.mode) {
 		case 'routes':
 			if (
-				point.id !== mainStore.currentRoute.points.at(-1)?.id &&
+				point.id !== mainStore.currentRoute?.points.at(-1)?.id &&
 				!(
-					point.id === mainStore.currentPoint?.id &&
+					point.id === mainStore.currentPointId &&
 					mainStore.isRoutePoint(point.id, mainStore.currentRoute)
 				)
 			) {
@@ -527,7 +527,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 			if (
 				point.id !== mainStore.measure.points.at(-1)?.id &&
 				!(
-					point.id === mainStore.currentPoint?.id &&
+					point.id === mainStore.currentPointId &&
 					mainStore.isMeasurePoint(point.id)
 				)
 			) {
@@ -545,7 +545,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 		case 'route':
 			pointInfo.value.name =
 				mainStore.currentRoute.points.find(
-					p => p.id === point.id
+					(p: PointName) => p.id === point.id
 				).name
 			;
 			break;

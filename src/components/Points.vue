@@ -108,7 +108,7 @@
 				<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
 			</div>
 			<a
-				v-if="mainStore.currentPoint"
+				v-if="mainStore.currentPointId"
 				href="javascript:void(0)"
 				@click="e => {
 					pointInfo.point = mainStore.currentPoint;
@@ -144,7 +144,7 @@
 				<button
 					v-for="temp in tempPoints"
 					:key="temp.key"
-					:class="{ 'button-pressed': mainStore.currentPoint?.id === temp.id }"
+					:class="{ 'button-pressed': mainStore.currentPointId === temp.id }"
 					@click.prevent="mainStore.setCurrentPoint(temp.id)"
 					@contextmenu.prevent="e => {
 						if (pointInfo.point?.id === temp.id) {
@@ -264,18 +264,18 @@
 					:data-entity-type="'point'"
 					:data-entity-index="pn.idx"
 					:data-entity-context="'routes'"
-					:data-entity-parent-id="mainStore.currentRoute.id"
+					:data-entity-parent-id="mainStore.currentRouteId"
 					:title="routePointTitles[pn.id]"
 					class="point-button"
 					:class="{
-						'button-pressed': pn.id === mainStore.currentPoint?.id,
+						'button-pressed': pn.id === mainStore.currentPointId,
 					}"
 					@pointerdown="e => onPointerDown(e, {
 						id: pn.id,
 						index: pn.idx,
 						type: 'point',
 						context: 'routes',
-						parentId: mainStore.currentRoute.id,
+						parentId: mainStore.currentRouteId,
 					})"
 				    @pointermove="onPointerMove"
 				    @pointerup="e => onPointerUp(e, () => {
@@ -416,8 +416,8 @@ const distance = computed(() => {
 			where.value = 'temps';
 			break;
 		case 'route':
-			idsArray.value = mainStore.currentRoute !== null
-				? mainStore.currentRoute.points.map(p => p.id) : []
+			idsArray.value = mainStore.currentRouteId !== null
+				? mainStore.currentRoute.points.map((p: PointName) => p.id) : []
 			;
 			where.value = 'points';
 			break;

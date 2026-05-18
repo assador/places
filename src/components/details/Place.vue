@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="mainStore.placesShow.show && mainStore.currentPlace"
+		v-if="mainStore.placesShow.show && mainStore.currentPlaceId"
 		id="place-description"
 	>
 		<h2
@@ -168,11 +168,11 @@
 						<input
 							id="checkbox-homeplace"
 							type="checkbox"
-							:checked="mainStore.currentPlace === mainStore.homePlace"
+							:checked="mainStore.currentPlaceId && mainStore.currentPlaceId === mainStore.user.homeplace"
 							@change="e => {
 								mainStore.setHomePlace({
 									id: (e.target as HTMLInputElement).checked
-										? mainStore.currentPlace.id
+										? mainStore.currentPlaceId
 										: null
 								});
 								mainStore.backupState();
@@ -233,12 +233,12 @@ const mainStore = useMainStore();
 const linkEditing = ref(false);
 
 const currentPlaceLat = computed<number | null>(() =>
-	mainStore.currentPlace
+	mainStore.currentPlaceId
 		? mainStore.points[mainStore.currentPlace.pointid]?.latitude ?? null
 		: null
 );
 const currentPlaceLon = computed<number | null>(() =>
-	mainStore.currentPlace
+	mainStore.currentPlaceId
 		? mainStore.points[mainStore.currentPlace.pointid]?.longitude ?? null
 		: null
 );
@@ -255,7 +255,7 @@ const orderedCurrentPlaceFields = ref<ValidField[]>([
 ]);
 const currentPlaceAlt = computed<number | null>(() => {
 	return (
-		mainStore.currentPlace
+		mainStore.currentPlaceId
 			? mainStore.points[mainStore.currentPlace.pointid]?.altitude ?? null
 			: null
 		);

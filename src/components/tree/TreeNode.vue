@@ -218,11 +218,11 @@
 				:class="{
 					active:
 						props.what === 'places' &&
-						mainStore.currentPlace &&
-						object.id == mainStore.currentPlace.id ||
+						mainStore.currentPlaceId &&
+						object.id == mainStore.currentPlaceId ||
 						props.what === 'routes' &&
-						mainStore.currentRoute &&
-						object.id == mainStore.currentRoute.id
+						mainStore.currentRouteId &&
+						object.id == mainStore.currentRouteId
 					,
 					chosen:
 						mainStore.mode === 'measure' &&

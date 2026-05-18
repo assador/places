@@ -578,7 +578,7 @@ export const entityActions = {
 			this.measure.points.splice(measureIndex, 1);
 		}
 		delete this.temps[id];
-		if (this.currentPoint && this.currentPoint.id === id) {
+		if (this.currentPointId && this.currentPointId === id) {
 			this.setCurrentPoint(null);
 		}
 	},
@@ -674,7 +674,7 @@ export const entityActions = {
 		} else {
 			point = param ?? null;
 		}
-		this.currentPoint = point;
+		this.currentPointId = point?.id;
 		if (!point) return;
 		if (point.altitude === null) {
 			this.getAltitude(point.latitude, point.longitude)
@@ -682,7 +682,7 @@ export const entityActions = {
 			;
 		}
 		let idx: number;
-		if (this.currentRoute) {
+		if (this.currentRouteId) {
 			idx = this.currentRoute.points.map((p: PointName) => p.id).indexOf(point.id);
 			if (idx !== -1) this.currentRoute.choosing = idx;
 		}
@@ -703,7 +703,7 @@ export const entityActions = {
 		} else {
 			place = param ?? null;
 		}
-		this.currentPlace = place;
+		this.currentPlaceId = place?.id;
 		if (place) this.setCurrentPoint(place.pointid, center);
 	},
 	setCurrentRoute<T extends string | Route | null | undefined>(
@@ -716,7 +716,7 @@ export const entityActions = {
 		} else {
 			route = param ?? null;
 		}
-		this.currentRoute = route;
+		this.currentRouteId = route?.id;
 		if (route?.points.length) {
 			if (// Damn you all
 				typeof route.choosing !== 'number' ||

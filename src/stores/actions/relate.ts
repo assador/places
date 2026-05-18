@@ -16,7 +16,7 @@ export const relateActions = {
 		index?: number;
 	}) {
 		if (!entity) {
-			if (this.mode === 'routes' && this.currentRoute) {
+			if (this.mode === 'routes' && this.currentRouteId) {
 				entity = this.currentRoute;
 			} else if (this.mode === 'measure') {
 				entity = this.measure;
@@ -53,7 +53,7 @@ export const relateActions = {
 		entity?: Route | Measure;
 	}) {
 		if (!entity) {
-			if (this.mode === 'routes' && this.currentRoute) {
+			if (this.mode === 'routes' && this.currentRouteId) {
 				entity = this.currentRoute;
 			} else if (this.mode === 'measure') {
 				entity = this.measure;

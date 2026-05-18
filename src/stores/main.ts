@@ -47,9 +47,9 @@ export const useMainStore = defineStore('main', {
 		commonRoutesPage: 1,
 		commonRoutesShow: false,
 		currentDrag: null,
-		currentPlace: null,
-		currentPoint: null,
-		currentRoute: null,
+		currentPlaceId: null,
+		currentPointId: null,
+		currentRouteId: null,
 		first: true,
 		folders: {},
 		idleTime: 0,
@@ -133,6 +133,15 @@ export const useMainStore = defineStore('main', {
 
 		busy() {
 			return this.busyCount > 0;
+		},
+		currentPoint() {
+			return (this.points[this.currentPointId] ?? this.temps[this.currentPointId]);
+		},
+		currentPlace() {
+			return this.places[this.currentPlaceId];
+		},
+		currentRoute() {
+			return this.routes[this.currentRouteId];
 		},
 		descriptionFields() {
 			const descriptionFields = {

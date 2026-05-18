@@ -61,27 +61,27 @@ export const backupActions = {
 			id: (this.user?.homeplace ?? null),
 			silent: true,
 		});
-		if (this.currentPlace) {
+		if (this.currentPlaceId) {
 			let place: Place = null;
-			if (this.commonPlaces[this.currentPlace.id])
-				place = this.commonPlaces[this.currentPlace.id];
-			if (this.places[this.currentPlace.id])
-				place = this.places[this.currentPlace.id];
+			if (this.commonPlaces[this.currentPlaceId])
+				place = this.commonPlaces[this.currentPlaceId];
+			if (this.places[this.currentPlaceId])
+				place = this.places[this.currentPlaceId];
 			this.setCurrentPlace(place, false);
 		}
-		if (this.currentRoute) {
+		if (this.currentRouteId) {
 			let route: Route = null;
-			if (this.routes[this.currentRoute.id]) {
-				route = this.routes[this.currentRoute.id];
+			if (this.routes[this.currentRouteId]) {
+				route = this.routes[this.currentRouteId];
 			}
 			this.setCurrentRoute(route, false);
 		}
-		if (this.currentPoint) {
+		if (this.currentPointId) {
 			let point: Point = null;
-			if (this.points[this.currentPoint.id])
-				point = this.points[this.currentPoint.id];
-			if (this.temps[this.currentPoint.id])
-				point = this.temps[this.currentPoint.id];
+			if (this.points[this.currentPointId])
+				point = this.points[this.currentPointId];
+			if (this.temps[this.currentPointId])
+				point = this.temps[this.currentPointId];
 			this.setCurrentPoint(point, false);
 		}
 		this.backup = true;
