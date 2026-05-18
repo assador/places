@@ -544,7 +544,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	switch (of?.type) {
 		case 'route':
 			pointInfo.value.name =
-				mainStore.currentRoute.points.find(
+				mainStore.currentRoute?.points.find(
 					(p: PointName) => p.id === point.id
 				).name
 			;

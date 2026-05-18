@@ -1,7 +1,7 @@
 {
 	"name": "places",
 	"description": "A personal geo-organizer",
-	"version": "6.3.6 beta",
+	"version": "6.3.7 beta",
 	"author": "Dmitry Sokolov <assador@gmail.com>",
 	"license": "MIT",
 	"private": true,
