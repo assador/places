@@ -28,15 +28,15 @@
 </li>
 <li><a href="#4-interface">Interface</a><ul>
 <li><a href="#top-panel-header">Top Panel (Header)</a><ul>
-<li><a href="#left-top-area--toggle-buttons">Left-Top Area — Toggle Buttons</a></li>
-<li><a href="#right-top-area--system-buttons">Right-Top Area — System Buttons</a></li>
+<li><a href="#left-top-area--toggle-buttons">Left-Top Area — Toggle Buttons</a></li>
+<li><a href="#right-top-area--system-buttons">Right-Top Area — System Buttons</a></li>
 <li><a href="#center-area">Center Area</a></li>
 </ul>
 </li>
 <li><a href="#main-area">Main Area</a><ul>
-<li><a href="#left-panel--hierarchy-and-structure">Left Panel — Hierarchy and Structure</a></li>
-<li><a href="#right-panel--content-and-editing">Right Panel — Content and Editing</a></li>
-<li><a href="#center--the-map">Center — The Map</a></li>
+<li><a href="#left-panel--hierarchy-and-structure">Left Panel — Hierarchy and Structure</a></li>
+<li><a href="#right-panel--content-and-editing">Right Panel — Content and Editing</a></li>
+<li><a href="#center--the-map">Center — The Map</a></li>
 </ul>
 </li>
 <li><a href="#bottom-panel-footer">Bottom Panel (Footer)</a><ul>
@@ -157,7 +157,7 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <p>The application interface is divided into functional zones.</p>
 <h3 id="top-panel-(header)">Top Panel (Header)</h3>
 <p>The header contains the main controls and settings.</p>
-<h4>Left-Top Area — Toggle Buttons</h4>
+<h4 id="left-top-area--toggle-buttons">Left-Top Area — Toggle Buttons</h4>
 <ul>
 <li><strong>Places</strong>: Toggle the visibility of the Places layer on the map.</li>
 <li><strong>Routes</strong>: Toggle the visibility of the Routes layer on the map.</li>
@@ -166,7 +166,7 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <li><strong>Folder Names</strong>: Toggle the display of folder names directly on the map.</li>
 <li><strong>Mode Switcher</strong>: Selection between <strong>Normal</strong>, <strong>Route</strong>, and <strong>Ruler</strong> (measuring) modes.</li>
 </ul>
-<h4>Right-Top Area — System Buttons</h4>
+<h4 id="right-top-area--system-buttons">Right-Top Area — System Buttons</h4>
 <ul>
 <li><strong>Undo / Redo</strong>: Buttons to revert or repeat the last actions performed in the current session.</li>
 <li><strong>Save</strong>: The most important button. It initiates the batch synchronization of all changes made in the current session with the database.</li>
@@ -182,7 +182,7 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <li><strong>Theme</strong>: Switch between <strong>Dark</strong> and <strong>Light</strong> interface themes.</li>
 </ul>
 <h3 id="main-area">Main Area</h3>
-<h4>Left Panel — Hierarchy and Structure</h4>
+<h4 id="left-panel--hierarchy-and-structure">Left Panel — Hierarchy and Structure</h4>
 <ul>
 <li><strong>Search</strong>: Quick search for entities by name.</li>
 <li><strong>Radius Control</strong>: Settings for the radius utility.</li>
@@ -192,7 +192,7 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <li><strong>Plus (+)</strong>: Add a Place, Route, or Subfolder inside this folder.</li>
 <li><strong>Delete (X)</strong>: Remove the folder. When deleting, you can choose to transfer its content to the parent folder.</li>
 </ul>
-<h4>Right Panel — Content and Editing</h4>
+<h4 id="right-panel--content-and-editing">Right Panel — Content and Editing</h4>
 <ul>
 <li>Appears only when a specific entity (Place or Route) is selected.</li>
 <li><strong>Input Fields</strong>: Name, description, external links.</li>
@@ -200,7 +200,7 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <li><strong>System Fields</strong>: Sorting index (<code>srt</code>) and the “Public” flag (visible to everyone or private).</li>
 <li><strong>Photo Album</strong>: Section for uploading and managing images.</li>
 </ul>
-<h4>Center — The Map</h4>
+<h4 id="center--the-map">Center — The Map</h4>
 <p>Interactive area powered by <strong>OpenStreetMap</strong> or <strong>Yandex Maps</strong>. Displays all active and visible entities.</p>
 <h3 id="bottom-panel-(footer)">Bottom Panel (Footer)</h3>
 <h4>Left side</h4>
