@@ -6,38 +6,41 @@ import {
 } from '@/types';
 import { constants } from '@/shared/constants';
 
+const BACKUP_IGNORE_KEYS = new Set<string>([
+	'stateBackups',
+	'stateBackupsIndex',
+	'busyCount',
+	'refreshing',
+	'messages',
+	'messagesInterval',
+	'messagesTimeout',
+	'idleTime',
+	'currentDrag',
+	't',
+]);
 export const backupActions = {
 	backupState() {
-		if (
-			!this.backup ||
-			this.stateBackups.length >= constants.backupscount
-		) {
-			return;
-		}
+		if (!this.backup || this.stateBackups.length >= constants.backupscount) return;
+
 		this.stateBackups.splice(++this.stateBackupsIndex);
-		this.stateBackups.push(
-			Object.assign({}, JSON.parse(JSON.stringify(this.$state)))
-		);
-		delete this.stateBackups[this.stateBackupsIndex].stateBackups;
+		const backupItem: Record<string, any> = {};
+		const stateKeys = Object.keys(this.$state);
+
+		for (const key of stateKeys) {
+			if (BACKUP_IGNORE_KEYS.has(key)) continue;
+			backupItem[key] = this[key];
+		}
+		this.stateBackups.push(JSON.stringify(backupItem));
 	},
 	restoreState(backupIndex: number) {
-		if (
-			backupIndex < 0 ||
-			backupIndex > this.stateBackups.length - 1 ||
-			this.stateBackupsIndex ===
-			this.stateBackups[backupIndex].stateBackupsIndex
-		) {
-			return;
+		if (backupIndex < 0 || backupIndex > this.stateBackups.length - 1) return;
+		if (this.stateBackupsIndex === backupIndex) return;
+
+		const backupData = JSON.parse(this.stateBackups[backupIndex]);
+		for (const key in backupData) {
+			this[key] = backupData[key];
 		}
-		for (const key in this.stateBackups[backupIndex]) {
-			this[key] =
-				JSON.parse(
-					JSON.stringify(
-						this.stateBackups[backupIndex][key]
-					)
-				)
-			;
-		}
+		this.stateBackupsIndex = backupIndex;
 		this.saved = false;
 		this.restoreObjectsAsLinks();
 	},

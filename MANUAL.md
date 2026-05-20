@@ -2,42 +2,42 @@
 
 [Service](https://places.scrofa-tridens.ru/) | [Habr](https://habr.com/ru/articles/1009226/) | [Mail](mailto:places@scrofa-tridens.ru) | [Donate](https://boosty.to/assador/donate)
 
-- [The Places](#the-places)
-	- [1. Purpose](#1-purpose)
-	- [2. System Concept](#2-system-concept)
-		- [Point](#point-point)
-		- [Place](#place-place)
-		- [Route](#route-route)
-		- [Folder](#folder-folder)
-		- [Images](#images-images)
-		- [Temporary Points](#temporary-points)
-		- [Active Points](#active-points)
-	- [3. Operating Modes](#3-operating-modes)
-		- [3.1 Normal Mode](#31-normal-mode)
-		- [3.2 Route Mode](#32-route-mode)
-		- [3.3 Ruler Mode](#33-ruler-mode)
-	- [4. Interface](#4-interface)
-		- [4.1 Top Panel (Header)](#41-top-panel-header)
-			- [4.1.1 Left-Top Area — Toggle Buttons](#411-left-top-area--toggle-buttons)
-			- [4.1.2 Right-Top Area — System Buttons](#412-right-top-area--system-buttons)
-			- [4.1.3 Center Area](#413-center-area)
-		- [4.2 Main Area](#42-main-area)
-			- [4.2.1 Left Panel — Hierarchy and Structure](#421-left-panel--hierarchy-and-structure)
-			- [4.2.2 Right Panel — Content and Editing](#422-right-panel--content-and-editing)
-			- [4.2.3 Center — The Map](#423-center--the-map)
-		- [4.3 Bottom Panel (Footer)](#43-bottom-panel-footer)
-			- [4.3.1 Left side](#431-left-side)
-			- [4.3.2 Right side](#432-right-side)
-	- [5. Storage and Ordering Principles](#5-storage-and-ordering-principles)
-	- [6. Basic Workflow](#6-basic-workflow)
-		- [Creating a Place](#creating-a-place)
-		- [Creating a Route](#creating-a-route)
-		- [Working with Images](#working-with-images)
-	- [7. Architectural Features](#7-architectural-features)
-		- [Deletion and Data Safety](#deletion-and-data-safety)
-		- [Saving Principle](#saving-principle)
+1. [Purpose](#1-purpose)
+2. [System Concept](#2-system-concept)
+	- [Point](#point)
+	- [Place](#place)
+	- [Route](#route)
+	- [Folder](#folder)
+	- [Images](#images)
+	- [Temporary Points](#temporary-points)
+	- [Active Points](#active-points)
+3. [Operating Modes](#3-operating-modes)
+	- [Normal Mode](#normal-mode)
+	- [Route Mode](#route-mode)
+	- [Ruler Mode](#ruler-mode)
+4. [Interface](#4-interface)
+	- [Top Panel (Header)](#top-panel-header)
+		- [Left-Top Area — Toggle Buttons](#left-top-area--toggle-buttons)
+		- [Right-Top Area — System Buttons](#right-top-area--system-buttons)
+		- [Center Area](#center-area)
+	- [Main Area](#main-area)
+		- [Left Panel — Hierarchy and Structure](#left-panel--hierarchy-and-structure)
+		- [Right Panel — Content and Editing](#right-panel--content-and-editing)
+		- [Center — The Map](#center--the-map)
+	- [Bottom Panel (Footer)](#bottom-panel-footer)
+		- [Left side](#left-side)
+		- [Right side](#right-side)
+	- [Shortcuts](#shortcuts)
+5. [Storage and Ordering Principles](#5-storage-and-ordering-principles)
+6. [Basic Workflow](#6-basic-workflow)
+	- [Creating a Place](#creating-a-place)
+	- [Creating a Route](#creating-a-route)
+	- [Working with Images](#working-with-images)
+7. [Architectural Features](#7-architectural-features)
+	- [Deletion and Data Safety](#deletion-and-data-safety)
+	- [Saving Principle](#saving-principle)
 
-## 1. Purpose
+## 1\. Purpose
 
 **The Places** is a Geo-Organizer. It is a personal GIS — a tool for systematizing personal geographic data.
 
@@ -51,7 +51,7 @@ It is a tool for meaningful storage and organization of spatial information. You
 A riverside bar where you occasionally meet friends.
 You can save the point itself on the map, add a description and photos, and then include it in a route for an evening stroll.
 
-## 2. System Concept
+## 2\. System Concept
 
 The core of “The Places” lies in the separation of entities. There are only four:
 
@@ -136,41 +136,41 @@ These are like temporary stickers attached to a map on the wall. They’re simpl
 There are "current" (active) entities in the system: Place, Route, Point.
 Active markers are displayed in green. Activity for Places and Routes is independent.
 
-## 3. Operating Modes
+## 3\. Operating Modes
 
 The system has three modes: **Normal**, **Routes**, and **Ruler**.
 The mode determines the map behavior and Right-Click (RMB) actions.
 
-### 3.1 Normal Mode
+### Normal Mode
 
 Working with Places and temporary Points.
 
 * RMB on empty space: Creates a Point.
 * RMB on an existing Point: Shows coordinate information.
 
-### 3.2 Route Mode
+### Route Mode
 
 Working with the current Route.
 
 * RMB on empty space or an existing Point: Adds it to the end of the route.
 * Double-click on a route line segment: Add a new Point there.
 
-### 3.3 Ruler Mode
+### Ruler Mode
 
 A service route for measuring distances.
 
 * Not saved in the database.
 * Allows you to quickly find the distance of a path without creating a permanent Route.
 
-## 4. Interface
+## 4\. Interface
 
 The application interface is divided into functional zones.
 
-### 4.1 Top Panel (Header)
+### Top Panel (Header)
 
 The header contains the main controls and settings.
 
-#### 4.1.1 Left-Top Area — Toggle Buttons
+#### Left-Top Area — Toggle Buttons
 
 * **Places**: Toggle the visibility of the Places layer on the map.
 * **Routes**: Toggle the visibility of the Routes layer on the map.
@@ -179,7 +179,7 @@ The header contains the main controls and settings.
 * **Folder Names**: Toggle the display of folder names directly on the map.
 * **Mode Switcher**: Selection between **Normal**, **Route**, and **Ruler** (measuring) modes.
 
-#### 4.1.2 Right-Top Area — System Buttons
+#### Right-Top Area — System Buttons
 
 * **Undo / Redo**: Buttons to revert or repeat the last actions performed in the current session.
 * **Save**: The most important button. It initiates the batch synchronization of all changes made in the current session with the database.
@@ -188,15 +188,15 @@ The header contains the main controls and settings.
 * **Help**: Opens this manual.
 * **Logout**: End the current session.
 
-#### 4.1.3 Center Area
+#### Center Area
 
 * **Profile**: Link to account settings (password change, e-mail management, account deletion).
 * **Language**: Toggle between **RU** (Russian) and **EN** (English).
 * **Theme**: Switch between **Dark** and **Light** interface themes.
 
-### 4.2 Main Area
+### Main Area
 
-#### 4.2.1 Left Panel — Hierarchy and Structure
+#### Left Panel — Hierarchy and Structure
 
 * **Search**: Quick search for entities by name.
 * **Radius Control**: Settings for the radius utility.
@@ -206,7 +206,7 @@ The header contains the main controls and settings.
 * **Plus (+)**: Add a Place, Route, or Subfolder inside this folder.
 * **Delete (X)**: Remove the folder. When deleting, you can choose to transfer its content to the parent folder.
 
-#### 4.2.2 Right Panel — Content and Editing
+#### Right Panel — Content and Editing
 
 * Appears only when a specific entity (Place or Route) is selected.
 * **Input Fields**: Name, description, external links.
@@ -214,28 +214,32 @@ The header contains the main controls and settings.
 * **System Fields**: Sorting index (`srt`) and the "Public" flag (visible to everyone or private).
 * **Photo Album**: Section for uploading and managing images.
 
-#### 4.2.3 Center — The Map
+#### Center — The Map
 
 Interactive area powered by **OpenStreetMap** or **Yandex Maps**. Displays all active and visible entities.
 
-### 4.3 Bottom Panel (Footer)
+### Bottom Panel (Footer)
 
-#### 4.3.1 Left side
+#### Left side
 
 **Show Own / Show All**: Independent toggle buttons to show only your markers/routes or all public data available in the system.
 
-#### 4.3.2 Right side
+#### Right side
 
 * Dropdown to select the map engine (**OSM**, **Yandex**).
 * Real-time display of the coordinates of the map center.
 
-## 5. Storage and Ordering Principles
+### Shortcuts
+
+aaa
+
+## 5\. Storage and Ordering Principles
 
 **Data vs. Order**: Elements are stored by ID. Display order is determined by the `srt` field. This ensures stability during synchronization and independence from JS object ordering.
 
 **Explicit Saving**: An "offline-first" / "deferred saving" model. Changes are marked as "dirty" and sent to the server only when the "Save" button is clicked. This provides control over transactions and allows for batch updates.
 
-## 6. Basic Workflow
+## 6\. Basic Workflow
 
 ### Creating a Place
 
@@ -259,7 +263,7 @@ A Point can be added multiple times — the system does not create duplicates.
 * Use Drag & Drop to change the preview order.
 * The order is also synchronized with the database.
 
-## 7. Architectural Features
+## 7\. Architectural Features
 
 * **Frontend**: Vue 3, Pinia, Axios.
 * Centralized state.

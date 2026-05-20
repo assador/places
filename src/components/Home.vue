@@ -214,11 +214,10 @@
 							:id="commonPlace.id"
 							:key="commonPlace.id"
 							class="place-button block_01"
-							:class="
-								commonPlace === mainStore.currentPlace ||
+							:class="{ active:
+								commonPlace.id === mainStore.currentPlaceId ||
 								mainStore.measure.points.find(p => p.id === commonPlace.id)
-									? 'active' : ''
-							"
+							}"
 							@click="mainStore.setCurrentPlace(commonPlace.id)"
 						>
 							{{ commonPlace.name }}
@@ -511,10 +510,7 @@
 				:class="{ 'button-pressed': mainStore.mode === 'normal' }"
 				:title="mainStore.t.i.captions.modeNormal"
 				accesskey="m"
-				@click="() => {
-					mainStore.mode = 'normal';
-					mainStore.measure.show = false;
-				}"
+				@click="changeMode('normal')"
 			>
 				<span class="icon icon-cross" />
 				<span>{{ mainStore.t.i.buttons.normal }}</span>
@@ -525,11 +521,7 @@
 				:class="{ 'button-pressed': mainStore.mode === 'routes' }"
 				:title="mainStore.t.i.captions.modeRoutes"
 				accesskey="m"
-				@click="() => {
-					mainStore.mode = 'routes';
-					mainStore.routesShow = true;
-					mainStore.measure.show = false;
-				}"
+				@click="changeMode('routes')"
 			>
 				<span class="icon icon-route" />
 				<span>{{ mainStore.t.i.buttons.routes }}</span>
@@ -540,10 +532,7 @@
 				:class="{ 'button-pressed': mainStore.mode === 'measure' }"
 				:title="mainStore.t.i.captions.modeMeasure"
 				accesskey="m"
-				@click="() => {
-					mainStore.mode = 'measure';
-					mainStore.measure.show = true;
-				}"
+				@click="changeMode('measure')"
 			>
 				<span class="icon icon-ruler" />
 				<span>{{ mainStore.t.i.buttons.measure }}</span>
@@ -781,6 +770,10 @@
 			</div>
 		</template>
 	</Popup>
+	<div
+		v-if="isPrefixActive"
+		class="prefix-activated-indicator icon icon-circle-full"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -995,6 +988,23 @@ watch(() => mainStore.currentRouteId, () => {
 	mainStore.openTreeToCurrent(mainStore.currentRoute)
 });
 
+const changeMode = (mode: string): void => {
+	switch (mode) {
+		case 'normal':
+			mainStore.mode = 'normal';
+			mainStore.measure.show = false;
+			break;
+		case 'routes':
+			mainStore.mode = 'routes';
+			mainStore.routesShow = true;
+			mainStore.measure.show = false;
+			break;
+		case 'measure':
+			mainStore.mode = 'measure';
+			mainStore.measure.show = true;
+			break;
+	}
+};
 const commonPlacesShowHide = (show: boolean | null = null): void => {
 	commonPlacesShow.value =
 		show === null
@@ -1138,33 +1148,55 @@ const uploadFiles = async (
 };
 provide('uploadFiles', uploadFiles);
 
-const keyup = (event: Event): void => {
-	const e = event as KeyboardEvent;
+const isPrefixActive = ref(false);
+const LEADER_CODE = 'Backquote';
+
+const keyup = (e: KeyboardEvent): void => {
+	const target = e.target as HTMLElement;
+	if (
+		target.tagName === 'INPUT' ||
+		target.tagName === 'TEXTAREA' ||
+		target.hasAttribute('contenteditable')
+	) {
+		return;
+	}
+	if (!isPrefixActive.value) {
+		if (e.code === LEADER_CODE) {
+			e.preventDefault();
+			isPrefixActive.value = true;
+		}
+		return;
+	}
 	e.preventDefault();
-	if (!(e.altKey && e.shiftKey)) return;
+	if (e.code === LEADER_CODE || e.code === 'Escape') {
+		isPrefixActive.value = false;
+		return;
+	}
 	const shortcut = (constants.shortcuts as Record<string, string>)[e.code];
-	if (!shortcut) return;
+	if (!shortcut) {
+		isPrefixActive.value = false;
+		return;
+	}
 	blur();
 	const actions: Record<string, () => void> = {
-		'add': () => mainStore.upsertPlace(),
+		'add': () => mainStore.upsertPlaceFollowing(mainStore.currentPlace),
 		'add folder': () => router.push({ name: 'HomeFolder' }),
-		'edit mode': () => foldersEditMode.value = !foldersEditMode.value,
+		'normal mode': () => changeMode('normal'),
+		'routes mode': () => changeMode('routes'),
+		'measure mode': () => changeMode('measure'),
 		'import': () => importFromFileInput.value.click(),
 		'export': () => router.push({ name: 'HomeExport' }),
 		'save': () => emitter.emit('toDBAll'),
 		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
-		'revert': () => document.location.reload(),
 		'quit': () => emitter.emit('logout'),
-		'other': () => commonPlacesShowHide(),
 		'placemarks': () => mainStore.placemarksShowHide(),
-		'other placemarks': () => mainStore.commonPlacemarksShowHide(),
-		'other routes': () => mainStore.commonRoutesShowHide(),
 		'center': () => mainStore.centerPlacemarkShowHide(),
 		'undo': () => mainStore.undo(),
 		'redo': () => mainStore.redo(),
 	};
 	const action = actions[shortcut];
 	if (action) action();
+	isPrefixActive.value = false;
 };
 
 const compact = ref(0);

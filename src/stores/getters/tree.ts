@@ -1,4 +1,5 @@
 import { Folder } from '@/types';
+import _ from 'lodash';
 
 export const treeGetters = {
 	allChildrenMap() {
@@ -21,49 +22,46 @@ export const treeGetters = {
 			);
 		};
 	},
+	buildTree() {
+		return (context: 'places' | 'routes') => {
+			const { folders, folderChildren, createFolder, treeParams, t } = this;
+			const prepareNode = (folder: Folder): Folder => {
+				const reactiveFolder = folder.id ? folders[folder.id] : folder;
+				if (!reactiveFolder) return folder;
+				if (!Object.prototype.hasOwnProperty.call(reactiveFolder, 'children')) {
+					Object.defineProperty(reactiveFolder, 'children', {
+						get: () => {
+							const kids = folderChildren(reactiveFolder.id, context);
+							return _.sortBy(Object.values(kids).map(prepareNode), 'srt');
+						},
+						enumerable: false,
+						configurable: true,
+					});
+				}
+				return reactiveFolder;
+			};
+			const tree = createFolder({
+				virtual: true,
+				context: context,
+				id: null,
+				parent: null,
+				srt: context === 'places' ? 20 : 10,
+				name: t.i.captions[context],
+			});
+			Object.defineProperty(tree, 'open', {
+				get: () => treeParams[context].open,
+				set: (val) => { treeParams[context].open = val; },
+				enumerable: false,
+				configurable: true,
+			});
+			return prepareNode(tree);
+		};
+	},
 	treePlaces() {
-		const tree: Folder = this.createFolder({
-			virtual: true,
-			context: 'places',
-			id: null,
-			parent: null,
-			srt: 20,
-			name: this.t.i.captions.places,
-		});
-		Object.defineProperty(tree, 'open', {
-			get: () => this.treeParams.places.open,
-			set: (val) => { this.treeParams.places.open = val; },
-			enumerable: true,
-			configurable: true,
-		});
-		Object.defineProperty(tree, 'children', {
-			get: () => this.folderChildren(null, 'places'),
-			enumerable: true,
-			configurable: true,
-		});
-		return tree;
+		return this.buildTree('places');
 	},
 	treeRoutes() {
-		const tree: Folder = this.createFolder({
-			virtual: true,
-			context: 'routes',
-			id: null,
-			parent: null,
-			srt: 10,
-			name: this.t.i.captions.routes,
-		});
-		Object.defineProperty(tree, 'open', {
-			get: () => this.treeParams.routes.open,
-			set: (val) => { this.treeParams.routes.open = val; },
-			enumerable: true,
-			configurable: true,
-		});
-		Object.defineProperty(tree, 'children', {
-			get: () => this.folderChildren(null, 'routes'),
-			enumerable: true,
-			configurable: true,
-		});
-		return tree;
+		return this.buildTree('routes');
 	},
 	trees() {
 		return {

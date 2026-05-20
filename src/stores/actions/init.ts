@@ -19,11 +19,15 @@ export const initActions = {
 		this.stateBackups = [];
 		this.stateBackupsIndex = -1;
 		this.user = null;
+		this.currentPointId = null;
 		this.currentPlaceId = null;
+		this.currentRouteId = null;
 		this.points = {};
 		this.places = {};
+		this.routes = {};
 		this.folders = {};
 		this.commonPlaces = {};
+		this.commonRoutes = {};
 		this.center = {
 			latitude: Number(constants.map.initial.latitude),
 			longitude: Number(constants.map.initial.longitude),
@@ -38,7 +42,6 @@ export const initActions = {
 		this.messagesInterval = null;
 		this.messagesTimeout = null;
 		this.serverConfig = null;
-		this.routes = {};
 	},
 	entitiesReady(payload: Record<string, any>) {
 		const { points, places, commonPlaces, routes, commonRoutes, folders, what } = payload;
@@ -93,11 +96,6 @@ export const initActions = {
 			folder.deleted = deleted;
 			folder.updated = updated;
 			folder.open = false;
-			Object.defineProperty(folder, 'children', {
-				get: () => this.folderChildren(folder.id),
-				enumerable: true,
-				configurable: true
-			});
 		}
 	},
 	async setServerConfig() {

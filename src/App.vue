@@ -16,7 +16,6 @@
 		>
 			<template #popupSlot>
 				<div class="spinner icon icon-eye-open-circled" />
-				<!-- <div class="spinner icon icon-geomark-1-circled" /> -->
 			</template>
 		</Popup>
 		<router-view />

@@ -180,7 +180,7 @@
 				class="margin_bottom_0"
 			>
 				<TreeSubfolder
-					v-for="child in children"
+					v-for="child in folder.children"
 					:key="child.id"
 					:instanceid="instanceid"
 					:what="props.what"
@@ -394,7 +394,6 @@ const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent')
 
 const contextMenu = inject<Ref<IEntityPopupProps>>('contextMenu');
 
-const children = computed(() => _.sortBy(props.folder.children, 'srt'));
 const places = computed(() =>
 	_.chain(mainStore.places)
 	.filter(p =>
@@ -500,6 +499,9 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 </script>
 
 <style lang="scss" scoped>
+ul {
+	padding-left: 0;
+}
 .folder {
 	display: flex;
 	flex-direction: column;

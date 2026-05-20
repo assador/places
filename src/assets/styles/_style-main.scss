@@ -227,12 +227,9 @@ $filter-brightness-03: brightness(0%);
 	.showhide:checked + .showhide_next {
 		margin-bottom: 18px !important;
 	}
-	section, address, blockquote, caption, legend, dl, form, h1, h2, h3, h4, h5, h6, hr, ol,
-	p, pre, .pre, table, ul, .menu {
+	:is(section, address, blockquote, caption, legend, dl, form, h1, h2, h3, h4, h5, h6, hr, ol,
+	p, pre, .pre, table, ul, .menu):not(:last-child) {
 		margin-bottom: 18px;
-		&:last-child {
-			margin-bottom: 0;
-		}
 	}
 	.margin_bottom_0,
 	.showhide + .showhide_next {
@@ -393,13 +390,29 @@ $filter-brightness-03: brightness(0%);
 		animation: rotation 3s linear infinite;
 	}
 	@keyframes rotation {
-		0% {
-			transform: rotate(0deg);
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
+	}
+	.prefix-activated-indicator {
+		position: absolute;
+		--size: 32px;
+		top: calc(var(--size) / -2); left: calc(var(--size) / -2);
+		width: var(--size); height: var(--size);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		&::before {
+			display: block;
+			position: absolute;
+			top: 0; right: 0; bottom: 0; left: 0;
 		}
-
-		100% {
-			transform: rotate(360deg);
-		}
+		animation: opacity 0.7s ease-in-out infinite;
+		z-index: 10000;
+	}
+	@keyframes opacity {
+		0% { opacity: 0; }
+		50% { opacity: 1; }
+		100% { opacity: 0; }
 	}
 
 	/* Основные стили */
@@ -459,29 +472,21 @@ $filter-brightness-03: brightness(0%);
 		padding: 2px 4px 3px 4px;
 		vertical-align: baseline;
 	}
-	ul, ol, dd {
-		display: table;
-		box-sizing: border-box;
-		width: 100%;
-		border-collapse: separate;
-	}
 	li > :is(ul, ol, dd):last-child {
 		margin-bottom: 0 !important;
 	}
-	ol {
+	ul, ol {
 		padding-left: 1.5em;
+	}
+	ol > li > ul {
+		padding-left: 2.5em;
 	}
 	ul {
-		list-style-type: none;
+		list-style-type: disc;
 	}
-	ul > li, dd {
+	dd {
+		margin-left: 0;
 		padding-left: 1.5em;
-	}
-	ul > li::before {
-		content: "\25cf";
-		float: left;
-		width: 1.5em;
-		margin-left: -1.5em;
 	}
 	hr {
 		height: 1px;

@@ -58,23 +58,9 @@
 				@pointerup.stop
 				@click.stop="() => {
 					if (contextMenu.object.type === 'place') {
-						mainStore.upsertPlace({ props: {
-							folderid: (contextMenu.object as Place).folderid,
-							srt: mainStore.getNeighboursSrts(
-								contextMenu.object.id,
-								contextMenu.object.type,
-								false,
-							).new,
-						}});
+						mainStore.upsertPlaceFollowing(contextMenu.object);
 					} else if (contextMenu.object.type === 'route') {
-						mainStore.upsertRoute({ props: {
-							folderid: (contextMenu.object as Route).folderid,
-							srt: mainStore.getNeighboursSrts(
-								contextMenu.object.id,
-								contextMenu.object.type,
-								false,
-							).new,
-						}});
+						mainStore.upsertRouteFollowing(contextMenu.object);
 					} else if (contextMenu.object.type === 'folder' && props.what === 'places') {
 						mainStore.upsertPlace({ props: { folderid: contextMenu.object.id } });
 					} else if (contextMenu.object.type === 'folder' && props.what === 'routes') {
@@ -210,6 +196,9 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+ul {
+	padding-left: 0;
+}
 .tree-item-popup {
 	* {
 		user-select: none;

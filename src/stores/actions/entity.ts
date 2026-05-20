@@ -131,16 +131,10 @@ export const entityActions = {
 		return route;
 	},
 	createFolder(overrides: Partial<Folder>): Folder {
-		const folder: Folder = {
+		return {
 			...this._defaultFolder(),
 			...overrides,
 		};
-		Object.defineProperty(folder, 'children', {
-			get: () => this.folderChildren(folder.id),
-			enumerable: true,
-			configurable: true
-		});
-		return folder;
 	},
 
 // SEC Upserting Entities
@@ -329,6 +323,23 @@ export const entityActions = {
 		}
 		return place;
 	},
+	upsertPlaceFollowing(entity: Place | null) {
+		if (!entity) {
+			this.upsertPlace();
+			return;
+		}
+		const neighbours = this.getNeighboursSrts(
+			entity.id,
+			entity.type,
+			false,
+		);
+		this.upsertPlace({
+			props: {
+				folderid: entity.folderid,
+				srt: neighbours.new,
+			}
+		});
+	},
 	upsertRoute({
 		object,
 		props,
@@ -386,6 +397,23 @@ export const entityActions = {
 			this.backupState();
 		}
 		return route;
+	},
+	upsertRouteFollowing(entity: Route | null) {
+		if (!entity) {
+			this.upsertRoute();
+			return;
+		}
+		const neighbours = this.getNeighboursSrts(
+			entity.id,
+			entity.type,
+			false,
+		);
+		this.upsertRoute({
+			props: {
+				folderid: entity.folderid,
+				srt: neighbours.new,
+			}
+		});
 	},
 	upsertFolder({
 		object,
