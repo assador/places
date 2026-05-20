@@ -27,7 +27,7 @@
 	- [Bottom Panel (Footer)](#bottom-panel-footer)
 		- [Left side](#left-side)
 		- [Right side](#right-side)
-	- [Shortcuts](#shortcuts)
+	- [Hotkeys](#hotkeys)
 5. [Storage and Ordering Principles](#5-storage-and-ordering-principles)
 6. [Basic Workflow](#6-basic-workflow)
 	- [Creating a Place](#creating-a-place)
@@ -55,10 +55,10 @@ You can save the point itself on the map, add a description and photos, and then
 
 The core of “The Places” lies in the separation of entities. There are only four:
 
-* **Point**
-* **Place**
-* **Route**
-* **Folder**
+- **Point**
+- **Place**
+- **Route**
+- **Folder**
 
 If you understand the difference between them, you understand the system.
 
@@ -93,9 +93,9 @@ You can save this place (already with a Point on the map), add a description and
 **An ordered sequence of Points.**
 Features:
 
-* The same Point can be included in a Route multiple times.
-* A Route doesn't copy coordinates; it stores links to existing Points.
-* The order of Points matters.
+- The same Point can be included in a Route multiple times.
+- A Route doesn't copy coordinates; it stores links to existing Points.
+- The order of Points matters.
 
 This allows for building both linear routes and repetitive movement scenarios.
 
@@ -108,8 +108,8 @@ You start from home (the Point linked to the "My Home" Place), go to a shop (Poi
 **A hierarchical structure for organizing Places and Routes.**
 Each folder can contain:
 
-* Multiple Places or Routes.
-* Other nested folders.
+- Multiple Places or Routes.
+- Other nested folders.
 
 A tree model is supported, maintaining the order of elements.
 
@@ -120,16 +120,16 @@ Technically, **a Folder does not "contain" other Folders**. The entire hierarchy
 **Photo album for a Place or a Route.**
 An ordered list of images you have uploaded.
 
-* Drag & Drop is supported to change the display order of previews.
-* The display order is updated and stored in the database based on a sorting index.
-* Clicking a preview opens the image in full-screen mode with the ability to scroll through the album.
+- Drag & Drop is supported to change the display order of previews.
+- The display order is updated and stored in the database based on a sorting index.
+- Clicking a preview opens the image in full-screen mode with the ability to scroll through the album.
 
 ### Temporary Points
 
 These are like temporary stickers attached to a map on the wall. They’re simply a way to quickly mark something on the map without creating a separate Place with a name, position in the tree, etc.
 
-* Not saved in the database; exist only in the current session.
-* Can be converted into permanent entities.
+- Not saved in the database; exist only in the current session.
+- Can be converted into permanent entities.
 
 ### Active Points
 
@@ -145,22 +145,22 @@ The mode determines the map behavior and Right-Click (RMB) actions.
 
 Working with Places and temporary Points.
 
-* RMB on empty space: Creates a Point.
-* RMB on an existing Point: Shows coordinate information.
+- RMB on empty space: Creates a Point.
+- RMB on an existing Point: Shows coordinate information.
 
 ### Route Mode
 
 Working with the current Route.
 
-* RMB on empty space or an existing Point: Adds it to the end of the route.
-* Double-click on a route line segment: Add a new Point there.
+- RMB on empty space or an existing Point: Adds it to the end of the route.
+- Double-click on a route line segment: Add a new Point there.
 
 ### Ruler Mode
 
 A service route for measuring distances.
 
-* Not saved in the database.
-* Allows you to quickly find the distance of a path without creating a permanent Route.
+- Not saved in the database.
+- Allows you to quickly find the distance of a path without creating a permanent Route.
 
 ## 4\. Interface
 
@@ -172,47 +172,47 @@ The header contains the main controls and settings.
 
 #### Left-Top Area — Toggle Buttons
 
-* **Places**: Toggle the visibility of the Places layer on the map.
-* **Routes**: Toggle the visibility of the Routes layer on the map.
-* **Points**: Toggle the visibility of the Points layer on the map.
-* **Radius**: Utility for circular area selection.
-* **Folder Names**: Toggle the display of folder names directly on the map.
-* **Mode Switcher**: Selection between **Normal**, **Route**, and **Ruler** (measuring) modes.
+- **Places**: Toggle the visibility of the Places layer on the map.
+- **Routes**: Toggle the visibility of the Routes layer on the map.
+- **Points**: Toggle the visibility of the Points layer on the map.
+- **Radius**: Utility for circular area selection.
+- **Folder Names**: Toggle the display of folder names directly on the map.
+- **Mode Switcher**: Selection between **Normal**, **Route**, and **Ruler** (measuring) modes.
 
 #### Right-Top Area — System Buttons
 
-* **Undo / Redo**: Buttons to revert or repeat the last actions performed in the current session.
-* **Save**: The most important button. It initiates the batch synchronization of all changes made in the current session with the database.
-* **PWA / Install**: Button to install “The Places” as a standalone application on your device.
-* **Export / Import**: Tools for working with external data formats (**GPX**, **JSON**).
-* **Help**: Opens this manual.
-* **Logout**: End the current session.
+- **Undo / Redo**: Buttons to revert or repeat the last actions performed in the current session.
+- **Save**: The most important button. It initiates the batch synchronization of all changes made in the current session with the database.
+- **PWA / Install**: Button to install “The Places” as a standalone application on your device.
+- **Export / Import**: Tools for working with external data formats (**GPX**, **JSON**).
+- **Help**: Opens this manual.
+- **Logout**: End the current session.
 
 #### Center Area
 
-* **Profile**: Link to account settings (password change, e-mail management, account deletion).
-* **Language**: Toggle between **RU** (Russian) and **EN** (English).
-* **Theme**: Switch between **Dark** and **Light** interface themes.
+- **Profile**: Link to account settings (password change, e-mail management, account deletion).
+- **Language**: Toggle between **RU** (Russian) and **EN** (English).
+- **Theme**: Switch between **Dark** and **Light** interface themes.
 
 ### Main Area
 
 #### Left Panel — Hierarchy and Structure
 
-* **Search**: Quick search for entities by name.
-* **Radius Control**: Settings for the radius utility.
-* **Ruler Points**: List of points for the current measurement in Ruler mode.
-* **Folders Tree**: The main navigation tool through the hierarchy. Each folder has:
-* **Visibility Eye**: Toggle visibility for the folder's content on the map.
-* **Plus (+)**: Add a Place, Route, or Subfolder inside this folder.
-* **Delete (X)**: Remove the folder. When deleting, you can choose to transfer its content to the parent folder.
+- **Search**: Quick search for entities by name.
+- **Radius Control**: Settings for the radius utility.
+- **Ruler Points**: List of points for the current measurement in Ruler mode.
+- **Folders Tree**: The main navigation tool through the hierarchy. Each folder has:
+- **Visibility Eye**: Toggle visibility for the folder's content on the map.
+- **Plus (+)**: Add a Place, Route, or Subfolder inside this folder.
+- **Delete (X)**: Remove the folder. When deleting, you can choose to transfer its content to the parent folder.
 
 #### Right Panel — Content and Editing
 
-* Appears only when a specific entity (Place or Route) is selected.
-* **Input Fields**: Name, description, external links.
-* **Coordinates**: Display and manual editing of the Point's location.
-* **System Fields**: Sorting index (`srt`) and the "Public" flag (visible to everyone or private).
-* **Photo Album**: Section for uploading and managing images.
+- Appears only when a specific entity (Place or Route) is selected.
+- **Input Fields**: Name, description, external links.
+- **Coordinates**: Display and manual editing of the Point's location.
+- **System Fields**: Sorting index (`srt`) and the "Public" flag (visible to everyone or private).
+- **Photo Album**: Section for uploading and managing images.
 
 #### Center — The Map
 
@@ -226,12 +226,33 @@ Interactive area powered by **OpenStreetMap** or **Yandex Maps**. Displays all a
 
 #### Right side
 
-* Dropdown to select the map engine (**OSM**, **Yandex**).
-* Real-time display of the coordinates of the map center.
+- Dropdown to select the map engine (**OSM**, **Yandex**).
+- Real-time display of the coordinates of the map center.
 
-### Shortcuts
+### Hotkeys
 
-aaa
+Hotkey management is implemented in a Vim-like style: you press a “leader key” (activator) to put the application into a shortcut-waiting mode, and the next key pressed triggers the action. By default, the “leader key” is the backtick (the key to the left of the number 1, right below `Esc`).
+
+For example: you press the “leader key” → a blinking indicator lights up in the top left corner of the window (indicating you are in shortcut mode) → pressing `A` next adds a new place and exits shortcut mode.
+
+If you change your mind, pressing the “leader key” again or hitting `Esc` deactivates the shortcut mode.
+
+#### List of Hotkeys
+
+- `A` — add a new place following the current one
+- `F` — add a new folder inside the current one
+- `N` — normal mode
+- `R` — routes mode
+- `M` — measure mode
+- `I` — import from file
+- `E` — export to file
+- `S` — save changes
+- `H` — show this manual
+- `Q` — quit (log out)
+- `P` — show / hide placemarks on the map
+- `C` — show / hide map center crosshair
+- `Z` — undo the last action
+- `Y` — redo the undone action
 
 ## 5\. Storage and Ordering Principles
 
@@ -259,16 +280,16 @@ A Point can be added multiple times — the system does not create duplicates.
 
 ### Working with Images
 
-* Upload new images via the "Add Photos" button.
-* Use Drag & Drop to change the preview order.
-* The order is also synchronized with the database.
+- Upload new images via the "Add Photos" button.
+- Use Drag & Drop to change the preview order.
+- The order is also synchronized with the database.
 
 ## 7\. Architectural Features
 
-* **Frontend**: Vue 3, Pinia, Axios.
-* Centralized state.
-* Frontend data model mirrors the database structure.
-* Batch synchronization of changes.
+- **Frontend**: Vue 3, Pinia, Axios.
+- Centralized state.
+- Frontend data model mirrors the database structure.
+- Batch synchronization of changes.
 
 The system is designed with scalability and data consistency in mind.
 
@@ -276,8 +297,8 @@ The system is designed with scalability and data consistency in mind.
 
 If you delete a Place or a Point from a Route:
 
-* If the corresponding Point is no longer used anywhere else, it is deleted.
-* If it is still in use, it remains in the database.
+- If the corresponding Point is no longer used anywhere else, it is deleted.
+- If it is still in use, it remains in the database.
 
 ### Saving Principle
 
@@ -286,6 +307,6 @@ Only clicking the "Save" button in the top right writes them to the database.
 
 This allows you to:
 
-* Work fast.
-* Undo actions.
-* Control the moment of data commitment.
+- Work fast.
+- Undo actions.
+- Control the moment of data commitment.
