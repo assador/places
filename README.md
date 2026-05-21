@@ -1,5 +1,5 @@
 # The Places (Geo-Organizer)
-**v6.3.7 beta** | [Русская версия](README.ru.md) | [Service](https://places.scrofa-tridens.ru/) | [Habr](https://habr.com/ru/articles/1009226/) | [User manual](MANUAL.md) | [Mail](mailto:places@scrofa-tridens.ru) | [Donate](https://boosty.to/assador/donate) | [Open Collective](https://opencollective.com/places)
+**v6.3.8 beta** | [Русская версия](README.ru.md) | [Service](https://places.scrofa-tridens.ru/) | [Habr](https://habr.com/ru/articles/1009226/) | [User manual](MANUAL.md) | [Mail](mailto:places@scrofa-tridens.ru) | [Donate](https://boosty.to/assador/donate) | [Open Collective](https://opencollective.com/places)
 
 Not just another map-based note app.  
 The Places is a structured personal GIS designed for long-term, consistent management of geographic data.

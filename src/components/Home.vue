@@ -144,7 +144,7 @@
 			</form>
 			<Measure />
 			<Points v-if="mainStore.tempsShow.show" type="temps" />
-			<div v-if="mainStore.routesShow" id="routes">
+			<div v-if="mainStore.routesShow.show" id="routes">
 				<div id="routes-tree" class="margin_bottom">
 					<div
 						id="routes-menu"
@@ -456,10 +456,10 @@
 			<button
 				id="actions-routes"
 				class="action-button"
-				:class="{ 'button-pressed': mainStore.routesShow }"
+				:class="{ 'button-pressed': mainStore.routesShow.show }"
 				:title="mainStore.t.i.captions.routes"
 				accesskey="t"
-				@click="() => mainStore.routesShow = !mainStore.routesShow"
+				@click="() => mainStore.routesShow.show = !mainStore.routesShow.show"
 			>
 				<span class="icon icon-route" />
 				<span>{{ mainStore.t.i.buttons.paths }}</span>
@@ -668,14 +668,15 @@
 	">
 		<div class="control-buttons">
 			<button
-				id="placemarksShowHideButton"
+				id="markersShowHideButton"
 				class="action-button"
-				:class="{ 'button-pressed': mainStore.placemarksShow }"
-				:title="mainStore.t.i.hints.shPlacemarks"
-				@click="mainStore.placemarksShowHide()"
+				:class="{ 'button-pressed': mainStore.markersShow }"
+				:title="mainStore.t.i.hints.shMarkers"
+				@click="mainStore.markersShowHide()"
 			>
 				<span class="icon icon-geomark-1" />
 			</button>
+<!--
 			<button
 				id="commonPlacesShowHideButton"
 				class="action-button"
@@ -686,11 +687,11 @@
 				<span class="icon icon-geomark-3" />
 			</button>
 			<button
-				id="commonPlacemarksShowHideButton"
+				id="commonMarkersShowHideButton"
 				class="action-button"
-				:class="{ 'button-pressed': mainStore.commonPlacemarksShow }"
-				:title="mainStore.t.i.hints.shCommonPlacemarks"
-				@click="mainStore.commonPlacemarksShowHide()"
+				:class="{ 'button-pressed': mainStore.commonMarkersShow }"
+				:title="mainStore.t.i.hints.shCommonMarkers"
+				@click="mainStore.commonMarkersShowHide()"
 			>
 				<span class="icon icon-geomark-2" />
 			</button>
@@ -703,12 +704,13 @@
 			>
 				<span class="icon icon-circle" />
 			</button>
+-->
 			<button
-				id="centerPlacemarkShowHideButton"
+				id="centerMarkerShowHideButton"
 				class="action-button"
-				:class="{ 'button-pressed': mainStore.centerPlacemarkShow }"
+				:class="{ 'button-pressed': mainStore.centerMarkerShow }"
 				:title="mainStore.t.i.hints.shCenter"
-				@click="mainStore.centerPlacemarkShowHide()"
+				@click="mainStore.centerMarkerShowHide()"
 			>
 				<span class="icon icon-cross" />
 			</button>
@@ -992,11 +994,12 @@ const changeMode = (mode: string): void => {
 	switch (mode) {
 		case 'normal':
 			mainStore.mode = 'normal';
+			mainStore.placesShow.show = true;
 			mainStore.measure.show = false;
 			break;
 		case 'routes':
 			mainStore.mode = 'routes';
-			mainStore.routesShow = true;
+			mainStore.routesShow.show = true;
 			mainStore.measure.show = false;
 			break;
 		case 'measure':
@@ -1011,8 +1014,9 @@ const commonPlacesShowHide = (show: boolean | null = null): void => {
 			? !commonPlacesShow.value
 			: show
 	;
-	mainStore.commonPlacemarksShowHide(commonPlacesShow.value);
+	mainStore.commonMarkersShowHide(commonPlacesShow.value);
 };
+/*
 const commonRoutesShowHide = (show: boolean | null = null): void => {
 	commonRoutesShow.value =
 		show === null
@@ -1021,6 +1025,7 @@ const commonRoutesShowHide = (show: boolean | null = null): void => {
 	;
 	mainStore.commonRoutesShowHide(commonRoutesShow.value);
 };
+*/
 provide('commonPlacesShowHide', commonPlacesShowHide);
 
 const importFromFile = async () => {
@@ -1179,18 +1184,21 @@ const keyup = (e: KeyboardEvent): void => {
 	}
 	blur();
 	const actions: Record<string, () => void> = {
-		'add': () => mainStore.upsertPlaceFollowing(mainStore.currentPlace),
-		'add folder': () => router.push({ name: 'HomeFolder' }),
 		'normal mode': () => changeMode('normal'),
 		'routes mode': () => changeMode('routes'),
 		'measure mode': () => changeMode('measure'),
+		'places show': () => mainStore.placesShow.show = !mainStore.placesShow.show,
+		'routes show': () => mainStore.routesShow.show = !mainStore.routesShow.show,
+		'temps show': () => mainStore.tempsShow.show = !mainStore.tempsShow.show,
+		'add': () => mainStore.upsertPlaceFollowing(mainStore.currentPlace),
+		'add folder': () => router.push({ name: 'HomeFolder' }),
 		'import': () => importFromFileInput.value.click(),
 		'export': () => router.push({ name: 'HomeExport' }),
 		'save': () => emitter.emit('toDBAll'),
 		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
 		'quit': () => emitter.emit('logout'),
-		'placemarks': () => mainStore.placemarksShowHide(),
-		'center': () => mainStore.centerPlacemarkShowHide(),
+		'marks': () => mainStore.markersShowHide(),
+		'center': () => mainStore.centerMarkerShowHide(),
 		'undo': () => mainStore.undo(),
 		'redo': () => mainStore.redo(),
 	};

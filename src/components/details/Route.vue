@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="mainStore.routesShow && mainStore.currentRouteId"
+		v-if="mainStore.routesShow.show && mainStore.currentRouteId"
 		id="route-description"
 		class="margin_bottom"
 	>

@@ -6,7 +6,7 @@
 			:center="mapCenter.coords as PointExpression"
 			@ready="ready"
 			@dragend="updateState"
-			@contextmenu="mapContextMenu"
+			@contextmenu="leafletMapContextMenu"
 		>
 			<l-control-layers />
 			<l-tile-layer
@@ -23,7 +23,7 @@
 			<l-marker
 				:lat-lng="mapCenter.coords as LatLngExpression"
 				draggable
-				:visible="mainStore.centerPlacemarkShow"
+				:visible="mainStore.centerMarkerShow"
 				@dragend="(e: LeafletEvent) => updateState({
 					coords: [
 						e.target.getLatLng().lat,
@@ -39,82 +39,82 @@
 
 <!-- SEC Markers: Place Markers  -->
 
-			<l-marker
-				v-for="place in computedPlaces"
-				:key="place.key"
-				:lat-lng="[
-					mainStore.points[place.pointid].latitude,
-					mainStore.points[place.pointid].longitude,
-				]"
-				draggable
-				:visible="mainStore.placemarksShow && place.show && !!place.geomark"
-				@click="mainStore.setCurrentPlace(place, false)"
-				@contextmenu="(e: LeafletEvent) =>
-					markerContextMenu(e, mainStore.points[place.pointid], place)
-				"
-				@dragstart="dragging = true"
-				@dragend="(e: LeafletEvent) => {
-					dragging = false;
-					markerDragEnd(place, e);
-				}"
-			>
-				<l-icon
-					v-bind="(
-						place.added &&
-						!place.updated &&
-						mainStore.points[place.pointid].added &&
-						!mainStore.points[place.pointid].updated
-							? icon_new
-							: (
-								place.id === mainStore.currentPlaceId
-									? icon_active
-									: icon_basic
-							)
-					) as {}"
-				/>
-				<l-tooltip permanent="true" v-if="place.name">
-					{{ place.name }}
-				</l-tooltip>
-			</l-marker>
+			<l-layer-group v-if="mainStore.placesShow.show">
+				<l-marker
+					v-for="place in computedPlaces"
+					:key="place.key"
+					:lat-lng="[
+						mainStore.points[place.pointid].latitude,
+						mainStore.points[place.pointid].longitude,
+					]"
+					draggable
+					:visible="mainStore.markersShow && place.show && !!place.geomark"
+					@click="mainStore.setCurrentPlace(place, false)"
+					@contextmenu="(e: LeafletEvent) =>
+						markerContextMenu(e, mainStore.points[place.pointid], place)
+					"
+					@dragstart="dragging = true"
+					@dragend="(e: LeafletEvent) => {
+						dragging = false;
+						markerDragEnd(place, e);
+					}"
+				>
+					<l-icon
+						v-bind="(
+							place.added &&
+							!place.updated &&
+							mainStore.points[place.pointid].added &&
+							!mainStore.points[place.pointid].updated
+								? icon_new
+								: (
+									place.id === mainStore.currentPlaceId
+										? icon_active
+										: icon_basic
+								)
+						) as {}"
+					/>
+					<l-tooltip permanent="true" v-if="place.name">
+						{{ place.name }}
+					</l-tooltip>
+				</l-marker>
 
 <!-- SEC Markers: Common Place Markers  -->
 
-			<l-marker
-				v-for="place in computedCommonPlaces"
-				:key="place.key"
-				:lat-lng="[
-					mainStore.points[place.pointid].latitude,
-					mainStore.points[place.pointid].longitude,
-				]"
-				:visible="mainStore.commonPlacemarksShow && place.geomark"
-				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-				@contextmenu="(e: LeafletEvent) =>
-					markerContextMenu(e, mainStore.points[place.pointid], place)
-				"
-			>
-				<l-icon
-					v-bind="(
-						mainStore.mode === 'measure' &&
-						mainStore.measure.points.find(p => p.id === place.id) &&
-						place.id === mainStore.currentPlaceId
-							? icon_common : icon_common_active
-					) as {}"
-				/>
-				<l-tooltip>
-					{{ place.name }}<br />
-					{{ mainStore.t.i.captions.user }}: {{
-						mainStore.users[place.userid].name
-							? mainStore.users[place.userid].name
-							: mainStore.users[place.userid].login
-					}}
-				</l-tooltip>
-			</l-marker>
+				<l-marker
+					v-for="place in computedCommonPlaces"
+					:key="place.key"
+					:lat-lng="[
+						mainStore.points[place.pointid].latitude,
+						mainStore.points[place.pointid].longitude,
+					]"
+					:visible="mainStore.commonMarkersShow && place.geomark"
+					@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
+					@contextmenu="(e: LeafletEvent) =>
+						markerContextMenu(e, mainStore.points[place.pointid], place)
+					"
+				>
+					<l-icon
+						v-bind="(
+							mainStore.mode === 'measure' &&
+							mainStore.measure.points.find(p => p.id === place.id) &&
+							place.id === mainStore.currentPlaceId
+								? icon_common : icon_common_active
+						) as {}"
+					/>
+					<l-tooltip>
+						{{ place.name }}<br />
+						{{ mainStore.t.i.captions.user }}: {{
+							mainStore.users[place.userid].name
+								? mainStore.users[place.userid].name
+								: mainStore.users[place.userid].login
+						}}
+					</l-tooltip>
+				</l-marker>
+			</l-layer-group>
 
 <!-- SEC Markers: Route Points  -->
 
-			<l-layer-group
-				v-if="mainStore.mode === 'routes' && mainStore.routesShow"
-			>
+			<l-layer-group v-if="mainStore.mode === 'routes' && mainStore.routesShow.show">
 				<template
 					v-for="route in computedRoutes"
 					:key="route.id"
@@ -172,8 +172,8 @@
 						<l-marker
 							:lat-lng="[ point.latitude, point.longitude ]"
 							:visible="
-								mainStore.placemarksShow &&
-								mainStore.tempsPlacemarksShow &&
+								mainStore.markersShow &&
+								mainStore.tempsMarkersShow &&
 								point.show
 							"
 							draggable
@@ -229,72 +229,74 @@
 
 <!-- SEC Markers: Temps  -->
 
-			<template
-				v-for="point in computedTemps"
-				:key="point.key"
-			>
-				<l-marker
-					:lat-lng="[ point.latitude, point.longitude ]"
-					:visible="
-						mainStore.placemarksShow &&
-						mainStore.tempsPlacemarksShow &&
-						point.show
-					"
-					:z-index-offset="
-						point.id === mainStore.currentPointId ? 10000 : 0
-					"
-					draggable
-					@click="mainStore.setCurrentPoint(
-						mainStore.getPointById(point.id), false
-					)"
-					@contextmenu="(e: LeafletEvent) =>
-						markerContextMenu(e, mainStore.getPointById(point.id), null
-					)"
-					@dragstart="dragging = true"
-					@dragend="(e: LeafletEvent) => {
-						dragging = false;
-						markerDragEnd(mainStore.getPointById(point.id), e);
-					}"
-					@move="(e: LeafletEvent) => {
-						if (mainStore.mode !== 'measure') return;
-						const { lat, lng } = e.target.getLatLng();
-						const polyline = routeLineRefs['measureId'];
-						if (polyline) {
-							const latLngs = polyline.getLatLngs();
-							const pointIndex = mainStore.measure.points.findIndex(
-								p => p.id === point.id
-							);
-							if (pointIndex !== -1) {
-								latLngs[pointIndex] = [ lat, lng ];
-								polyline.setLatLngs(latLngs);
-							}
-						}
-						markerRefs[point.id].setLatLng([ lat, lng ]);
-					}"
+			<l-layer-group v-if="mainStore.tempsShow.show">
+				<template
+					v-for="point in computedTemps"
+					:key="point.key"
 				>
-					<l-icon
-						v-bind="(point.id === mainStore.currentPointId
-							? icon_temp_active
-							: (mainStore.isMeasurePoint(point.id)
-								? icon_null : icon_temp
-							)
-						) as {}"
-					/>
-					<l-circle-marker
-						v-if="
-							mainStore.mode === 'measure' &&
-							mainStore.isMeasurePoint(point.id) &&
-							point.id !== mainStore.measure.points[0].id &&
-							point.id !== mainStore.measure.points.at(-1).id
-						"
-						:ref="el => setRef(point.id, el, markerRefs)"
+					<l-marker
 						:lat-lng="[ point.latitude, point.longitude ]"
-						class-name="marker-intermediate"
-						:radius="10"
-						:weight="1"
-					/>
-				</l-marker>
-			</template>
+						:visible="
+							mainStore.markersShow &&
+							mainStore.tempsMarkersShow &&
+							point.show
+						"
+						:z-index-offset="
+							point.id === mainStore.currentPointId ? 10000 : 0
+						"
+						draggable
+						@click="mainStore.setCurrentPoint(
+							mainStore.getPointById(point.id), false
+						)"
+						@contextmenu="(e: LeafletEvent) =>
+							markerContextMenu(e, mainStore.getPointById(point.id), null
+						)"
+						@dragstart="dragging = true"
+						@dragend="(e: LeafletEvent) => {
+							dragging = false;
+							markerDragEnd(mainStore.getPointById(point.id), e);
+						}"
+						@move="(e: LeafletEvent) => {
+							if (mainStore.mode !== 'measure') return;
+							const { lat, lng } = e.target.getLatLng();
+							const polyline = routeLineRefs['measureId'];
+							if (polyline) {
+								const latLngs = polyline.getLatLngs();
+								const pointIndex = mainStore.measure.points.findIndex(
+									p => p.id === point.id
+								);
+								if (pointIndex !== -1) {
+									latLngs[pointIndex] = [ lat, lng ];
+									polyline.setLatLngs(latLngs);
+								}
+							}
+							markerRefs[point.id].setLatLng([ lat, lng ]);
+						}"
+					>
+						<l-icon
+							v-bind="(point.id === mainStore.currentPointId
+								? icon_temp_active
+								: (mainStore.isMeasurePoint(point.id)
+									? icon_null : icon_temp
+								)
+							) as {}"
+						/>
+						<l-circle-marker
+							v-if="
+								mainStore.mode === 'measure' &&
+								mainStore.isMeasurePoint(point.id) &&
+								point.id !== mainStore.measure.points[0].id &&
+								point.id !== mainStore.measure.points.at(-1).id
+							"
+							:ref="el => setRef(point.id, el, markerRefs)"
+							:lat-lng="[ point.latitude, point.longitude ]"
+							class-name="marker-intermediate"
+							:radius="10"
+							:weight="1"
+						/>
+					</l-marker>
+				</template>
+			</l-layer-group>
 
 <!-- SEC Circles, Polylines -->
 
@@ -303,7 +305,7 @@
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.length
 				"
-				:ref="el => setRef(mainStore.measure.points[0].id, el, markerRefs)"
+				:ref="el => setRef(mainStore.measure.points[0]?.id, el, markerRefs)"
 				:lat-lng="
 					mainStore.getPointCoords(
 						mainStore.measure.points[0].id
@@ -318,10 +320,10 @@
 					mainStore.mode === 'measure' &&
 					mainStore.measure.points.length
 				"
-				:ref="el => setRef(mainStore.measure.points.at(-1).id, el, markerRefs)"
+				:ref="el => setRef(mainStore.measure.points.at(-1)?.id, el, markerRefs)"
 				:lat-lng="
 					mainStore.getPointCoords(
-						mainStore.measure.points.at(-1).id
+						mainStore.measure.points.at(-1)?.id
 					) as LatLngExpression
 				"
 				class-name="marker-end"
@@ -378,6 +380,7 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Route, Point, PointName } from '@/types';
+import { mapContextMenu } from '@/shared/map';
 import { IPopupProps } from '@/shared/interfaces';
 
 const mainStore = useMainStore();
@@ -483,28 +486,8 @@ const setRef = async (id: string, el: any, refs: any) => {
 
 // SEC Right clicks
 
-const mapContextMenu = (e: any) => {
-	const { lat, lng } = e.latlng;
-	if (mainStore.mode === 'normal' ||  mainStore.mode === 'measure') {
-		const temp = mainStore.upsertPoint({
-			props: { latitude: lat, longitude: lng },
-			where: mainStore.temps,
-		});
-		if (mainStore.mode === 'measure') {
-			mainStore.addPointToPoints({
-				point: temp,
-				entity: mainStore.measure,
-			});
-		}
-		return;
-	}
-	if (mainStore.mode === 'routes' && mainStore.currentRouteId) {
-		mainStore.upsertPoint({
-			props: { latitude: lat, longitude: lng },
-			where: mainStore.points,
-			whom: mainStore.currentRoute,
-		});
-	}
+const leafletMapContextMenu = (e: any) => {
+	mapContextMenu(e.originalEvent, e.latlng.lat, e.latlng.lng);
 }
 const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	switch (mainStore.mode) {

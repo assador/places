@@ -4,7 +4,7 @@
 		id="place-description"
 	>
 		<h2
-			v-if="mainStore.routesShow"
+			v-if="mainStore.routesShow.show"
 				class="color-01"
 		>
 			{{ mainStore.t.i.captions.currentPlace }}

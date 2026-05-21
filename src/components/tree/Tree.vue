@@ -137,7 +137,7 @@
 import { ref, provide, onMounted, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { Folder, Place, Route } from '@/types';
+import { Folder } from '@/types';
 import { isPlace } from '@/guards';
 import { formFoldersCheckedIds } from '@/shared/generators';
 import { IEntityPopupProps } from '@/shared/interfaces';

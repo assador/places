@@ -112,21 +112,21 @@ export const uiActions = {
 
 // SEC Map
 
-	centerPlacemarkShowHide(show? : boolean) {
-		this.centerPlacemarkShow = show === undefined
-			? !this.centerPlacemarkShow
+	centerMarkerShowHide(show? : boolean) {
+		this.centerMarkerShow = show === undefined
+			? !this.centerMarkerShow
 			: show
 		;
 	},
-	placemarksShowHide(show? : boolean) {
-		this.placemarksShow = show === undefined
-			? !this.placemarksShow
+	markersShowHide(show? : boolean) {
+		this.markersShow = show === undefined
+			? !this.markersShow
 			: show
 		;
 	},
-	commonPlacemarksShowHide(show? : boolean) {
-		this.commonPlacemarksShow = show === undefined
-			? !this.commonPlacemarksShow
+	commonMarkersShowHide(show? : boolean) {
+		this.commonMarkersShow = show === undefined
+			? !this.commonMarkersShow
 			: show
 		;
 	},

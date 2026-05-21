@@ -8,6 +8,15 @@ import {
 } from '@/types';
 import { isPoint, isPlace, isRoute } from '@/guards';
 
+interface UpsertPlaceParams {
+	object?: Place;
+	props?: Partial<Place> & Partial<Point>;
+	where?: Record<string, Place>;
+	mode?: AppendMode;
+	center?: boolean;
+	silent?: boolean;
+}
+
 export const entityActions = {
 
 // SEC Factories
@@ -245,14 +254,9 @@ export const entityActions = {
 		props,
 		where = this.places,
 		mode = 'new',
+		center = false,
 		silent = false,
-	}: {
-		object?: Place;
-		props?: Partial<Place>;
-		where?: Record<string, Place>;
-		mode?: AppendMode,
-		silent?: boolean;
-	} = {}): Place {
+	}: UpsertPlaceParams = {}): Place {
 
 		let place: Place;
 		let point: Point | null;
@@ -316,14 +320,17 @@ export const entityActions = {
 				break;
 			}
 		}
-		this.setCurrentPlace(place);
+		this.setCurrentPlace(place, center);
 		if (!silent) {
 			this.saved = false;
 			this.backupState();
 		}
 		return place;
 	},
-	upsertPlaceFollowing(entity: Place | null) {
+	upsertPlaceFollowing(
+		entity: Place | null,
+		params: UpsertPlaceParams = {},
+	) {
 		if (!entity) {
 			this.upsertPlace();
 			return;
@@ -333,12 +340,11 @@ export const entityActions = {
 			entity.type,
 			false,
 		);
-		this.upsertPlace({
-			props: {
-				folderid: entity.folderid,
-				srt: neighbours.new,
-			}
-		});
+		const callParams = { ...params };
+		if (!callParams.props) callParams.props = {};
+		callParams.props.folderid = entity.folderid;
+		callParams.props.srt = neighbours.new;
+		this.upsertPlace(callParams);
 	},
 	upsertRoute({
 		object,
@@ -615,6 +621,17 @@ export const entityActions = {
 			this.deleteTemp(id);
 		}
 	},
+	deleteAllMeasurePoints() {
+		this.measure.points.forEach((p: PointName) => {
+			if (!this.temps[p.id]) return;
+			delete this.temps[p.id];
+			if (this.currentPointId && this.currentPointId === p.id) {
+				this.setCurrentPoint(null);
+			}
+		});
+		this.measure.points.length = 0;
+		this.measure.choosing = 0;
+	},
 	deleteImages(
 		{ imageIds, entity } :
 		{ imageIds: string[]; entity: Place | Route; }
@@ -694,7 +711,7 @@ export const entityActions = {
 
 	setCurrentPoint<T extends string | Point | null | undefined>(
 		param: T,
-		center?: boolean | undefined,
+		center?: boolean,
 	) {
 		let point = null;
 		if (typeof param === 'string') {
@@ -723,7 +740,7 @@ export const entityActions = {
 	},
 	setCurrentPlace<T extends string | Place | null | undefined>(
 		param: T,
-		center?: boolean | undefined,
+		center?: boolean,
 	) {
 		let place: Place | null;
 		if (typeof param === 'string') {
@@ -736,7 +753,7 @@ export const entityActions = {
 	},
 	setCurrentRoute<T extends string | Route | null | undefined>(
 		param: T,
-		center?: boolean | undefined,
+		center?: boolean,
 	) {
 		let route: Route | null;
 		if (typeof param === 'string') {

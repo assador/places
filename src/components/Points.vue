@@ -22,16 +22,16 @@
 			<div
 				v-if="type === 'temps'"
 				class="folder-button__control button-iconed icon"
-				:class="'icon-geomark-' + (!mainStore.tempsPlacemarksShow ? '0' : '1') + '-circled'"
+				:class="'icon-geomark-' + (!mainStore.tempsMarkersShow ? '0' : '1') + '-circled'"
 				:title="
-					(mainStore.tempsPlacemarksShow
+					(mainStore.tempsMarkersShow
 						? mainStore.t.i.hints.hide
 						: mainStore.t.i.hints.show
 					) + ' ' +
 					mainStore.t.i.hints.onMap
 				"
 				@click.stop="
-					mainStore.tempsPlacemarksShow = !mainStore.tempsPlacemarksShow
+					mainStore.tempsMarkersShow = !mainStore.tempsMarkersShow
 				"
 			/>
 			<div v-else />
@@ -71,7 +71,7 @@
 			>
 				<button
 					class="button-iconed icon icon-plus-circled"
-					:title="mainStore.t.i.hints.addTemp"
+					:title="mainStore.t.i.hints.addPoint"
 					@click="() => {
 						const point = mainStore.upsertPoint({ where: mainStore.temps });
 						mainStore.addPointToPoints({
@@ -82,11 +82,8 @@
 				/>
 				<button
 					class="button-iconed icon icon-cross-45-circled"
-					:title="mainStore.t.i.buttons.clearAll"
-					@click="() => {
-						mainStore.measure.points.length = 0;
-						mainStore.measure.choosing = 0;
-					}"
+					:title="mainStore.t.i.buttons.clear"
+					@click="mainStore.deleteAllMeasurePoints()"
 				/>
 			</div>
 		</div>
@@ -512,12 +509,19 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 	}
 	button {
 		position: relative;
-		display: grid;
-		grid-template-columns: 1fr auto;
+		display: flex;
 		align-items: center;
+		justify-content: left;
+		min-height: 30px;
 		margin: 0;
-		padding: 0 0 0 4px;
+		padding: 4px 20px 4px 4px;
 		flex: 1 0 auto;
+		.button-iconed {
+			position: absolute;
+			top: -1px; right: -2px;
+			min-width: auto; min-height: auto;
+			width: 20px; height: 20px;
+		}
 		& > *:last-child {
 			display: flex;
 			align-items: center;

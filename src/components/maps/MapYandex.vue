@@ -15,7 +15,7 @@
 			<yandex-map-listener
 				:settings="{
 					onActionEnd: () => updateState(),
-					onContextMenu: (_, e) => mapContextMenu(e.coordinates.reverse()),
+					onContextMenu: (_, e) => yandexMapContextMenu(e),
 				}"
 			/>
 
@@ -28,94 +28,94 @@
 					draggable: true,
 					onDragEnd: e => updateState({ coords: e.reverse() }),
 				}"
-				:visible="mainStore.centerPlacemarkShow"
+				:visible="mainStore.centerMarkerShow"
 			>
 				<img
 					class="marker-center"
-					:src="placemarksOptions.icon_center.iconUrl"
+					:src="markersOptions.icon_center.iconUrl"
 					:title="mainStore.t.i.maps.center"
 				/>
 			</yandex-map-marker>
 
 <!-- SEC Markers: Place Markers  -->
 
-			<yandex-map-marker
-				v-for="place in computedPlaces"
-				:key="place.key"
-				v-model="markers[place.id]"
-				:settings="{
-					coordinates: [
-						mainStore.points[place.pointid].longitude,
-						mainStore.points[place.pointid].latitude,
-					],
-					draggable: true,
-					onDragStart: () => { dragging = true },
-					onDragEnd: coords => {
-						dragging = false;
-						markerDragEnd(place, coords);
-					},
-				}"
-				:visible="mainStore.placemarksShow && place.show && place.geomark"
-				class="place"
-				@click="mainStore.setCurrentPlace(place, false)"
-				@contextmenu.prevent.stop="(e: PointerEvent) =>
-					markerContextMenu(e, mainStore.points[place.pointid], place)
-				"
-			>
-				<img
-					class="marker"
-					:src="placemarksOptions[
-						place.added &&
-						!place.updated &&
-						mainStore.points[place.pointid].added &&
-						!mainStore.points[place.pointid].updated
-							? 'icon_new'
-							: (
-								place.id === mainStore.currentPlaceId
-									? 'icon_active'
-									: 'icon_basic'
-							)
-					].iconUrl"
-					:title="place.name"
-				/>
-			</yandex-map-marker>
+			<template v-if="mainStore.placesShow.show">
+				<yandex-map-marker
+					v-for="place in computedPlaces"
+					:key="place.key"
+					v-model="markers[place.id]"
+					:settings="{
+						coordinates: [
+							mainStore.points[place.pointid].longitude,
+							mainStore.points[place.pointid].latitude,
+						],
+						draggable: true,
+						onDragStart: () => { dragging = true },
+						onDragEnd: coords => {
+							dragging = false;
+							markerDragEnd(place, coords);
+						},
+					}"
+					:visible="mainStore.markersShow && place.show && place.geomark"
+					class="place"
+					@click="mainStore.setCurrentPlace(place, false)"
+					@contextmenu.prevent.stop="(e: PointerEvent) =>
+						markerContextMenu(e, mainStore.points[place.pointid], place)
+					"
+				>
+					<img
+						class="marker"
+						:src="markersOptions[
+							place.added &&
+							!place.updated &&
+							mainStore.points[place.pointid].added &&
+							!mainStore.points[place.pointid].updated
+								? 'icon_new'
+								: (
+									place.id === mainStore.currentPlaceId
+										? 'icon_active'
+										: 'icon_basic'
+								)
+						].iconUrl"
+						:title="place.name"
+					/>
+				</yandex-map-marker>
 
 <!-- SEC Markers: Common Place Markers  -->
 
-			<yandex-map-marker
-				v-for="place in computedCommonPlaces"
-				:key="place.key"
-				v-model="markers[place.id]"
-				:settings="{
-					coordinates: [
-						mainStore.points[place.pointid].longitude,
-						mainStore.points[place.pointid].latitude,
-					],
-					draggable: false,
-				}"
-				:visible="mainStore.commonPlacemarksShow && place.geomark"
-				@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-				@contextmenu.prevent.stop="(e: PointerEvent) =>
-					markerContextMenu(e, mainStore.points[place.pointid], place)
-				"
-			>
-				<img
-					class="marker"
-					:src="placemarksOptions[
-						mainStore.mode === 'measure' &&
-						mainStore.measure.points.find(p => p.id === place.id) &&
-						place.id === mainStore.currentPlaceId
-							? 'icon_common' : 'icon_common_active'
-					].iconUrl"
-					:title="place.name"
-				/>
-			</yandex-map-marker>
+				<yandex-map-marker
+					v-for="place in computedCommonPlaces"
+					:key="place.key"
+					v-model="markers[place.id]"
+					:settings="{
+						coordinates: [
+							mainStore.points[place.pointid].longitude,
+							mainStore.points[place.pointid].latitude,
+						],
+						draggable: false,
+					}"
+					:visible="mainStore.commonMarkersShow && place.geomark"
+					@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
+					@contextmenu.prevent.stop="(e: PointerEvent) =>
+						markerContextMenu(e, mainStore.points[place.pointid], place)
+					"
+				>
+					<img
+						class="marker"
+						:src="markersOptions[
+							mainStore.mode === 'measure' &&
+							mainStore.measure.points.find(p => p.id === place.id) &&
+							place.id === mainStore.currentPlaceId
+								? 'icon_common' : 'icon_common_active'
+						].iconUrl"
+						:title="place.name"
+					/>
+				</yandex-map-marker>
+			</template>
 
 <!-- SEC Markers: Route Points  -->
 
-			<template
-				v-if="mainStore.mode === 'routes' && mainStore.routesShow"
-			>
+			<template v-if="mainStore.mode === 'routes' && mainStore.routesShow.show">
 				<template
 					v-for="route in computedRoutes"
 					:key="route.id"
@@ -200,8 +200,8 @@
 								},
 							}"
 							:visible="
-								mainStore.placemarksShow &&
-								mainStore.tempsPlacemarksShow &&
+								mainStore.markersShow &&
+								mainStore.tempsMarkersShow &&
 								point.show
 							"
 							@click="mainStore.setCurrentPoint(
@@ -236,7 +236,7 @@
 							/>
 							<img
 								v-if="point.id === mainStore.currentPointId"
-								:src="placemarksOptions.icon_active.iconUrl"
+								:src="markersOptions.icon_active.iconUrl"
 								class="marker"
 							/>
 						</yandex-map-marker>
@@ -289,92 +289,94 @@
 					},
 				}"
 			/>
-			<template
-				v-for="point in computedTemps"
-				:key="point.key"
-			>
-				<yandex-map-marker
-					v-model="markers[point.id]"
-					:settings="{
-						coordinates: [
-							point.longitude,
-							point.latitude,
-						],
-						draggable: true,
-						onDragStart: () => { dragging = true },
-						onDragEnd: coords => {
-							dragging = false;
-							markerDragEnd(mainStore.getPointById(point.id), coords);
-						},
-						onDragMove: e => {
-							const lineInstance = routeLines['measureId'];
-							if (lineInstance && lineInstance.geometry) {
-								const coords = [
-									...lineInstance.geometry.coordinates
-								];
-								const pointIndex = mainStore.measure.points.findIndex(
-									p => p.id === point.id
-								);
-								if (pointIndex !== -1) {
-									coords[pointIndex] = [ e[0], e[1] ];
-									lineInstance.update({
-										geometry: {
-											type: 'LineString',
-											coordinates: coords as LngLat[],
-										},
-									});
-								}
-							}
-						},
-					}"
-					:visible="
-						mainStore.placemarksShow &&
-						mainStore.tempsPlacemarksShow &&
-						point.show
-					"
-					@click="mainStore.setCurrentPoint(
-						mainStore.getPointById(point.id), false)
-					"
-					@contextmenu.prevent.stop="(e: PointerEvent) => markerContextMenu(
-						e,
-						mainStore.getPointById(point.id),
-						mainStore.currentRoute
-					)"
+			<template v-if="mainStore.tempsShow.show">
+				<template
+					v-for="point in computedTemps"
+					:key="point.key"
 				>
-					<template v-if="mainStore.mode === 'measure'">
-						<div
-							v-if="
-								point.id === mainStore.measure.points[0]?.id
-							"
-							class="marker-current marker-start"
-						/>
-						<div
-							v-else-if="point.id === mainStore.measure.points.at(-1)?.id"
-							class="marker-current marker-end"
-						/>
-						<div
-							v-else
-							class="marker-current marker-intermediate"
-						/>
-					</template>
-					<img
-						v-if="
-							mainStore.mode === 'measure' &&
-							mainStore.isMeasurePoint(point.id) &&
-							point.id === mainStore.currentPointId
+					<yandex-map-marker
+						v-model="markers[point.id]"
+						:settings="{
+							coordinates: [
+								point.longitude,
+								point.latitude,
+							],
+							draggable: true,
+							onDragStart: () => { dragging = true },
+							onDragEnd: coords => {
+								dragging = false;
+								markerDragEnd(mainStore.getPointById(point.id), coords);
+							},
+							onDragMove: e => {
+								const lineInstance = routeLines['measureId'];
+								if (lineInstance && lineInstance.geometry) {
+									const coords = [
+										...lineInstance.geometry.coordinates
+									];
+									const pointIndex = mainStore.measure.points.findIndex(
+										p => p.id === point.id
+									);
+									if (pointIndex !== -1) {
+										coords[pointIndex] = [ e[0], e[1] ];
+										lineInstance.update({
+											geometry: {
+												type: 'LineString',
+												coordinates: coords as LngLat[],
+											},
+										});
+									}
+								}
+							},
+						}"
+						:visible="
+							mainStore.markersShow &&
+							mainStore.tempsMarkersShow &&
+							point.show
 						"
-						:src="placemarksOptions.icon_active.iconUrl"
-						class="marker"
-					/>
-					<img
-						v-else-if="!mainStore.isMeasurePoint(point.id)"
-						:src="placemarksOptions[
-							point.id === mainStore.currentPointId
-								? 'icon_temp_active' : 'icon_temp'
-						].iconUrl"
-						class="marker"
-					/>
-				</yandex-map-marker>
+						@click="mainStore.setCurrentPoint(
+							mainStore.getPointById(point.id), false)
+						"
+						@contextmenu.prevent.stop="(e: PointerEvent) => markerContextMenu(
+							e,
+							mainStore.getPointById(point.id),
+							mainStore.currentRoute
+						)"
+					>
+						<template v-if="mainStore.mode === 'measure'">
+							<div
+								v-if="
+									point.id === mainStore.measure.points[0]?.id
+								"
+								class="marker-current marker-start"
+							/>
+							<div
+								v-else-if="point.id === mainStore.measure.points.at(-1)?.id"
+								class="marker-current marker-end"
+							/>
+							<div
+								v-else
+								class="marker-current marker-intermediate"
+							/>
+						</template>
+						<img
+							v-if="
+								mainStore.mode === 'measure' &&
+								mainStore.isMeasurePoint(point.id) &&
+								point.id === mainStore.currentPointId
+							"
+							:src="markersOptions.icon_active.iconUrl"
+							class="marker"
+						/>
+						<img
+							v-else-if="!mainStore.isMeasurePoint(point.id)"
+							:src="markersOptions[
+								point.id === mainStore.currentPointId
+									? 'icon_temp_active' : 'icon_temp'
+							].iconUrl"
+							class="marker"
+						/>
+					</yandex-map-marker>
+				</template>
 			</template>
 
 			<yandex-map-default-features-layer />
@@ -400,6 +402,7 @@ import { useMainStore } from '@/stores/main';
 import { Place, Route, Measure, Point, PointName } from '@/types';
 import { IPopupProps } from '@/shared/interfaces';
 import { getPointToSegmentDistance } from '@/shared/common';
+import { mapContextMenu } from '@/shared/map';
 import {
 	YandexMap,
 	YandexMapListener,
@@ -419,6 +422,7 @@ import type {
 	YMapMarker,
 	YMapFeature,
 	LngLat,
+	DomEvent,
 } from '@yandex/ymaps3-types';
 
 const mainStore = useMainStore();
@@ -480,28 +484,9 @@ const dragging = ref(false);
 
 // SEC Right clicks
 
-const mapContextMenu = (coords: number[]) => {
-	const [ lat, lng ] = coords;
-	if (mainStore.mode === 'normal' ||  mainStore.mode === 'measure') {
-		const temp = mainStore.upsertPoint({
-			props: { latitude: lat, longitude: lng },
-			where: mainStore.temps,
-		});
-		if (mainStore.mode === 'measure') {
-			mainStore.addPointToPoints({
-				point: temp,
-				entity: mainStore.measure,
-			});
-		}
-		return;
-	}
-	if (mainStore.mode === 'routes' && mainStore.currentRouteId) {
-		mainStore.upsertPoint({
-			props: { latitude: lat, longitude: lng },
-			where: mainStore.points,
-			whom: mainStore.currentRoute,
-		});
-	}
+const yandexMapContextMenu = (e: DomEvent) => {
+	const coords = e.coordinates.reverse();
+	mapContextMenu(e, coords[0], coords[1]);
 }
 const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 	switch (mainStore.mode) {
@@ -631,7 +616,7 @@ const updateState = (payload?: { coords?: Array<number>, zoom?: number }) => {
 	});
 };
 
-const placemarksOptions = ref({
+const markersOptions = ref({
 	basic: {
 		iconLayout: 'default#image',
 		iconImageSize: [25, 38],

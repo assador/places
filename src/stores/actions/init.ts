@@ -33,9 +33,9 @@ export const initActions = {
 			longitude: Number(constants.map.initial.longitude),
 		};
 		this.zoom = Number(constants.map.initial.zoom);
-		this.placemarksShow = true;
-		this.commonPlacemarksShow = false;
-		this.centerPlacemarkShow = false;
+		this.markersShow = true;
+		this.commonMarkersShow = false;
+		this.centerMarkerShow = false;
 		this.ready = false;
 		this.messages = [];
 		this.messagesMouseOver = false;

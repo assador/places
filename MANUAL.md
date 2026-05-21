@@ -145,8 +145,9 @@ The mode determines the map behavior and Right-Click (RMB) actions.
 
 Working with Places and temporary Points.
 
-- RMB on empty space: Creates a Point.
-- RMB on an existing Point: Shows coordinate information.
+- RMB (Right Mouse Button) on empty space on the map: Creates a new Place.
+- RMB on empty space on the map with `Shift` pressed: Creates a new temporary Point.
+- RMB on an existing Place or Point: Shows coordinate information.
 
 ### Route Mode
 
@@ -239,20 +240,23 @@ If you change your mind, pressing the “leader key” again or hitting `Esc
 
 #### List of Hotkeys
 
-- `A` — add a new place following the current one
-- `F` — add a new folder inside the current one
-- `N` — normal mode
-- `R` — routes mode
-- `M` — measure mode
-- `I` — import from file
-- `E` — export to file
-- `S` — save changes
-- `H` — show this manual
-- `Q` — quit (log out)
-- `P` — show / hide placemarks on the map
-- `C` — show / hide map center crosshair
-- `Z` — undo the last action
-- `Y` — redo the undone action
+- `1` — normal mode
+- `2` — routes mode
+- `3` — measure mode
+- `p` — show / hide places
+- `r` — show / hide routes
+- `t` — show / hide temporary points
+- `a` — add a new place following the current one
+- `f` — add a new folder inside the current one
+- `i` — import from file
+- `e` — export to file
+- `s` — save changes
+- `h` — show this manual
+- `q` — quit (log out)
+- `m` — show / hide markers on the map
+- `c` — show / hide map center crosshair
+- `z` — undo the last action
+- `y` — redo the undone action
 
 ## 5\. Storage and Ordering Principles
 

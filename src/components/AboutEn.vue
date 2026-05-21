@@ -138,8 +138,9 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <h3 id="normal-mode">Normal Mode</h3>
 <p>Working with Places and temporary Points.</p>
 <ul>
-<li>RMB on empty space: Creates a Point.</li>
-<li>RMB on an existing Point: Shows coordinate information.</li>
+<li>RMB (Right Mouse Button) on empty space on the map: Creates a new Place.</li>
+<li>RMB on empty space on the map with <code>Shift</code> pressed: Creates a new temporary Point.</li>
+<li>RMB on an existing Place or Point: Shows coordinate information.</li>
 </ul>
 <h3 id="route-mode">Route Mode</h3>
 <p>Working with the current Route.</p>
@@ -216,20 +217,23 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <p>If you change your mind, pressing the “leader key” again or hitting <code>Esc</code> deactivates the shortcut mode.</p>
 <h4>List of Hotkeys</h4>
 <ul>
-<li><code>A</code> — add a new place following the current one</li>
-<li><code>F</code> — add a new folder inside the current one</li>
-<li><code>N</code> — normal mode</li>
-<li><code>R</code> — routes mode</li>
-<li><code>M</code> — measure mode</li>
-<li><code>I</code> — import from file</li>
-<li><code>E</code> — export to file</li>
-<li><code>S</code> — save changes</li>
-<li><code>H</code> — show this manual</li>
-<li><code>Q</code> — quit (log out)</li>
-<li><code>P</code> — show / hide placemarks on the map</li>
-<li><code>C</code> — show / hide map center crosshair</li>
-<li><code>Z</code> — undo the last action</li>
-<li><code>Y</code> — redo the undone action</li>
+<li><code>1</code> — normal mode</li>
+<li><code>2</code> — routes mode</li>
+<li><code>3</code> — measure mode</li>
+<li><code>p</code> — show / hide places</li>
+<li><code>r</code> — show / hide routes</li>
+<li><code>t</code> — show / hide temporary points</li>
+<li><code>a</code> — add a new place following the current one</li>
+<li><code>f</code> — add a new folder inside the current one</li>
+<li><code>i</code> — import from file</li>
+<li><code>e</code> — export to file</li>
+<li><code>s</code> — save changes</li>
+<li><code>h</code> — show this manual</li>
+<li><code>q</code> — quit (log out)</li>
+<li><code>m</code> — show / hide markers on the map</li>
+<li><code>c</code> — show / hide map center crosshair</li>
+<li><code>z</code> — undo the last action</li>
+<li><code>y</code> — redo the undone action</li>
 </ul>
 <h2 id="5-storage-and-ordering-principles">5. Storage and Ordering Principles</h2>
 <p><strong>Data vs. Order</strong>: Elements are stored by ID. Display order is determined by the <code>srt</code> field. This ensures stability during synchronization and independence from JS object ordering.</p>
