@@ -798,7 +798,6 @@ import { useRouter } from 'vue-router';
 import { emitter } from '@/shared/bus';
 import { constants } from '@/shared/constants';
 import { useLightPointerDnD } from '@/shared/dnd';
-import { makeFieldsValidatable } from '@/shared/generators';
 import { sortObjects } from '@/shared/sorting';
 import { clamp, makeDropDowns } from '@/shared/common';
 import { IPopupProps } from '@/shared/interfaces';
@@ -945,7 +944,6 @@ onMounted(async () => {
 		}
 	}, 1000);
 	await nextTick();
-	makeFieldsValidatable(mainStore.t);
 	windowResize();
 	makeDropDowns(root);
 	document.addEventListener('drop', handleDrop, false);
@@ -971,7 +969,6 @@ onUnmounted(() => {
 
 const firstUpdate = ref(true);
 onUpdated(() => {
-	makeFieldsValidatable(mainStore.t);
 	if (firstUpdate.value) {
 		mainStore.openTreeToCurrent(mainStore.currentPlace);
 		mainStore.openTreeToCurrent(mainStore.currentRoute);

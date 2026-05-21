@@ -73,11 +73,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, onUpdated, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import { FolderContext } from '@/types';
-import { makeFieldsValidatable } from '@/shared/generators';
 
 const mainStore = useMainStore();
 
@@ -122,14 +121,10 @@ const keyup = (event: KeyboardEvent): void => {
 onMounted(async () => {
 	popuped.value = true;
 	await nextTick();
-	makeFieldsValidatable(mainStore.t);
 	if (folderNameInput.value) folderNameInput.value.focus();
 	document.addEventListener('keyup', keyup, false);
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);
-});
-onUpdated(() => {
-	makeFieldsValidatable(mainStore.t);
 });
 </script>

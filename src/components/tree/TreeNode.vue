@@ -568,6 +568,9 @@ ul {
 	& > .sorting-area {
 		height: 4px;
 		z-index: 20;
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+		user-select: none;
 	}
 	& > .sorting-area-before {
 		top: 0; bottom: auto;
@@ -643,6 +646,12 @@ ul {
 		display: flex;
 		gap: 8px;
 		align-items: baseline;
+	}
+}
+@media (pointer: coarse) {
+	.folder-button {
+		padding-top: 4px;
+		padding-bottom: 4px;
 	}
 }
 :not(:is(.folder-root)) > .folder-places:is(:not(.unparented )) {

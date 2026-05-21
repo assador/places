@@ -54,7 +54,8 @@ import {
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 import Popup from '@/components/popups/Popup.vue';
 
-// Refs and Provides
+// SEC Refs and Provides
+
 const isMounted = ref(false);
 const foldersEditMode = ref(false);
 const idleTimeInterval = ref(null);
@@ -109,7 +110,8 @@ const popupBusy = ref<IPopupProps>({
 	},
 });
 
-// Event Bus Handlers
+// SEC Event Bus Handlers
+
 emitter.on('busy', value => {
 	mainStore.setBusy(value);
 });
@@ -152,7 +154,8 @@ emitter.on('homeToDB', id => {
 	homeToDB(id);
 });
 
-// Lifecycle
+// SEC Lifecycle
+
 onMounted(() => {
 	isMounted.value = true;
 	mainStore.$onAction(({
@@ -168,10 +171,6 @@ onMounted(() => {
 // SEC DB operations
 
 const toDB = async (payload: EntityCollection): Promise<void> => {
-	if (document.querySelector('.value_wrong')) {
-		mainStore.setMessage(mainStore.t.m.paged.incorrectFields, 3);
-		return;
-	}
 	if (!payload) payload = mainStore.getAllModifiedPackage;
 	try {
 		if (!mainStore.user.testaccount) {
@@ -186,7 +185,7 @@ const toDB = async (payload: EntityCollection): Promise<void> => {
 			);
 		}
 		mainStore.savedToDB(payload);
-	} catch (error: any) {
+	} catch (error) {
 		const errorMessage = error.response?.data?.message || error.message || error;
 		mainStore.setMessage(`${mainStore.t.m.popup.cannotSendDataToDb}: ${errorMessage}`);
 	}

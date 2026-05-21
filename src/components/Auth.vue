@@ -206,7 +206,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, nextTick, onBeforeMount, onMounted, onUpdated } from 'vue';
+import { ref, inject, nextTick, onBeforeMount, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 
@@ -215,7 +215,6 @@ import { constants } from '@/shared/constants';
 import { reg, regRoutine } from '@/shared/reg';
 import { login, loginRoutine } from '@/shared/auth';
 import { forgot, forgotRoutine } from '@/shared/forgot';
-import { makeFieldsValidatable, } from '@/shared/generators';
 
 import Dashboard from '@/components/Dashboard.vue';
 
@@ -257,10 +256,6 @@ const authRegSubmit = (): boolean => {
 	) {
 		return false;
 	}
-	if (document.querySelector('.value_wrong')) {
-		reg.message = mainStore.t.m.paged.incorrectFields;
-		return false;
-	}
 	if (regPassword.value !== regPasswordRepeat.value) {
 		reg.message = mainStore.t.m.paged.passwordsNotMatch;
 		return false;
@@ -286,11 +281,7 @@ onBeforeMount(() => {
 });
 onMounted(async () => {
 	await nextTick();
-	makeFieldsValidatable(mainStore.t);
 	emitter.emit('busy', false);
-});
-onUpdated(async () => {
-	makeFieldsValidatable(mainStore.t);
 });
 </script>
 

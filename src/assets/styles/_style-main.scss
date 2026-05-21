@@ -1164,6 +1164,9 @@ $filter-brightness-03: brightness(0%);
 	}
 	#messages {
 		text-align: right;
+		&:empty {
+			display: none;
+		}
 	}
 	.points-coordinates {
 		padding: 30px 20px 10px 20px !important;

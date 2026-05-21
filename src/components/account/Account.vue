@@ -149,13 +149,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUpdated, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 
 import { constants } from '@/shared/constants';
 import { acc, accountSaveRoutine } from '@/shared/account';
-import { makeFieldsValidatable } from '@/shared/generators';
 
 import Header from '@/components/Header.vue';
 
@@ -172,11 +171,7 @@ const account = ref(acc);
 
 onMounted(async () => {
 	await nextTick();
-	makeFieldsValidatable(mainStore.t);
 	document.addEventListener('keyup', keyup, false);
-});
-onUpdated(async () => {
-	makeFieldsValidatable(mainStore.t);
 });
 onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);

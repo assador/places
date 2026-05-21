@@ -12,7 +12,6 @@
 				<Header />
 				<div
 					id="messages"
-					class="invisible"
 					@mouseenter="mainStore.messagesMouseOver = true"
 					@mouseleave="() => {
 						mainStore.messagesMouseOver = false;
@@ -64,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineAsyncComponent, provide, onMounted } from 'vue';
+import { ref, defineAsyncComponent, provide, onMounted, type Component } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { useRouter } from 'vue-router';
@@ -121,7 +120,7 @@ const exit = async (): Promise<void> => {
 const component = ref('users');
 provide('component', component);
 
-const components = {
+const components: Record<string, { name: string, component: Component }> = {
 	users: {
 		name: 'AdminUsers',
 		component: defineAsyncComponent(() =>
