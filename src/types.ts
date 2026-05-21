@@ -256,7 +256,6 @@ export interface IMainState {
 	stateBackupsIndex: number,
 	t: any,
 	temps: Record<string, Point>,
-	tempsMarkersShow: boolean,
 	tempsShow: FirstShow,
 	treeParams: Record<string, Tree>,
 	user: User | null,

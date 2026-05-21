@@ -106,7 +106,6 @@ function createMainStoreState(): IMainState {
 		stateBackupsIndex: -1,
 		t: t,
 		temps: {},
-		tempsMarkersShow: true,
 		tempsShow: { show: false, first: true },
 		treeParams: {
 			places: {

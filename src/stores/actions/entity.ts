@@ -340,10 +340,14 @@ export const entityActions = {
 			entity.type,
 			false,
 		);
-		const callParams = { ...params };
-		if (!callParams.props) callParams.props = {};
-		callParams.props.folderid = entity.folderid;
-		callParams.props.srt = neighbours.new;
+		const callParams: UpsertPlaceParams = {
+			...params,
+			props: {
+				...params.props,
+				folderid: entity.folderid,
+				srt: neighbours.new,
+			}
+		};
 		this.upsertPlace(callParams);
 	},
 	upsertRoute({
@@ -831,14 +835,5 @@ export const entityActions = {
 		const newId = crypto.randomUUID();
 		idMap.set(oldId, newId);
 		return newId;
-	},
-
-	// SEC Checkers
-
-	isMeasurePoint(id: string) {
-		return this.measurePointIds.has(id);
-	},
-	isRoutePoint(id: string, route: Route) {
-		return this.routePointIds(route).has(id);
 	},
 };

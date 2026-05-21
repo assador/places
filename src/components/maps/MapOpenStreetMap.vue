@@ -39,7 +39,10 @@
 
 <!-- SEC Markers: Place Markers  -->
 
-			<l-layer-group v-if="mainStore.placesShow.show">
+			<l-layer-group v-if="
+				mainStore.placesShow.show &&
+				mainStore.markersShow
+			">
 				<l-marker
 					v-for="place in computedPlaces"
 					:key="place.key"
@@ -48,7 +51,7 @@
 						mainStore.points[place.pointid].longitude,
 					]"
 					draggable
-					:visible="mainStore.markersShow && place.show && !!place.geomark"
+					:visible="place.show && !!place.geomark"
 					@click="mainStore.setCurrentPlace(place, false)"
 					@contextmenu="(e: LeafletEvent) =>
 						markerContextMenu(e, mainStore.points[place.pointid], place)
@@ -80,41 +83,47 @@
 
 <!-- SEC Markers: Common Place Markers  -->
 
-				<l-marker
-					v-for="place in computedCommonPlaces"
-					:key="place.key"
-					:lat-lng="[
-						mainStore.points[place.pointid].latitude,
-						mainStore.points[place.pointid].longitude,
-					]"
-					:visible="mainStore.commonMarkersShow && place.geomark"
-					@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-					@contextmenu="(e: LeafletEvent) =>
-						markerContextMenu(e, mainStore.points[place.pointid], place)
-					"
-				>
-					<l-icon
-						v-bind="(
-							mainStore.mode === 'measure' &&
-							mainStore.measure.points.find(p => p.id === place.id) &&
-							place.id === mainStore.currentPlaceId
-								? icon_common : icon_common_active
-						) as {}"
-					/>
-					<l-tooltip>
-						{{ place.name }}<br />
-						{{ mainStore.t.i.captions.user }}: {{
-							mainStore.users[place.userid].name
-								? mainStore.users[place.userid].name
-								: mainStore.users[place.userid].login
-						}}
-					</l-tooltip>
-				</l-marker>
+				<l-layer-group v-if="mainStore.commonMarkersShow">
+					<l-marker
+						v-for="place in computedCommonPlaces"
+						:key="place.key"
+						:lat-lng="[
+							mainStore.points[place.pointid].latitude,
+							mainStore.points[place.pointid].longitude,
+						]"
+						:visible="place.geomark"
+						@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
+						@contextmenu="(e: LeafletEvent) =>
+							markerContextMenu(e, mainStore.points[place.pointid], place)
+						"
+					>
+						<l-icon
+							v-bind="(
+								mainStore.mode === 'measure' &&
+								mainStore.measure.points.find(p => p.id === place.id) &&
+								place.id === mainStore.currentPlaceId
+									? icon_common : icon_common_active
+							) as {}"
+						/>
+						<l-tooltip>
+							{{ place.name }}<br />
+							{{ mainStore.t.i.captions.user }}: {{
+								mainStore.users[place.userid].name
+									? mainStore.users[place.userid].name
+									: mainStore.users[place.userid].login
+							}}
+						</l-tooltip>
+					</l-marker>
+				</l-layer-group>
 			</l-layer-group>
 
 <!-- SEC Markers: Route Points  -->
 
-			<l-layer-group v-if="mainStore.mode === 'routes' && mainStore.routesShow.show">
+			<l-layer-group v-if="
+				mainStore.mode === 'routes' &&
+				mainStore.routesShow.show &&
+				mainStore.markersShow
+			">
 				<template
 					v-for="route in computedRoutes"
 					:key="route.id"
@@ -172,8 +181,7 @@
 						<l-marker
 							:lat-lng="[ point.latitude, point.longitude ]"
 							:visible="
-								mainStore.markersShow &&
-								mainStore.tempsMarkersShow &&
+								mainStore.tempsShow.show &&
 								point.show
 							"
 							draggable
@@ -229,7 +237,10 @@
 
 <!-- SEC Markers: Temps  -->
 
-			<l-layer-group v-if="mainStore.tempsShow.show">
+			<l-layer-group v-if="
+				mainStore.markersShow &&
+				(mainStore.tempsShow.show || mainStore.mode === 'measure')
+			">
 				<template
 					v-for="point in computedTemps"
 					:key="point.key"
@@ -237,9 +248,10 @@
 					<l-marker
 						:lat-lng="[ point.latitude, point.longitude ]"
 						:visible="
-							mainStore.markersShow &&
-							mainStore.tempsMarkersShow &&
-							point.show
+							point.show && (
+								mainStore.tempsShow.show ||
+								mainStore.isMeasurePoint(point.id)
+							)
 						"
 						:z-index-offset="
 							point.id === mainStore.currentPointId ? 10000 : 0
@@ -300,64 +312,66 @@
 
 <!-- SEC Circles, Polylines -->
 
-			<l-circle-marker
-				v-if="
-					mainStore.mode === 'measure' &&
-					mainStore.measure.points.length
-				"
-				:ref="el => setRef(mainStore.measure.points[0]?.id, el, markerRefs)"
-				:lat-lng="
-					mainStore.getPointCoords(
-						mainStore.measure.points[0].id
-					) as LatLngExpression
-				"
-				class-name="marker-start"
-				:radius="13"
-				:weight="1"
-			/>
-			<l-circle-marker
-				v-if="
-					mainStore.mode === 'measure' &&
-					mainStore.measure.points.length
-				"
-				:ref="el => setRef(mainStore.measure.points.at(-1)?.id, el, markerRefs)"
-				:lat-lng="
-					mainStore.getPointCoords(
-						mainStore.measure.points.at(-1)?.id
-					) as LatLngExpression
-				"
-				class-name="marker-end"
-				:radius="13"
-				:weight="1"
-			/>
-			<l-polyline
-				v-if="
-					mainStore.mode === 'measure' &&
-					mainStore.measure.points.length
-				"
-				:ref="el => setRef('measureId', el, routeLineRefs)"
-				:lat-lngs="
-					mainStore.getPointsCoords(
-						mainStore.measure.points.map(p => p.id)
-					) as LatLngExpression[]
-				"
-				color="rgba(0, 0, 0, 1)"
-				:weight="0.5"
-			/>
-			<l-polyline
-				v-if="
-					mainStore.mode === 'measure' &&
-					mainStore.measure.points.length
-				"
-				:ref="el => setRef('measureId', el, routeLineForEventsRefs)"
-				:lat-lngs="
-					mainStore.getPointsCoords(
-						mainStore.measure.points.map(p => p.id)
-					) as LatLngExpression[]
-				"
-				color="rgba(0, 0, 0, 0)"
-				:weight="20"
-			/>
+			<template v-if="mainStore.markersShow">
+				<l-circle-marker
+					v-if="
+						mainStore.mode === 'measure' &&
+						mainStore.measure.points.length
+					"
+					:ref="el => setRef(mainStore.measure.points[0]?.id, el, markerRefs)"
+					:lat-lng="
+						mainStore.getPointCoords(
+							mainStore.measure.points[0].id
+						) as LatLngExpression
+					"
+					class-name="marker-start"
+					:radius="13"
+					:weight="1"
+				/>
+				<l-circle-marker
+					v-if="
+						mainStore.mode === 'measure' &&
+						mainStore.measure.points.length
+					"
+					:ref="el => setRef(mainStore.measure.points.at(-1)?.id, el, markerRefs)"
+					:lat-lng="
+						mainStore.getPointCoords(
+							mainStore.measure.points.at(-1)?.id
+						) as LatLngExpression
+					"
+					class-name="marker-end"
+					:radius="13"
+					:weight="1"
+				/>
+				<l-polyline
+					v-if="
+						mainStore.mode === 'measure' &&
+						mainStore.measure.points.length
+					"
+					:ref="el => setRef('measureId', el, routeLineRefs)"
+					:lat-lngs="
+						mainStore.getPointsCoords(
+							mainStore.measure.points.map(p => p.id)
+						) as LatLngExpression[]
+					"
+					color="rgba(0, 0, 0, 1)"
+					:weight="0.5"
+				/>
+				<l-polyline
+					v-if="
+						mainStore.mode === 'measure' &&
+						mainStore.measure.points.length
+					"
+					:ref="el => setRef('measureId', el, routeLineForEventsRefs)"
+					:lat-lngs="
+						mainStore.getPointsCoords(
+							mainStore.measure.points.map(p => p.id)
+						) as LatLngExpression[]
+					"
+					color="rgba(0, 0, 0, 0)"
+					:weight="20"
+				/>
+			</template>
 		</l-map>
 	</div>
 </template>

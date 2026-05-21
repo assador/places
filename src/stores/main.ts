@@ -82,14 +82,13 @@ export const useMainStore = defineStore('main', {
 		ready: false,
 		refreshing: false,
 		routes: {},
-		routesShow: { show: true, first: true },
+		routesShow: { show: false, first: true },
 		saved: true,
 		serverConfig: null,
 		stateBackups: [],
 		stateBackupsIndex: -1,
 		t: t,
 		temps: {},
-		tempsMarkersShow: true,
 		tempsShow: { show: false, first: true },
 		treeParams: {
 			places: {
@@ -382,6 +381,16 @@ export const useMainStore = defineStore('main', {
 					}
 				}
 				return distance;
+			}
+		},
+		isMeasurePoint() {
+			return (id: string): boolean => {
+				return this.measurePointIds.has(id);
+			}
+		},
+		isRoutePoint() {
+			return (id: string, route: Route): boolean => {
+				return this.routePointIds(route).has(id);
 			}
 		},
 	},

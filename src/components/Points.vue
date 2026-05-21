@@ -22,16 +22,16 @@
 			<div
 				v-if="type === 'temps'"
 				class="folder-button__control button-iconed icon"
-				:class="'icon-geomark-' + (!mainStore.tempsMarkersShow ? '0' : '1') + '-circled'"
+				:class="'icon-geomark-' + (!mainStore.tempsShow.show ? '0' : '1') + '-circled'"
 				:title="
-					(mainStore.tempsMarkersShow
+					(mainStore.tempsShow.show
 						? mainStore.t.i.hints.hide
 						: mainStore.t.i.hints.show
 					) + ' ' +
 					mainStore.t.i.hints.onMap
 				"
 				@click.stop="
-					mainStore.tempsMarkersShow = !mainStore.tempsMarkersShow
+					mainStore.tempsShow.show = !mainStore.tempsShow.show
 				"
 			/>
 			<div v-else />
