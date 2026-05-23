@@ -26,12 +26,12 @@
 			"
 			class="folder-subs"
 			:class="{
-				'folder_editable': foldersEditMode,
+				'folder_editable': common.folderEditability,
 				'folder-subs-to-export': folder.virtual && instanceid === 'popupexporttree',
 			}"
 		>
 			<div
-				v-if="foldersEditMode"
+				v-if="common.folderEditability"
 				class="icon icon-triangle"
 				:class="folder.open ? 'icon-triangle_down' : 'icon-triangle_right'"
 				@pointerdown.stop
@@ -47,15 +47,15 @@
 					name="folderCheckbox"
 					type="checkbox"
 					class="tree-item-checkbox"
-					:checked="foldersCheckedIds.includes(folder.id)"
-					@change="e => selectUnselectFolder(
+					:checked="common.foldersCheckedIds.has(folder.id)"
+					@change="e => selectFolderToExport(
 						folder.id,
 						(e.currentTarget as HTMLInputElement).checked,
 					)"
 				/>
 			</label>
 			<div
-				v-if="foldersEditMode"
+				v-if="common.folderEditability"
 				:id="
 					(instanceid === 'popupexporttree' ? 'to-export-' : '') +
 					'places-menu-folder-link-' + folder.id
@@ -92,7 +92,7 @@
 <!-- SEC folder-button  -->
 
 			<div
-				v-if="!foldersEditMode"
+				v-if="!common.folderEditability"
 				class="folder-button sorting-area-onto"
 				:class="{
 					draggable: !folder.virtual,
@@ -243,21 +243,12 @@
 						name="placeCheckbox"
 						type="checkbox"
 						class="to-export-place-checkbox tree-item-checkbox"
-						:checked="Object.hasOwn(selectedToExport, object.id)"
-						@change="e => {
-							if (props.what === 'places') {
-								selectUnselect(
-									object as Place,
-									(e.currentTarget as HTMLInputElement).checked
-								);
-							} else {
-								selectUnselect(
-									object as Route,
-									(e.currentTarget as HTMLInputElement).checked
-								);
-							}
-							foldersCheckedIds = formFoldersCheckedIds();
-						}"
+						:checked="mainStore.selectedToExport[props.what].includes(object.id)"
+						@change="e => mainStore.selectToExport(
+							props.what,
+							object.id,
+							(e.currentTarget as HTMLInputElement).checked,
+						)"
 						@click.stop
 					/>
 				</span>
@@ -356,7 +347,7 @@ export default {
 
 <script setup lang="ts">
 import _ from 'lodash';
-import { Ref, computed, inject } from 'vue';
+import { Ref, computed, inject, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
 import {
 	Place,
@@ -364,8 +355,8 @@ import {
 	Folder,
 	FolderContext,
 } from '@/types';
+import { common } from '@/services/common';
 import { usePointerDnD } from '@/shared/dnd';
-import { formFoldersCheckedIds } from '@/shared/generators';
 import { IEntityPopupProps } from '@/shared/interfaces';
 
 export interface IPlacesTreeNodeProps {
@@ -385,13 +376,7 @@ const mainStore = useMainStore();
 
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
-
-const foldersEditMode = inject('foldersEditMode');
-
-const selectedToExport = inject<Ref<Record<string, Place | Route>>>('selectedToExport');
-const foldersCheckedIds: string[] = inject('foldersCheckedIds');
 const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
-
 const contextMenu = inject<Ref<IEntityPopupProps>>('contextMenu');
 
 const places = computed(() =>
@@ -433,32 +418,35 @@ const distance = computed(() => {
 			return 0;
 	}
 });
-
-const selectUnselect = (object: Place | Route, checked: boolean): void => {
-	if (checked) {
-		selectedToExport.value[object.id] = object;
+const selectFolderToExport = (id: string, select: boolean): void => {
+	const currentArray = mainStore.selectedToExport[props.what];
+	const descendantsSet = mainStore.getDescendants(id, props.what);
+	if (select) {
+		mainStore.selectedToExport[props.what] = [
+			...new Set(currentArray).union(descendantsSet),
+		];
 	} else {
-		delete selectedToExport.value[object.id];
+		mainStore.selectedToExport[props.what] = [
+			...new Set(currentArray).difference(descendantsSet),
+		];
 	}
 };
-const selectUnselectFolder = (folderid: string, checked: boolean): void => {
-	for (const button of
-		document.getElementById('to-export-places-menu-folder-' + folderid)!
-			.getElementsByClassName('place-button')
-	) {
-		if (checked != (
-			button.getElementsByClassName('to-export-place-checkbox')[0] as HTMLInputElement
-		).checked) {
-			(button as HTMLElement).click();
+watch(() => mainStore.selectedToExport[props.what], (newIds) => {
+	const checkedFolders = new Set<string>();
+	if (newIds) {
+		for (const id of newIds) {
+			const directFolderId = mainStore[props.what][id]?.folderid;
+			if (directFolderId) {
+				checkedFolders.add(directFolderId);
+				const ancestors = mainStore.getAncestors(directFolderId);
+				for (const ancestorId of ancestors) {
+					checkedFolders.add(ancestorId);
+				}
+			}
 		}
 	}
-	for (const folderCheckbox of
-		document.getElementById('to-export-places-menu-folder-' + folderid)!
-			.getElementsByClassName('folder-checkbox')
-	) {
-		(folderCheckbox as HTMLInputElement).checked = checked ? true : false;
-	}
-};
+	common.foldersCheckedIds = checkedFolders;
+}, { deep: true, immediate: true });
 
 // SEC DnD
 

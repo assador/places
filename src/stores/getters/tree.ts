@@ -69,4 +69,41 @@ export const treeGetters = {
 			routes: this.treeRoutes,
 		};
 	},
+	getAncestors() {
+		return (id: string): Set<string> => {
+			const collection = new Set<string>();
+			let parentId = this.folders[id]?.parent;
+			while (parentId) {
+				collection.add(parentId);
+				parentId = this.folders[parentId]?.parent;
+			}
+			return collection;
+		}
+	},
+	getDescendants() {
+		return (id: string, type: 'folders' | 'places' | 'routes'): Set<string> => {
+			const folderIds = new Set<string>();
+			const collectFolderIds = (currentId: string) => {
+				for (const folderId in this.folders) {
+					if (this.folders[folderId].parent === currentId) {
+						folderIds.add(folderId);
+						collectFolderIds(folderId);
+					}
+				}
+			};
+			collectFolderIds(id);
+			if (type === 'folders') {
+				return folderIds;
+			}
+			const collection = new Set<string>();
+			const targetCollection = this[type];
+			for (const itemId in targetCollection) {
+				const itemFolderId = targetCollection[itemId].folderid;
+				if (itemFolderId === id || folderIds.has(itemFolderId)) {
+					collection.add(itemId);
+				}
+			}
+			return collection;
+		};
+	},
 };

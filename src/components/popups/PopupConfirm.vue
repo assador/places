@@ -49,28 +49,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, inject, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { confirm } from '@/services/confirm';
 import { useMainStore } from '@/stores/main';
 
 export interface IPlacesPopupConfirmProps {
-	callback: any;
-	arguments: any[];
 	message?: string;
+	callback: any;
+	arguments: readonly any[];
 }
 const props = withDefaults(defineProps<IPlacesPopupConfirmProps>(), {
+	message: null,
 	callback: null,
 	arguments: null,
-	message: null,
 });
 
 const mainStore = useMainStore();
-const confirmPopup = inject<Ref<boolean>>('confirmPopup');
 const popuped = ref(false);
 
 const close = (): void => {
 	popuped.value = false;
 	window.setTimeout(() => {
-		confirmPopup.value = false;
+		confirm.close();
 	}, 1000);
 };
 const keyup = (event: KeyboardEvent): void => {

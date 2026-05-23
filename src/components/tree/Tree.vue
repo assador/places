@@ -134,12 +134,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, onMounted, inject, nextTick } from 'vue';
+import { ref, provide, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { Folder } from '@/types';
 import { isPlace } from '@/guards';
-import { formFoldersCheckedIds } from '@/shared/generators';
 import { IEntityPopupProps } from '@/shared/interfaces';
 import TreeNode from '@/components/tree/TreeNode.vue';
 import Popup from '@/components/popups/Popup.vue';
@@ -154,9 +153,6 @@ const props = withDefaults(defineProps<IPlacesTreeProps>(), {
 });
 const mainStore = useMainStore();
 const router = useRouter();
-
-const foldersCheckedIds = ref([]);
-provide('foldersCheckedIds', foldersCheckedIds);
 
 const dragging = ref(false);
 provide('dragging', dragging);
@@ -189,10 +185,6 @@ const focusCurrent = async (input: HTMLElement | null) => {
 	input.focus();
 }
 provide('focusCurrent', focusCurrent);
-
-onMounted(() => {
-	foldersCheckedIds.value = formFoldersCheckedIds();
-});
 </script>
 
 <style lang="scss" scoped>

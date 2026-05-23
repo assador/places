@@ -24,16 +24,17 @@ const mainStore = useMainStore();
 </script>
 
 <style lang="scss" scoped>
-.helpers-measure {
-	&-header {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 8px;
-		margin-bottom: 12px;
-		align-items: baseline;
-		* {
-			margin: 0;
-		}
+.helpers-measure-header {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 8px;
+	margin-bottom: 12px;
+	align-items: baseline;
+	* {
+		margin: 0;
+	}
+	h2 {
+		margin: 0 !important;
 	}
 }
 </style>

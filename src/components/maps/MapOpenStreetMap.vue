@@ -773,3 +773,8 @@ const providers = ref([{
 	stroke-width: 2px;
 }
 </style>
+<style lang="scss" scoped>
+* {
+	user-select: none;
+}
+</style>

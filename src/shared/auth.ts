@@ -1,6 +1,5 @@
 import { reactive } from 'vue';
 import api from '@/api';
-import { emitter } from '@/shared/bus';
 
 export const login = reactive({
 	message: '',
@@ -8,28 +7,29 @@ export const login = reactive({
 export const loginRoutine = async (
 	user: { authLogin: string, authPassword: string },
 	voc: Record<string, any>,
-) => {
+): Promise<boolean> => {
 	try {
 		const { data } = await api.post('login.php', user);
 		switch (data) {
 			case 0 :
 				localStorage.clear();
 				login.message = voc.m.paged.authError;
-				break;
+				return false;
 			case 1 :
 				localStorage.clear();
 				login.message = voc.m.paged.wrongLoginPassword;
-				break;
+				return false;
 			default :
 				if (typeof data === 'object') {
 					localStorage.setItem('places-useruuid', data.id);
 					localStorage.setItem('places-session', data.session);
-					emitter.emit('logged');
+					return true;
 				}
 		}
 	} catch (error) {
 		console.error(error);
 		localStorage.clear();
+		return false;
 	}
 };
 export const logoutRoutine = async (
@@ -40,5 +40,6 @@ export const logoutRoutine = async (
 	} catch (error) {
 		console.error(error);
 		localStorage.clear();
+		return false;
 	}
 };

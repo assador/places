@@ -14,7 +14,7 @@
 				:data-entity-id="image.id"
 				:data-entity-context="props.what"
 				class="image"
-				:class="{ draggable: !currentCommon }"
+				:class="{ draggable: own }"
 				@pointerdown="e => onPointerDown(e, {
 					id: image.id,
 					type: 'image',
@@ -38,7 +38,7 @@
 						:title="current.name"
 					/>
 					<div
-						v-if="!currentCommon"
+						v-if="own"
 						class="dd-images__delete button"
 						@pointerdown.stop
 						@pointerup.stop
@@ -70,7 +70,7 @@
 		</div>
 	</div>
 	<div
-		v-if="!currentCommon && !current.deleted"
+		v-if="own && !current.deleted"
 		class="images-add"
 		@click.stop="inputUploadFiles.click()"
 	>
@@ -98,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, computed, inject } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { orderBy } from 'lodash';
 import { useRouter } from 'vue-router';
 import { useMainStore } from '@/stores/main';
@@ -122,16 +122,7 @@ const current = computed(() => {
 	return map[props.what] || null;
 });
 
-const placeCommon = inject<Ref<boolean>>('currentPlaceCommon');
-const routeCommon = inject<Ref<boolean>>('currentRouteCommon');
-
-const currentCommon = computed(() => {
-	const map = {
-		places: placeCommon,
-		routes: routeCommon,
-	};
-	return map[props.what]?.value || null;
-});
+const own = computed(() => current.value.userid === mainStore.user.id);
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -146,7 +137,6 @@ const inputUploadFilesChanged = async (e: Event) => {
 	uploading.value = true;
 	await uploadFiles(e, current.value, inputUploadFiles.value);
 	uploading.value = false;
-
 }
 
 // SEC DnD

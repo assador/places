@@ -84,6 +84,10 @@ export const useMainStore = defineStore('main', {
 		routes: {},
 		routesShow: { show: false, first: true },
 		saved: true,
+		selectedToExport: {
+			places: [],
+			routes: [],
+		},
 		serverConfig: null,
 		stateBackups: [],
 		stateBackupsIndex: -1,
@@ -141,6 +145,18 @@ export const useMainStore = defineStore('main', {
 		},
 		currentRoute() {
 			return this.routes[this.currentRouteId];
+		},
+		colorthemes() {
+			return [
+				{ value: 'brown',        title: this.t.i.inputs.colorthemeBrown },
+				{ value: 'blue',         title: this.t.i.inputs.colorthemeBlue },
+				{ value: 'pink',         title: this.t.i.inputs.colorthemePink },
+				{ value: 'green',        title: this.t.i.inputs.colorthemeGreen },
+				{ value: 'pink-light',   title: this.t.i.inputs.colorthemePinkLight },
+				{ value: 'blue-light',   title: this.t.i.inputs.colorthemeBlueLight },
+				{ value: 'purple-light', title: this.t.i.inputs.colorthemePurpleLight },
+				{ value: 'green-light',  title: this.t.i.inputs.colorthemeGreenLight },
+			];
 		},
 		descriptionFields() {
 			const descriptionFields = {

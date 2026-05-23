@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { emitter } from '@/shared/bus';
+import { setBusy } from '@/services/common';
 
 const api = axios.create({
 	baseURL: '/backend/',
@@ -7,20 +7,20 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(config => {
-	if (!config.silent) emitter.emit('busy', true);
+	if (!config.silent) setBusy(true);
 	return config;
 }, error => {
-	if (!error.config?.silent) emitter.emit('busy', false);
+	if (!error.config?.silent) setBusy(false);
 	return Promise.reject(error);
 });
 
 api.interceptors.response.use(
 	response => {
-		if (!response.config.silent) emitter.emit('busy', false);
+		if (!response.config.silent) setBusy(false);
 		return response;
 	},
 	error => {
-		if (!error.config?.silent) emitter.emit('busy', false);
+		if (!error.config?.silent) setBusy(false);
 		return Promise.reject(error);
 	}
 );

@@ -10,10 +10,7 @@
 				</h1>
 				<form
 					class="popup-export__form"
-					@submit.prevent="e => exportPlaces(
-						selectedToExport,
-						(e.currentTarget as HTMLFormElement).elements['mime'].value
-					)"
+					@submit.prevent="handleExportSubmit"
 				>
 					<p class="margin_bottom_0">
 						{{ mainStore.t.i.text.specifyFormatToExport }}:
@@ -78,9 +75,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
+import { exportPlaces } from '@/shared/importexport';
+import { ImportExportFormat } from '@/types';
 import Tree from '@/components/tree/Tree.vue';
 
 const mainStore = useMainStore();
@@ -89,14 +88,17 @@ const route = useRoute();
 
 const popuped = ref(false);
 
-const selectedToExport = inject('selectedToExport');
-const exportPlaces = inject('exportPlaces');
-
 const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
 const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
+};
+const handleExportSubmit = (e: Event) => {
+	const formElement = e.currentTarget as HTMLFormElement;
+	const formData = new FormData(formElement);
+	const mimeType = formData.get('mime') as ImportExportFormat;
+	exportPlaces(mimeType);
 };
 
 onMounted(() => {
@@ -116,7 +118,7 @@ onUnmounted(() => {
 }
 .popup-export__tree {
 	margin: 0 auto;
-	padding-right: 12px;
+	padding: 1px 12px 1px 0;
 	text-align: left;
 	overflow: auto;
 }

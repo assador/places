@@ -1,6 +1,6 @@
 <template>
-	<div class="points folder margin_bottom">
-		<div class="folder-subs points-header">
+	<div class="points margin_bottom">
+		<div class="points-header">
 			<div
 				class="icon icon-triangle"
 				:class="open ? 'icon-triangle_down' : 'icon-triangle_right'"
@@ -19,22 +19,6 @@
 					{{ mainStore.t.i.captions.points }}
 				</template>
 			</h2>
-			<div
-				v-if="type === 'temps'"
-				class="folder-button__control button-iconed icon"
-				:class="'icon-geomark-' + (!mainStore.tempsShow.show ? '0' : '1') + '-circled'"
-				:title="
-					(mainStore.tempsShow.show
-						? mainStore.t.i.hints.hide
-						: mainStore.t.i.hints.show
-					) + ' ' +
-					mainStore.t.i.hints.onMap
-				"
-				@click.stop="
-					mainStore.tempsShow.show = !mainStore.tempsShow.show
-				"
-			/>
-			<div v-else />
 			<div
 				v-if="type === 'temps'"
 				class="control-buttons"
@@ -89,251 +73,253 @@
 		</div>
 		<div
 			v-if="
-				type === 'temps' && Object.keys(mainStore.temps).length ||
+				type === 'temps' && tempPoints.length ||
 				type === 'measure' && mainStore.measure.points.length ||
 				type === 'route' && mainStore.currentRoute?.points.length
 			"
-			class="points-info"
+			:class="{ open: open, closed: !open }"
 		>
-			<div
-				v-if="type === 'route'"
-				:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
-				class="points-distance"
-			>
-				<span class="un_color">{{ mainStore.t.i.captions.total }}: </span>
-				<span class="color-01">{{ distance }}</span>
-				<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
+			<div class="points-info">
+				<div
+					v-if="type === 'route'"
+					:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
+					class="points-distance"
+				>
+					<span class="un_color">{{ mainStore.t.i.captions.total }}: </span>
+					<span class="color-01">{{ distance }}</span>
+					<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
+				</div>
+				<a
+					v-if="mainStore.currentPointId"
+					href="javascript:void(0)"
+					@click="e => {
+						pointInfo.point = mainStore.currentPoint;
+						popupProps.show = !popupProps.show;
+						popupProps.position.bottom = 'auto';
+						popupProps.position.top = e.clientY + 5;
+						popupProps.position.right = (
+							type === 'route' || common.compact === 2
+							? (
+								e.view.document.documentElement.clientWidth -
+								e.clientX + 5
+							)
+							: 'auto'
+						);
+						popupProps.position.left = (
+							type === 'route' || common.compact === 2
+							? 'auto'
+							: e.clientX + 5
+						);
+					}"
+				>
+					{{ mainStore.t.i.captions.coords }}
+				</a>
 			</div>
-			<a
-				v-if="mainStore.currentPointId"
-				href="javascript:void(0)"
-				@click="e => {
-					pointInfo.point = mainStore.currentPoint;
-					popupProps.show = !popupProps.show;
-					popupProps.position.bottom = 'auto';
-					popupProps.position.top = e.clientY + 5;
-					popupProps.position.right = (
-						type === 'route'
-						? (
-							e.view.document.documentElement.clientWidth -
-							e.clientX + 5
-						)
-						: 'auto'
-					);
-					popupProps.position.left = (
-						type === 'route'
-						? 'auto'
-						: e.clientX + 5
-					);
-				}"
+			<div
+				class="points-list-buttons"
+				:class="{ dragging: dragging }"
 			>
-				{{ mainStore.t.i.captions.coords }}
-			</a>
-		</div>
-		<div
-			class="points-list-buttons folder-subfolders"
-			:class="{ open: open, closed: !open, dragging: dragging }"
-		>
 
 <!-- SEC Buttons: Temps -->
 
-			<template v-if="type === 'temps'">
-				<button
-					v-for="temp in tempPoints"
-					:key="temp.key"
-					:class="{ 'button-pressed': mainStore.currentPointId === temp.id }"
-					@click.prevent="mainStore.setCurrentPoint(temp.id)"
-					@contextmenu.prevent="e => {
-						if (pointInfo.point?.id === temp.id) {
-							popupProps.show = !popupProps.show;
-							return;
-						}
-						if (mainStore.mode === 'measure') {
-							mainStore.addPointToPoints({
-								point: temp,
-								entity: mainStore.measure,
-							});
-							return;
-						}
-						if (mainStore.mode === 'routes') {
-							mainStore.addPointToPoints({
-								point: temp,
-								entity: mainStore.currentRoute,
-							});
-							return;
-						}
-						pointInfo.point = temp;
-						pointInfo.name = (temp.idx + 1).toString();
-						popupProps.show = true;
-						popupProps.position.right = 'auto';
-						popupProps.position.bottom = 'auto';
-						popupProps.position.top = e.clientY + 5;
-						popupProps.position.left = e.clientX + 5;
-					}"
-				>
-					<span>{{ temp.idx + 1 }}</span>
-					<span
-						class="button-iconed icon icon-cross-45-circled"
-						:title="mainStore.t.i.hints.deleteTemp"
-						@click.stop="mainStore.deleteTemp(temp.id)"
-					/>
-				</button>
-			</template>
+				<template v-if="type === 'temps'">
+					<button
+						v-for="temp in tempPoints"
+						:key="temp.key"
+						:class="{ 'button-pressed': mainStore.currentPointId === temp.id }"
+						@click.prevent="mainStore.setCurrentPoint(temp.id)"
+						@contextmenu.prevent="e => {
+							if (pointInfo.point?.id === temp.id) {
+								popupProps.show = !popupProps.show;
+								return;
+							}
+							if (mainStore.mode === 'measure') {
+								mainStore.addPointToPoints({
+									point: temp,
+									entity: mainStore.measure,
+								});
+								return;
+							}
+							if (mainStore.mode === 'routes') {
+								mainStore.addPointToPoints({
+									point: temp,
+									entity: mainStore.currentRoute,
+								});
+								return;
+							}
+							pointInfo.point = temp;
+							pointInfo.name = (temp.idx + 1).toString();
+							popupProps.show = true;
+							popupProps.position.right = 'auto';
+							popupProps.position.bottom = 'auto';
+							popupProps.position.top = e.clientY + 5;
+							popupProps.position.left = e.clientX + 5;
+						}"
+					>
+						<span>{{ temp.idx + 1 }}</span>
+						<span
+							class="button-iconed icon icon-cross-45-circled"
+							:title="mainStore.t.i.hints.deleteTemp"
+							@click.stop="mainStore.deleteTemp(temp.id)"
+						/>
+					</button>
+				</template>
 
 <!-- SEC Buttons: Measure -->
 
-			<template v-else-if="type === 'measure'">
-				<button
-					v-for="pn in measurePoints"
-					:key="pn.key"
-					:data-entity-id="pn.id"
-					:data-entity-type="'point'"
-					:data-entity-index="pn.idx"
-					:data-entity-context="'measure'"
-					:title="measurePointTitles[pn.id]"
-					class="point-button"
-					:class="{ 'button-pressed':
-						pn.id === highlighted ||
-						pn.id === mainStore.measure.points[mainStore.measure.choosing]?.id
-					}"
-					@pointerdown="e => onPointerDown(e, {
-						id: pn.id,
-						index: pn.idx,
-						type: 'point',
-						context: 'measure',
-					})"
-				    @pointermove="onPointerMove"
-				    @pointerup="e => onPointerUp(e, () => mainStore.setCurrentPoint(pn.id))"
-				    @pointercancel="onPointerUp"
-					@contextmenu.prevent="e => {
-						if (pointInfo.point?.id === pn.id) {
-							popupProps.show = !popupProps.show;
-							return;
-						}
-						pointInfo.point = mainStore.getPointById(pn.id);
-						pointInfo.name = pn.name;
-						popupProps.show = true;
-						popupProps.position.right = 'auto';
-						popupProps.position.bottom = 'auto';
-						popupProps.position.top = e.clientY + 5;
-						popupProps.position.left = e.clientX + 5;
-					}"
-				>
-					<span>
-						{{ pn.name }}
-					</span>
-					<span
-						:title="mainStore.t.i.hints.deletePoint"
-						class="button-iconed icon icon-cross-45-circled"
-						@pointerdown.stop
-					    @pointerup.stop
-						@click.stop="mainStore.removePointFromPoints({
-							point: mainStore.temps[pn.id],
-							entity: mainStore.measure,
+				<template v-else-if="type === 'measure'">
+					<button
+						v-for="pn in measurePoints"
+						:key="pn.key"
+						:data-entity-id="pn.id"
+						:data-entity-type="'point'"
+						:data-entity-index="pn.idx"
+						:data-entity-context="'measure'"
+						:title="measurePointTitles[pn.id]"
+						class="point-button"
+						:class="{ 'button-pressed':
+							pn.id === highlighted ||
+							pn.id === mainStore.measure.points[mainStore.measure.choosing]?.id
+						}"
+						@pointerdown="e => onPointerDown(e, {
+							id: pn.id,
+							index: pn.idx,
+							type: 'point',
+							context: 'measure',
 						})"
-					/>
-					<span
-						class="sorting-area-before"
-						:class="{
-							highlighted:
-								pn.id === dragTargetId &&
-								mainStore.currentDrag.position === 'before'
+					    @pointermove="onPointerMove"
+					    @pointerup="e => onPointerUp(e, () => mainStore.setCurrentPoint(pn.id))"
+					    @pointercancel="onPointerUp"
+						@contextmenu.prevent="e => {
+							if (pointInfo.point?.id === pn.id) {
+								popupProps.show = !popupProps.show;
+								return;
+							}
+							pointInfo.point = mainStore.getPointById(pn.id);
+							pointInfo.name = pn.name;
+							popupProps.show = true;
+							popupProps.position.right = 'auto';
+							popupProps.position.bottom = 'auto';
+							popupProps.position.top = e.clientY + 5;
+							popupProps.position.left = e.clientX + 5;
 						}"
-					/>
-					<span
-						class="sorting-area-after"
-						:class="{
-							highlighted:
-								pn.id === dragTargetId &&
-								mainStore.currentDrag.position === 'after'
-						}"
-					/>
-				</button>
-			</template>
+					>
+						<span>
+							{{ pn.name }}
+						</span>
+						<span
+							:title="mainStore.t.i.hints.deletePoint"
+							class="button-iconed icon icon-cross-45-circled"
+							@pointerdown.stop
+						    @pointerup.stop
+							@click.stop="mainStore.removePointFromPoints({
+								point: mainStore.temps[pn.id],
+								entity: mainStore.measure,
+							})"
+						/>
+						<span
+							class="sorting-area-before"
+							:class="{
+								highlighted:
+									pn.id === dragTargetId &&
+									mainStore.currentDrag.position === 'before'
+							}"
+						/>
+						<span
+							class="sorting-area-after"
+							:class="{
+								highlighted:
+									pn.id === dragTargetId &&
+									mainStore.currentDrag.position === 'after'
+							}"
+						/>
+					</button>
+				</template>
 
 <!-- SEC Buttons: Route -->
 
-			<template v-else-if="type === 'route'">
-				<button
-					v-for="pn in routePoints"
-					:key="pn.idx"
-					:data-entity-id="pn.id"
-					:data-entity-type="'point'"
-					:data-entity-index="pn.idx"
-					:data-entity-context="'routes'"
-					:data-entity-parent-id="mainStore.currentRouteId"
-					:title="routePointTitles[pn.id]"
-					class="point-button"
-					:class="{
-						'button-pressed': pn.id === mainStore.currentPointId,
-					}"
-					@pointerdown="e => onPointerDown(e, {
-						id: pn.id,
-						index: pn.idx,
-						type: 'point',
-						context: 'routes',
-						parentId: mainStore.currentRouteId,
-					})"
-				    @pointermove="onPointerMove"
-				    @pointerup="e => onPointerUp(e, () => {
-						pointInfo.point = mainStore.getPointById(pn.id);
-						mainStore.setCurrentPoint(pointInfo.point);
-					})"
-				    @pointercancel="onPointerUp"
-					@contextmenu.prevent="e => {
-						if (pointInfo.point?.id === pn.id) {
-							popupProps.show = !popupProps.show;
-							return;
-						}
-						pointInfo.point = mainStore.getPointById(pn.id);
-						if (mainStore.mode === 'measure') {
-							mainStore.addPointToPoints({
-								point: pointInfo.point,
-								entity: mainStore.measure,
-							});
-							return;
-						}
-						pointInfo.name = pn.name;
-						popupProps.show = true;
-						popupProps.position.left = 'auto';
-						popupProps.position.bottom = 'auto';
-						popupProps.position.top = e.clientY + 5;
-						popupProps.position.right =
-							e.view.document.documentElement.clientWidth -
-							e.clientX + 5;
-					}"
-				>
-					<span>
-						{{ pn.name }}
-					</span>
-					<span
-						:title="mainStore.t.i.hints.deleteRoutePoint"
-						class="button-iconed icon icon-cross-45-circled"
-						@pointerdown.stop
-					    @pointerup.stop
-						@click.stop="() => {
-							const point = mainStore.getPointById(pn.id);
-							mainStore.deleteObjects({ [point.id]: point });
-						}"
-					/>
-					<span
-						class="sorting-area-before"
+				<template v-else-if="type === 'route'">
+					<button
+						v-for="pn in routePoints"
+						:key="pn.idx"
+						:data-entity-id="pn.id"
+						:data-entity-type="'point'"
+						:data-entity-index="pn.idx"
+						:data-entity-context="'routes'"
+						:data-entity-parent-id="mainStore.currentRouteId"
+						:title="routePointTitles[pn.id]"
+						class="point-button"
 						:class="{
-							highlighted:
-								pn.id === dragTargetId &&
-								mainStore.currentDrag.position === 'before'
+							'button-pressed': pn.id === mainStore.currentPointId,
 						}"
-					/>
-					<span
-						class="sorting-area-after"
-						:class="{
-							highlighted:
-								pn.id === dragTargetId &&
-								mainStore.currentDrag.position === 'after'
+						@pointerdown="e => onPointerDown(e, {
+							id: pn.id,
+							index: pn.idx,
+							type: 'point',
+							context: 'routes',
+							parentId: mainStore.currentRouteId,
+						})"
+					    @pointermove="onPointerMove"
+					    @pointerup="e => onPointerUp(e, () => {
+							pointInfo.point = mainStore.getPointById(pn.id);
+							mainStore.setCurrentPoint(pointInfo.point);
+						})"
+					    @pointercancel="onPointerUp"
+						@contextmenu.prevent="e => {
+							if (pointInfo.point?.id === pn.id) {
+								popupProps.show = !popupProps.show;
+								return;
+							}
+							pointInfo.point = mainStore.getPointById(pn.id);
+							if (mainStore.mode === 'measure') {
+								mainStore.addPointToPoints({
+									point: pointInfo.point,
+									entity: mainStore.measure,
+								});
+								return;
+							}
+							pointInfo.name = pn.name;
+							popupProps.show = true;
+							popupProps.position.left = 'auto';
+							popupProps.position.bottom = 'auto';
+							popupProps.position.top = e.clientY + 5;
+							popupProps.position.right =
+								e.view.document.documentElement.clientWidth -
+								e.clientX + 5;
 						}"
-					/>
-				</button>
-			</template>
+					>
+						<span>
+							{{ pn.name }}
+						</span>
+						<span
+							:title="mainStore.t.i.hints.deleteRoutePoint"
+							class="button-iconed icon icon-cross-45-circled"
+							@pointerdown.stop
+						    @pointerup.stop
+							@click.stop="() => {
+								const point = mainStore.getPointById(pn.id);
+								mainStore.deleteObjects({ [point.id]: point });
+							}"
+						/>
+						<span
+							class="sorting-area-before"
+							:class="{
+								highlighted:
+									pn.id === dragTargetId &&
+									mainStore.currentDrag.position === 'before'
+							}"
+						/>
+						<span
+							class="sorting-area-after"
+							:class="{
+								highlighted:
+									pn.id === dragTargetId &&
+									mainStore.currentDrag.position === 'after'
+							}"
+						/>
+					</button>
+				</template>
+			</div>
 		</div>
 	</div>
 </template>
@@ -341,6 +327,7 @@
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { common } from '@/services/common';
 import { usePointerDnD } from '@/shared/dnd';
 import { IPopupProps } from '@/shared/interfaces';
 import { PointName } from '@/types';
@@ -473,7 +460,7 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 }
 .points-header {
 	display: grid;
-	grid-template-columns: 8px 1fr auto auto;
+	grid-template-columns: 8px 1fr auto;
 	gap: 8px;
 	align-items: start;
 	margin-bottom: 12px;
@@ -483,21 +470,15 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 	& > * {
 		cursor: pointer;
 	}
-	.folder-button__description {
-		height: 44px;
-	}
 	h2 {
 		display: flex;
 		gap: 8px;
 		align-items: baseline;
-		margin: 0;
+		margin: 0 !important;
 	}
 	.control-buttons {
 		align-self: flex-start;
 		justify-content: right;
-	}
-	&:has(+ .folder-subfolders .points-list-buttons:empty) {
-		margin-bottom: 0 !important;
 	}
 }
 .points-list-buttons {
@@ -544,9 +525,6 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 			right: 0; left: 50%;
 		}
 	}
-	&.closed {
-		display: none;
-	}
 }
 .points-info {
 	display: grid;
@@ -565,5 +543,8 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 	&::before {
 		background-color: var(--color-23);
 	}
+}
+.closed {
+	display: none;
 }
 </style>

@@ -251,6 +251,7 @@ export interface IMainState {
 	routes: Record<string, Route>,
 	routesShow: FirstShow,
 	saved: boolean,
+	selectedToExport: Record<'places' | 'routes', string[]>,
 	serverConfig: any | null,
 	stateBackups: any[],
 	stateBackupsIndex: number,

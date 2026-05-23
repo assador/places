@@ -1,4 +1,12 @@
-import { EntityCollection, Folder, Point, Place, Route } from '@/types';
+import { useMainStore } from '@/stores/main';
+import {
+	EntityCollection,
+	Folder,
+	Point,
+	Place,
+	Route,
+	ImportExportFormat,
+} from '@/types';
 
 // SEC Export
 
@@ -189,3 +197,35 @@ export const entitiesFromGPX = (text: string): EntityCollection | null => {
 		return null;
 	}
 }
+export const exportPlaces = (format: ImportExportFormat = 'json'): void => {
+	const mainStore = useMainStore();
+	let content: string;
+	let filename = 'places.json';
+	let mimeType = 'application/json';
+	const places: Record<string, Place> = Object.fromEntries(
+		Object.entries(mainStore.places).filter(
+			([id]) => mainStore.selectedToExport.places?.includes(id)
+		)
+	);
+	if (format === 'gpx') {
+		content = generateGPX({
+			places: places,
+			pointsDict: mainStore.points,
+		});
+		filename = 'places.gpx';
+		mimeType = 'application/gpx+xml';
+	} else {
+		content = generateJSON({
+			places: places,
+			pointsDict: mainStore.points,
+			foldersDict: mainStore.folders,
+		});
+	}
+	const blob = new Blob([content], { type: mimeType });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = filename;
+	a.click();
+	setTimeout(() => URL.revokeObjectURL(url), 100);
+};

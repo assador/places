@@ -5,7 +5,7 @@
 			ref="imgRef"
 			class="popup-image border_1"
 			:src="constants.dirs.uploads.images.big + image.file"
-			@load="emitter.emit('busy', false)"
+			@load="setBusy(false)"
 			@error="handleError"
 		/>
 		<a
@@ -36,8 +36,7 @@
 
 <script setup lang="ts">
 import {
-	ref, Ref,
-	inject,
+	ref,
 	watch,
 	onMounted,
 	onUnmounted,
@@ -45,7 +44,7 @@ import {
 import { useRouter, useRoute } from 'vue-router';
 import { useMainStore } from '@/stores/main';
 import _ from 'lodash';
-import { emitter } from '@/shared/bus';
+import { setBusy } from '@/services/common';
 import { constants } from '@/shared/constants';
 import { Place, Image } from '@/types';
 
@@ -63,14 +62,12 @@ const prevOver = ref(false);
 const nextOver = ref(false);
 const imgRef = ref<HTMLImageElement | null>(null);
 
-const currentPlaceCommon = inject<Ref<boolean>>('currentPlaceCommon');
-
 const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
 const handleError = () => {
-	emitter.emit('busy', false);
+	setBusy(false);
 	if (imgRef.value) {
 		imgRef.value.src = constants.dirs.uploads.images.orphanedbig + image.value.file;
 	}
@@ -79,9 +76,9 @@ const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
 };
 const defineVars = (): void => {
-	emitter.emit('busy', true);
+	setBusy(true);
 	const places: Record<string, Place> = (
-		!currentPlaceCommon.value
+		mainStore.currentPlace.userid === mainStore.user.id
 			? mainStore.places
 			: mainStore.commonPlaces
 	);

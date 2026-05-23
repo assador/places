@@ -35,7 +35,7 @@
 						:id="'route-detailed-' + field"
 						v-model.number.trim="mainStore.currentRoute[field]"
 						:type="field === 'srt' ? 'number' : 'text'"
-						:disabled="!!currentRouteCommon"
+						:disabled="!own"
 						class="fieldwidth_100"
 						@change="
 							mainStore.changeRoute({
@@ -55,7 +55,7 @@
 						:id="'route-detailed-' + field"
 						v-model="mainStore.currentRoute[field]"
 						type="datetime-local"
-						:disabled="!!currentRouteCommon"
+						:disabled="!own"
 						class="fieldwidth_100"
 						@change="
 							mainStore.changeRoute({
@@ -70,12 +70,11 @@
 			</template>
 			<template v-else-if="field === 'common'">
 				<dd>
-					<label v-if="!currentRouteCommon">
+					<label v-if="own">
 						<input
 							:id="'route-detailed-' + field"
 							v-model="mainStore.currentRoute[field]"
 							type="checkbox"
-							:disabled="!!currentRouteCommon"
 							@change="
 								mainStore.changeRoute({
 									entity: mainStore.currentRoute,
@@ -98,7 +97,7 @@
 						}"
 						v-model.trim="mainStore.currentRoute[field]"
 						:id="'route-detailed-' + field"
-						:disabled="!!currentRouteCommon"
+						:disabled="!own"
 						:placeholder="
 							field === 'name'
 								? mainStore.t.i.inputs.routeName
@@ -127,17 +126,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, inject } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Route } from '@/types'
 import Points from '@/components/Points.vue';
 import Images from '@/components/details/Images.vue';
 
-const currentRouteCommon = inject('currentRouteCommon') as Ref<boolean>;
-
 const mainStore = useMainStore();
 
 const currentRouteNameInputRef = inject('currentRouteNameInputRef');
+const own = computed(() => mainStore.currentRoute.userid === mainStore.user.id);
 
 type FieldKeys<T> = {
 	[K in keyof T]: T[K] extends string | number | boolean | undefined ? K : never

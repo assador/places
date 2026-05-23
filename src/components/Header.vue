@@ -34,7 +34,7 @@
 							<a
 								href="javascript:void(0)"
 								class="menu-link message border_1"
-								@click="emitter.emit('logout')"
+								@click="() => { logout(); router.push({ name: 'Auth' }); }"
 							>
 								{{ mainStore.t.i.buttons.exit }}
 							</a>
@@ -66,13 +66,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { emitter } from '@/shared/bus';
+import { logout } from '@/services/auth';
 import { IPopupProps } from '@/shared/interfaces';
 import { useMainStore } from '@/stores/main';
+import { useRouter } from 'vue-router';
 import Dashboard from '@/components/Dashboard.vue';
 import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
+const router = useRouter();
 
 const popupProps = ref<IPopupProps>({
 	show: false,

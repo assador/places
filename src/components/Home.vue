@@ -361,7 +361,7 @@
 		</div>
 		<div id="ui-buttons">
 			<button
-				v-if="compact !== 2"
+				v-if="common.compact !== 2"
 				class="action-button basic-on-full"
 				:class="{ 'button-pressed': basicFulled }"
 				:title="mainStore.t.i.hints.fullscreen"
@@ -370,7 +370,7 @@
 				<span class="icon icon-full" />
 			</button>
 			<button
-				v-if="compact === 2"
+				v-if="common.compact === 2"
 				id="sbb-left"
 				class="action-button"
 				:class="{ 'button-pressed': cells.left }"
@@ -379,7 +379,7 @@
 				<span class="icon icon-list" />
 			</button>
 			<button
-				v-if="compact === 2"
+				v-if="common.compact === 2"
 				id="sbb-right"
 				class="action-button"
 				:class="{ 'button-pressed': cells.right }"
@@ -389,19 +389,19 @@
 			</button>
 		</div>
 		<button
-			v-if="compact === 2"
+			v-if="common.compact === 2"
 			id="sbb-top"
 			:class="{ disclosed: cells.top }"
 			@click="sideShowHide('top')"
 		/>
 		<button
-			v-if="compact === 2"
+			v-if="common.compact === 2"
 			id="sbb-bottom"
 			:class="{ disclosed: cells.bottom }"
 			@click="sideShowHide('bottom')"
 		/>
 		<div
-			v-if="compact !== 2"
+			v-if="common.compact !== 2"
 			id="sbs-top"
 			:style="{ top: sidebarSizes.top.act + 'px' }"
 			@pointerdown="sidebarDragTop.onPointerDown"
@@ -409,7 +409,7 @@
 			@pointerup="sidebarDragTop.onPointerUp"
 		/>
 		<div
-			v-if="compact !== 2"
+			v-if="common.compact !== 2"
 			id="sbs-right"
 			:style="{ right: sidebarSizes.right.act + 'px' }"
 			@pointerdown="sidebarDragRight.onPointerDown"
@@ -417,7 +417,7 @@
 			@pointerup="sidebarDragRight.onPointerUp"
 		/>
 		<div
-			v-if="compact !== 2"
+			v-if="common.compact !== 2"
 			id="sbs-bottom"
 			:style="{ bottom: sidebarSizes.bottom.act + 'px' }"
 			@pointerdown="sidebarDragBottom.onPointerDown"
@@ -425,7 +425,7 @@
 			@pointerup="sidebarDragBottom.onPointerUp"
 		/>
 		<div
-			v-if="compact !== 2"
+			v-if="common.compact !== 2"
 			id="sbs-left"
 			:style="{ left: sidebarSizes.left.act + 'px' }"
 			@pointerdown="sidebarDragLeft.onPointerDown"
@@ -437,7 +437,7 @@
 
 <!-- SEC Controls Top-Left -->
 
-	<Teleport :to="compact === 2
+	<Teleport :to="common.compact === 2
 		? '#top-basic__control-buttons-top-left'
 		: '#top-left__control-buttons-left'
 	">
@@ -468,7 +468,7 @@
 				id="actions-points"
 				class="action-button"
 				:class="{ 'button-pressed': mainStore.tempsShow.show }"
-				:title="mainStore.t.i.buttons.temporaryPoints"
+				:title="mainStore.t.i.buttons.pointsTemporary"
 				accesskey="t"
 				@click="() => mainStore.tempsShow.show = !mainStore.tempsShow.show"
 			>
@@ -494,10 +494,10 @@
 			<button
 				id="actions-edit-folders"
 				class="action-button"
-				:class="{ 'button-pressed': foldersEditMode }"
+				:class="{ 'button-pressed': common.folderEditability }"
 				:title="mainStore.t.i.hints.editFolders"
 				accesskey="c"
-				@click="foldersEditMode = !foldersEditMode;"
+				@click="common.toggleFolderEditability"
 			>
 				<span class="icon icon-empty icon-empty-small">abc|</span>
 				<span>{{ mainStore.t.i.buttons.editFolders }}</span>
@@ -542,7 +542,7 @@
 
 <!-- SEC Controls Top-Right -->
 
-	<Teleport :to="compact === 2
+	<Teleport :to="common.compact === 2
 		? '#top-basic__control-buttons-top-right'
 		: '#top-right__control-buttons-right'
 	">
@@ -591,7 +591,7 @@
 					if (mainStore.user.testaccount) {
 						mainStore.setMessage(mainStore.t.m.popup.testOnSave, 8);
 					}
-					emitter.emit('toDBAll');
+					db.saveAll();
 				}"
 			>
 				<span class="icon icon-save" />
@@ -650,7 +650,8 @@
 				@click="() => {
 					showMap = false;
 					$nextTick(() => {
-						emitter.emit('logout');
+						logout();
+						router.push({ name: 'Auth' });
 					});
 				}"
 			>
@@ -662,7 +663,7 @@
 
 <!-- SEC Controls Bottom-Left -->
 
-	<Teleport :to="compact > 0
+	<Teleport :to="common.compact > 0
 		? '#bottom-basic__control-buttons-bottom'
 		: '#bottom-left__control-buttons-bottom'
 	">
@@ -780,7 +781,7 @@
 
 <script setup lang="ts">
 import {
-	ref, Ref,
+	ref,
 	computed,
 	watch,
 	onMounted,
@@ -795,7 +796,9 @@ import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 
-import { emitter } from '@/shared/bus';
+import * as db from '@/services/db';
+import { common, setBusy } from '@/services/common';
+import { logout } from '@/services/auth';
 import { constants } from '@/shared/constants';
 import { useLightPointerDnD } from '@/shared/dnd';
 import { sortObjects } from '@/shared/sorting';
@@ -837,8 +840,6 @@ const router = useRouter();
 
 const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
-const idleTimeInterval = inject('idleTimeInterval') as Ref<number | undefined>;
-const foldersEditMode = inject('foldersEditMode') as Ref<boolean>;
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const root = ref<HTMLElement | null>(null);
@@ -925,9 +926,9 @@ const commonRoutes = computed<Record<string, Route>>(() => {
 */
 
 const stopIdleTimer = () => {
-	if (idleTimeInterval.value) {
-		window.clearInterval(idleTimeInterval.value);
-		idleTimeInterval.value = undefined;
+	if (common.idleTimeInterval) {
+		window.clearInterval(common.idleTimeInterval);
+		common.idleTimeInterval = null;
 	}
 };
 
@@ -936,7 +937,7 @@ const stopIdleTimer = () => {
 onMounted(async () => {
 	mainStore.idleTime = 0;
 	stopIdleTimer();
-	idleTimeInterval.value = window.setInterval(() => {
+	common.idleTimeInterval = window.setInterval(() => {
 		if (++mainStore.idleTime >= constants.sessionlifetime) {
 			stopIdleTimer();
 			mainStore.unload();
@@ -949,7 +950,7 @@ onMounted(async () => {
 	document.addEventListener('drop', handleDrop, false);
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
-	emitter.emit('busy', false);
+	setBusy(false);
 	if (mainStore.first) {
 		mainStore.first = false;
 		mainStore.backupState();
@@ -1191,9 +1192,9 @@ const keyup = (e: KeyboardEvent): void => {
 		'add folder': () => router.push({ name: 'HomeFolder' }),
 		'import': () => importFromFileInput.value.click(),
 		'export': () => router.push({ name: 'HomeExport' }),
-		'save': () => emitter.emit('toDBAll'),
+		'save': () => db.saveAll(),
 		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
-		'quit': () => emitter.emit('logout'),
+		'quit': () => { logout(); router.push({ name: 'Auth' }); },
 		'marks': () => mainStore.markersShowHide(),
 		'center': () => mainStore.centerMarkerShowHide(),
 		'undo': () => mainStore.undo(),
@@ -1204,7 +1205,6 @@ const keyup = (e: KeyboardEvent): void => {
 	isPrefixActive.value = false;
 };
 
-const compact = ref(0);
 const sbs = ref('all');
 
 const cells = ref({
@@ -1215,7 +1215,7 @@ const cells = ref({
 });
 const sidebarSizes = ref(structuredClone(constants.sidebars));
 
-watch(compact, (valNew, valOld) => {
+watch(() => common.compact, (valNew, valOld) => {
 	(Object.keys(cells.value) as Array<keyof typeof cells.value>).forEach(key => {
 		cells.value[key] = valNew !== 2;
 	});
@@ -1226,8 +1226,8 @@ watch(compact, (valNew, valOld) => {
 
 const windowResize = (): void => {
 	const width = window.innerWidth;
-	compact.value = width > constants.compact ? 0 : width > constants.compactUltra ? 1 : 2;
-	if (compact.value !== 2) {
+	common.compact = width > constants.compact ? 0 : width > constants.compactUltra ? 1 : 2;
+	if (common.compact !== 2) {
 		updateSidebarSizes('top', 0);
 		updateSidebarSizes('right', 0);
 		updateSidebarSizes('bottom', 0);
@@ -1247,7 +1247,7 @@ const sideShowHide = (side: 'top' | 'right' | 'bottom' | 'left') => {
 const gridStyle = computed(() => {
 	const s = sidebarSizes.value;
 	const c = cells.value;
-	if (compact.value === 2) {
+	if (common.compact === 2) {
 		const cols = c.left ? '1fr 0 0' : (c.right ? '0 0 1fr' : '0 1fr 0');
 		const rows = `${c.top ? 'auto' : '0'} 1fr ${c.bottom ? 'auto' : '0'}`;
 		return `grid-template-columns: ${cols}; grid-template-rows: ${rows};`;
@@ -1409,29 +1409,22 @@ const selectPlaces = (text: string): void => {
 :is(#basic-left, #basic-right) .basic-action-buttons:not(:empty) {
 	margin-bottom: 18px;
 }
+.helpers-search, .helpers-range, .helpers-measure {
+	margin-bottom: 12px;
+}
 .helpers-search, .helpers-range {
 	display: flex;
 	flex-flow: row wrap;
 	justify-content: flex-end;
 	gap: 8px;
-	margin-top: 8px;
-	padding-left: 0;
 	align-items: center;
-	> *, .action-button {
+	> *:not(:first-child), .action-button {
 		flex: 0 1 auto;
-		&:first-child {
-			flex: 1 1 auto;
-			min-width: 3em;
-		}
 	}
-}
-.helpers-search, .helpers-range, .helpers-measure {
-	margin: 8px 0 20px 0;
 	> *:first-child {
-		flex-basis: 0;
+		flex: 1 1 0;
+		min-width: 3em;
 	}
-}
-.helpers-search, .helpers-range {
 	.control-buttons button {
 		width: 22px;
 	}

@@ -36,7 +36,7 @@
 						:id="'place-detailed-' + field"
 						v-model.number.trim="mainStore.currentPlace[field]"
 						:type="field === 'srt' ? 'number' : 'text'"
-						:disabled="!!currentPlaceCommon"
+						:disabled="!own"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
 							entity: mainStore.currentPlace,
@@ -57,7 +57,7 @@
 								id="detailed-latitude"
 								:value="currentPlaceLat"
 								type="number"
-								:disabled="!!currentPlaceCommon"
+								:disabled="!own"
 								class="fieldwidth_100"
 								@change="e => mainStore.changePoint({
 									entity: mainStore.points[mainStore.currentPlace.pointid],
@@ -77,7 +77,7 @@
 								id="detailed-longitude"
 								:value="currentPlaceLon"
 								type="number"
-								:disabled="!!currentPlaceCommon"
+								:disabled="!own"
 								class="fieldwidth_100"
 								@change="e => mainStore.changePoint({
 									entity: mainStore.points[mainStore.currentPlace.pointid],
@@ -97,7 +97,7 @@
 								id="detailed-coordinates"
 								:value="currentDegMinSec"
 								type="text"
-								:disabled="!!currentPlaceCommon"
+								:disabled="!own"
 								class="fieldwidth_100"
 								@change="e => {
 									const coords = string2coords(
@@ -133,7 +133,7 @@
 						:id="'detailed-' + field"
 						v-model="mainStore.currentPlace[field]"
 						type="datetime-local"
-						:disabled="!!currentPlaceCommon"
+						:disabled="!own"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
 							entity: mainStore.currentPlace,
@@ -144,12 +144,11 @@
 			</template>
 			<template v-else-if="field === 'common'">
 				<dd>
-					<label v-if="!currentPlaceCommon">
+					<label v-if="own">
 						<input
 							:id="'detailed-' + field"
 							v-model="mainStore.currentPlace[field]"
 							type="checkbox"
-							:disabled="!!currentPlaceCommon"
 							@change="mainStore.changePlace({
 								entity: mainStore.currentPlace,
 								change: { [field]: mainStore.currentPlace[field] },
@@ -162,7 +161,7 @@
 
 <!-- SEC Home -->
 
-			<template v-else-if="field === 'home' && !currentPlaceCommon">
+			<template v-else-if="field === 'home' && own">
 				<dd>
 					<label>
 						<input
@@ -194,7 +193,7 @@
 						}"
 						v-model.trim="mainStore.currentPlace[field] as string"
 						:id="'place-detailed-' + field"
-						:disabled="!!currentPlaceCommon"
+						:disabled="!own"
 						:placeholder="
 							field === 'name'
 								? mainStore.t.i.inputs.placeName
@@ -219,17 +218,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, computed, inject } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { coords2string, string2coords } from '@/shared/converters';
 import { useMainStore } from '@/stores/main';
 import { Place } from '@/types'
 import Images from '@/components/details/Images.vue';
 
-const currentPlaceCommon = inject('currentPlaceCommon') as Ref<boolean>;
 const currentPlaceNameInputRef = inject('currentPlaceNameInputRef');
 
 const mainStore = useMainStore();
 
+const own = computed(() => mainStore.currentPlace.userid === mainStore.user.id);
 const linkEditing = ref(false);
 
 const currentPlaceLat = computed<number | null>(() =>

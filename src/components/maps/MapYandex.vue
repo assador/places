@@ -691,6 +691,9 @@ const markersOptions = ref({
 </script>
 
 <style lang="scss" scoped>
+* {
+	user-select: none;
+}
 .marker,
 .marker-center,
 .marker-start,

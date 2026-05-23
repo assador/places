@@ -17,7 +17,7 @@
 			v-model="colortheme"
 		>
 			<option
-				v-for="(c, i) in colorthemes"
+				v-for="(c, i) in mainStore.colorthemes"
 				:key="i"
 				:value="c.value"
 			>
@@ -28,15 +28,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, inject } from 'vue';
+import { ref, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();
 
 const lang = ref(mainStore.lang);
 const colortheme = ref(mainStore.colortheme);
-
-const colorthemes = inject<typeof colorthemes>('colorthemes');
 
 watch(() => lang.value, () => {
 	mainStore.changeLang(lang.value);

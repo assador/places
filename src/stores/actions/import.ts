@@ -159,4 +159,18 @@ export const importActions = {
 		this.backupState();
 		this.setBusy(false);
 	},
+	selectToExport(type: 'places' | 'routes', id: string, checked: boolean) {
+		const set = this.selectedToExport[type];
+		if (checked) set.push(id);
+		else {
+			const index = set.indexOf(id);
+			if (index !== -1) set.splice(index, 1);
+		}
+	},
+	toggleToExport(type: 'places' | 'routes', id: string) {
+		const set = this.selectedToExport[type];
+		const index = set.indexOf(id);
+		if (index !== -1) set.splice(index, 1);
+		else set.push(id);
+	},
 };

@@ -132,9 +132,6 @@ async function mountHome(options: { shallow?: boolean } = {}) {
 	// Injects required by Home.vue
 	const provide = {
 		idleTimeInterval: ref<number | undefined>(undefined),
-		currentPlaceCommon: ref(false),
-		currentRouteCommon: ref(false),
-		foldersEditMode: ref(false),
 		toDB: vi.fn(),
 		toDBCompletely: vi.fn(),
 		handleDrop: vi.fn(),

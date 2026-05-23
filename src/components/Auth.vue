@@ -210,7 +210,8 @@ import { ref, inject, nextTick, onBeforeMount, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 
-import { emitter } from '@/shared/bus';
+import { logged } from '@/services/auth';
+import { setBusy } from '@/services/common';
 import { constants } from '@/shared/constants';
 import { reg, regRoutine } from '@/shared/reg';
 import { login, loginRoutine } from '@/shared/auth';
@@ -238,10 +239,14 @@ const passwordShowHide = (input: HTMLInputElement): void => {
 }
 const authLoginSubmit = async () => {
 	if (!authLogin.value || !authPassword.value) return;
-	await loginRoutine({
+	const success = await loginRoutine({
 		authLogin: authLogin.value,
 		authPassword: authPassword.value,
 	}, mainStore.t);
+	if (success) {
+		await logged();
+		router.push({ name: 'Home' });
+	}
 };
 const testAuth = (): void => {
 	authLogin.value = authPassword.value = 'test';
@@ -281,7 +286,7 @@ onBeforeMount(() => {
 });
 onMounted(async () => {
 	await nextTick();
-	emitter.emit('busy', false);
+	setBusy(false);
 });
 </script>
 
