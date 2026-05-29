@@ -172,6 +172,29 @@
 						}
 					}"
 				/>
+				<button
+					v-if="folder.context === 'places'"
+					class="button-iconed icon icon-plus-net"
+					:class="{ 'button-pressed': !Object.keys(mainStore[folder.context]).length }"
+					:title="
+						folder.context === 'places'
+							? mainStore.t.i.hints.addPlaceToGeoLocation
+							: mainStore.t.i.hints.addRouteToGeoLocation
+					"
+					accesskey="a"
+					@click.stop.prevent
+					@pointerdown.stop
+					@pointerup.stop="async () => {
+						const loc = await geoLocation.getLocation();
+						mainStore.upsertPlace({
+							props: {
+								latitude: loc.latitude,
+								longitude: loc.longitude,
+							},
+						});
+						focusCurrent(currentPlaceNameInputRef);
+					}"
+				/>
 			</div>
 		</div>
 		<div class="folder-subfolders">
@@ -349,6 +372,7 @@ export default {
 import _ from 'lodash';
 import { Ref, computed, inject, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { useGeolocation } from '@/services/geolocation';
 import {
 	Place,
 	Route,
@@ -373,6 +397,7 @@ const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 });
 
 const mainStore = useMainStore();
+const geoLocation = useGeolocation();
 
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');

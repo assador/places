@@ -186,12 +186,10 @@ export const getT = () => ({
 			about: 'About “The Places”, reference',
 			addFolder: 'Add folder',
 			addFolderIn: 'Add a folder to this folder',
-			addNext: 'Add next',
-			addPoint: 'ДAdd a point',
+			addNext: 'next after this one',
+			addPoint: 'Add a point',
 			addPlace: 'Add a place',
-			addPlaceNext: 'Add the next place after this one',
 			addRoute: 'Add a route',
-			addRouteNext: 'Add the next route after this one',
 			addRoutePoint: 'Add a route point',
 			addTemp: 'Add a temporary point',
 			deleteAllRoutePoints: 'Delete all route points',
@@ -233,6 +231,7 @@ export const getT = () => ({
 			show: 'Show',
 			shMarkers: 'Show / hide all your markers',
 			undo: 'Undo last change',
+			usingGeoLocation: 'using GPS',
 		},
 		maps: {
 			satellite: 'Satellite',
@@ -292,6 +291,15 @@ For your role file size is limited.`,
 Your data is temporary and will be cleared when you log out.`,
 			testOnSave: `Saved locally only (demo mode).
 Your data won’t be saved to your account and will be cleared when you log out.`,
+		},
+		service: {
+			geoLocation: {
+				notSupported: 'Geolocation is not supported by your device.',
+				permissionDenied: 'You have denied access to geolocation.',
+				positionUnavailable: 'Unable to determine coordinates (network/GPS is off).',
+				timeout: 'GPS timed out. Try again.',
+				error: 'An unknown geolocation error occurred.',
+			},
 		},
 	},
 	o: {

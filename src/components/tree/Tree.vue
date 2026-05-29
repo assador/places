@@ -49,11 +49,10 @@
 			<a
 				class="menu-link message border_1"
 				role="button" tabindex="0"
-				:title="mainStore.t.i.hints[
-					contextMenu.object.type === 'place' ? 'addPlaceNext'
-					: contextMenu.object.type === 'route' ? 'addRouteNext'
-					: (props.what === 'places' ? 'addPlace' : 'addRoute')
-				]"
+				:title="contextMenu.object.type !== 'folder' ? (
+					mainStore.t.i.hints[props.what === 'places' ? 'addPlace' : 'addRoute'] + ' ' +
+					mainStore.t.i.hints.addNext
+				) : ''"
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="() => {
@@ -72,6 +71,55 @@
 			>
 				<span class="icon icon-plus-circled" />
 				{{ mainStore.t.i.hints[props.what === 'places' ? 'addPlace' : 'addRoute'] }}
+			</a>
+			<a
+				v-if="
+					props.what === 'places' ||
+					contextMenu.object.type === 'route' && mainStore.currentRoute.points.length
+				"
+				class="menu-link message border_1"
+				role="button" tabindex="0"
+				:title="contextMenu.object.type === 'place' ? (
+					mainStore.t.i.hints[props.what === 'places' ? 'addPlace' : 'addPoint'] + ' ' +
+					mainStore.t.i.hints.usingGeoLocation +
+					(props.what === 'places' ? ` ${mainStore.t.i.hints.addNext}` : '')
+				) : ''"
+				@pointerdown.stop
+				@pointerup.stop
+				@click.stop="async () => {
+					const loc = await geoLocation.getLocation();
+					if (contextMenu.object.type === 'place') {
+						mainStore.upsertPlaceFollowing(contextMenu.object, {
+							props: {
+								latitude: loc.latitude,
+								longitude: loc.longitude,
+							},
+						});
+					} else if (contextMenu.object.type === 'route') {
+						mainStore.upsertPoint({
+							where: mainStore.points,
+							whom: contextMenu.object,
+							props: {
+								latitude: loc.latitude,
+								longitude: loc.longitude,
+							},
+						});
+					} else if (contextMenu.object.type === 'folder' && props.what === 'places') {
+						mainStore.upsertPlace({
+							props: {
+								folderid: contextMenu.object.id,
+								latitude: loc.latitude,
+								longitude: loc.longitude,
+							},
+						});
+					}
+					if (props.what === 'places') focusCurrent(currentPlaceNameInputRef);
+					else focusCurrent(currentRouteNameInputRef);
+				}"
+			>
+				<span class="icon icon-plus-net" />
+				{{ mainStore.t.i.hints[props.what === 'places' ? 'addPlace' : 'addPoint'] }}
+				{{ mainStore.t.i.hints.usingGeoLocation }}
 			</a>
 			<a
 				v-if="contextMenu.object.type === 'folder'"
@@ -137,6 +185,7 @@
 import { ref, provide, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
+import { useGeolocation } from '@/services/geolocation';
 import { Folder } from '@/types';
 import { isPlace } from '@/guards';
 import { IEntityPopupProps } from '@/shared/interfaces';
@@ -153,6 +202,7 @@ const props = withDefaults(defineProps<IPlacesTreeProps>(), {
 });
 const mainStore = useMainStore();
 const router = useRouter();
+const geoLocation = useGeolocation();
 
 const dragging = ref(false);
 provide('dragging', dragging);

@@ -1,8 +1,9 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
 import { configDefaults } from 'vitest/config';
-import vue from '@vitejs/plugin-vue'
-import { fileURLToPath, URL } from 'node:url'
-import { VitePWA } from 'vite-plugin-pwa'
+import vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url';
+import { VitePWA } from 'vite-plugin-pwa';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
 	plugins: [
@@ -42,6 +43,7 @@ export default defineConfig({
 				],
 			},
 		}),
+		basicSsl(),
 	],
 	resolve: {
 		alias: {
@@ -53,6 +55,9 @@ export default defineConfig({
 		'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
 	},
 	server: {
+		host: true,
+		https: true,
+		port: 5173,
 		proxy: {
 			'/backend': 'http://localhost:5277',
 		},
