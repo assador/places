@@ -1,4 +1,5 @@
 import {
+	Mode,
 	Point,
 	Place,
 	Route,
@@ -7,6 +8,7 @@ import {
 	AppendMode,
 } from '@/types';
 import { isPoint, isPlace, isRoute } from '@/guards';
+import { useGeolocation } from '@/services/geolocation';
 
 interface UpsertPlaceParams {
 	object?: Place;
@@ -482,6 +484,43 @@ export const entityActions = {
 			this.backupState();
 		}
 		return folder;
+	},
+	async upsertEntityWithCurrentLocation(mode: Mode) {
+		try {
+			const geoLocation = useGeolocation();
+			const location = await geoLocation.getLocation();
+			const props = {
+				latitude: location.latitude,
+				longitude: location.longitude,
+			};
+			if (mode === 'normal') {
+				if (this.currentPlace) {
+					this.upsertPlaceFollowing(this.currentPlace, { props });
+				} else {
+					this.upsertPlace({ props });
+				}
+			} else if (mode === 'routes' && this.currentRoute) {
+				this.upsertPoint({
+					where: this.points,
+					whom: this.currentRoute,
+					props,
+				});
+			} else if (mode === 'measure') {
+				const point = this.upsertPoint({
+					where: this.temps,
+					props,
+				});
+				this.addPointToPoints({
+					point: point,
+					entity: this.measure,
+				});
+			}
+			geoLocation.centerTo(location);
+		}
+		catch (error) {
+			this.setMessage(error, 5);
+			return error;
+		}
 	},
 
 // SEC Deleting Entities

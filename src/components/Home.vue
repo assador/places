@@ -375,7 +375,7 @@
 					`${mainStore.t.i.hints[mainStore.mode === 'normal' ? 'addPlace' : 'addPoint']}.`
 				"
 				@click="async () => {
-					await geoLocation.upsertEntity(mainStore.mode);
+					await mainStore.upsertEntityWithCurrentLocation(mainStore.mode);
 					if (mainStore.mode === 'normal') focusCurrent(currentPlaceNameInputRef);
 				}"
 			>

@@ -73,13 +73,12 @@ const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
 };
 const style = computed((): CSSProperties => {
-	const format = (val: string | number) => isNaN(Number(val)) ? val : `${val}px`;
 	return {
 		position: 'absolute',
-		top: format(props.position.top),
-		right: format(props.position.right || 'auto'),
-		bottom: format(props.position.bottom || 'auto'),
-		left: format(props.position.left),
+		top: props.position.top,
+		right: props.position.right,
+		bottom: props.position.bottom,
+		left: props.position.left,
 		zIndex: 999999,
 		transform: props.position.left === '50%' ? 'translateX(-50%)' : 'none',
 	};

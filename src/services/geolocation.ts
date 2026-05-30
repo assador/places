@@ -1,11 +1,9 @@
 import { ref } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { Mode } from '@/types';
 
 export function useGeolocation() {
-	const coords = ref(null);
-	const error = ref(null);
-	const isLoading = ref(false);
+	const coords = ref<GeolocationCoordinates | null>(null);
+	const error = ref<string | null>(null);
 	const mainStore = useMainStore();
 
 	const getLocation = () => {
@@ -13,7 +11,7 @@ export function useGeolocation() {
 			error.value = mainStore.t.m.service.geoLocation.notSupported;
 			return Promise.reject(error.value);
 		}
-		isLoading.value = true;
+		mainStore.setBusy(true);
 		error.value = null;
 		const options = {
 			enableHighAccuracy: true,
@@ -24,24 +22,20 @@ export function useGeolocation() {
 			navigator.geolocation.getCurrentPosition(
 				position => {
 					coords.value = position.coords;
-					isLoading.value = false;
+					mainStore.setBusy(false);
 					resolve(coords.value);
 				},
 				err => {
-					isLoading.value = false;
-					switch (err.code) {
-						case err.PERMISSION_DENIED:
-							error.value = mainStore.t.m.service.geoLocation.permissionDenied;
-							break;
-						case err.POSITION_UNAVAILABLE:
-							error.value = mainStore.t.m.service.geoLocation.positionUnavailable;
-							break;
-						case err.TIMEOUT:
-							error.value = mainStore.t.m.service.geoLocation.timeout;
-							break;
-						default:
-							error.value = mainStore.t.m.service.geoLocation.error;
-					}
+					mainStore.setBusy(false);
+					const errorsMap: Record<number, string> = {
+						[err.PERMISSION_DENIED]:
+							mainStore.t.m.service.geoLocation.permissionDenied,
+						[err.POSITION_UNAVAILABLE]:
+							mainStore.t.m.service.geoLocation.positionUnavailable,
+						[err.TIMEOUT]:
+							mainStore.t.m.service.geoLocation.timeout,
+					};
+					error.value = errorsMap[err.code] || mainStore.t.m.service.geoLocation.error;
 					reject(error.value);
 				},
 				options,
@@ -52,57 +46,12 @@ export function useGeolocation() {
 		let center = location;
 		if (!center) {
 			try { center = await getLocation(); }
-			catch (error) { mainStore.setMessage(error, 5); }
+			catch (err) { mainStore.setMessage(err, 5); return; }
 		}
 		mainStore.center = {
 			latitude: center.latitude,
 			longitude: center.longitude,
 		};
 	}
-	const upsertEntity = async (mode: Mode) => {
-		try {
-			const location = await getLocation();
-			if (mode === 'normal') {
-				if (mainStore.currentPlace) {
-					mainStore.upsertPlaceFollowing(mainStore.currentPlace, {
-						props: {
-							latitude: location.latitude,
-							longitude: location.longitude,
-						},
-					});
-				} else {
-					mainStore.upsertPlace({
-						props: {
-							latitude: location.latitude,
-							longitude: location.longitude,
-						},
-					});
-				}
-			} else if (mode === 'routes' && mainStore.currentRoute) {
-				mainStore.upsertPoint({
-					where: mainStore.points,
-					whom: mainStore.currentRoute,
-					props: {
-						latitude: location.latitude,
-						longitude: location.longitude,
-					},
-				});
-			} else if (mode === 'measure') {
-				const point = mainStore.upsertPoint({
-					where: mainStore.temps,
-					props: {
-						latitude: location.latitude,
-						longitude: location.longitude,
-					},
-				});
-				mainStore.addPointToPoints({
-					point: point,
-					entity: mainStore.measure,
-				});
-			}
-			centerTo(location);
-		}
-		catch (error) { mainStore.setMessage(error, 5); return error; }
-	}
-	return { coords, error, isLoading, getLocation, centerTo, upsertEntity };
+	return { coords, error, getLocation, centerTo };
 }
