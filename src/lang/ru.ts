@@ -215,6 +215,7 @@ export const getT = () => ({
 			fvPhoneExample: 'Слитно, с ведущим +. Пример: +71234567890',
 			fvRangeExample: 'Пример: 55.555',
 			fvSrtExample: 'Пример: 3.752',
+			getLocation: 'Определить текущее местоположение',
 			hide: 'Скрыть',
 			importPlaces: 'Импортировать места в формате GPX или JSON',
 			install: 'Установить как приложение',

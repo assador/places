@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { Mode } from '@/types';
 
 export function useGeolocation() {
 	const coords = ref(null);
@@ -47,5 +48,61 @@ export function useGeolocation() {
 			);
 		});
 	};
-	return { coords, error, isLoading, getLocation };
+	const centerTo = async (location?: GeolocationCoordinates) => {
+		let center = location;
+		if (!center) {
+			try { center = await getLocation(); }
+			catch (error) { mainStore.setMessage(error, 5); }
+		}
+		mainStore.center = {
+			latitude: center.latitude,
+			longitude: center.longitude,
+		};
+	}
+	const upsertEntity = async (mode: Mode) => {
+		try {
+			const location = await getLocation();
+			if (mode === 'normal') {
+				if (mainStore.currentPlace) {
+					mainStore.upsertPlaceFollowing(mainStore.currentPlace, {
+						props: {
+							latitude: location.latitude,
+							longitude: location.longitude,
+						},
+					});
+				} else {
+					mainStore.upsertPlace({
+						props: {
+							latitude: location.latitude,
+							longitude: location.longitude,
+						},
+					});
+				}
+			} else if (mode === 'routes' && mainStore.currentRoute) {
+				mainStore.upsertPoint({
+					where: mainStore.points,
+					whom: mainStore.currentRoute,
+					props: {
+						latitude: location.latitude,
+						longitude: location.longitude,
+					},
+				});
+			} else if (mode === 'measure') {
+				const point = mainStore.upsertPoint({
+					where: mainStore.temps,
+					props: {
+						latitude: location.latitude,
+						longitude: location.longitude,
+					},
+				});
+				mainStore.addPointToPoints({
+					point: point,
+					entity: mainStore.measure,
+				});
+			}
+			centerTo(location);
+		}
+		catch (error) { mainStore.setMessage(error, 5); return error; }
+	}
+	return { coords, error, isLoading, getLocation, centerTo, upsertEntity };
 }

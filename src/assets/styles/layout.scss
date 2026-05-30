@@ -185,10 +185,10 @@
 		height: 44px;
 	}
 }
-#sbb-top, #sbb-bottom {
+#sbb-top, #sbb-right, #sbb-bottom, #sbb-left {
 	position: absolute;
-	width: 40px; height: 20px;
 	min-width: 0; min-height: 0;
+	align-self: center;
 	justify-self: center;
 	z-index: 1000;
 	&::before {
@@ -200,6 +200,12 @@
 		opacity: 0.5;
 	}
 }
+#sbb-top, #sbb-bottom {
+	width: 40px; height: 20px;
+}
+#sbb-right, #sbb-left {
+	width: 20px; height: 40px;
+}
 #sbb-top {
 	grid-area: top-basic;
     top: 100%;
@@ -210,6 +216,16 @@
 		transform: scale(75%) rotate(-90deg);
 	}
 }
+#sbb-right {
+	grid-area: grid;
+    right: 0;
+	&::before {
+		transform: scale(40%) rotate(180deg);
+	}
+	&.disclosed::before {
+		transform: scale(40%) rotate(0deg);
+	}
+}
 #sbb-bottom {
 	grid-area: bottom-basic;
 	bottom: 100%;
@@ -218,6 +234,16 @@
 	}
 	&.disclosed::before {
 		transform: scale(75%) rotate(90deg);
+	}
+}
+#sbb-left {
+	grid-area: grid;
+    left: 0;
+	&::before {
+		transform: scale(40%) rotate(0deg);
+	}
+	&.disclosed::before {
+		transform: scale(40%) rotate(180deg);
 	}
 }
 #sbs-top, #sbs-right, #sbs-bottom, #sbs-left {
@@ -377,8 +403,7 @@ pre, .pre {
 			display: none;
 		}
 		#basic-left, #basic-right {
-			margin-bottom: 44px;
-			padding-top: 32px;
+			margin: 20px;
 		}
 		#ui-buttons {
 			grid-area: basic-left;

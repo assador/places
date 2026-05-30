@@ -95,21 +95,7 @@
 					@click="e => {
 						pointInfo.point = mainStore.currentPoint;
 						popupProps.show = !popupProps.show;
-						popupProps.position.bottom = 'auto';
-						popupProps.position.top = e.clientY + 5;
-						popupProps.position.right = (
-							type === 'route' || common.compact === 2
-							? (
-								e.view.document.documentElement.clientWidth -
-								e.clientX + 5
-							)
-							: 'auto'
-						);
-						popupProps.position.left = (
-							type === 'route' || common.compact === 2
-							? 'auto'
-							: e.clientX + 5
-						);
+						popupProps.position = calculatePopupPosition(e);
 					}"
 				>
 					{{ mainStore.t.i.captions.coords }}
@@ -150,10 +136,7 @@
 							pointInfo.point = temp;
 							pointInfo.name = (temp.idx + 1).toString();
 							popupProps.show = true;
-							popupProps.position.right = 'auto';
-							popupProps.position.bottom = 'auto';
-							popupProps.position.top = e.clientY + 5;
-							popupProps.position.left = e.clientX + 5;
+							popupProps.position = calculatePopupPosition(e);
 						}"
 					>
 						<span>{{ temp.idx + 1 }}</span>
@@ -198,10 +181,7 @@
 							pointInfo.point = mainStore.getPointById(pn.id);
 							pointInfo.name = pn.name;
 							popupProps.show = true;
-							popupProps.position.right = 'auto';
-							popupProps.position.bottom = 'auto';
-							popupProps.position.top = e.clientY + 5;
-							popupProps.position.left = e.clientX + 5;
+							popupProps.position = calculatePopupPosition(e);
 						}"
 					>
 						<span>
@@ -280,12 +260,7 @@
 							}
 							pointInfo.name = pn.name;
 							popupProps.show = true;
-							popupProps.position.left = 'auto';
-							popupProps.position.bottom = 'auto';
-							popupProps.position.top = e.clientY + 5;
-							popupProps.position.right =
-								e.view.document.documentElement.clientWidth -
-								e.clientX + 5;
+							popupProps.position = calculatePopupPosition(e);
 						}"
 					>
 						<span>
@@ -327,7 +302,7 @@
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { common } from '@/services/common';
+import { calculatePopupPosition } from '@/shared/common';
 import { usePointerDnD } from '@/shared/dnd';
 import { IPopupProps } from '@/shared/interfaces';
 import { PointName } from '@/types';

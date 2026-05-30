@@ -394,6 +394,7 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Route, Point, PointName } from '@/types';
+import { calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
 import { IPopupProps } from '@/shared/interfaces';
 
@@ -558,12 +559,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 		? !popupProps.value.show : true
 	;
 	pointInfo.value.point = point;
-	popupProps.value.position.left = 'auto';
-	popupProps.value.position.bottom = 'auto';
-	popupProps.value.position.top = e.originalEvent.clientY + 5;
-	popupProps.value.position.right =
-		e.originalEvent.view.document.documentElement.clientWidth -
-		e.originalEvent.clientX + 5;
+	popupProps.value.position = calculatePopupPosition(e.originalEvent);
 }
 
 // SEC Other

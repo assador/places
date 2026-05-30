@@ -43,10 +43,7 @@
 				</span>
 				<a href="javascript:void(0)" @click="e => {
 					popupProps.show = !popupProps.show;
-					popupProps.position.right = 'auto';
-					popupProps.position.bottom = 'auto';
-					popupProps.position.top = e.clientY + 5;
-					popupProps.position.left = e.clientX + 5;
+					popupProps.position = calculatePopupPosition(e);
 				}">
 					{{
 						mainStore.user
@@ -67,6 +64,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { logout } from '@/services/auth';
+import { calculatePopupPosition } from '@/shared/common';
 import { IPopupProps } from '@/shared/interfaces';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';

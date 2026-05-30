@@ -79,11 +79,11 @@
 				"
 				class="menu-link message border_1"
 				role="button" tabindex="0"
-				:title="contextMenu.object.type === 'place' ? (
-					mainStore.t.i.hints[props.what === 'places' ? 'addPlace' : 'addPoint'] + ' ' +
+				:title="
+					(mainStore.t.i.hints[props.what === 'places' ? 'addPlace' : 'addPoint']) + ' ' +
 					mainStore.t.i.hints.usingGeoLocation +
 					(props.what === 'places' ? ` ${mainStore.t.i.hints.addNext}` : '')
-				) : ''"
+				"
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="async () => {
@@ -182,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, inject, nextTick } from 'vue';
+import { ref, provide, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { useGeolocation } from '@/services/geolocation';
@@ -225,16 +225,9 @@ const contextMenu = ref<IEntityPopupProps>({
 });
 provide('contextMenu', contextMenu);
 
+const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
-
-const focusCurrent = async (input: HTMLElement | null) => {
-	if (!input) return;
-	mainStore.setMessage(mainStore.t.i.text.addedEnterName, 3);
-	await nextTick();
-	input.focus();
-}
-provide('focusCurrent', focusCurrent);
 </script>
 
 <style lang="scss" scoped>

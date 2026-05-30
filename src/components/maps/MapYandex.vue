@@ -409,7 +409,7 @@ import { ref, Ref, shallowRef, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Place, Route, Measure, Point, PointName } from '@/types';
 import { IPopupProps } from '@/shared/interfaces';
-import { getPointToSegmentDistance } from '@/shared/common';
+import { getPointToSegmentDistance, calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
 import {
 	YandexMap,
@@ -558,12 +558,7 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 		? !popupProps.value.show : true
 	;
 	pointInfo.value.point = point;
-	popupProps.value.position.left = 'auto';
-	popupProps.value.position.bottom = 'auto';
-	popupProps.value.position.top = e.clientY + 5;
-	popupProps.value.position.right =
-		e.view.document.documentElement.clientWidth -
-		e.clientX + 5;
+	popupProps.value.position = calculatePopupPosition(e);
 }
 
 // SEC Other

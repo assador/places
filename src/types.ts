@@ -9,12 +9,17 @@ declare module 'axios' {
 	}
 }
 
-export type EntitiesContext =
+export type Context =
 	| 'folders'
 	| 'points'
 	| 'places'
 	| 'routes'
 	| 'images'
+	| 'measure'
+;
+export type Mode =
+	| 'normal'
+	| 'routes'
 	| 'measure'
 ;
 export type FolderContext =
@@ -175,7 +180,7 @@ export interface DragPayload {
 	context: string;
 }
 export interface DragEntityPayload extends DragPayload {
-	context: EntitiesContext;
+	context: Context;
 	parentId?: string;
 	index?: number;
 	dragging?: boolean;
@@ -238,7 +243,7 @@ export interface IMainState {
 	messagesMouseOver: boolean,
 	messagesInterval: number | null,
 	messagesTimeout: number | null,
-	mode: string,
+	mode: Mode,
 	newEntityPointId: string | null,
 	markersShow: boolean,
 	places: Record<string, Place>,

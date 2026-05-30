@@ -215,6 +215,7 @@ export const getT = () => ({
 			fvPhoneExample: 'Merged, with the presenter +. Example: +71234567890',
 			fvRangeExample: 'Example: 55.555',
 			fvSrtExample: 'Example: 3.752',
+			getLocation: 'Get current location',
 			hide: 'Hide',
 			importPlaces: 'Import places in GPX or JSON format',
 			install: 'Install as an application',

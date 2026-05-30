@@ -1187,11 +1187,7 @@ $filter-brightness-03: brightness(0%);
 	.menu-link {
 		display: block;
 	}
-	#markersShowHideButton,
-	#commonPlacesShowHideButton,
-	#commonRoutesShowHideButton,
-	#commonMarkersShowHideButton,
-	#centerMarkerShowHideButton {
+	#bottom-basic__control-buttons-bottom .action-button {
 		padding: 0;
 		font-size: 13px;
 	}

@@ -361,6 +361,27 @@
 		</div>
 		<div id="ui-buttons">
 			<button
+				class="action-button"
+				:title="mainStore.t.i.hints.getLocation"
+				@click="geoLocation.centerTo()"
+			>
+				<span class="icon icon-center-net" />
+			</button>
+			<button
+				class="action-button"
+				:disabled="mainStore.mode === 'routes' && !mainStore.currentRoute"
+				:title="
+					`${mainStore.t.i.hints.getLocation}. ` +
+					`${mainStore.t.i.hints[mainStore.mode === 'normal' ? 'addPlace' : 'addPoint']}.`
+				"
+				@click="async () => {
+					await geoLocation.upsertEntity(mainStore.mode);
+					if (mainStore.mode === 'normal') focusCurrent(currentPlaceNameInputRef);
+				}"
+			>
+				<span class="icon icon-plus-net" />
+			</button>
+			<button
 				v-if="common.compact !== 2"
 				class="action-button basic-on-full"
 				:class="{ 'button-pressed': basicFulled }"
@@ -369,36 +390,30 @@
 			>
 				<span class="icon icon-full" />
 			</button>
-			<button
-				v-if="common.compact === 2"
-				id="sbb-left"
-				class="action-button"
-				:class="{ 'button-pressed': cells.left }"
-				@click="sideShowHide('left')"
-			>
-				<span class="icon icon-list" />
-			</button>
-			<button
-				v-if="common.compact === 2"
-				id="sbb-right"
-				class="action-button"
-				:class="{ 'button-pressed': cells.right }"
-				@click="sideShowHide('right')"
-			>
-				<span class="icon icon-text" />
-			</button>
 		</div>
 		<button
 			v-if="common.compact === 2"
 			id="sbb-top"
-			:class="{ disclosed: cells.top }"
+			:class="{ disclosed: cells.top, 'button-pressed': cells.top }"
 			@click="sideShowHide('top')"
 		/>
 		<button
 			v-if="common.compact === 2"
+			id="sbb-right"
+			:class="{ disclosed: cells.right, 'button-pressed': cells.right }"
+			@click="sideShowHide('right')"
+		/>
+		<button
+			v-if="common.compact === 2"
 			id="sbb-bottom"
-			:class="{ disclosed: cells.bottom }"
+			:class="{ disclosed: cells.bottom, 'button-pressed': cells.bottom }"
 			@click="sideShowHide('bottom')"
+		/>
+		<button
+			v-if="common.compact === 2"
+			id="sbb-left"
+			:class="{ disclosed: cells.left, 'button-pressed': cells.left }"
+			@click="sideShowHide('left')"
 		/>
 		<div
 			v-if="common.compact !== 2"
@@ -669,7 +684,6 @@
 	">
 		<div class="control-buttons">
 			<button
-				id="markersShowHideButton"
 				class="action-button"
 				:class="{ 'button-pressed': mainStore.markersShow }"
 				:title="mainStore.t.i.hints.shMarkers"
@@ -679,7 +693,6 @@
 			</button>
 <!--
 			<button
-				id="commonPlacesShowHideButton"
 				class="action-button"
 				:class="{ 'button-pressed': commonPlacesShow }"
 				:title="mainStore.t.i.hints.shCommonPlaces"
@@ -688,7 +701,6 @@
 				<span class="icon icon-geomark-3" />
 			</button>
 			<button
-				id="commonMarkersShowHideButton"
 				class="action-button"
 				:class="{ 'button-pressed': mainStore.commonMarkersShow }"
 				:title="mainStore.t.i.hints.shCommonMarkers"
@@ -697,7 +709,6 @@
 				<span class="icon icon-geomark-2" />
 			</button>
 			<button
-				id="commonRoutesShowHideButton"
 				class="action-button"
 				:class="{ 'button-pressed': commonRoutesShow }"
 				:title="mainStore.t.i.hints.shCommonRoutes"
@@ -707,13 +718,12 @@
 			</button>
 -->
 			<button
-				id="centerMarkerShowHideButton"
 				class="action-button"
 				:class="{ 'button-pressed': mainStore.centerMarkerShow }"
 				:title="mainStore.t.i.hints.shCenter"
 				@click="mainStore.centerMarkerShowHide()"
 			>
-				<span class="icon icon-cross" />
+				<span class="icon icon-circle-circle" />
 			</button>
 		</div>
 	</Teleport>
@@ -795,6 +805,7 @@ import {
 import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
+import { useGeolocation } from '@/services/geolocation';
 
 import * as db from '@/services/db';
 import { common, setBusy } from '@/services/common';
@@ -837,6 +848,7 @@ const maps = [
 ];
 const mainStore = useMainStore();
 const router = useRouter();
+const geoLocation = useGeolocation();
 
 const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
@@ -864,6 +876,13 @@ provide('commonRoutesOnPageCount', commonRoutesOnPageCount);
 const commonPlacesShow = ref(false);
 const commonRoutesShow = ref(false);
 
+const focusCurrent = async (input: HTMLElement | null) => {
+	if (!input) return;
+	mainStore.setMessage(mainStore.t.i.text.addedEnterName, 3);
+	await nextTick();
+	input.focus();
+}
+provide('focusCurrent', focusCurrent);
 const currentPlaceNameInputRef = ref(null);
 const currentRouteNameInputRef = ref(null);
 provide('currentPlaceNameInputRef', currentPlaceNameInputRef);

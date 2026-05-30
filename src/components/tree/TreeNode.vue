@@ -115,10 +115,7 @@
 					contextMenu.show = !contextMenu.show;
 					contextMenu.object = mainStore.folders[folder.id] ?? mainStore.trees[folder.context];
 					contextMenu.closeOnClick = false;
-					contextMenu.position.right = 'auto';
-					contextMenu.position.bottom = 'auto';
-					contextMenu.position.top = e.clientY + 5;
-					contextMenu.position.left = e.clientX + 5;
+					contextMenu.position = calculatePopupPosition(e);
 				}"
 			>
 				<div
@@ -159,7 +156,6 @@
 							? mainStore.t.i.hints.addPlace
 							: mainStore.t.i.hints.addRoute
 					"
-					accesskey="a"
 					@click.stop.prevent
 					@pointerdown.stop
 					@pointerup.stop="() => {
@@ -170,29 +166,6 @@
 							mainStore.upsertRoute();
 							focusCurrent(currentRouteNameInputRef);
 						}
-					}"
-				/>
-				<button
-					v-if="folder.context === 'places'"
-					class="button-iconed icon icon-plus-net"
-					:class="{ 'button-pressed': !Object.keys(mainStore[folder.context]).length }"
-					:title="
-						folder.context === 'places'
-							? mainStore.t.i.hints.addPlaceToGeoLocation
-							: mainStore.t.i.hints.addRouteToGeoLocation
-					"
-					accesskey="a"
-					@click.stop.prevent
-					@pointerdown.stop
-					@pointerup.stop="async () => {
-						const loc = await geoLocation.getLocation();
-						mainStore.upsertPlace({
-							props: {
-								latitude: loc.latitude,
-								longitude: loc.longitude,
-							},
-						});
-						focusCurrent(currentPlaceNameInputRef);
 					}"
 				/>
 			</div>
@@ -302,10 +275,7 @@
 						contextMenu.show = !contextMenu.show;
 						contextMenu.object = object;
 						contextMenu.closeOnClick = false;
-						contextMenu.position.right = 'auto';
-						contextMenu.position.bottom = 'auto';
-						contextMenu.position.top = e.clientY + 5;
-						contextMenu.position.left = e.clientX + 5;
+						contextMenu.position = calculatePopupPosition(e);
 					}"
 				>
 					{{ object.name || mainStore.t.i.captions.untitled }}
@@ -372,7 +342,6 @@ export default {
 import _ from 'lodash';
 import { Ref, computed, inject, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { useGeolocation } from '@/services/geolocation';
 import {
 	Place,
 	Route,
@@ -380,6 +349,7 @@ import {
 	FolderContext,
 } from '@/types';
 import { common } from '@/services/common';
+import { calculatePopupPosition } from '@/shared/common';
 import { usePointerDnD } from '@/shared/dnd';
 import { IEntityPopupProps } from '@/shared/interfaces';
 
@@ -397,11 +367,10 @@ const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 });
 
 const mainStore = useMainStore();
-const geoLocation = useGeolocation();
 
+const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
-const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
 const contextMenu = inject<Ref<IEntityPopupProps>>('contextMenu');
 
 const places = computed(() =>
