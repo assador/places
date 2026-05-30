@@ -399,6 +399,12 @@ pre, .pre {
 			"basic-left    basic-basic   basic-right"
 			"bottom-basic  bottom-basic  bottom-basic"
 		;
+		#basic-basic {
+			padding: 0;
+		}
+		#mapblock {
+			top: 0; right: 0; bottom: 0; left: 0;
+		}
 		#top-left, #top-right {
 			display: none;
 		}

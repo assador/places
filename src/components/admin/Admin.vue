@@ -10,24 +10,6 @@
 		<div id="grid">
 			<div id="top-basic" class="app-cell">
 				<Header />
-				<div
-					id="messages"
-					@mouseenter="mainStore.messagesMouseOver = true"
-					@mouseleave="() => {
-						mainStore.messagesMouseOver = false;
-						mainStore.clearMessages();
-					}"
-					@click="mainStore.clearMessages(true)"
-				>
-					<div
-						v-for="(message, index) in mainStore.messages"
-						:id="'message-' + index"
-						:key="index"
-						class="message border_1"
-					>
-						{{ message }}
-					</div>
-				</div>
 			</div>
 			<div id="top-right" class="app-cell">
 				<div class="control-buttons">
@@ -60,6 +42,29 @@
 			<router-view />
 		</div>
 	</div>
+	<Teleport :to="common.compact === 2 ? '#grid' : '#top-basic'">
+		<transition name="fade">
+			<div
+				v-if="mainStore.messages.length || mainStore.messagesMouseOver"
+				id="messages"
+				@mouseenter="mainStore.messagesMouseOver = true"
+				@mouseleave="() => {
+					mainStore.messagesMouseOver = false;
+					mainStore.clearMessages();
+				}"
+				@click="mainStore.clearMessages(true)"
+			>
+				<div
+					v-for="(message, index) in mainStore.messages"
+					:id="'message-' + index"
+					:key="'message-' + index"
+					class="message border_1"
+				>
+					{{ message }}
+				</div>
+			</div>
+		</transition>
+	</Teleport>
 </template>
 
 <script setup lang="ts">
@@ -68,6 +73,7 @@ import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { useRouter } from 'vue-router';
 import api from '@/api';
+import { common } from '@/services/common';
 import Header from '@/components/Header.vue';
 import AdminNavigation from '@/components/admin/AdminNavigation.vue';
 

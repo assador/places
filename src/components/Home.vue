@@ -35,27 +35,6 @@
 				class="basic-action-buttons action-buttons"
 				id="top-basic__control-buttons-top-right"
 			/>
-			<transition name="fade">
-				<div
-					v-if="mainStore.messages.length || mainStore.messagesMouseOver"
-					id="messages"
-					@mouseenter="mainStore.messagesMouseOver = true"
-					@mouseleave="() => {
-						mainStore.messagesMouseOver = false;
-						mainStore.clearMessages();
-					}"
-					@click="mainStore.clearMessages(true)"
-				>
-					<div
-						v-for="(message, index) in mainStore.messages"
-						:id="'message-' + index"
-						:key="'message-' + index"
-						class="message border_1"
-					>
-						{{ message }}
-					</div>
-				</div>
-			</transition>
 		</div>
 
 <!-- SEC Top-Right -->
@@ -449,6 +428,29 @@
 		/>
 		<router-view />
 	</div>
+	<Teleport :to="common.compact === 2 ? '#grid' : '#top-basic'">
+		<transition name="fade">
+			<div
+				v-if="mainStore.messages.length || mainStore.messagesMouseOver"
+				id="messages"
+				@mouseenter="mainStore.messagesMouseOver = true"
+				@mouseleave="() => {
+					mainStore.messagesMouseOver = false;
+					mainStore.clearMessages();
+				}"
+				@click="mainStore.clearMessages(true)"
+			>
+				<div
+					v-for="(message, index) in mainStore.messages"
+					:id="'message-' + index"
+					:key="'message-' + index"
+					class="message border_1"
+				>
+					{{ message }}
+				</div>
+			</div>
+		</transition>
+	</Teleport>
 
 <!-- SEC Controls Top-Left -->
 
