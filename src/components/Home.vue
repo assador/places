@@ -338,7 +338,7 @@
 				</template>
 			</Popup>
 		</div>
-		<div id="ui-buttons">
+		<div id="ui-buttons-left">
 			<button
 				class="action-button"
 				:title="mainStore.t.i.hints.getLocation"
@@ -359,6 +359,16 @@
 				}"
 			>
 				<span class="icon icon-plus-net" />
+			</button>
+		</div>
+		<div id="ui-buttons-right">
+			<button
+				v-if="common.compact === 2"
+				class="action-button"
+				:title="mainStore.t.i.hints.hideCells"
+				@click="hideCells"
+			>
+				<span class="icon icon-expand" />
 			</button>
 			<button
 				v-if="common.compact !== 2"
@@ -479,7 +489,7 @@
 				@click="() => mainStore.routesShow.show = !mainStore.routesShow.show"
 			>
 				<span class="icon icon-route" />
-				<span>{{ mainStore.t.i.buttons.paths }}</span>
+				<span>{{ mainStore.t.i.buttons.routes }}</span>
 			</button>
 			<button
 				id="actions-points"
@@ -516,7 +526,7 @@
 				accesskey="c"
 				@click="common.toggleFolderEditability"
 			>
-				<span class="icon icon-empty icon-empty-small">abc|</span>
+				<span class="icon icon-empty icon-empty-small">A|</span>
 				<span>{{ mainStore.t.i.buttons.editFolders }}</span>
 			</button>
 		</div>
@@ -861,6 +871,16 @@ const basicFulled = ref(false);
 const basicOnFull = () => {
 	basicFulled.value = !basicFulled.value;
 	root.value?.classList.toggle('basic-fulled');
+};
+const hideCells = () => {
+	cells.value = {
+		top: false,
+		right: false,
+		bottom: false,
+		left: false,
+	}
+//	basicFulled.value = !basicFulled.value;
+//	root.value?.classList.toggle('basic-fulled');
 };
 const extmap = ref(null);
 provide('extmap', extmap);

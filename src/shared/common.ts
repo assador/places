@@ -151,7 +151,7 @@ export const getPointToSegmentDistance = (p: number[], a: number[], b: number[])
 export const calculatePopupPosition = (e: PointerEvent) => {
 	const { clientWidth: width, clientHeight: height } = document.documentElement;
 	const { clientX: x, clientY: y, pointerType } = e;
-	const offset = pointerType === 'touch' ? 20 : 5;
+	const offset = pointerType === 'touch' ? 10 : 5;
 	const isLeft = x < width / 2;
 	const isUp = y < height / 2;
 	return {

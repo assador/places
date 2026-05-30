@@ -1032,6 +1032,8 @@ $filter-brightness-03: brightness(0%);
 		* {
 			text-align: center;
 			width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 	}
 	.control-buttons {

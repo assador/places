@@ -172,10 +172,10 @@
 	padding: 12px;
 	overflow: auto;
 }
-#ui-buttons {
+#ui-buttons-left, #ui-buttons-right {
 	grid-area: basic-basic;
 	position: absolute;
-	bottom: 24px; left: 24px;
+	bottom: 24px;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
@@ -184,6 +184,12 @@
 		width: 44px;
 		height: 44px;
 	}
+}
+#ui-buttons-left {
+	left: 24px;
+}
+#ui-buttons-right {
+	right: 24px;
 }
 #sbb-top, #sbb-right, #sbb-bottom, #sbb-left {
 	position: absolute;
@@ -409,12 +415,19 @@ pre, .pre {
 			display: none;
 		}
 		#basic-left, #basic-right {
-			margin: 20px;
+			margin: 20px 20px 44px 20px;
 		}
-		#ui-buttons {
-			grid-area: basic-left;
-			bottom: 0; left: 12px;
+		#ui-buttons-left, #ui-buttons-right {
+			bottom: 0;
 			flex-direction: row;
+		}
+		#ui-buttons-left {
+			grid-area: basic-left;
+			left: 12px;
+		}
+		#ui-buttons-right {
+			grid-area: basic-right;
+			right: 12px;
 		}
 		#bottom-basic {
 			display: flex;

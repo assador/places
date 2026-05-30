@@ -12,45 +12,46 @@
 		mask-repeat: no-repeat;
 		mask-position: center;
 	}
-	&-empty::before { mask-image: url('@/assets/icons/empty.svg'); }
-	&-full::before { mask-image: url('@/assets/icons/full.svg'); }
-	&-text::before { mask-image: url('@/assets/icons/text.svg'); }
-	&-list::before { mask-image: url('@/assets/icons/list.svg'); }
-	&-save::before { mask-image: url('@/assets/icons/save.svg'); }
-	&-exit::before { mask-image: url('@/assets/icons/exit.svg'); }
-	&-undo::before, &-redo::before { mask-image: url('@/assets/icons/undo.svg'); }
-	&-import::before, &-export::before { mask-image: url('@/assets/icons/import.svg'); }
-	&-triangle::before { mask-image: url('@/assets/icons/triangle.svg'); }
-	&-distance::before { mask-image: url('@/assets/icons/distance.svg'); }
-	&-compas::before { mask-image: url('@/assets/icons/compas.svg'); }
-	&-ruler::before { mask-image: url('@/assets/icons/ruler.svg'); }
-	&-route::before { mask-image: url('@/assets/icons/route.svg'); }
 	&-center-net::before { mask-image: url('@/assets/icons/center-net.svg'); }
-	&-plus-circled::before { mask-image: url('@/assets/icons/plus-circled.svg'); }
-	&-plus-circled-folder::before { mask-image: url('@/assets/icons/plus-circled-folder.svg'); }
-	&-plus-net::before { mask-image: url('@/assets/icons/plus-net.svg'); }
-	&-minus-circled::before { mask-image: url('@/assets/icons/minus-circled.svg'); }
-	&-minus-circled-folder::before { mask-image: url('@/assets/icons/minus-circled-folder.svg'); }
-	&-cross::before { mask-image: url('@/assets/icons/cross.svg'); }
-	&-cross-45-circled::before { mask-image: url('@/assets/icons/cross-45-circled.svg'); }
+	&-circle-circle::before { mask-image: url('@/assets/icons/circle-circle.svg'); }
+	&-circle-full::before { mask-image: url('@/assets/icons/circle-full.svg'); }
+	&-circle-half::before { mask-image: url('@/assets/icons/circle-half.svg'); }
+	&-circle::before { mask-image: url('@/assets/icons/circle.svg'); }
+	&-compas::before { mask-image: url('@/assets/icons/compas.svg'); }
 	&-cross-45-circled-folder::before { mask-image: url('@/assets/icons/cross-45-circled-folder.svg'); }
-	&-geomark-0-circled::before { mask-image: url('@/assets/icons/circle.svg'); }
-	&-geomark-1::before { mask-image: url('@/assets/icons/geomark-1.svg'); }
-	&-geomark-2::before { mask-image: url('@/assets/icons/geomark-2.svg'); }
-	&-geomark-3::before { mask-image: url('@/assets/icons/geomark-3.svg'); }
-	&-geomark-1-circled::before { mask-image: url('@/assets/icons/geomark-1-circled.svg'); }
-	&-geomark-2-circled::before { mask-image: url('@/assets/icons/geomark-2-circled.svg'); }
-	&-geomark-3-circled::before { mask-image: url('@/assets/icons/geomark-3-circled.svg'); }
-	&-eye-open-circled::before { mask-image: url('@/assets/icons/eye-open-1-circled.svg'); }
-	&-eye-open-2-circled::before { mask-image: url('@/assets/icons/eye-open-2-circled.svg'); }
-	&-eye-open-3-circled::before { mask-image: url('@/assets/icons/eye-open-3-circled.svg'); }
-	&-eye-closed-circled::before { mask-image: url('@/assets/icons/eye-closed-1-circled.svg'); }
+	&-cross-45-circled::before { mask-image: url('@/assets/icons/cross-45-circled.svg'); }
+	&-cross::before { mask-image: url('@/assets/icons/cross.svg'); }
+	&-distance::before { mask-image: url('@/assets/icons/distance.svg'); }
+	&-empty::before { mask-image: url('@/assets/icons/empty.svg'); }
+	&-exit::before { mask-image: url('@/assets/icons/exit.svg'); }
+	&-expand::before { mask-image: url('@/assets/icons/expand.svg'); }
 	&-eye-closed-2-circled::before { mask-image: url('@/assets/icons/eye-closed-2-circled.svg'); }
 	&-eye-closed-3-circled::before { mask-image: url('@/assets/icons/eye-closed-3-circled.svg'); }
-	&-circle::before { mask-image: url('@/assets/icons/circle.svg'); }
-	&-circle-circle::before { mask-image: url('@/assets/icons/circle-circle.svg'); }
-	&-circle-half::before { mask-image: url('@/assets/icons/circle-half.svg'); }
-	&-circle-full::before { mask-image: url('@/assets/icons/circle-full.svg'); }
+	&-eye-closed-circled::before { mask-image: url('@/assets/icons/eye-closed-1-circled.svg'); }
+	&-eye-open-2-circled::before { mask-image: url('@/assets/icons/eye-open-2-circled.svg'); }
+	&-eye-open-3-circled::before { mask-image: url('@/assets/icons/eye-open-3-circled.svg'); }
+	&-eye-open-circled::before { mask-image: url('@/assets/icons/eye-open-1-circled.svg'); }
+	&-full::before { mask-image: url('@/assets/icons/full.svg'); }
+	&-geomark-0-circled::before { mask-image: url('@/assets/icons/circle.svg'); }
+	&-geomark-1-circled::before { mask-image: url('@/assets/icons/geomark-1-circled.svg'); }
+	&-geomark-1::before { mask-image: url('@/assets/icons/geomark-1.svg'); }
+	&-geomark-2-circled::before { mask-image: url('@/assets/icons/geomark-2-circled.svg'); }
+	&-geomark-2::before { mask-image: url('@/assets/icons/geomark-2.svg'); }
+	&-geomark-3-circled::before { mask-image: url('@/assets/icons/geomark-3-circled.svg'); }
+	&-geomark-3::before { mask-image: url('@/assets/icons/geomark-3.svg'); }
+	&-import::before, &-export::before { mask-image: url('@/assets/icons/import.svg'); }
+	&-list::before { mask-image: url('@/assets/icons/list.svg'); }
+	&-minus-circled-folder::before { mask-image: url('@/assets/icons/minus-circled-folder.svg'); }
+	&-minus-circled::before { mask-image: url('@/assets/icons/minus-circled.svg'); }
+	&-plus-circled-folder::before { mask-image: url('@/assets/icons/plus-circled-folder.svg'); }
+	&-plus-circled::before { mask-image: url('@/assets/icons/plus-circled.svg'); }
+	&-plus-net::before { mask-image: url('@/assets/icons/plus-net.svg'); }
+	&-route::before { mask-image: url('@/assets/icons/route.svg'); }
+	&-ruler::before { mask-image: url('@/assets/icons/ruler.svg'); }
+	&-save::before { mask-image: url('@/assets/icons/save.svg'); }
+	&-text::before { mask-image: url('@/assets/icons/text.svg'); }
+	&-triangle::before { mask-image: url('@/assets/icons/triangle.svg'); }
+	&-undo::before, &-redo::before { mask-image: url('@/assets/icons/undo.svg'); }
 
 	&-redo::before {
 		transform: scaleX(-1);

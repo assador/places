@@ -52,10 +52,13 @@
 					]"
 					draggable
 					:visible="place.show && !!place.geomark"
-					@click="mainStore.setCurrentPlace(place, false)"
-					@contextmenu="(e: LeafletEvent) =>
-						markerContextMenu(e, mainStore.points[place.pointid], place)
-					"
+					@click="(e: LeafletEvent) => {
+						mainStore.setCurrentPlace(place, false);
+						if (common.compact === 2) markerContextMenu(e, mainStore.points[place.pointid], place);
+					}"
+					@contextmenu="(e: LeafletEvent) => {
+						markerAddPoint(e, mainStore.points[place.pointid]);
+					}"
 					@dragstart="dragging = true"
 					@dragend="(e: LeafletEvent) => {
 						dragging = false;
@@ -92,10 +95,14 @@
 							mainStore.points[place.pointid].longitude,
 						]"
 						:visible="place.geomark"
-						@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-						@contextmenu="(e: LeafletEvent) =>
-							markerContextMenu(e, mainStore.points[place.pointid], place)
-						"
+
+						@click="(e: LeafletEvent) => {
+							mainStore.setCurrentPoint(mainStore.points[place.pointid], false);
+							if (common.compact === 2) markerContextMenu(e, mainStore.points[place.pointid], place);
+						}"
+						@contextmenu="(e: LeafletEvent) => {
+							markerAddPoint(e, mainStore.points[place.pointid]);
+						}"
 					>
 						<l-icon
 							v-bind="(
@@ -185,14 +192,17 @@
 								point.show
 							"
 							draggable
-							@click="mainStore.setCurrentPoint(
-								mainStore.getPointById(point.id), false)
-							"
-							@contextmenu="(e: LeafletEvent) => markerContextMenu(
-								e,
-								mainStore.getPointById(point.id),
-								mainStore.currentRoute
-							)"
+							@click="(e: LeafletEvent) => {
+								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
+								if (common.compact === 2) markerContextMenu(
+									e,
+									mainStore.getPointById(point.id),
+									route,
+								);
+							}"
+							@contextmenu="(e: LeafletEvent) => {
+								markerAddPoint(e, mainStore.getPointById(point.id));
+							}"
 							@dragstart="dragging = true"
 							@dragend="(e: LeafletEvent) => {
 								dragging = false;
@@ -257,12 +267,17 @@
 							point.id === mainStore.currentPointId ? 10000 : 0
 						"
 						draggable
-						@click="mainStore.setCurrentPoint(
-							mainStore.getPointById(point.id), false
-						)"
-						@contextmenu="(e: LeafletEvent) =>
-							markerContextMenu(e, mainStore.getPointById(point.id), null
-						)"
+						@click="(e: LeafletEvent) => {
+							mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
+							if (common.compact === 2) markerContextMenu(
+								e,
+								mainStore.getPointById(point.id),
+								null,
+							);
+						}"
+						@contextmenu="(e: LeafletEvent) => {
+							markerAddPoint(e, mainStore.getPointById(point.id));
+						}"
 						@dragstart="dragging = true"
 						@dragend="(e: LeafletEvent) => {
 							dragging = false;
@@ -394,6 +409,7 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Place, Route, Point, PointName } from '@/types';
+import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
 import { IPopupProps } from '@/shared/interfaces';
@@ -505,6 +521,27 @@ const leafletMapContextMenu = (e: any) => {
 	mapContextMenu(e.originalEvent, e.latlng.lat, e.latlng.lng);
 }
 const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
+	switch (of?.type) {
+		case 'route':
+			pointInfo.value.name =
+				of.points.find((p: PointName) => p.id === point.id).name
+			;
+			break;
+		case 'place':
+			pointInfo.value.name =
+				Object.values(mainStore.places).find(
+					p => p.pointid === point.id
+				)?.name
+			;
+			break;
+	}
+	popupProps.value.show = pointInfo.value.point?.id === point.id
+		? !popupProps.value.show : true
+	;
+	pointInfo.value.point = point;
+	popupProps.value.position = calculatePopupPosition(e.originalEvent);
+}
+const markerAddPoint = (e: any, point: Point) => {
 	switch (mainStore.mode) {
 		case 'routes':
 			if (
@@ -539,27 +576,6 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 		default:
 			break;
 	}
-	switch (of?.type) {
-		case 'route':
-			pointInfo.value.name =
-				mainStore.currentRoute?.points.find(
-					(p: PointName) => p.id === point.id
-				).name
-			;
-			break;
-		case 'place':
-			pointInfo.value.name =
-				Object.values(mainStore.places).find(
-					p => p.pointid === point.id
-				)?.name
-			;
-			break;
-	}
-	popupProps.value.show = pointInfo.value.point?.id === point.id
-		? !popupProps.value.show : true
-	;
-	pointInfo.value.point = point;
-	popupProps.value.position = calculatePopupPosition(e.originalEvent);
 }
 
 // SEC Other

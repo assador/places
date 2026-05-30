@@ -13,7 +13,7 @@
 	- [Active Points](#active-points)
 3. [Operating Modes](#3-operating-modes)
 	- [Normal Mode](#normal-mode)
-	- [Route Mode](#route-mode)
+	- [Routes Mode](#routes-mode)
 	- [Ruler Mode](#ruler-mode)
 4. [Interface](#4-interface)
 	- [Top Panel (Header)](#top-panel-header)
@@ -27,6 +27,7 @@
 	- [Bottom Panel (Footer)](#bottom-panel-footer)
 		- [Left side](#left-side)
 		- [Right side](#right-side)
+	- [Current Location](#current-location)
 	- [Hotkeys](#hotkeys)
 5. [Storage and Ordering Principles](#5-storage-and-ordering-principles)
 6. [Basic Workflow](#6-basic-workflow)
@@ -149,7 +150,7 @@ Working with Places and temporary Points.
 - RMB on empty space on the map with `Shift` pressed: Creates a new temporary Point.
 - RMB on an existing Place or Point: Shows coordinate information.
 
-### Route Mode
+### Routes Mode
 
 Working with the current Route.
 
@@ -229,6 +230,16 @@ Interactive area powered by **OpenStreetMap** or **Yandex Maps**. Displays all a
 
 - Dropdown to select the map engine (**OSM**, **Yandex**).
 - Real-time display of the coordinates of the map center.
+
+### Current Location
+
+There are buttons located in the bottom-left corner of the map:
+
+- **Get current location**. Centers the map on the device’s current location (using the GPS module).
+- **Get current location. Add a place/point.** Centers the map on the device’s current location and, depending on the current [operating mode](#3-operating-modes), performs one of the following actions:
+	- *Normal* — adds a new Place.
+	- *Routes* — adds a new Point (only if a Route exists and is active).
+	- *Ruler* — adds a new measurement point.
 
 ### Hotkeys
 

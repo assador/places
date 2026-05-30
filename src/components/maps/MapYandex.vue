@@ -62,10 +62,13 @@
 					}"
 					:visible="place.show && place.geomark"
 					class="place"
-					@click="mainStore.setCurrentPlace(place, false)"
-					@contextmenu.prevent.stop="(e: PointerEvent) =>
-						markerContextMenu(e, mainStore.points[place.pointid], place)
-					"
+					@click="(e: PointerEvent) => {
+						mainStore.setCurrentPlace(place, false);
+						if (common.compact === 2) markerContextMenu(e, mainStore.points[place.pointid], place);
+					}"
+					@contextmenu="(e: PointerEvent) => {
+						markerAddPoint(e, mainStore.points[place.pointid]);
+					}"
 				>
 					<img
 						class="marker"
@@ -99,10 +102,13 @@
 						draggable: false,
 					}"
 					:visible="mainStore.commonMarkersShow && place.geomark"
-					@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
-					@contextmenu.prevent.stop="(e: PointerEvent) =>
-						markerContextMenu(e, mainStore.points[place.pointid], place)
-					"
+					@click="(e: PointerEvent) => {
+						mainStore.setCurrentPoint(mainStore.points[place.pointid], false);
+						if (common.compact === 2) markerContextMenu(e, mainStore.points[place.pointid], place);
+					}"
+					@contextmenu="(e: PointerEvent) => {
+						markerAddPoint(e, mainStore.points[place.pointid]);
+					}"
 				>
 					<img
 						class="marker"
@@ -211,14 +217,17 @@
 								mainStore.tempsShow.show &&
 								point.show
 							"
-							@click="mainStore.setCurrentPoint(
-								mainStore.getPointById(point.id), false)
-							"
-							@contextmenu.prevent.stop="(e: PointerEvent) =>markerContextMenu(
-								e,
-								mainStore.getPointById(point.id),
-								mainStore.currentRoute
-							)"
+							@click="(e: PointerEvent) => {
+								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
+								if (common.compact === 2) markerContextMenu(
+									e,
+									mainStore.getPointById(point.id),
+									route,
+								);
+							}"
+							@contextmenu="(e: PointerEvent) => {
+								markerAddPoint(e, mainStore.getPointById(point.id));
+							}"
 						>
 							<div
 								v-if="point.id === route.points[0].id"
@@ -340,14 +349,17 @@
 								mainStore.tempsShow.show &&
 								point.show
 							"
-							@click="mainStore.setCurrentPoint(
-								mainStore.getPointById(point.id), false)
-							"
-							@contextmenu.prevent.stop="(e: PointerEvent) => markerContextMenu(
-								e,
-								mainStore.getPointById(point.id),
-								mainStore.currentRoute
-							)"
+							@click="(e: PointerEvent) => {
+								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
+								if (common.compact === 2) markerContextMenu(
+									e,
+									mainStore.getPointById(point.id),
+									null,
+								);
+							}"
+							@contextmenu="(e: PointerEvent) => {
+								markerAddPoint(e, mainStore.getPointById(point.id));
+							}"
 						>
 							<template v-if="mainStore.mode === 'measure'">
 								<div
@@ -408,9 +420,10 @@
 import { ref, Ref, shallowRef, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Place, Route, Measure, Point, PointName } from '@/types';
-import { IPopupProps } from '@/shared/interfaces';
+import { common } from '@/services/common';
 import { getPointToSegmentDistance, calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
+import { IPopupProps } from '@/shared/interfaces';
 import {
 	YandexMap,
 	YandexMapListener,
@@ -504,6 +517,27 @@ const yandexMapContextMenu = (e: DomEvent) => {
 	);
 }
 const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
+	switch (of?.type) {
+		case 'route':
+			pointInfo.value.name =
+				of.points.find((p: PointName) => p.id === point.id).name
+			;
+			break;
+		case 'place':
+			pointInfo.value.name =
+				Object.values(mainStore.places).find(
+					p => p.pointid === point.id
+				)?.name
+			;
+			break;
+	}
+	popupProps.value.show = pointInfo.value.point?.id === point.id
+		? !popupProps.value.show : true
+	;
+	pointInfo.value.point = point;
+	popupProps.value.position = calculatePopupPosition(e.originalEvent);
+}
+const markerAddPoint = (e: any, point: Point) => {
 	switch (mainStore.mode) {
 		case 'routes':
 			if (
@@ -538,27 +572,6 @@ const markerContextMenu = (e: any, point: Point, of: Place | Route | null) => {
 		default:
 			break;
 	}
-	switch (of?.type) {
-		case 'route':
-			pointInfo.value.name =
-				mainStore.currentRoute?.points.find(
-					(p: PointName) => p.id === point.id
-				).name
-			;
-			break;
-		case 'place':
-			pointInfo.value.name =
-				Object.values(mainStore.places).find(
-					p => p.pointid === point.id
-				)?.name
-			;
-			break;
-	}
-	popupProps.value.show = pointInfo.value.point?.id === point.id
-		? !popupProps.value.show : true
-	;
-	pointInfo.value.point = point;
-	popupProps.value.position = calculatePopupPosition(e);
 }
 
 // SEC Other

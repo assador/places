@@ -22,7 +22,7 @@
 </li>
 <li><a href="#3-operating-modes">Operating Modes</a><ul>
 <li><a href="#normal-mode">Normal Mode</a></li>
-<li><a href="#route-mode">Route Mode</a></li>
+<li><a href="#routes-mode">Routes Mode</a></li>
 <li><a href="#ruler-mode">Ruler Mode</a></li>
 </ul>
 </li>
@@ -44,6 +44,7 @@
 <li><a href="#right-side">Right side</a></li>
 </ul>
 </li>
+<li><a href="#current-location">Current Location</a></li>
 <li><a href="#hotkeys">Hotkeys</a></li>
 </ul>
 </li>
@@ -142,7 +143,7 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <li>RMB on empty space on the map with <code>Shift</code> pressed: Creates a new temporary Point.</li>
 <li>RMB on an existing Place or Point: Shows coordinate information.</li>
 </ul>
-<h3 id="route-mode">Route Mode</h3>
+<h3 id="routes-mode">Routes Mode</h3>
 <p>Working with the current Route.</p>
 <ul>
 <li>RMB on empty space or an existing Point: Adds it to the end of the route.</li>
@@ -210,6 +211,18 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <ul>
 <li>Dropdown to select the map engine (<strong>OSM</strong>, <strong>Yandex</strong>).</li>
 <li>Real-time display of the coordinates of the map center.</li>
+</ul>
+<h3 id="current-location">Current Location</h3>
+<p>There are buttons located in the bottom-left corner of the map:</p>
+<ul>
+<li>“<strong>Get current location</strong>”. Centers the map on the device’s current location (using the GPS module).</li>
+<li>“<strong>Get current location. Add a place/point.</strong>” Centers the map on the device’s current location and, depending on the current <a href="#3-operating-modes">operating mode</a>:
+<ul>
+<li><em>Normal</em> — adds a new Place.</li>
+<li><em>Routes</em> — adds a new Point (only if a Route exists and is active).</li>
+<li><em>Ruler</em> — adds a new measurement point.</li>
+</ul>
+</li>
 </ul>
 <h3 id="hotkeys">Hotkeys</h3>
 <p>Hotkey management is implemented in a Vim-like style: you press a “leader key” (activator) to put the application into a shortcut-waiting mode, and the next key pressed triggers the action. By default, the “leader key” is the backtick (the key to the left of the number 1, right below <code>Esc</code>).</p>
