@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia';
 import {
 	IMainState,
-	PointName,
 	Entity,
 	Point,
 	Place,
 	Route,
 	Folder,
 	EntityCollection,
+	PointDescription,
 	TreeItemType,
 } from '@/types';
 import { isFolder } from '@/guards';
@@ -280,13 +280,10 @@ export const useMainStore = defineStore('main', {
 			);
 		},
 		measurePointIds() {
-			return new Set(this.measure.points.map((p: PointName) => {
-				if (p.id) return p.id;
-				else if (p.point) return this.getPointById(p.point.id);
-			}));
+			return new Set(this.measure.points.map((p: PointDescription) => p.id));
 		},
 		routePointIds: () => {
-			return (route: Route) => new Set(route.points.map((p: PointName) => p.id));
+			return (route: Route) => new Set(route.points.map((p: PointDescription) => p.id));
 		},
 		tempIndexById: state => {
 			return (id: string) => Object.keys(state.temps).indexOf(id);
@@ -370,7 +367,7 @@ export const useMainStore = defineStore('main', {
 		},
 		getDistance() {
 			return (
-				pointIds: string[] = this.measure.points.map((p: PointName) => p.id),
+				pointIds: string[] = this.measure.points.map((p: PointDescription) => p.id),
 				takeIntoAltitudeDeltas: boolean = false,
 			): number => {
 				if (pointIds.length < 2) return 0;

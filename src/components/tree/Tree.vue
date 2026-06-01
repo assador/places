@@ -186,9 +186,8 @@ import { ref, provide, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { useGeolocation } from '@/services/geolocation';
-import { Folder } from '@/types';
+import { Folder, EntityPopupProps } from '@/types';
 import { isPlace } from '@/guards';
-import { IEntityPopupProps } from '@/shared/interfaces';
 import TreeNode from '@/components/tree/TreeNode.vue';
 import Popup from '@/components/popups/Popup.vue';
 
@@ -213,7 +212,7 @@ provide('dragTargetId', dragTargetId);
 const dragTargetContext = ref(null);
 provide('dragTargetContext', dragTargetContext);
 
-const contextMenu = ref<IEntityPopupProps>({
+const contextMenu = ref<EntityPopupProps>({
 	object: null,
 	show: false,
 	position: {

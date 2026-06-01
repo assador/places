@@ -6,13 +6,13 @@
 				:class="open ? 'icon-triangle_down' : 'icon-triangle_right'"
 			/>
 			<h2 @click="open = !open">
-				<template v-if="type === 'temps'">
-					{{ mainStore.t.i.captions.pointsTemporary }}
+				<template v-if="context === 'temps'">
+					{{ temps.name }}
 				</template>
-				<template v-else-if="type === 'route'">
+				<template v-else-if="context === 'routes'">
 					{{ mainStore.t.i.captions.pointsRoute }}
 				</template>
-				<template v-else-if="type === 'measure'">
+				<template v-else-if="context === 'measure'">
 					{{ mainStore.t.i.captions.pointsMeasure }}
 				</template>
 				<template v-else>
@@ -20,7 +20,7 @@
 				</template>
 			</h2>
 			<div
-				v-if="type === 'temps'"
+				v-if="context === 'temps'"
 				class="control-buttons"
 			>
 				<button
@@ -35,7 +35,7 @@
 				/>
 			</div>
 			<div
-				v-else-if="type === 'route'"
+				v-else-if="context === 'routes'"
 				class="control-buttons"
 			>
 				<button
@@ -50,7 +50,7 @@
 				/>
 			</div>
 			<div
-				v-else-if="type === 'measure'"
+				v-else-if="context === 'measure'"
 				class="control-buttons"
 			>
 				<button
@@ -72,16 +72,12 @@
 			</div>
 		</div>
 		<div
-			v-if="
-				type === 'temps' && tempPoints.length ||
-				type === 'measure' && mainStore.measure.points.length ||
-				type === 'route' && mainStore.currentRoute?.points.length
-			"
+			v-if="points.length"
 			:class="{ open: open, closed: !open }"
 		>
 			<div class="points-info">
 				<div
-					v-if="type === 'route'"
+					v-if="context === 'routes'"
 					:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
 					class="points-distance"
 				>
@@ -92,11 +88,18 @@
 				<a
 					v-if="mainStore.currentPointId"
 					href="javascript:void(0)"
-					@click="e => {
-						pointInfo.point = mainStore.currentPoint;
-						popupProps.show = !popupProps.show;
-						popupProps.position = calculatePopupPosition(e);
+					@pointerdown.stop.prevent="e => {
+						if (common.popupProps.show) {
+							common.hidePopup();
+						} else {
+							const chosenFatPoint = points.find(p => p.index === of.choosing);
+							if (chosenFatPoint) {
+								common.setPointInfo(chosenFatPoint.point);
+								common.showPopup(calculatePopupPosition(e));
+							}
+						}
 					}"
+					@contextmenu.stop.prevent
 				>
 					{{ mainStore.t.i.captions.coords }}
 				</a>
@@ -106,277 +109,151 @@
 				:class="{ dragging: dragging }"
 			>
 
-<!-- SEC Buttons: Temps -->
+<!-- SEC Buttons -->
 
-				<template v-if="type === 'temps'">
-					<button
-						v-for="temp in tempPoints"
-						:key="temp.key"
-						:class="{ 'button-pressed': mainStore.currentPointId === temp.id }"
-						@click.prevent="mainStore.setCurrentPoint(temp.id)"
-						@contextmenu.prevent="e => {
-							if (pointInfo.point?.id === temp.id) {
-								popupProps.show = !popupProps.show;
-								return;
-							}
-							if (mainStore.mode === 'measure') {
-								mainStore.addPointToPoints({
-									point: temp,
-									entity: mainStore.measure,
-								});
-								return;
-							}
-							if (mainStore.mode === 'routes') {
-								mainStore.addPointToPoints({
-									point: temp,
-									entity: mainStore.currentRoute,
-								});
-								return;
-							}
-							pointInfo.point = temp;
-							pointInfo.name = (temp.idx + 1).toString();
-							popupProps.show = true;
-							popupProps.position = calculatePopupPosition(e);
+				<button
+					v-for="fat in points"
+					:key="fat.key"
+					:data-entity-id="context !== 'temps' ? fat.id : null"
+					:data-entity-type="context !== 'temps' ? 'point' : null"
+					:data-entity-index="context !== 'temps' ? fat.index : null"
+					:data-entity-context="context !== 'temps' ? context : null"
+					:data-entity-parent-id="context !== 'temps' ? of.id : null"
+					:title="fat.name"
+					class="point-button"
+					:class="{ 'button-pressed': fat.index === of.choosing }"
+					@pointerdown.stop.prevent="e => onPointerDown(e, {
+						id: fat.id,
+						index: fat.index,
+						type: fat.point.type,
+						context: context,
+						parentId: of.id,
+					})"
+					@pointermove="onPointerMove"
+					@pointerup="e => onPointerUp(e, () => {
+						mainStore.setCurrentPoint(fat.point);
+						if (context === 'temps') tempsChoosing = fat.index;
+					})"
+					@pointercancel="onPointerUp"
+					@contextmenu.stop.prevent="e => {
+						if (common.pointInfo?.point.id === fat.id) {
+							common.togglePopup(calculatePopupPosition(e));
+						} else {
+							common.setPointInfo(fat.point, of, context);
+							common.showPopup(calculatePopupPosition(e));
+						}
+					}"
+				>
+					<span>
+						{{ fat.name }}
+					</span>
+					<span
+						:title="mainStore.t.i.hints.deleteRoutePoint"
+						class="button-iconed icon icon-cross-45-circled"
+						@pointerdown.stop
+						@pointerup.stop
+						@click.stop="() => {
+							mainStore.deleteObjects({ [fat.id]: fat.point });
 						}"
-					>
-						<span>{{ temp.idx + 1 }}</span>
-						<span
-							class="button-iconed icon icon-cross-45-circled"
-							:title="mainStore.t.i.hints.deleteTemp"
-							@click.stop="mainStore.deleteTemp(temp.id)"
-						/>
-					</button>
-				</template>
-
-<!-- SEC Buttons: Measure -->
-
-				<template v-else-if="type === 'measure'">
-					<button
-						v-for="pn in measurePoints"
-						:key="pn.key"
-						:data-entity-id="pn.id"
-						:data-entity-type="'point'"
-						:data-entity-index="pn.idx"
-						:data-entity-context="'measure'"
-						:title="measurePointTitles[pn.id]"
-						class="point-button"
-						:class="{ 'button-pressed':
-							pn.id === highlighted ||
-							pn.id === mainStore.measure.points[mainStore.measure.choosing]?.id
-						}"
-						@pointerdown="e => onPointerDown(e, {
-							id: pn.id,
-							index: pn.idx,
-							type: 'point',
-							context: 'measure',
-						})"
-					    @pointermove="onPointerMove"
-					    @pointerup="e => onPointerUp(e, () => mainStore.setCurrentPoint(pn.id))"
-					    @pointercancel="onPointerUp"
-						@contextmenu.prevent="e => {
-							if (pointInfo.point?.id === pn.id) {
-								popupProps.show = !popupProps.show;
-								return;
-							}
-							pointInfo.point = mainStore.getPointById(pn.id);
-							pointInfo.name = pn.name;
-							popupProps.show = true;
-							popupProps.position = calculatePopupPosition(e);
-						}"
-					>
-						<span>
-							{{ pn.name }}
-						</span>
-						<span
-							:title="mainStore.t.i.hints.deletePoint"
-							class="button-iconed icon icon-cross-45-circled"
-							@pointerdown.stop
-						    @pointerup.stop
-							@click.stop="mainStore.removePointFromPoints({
-								point: mainStore.temps[pn.id],
-								entity: mainStore.measure,
-							})"
-						/>
-						<span
-							class="sorting-area-before"
-							:class="{
-								highlighted:
-									pn.id === dragTargetId &&
-									mainStore.currentDrag.position === 'before'
-							}"
-						/>
-						<span
-							class="sorting-area-after"
-							:class="{
-								highlighted:
-									pn.id === dragTargetId &&
-									mainStore.currentDrag.position === 'after'
-							}"
-						/>
-					</button>
-				</template>
-
-<!-- SEC Buttons: Route -->
-
-				<template v-else-if="type === 'route'">
-					<button
-						v-for="pn in routePoints"
-						:key="pn.idx"
-						:data-entity-id="pn.id"
-						:data-entity-type="'point'"
-						:data-entity-index="pn.idx"
-						:data-entity-context="'routes'"
-						:data-entity-parent-id="mainStore.currentRouteId"
-						:title="routePointTitles[pn.id]"
-						class="point-button"
+					/>
+					<span
+						class="sorting-area-before"
 						:class="{
-							'button-pressed': pn.id === mainStore.currentPointId,
+							highlighted:
+								fat.id === dragTargetId &&
+								mainStore.currentDrag.position === 'before'
 						}"
-						@pointerdown="e => onPointerDown(e, {
-							id: pn.id,
-							index: pn.idx,
-							type: 'point',
-							context: 'routes',
-							parentId: mainStore.currentRouteId,
-						})"
-					    @pointermove="onPointerMove"
-					    @pointerup="e => onPointerUp(e, () => {
-							pointInfo.point = mainStore.getPointById(pn.id);
-							mainStore.setCurrentPoint(pointInfo.point);
-						})"
-					    @pointercancel="onPointerUp"
-						@contextmenu.prevent="e => {
-							if (pointInfo.point?.id === pn.id) {
-								popupProps.show = !popupProps.show;
-								return;
-							}
-							pointInfo.point = mainStore.getPointById(pn.id);
-							if (mainStore.mode === 'measure') {
-								mainStore.addPointToPoints({
-									point: pointInfo.point,
-									entity: mainStore.measure,
-								});
-								return;
-							}
-							pointInfo.name = pn.name;
-							popupProps.show = true;
-							popupProps.position = calculatePopupPosition(e);
+					/>
+					<span
+						class="sorting-area-after"
+						:class="{
+							highlighted:
+								fat.id === dragTargetId &&
+								mainStore.currentDrag.position === 'after'
 						}"
-					>
-						<span>
-							{{ pn.name }}
-						</span>
-						<span
-							:title="mainStore.t.i.hints.deleteRoutePoint"
-							class="button-iconed icon icon-cross-45-circled"
-							@pointerdown.stop
-						    @pointerup.stop
-							@click.stop="() => {
-								const point = mainStore.getPointById(pn.id);
-								mainStore.deleteObjects({ [point.id]: point });
-							}"
-						/>
-						<span
-							class="sorting-area-before"
-							:class="{
-								highlighted:
-									pn.id === dragTargetId &&
-									mainStore.currentDrag.position === 'before'
-							}"
-						/>
-						<span
-							class="sorting-area-after"
-							:class="{
-								highlighted:
-									pn.id === dragTargetId &&
-									mainStore.currentDrag.position === 'after'
-							}"
-						/>
-					</button>
-				</template>
+					/>
+				</button>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, computed, inject } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { usePointerDnD } from '@/shared/dnd';
-import { IPopupProps } from '@/shared/interfaces';
-import { PointName } from '@/types';
+import {
+	PointCollectionContext,
+	FatPointDescription,
+	PointDescription,
+	Measure,
+} from '@/types';
 
-export interface IPlacesPointsProps {
-	type?: string;
+export interface IPointsProps {
+	context?: PointCollectionContext;
 }
-const props = withDefaults(defineProps<IPlacesPointsProps>(), {
-	type: 'temps',
+const props = withDefaults(defineProps<IPointsProps>(), {
+	context: 'temps',
 });
 
 const mainStore = useMainStore();
-
 const open = ref(true);
-const highlighted = ref(null);
+const tempsChoosing = ref<number | null>(null);
 
-const pointInfo = inject<Ref<PointName>>('pointInfo')!;
-const popupProps = inject<Ref<IPopupProps>>('popupProps')!;
-
-const tempPoints = computed(() => {
-	if (!mainStore.tempsShow.show) return [];
-	const ids = new Set(mainStore.measure.points.map(pn => pn.id));
-	return Object.values(mainStore.temps)
-		.filter(pn => !ids.has(pn.id))
-		.map((pn, index) => ({
-			...pn,
-			idx: index,
-			key: `${pn.id}-${index}`,
-		})) || []
+const temps = computed(() => {
+	return {
+		type: 'temps',
+		points: Object.values(mainStore.temps).map((t, index) => {
+			return {
+				id: t.id,
+				point: t,
+				name: String(index + 1),
+				index: index,
+				key: `${t.id}-${index}`,
+			};
+		}),
+		choosing: tempsChoosing.value,
+		show: false,
+		name: mainStore.t.i.captions.pointsTemporary,
+	};
 });
-const preparePoints = (points: any[]) => {
-	return points
-		.filter(pn => {
-			const point = mainStore.getPointById(pn.id);
-			return point && !point.deleted;
-		})
-		.map((pn, index) => ({
-			...pn,
-			idx: index,
-			key: `${pn.id}-${index}`,
-		}))
-	;
-};
-const pointTitles = (points: PointName[]) => {
-	const map: Record<string, string> = {};
-		points.forEach(pn => {
-		if (!pn.id) return;
-		const names = Object.values(mainStore.getEntitiesReferencingPoint(pn.id))
-			.filter(e => e.type === 'place')
-			.map(p => p.name)
-		;
-		const blocks: string[] = [];
-		if (names.length) blocks.push(names.join("\n"));
-		if (pn.description) blocks.push(pn.description);
-		map[pn.id] = blocks.join("\n\n");
-	});
-	return map;
-};
-const measurePoints = computed(() => preparePoints(mainStore.measure.points));
-const routePoints = computed(() => preparePoints(mainStore.currentRoute?.points || []));
-const measurePointTitles = computed(() => pointTitles(measurePoints.value));
-const routePointTitles = computed(() => pointTitles(routePoints.value));
+const of = computed<Measure>(() => {
+	return (
+		props.context === 'temps' ? temps.value :
+		props.context === 'routes' ? (mainStore.currentRoute || null) :
+		props.context === 'measure' ? mainStore.measure :
+		null
+	);
+});
+const points = computed(() => {
+	let points: FatPointDescription[] = [];
+	if (props.context === 'temps') return temps.value.points;
+	const pns: PointDescription[] = of.value?.points ?? [];
+	for (let i = 0; i < pns.length; i++) {
+		const p =  mainStore.getPointById(pns[i].id);
+		if (p && !p.deleted) points.push({
+			...pns[i],
+			point: p,
+			index: i,
+			key: `${p.id}-${i}`,
+		});
+	}
+	return points;
+});
 
 const distance = computed(() => {
 	const idsArray = ref([]);
 	const where = ref('points');
-	switch (props.type) {
+	switch (props.context) {
 		case 'temps':
 			idsArray.value = Object.keys(mainStore.temps);
 			where.value = 'temps';
 			break;
-		case 'route':
+		case 'routes':
 			idsArray.value = mainStore.currentRouteId !== null
-				? mainStore.currentRoute.points.map((p: PointName) => p.id) : []
+				? mainStore.currentRoute.points.map((p: PointDescription) => p.id) : []
 			;
 			where.value = 'points';
 			break;
@@ -405,21 +282,21 @@ const canAcceptDrop = (target: HTMLElement): boolean => {
 };
 
 const updateHighlights = (target: HTMLElement | null) => {
-    dragTargetId.value = null;
-    if (!target || !mainStore.currentDrag) return;
-    const area = target.closest('.sorting-area-before, .sorting-area-after');
-    if (area) {
+	dragTargetId.value = null;
+	if (!target || !mainStore.currentDrag) return;
+	const area = target.closest('.sorting-area-before, .sorting-area-after');
+	if (area) {
 		const item = area.closest('[data-entity-id]') as HTMLElement;
 		dragTargetId.value = item?.dataset.entityId;
 		if (area.classList.contains('sorting-area-before')) mainStore.currentDrag.position = 'before';
 		else if (area.classList.contains('sorting-area-after')) mainStore.currentDrag.position = 'after';
-    }
+	}
 };
 const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
-    handleDrop,
-    canAcceptDrop,
-    updateHighlights,
-    onDragStateChange: (value) => { dragging.value = value; },
+	handleDrop,
+	canAcceptDrop,
+	updateHighlights,
+	onDragStateChange: (value) => { dragging.value = value; },
 });
 </script>
 

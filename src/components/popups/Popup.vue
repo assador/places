@@ -7,7 +7,8 @@
 				ref="popupRef"
 				class="popup"
 				:style="style"
-				@pointerup="handleInsideClick"
+				@pointerup="handleClickInside"
+				@pointerdown.stop
 			>
 				<a
 					v-if="props.closeButton"
@@ -35,18 +36,18 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue';
-import { IPopupProps } from '@/shared/interfaces';
+import { PopupProps } from '@/types';
 
-const props = withDefaults(defineProps<IPopupProps>(), {
+const props = withDefaults(defineProps<PopupProps>(), {
 	show: false,
 	what: '',
 	closeButton: true,
 	closeOnClick: true,
 	position: () => ({
-		top: 'calc(100% + 8px)',
+		top: 'auto',
 		right: 'auto',
 		bottom: 'auto',
-		left: 0,
+		left: 'auto',
 	}),
 });
 const emit = defineEmits(['update:show']);
@@ -60,13 +61,13 @@ const popupRef = ref<HTMLElement | null>(null);
 const close = () => {
 	emit('update:show', false);
 };
-const handleInsideClick = () => {
+const handleClickInside = () => {
 	if (props.closeOnClick) close();
 };
 const handleClickOutside = (event: PointerEvent) => {
-	if (!props.show || !popupRef.value) return;
+	if (event.defaultPrevented || !props.show || !popupRef.value) return;
 	const target = event.target as Node;
-	if ((target as HTMLElement).closest(".draggable")) return;
+	if ((target as HTMLElement).closest('.draggable, .leaflet-marker-icon')) return;
 	if (!popupRef.value.contains(target)) close();
 };
 const keyup = (event: KeyboardEvent): void => {

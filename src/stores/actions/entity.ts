@@ -4,7 +4,7 @@ import {
 	Place,
 	Route,
 	Folder,
-	PointName,
+	PointDescription,
 	AppendMode,
 } from '@/types';
 import { isPoint, isPlace, isRoute } from '@/guards';
@@ -646,7 +646,7 @@ export const entityActions = {
 		return toDelete;
 	},
 	deleteTemp(id: string) {
-		const measureIndex = this.measure.points.map((p: PointName) => p.id).indexOf(id);
+		const measureIndex = this.measure.points.map((p: PointDescription) => p.id).indexOf(id);
 		if (measureIndex !== -1) {
 			if (this.measure.choosing > this.measure.points.length - 2) {
 				this.measure.choosing = this.measure.points.length - 2
@@ -665,7 +665,7 @@ export const entityActions = {
 		}
 	},
 	deleteAllMeasurePoints() {
-		this.measure.points.forEach((p: PointName) => {
+		this.measure.points.forEach((p: PointDescription) => {
 			if (!this.temps[p.id]) return;
 			delete this.temps[p.id];
 			if (this.currentPointId && this.currentPointId === p.id) {
@@ -769,13 +769,13 @@ export const entityActions = {
 				.then((alt: number) => point.altitude = alt)
 			;
 		}
-		let idx: number;
+		let index: number;
 		if (this.currentRouteId) {
-			idx = this.currentRoute.points.map((p: PointName) => p.id).indexOf(point.id);
-			if (idx !== -1) this.currentRoute.choosing = idx;
+			index = this.currentRoute.points.map((p: PointDescription) => p.id).indexOf(point.id);
+			if (index !== -1) this.currentRoute.choosing = index;
 		}
-		idx = this.measure.points.map((p: PointName) => p.id).indexOf(point.id);
-		if (idx !== -1) this.measure.choosing = idx;
+		index = this.measure.points.map((p: PointDescription) => p.id).indexOf(point.id);
+		if (index !== -1) this.measure.choosing = index;
 		if (center !== false && point) this.center = {
 			latitude: point.latitude,
 			longitude: point.longitude,

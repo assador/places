@@ -32,7 +32,6 @@ import { useMainStore } from '@/stores/main';
 
 import { confirm } from '@/services/confirm';
 import { usePWAInstall } from '@/shared/usepwainstall';
-import { IPopupProps } from '@/shared/interfaces';
 import {
 	handleFolderDropped,
 	handlePlaceRouteDropped,
@@ -40,7 +39,7 @@ import {
 	handleImageDropped,
 } from '@/shared/dnd';
 
-import { DragHandler } from '@/types';
+import { DragHandler, PopupProps } from '@/types';
 
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 import Popup from '@/components/popups/Popup.vue';
@@ -50,7 +49,7 @@ provide('pwa', pwa);
 
 const mainStore = useMainStore();
 
-const popupBusy = ref<IPopupProps>({
+const popupBusy = ref<PopupProps>({
 	show: false,
 	position: {
 		top: '0',

@@ -347,11 +347,11 @@ import {
 	Route,
 	Folder,
 	FolderContext,
+	EntityPopupProps,
 } from '@/types';
 import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { usePointerDnD } from '@/shared/dnd';
-import { IEntityPopupProps } from '@/shared/interfaces';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;
@@ -371,7 +371,7 @@ const mainStore = useMainStore();
 const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
-const contextMenu = inject<Ref<IEntityPopupProps>>('contextMenu');
+const contextMenu = inject<Ref<EntityPopupProps>>('contextMenu');
 
 const places = computed(() =>
 	_.chain(mainStore.places)

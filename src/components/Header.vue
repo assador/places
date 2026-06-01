@@ -41,17 +41,23 @@
 						</template>
 					</Popup>
 				</span>
-				<a href="javascript:void(0)" @click="e => {
-					popupProps.show = !popupProps.show;
-					popupProps.position = calculatePopupPosition(e);
-				}">
+				<a
+					href="javascript:void(0)"
+					@pointerdown.stop.prevent="e => {
+						if (popupProps.show) {
+							popupProps.show = false;
+						}
+						else {
+							popupProps.position = calculatePopupPosition(e);
+							popupProps.show = true;
+						}
+					}"
+					@contextmenu.stop.prevent
+				>
 					{{
-						mainStore.user
-							? (mainStore.user.name
-								? mainStore.user.name
-								: mainStore.user.login
-							)
-							: 'o_O'
+						mainStore.user?.name ? mainStore.user.name
+						: mainStore.user?.login ? mainStore.user.login
+						: 'o_O'
 					}}
 				</a>
 			</h1>
@@ -63,18 +69,18 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { logout } from '@/services/auth';
-import { calculatePopupPosition } from '@/shared/common';
-import { IPopupProps } from '@/shared/interfaces';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
+import { PopupProps } from '@/types';
+import { logout } from '@/services/auth';
+import { calculatePopupPosition } from '@/shared/common';
 import Dashboard from '@/components/Dashboard.vue';
 import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();
 
-const popupProps = ref<IPopupProps>({
+const popupProps = ref<PopupProps>({
 	show: false,
 	position: {
 		top: 'auto',

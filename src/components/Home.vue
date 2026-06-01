@@ -121,8 +121,8 @@
 					/>
 				</span>
 			</form>
-			<Measure />
-			<Points v-if="mainStore.tempsShow.show" type="temps" />
+			<MeasureDetails />
+			<Points v-if="mainStore.tempsShow.show" context="temps" />
 			<div v-if="mainStore.routesShow.show" id="routes">
 				<div id="routes-tree" class="margin_bottom">
 					<div
@@ -743,17 +743,17 @@
 <!-- SEC Popup Point Coords -->
 
 	<Popup
-		:show="popupProps.show"
-		:position="popupProps.position"
+		:show="common.popupProps.show"
+		:position="common.popupProps.position"
 		:closeOnClick="false"
-		class="points-coordinates messages"
-		@update:show="popupProps.show = $event"
+		class="point-coordinates messages"
+		@update:show="handlePopupUpdate"
 	>
 		<template #popupSlot>
 			<a
 				href="javascript:void(0)"
-				class="points-coordinates-copy"
-				@click="copyCoords(pointInfo.point)"
+				class="point-coordinates-copy"
+				@click="copyCoords(common.pointInfo?.point)"
 			>
 				{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
 			</a>
@@ -762,7 +762,7 @@
 					{{ mainStore.t.i.captions.measurePoint }}:
 				</span>
 				<span class="color-01">
-					{{ pointInfo.name }}
+					{{ common.pointInfo?.name }}
 				</span>
 			</h3>
 			<div class="nobr">
@@ -770,7 +770,7 @@
 					{{ mainStore.t.i.captions.latitude }}:
 				</span>
 				<span class="color-01">
-					{{ latitude2string(pointInfo.point?.latitude) }}°
+					{{ latitude2string(common.pointInfo?.point?.latitude) }}°
 				</span>
 			</div>
 			<div class="nobr">
@@ -778,20 +778,31 @@
 					{{ mainStore.t.i.captions.longitude }}:
 				</span>
 				<span class="color-01">
-					{{ longitude2string(pointInfo.point?.longitude) }}°
+					{{ longitude2string(common.pointInfo?.point?.longitude) }}°
 				</span>
 			</div>
 			<div
-				v-if="pointInfo.point?.altitude"
+				v-if="common.pointInfo?.point?.altitude"
 				class="nobr"
 			>
 				<span class="un_color">
 					{{ mainStore.t.i.captions.altitude }}:
 				</span>
 				<span class="color-01">
-					{{ pointInfo.point?.altitude }}
+					{{ common.pointInfo?.point?.altitude }}
 					{{ mainStore.t.i.text.m }}
 				</span>
+			</div>
+			<div
+				v-if="common.pointInfo?.of"
+				class="point-coordinates-controls"
+			>
+				<!-- Place/Route actions: common.pointInfo.of?.name -->
+				<a
+					href="javascript:void(0)"
+					@click="() => {}"
+				>
+				</a>
 			</div>
 		</template>
 	</Popup>
@@ -826,17 +837,16 @@ import { constants } from '@/shared/constants';
 import { useLightPointerDnD } from '@/shared/dnd';
 import { sortObjects } from '@/shared/sorting';
 import { clamp, makeDropDowns } from '@/shared/common';
-import { IPopupProps } from '@/shared/interfaces';
 import {
 	point2coords,
 	latitude2string,
 	longitude2string,
 } from '@/shared/converters';
 
-import { Point, Place, Route, Image, PointName } from '@/types';
+import { Point, Place, Route, Image, PopupProps } from '@/types';
 
 import Header from '@/components/Header.vue';
-import Measure from '@/components/helpers/Measure.vue';
+import MeasureDetails from '@/components/helpers/Measure.vue';
 import Points from '@/components/Points.vue';
 import Tree from '@/components/tree/Tree.vue';
 import RouteDetails from '@/components/details/Route.vue';
@@ -864,6 +874,10 @@ const geoLocation = useGeolocation();
 
 const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
+const handlePopupUpdate = (show: boolean) => {
+	common.popupProps.show = show;
+	if (!show) common.clearPointInfo();
+};
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const root = ref<HTMLElement | null>(null);
@@ -910,23 +924,7 @@ const currentRouteNameInputRef = ref(null);
 provide('currentPlaceNameInputRef', currentPlaceNameInputRef);
 provide('currentRouteNameInputRef', currentRouteNameInputRef);
 
-const pointInfo = ref<PointName>({
-	point: null,
-	name: null,
-	description: null,
-});
-provide('pointInfo', pointInfo);
-const popupProps = ref<IPopupProps>({
-	show: false,
-	position: {
-		top: 'auto',
-		right: 'auto',
-		bottom: 'auto',
-		left: 'auto',
-	},
-});
-provide('popupProps', popupProps);
-const popupDonate = ref<IPopupProps>({
+const popupDonate = ref<PopupProps>({
 	show: false,
 	position: {
 		top: '0',
@@ -954,17 +952,6 @@ const commonPlaces = computed<Record<string, Place>>(() => {
 		return acc;
 	}, {} as Record<string, Place>);
 });
-/*
-const commonRoutes = computed<Record<string, Route>>(() => {
-	const ids = Object.keys(mainStore.commonRoutes);
-	const start = commonRoutesOnPageCount.value * (commonRoutesPage.value - 1);
-	const end = commonRoutesOnPageCount.value * commonRoutesPage.value;
-	return ids.slice(start, end).reduce((acc, id) => {
-		acc[id] = mainStore.commonRoutes[id];
-		return acc;
-	}, {} as Record<string, Route>);
-});
-*/
 
 const stopIdleTimer = () => {
 	if (common.idleTimeInterval) {
@@ -1055,16 +1042,6 @@ const commonPlacesShowHide = (show: boolean | null = null): void => {
 	;
 	mainStore.commonMarkersShowHide(commonPlacesShow.value);
 };
-/*
-const commonRoutesShowHide = (show: boolean | null = null): void => {
-	commonRoutesShow.value =
-		show === null
-			? !commonRoutesShow.value
-			: show
-	;
-	mainStore.commonRoutesShowHide(commonRoutesShow.value);
-};
-*/
 provide('commonPlacesShowHide', commonPlacesShowHide);
 
 const importFromFile = async () => {

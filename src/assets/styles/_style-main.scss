@@ -1170,7 +1170,7 @@ $filter-brightness-03: brightness(0%);
 			display: none;
 		}
 	}
-	.points-coordinates {
+	.point-coordinates {
 		padding: 30px 20px 10px 20px !important;
 		text-align: right;
 		h3 {
@@ -1184,6 +1184,10 @@ $filter-brightness-03: brightness(0%);
 			display: block;
 			position: absolute;
 			top: -6px; left: 10px;
+		}
+		&-controls {
+			display: flex;
+			gap: 8px;
 		}
 	}
 	.menu-link {

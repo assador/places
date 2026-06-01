@@ -140,14 +140,15 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <p>Working with Places and temporary Points.</p>
 <ul>
 <li>RMB (Right Mouse Button) on empty space on the map: Creates a new Place.</li>
-<li>RMB on empty space on the map with <code>Shift</code> pressed: Creates a new temporary Point.</li>
 <li>RMB on an existing Place or Point: Shows coordinate information.</li>
+<li>RMB on empty space on the map with <code>Shift</code> pressed: Creates a new temporary Point.</li>
 </ul>
 <h3 id="routes-mode">Routes Mode</h3>
 <p>Working with the current Route.</p>
 <ul>
-<li>RMB on empty space or an existing Point: Adds it to the end of the route.</li>
-<li>Double-click on a route line segment: Add a new Point there.</li>
+<li>RMB on empty space on the map or an existing Place or Point with <code>Shift</code> pressed: Adds Point to the end of the route.</li>
+<li>RMB on an existing Place or Point: Shows coordinate information.</li>
+<li>Double-click on a route line segment: Add a new Point there.</li>
 </ul>
 <h3 id="ruler-mode">Ruler Mode</h3>
 <p>A service route for measuring distances.</p>

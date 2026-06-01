@@ -147,15 +147,16 @@ The mode determines the map behavior and Right-Click (RMB) actions.
 Working with Places and temporary Points.
 
 - RMB (Right Mouse Button) on empty space on the map: Creates a new Place.
-- RMB on empty space on the map with `Shift` pressed: Creates a new temporary Point.
 - RMB on an existing Place or Point: Shows coordinate information.
+- RMB on empty space on the map with `Shift` pressed: Creates a new temporary Point.
 
 ### Routes Mode
 
 Working with the current Route.
 
-- RMB on empty space or an existing Point: Adds it to the end of the route.
-- Double-click on a route line segment: Add a new Point there.
+- RMB on empty space on the map or an existing Place or Point with `Shift` pressed: Adds Point to the end of the route.
+- RMB on an existing Place or Point: Shows coordinate information.
+- Double-click on a route line segment: Add a new Point there.
 
 ### Ruler Mode
 

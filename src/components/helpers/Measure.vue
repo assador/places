@@ -12,7 +12,7 @@
 				{{ mainStore.t.i.text.km }}
 			</span>
 		</div>
-		<Points type="measure" />
+		<Points context="measure" />
 	</div>
 </template>
 

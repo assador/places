@@ -9,60 +9,8 @@ declare module 'axios' {
 	}
 }
 
-export type Context =
-	| 'folders'
-	| 'points'
-	| 'places'
-	| 'routes'
-	| 'images'
-	| 'measure'
-;
-export type Mode =
-	| 'normal'
-	| 'routes'
-	| 'measure'
-;
-export type FolderContext =
-	| 'places'
-	| 'routes'
-;
-export type TreeItemType =
-	| 'folder'
-	| 'place'
-	| 'route'
-;
-export type AppendMode =
-	| 'change' // change the existing one
-	| 'clone'  // create new based on the existing one
-	| 'move'   // move the existing one to another object
-	| 'new'    // create new
-;
-export enum GeomarksState {
-	None = 0,
-	All = 1,
-	Partial = 2,
-};
-export type ImportExportFormat = 'json' | 'gpx';
-
 // SEC Entities
 
-export interface EntityCollection {
-	folders?: Partial<Folder>[],
-	points?: Partial<Point>[],
-	places?: Partial<Place>[],
-	routes?: Partial<Route>[],
-	images?: Partial<Image>[],
-}
-export interface FirstShow {
-	show: boolean,
-	first: boolean,
-}
-export interface PointName {
-	point?: Point,
-	id?: string,
-	name?: string,
-	description?: string,
-}
 export interface Entity {
 	type: string;
 	id: string | null;
@@ -112,7 +60,7 @@ export interface Route extends Entity {
 	type: 'route';
 	id: string;
 	folderid: string;
-	points: PointName[];
+	points: PointDescription[];
 	choosing: number | null;
 	name: string;
 	description?: string;
@@ -132,6 +80,14 @@ export interface Image {
 	placeid?: string;
 	routeid?: string;
 }
+export interface EntityCollection {
+	folders?: Partial<Folder>[];
+	points?: Partial<Point>[];
+	places?: Partial<Place>[];
+	routes?: Partial<Route>[];
+	images?: Partial<Image>[];
+}
+
 export interface Tree {
 	name?: string;
 	open?: boolean;
@@ -170,10 +126,52 @@ export interface Group {
 }
 export interface Measure {
 	type: string;
-	points: PointName[];
+	points: PointDescription[];
 	choosing: number | null;
 	show: boolean;
+	id?: string;
+	name?: string;
+	description?: string;
 }
+export interface PointDescription {
+	id: string;
+	name?: string;
+	description?: string;
+}
+export interface FatPointDescription extends PointDescription {
+	point: Point;
+	index: number;
+	key: string;
+}
+export interface PointInfo extends FatPointDescription {
+	of?: Place | Route | Measure | null;
+}
+export interface FirstShow {
+	show: boolean;
+	first: boolean;
+}
+
+// SEC Popups
+
+export interface PopupPosition {
+	top: number | string | null;
+	right: number | string | null;
+	bottom: number | string | null;
+	left: number | string | null;
+}
+export interface PopupProps {
+	show: boolean;
+	what?: string;
+	closeButton?: boolean;
+	closeOnClick?: boolean;
+	position: PopupPosition;
+}
+export interface EntityPopupProps extends PopupProps {
+	object: Folder | Place | Route;
+}
+
+// SEC DnD
+
 export interface DragPayload {
 	id: string;
 	type: string;
@@ -214,57 +212,108 @@ export type DragHandler = (payload: DragPayload, target: HTMLElement) => void;
 // SEC Store
 
 export interface IMainState {
-	activeMapIndex: number,
-	backup: boolean,
-	busyCount: number,
-	center: Record<string, number>,
-	centerMarkerShow: boolean,
-	colortheme: string,
-	commonMarkersShow: boolean,
-	commonPlaces: Record<string, Place>,
-	commonPlacesOnPageCount: number,
-	commonPlacesPage: number,
-	commonPlacesShow: boolean,
-	commonRoutes: Record<string, Route>,
-	commonRoutesOnPageCount: number,
-	commonRoutesPage: number,
-	commonRoutesShow: boolean,
-	currentDrag: DragEntityPayload,
-	currentPlaceId: string | null,
-	currentPointId: string | null,
-	currentRouteId: string | null,
-	first: boolean,
-	folders: Record<string, Folder>,
-	idleTime: number,
-	lang: string,
-	langs: Record<string, string>[],
-	measure: Measure,
-	messages: string[],
-	messagesMouseOver: boolean,
-	messagesInterval: number | null,
-	messagesTimeout: number | null,
-	mode: Mode,
-	newEntityPointId: string | null,
-	markersShow: boolean,
-	places: Record<string, Place>,
-	placesShow: FirstShow,
-	points: Record<string, Point>,
-	range: number | null,
-	rangeShow: boolean,
-	ready: boolean,
-	refreshing: boolean,
-	routes: Record<string, Route>,
-	routesShow: FirstShow,
-	saved: boolean,
-	selectedToExport: Record<'places' | 'routes', string[]>,
-	serverConfig: any | null,
-	stateBackups: any[],
-	stateBackupsIndex: number,
-	t: any,
-	temps: Record<string, Point>,
-	tempsShow: FirstShow,
-	treeParams: Record<string, Tree>,
-	user: User | null,
-	users: Record<string, User>,
-	zoom: number,
+	activeMapIndex: number;
+	backup: boolean;
+	busyCount: number;
+	center: Record<string, number>;
+	centerMarkerShow: boolean;
+	colortheme: string;
+	commonMarkersShow: boolean;
+	commonPlaces: Record<string, Place>;
+	commonPlacesOnPageCount: number;
+	commonPlacesPage: number;
+	commonPlacesShow: boolean;
+	commonRoutes: Record<string, Route>;
+	commonRoutesOnPageCount: number;
+	commonRoutesPage: number;
+	commonRoutesShow: boolean;
+	currentDrag: DragEntityPayload;
+	currentPlaceId: string | null;
+	currentPointId: string | null;
+	currentRouteId: string | null;
+	first: boolean;
+	folders: Record<string, Folder>;
+	idleTime: number;
+	lang: string;
+	langs: Record<string, string>[];
+	measure: Measure;
+	messages: string[];
+	messagesMouseOver: boolean;
+	messagesInterval: number | null;
+	messagesTimeout: number | null;
+	mode: Mode;
+	newEntityPointId: string | null;
+	markersShow: boolean;
+	places: Record<string, Place>;
+	placesShow: FirstShow;
+	points: Record<string, Point>;
+	range: number | null;
+	rangeShow: boolean;
+	ready: boolean;
+	refreshing: boolean;
+	routes: Record<string, Route>;
+	routesShow: FirstShow;
+	saved: boolean;
+	selectedToExport: Record<'places' | 'routes', string[]>;
+	serverConfig: any | null;
+	stateBackups: any[];
+	stateBackupsIndex: number;
+	t: any;
+	temps: Record<string, Point>;
+	tempsShow: FirstShow;
+	treeParams: Record<string, Tree>;
+	user: User | null;
+	users: Record<string, User>;
+	zoom: number;
 }
+
+// SEC Types
+
+export type Context =
+	| 'folders'
+	| 'points'
+	| 'places'
+	| 'routes'
+	| 'images'
+	| 'measure'
+;
+export type PointInfoContext =
+	| 'places'
+	| 'routes'
+	| 'measure'
+	| 'temps'
+;
+export type PointCollectionContext =
+	| 'routes'
+	| 'measure'
+	| 'temps'
+;
+export type Mode =
+	| 'normal'
+	| 'routes'
+	| 'measure'
+;
+export type FolderContext =
+	| 'places'
+	| 'routes'
+;
+export type TreeItemType =
+	| 'folder'
+	| 'place'
+	| 'route'
+;
+export type AppendMode =
+	| 'change' // change the existing one
+	| 'clone'  // create new based on the existing one
+	| 'move'   // move the existing one to another object
+	| 'new'    // create new
+;
+export type ImportExportFormat =
+	| 'json'
+	| 'gpx'
+;
+export enum GeomarksState {
+	None = 0,
+	All = 1,
+	Partial = 2,
+};

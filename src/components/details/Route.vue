@@ -7,7 +7,7 @@
 		<h2 class="color-01">
 			{{ mainStore.t.i.captions.currentRoute }}
 		</h2>
-		<Points type="route" />
+		<Points context="routes" />
 		<dl
 			v-for="field in orderedCurrentRouteFields"
 			:key="field"
