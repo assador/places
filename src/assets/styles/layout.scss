@@ -151,6 +151,10 @@
 	max-width: 100%;
 	margin: 12px;
 }
+#helpers-measure-popup {
+	transform: translateX(-50%) !important;
+	padding: 8px 12px 0 12px;
+}
 #imp {
 	display: block;
 	position: absolute;

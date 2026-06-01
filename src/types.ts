@@ -164,7 +164,7 @@ export interface PopupProps {
 	what?: string;
 	closeButton?: boolean;
 	closeOnClick?: boolean;
-	position: PopupPosition;
+	position?: PopupPosition;
 }
 export interface EntityPopupProps extends PopupProps {
 	object: Folder | Place | Route;

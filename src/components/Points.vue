@@ -7,7 +7,7 @@
 			/>
 			<h2 @click="open = !open">
 				<template v-if="context === 'temps'">
-					{{ temps.name }}
+					{{ notMeasureTemps.name }}
 				</template>
 				<template v-else-if="context === 'routes'">
 					{{ mainStore.t.i.captions.pointsRoute }}
@@ -148,12 +148,22 @@
 						{{ fat.name }}
 					</span>
 					<span
-						:title="mainStore.t.i.hints.deleteRoutePoint"
+						:title="mainStore.t.i.hints.deletePoint"
 						class="button-iconed icon icon-cross-45-circled"
 						@pointerdown.stop
 						@pointerup.stop
 						@click.stop="() => {
-							mainStore.deleteObjects({ [fat.id]: fat.point });
+							if (context === 'measure') {
+								mainStore.removePointFromPoints({
+									point: mainStore.temps[fat.id],
+									entity: mainStore.measure,
+								});
+							}
+							if (context === 'temps' || context === 'measure') {
+								mainStore.deleteTemp(fat.id);
+							} else {
+								mainStore.deleteObjects({ [fat.id]: fat.point });
+							}
 						}"
 					/>
 					<span
@@ -202,18 +212,21 @@ const mainStore = useMainStore();
 const open = ref(true);
 const tempsChoosing = ref<number | null>(null);
 
-const temps = computed(() => {
-	return {
-		type: 'temps',
-		points: Object.values(mainStore.temps).map((t, index) => {
+const notMeasureTemps = computed(() => {
+	let points: FatPointDescription[] = [ ...mainStore.notMeasureTempPointIds ]
+		.map((id, index) => {
 			return {
-				id: t.id,
-				point: t,
+				id: id,
+				point: mainStore.temps[id],
 				name: String(index + 1),
 				index: index,
-				key: `${t.id}-${index}`,
+				key: `${id}-${index}`,
 			};
-		}),
+		})
+	;
+	return {
+		type: 'temps',
+		points: points,
 		choosing: tempsChoosing.value,
 		show: false,
 		name: mainStore.t.i.captions.pointsTemporary,
@@ -221,15 +234,15 @@ const temps = computed(() => {
 });
 const of = computed<Measure>(() => {
 	return (
-		props.context === 'temps' ? temps.value :
-		props.context === 'routes' ? (mainStore.currentRoute || null) :
+		props.context === 'temps' ? notMeasureTemps.value :
+		props.context === 'routes' ? mainStore.currentRoute :
 		props.context === 'measure' ? mainStore.measure :
 		null
 	);
 });
 const points = computed(() => {
 	let points: FatPointDescription[] = [];
-	if (props.context === 'temps') return temps.value.points;
+	if (props.context === 'temps') return notMeasureTemps.value.points;
 	const pns: PointDescription[] = of.value?.points ?? [];
 	for (let i = 0; i < pns.length; i++) {
 		const p =  mainStore.getPointById(pns[i].id);

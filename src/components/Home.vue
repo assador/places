@@ -22,6 +22,7 @@
 <!-- SEC Top-Basic -->
 
 		<div
+			ref="topBasic"
 			id="top-basic"
 			class="app-cell"
 			:style="!cells.top || !sidebarSizes.top.act ? { display: 'none' } : null"
@@ -121,7 +122,13 @@
 					/>
 				</span>
 			</form>
-			<MeasureDetails />
+			<div
+				v-if="mainStore.measure.show"
+				class="helpers-measure"
+			>
+				<div id="helpers-measure-value-basic-left" />
+				<MeasureDetails />
+			</div>
 			<Points v-if="mainStore.tempsShow.show" context="temps" />
 			<div v-if="mainStore.routesShow.show" id="routes">
 				<div id="routes-tree" class="margin_bottom">
@@ -438,6 +445,9 @@
 		/>
 		<router-view />
 	</div>
+
+<!-- SEC Messages -->
+
 	<Teleport :to="common.compact === 2 ? '#grid' : '#top-basic'">
 		<transition name="fade">
 			<div
@@ -740,6 +750,47 @@
 		</div>
 	</Teleport>
 
+<!-- SEC Measure Value -->
+
+	<Popup
+		v-if="showMobileMeasurePopup"
+		id="helpers-measure-popup"
+		:show="true"
+		:position="showMobileMeasurePopupPosition"
+		:closeOnClick="false"
+		:closeButton="false"
+		class="messages"
+	>
+		<template #popupSlot>
+			<div id="helpers-measure-value-popup" />
+		</template>
+	</Popup>
+
+	<Teleport
+		v-if="
+			showMobileMeasurePopup ||
+			common.compact !== 2 &&
+			mainStore.measure.show &&
+			mainStore.measure.points.length > 1
+		"
+		:to="common.compact === 2
+			? '#helpers-measure-value-popup'
+			: '#helpers-measure-value-basic-left'
+		"
+	>
+		<div class="helpers-measure-header">
+			<h2 v-if="common.compact !== 2" class="color-01">
+				{{ mainStore.t.i.captions.measure }}
+			</h2>
+			<span v-if="mainStore.measure.points.length > 1">
+				<span class="imp_02">
+					{{ mainStore.getDistance().toFixed(3) }}
+				</span>
+				{{ mainStore.t.i.text.km }}
+			</span>
+		</div>
+	</Teleport>
+
 <!-- SEC Popup Point Coords -->
 
 	<Popup
@@ -834,6 +885,7 @@ import * as db from '@/services/db';
 import { common, setBusy } from '@/services/common';
 import { logout } from '@/services/auth';
 import { constants } from '@/shared/constants';
+import { useElementSize } from '@/services/sizes';
 import { useLightPointerDnD } from '@/shared/dnd';
 import { sortObjects } from '@/shared/sorting';
 import { clamp, makeDropDowns } from '@/shared/common';
@@ -843,7 +895,7 @@ import {
 	longitude2string,
 } from '@/shared/converters';
 
-import { Point, Place, Route, Image, PopupProps } from '@/types';
+import { Point, Place, Route, Image, PopupProps, PopupPosition } from '@/types';
 
 import Header from '@/components/Header.vue';
 import MeasureDetails from '@/components/helpers/Measure.vue';
@@ -893,9 +945,27 @@ const hideCells = () => {
 		bottom: false,
 		left: false,
 	}
-//	basicFulled.value = !basicFulled.value;
-//	root.value?.classList.toggle('basic-fulled');
 };
+const showMobileMeasurePopup = computed(() => {
+	return (
+		common.compact === 2 &&
+		mainStore.measure.show &&
+		mainStore.measure.points.length > 1 &&
+		!cells.value.left &&
+		!cells.value.right
+	);
+});
+const topBasic = ref<HTMLElement | null>(null);
+const { height: topBasicHeight } = useElementSize(topBasic);
+const showMobileMeasurePopupPosition = computed<PopupPosition>(() => {
+	return {
+		top: `calc(${topBasicHeight.value}px + 20px)`,
+		right: 'auto',
+		bottom: 'auto',
+		left: '50%',
+	};
+});
+
 const extmap = ref(null);
 provide('extmap', extmap);
 
@@ -933,7 +1003,6 @@ const popupDonate = ref<PopupProps>({
 		left: '0',
 	},
 });
-
 const copied = ref(false);
 const copyCoords = async (point: Point) => {
 	await navigator.clipboard.writeText(
@@ -1445,6 +1514,19 @@ const selectPlaces = (text: string): void => {
 	}
 	.control-buttons button {
 		width: 22px;
+	}
+}
+.helpers-measure-header {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 8px;
+	margin-bottom: 12px;
+	align-items: baseline;
+	* {
+		margin: 0;
+	}
+	h2 {
+		margin: 0 !important;
 	}
 }
 </style>

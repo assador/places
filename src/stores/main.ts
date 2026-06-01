@@ -282,6 +282,9 @@ export const useMainStore = defineStore('main', {
 		measurePointIds() {
 			return new Set(this.measure.points.map((p: PointDescription) => p.id));
 		},
+		notMeasureTempPointIds() {
+			return new Set(Object.keys(this.temps).filter(id => !this.measurePointIds.has(id)));
+		},
 		routePointIds: () => {
 			return (route: Route) => new Set(route.points.map((p: PointDescription) => p.id));
 		},
