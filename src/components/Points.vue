@@ -7,7 +7,7 @@
 			/>
 			<h2 @click="open = !open">
 				<template v-if="context === 'temps'">
-					{{ notMeasureTemps.name }}
+					{{ mainStore.notMeasureFatTemps.name }}
 				</template>
 				<template v-else-if="context === 'routes'">
 					{{ mainStore.t.i.captions.pointsRoute }}
@@ -132,7 +132,6 @@
 					@pointermove="onPointerMove"
 					@pointerup="e => onPointerUp(e, () => {
 						mainStore.setCurrentPoint(fat.point);
-						if (context === 'temps') tempsChoosing = fat.index;
 					})"
 					@pointercancel="onPointerUp"
 					@contextmenu.stop.prevent="e => {
@@ -198,7 +197,6 @@ import {
 	PointCollectionContext,
 	FatPointDescription,
 	PointDescription,
-	Measure,
 } from '@/types';
 
 export interface IPointsProps {
@@ -210,31 +208,10 @@ const props = withDefaults(defineProps<IPointsProps>(), {
 
 const mainStore = useMainStore();
 const open = ref(true);
-const tempsChoosing = ref<number | null>(null);
 
-const notMeasureTemps = computed(() => {
-	let points: FatPointDescription[] = [ ...mainStore.notMeasureTempPointIds ]
-		.map((id, index) => {
-			return {
-				id: id,
-				point: mainStore.temps[id],
-				name: String(index + 1),
-				index: index,
-				key: `${id}-${index}`,
-			};
-		})
-	;
-	return {
-		type: 'temps',
-		points: points,
-		choosing: tempsChoosing.value,
-		show: false,
-		name: mainStore.t.i.captions.pointsTemporary,
-	};
-});
-const of = computed<Measure>(() => {
+const of = computed(() => {
 	return (
-		props.context === 'temps' ? notMeasureTemps.value :
+		props.context === 'temps' ? mainStore.notMeasureFatTemps :
 		props.context === 'routes' ? mainStore.currentRoute :
 		props.context === 'measure' ? mainStore.measure :
 		null
@@ -242,7 +219,8 @@ const of = computed<Measure>(() => {
 });
 const points = computed(() => {
 	let points: FatPointDescription[] = [];
-	if (props.context === 'temps') return notMeasureTemps.value.points;
+	if (props.context === 'temps') return mainStore.notMeasureFatTemps.points;
+	else if (props.context === 'measure') return mainStore.measureFatPoints;
 	const pns: PointDescription[] = of.value?.points ?? [];
 	for (let i = 0; i < pns.length; i++) {
 		const p =  mainStore.getPointById(pns[i].id);

@@ -34,7 +34,6 @@
 				<img
 					class="marker-center"
 					:src="markersOptions.icon_center.iconUrl"
-					:title="mainStore.t.i.maps.center"
 				/>
 			</yandex-map-marker>
 
@@ -90,7 +89,6 @@
 										: 'icon_basic'
 								)
 						].iconUrl"
-						:title="place.name"
 					/>
 				</yandex-map-marker>
 
@@ -130,7 +128,6 @@
 							place.id === mainStore.currentPlaceId
 								? 'icon_common' : 'icon_common_active'
 						].iconUrl"
-						:title="place.name"
 					/>
 				</yandex-map-marker>
 			</template>
@@ -435,7 +432,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { Place, Route, Measure, Point } from '@/types';
+import { Point, Place, Route, Measure } from '@/types';
 import { common } from '@/services/common';
 import { getPointToSegmentDistance, calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -528,12 +525,23 @@ const yandexMapContextMenu = (e: DomEvent) => {
 		e.coordinates[0],
 	);
 }
-const markerContextMenu = (e: any, point: Point, of?: Place | Route | null) => {
+const markerContextMenu = (
+	e: PointerEvent,
+	point: Point,
+	of?: Place | Route | Measure | null
+) => {
+	e.stopPropagation();
+	e.preventDefault();
+	let collection = of ?? null;
+	if (!collection) {
+		if (mainStore.notMeasureTempPointIds.has(point.id)) collection = mainStore.notMeasureFatTemps;
+		else if (mainStore.measurePointIds.has(point.id)) collection = mainStore.measure;
+	}
 	if (common.popupProps.show && common.pointInfo?.point.id === point.id) {
 		common.hidePopup();
 		common.clearPointInfo();
 	} else {
-		common.setPointInfo(point, of);
+		common.setPointInfo(point, collection);
 		common.showPopup(calculatePopupPosition(e));
 	}
 };

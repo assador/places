@@ -124,15 +124,6 @@ export interface Group {
 	updated?: boolean;
 	checked?: boolean;
 }
-export interface Measure {
-	type: string;
-	points: PointDescription[];
-	choosing: number | null;
-	show: boolean;
-	id?: string;
-	name?: string;
-	description?: string;
-}
 export interface PointDescription {
 	id: string;
 	name?: string;
@@ -143,8 +134,19 @@ export interface FatPointDescription extends PointDescription {
 	index: number;
 	key: string;
 }
-export interface PointInfo extends FatPointDescription {
-	of?: Place | Route | Measure | null;
+export interface Measure<T extends PointDescription = PointDescription> {
+	type: string;
+	points: T[];
+	choosing: number | null;
+	show: boolean;
+	id?: string;
+	name?: string;
+	description?: string;
+}
+export interface PointInfo<
+	T extends PointDescription = FatPointDescription
+> extends FatPointDescription {
+	of?: Place | Route | Measure<T> | null;
 }
 export interface FirstShow {
 	show: boolean;
@@ -166,8 +168,9 @@ export interface PopupProps {
 	closeOnClick?: boolean;
 	position?: PopupPosition;
 }
-export interface EntityPopupProps extends PopupProps {
-	object: Folder | Place | Route;
+export interface PopupEntityMenuProps extends PopupProps {
+	object: Folder | Place | Route | null;
+	context: MetaEntityContext | null;
 }
 
 // SEC DnD
@@ -276,6 +279,10 @@ export type Context =
 	| 'routes'
 	| 'images'
 	| 'measure'
+;
+export type MetaEntityContext =
+	| 'places'
+	| 'routes'
 ;
 export type PointInfoContext =
 	| 'places'

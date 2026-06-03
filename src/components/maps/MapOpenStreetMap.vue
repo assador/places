@@ -32,9 +32,6 @@
 				})"
 			>
 				<l-icon v-bind="icon_center as {}" />
-				<l-tooltip>
-					{{ mainStore.t.i.maps.center }}
-				</l-tooltip>
 			</l-marker>
 
 <!-- SEC Markers: Place Markers  -->
@@ -85,9 +82,6 @@
 								)
 						) as {}"
 					/>
-					<l-tooltip permanent="true" v-if="place.name">
-						{{ place.name }}
-					</l-tooltip>
 				</l-marker>
 
 <!-- SEC Markers: Common Place Markers  -->
@@ -123,14 +117,6 @@
 									? icon_common : icon_common_active
 							) as {}"
 						/>
-						<l-tooltip>
-							{{ place.name }}<br />
-							{{ mainStore.t.i.captions.user }}: {{
-								mainStore.users[place.userid].name
-									? mainStore.users[place.userid].name
-									: mainStore.users[place.userid].login
-							}}
-						</l-tooltip>
 					</l-marker>
 				</l-layer-group>
 			</l-layer-group>
@@ -420,10 +406,9 @@ import {
 	LMarker,
 	LPolyline,
 	LTileLayer,
-	LTooltip,
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Place, Route, Point } from '@/types';
+import { Point, Place, Route, Measure } from '@/types';
 import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -531,14 +516,23 @@ const setRef = async (id: string, el: any, refs: any) => {
 const leafletMapContextMenu = (e: any) => {
 	mapContextMenu(e.originalEvent, e.latlng.lat, e.latlng.lng);
 }
-const markerContextMenu = (e: any, point: Point, of?: Place | Route | null) => {
+const markerContextMenu = (
+	e: any,
+	point: Point,
+	of?: Place | Route | Measure | null
+) => {
 	e.originalEvent.stopPropagation();
 	e.originalEvent.preventDefault();
+	let collection = of ?? null;
+	if (!collection) {
+		if (mainStore.notMeasureTempPointIds.has(point.id)) collection = mainStore.notMeasureFatTemps;
+		else if (mainStore.measurePointIds.has(point.id)) collection = mainStore.measure;
+	}
 	if (common.popupProps.show && common.pointInfo?.point.id === point.id) {
 		common.hidePopup();
 		common.clearPointInfo();
 	} else {
-		common.setPointInfo(point, of);
+		common.setPointInfo(point, collection);
 		common.showPopup(calculatePopupPosition(e.originalEvent));
 	}
 };

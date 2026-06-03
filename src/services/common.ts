@@ -1,13 +1,17 @@
 import { ref } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { calculatePopupPosition } from '@/shared/common';
 import {
 	Point,
 	Place,
 	Route,
+	Folder,
 	Measure,
 	PointInfo,
 	PopupProps,
 	PopupPosition,
+	PopupEntityMenuProps,
+	MetaEntityContext,
 } from '@/types';
 
 const _compact = ref(0);
@@ -24,6 +28,17 @@ const _popupProps = ref<PopupProps>({
 		left: 'auto',
 	},
 });
+const _popupEntityMenu = ref<PopupEntityMenuProps>({
+	object: null,
+	context: null,
+	show: false,
+	position: {
+		top: 'auto',
+		right: 'auto',
+		bottom: 'auto',
+		left: 'auto',
+	},
+});
 
 export const common = {
 	get compact(): number {
@@ -31,15 +46,6 @@ export const common = {
 	},
 	set compact(value: number) {
 		_compact.value = value;
-	},
-	get folderEditability(): boolean {
-		return _folderEditability.value;
-	},
-	set folderEditability(value: boolean) {
-		_folderEditability.value = value;
-	},
-	toggleFolderEditability() {
-		_folderEditability.value = !_folderEditability.value;
 	},
 	get idleTimeInterval(): number | null {
 		return _idleTimeInterval.value;
@@ -53,6 +59,18 @@ export const common = {
 	set foldersCheckedIds(value: Set<string>) {
 		_foldersCheckedIds.value = value;
 	},
+	get folderEditability(): boolean {
+		return _folderEditability.value;
+	},
+	set folderEditability(value: boolean) {
+		_folderEditability.value = value;
+	},
+	toggleFolderEditability() {
+		_folderEditability.value = !_folderEditability.value;
+	},
+
+// SEC popupProps
+
 	get popupProps(): PopupProps {
 		return _popupProps.value;
 	},
@@ -70,6 +88,9 @@ export const common = {
 		if (position) _popupProps.value.position = position;
 		_popupProps.value.show = !_popupProps.value.show;
 	},
+
+// SEC pointInfo
+
 	get pointInfo(): PointInfo | null {
 		return _pointInfo.value;
 	},
@@ -97,15 +118,41 @@ export const common = {
 		if (of?.type === 'place') {
 			name = of.name || null;
 			description = of.description || null;
-		} else if (of?.type === 'route') {
-			const routePoint = of.points.find(p => p.id === point.id);
-			name = routePoint?.name || null;
-			description = routePoint?.description || of.description || null;
+		} else if (of?.type === 'route' || of?.type === 'measure' || of?.type === 'temps') {
+			const pd = of.points.find(p => p.id === point.id);
+			name = pd?.name || null;
+			description = pd?.description || of.description || null;
 		}
 		_pointInfo.value = { point, of, name, description };
 	},
 	clearPointInfo(): void {
 		_pointInfo.value = null;
+	},
+
+// SEC popupEntityMenu
+
+	get popupEntityMenu(): PopupEntityMenuProps | null {
+		return _popupEntityMenu.value;
+	},
+	set popupEntityMenu(value: PopupEntityMenuProps) {
+		_popupEntityMenu.value = value;
+	},
+	updateEntityMenu(fields: Partial<PopupEntityMenuProps>) {
+		_popupEntityMenu.value = { ..._popupEntityMenu.value, ...fields };
+	},
+	toggleEntityMenuPopup(
+		e: PointerEvent,
+		entity: Place | Route | Folder | null,
+		context: MetaEntityContext,
+	): void {
+		if (_popupEntityMenu.value.show && entity.id === _popupEntityMenu.value.object.id) {
+			_popupEntityMenu.value.show = false;
+		} else {
+			_popupEntityMenu.value.position = calculatePopupPosition(e);
+			_popupEntityMenu.value.context = context;
+			_popupEntityMenu.value.show = true;
+		}
+		_popupEntityMenu.value.object = entity;
 	},
 };
 

@@ -387,30 +387,34 @@
 				<span class="icon icon-full" />
 			</button>
 		</div>
-		<button
+		<div
 			v-if="common.compact === 2"
 			id="sbb-top"
-			:class="{ disclosed: cells.top, 'button-pressed': cells.top }"
 			@click="sideShowHide('top')"
-		/>
-		<button
+		>
+			<button :class="{ disclosed: cells.top, 'button-pressed': cells.top }" />
+		</div>
+		<div
 			v-if="common.compact === 2"
 			id="sbb-right"
-			:class="{ disclosed: cells.right, 'button-pressed': cells.right }"
 			@click="sideShowHide('right')"
-		/>
-		<button
+		>
+			<button :class="{ disclosed: cells.right, 'button-pressed': cells.right }" />
+		</div>
+		<div
 			v-if="common.compact === 2"
 			id="sbb-bottom"
-			:class="{ disclosed: cells.bottom, 'button-pressed': cells.bottom }"
 			@click="sideShowHide('bottom')"
-		/>
-		<button
+		>
+			<button :class="{ disclosed: cells.bottom, 'button-pressed': cells.bottom }" />
+		</div>
+		<div
 			v-if="common.compact === 2"
 			id="sbb-left"
-			:class="{ disclosed: cells.left, 'button-pressed': cells.left }"
 			@click="sideShowHide('left')"
-		/>
+		>
+			<button :class="{ disclosed: cells.left, 'button-pressed': cells.left }" />
+		</div>
 		<div
 			v-if="common.compact !== 2"
 			id="sbs-top"
@@ -791,72 +795,11 @@
 		</div>
 	</Teleport>
 
-<!-- SEC Popup Point Coords -->
+<!-- SEC Popups -->
 
-	<Popup
-		:show="common.popupProps.show"
-		:position="common.popupProps.position"
-		:closeOnClick="false"
-		class="point-coordinates messages"
-		@update:show="handlePopupUpdate"
-	>
-		<template #popupSlot>
-			<a
-				href="javascript:void(0)"
-				class="point-coordinates-copy"
-				@click="copyCoords(common.pointInfo?.point)"
-			>
-				{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
-			</a>
-			<h3>
-				<span class="un_color">
-					{{ mainStore.t.i.captions.measurePoint }}:
-				</span>
-				<span class="color-01">
-					{{ common.pointInfo?.name }}
-				</span>
-			</h3>
-			<div class="nobr">
-				<span class="un_color">
-					{{ mainStore.t.i.captions.latitude }}:
-				</span>
-				<span class="color-01">
-					{{ latitude2string(common.pointInfo?.point?.latitude) }}°
-				</span>
-			</div>
-			<div class="nobr">
-				<span class="un_color">
-					{{ mainStore.t.i.captions.longitude }}:
-				</span>
-				<span class="color-01">
-					{{ longitude2string(common.pointInfo?.point?.longitude) }}°
-				</span>
-			</div>
-			<div
-				v-if="common.pointInfo?.point?.altitude"
-				class="nobr"
-			>
-				<span class="un_color">
-					{{ mainStore.t.i.captions.altitude }}:
-				</span>
-				<span class="color-01">
-					{{ common.pointInfo?.point?.altitude }}
-					{{ mainStore.t.i.text.m }}
-				</span>
-			</div>
-			<div
-				v-if="common.pointInfo?.of"
-				class="point-coordinates-controls"
-			>
-				<!-- Place/Route actions: common.pointInfo.of?.name -->
-				<a
-					href="javascript:void(0)"
-					@click="() => {}"
-				>
-				</a>
-			</div>
-		</template>
-	</Popup>
+	<PopupPointInfo />
+	<PopupEntityMenu />
+
 	<div
 		v-if="isPrefixActive"
 		class="prefix-activated-indicator icon icon-circle-full"
@@ -889,13 +832,8 @@ import { useElementSize } from '@/services/sizes';
 import { useLightPointerDnD } from '@/shared/dnd';
 import { sortObjects } from '@/shared/sorting';
 import { clamp, makeDropDowns } from '@/shared/common';
-import {
-	point2coords,
-	latitude2string,
-	longitude2string,
-} from '@/shared/converters';
 
-import { Point, Place, Route, Image, PopupProps, PopupPosition } from '@/types';
+import { Place, Route, Image, PopupProps, PopupPosition } from '@/types';
 
 import Header from '@/components/Header.vue';
 import MeasureDetails from '@/components/helpers/Measure.vue';
@@ -904,6 +842,8 @@ import Tree from '@/components/tree/Tree.vue';
 import RouteDetails from '@/components/details/Route.vue';
 import PlaceDetails from '@/components/details/Place.vue';
 import Popup from '@/components/popups/Popup.vue';
+import PopupEntityMenu from '@/components/popups/PopupEntityMenu.vue';
+import PopupPointInfo from '@/components/popups/PopupPointInfo.vue';
 
 const maps = [
 	{
@@ -926,10 +866,6 @@ const geoLocation = useGeolocation();
 
 const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
-const handlePopupUpdate = (show: boolean) => {
-	common.popupProps.show = show;
-	if (!show) common.clearPointInfo();
-};
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const root = ref<HTMLElement | null>(null);
@@ -1003,14 +939,6 @@ const popupDonate = ref<PopupProps>({
 		left: '0',
 	},
 });
-const copied = ref(false);
-const copyCoords = async (point: Point) => {
-	await navigator.clipboard.writeText(
-		point2coords(point, mainStore.t.i.text.m, mainStore.t.i.text.h)
-	);
-	copied.value = true;
-	setTimeout(() => copied.value = false, 2000);
-};
 
 const commonPlaces = computed<Record<string, Place>>(() => {
 	const ids = Object.keys(mainStore.commonPlaces);
@@ -1089,13 +1017,15 @@ const changeMode = (mode: string): void => {
 	switch (mode) {
 		case 'normal':
 			mainStore.mode = 'normal';
-			mainStore.placesShow.show = true;
 			mainStore.measure.show = false;
+			mainStore.placesShow.show = true;
+			if (mainStore.placesShow.first) mainStore.placesShow.first = false;
 			break;
 		case 'routes':
 			mainStore.mode = 'routes';
-			mainStore.routesShow.show = true;
 			mainStore.measure.show = false;
+			mainStore.routesShow.show = true;
+			if (mainStore.routesShow.first) mainStore.routesShow.first = false;
 			break;
 		case 'measure':
 			mainStore.mode = 'measure';

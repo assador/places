@@ -8,7 +8,9 @@ import {
 	Folder,
 	EntityCollection,
 	PointDescription,
+	FatPointDescription,
 	TreeItemType,
+    Measure,
 } from '@/types';
 import { isFolder } from '@/guards';
 import { constants } from '@/shared/constants';
@@ -134,18 +136,6 @@ export const useMainStore = defineStore('main', {
 	getters: {
 		...treeGetters,
 
-		busy() {
-			return this.busyCount > 0;
-		},
-		currentPoint() {
-			return (this.points[this.currentPointId] ?? this.temps[this.currentPointId]);
-		},
-		currentPlace() {
-			return this.places[this.currentPlaceId];
-		},
-		currentRoute() {
-			return this.routes[this.currentRouteId];
-		},
 		colorthemes() {
 			return [
 				{ value: 'brown',        title: this.t.i.inputs.colorthemeBrown },
@@ -176,6 +166,67 @@ export const useMainStore = defineStore('main', {
 				home               : this.t.i.inputs.checkboxHome,
 			}
 			return descriptionFields;
+		},
+		busy() {
+			return this.busyCount > 0;
+		},
+		currentPoint() {
+			return (this.points[this.currentPointId] ?? this.temps[this.currentPointId]);
+		},
+		currentPlace() {
+			return this.places[this.currentPlaceId];
+		},
+		currentRoute() {
+			return this.routes[this.currentRouteId];
+		},
+		measurePointIds() {
+			const set = new Set<string>();
+			for (const pd of this.measure.points) set.add(pd.id);
+			return set;
+		},
+		notMeasureTempPointIds() {
+			const set = new Set<string>();
+			for (const id in this.temps) if (!this.measurePointIds.has(id)) set.add(id);
+			return set;
+		},
+		routePointIds() {
+			return (route: Route) => {
+				const set = new Set<string>();
+				for (const pd of route.points) set.add(pd.id);
+				return set;
+			}
+		},
+		measureFatPoints(): FatPointDescription[] {
+			return this.measure.points.map((p: PointDescription, index: number) => {
+				return {
+					...p,
+					name: p.name ?? String(index + 1),
+					index: index,
+					key: `${p.id}-${index}`,
+					point: this.temps[p.id],
+				};
+			});
+		},
+		notMeasureFatTemps(): Measure<FatPointDescription> {
+			const points: FatPointDescription[] = [];
+			let index = 0;
+			for (const id of this.notMeasureTempPointIds) {
+				points.push({
+					id: id,
+					name: String(index + 1),
+					index: index,
+					key: `${id}-${index}`,
+					point: this.temps[id],
+				});
+				index++;
+			}
+			return {
+				type: 'temps',
+				points: points,
+				choosing: points.find(p => p.id === this.currentPointId)?.index ?? null,
+				show: false,
+				name: this.t.i.captions.pointsTemporary,
+			};
 		},
 		distanceBetweenPoints() {
 			return (ids: string[], where?: string): number => {
@@ -274,22 +325,8 @@ export const useMainStore = defineStore('main', {
 		homePlace(): Place | null {
 			return this.places[this.user?.homeplace] ?? null;
 		},
-		measureTemps() {
-			return Object.values(this.temps).filter(
-				(point: Point) => point.type === 'point'
-			);
-		},
-		measurePointIds() {
-			return new Set(this.measure.points.map((p: PointDescription) => p.id));
-		},
-		notMeasureTempPointIds() {
-			return new Set(Object.keys(this.temps).filter(id => !this.measurePointIds.has(id)));
-		},
-		routePointIds: () => {
-			return (route: Route) => new Set(route.points.map((p: PointDescription) => p.id));
-		},
-		tempIndexById: state => {
-			return (id: string) => Object.keys(state.temps).indexOf(id);
+		tempIndexById() {
+			return (id: string) => Object.keys(this.temps).indexOf(id);
 		},
 		routePoints() {
 			return (route: Route): Point[] => {

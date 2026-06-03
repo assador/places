@@ -111,12 +111,11 @@
 			    @pointermove="onPointerMove"
 			    @pointerup="e => onPointerUp(e, () => mainStore.folderOpenClose({ folder }))"
 			    @pointercancel="onPointerUp"
-				@contextmenu.stop.prevent="e => {
-					contextMenu.show = !contextMenu.show;
-					contextMenu.object = mainStore.folders[folder.id] ?? mainStore.trees[folder.context];
-					contextMenu.closeOnClick = false;
-					contextMenu.position = calculatePopupPosition(e);
-				}"
+				@contextmenu.stop.prevent="e => common.toggleEntityMenuPopup(
+					e,
+					mainStore.folders[folder.id] ?? mainStore.trees[folder.context],
+					props.what,
+				)"
 			>
 				<div
 					:id="
@@ -271,12 +270,7 @@
 						}
 					})"
 					@pointercancel.stop="onPointerUp"
-					@contextmenu.stop.prevent="e => {
-						contextMenu.show = !contextMenu.show;
-						contextMenu.object = object;
-						contextMenu.closeOnClick = false;
-						contextMenu.position = calculatePopupPosition(e);
-					}"
+					@contextmenu.stop.prevent="e => common.toggleEntityMenuPopup(e, object, props.what)"
 				>
 					{{ object.name || mainStore.t.i.captions.untitled }}
 				</span>
@@ -347,10 +341,8 @@ import {
 	Route,
 	Folder,
 	FolderContext,
-	EntityPopupProps,
 } from '@/types';
 import { common } from '@/services/common';
-import { calculatePopupPosition } from '@/shared/common';
 import { usePointerDnD } from '@/shared/dnd';
 
 export interface IPlacesTreeNodeProps {
@@ -371,7 +363,6 @@ const mainStore = useMainStore();
 const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
 const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
 const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
-const contextMenu = inject<Ref<EntityPopupProps>>('contextMenu');
 
 const places = computed(() =>
 	_.chain(mainStore.places)
