@@ -5,12 +5,7 @@
 		:class="['colortheme-' + mainStore.colortheme]"
 	>
 		<div id="popup-root" />
-		<PopupConfirm
-			v-if="confirm.show"
-			:callback="confirm.callback"
-			:arguments="confirm.args"
-			:message="confirm.message"
-		/>
+		<PopupConfirm />
 		<Popup
 			v-if="isMounted"
 			:show="mainStore.busy"
@@ -30,7 +25,6 @@
 import { ref, provide, onMounted } from 'vue'
 import { useMainStore } from '@/stores/main';
 
-import { confirm } from '@/services/confirm';
 import { usePWAInstall } from '@/shared/usepwainstall';
 import {
 	handleFolderDropped,

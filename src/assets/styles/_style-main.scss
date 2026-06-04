@@ -509,7 +509,7 @@ $filter-brightness-03: brightness(0%);
 		border-width: 1px;
 		border-style: solid;
 		border-radius: 3px;
-		vertical-align: middle;
+		vertical-align: baseline;
 		font-family: "PTSansWebRegular", Tahoma, Arial, sans-serif;
 		font-size: 100%;
 		line-height: 1.286;
@@ -540,30 +540,28 @@ $filter-brightness-03: brightness(0%);
 		height: 22px;
 	}
 	input:is([type="checkbox"], [type="radio"]) {
-		display: inline-block;
-		width: 20px; height: 20px;
-		vertical-align: middle;
-		opacity: 0;
-	}
-	label:has(input:is([type="checkbox"], [type="radio"])) {
-		position: relative;
-	}
-	label:has(input:is([type="checkbox"], [type="radio"]))::before {
-		content: '';
+		appearance: none;
+		-webkit-appearance: none;
 		display: inline-block;
 		position: relative;
-		margin-top: -5px; margin-right: -20px;
 		width: 20px; height: 20px;
-		aspect-ratio: 1 / 1;
-		vertical-align: middle;
-		opacity: 0.5;
+		bottom: -0.15lh;
+		flex-shrink: 0;
+		cursor: pointer;
 		filter: invert(1);
+		opacity: 0.5;
 	}
-	label:has(input:is([type="checkbox"], [type="radio"]):not(:checked))::before {
-		background: url('/public/img/icons/checkbox_unchecked.svg') center / contain no-repeat;
+	input:is([type="checkbox"], [type="radio"]):not(:checked) {
+		background: url('/img/icons/checkbox_unchecked.svg') center / contain no-repeat;
 	}
-	label:has(input:is([type="checkbox"], [type="radio"]):checked)::before {
-		background: url('/public/img/icons/checkbox_checked.svg') center / contain no-repeat;
+	input:is([type="checkbox"], [type="radio"]):is(:checked) {
+		background: url('/img/icons/checkbox_checked.svg') center / contain no-repeat;
+	}
+	input:is([type="checkbox"], [type="radio"]):focus-visible {
+		opacity: 1;
+	}
+	input:is([type="checkbox"], [type="radio"]):hover {
+		opacity: 1;
 	}
 	select {
 		padding-right: 10px; padding-left: 4px;
@@ -981,9 +979,7 @@ $filter-brightness-03: brightness(0%);
 	.popup-text {
 		padding-right: 20px;
 	}
-	.folder-new__form {
-		width: 80%;
-	}
+
 	.close {
 		position: absolute;
 		top: 0; right: 10px;
@@ -1205,29 +1201,6 @@ $filter-brightness-03: brightness(0%);
 	}
 	#detailed-description {
 		height: 115px;
-	}
-	:is(
-		.account-form,
-		.folder-delete__form,
-		.popup-export__form,
-		.place-delete__form
-	) fieldset {
-		margin: 1em;
-	}
-	:is(
-		.account-form,
-		.folder-delete__form,
-		.popup-export__form,
-		.place-delete__form
-	) label {
-		display: flex;
-	}
-	.popup-export__form {
-		max-width: 600px;
-		text-align: center;
-	}
-	.popup-export__form label {
-		display: block;
 	}
 	#to-export-places-menu-folder-link-root, #places-menu-folder-link-routesroot {
 		white-space: nowrap;

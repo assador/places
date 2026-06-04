@@ -1,10 +1,10 @@
 <template>
 	<transition name="fade">
 		<div
-			v-if="popuped"
+			v-if="show"
 			class="popup"
 		>
-			<div class="popup-content centered">
+			<div class="popup-content centered folder-new">
 				<div class="brand">
 					<h1 class="margin_bottom_0">
 						{{ mainStore.t.i.captions.newFolder }}
@@ -15,50 +15,37 @@
 					@click.stop
 					@submit.prevent="createFolder"
 				>
-					<table class="table_form">
-						<tbody>
-							<tr>
-								<th>{{ mainStore.t.i.captions.name }}:</th>
-								<td>
-									<input
-										ref="folderNameInput"
-										v-model="folderName"
-										class="fieldwidth_100"
-										required
-										type="text"
-									/>
-								</td>
-							</tr>
-							<tr>
-								<th>{{ mainStore.t.i.captions.description }}:</th>
-								<td>
-									<textarea
-										id="folderDescription"
-										v-model="folderDescription"
-										class="fieldwidth_100"
-									/>
-								</td>
-							</tr>
-							<tr class="back_0">
-								<th />
-								<td style="padding-top: 18px; vertical-align: top;">
-									<button type="submit">
-										{{ mainStore.t.i.buttons.createFolder }}
-									</button>
-									&#160;
-									<button @click="close()">
-										{{ mainStore.t.i.buttons.cancel }}
-									</button>
-								</td>
-							</tr>
-							<tr class="back_0">
-								<th />
-								<td style="padding-top: 18px;">
-									{{ message }}
-								</td>
-							</tr>
-						</tbody>
-					</table>
+					<fieldset class="folder-new__form__fields">
+						<div class="imp">
+							{{ mainStore.t.i.captions.name }}:
+						</div>
+						<input
+							ref="folderNameInput"
+							v-model="folderName"
+							class="fieldwidth_100"
+							required
+							type="text"
+						/>
+						<div class="imp">
+							{{ mainStore.t.i.captions.description }}:
+						</div>
+						<textarea
+							id="folderDescription"
+							v-model="folderDescription"
+							class="fieldwidth_100"
+						/>
+					</fieldset>
+					<fieldset class="folder-new__form__buttons">
+						<button type="submit">
+							{{ mainStore.t.i.buttons.createFolder }}
+						</button>
+						<button @click="close()">
+							{{ mainStore.t.i.buttons.cancel }}
+						</button>
+					</fieldset>
+					<div class="folder-new__form__message">
+						{{ message }}
+					</div>
 				</form>
 				<a
 					href="javascript:void(0)"
@@ -93,7 +80,7 @@ const folderNameInput = ref(null);
 const folderName = ref('');
 const folderDescription = ref('');
 const message = ref(' ');
-const popuped = ref(false);
+const show = ref(false);
 
 const router = useRouter();
 const route = useRoute();
@@ -119,7 +106,7 @@ const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
 };
 onMounted(async () => {
-	popuped.value = true;
+	show.value = true;
 	await nextTick();
 	if (folderNameInput.value) folderNameInput.value.focus();
 	document.addEventListener('keyup', keyup, false);
@@ -128,3 +115,30 @@ onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);
 });
 </script>
+
+<style lang="scss" scoped>
+.folder-new {
+	&__form {
+		fieldset {
+			margin: 1em;
+		}
+		label {
+			display: flex;
+			gap: 6px;
+			align-items: baseline;
+		}
+		&__fields {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			gap: 8px;
+			align-items: baseline;
+		}
+		&__buttons {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			justify-content: center;
+		}
+	}
+}
+</style>

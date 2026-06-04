@@ -12,7 +12,7 @@ export const logged = async (): Promise<void> => {
 	mainStore.openTreeToCurrent(mainStore.currentPlace);
 	mainStore.openTreeToCurrent(mainStore.currentRoute);
 };
-export const logout = async (): Promise<void> => {
+export const logout = async (): Promise<boolean> => {
 	const mainStore = useMainStore();
 	const getOut = async () => {
 		mainStore.setBusy(true);
@@ -20,10 +20,16 @@ export const logout = async (): Promise<void> => {
 		const sessionId = localStorage.getItem('places-session');
 		mainStore.unload();
 		await logoutRoutine({ userId: userId, sessionId: sessionId });
+		mainStore.setBusy(false);
 	};
 	if (mainStore.saved || mainStore.user.testaccount) {
-		getOut();
-	} else {
-		confirm.open(getOut, [], mainStore.t.i.text.notSaved);
+		await getOut();
+		return true;
 	}
+	const confirmed = await confirm.open(mainStore.t.i.text.notSaved);
+	if (confirmed) {
+		await getOut();
+		return true;
+	}
+	return false;
 };

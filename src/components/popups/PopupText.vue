@@ -1,7 +1,7 @@
 <template>
 	<transition name="fade">
 		<div
-			v-if="popuped"
+			v-if="show"
 			class="popup"
 		>
 			<About v-if="props.what === 'about' && mainStore.lang === 'ru'" />
@@ -31,14 +31,14 @@ const props = withDefaults(defineProps<IPlacesPopupTextProps>(), {
 	what: '',
 });
 
-const popuped = ref(false);
+const show = ref(false);
 
 const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
 watch(() => props.what, () => {
-	popuped.value = (props.what === '' ? false : true);
+	show.value = (props.what === '' ? false : true);
 });
 const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
@@ -50,7 +50,7 @@ const keyup = (event: KeyboardEvent): void => {
 onMounted(() => {
 	document.addEventListener('keyup', keyup, false);
 	window.setTimeout(() => {
-		popuped.value = (props.what === '' ? false : true);
+		show.value = (props.what === '' ? false : true);
 	}, 1);
 });
 onUnmounted(() => {

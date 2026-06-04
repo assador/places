@@ -1,38 +1,37 @@
 import { ref } from 'vue';
 
-const _show = ref(false);
-const _callback = ref<((...args: any[]) => void) | null>(null);
-const _args = ref<readonly any[] | null>(null);
-const _message = ref<string | null>(null);
+export class ConfirmInstance {
+	private _show = ref(false);
+	private _message = ref<string | null>(null);
+	private _resolve = ref<((value: boolean) => void) | null>(null);
 
-export const confirm = {
 	get show(): boolean {
-		return _show.value;
-	},
-	get callback(): ((...args: any[]) => void) | null {
-		return _callback.value;
-	},
-	get args(): readonly any[] | null {
-		return _args.value;
-	},
+		return this._show.value;
+	}
 	get message(): string | null {
-		return _message.value;
-	},
-	open(
-		func: (...args: any[]) => void,
-		args: any[] = [],
-		msg: string = "",
-	): boolean {
-		_show.value = true;
-		_callback.value = func;
-		_args.value = args;
-		_message.value = msg;
-		return true;
-	},
+		return this._message.value;
+	}
+	open(msg: string = ''): Promise<boolean> {
+		this._message.value = msg;
+		this._show.value = true;
+
+		return new Promise<boolean>((resolve) => {
+			this._resolve.value = resolve;
+		});
+	}
+	accept(): void {
+		if (this._resolve.value) this._resolve.value(true);
+		this.close();
+	}
+	cancel(): void {
+		if (this._resolve.value) this._resolve.value(false);
+		this.close();
+	}
 	close(): void {
-		_show.value = false;
-		_callback.value = null;
-		_args.value = null;
-		_message.value = null;
-	},
-};
+		this._show.value = false;
+		this._message.value = null;
+		this._resolve.value = null;
+	}
+}
+
+export const confirm = new ConfirmInstance();

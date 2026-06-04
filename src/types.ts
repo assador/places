@@ -156,10 +156,10 @@ export interface FirstShow {
 // SEC Popups
 
 export interface PopupPosition {
-	top: number | string | null;
-	right: number | string | null;
-	bottom: number | string | null;
-	left: number | string | null;
+	top: string | null;
+	right: string | null;
+	bottom: string | null;
+	left: string | null;
 }
 export interface PopupProps {
 	show: boolean;
@@ -171,6 +171,7 @@ export interface PopupProps {
 export interface PopupEntityMenuProps extends PopupProps {
 	object: Folder | Place | Route | null;
 	context: MetaEntityContext | null;
+	lastEvent: PointerEvent | null;
 }
 
 // SEC DnD

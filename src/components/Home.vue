@@ -689,10 +689,8 @@
 				:title="mainStore.t.i.hints.exit"
 				accesskey="q"
 				@click="() => {
-					showMap = false;
-					$nextTick(() => {
-						logout();
-						router.push({ name: 'Auth' });
+					$nextTick(async () => {
+						if (await logout()) router.push({ name: 'Auth' });
 					});
 				}"
 			>

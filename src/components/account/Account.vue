@@ -223,6 +223,12 @@ const accountSubmit = (): void => {
 	&-form {
 		display: flex;
 		width: 50%;
+		fieldset {
+			margin: 1em;
+		}
+		label {
+			display: block;
+		}
 		&-buttons {
 			td {
 				padding-top: 18px;

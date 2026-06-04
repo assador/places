@@ -32,6 +32,7 @@ const _popupEntityMenu = ref<PopupEntityMenuProps>({
 	object: null,
 	context: null,
 	show: false,
+	lastEvent: null,
 	position: {
 		top: 'auto',
 		right: 'auto',
@@ -147,9 +148,11 @@ export const common = {
 	): void {
 		if (_popupEntityMenu.value.show && entity.id === _popupEntityMenu.value.object.id) {
 			_popupEntityMenu.value.show = false;
+			_popupEntityMenu.value.lastEvent = null;
 		} else {
-			_popupEntityMenu.value.position = calculatePopupPosition(e);
 			_popupEntityMenu.value.context = context;
+			_popupEntityMenu.value.lastEvent = e;
+			_popupEntityMenu.value.position = calculatePopupPosition(e);
 			_popupEntityMenu.value.show = true;
 		}
 		_popupEntityMenu.value.object = entity;

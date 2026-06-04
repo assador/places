@@ -1,7 +1,7 @@
 <template>
 	<transition name="fade">
 		<div
-			v-if="popuped"
+			v-if="show"
 			class="popup popup-export"
 		>
 			<div class="popup-content centered">
@@ -86,7 +86,7 @@ const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
-const popuped = ref(false);
+const show = ref(false);
 
 const close = (): void => {
 	router.replace(route.matched[route.matched.length - 2].path);
@@ -102,7 +102,7 @@ const handleExportSubmit = (e: Event) => {
 };
 
 onMounted(() => {
-	popuped.value = true;
+	show.value = true;
 	document.addEventListener('keyup', keyup, false);
 });
 onUnmounted(() => {
@@ -114,7 +114,14 @@ onUnmounted(() => {
 .popup-export__form {
 	display: grid;
 	grid-template-rows: auto auto auto 1fr auto;
-	max-height: 100%;
+	max-width: 600px; max-height: 100%;
+	text-align: center;
+	fieldset {
+		margin: 1em;
+	}
+	label {
+		display: block;
+	}
 }
 .popup-export__tree {
 	margin: 0 auto;

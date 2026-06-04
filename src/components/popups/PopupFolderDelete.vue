@@ -1,10 +1,10 @@
 <template>
 	<transition name="fade">
 		<div
-			v-if="popuped"
+			v-if="show"
 			class="popup"
 		>
-			<div class="popup-content centered">
+			<div class="popup-content centered folder-delete">
 				<div class="brand">
 					<h1 class="margin_bottom_0">
 						{{ mainStore.t.i.captions.deletingFolder }}
@@ -13,7 +13,7 @@
 						«{{ folder ? folder.name : '' }}»
 					</p>
 				</div>
-				<p class="margin_bottom_0 center">
+				<p class="margin_bottom_0">
 					{{ mainStore.t.i.text.whatToDoWithFolder }}:
 				</p>
 				<form
@@ -40,17 +40,14 @@
 							<span>{{ mainStore.t.i.inputs.deleteContent }}</span>
 						</label>
 					</fieldset>
-					<div style="text-align: center;">
-						<fieldset>
-							<button type="submit">
-								{{ mainStore.t.i.buttons.deleteFolder }}
-							</button>
-							&#160;
-							<button type="button" @click="close()">
-								{{ mainStore.t.i.buttons.cancel }}
-							</button>
-						</fieldset>
-					</div>
+					<fieldset class="folder-delete__form__buttons">
+						<button type="submit">
+							{{ mainStore.t.i.buttons.deleteFolder }}
+						</button>
+						<button type="button" @click="close()">
+							{{ mainStore.t.i.buttons.cancel }}
+						</button>
+					</fieldset>
 				</form>
 				<a
 					href="javascript:void(0);"
@@ -83,7 +80,7 @@ const router = useRouter();
 const route = useRoute();
 
 const keepContent = ref('keep');
-const popuped = ref(false);
+const show = ref(false);
 const folder = ref(mainStore.folders[props.id]);
 
 const close = (): void => {
@@ -107,9 +104,30 @@ const deleteFolder = (): void => {
 
 onMounted(() => {
 	document.addEventListener('keyup', keyup, false);
-	window.setTimeout(() => popuped.value = true, 1);
+	window.setTimeout(() => show.value = true, 1);
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);
 });
 </script>
+
+<style lang="scss" scoped>
+.folder-delete {
+	&__form {
+		fieldset {
+			margin: 1em;
+		}
+		label {
+			display: flex;
+			gap: 6px;
+			align-items: baseline;
+		}
+		&__buttons {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			justify-content: center;
+		}
+	}
+}
+</style>

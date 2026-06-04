@@ -1,45 +1,39 @@
 <template>
 	<transition name="fade">
 		<div
-			v-if="popuped"
+			v-if="props.instance.show"
 			class="popup"
 		>
-			<div class="popup-content centered">
+			<div class="popup-content centered confirm">
 				<div class="brand">
 					<h1 class="margin_bottom_0">
 						{{ mainStore.t.i.captions.sure }}
 					</h1>
-					<p v-if="props.message">
-						{{ props.message }}
+					<p v-if="props.instance.message">
+						{{ props.instance.message }}
 					</p>
 				</div>
 				<form
-					class="folder-delete__form margin_bottom_0"
+					class="confirm__form margin_bottom_0"
 					@click.stop
-					@submit.prevent="() => {
-						props.callback(...props.arguments);
-						close();
-					}"
+					@submit.prevent="props.instance.accept()"
 				>
-					<div style="text-align: center;">
-						<fieldset>
-							<button type="submit">
-								{{ mainStore.t.i.buttons.yes }}
-							</button>
-							&#160;
-							<button
-								type="button"
-								@click="() => close()"
-							>
-								{{ mainStore.t.i.buttons.cancel }}
-							</button>
-						</fieldset>
-					</div>
+					<fieldset class="confirm__form__buttons">
+						<button type="submit">
+							{{ mainStore.t.i.buttons.yes }}
+						</button>
+						<button
+							type="button"
+							@click="props.instance.cancel()"
+						>
+							{{ mainStore.t.i.buttons.cancel }}
+						</button>
+					</fieldset>
 				</form>
 				<a
 					href="javascript:void(0);"
 					class="close"
-					@click="() => close()"
+					@click="props.instance.cancel()"
 				>
 					×
 				</a>
@@ -49,39 +43,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { confirm } from '@/services/confirm';
+import { onMounted, onUnmounted } from 'vue';
+import { confirm as globalConfirm, ConfirmInstance } from '@/services/confirm';
 import { useMainStore } from '@/stores/main';
 
-export interface IPlacesPopupConfirmProps {
-	message?: string;
-	callback: any;
-	arguments: readonly any[];
-}
-const props = withDefaults(defineProps<IPlacesPopupConfirmProps>(), {
-	message: null,
-	callback: null,
-	arguments: null,
+const props = withDefaults(defineProps<{
+	instance?: ConfirmInstance,
+}>(), {
+	instance: () => globalConfirm,
 });
 
 const mainStore = useMainStore();
-const popuped = ref(false);
 
-const close = (): void => {
-	popuped.value = false;
-	window.setTimeout(() => {
-		confirm.close();
-	}, 1000);
-};
 const keyup = (event: KeyboardEvent): void => {
-	if (event.key === 'Escape') close();
+	if (event.key === 'Escape') props.instance.cancel();
 };
 
 onMounted(() => {
 	document.addEventListener('keyup', keyup, false);
-	window.setTimeout(() => popuped.value = true, 1);
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);
 });
 </script>
+
+<style lang="scss" scoped>
+.confirm {
+	&__form {
+		fieldset {
+			margin: 1em;
+		}
+		&__buttons {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			justify-content: center;
+		}
+	}
+}
+</style>
