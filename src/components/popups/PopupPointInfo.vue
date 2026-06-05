@@ -124,8 +124,8 @@ const handlePopupUpdate = (show: boolean) => {
 	common.popupProps.show = show;
 	if (!show) clear();
 };
-watch(() => mainStore.currentPointId, () => {
-	common.popupProps.show = false;
+watch(() => mainStore.currentPointId, id => {
+	if (id !== common.pointInfo?.point.id) common.popupProps.show = false;
 });
 
 const deletePlace = async (id: string) => {

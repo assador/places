@@ -172,6 +172,10 @@ watch(() => props.show, async (isShowing) => {
 		correctedPosition.value.maxWidth = 'none';
 	}
 });
+watch(() => props.position, () => {
+	if (props.show) adjustPosition();
+}, { deep: true });
+
 onMounted(() => {
 	document.addEventListener("keyup", keyup, false);
 	document.addEventListener("pointerdown", handleClickOutside, false);
