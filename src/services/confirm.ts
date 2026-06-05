@@ -24,7 +24,8 @@ export class ConfirmInstance {
 		this.close();
 	}
 	cancel(): void {
-		if (this._resolve.value) this._resolve.value(false);
+		if (!this._resolve.value) return;
+		this._resolve.value(false);
 		this.close();
 	}
 	close(): void {

@@ -33,18 +33,16 @@
 				<dd>
 					<input
 						:id="'route-detailed-' + field"
-						v-model.number.trim="mainStore.currentRoute[field]"
+						:value="mainStore.currentRoute[field]"
 						:type="field === 'srt' ? 'number' : 'text'"
 						:disabled="!own"
 						class="fieldwidth_100"
-						@change="
-							mainStore.changeRoute({
-								entity: mainStore.currentRoute,
-								change: {
-									[field]: mainStore.currentRoute[field],
-								},
-							});
-						"
+						@change="mainStore.changeRoute({
+							entity: mainStore.currentRoute,
+							change: {
+								[field]: ($event.target as HTMLInputElement).value.trim(),
+							},
+						})"
 					/>
 				</dd>
 			</template>
@@ -53,18 +51,16 @@
 				<dd>
 					<input
 						:id="'route-detailed-' + field"
-						v-model="mainStore.currentRoute[field]"
+						:value="mainStore.currentRoute[field]"
 						type="datetime-local"
 						:disabled="!own"
 						class="fieldwidth_100"
-						@change="
-							mainStore.changeRoute({
-								entity: mainStore.currentRoute,
-								change: {
-									[field]: mainStore.currentRoute[field],
-								},
-							});
-						"
+						@change="mainStore.changeRoute({
+							entity: mainStore.currentRoute,
+							change: {
+								[field]: ($event.target as HTMLInputElement).value.trim(),
+							},
+						})"
 					/>
 				</dd>
 			</template>
@@ -73,16 +69,14 @@
 					<label v-if="own">
 						<input
 							:id="'route-detailed-' + field"
-							v-model="mainStore.currentRoute[field]"
+							:checked="!!mainStore.currentRoute[field]"
 							type="checkbox"
-							@change="
-								mainStore.changeRoute({
-									entity: mainStore.currentRoute,
-									change: {
-										[field]: mainStore.currentRoute[field],
-									},
-								});
-							"
+							@change="mainStore.changeRoute({
+								entity: mainStore.currentRoute,
+								change: {
+									[field]: ($event.target as HTMLInputElement).checked,
+								},
+							})"
 						/>
 						{{ mainStore.t.i.inputs.checkboxCommon }}
 					</label>
@@ -95,7 +89,7 @@
 						:ref="el => {
 							if (field === 'name') currentRouteNameInputRef = el;
 						}"
-						v-model.trim="mainStore.currentRoute[field]"
+						:value="mainStore.currentRoute[field]"
 						:id="'route-detailed-' + field"
 						:disabled="!own"
 						:placeholder="
@@ -107,14 +101,12 @@
 								)
 						"
 						class="fieldwidth_100"
-						@change="
-							mainStore.changeRoute({
-								entity: mainStore.currentRoute,
-								change: {
-									[field]: mainStore.currentRoute[field],
-								},
-							});
-						"
+						@change="mainStore.changeRoute({
+							entity: mainStore.currentRoute,
+							change: {
+								[field]: ($event.target as HTMLTextAreaElement).value.trim(),
+							},
+						})"
 					/>
 				</dd>
 			</template>

@@ -49,23 +49,50 @@
 					{{ mainStore.t.i.text.m }}
 				</span>
 			</div>
-			<div v-if="common.pointInfo?.of" class="point-coordinates-controls">
-				<!-- Place/Route actions: common.pointInfo.of?.name -->
-				<a
-					href="javascript:void(0)"
-					@click="() => {}"
-				>
-				</a>
+			<div
+				v-if="common.pointInfo?.of && isPlace(common.pointInfo.of)"
+				class="point-coordinates-controls margin_top"
+			>
+				<input
+					type="text"
+					:value="mainStore.places[common.pointInfo.of.id]?.name"
+					:placeholder="mainStore.t.i.inputs.placeName"
+					@change="mainStore.changePlace({
+						entity: mainStore.places[common.pointInfo.of.id],
+						change: { name: ($event.target as HTMLInputElement).value.trim() },
+					})"
+				/>
+				<button
+					class="button-iconed icon icon-cross-45-circled"
+					:title="mainStore.t.i.buttons.deletePlace"
+					@click="deletePlace(common.pointInfo.of.id)"
+				/>
+			</div>
+			<div
+				v-if="confirmPlaceDelete?.show"
+				class="point-coordinates-confirm margin_top"
+			>
+				<button @click="confirmPlaceDelete.accept()">
+					{{ mainStore.t.i.buttons.yes }}
+				</button>
+				<h4 class="margin_bottom_0">
+					{{ confirmPlaceDelete.message }}
+				</h4>
+				<button @click="confirmPlaceDelete.cancel()">
+					{{ mainStore.t.i.buttons.no }}
+				</button>
 			</div>
 		</template>
 	</Popup>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, shallowRef } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Point } from '@/types';
+import { isPlace } from '@/guards';
 import { common } from '@/services/common';
+import { ConfirmInstance } from '@/services/confirm';
 import { point2coords, latitude2string, longitude2string } from '@/shared/converters';
 import Popup from '@/components/popups/Popup.vue';
 
@@ -79,11 +106,49 @@ const copyCoords = async (point: Point) => {
 	copied.value = true;
 	setTimeout(() => copied.value = false, 2000);
 };
+
+const confirmPlaceDelete = shallowRef<ConfirmInstance | null>(null);
+const confirmRoutePointDelete = shallowRef<ConfirmInstance | null>(null);
+
+const deletePlace = async (id: string) => {
+	const confirm = new ConfirmInstance();
+	confirmPlaceDelete.value = confirm;
+
+	const isConfirmed = await confirm.open(mainStore.t.i.captions.sure);
+	if (isConfirmed) mainStore.deleteObjects({
+		[common.pointInfo.of.id]: mainStore.places[id]
+	});
+	confirmPlaceDelete.value = null;
+}
+
+const clearConfirms = () => {
+	confirmPlaceDelete.value?.cancel();
+	confirmRoutePointDelete.value?.cancel();
+	confirmPlaceDelete.value = null;
+	confirmRoutePointDelete.value = null;
+}
 const handlePopupUpdate = (show: boolean) => {
 	common.popupProps.show = show;
-	if (!show) common.clearPointInfo();
+	if (!show) {
+		common.clearPointInfo();
+		clearConfirms();
+	}
 };
 </script>
 
 <style lang="scss">
+.point-coordinates {
+	&-controls {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 8px;
+	}
+	&-confirm {
+		text-align: center;
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: 8px;
+		align-items: center;
+	}
+}
 </style>

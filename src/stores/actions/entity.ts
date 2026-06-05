@@ -332,10 +332,9 @@ export const entityActions = {
 	upsertPlaceFollowing(
 		entity: Place | null,
 		params: UpsertPlaceParams = {},
-	) {
+	): Place {
 		if (!entity) {
-			this.upsertPlace();
-			return;
+			return this.upsertPlace();
 		}
 		const neighbours = this.getNeighboursSrts(
 			entity.id,
@@ -350,7 +349,7 @@ export const entityActions = {
 				srt: neighbours.new,
 			}
 		};
-		this.upsertPlace(callParams);
+		return this.upsertPlace(callParams);
 	},
 	upsertRoute({
 		object,
@@ -410,17 +409,16 @@ export const entityActions = {
 		}
 		return route;
 	},
-	upsertRouteFollowing(entity: Route | null) {
+	upsertRouteFollowing(entity: Route | null): Route {
 		if (!entity) {
-			this.upsertRoute();
-			return;
+			return this.upsertRoute();
 		}
 		const neighbours = this.getNeighboursSrts(
 			entity.id,
 			entity.type,
 			false,
 		);
-		this.upsertRoute({
+		return this.upsertRoute({
 			props: {
 				folderid: entity.folderid,
 				srt: neighbours.new,

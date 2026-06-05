@@ -34,13 +34,13 @@
 				<dd>
 					<input
 						:id="'place-detailed-' + field"
-						v-model.number.trim="mainStore.currentPlace[field]"
+						:value="mainStore.currentPlace[field]"
 						:type="field === 'srt' ? 'number' : 'text'"
 						:disabled="!own"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
 							entity: mainStore.currentPlace,
-							change: { [field]: mainStore.currentPlace[field] }
+							change: { [field]: ($event.target as HTMLInputElement).value.trim() }
 						})"
 						:placeholder="field"
 					/>
@@ -131,13 +131,13 @@
 				<dd>
 					<input
 						:id="'detailed-' + field"
-						v-model="mainStore.currentPlace[field]"
+						:value="mainStore.currentPlace[field]"
 						type="datetime-local"
 						:disabled="!own"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
 							entity: mainStore.currentPlace,
-							change: { [field]: mainStore.currentPlace[field] },
+							change: { [field]: ($event.target as HTMLInputElement).value.trim() },
 						})"
 					/>
 				</dd>
@@ -147,11 +147,13 @@
 					<label v-if="own">
 						<input
 							:id="'detailed-' + field"
-							v-model="mainStore.currentPlace[field]"
+							:checked="!!mainStore.currentPlace[field]"
 							type="checkbox"
 							@change="mainStore.changePlace({
 								entity: mainStore.currentPlace,
-								change: { [field]: mainStore.currentPlace[field] },
+								change: {
+									[field]: ($event.target as HTMLInputElement).checked,
+								},
 							})"
 						/>
 						{{ mainStore.t.i.inputs.checkboxCommon }}
@@ -191,7 +193,7 @@
 						:ref="el => {
 							if (field === 'name') currentPlaceNameInputRef = el;
 						}"
-						v-model.trim="mainStore.currentPlace[field] as string"
+						:value="mainStore.currentPlace[field]"
 						:id="'place-detailed-' + field"
 						:disabled="!own"
 						:placeholder="
@@ -205,7 +207,9 @@
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
 							entity: mainStore.currentPlace,
-							change: { [field]: mainStore.currentPlace[field] },
+							change: {
+								[field]: ($event.target as HTMLTextAreaElement).value.trim(),
+							},
 						})"
 					/>
 				</dd>
