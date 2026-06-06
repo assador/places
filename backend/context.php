@@ -1,5 +1,6 @@
 <?php
 
+/** @var array $config */
 $db = $config['db'];
 
 class AppContext {

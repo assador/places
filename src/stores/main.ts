@@ -6,9 +6,7 @@ import {
 	Place,
 	Route,
 	Folder,
-	EntityCollection,
 	PointDescription,
-	FatPointDescription,
 	PointInfo,
 	PointInfoContext,
 	TreeItemType,
@@ -29,6 +27,8 @@ import { uiActions } from './actions/ui';
 import { serviceActions } from './actions/service';
 
 import { treeGetters } from './getters/tree';
+import { entityGetters } from './getters/entity';
+import { relateGetters } from './getters/relate';
 
 export const useMainStore = defineStore('main', {
 	state: (): IMainState => ({
@@ -137,6 +137,8 @@ export const useMainStore = defineStore('main', {
 
 	getters: {
 		...treeGetters,
+		...entityGetters,
+		...relateGetters,
 
 		colorthemes() {
 			return [
@@ -172,64 +174,6 @@ export const useMainStore = defineStore('main', {
 		busy() {
 			return this.busyCount > 0;
 		},
-		currentPoint() {
-			return (this.points[this.currentPointId] ?? this.temps[this.currentPointId]);
-		},
-		currentPlace() {
-			return this.places[this.currentPlaceId];
-		},
-		currentRoute() {
-			return this.routes[this.currentRouteId];
-		},
-		measurePointIds() {
-			const set = new Set<string>();
-			for (const pd of this.measure.points) set.add(pd.id);
-			return set;
-		},
-		notMeasureTempPointIds() {
-			const set = new Set<string>();
-			for (const id in this.temps) if (!this.measurePointIds.has(id)) set.add(id);
-			return set;
-		},
-		routePointIds() {
-			return (route: Route) => {
-				const set = new Set<string>();
-				for (const pd of route.points) set.add(pd.id);
-				return set;
-			}
-		},
-		measureFatPoints(): FatPointDescription[] {
-			return this.measure.points.map((p: PointDescription, index: number) => {
-				return {
-					...p,
-					name: p.name ?? String(index + 1),
-					index: index,
-					key: `${p.id}-${index}`,
-					point: this.temps[p.id],
-				};
-			});
-		},
-		notMeasureFatTemps(): Measure<FatPointDescription> {
-			const points: FatPointDescription[] = [];
-			let index = 0;
-			for (const id of this.notMeasureTempPointIds) {
-				points.push({
-					id: id,
-					name: String(index + 1),
-					index: index,
-					key: `${id}-${index}`,
-					point: this.temps[id],
-				});
-				index++;
-			}
-			return {
-				type: 'temps',
-				points: points,
-				choosing: points.find(p => p.id === this.currentPointId)?.index ?? null,
-				show: false,
-				name: this.t.i.captions.pointsTemporary,
-			};
-		},
 		distanceBetweenPoints() {
 			return (ids: string[], where?: string): number => {
 				if (ids.length < 2) return 0;
@@ -246,30 +190,6 @@ export const useMainStore = defineStore('main', {
 					);
 				}
 				return distance;
-			}
-		},
-		getAllPoints() {
-			return { ...this.points, ...this.temps };
-		},
-		getPointById() {
-			return (id: string) => {
-				if (Object.hasOwn(this.points, id)) return this.points[id];
-				if (Object.hasOwn(this.temps, id)) return this.temps[id];
-				return null;
-			}
-		},
-		getPlaceById() {
-			return (id: string) => {
-				if (Object.hasOwn(this.places, id)) return this.places[id];
-				if (Object.hasOwn(this.commonPlaces, id)) return this.commonPlaces[id];
-				return null;
-			}
-		},
-		getRouteById() {
-			return (id: string) => {
-				if (Object.hasOwn(this.routes, id)) return this.routes[id];
-				if (Object.hasOwn(this.commonRoutes, id)) return this.commonRoutes[id];
-				return null;
 			}
 		},
 		getNeighboursSrts() {
@@ -305,64 +225,6 @@ export const useMainStore = defineStore('main', {
 				};
 			}
 		},
-		getSharedPointIds(): string[] {
-			const counts = new Map<string, number>();
-			const count = (id: string) => counts.set(id, (counts.get(id) || 0) + 1);
-
-			Object.values<Place>(this.places).forEach(place => count(place.pointid));
-
-			Object.values<Route>(this.routes).forEach(route => {
-				route.points.forEach(p => {
-					const actualId = this.places[p.id]?.pointid || p.id;
-					count(actualId);
-				});
-			});
-
-			const shared: string[] = [];
-			for (const [id, num] of counts) {
-				if (num > 1) shared.push(id);
-			}
-			return shared;
-		},
-		homePlace(): Place | null {
-			return this.places[this.user?.homeplace] ?? null;
-		},
-		tempIndexById() {
-			return (id: string) => Object.keys(this.temps).indexOf(id);
-		},
-		routePoints() {
-			return (route: Route): Point[] => {
-				if (route === null) return [];
-				const points: Point[] = [];
-				for (const p of route.points) {
-					if (p.id in this.points) points.push(this.points[p.id]);
-						else if (p.id in this.temps) points.push(this.temps[p.id]);
-				}
-				return points;
-			}
-		},
-		// Since the route points can be either its own or temporary
-		// or points of other places, we collect them all in one array
-		routeAllPointsArray() {
-			return (route: Route): { point: Point, of: string }[] => {
-				const points: { point: Point, of: string }[] = [];
-				let of: string;
-				for (const p of route.points) {
-					if (p.id in this.temps) of = 'temps';
-					else if (
-						Object.values(this.places).map((p: Place) => p.pointid)
-							.includes(p.id)
-					) {
-						of = 'places';
-					}
-					points.push({
-						point: this.points[p.id],
-						of: of,
-					});
-				}
-				return points;
-			}
-		},
 		getPointCoords() {
 			return (pointId: string): number[] => {
 				const point = this.getPointById(pointId);
@@ -379,33 +241,6 @@ export const useMainStore = defineStore('main', {
 				}
 				return coords;
 			}
-		},
-		pointReferences() {
-			const refs = new Map<string, Set<string>>();
-			Object.values(this.places).forEach((place: Place) => {
-				if (!place.deleted) {
-					if (!refs.has(place.pointid)) refs.set(place.pointid, new Set());
-					refs.get(place.pointid).add(place.id);
-				}
-			});
-			Object.values(this.routes).forEach((route: Route) => {
-				if (!route.deleted) {
-					route.points.forEach(p => {
-						const pid = this.places[p.id]?.pointid || p.id;
-						if (!refs.has(pid)) refs.set(pid, new Set());
-						refs.get(pid).add(route.id);
-					});
-				}
-			});
-			return refs;
-		},
-		getAllModifiedPackage(): EntityCollection {
-			return {
-				points: this.collectModified(this.points),
-				places: this.collectModified(this.places),
-				routes: this.collectModified(this.routes),
-				folders: this.collectModified(this.folders),
-			};
 		},
 		getDistance() {
 			return (
@@ -436,16 +271,6 @@ export const useMainStore = defineStore('main', {
 					}
 				}
 				return distance;
-			}
-		},
-		isMeasurePoint() {
-			return (id: string): boolean => {
-				return this.measurePointIds.has(id);
-			}
-		},
-		isRoutePoint() {
-			return (id: string, route: Route): boolean => {
-				return this.routePointIds(route).has(id);
 			}
 		},
 		getPointInfo() {

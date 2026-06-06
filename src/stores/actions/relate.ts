@@ -1,111 +1,64 @@
-import {
-	Point,
-	Place,
-	Route,
-	Measure,
-} from '@/types';
+import { Point, Route, Measure } from '@/types';
+import { isRoute } from '@/guards';
 
 export const relateActions = {
-	addPointToPoints({
-		point = this.currentPoint,
-		entity,
-		index,
-	}: {
-		point: Point;
-		entity?: Route | Measure;
-		index?: number;
-	}) {
-		if (!entity) {
-			if (this.mode === 'routes' && this.currentRouteId) {
-				entity = this.currentRoute;
-			} else if (this.mode === 'measure') {
-				entity = this.measure;
-			} else {
-				return;
-			}
+	addPointToPoints(
+		{ point, entity, index, name, description }:
+		{
+			point: Point;
+			entity: Route | Measure;
+			index?: number;
+			name?: string;
+			description?: string;
 		}
-		if (!index) index = entity.points.length;
-
-		const numbers = entity.points
-			.filter(p => /^\d+$/.test(p.name))
-			.map(p => Number(p.name));
-		const name = (Math.max(0, ...numbers) + 1).toString();
-
+	) {
+		if (typeof index === 'undefined') index = entity.points.length;
+		if (!description) description = '';
+		if (!name) {
+			const numbers = entity.points
+				.filter(p => p.name && /^\d+$/.test(p.name))
+				.map(p => Number(p.name))
+			;
+			name = (Math.max(0, ...numbers) + 1).toString();
+		}
 		entity.points.splice(index, 0, {
 			id: point.id,
 			name: name,
+			description: description,
 		});
-		// In routes mode, add the Point to the points dict
-		// if it is not already there (for example, if the Point is temp)
-		// and update the current route:
-		if (this.mode === 'routes' && !Object.hasOwn(this.points, point.id)) {
+		if (isRoute(entity) && !Object.hasOwn(this.points, point.id)) {
 			this.points[point.id] = point;
 			if (Object.hasOwn(this.temps, point.id)) delete this.temps[point.id];
 			this.points[point.id].added = true;
 			(entity as Route).updated = true;
 		}
+		this.saved = false;
+		this.backupState();
 	},
-	removePointFromPoints({
-		point = this.currentPoint,
-		entity,
-	}: {
-		point: Point;
-		entity?: Route | Measure;
-	}) {
-		if (!entity) {
-			if (this.mode === 'routes' && this.currentRouteId) {
-				entity = this.currentRoute;
-			} else if (this.mode === 'measure') {
-				entity = this.measure;
-			} else {
-				return;
-			}
-		}
-		const idx = entity.points.map(p => p.id).indexOf(point.id);
-		if (idx === -1) return;
-		entity.points.splice(idx, 1);
+	removePointFromPoints(
+		{ index, entity }:
+		{ index: number; entity: Route | Measure; }
+	) {
+		const pointId = entity.points.at(index)?.id;
+		if (!pointId) return;
+		entity.points.splice(index, 1);
 		if (entity.choosing > entity.points.length - 1) {
 			entity.choosing = entity.points.length - 1;
 		}
-	},
-	removeRoutePoint({
-		point = this.currentPoint,
-		route = this.currentRoute,
-	}: {
-		point: Point;
-		route: Route;
-	}) {
-		let idx = null;
-		for (let i = 0; i < route.points.length; i++) {
-			if (route.points[i].id === point.id) {
-				idx = i;
-				break;
+		if ('updated' in entity) entity.updated = true;
+		if (Object.hasOwn(this.points, pointId)) {
+			const refs = this.pointReferences;
+			if ((refs.get(pointId)?.size || 0) === 0) {
+				this.deleteEntities({ [pointId]: this.points[pointId] });
+				return;
 			}
+		} else if (
+			Object.hasOwn(this.temps, pointId) &&
+			!entity.points.some(pd => pd.id === pointId)
+		) {
+			delete this.temps[pointId];
 		}
-		if (idx === null) return;
-		route.points.splice(idx, 1);
+		this.saved = false;
 		this.backupState();
-	},
-	wherePointIsUsed(id: string) {
-		const uses: (Place | Route)[] = [];
-		uses.push(
-			...(Object.values(this.places) as Place[]).filter(place =>
-				place.pointid === id
-			),
-			...(Object.values(this.routes) as Route[]).filter(route =>
-				route.points.find(p => p.id === id)
-			),
-		);
-		return uses;
-	},
-	getEntitiesReferencingPoint(pointId: string): Record<string, Place | Route> {
-		const entities: Record<string, Place | Route> = {};
-		Object.values<Place>(this.places).forEach(p => {
-			if (p.pointid === pointId) entities[p.id] = p;
-		});
-		Object.values<Route>(this.routes).forEach(r => {
-			if (r.points.some(p => p.id === pointId)) entities[r.id] = r;
-		});
-		return entities;
 	},
 };

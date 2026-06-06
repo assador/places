@@ -142,6 +142,9 @@ const handlePopupUpdate = (show: boolean) => {
 	common.popupProps.show = show;
 	if (!show) clear();
 };
+watch(() => common.pointInfo, () => {
+	if (!common.pointInfo) common.popupProps.show = false;
+});
 watch(() => mainStore.currentPointId, id => {
 	if (id !== common.pointInfo?.point.id) common.popupProps.show = false;
 });
@@ -153,7 +156,7 @@ const deletePlace = async (id: string) => {
 	const isConfirmed = await confirm.open(mainStore.t.i.captions.sure);
 	if (isConfirmed) {
 		common.popupProps.show = false;
-		mainStore.deleteObjects({ [id]: mainStore.places[id] });
+		mainStore.deleteEntities({ [id]: mainStore.places[id] });
 	}
 	confirmPlaceDelete.value = null;
 }

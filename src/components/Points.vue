@@ -152,17 +152,10 @@
 						@pointerdown.stop
 						@pointerup.stop
 						@click.stop="() => {
-							if (context === 'measure') {
-								mainStore.removePointFromPoints({
-									point: mainStore.temps[fat.id],
-									entity: mainStore.measure,
-								});
-							}
-							if (context === 'temps' || context === 'measure') {
-								mainStore.deleteTemp(fat.id);
-							} else {
-								mainStore.deleteObjects({ [fat.id]: fat.point });
-							}
+							mainStore.removePointFromPoints({
+								index: fat.index,
+								entity: of,
+							});
 						}"
 					/>
 					<span

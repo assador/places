@@ -94,7 +94,7 @@ const deleteFolder = (): void => {
 		folder.value.id,
 		keepContent.value,
 	);
-	mainStore.deleteObjects(
+	mainStore.deleteEntities(
 		keepContent.value === 'delete'
 			? objectsToDelete
 			: { [folder.value.id]: folder.value }

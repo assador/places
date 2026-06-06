@@ -523,53 +523,48 @@ export const entityActions = {
 
 // SEC Deleting Entities
 
-	deleteObjects(objects: Record<string, Point | Place | Route | Folder>) {
+	deleteEntities(objects: Record<string, Point | Place | Route | Folder>) {
 		const pointsToCheck = new Set<string>();
-		Object.values(objects).forEach(obj => {
+		for (const id in objects) {
+			const obj = objects[id];
 			if (isPlace(obj)) {
 				pointsToCheck.add(obj.pointid);
 			} else if (isRoute(obj)) {
-				obj.points.forEach(p => {
-					pointsToCheck.add(this.places[p.id]?.pointid || p.id);
-				});
+				for (const pd of obj.points) pointsToCheck.add(pd.id);
 			} else if (isPoint(obj)) {
 				pointsToCheck.add(obj.id);
 			}
-		});
-		Object.values(objects).forEach(obj => {
 			obj.deleted = true;
+		}
+		const refs = this.pointReferences;
+		pointsToCheck.forEach(pid => {
+			if (!this.points[pid]) return;
+			this.points[pid].deleted = (refs.get(pid)?.size || 0) === 0;
 		});
 		this.cleanupRoutesFromDeletedPoints();
-		pointsToCheck.forEach(pid => {
-			const isPointStillNeeded = (this.pointReferences.get(pid)?.size || 0) > 0;
-			if (isPointStillNeeded && this.points[pid]) {
-				this.points[pid].deleted = false;
-			} else if (!isPointStillNeeded && this.points[pid]) {
-				this.points[pid].deleted = true;
-			}
-		});
 		this.fixCurrentsAfterDelete();
 		this.updateSavedStatus();
 		this.backupState();
 	},
 	cleanupRoutesFromDeletedPoints() {
-		const deletedPointIds = new Set(
-			Object.values<Point>(this.points)
-				.filter(p => p.deleted)
-				.map(p => p.id)
-		);
+		const deletedPointIds = new Set<string>();
+		for (const id in this.points) {
+			if (this.points[id].deleted) {
+				deletedPointIds.add(id);
+			}
+		}
 		if (deletedPointIds.size === 0) return;
-		Object.values<Route>(this.routes).forEach(route => {
-			if (route.deleted) return;
+		for (const id in this.routes) {
+			const route = this.routes[id];
+			if (route.deleted) continue;
 			const initialLength = route.points.length;
-			route.points = route.points.filter(p => {
-				const actualPid = this.places[p.id]?.pointid || p.id;
-				return !deletedPointIds.has(actualPid);
-			});
+			route.points = route.points.filter(
+				(pd: PointDescription) => !deletedPointIds.has(pd.id)
+			);
 			if (route.points.length !== initialLength) {
 				route.updated = true;
 			}
-		});
+		}
 	},
 	fixCurrentsAfterDelete() {
 		if (this.currentPlace?.deleted) {

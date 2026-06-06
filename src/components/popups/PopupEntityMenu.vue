@@ -152,7 +152,7 @@
 						});
 						show = false;
 					} else {
-						mainStore.deleteObjects({
+						mainStore.deleteEntities({
 							[object.id]: object,
 						})
 					}
