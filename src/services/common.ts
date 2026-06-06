@@ -2,23 +2,22 @@ import { ref } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { calculatePopupPosition } from '@/shared/common';
 import {
-	Point,
 	Place,
 	Route,
 	Folder,
 	Measure,
-	PointInfo,
 	PopupProps,
 	PopupPosition,
 	PopupEntityMenuProps,
 	MetaEntityContext,
+	PointInfo,
+	PointInfoContext,
 } from '@/types';
 
 const _compact = ref(0);
 const _folderEditability = ref(false);
 const _idleTimeInterval = ref(null);
 const _foldersCheckedIds = ref(new Set<string>());
-const _pointInfo = ref(null);
 const _popupProps = ref<PopupProps>({
 	show: false,
 	position: {
@@ -40,6 +39,10 @@ const _popupEntityMenu = ref<PopupEntityMenuProps>({
 		left: 'auto',
 	},
 });
+const _pointInfo = ref(null);
+const _pointInfoPointId = ref<string | null>(null);
+const _pointInfoContext = ref<PointInfoContext | undefined>(undefined);
+const _pointInfoEntity = ref<Place | Route | Measure | undefined>(undefined);
 
 export const common = {
 	get compact(): number {
@@ -93,38 +96,24 @@ export const common = {
 // SEC pointInfo
 
 	get pointInfo(): PointInfo | null {
-		return _pointInfo.value;
+		const mainStore = useMainStore();
+		return mainStore.getPointInfo({
+			id: _pointInfoPointId.value,
+			context: _pointInfoContext.value,
+			entity: _pointInfoEntity.value,
+		});
 	},
 	setPointInfo(
-		point: Point,
-		entity?: Place | Route | Measure,
-		context?: 'places' | 'routes' | 'measure' | 'temps',
+		{ id, context, entity }:
+		{
+			id: string | null;
+			context?: PointInfoContext;
+			entity?: Place | Route | Measure;
+		}
 	): void {
-		const mainStore = useMainStore();
-		let of: Place | Route | Measure | null = entity ?? null;
-		let name: string | null = null;
-		let description: string | null = null;
-
-		if (!of && context) {
-			if (context === 'places') {
-				of = Object.values(mainStore.places).find(
-					p => p.pointid === point.id
-				) || null;
-			} else if (context === 'routes') {
-				of = Object.values(mainStore.routes).find(
-					r => r.points.some(p => p.id === point.id)
-				) || null;
-			}
-		}
-		if (of?.type === 'place') {
-			name = of.name || null;
-			description = of.description || null;
-		} else if (of?.type === 'route' || of?.type === 'measure' || of?.type === 'temps') {
-			const pd = of.points.find(p => p.id === point.id);
-			name = pd?.name || null;
-			description = pd?.description || of.description || null;
-		}
-		_pointInfo.value = { point, of, name, description };
+		_pointInfoPointId.value = id;
+		_pointInfoContext.value = context;
+		_pointInfoEntity.value = entity;
 	},
 	clearPointInfo(): void {
 		_pointInfo.value = null;

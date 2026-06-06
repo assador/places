@@ -1166,26 +1166,6 @@ $filter-brightness-03: brightness(0%);
 			display: none;
 		}
 	}
-	.point-coordinates {
-		padding: 30px 20px 10px 20px !important;
-		text-align: right;
-		h3 {
-			text-align: center;
-			margin-bottom: 8px;
-		}
-		&-degminsecalt, &-copy {
-			margin-top: 12px;
-		}
-		&-copy {
-			display: block;
-			position: absolute;
-			top: -6px; left: 10px;
-		}
-		&-controls {
-			display: flex;
-			gap: 8px;
-		}
-	}
 	.menu-link {
 		display: block;
 	}

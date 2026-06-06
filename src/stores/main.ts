@@ -9,6 +9,8 @@ import {
 	EntityCollection,
 	PointDescription,
 	FatPointDescription,
+	PointInfo,
+	PointInfoContext,
 	TreeItemType,
     Measure,
 } from '@/types';
@@ -445,6 +447,79 @@ export const useMainStore = defineStore('main', {
 			return (id: string, route: Route): boolean => {
 				return this.routePointIds(route).has(id);
 			}
+		},
+		getPointInfo() {
+			return (
+				{ id, context, entity }:
+				{
+					id: string | null;
+					context?: PointInfoContext;
+					entity?: Place | Route | Measure;
+				}
+			): PointInfo | null => {
+				if (!id) return null;
+
+				const point = this.points[id] || this.temps[id];
+				if (!point) return null;
+
+				let of: Place | Route | Measure | null = entity || null;
+				let name: string | null = null;
+				let description: string | null = null;
+				let index: number | null = null;
+				let key: string | null = null;
+
+				const checkPointIn = (points: PointDescription[]) => {
+					return points.some((p, i) => {
+						if (p.id === id) {
+							index = i;
+							key = `${id}-${i}`;
+							return true;
+						}
+						return false;
+					});
+				}
+				if (!of) {
+					if (context === 'places') {
+						of =
+							Object.values<Place>(this.places).find(p => p.pointid === id)
+							|| null
+						;
+					} else if (context === 'routes') {
+						of =
+							Object.values<Route>(this.routes).find(r => checkPointIn(r.points))
+							|| null
+						;
+					} else if (context === 'measure') {
+						of =
+							checkPointIn(this.measure.points) ? this.measure : null
+						;
+					} else if (!context) {
+						of =
+							Object.values<Place>(this.places).find(p => p.pointid === id) ||
+							Object.values<Route>(this.routes).find(r => checkPointIn(r.points)) ||
+							(checkPointIn(this.measure.points) ? this.measure : null)
+						;
+					}
+				} else {
+					if (of.type === 'route' || of.type === 'measure') checkPointIn(of.points);
+				}
+				if (of?.type === 'place') {
+					name = of.name || null;
+					description = of.description || null;
+				} else if (of?.type === 'route' || of?.type === 'measure') {
+					const pd = index !== null ? of.points[index] : null;
+					name = pd?.name || null;
+					description = pd?.description || of.description || null;
+				}
+				return {
+					point,
+					of,
+					name,
+					description,
+					index,
+					key,
+				} as PointInfo;
+			};
 		},
 	},
 });

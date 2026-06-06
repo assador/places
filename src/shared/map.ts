@@ -18,7 +18,7 @@ export const mapContextMenu = (e: PointerEvent, lat: number, lng: number) => {
 				{ props: { latitude: lat, longitude: lng }, center: false },
 			);
 		}
-		common.setPointInfo(mainStore.getPointById(entity.pointid), entity);
+		common.setPointInfo({ id: entity.pointid, entity });
 		common.showPopup(calculatePopupPosition(e));
 	} else if (mainStore.mode === 'routes' && mainStore.currentRouteId) {
 		entity = mainStore.upsertPoint({
@@ -26,7 +26,7 @@ export const mapContextMenu = (e: PointerEvent, lat: number, lng: number) => {
 			where: mainStore.points,
 			whom: mainStore.currentRoute,
 		});
-		common.setPointInfo(entity, mainStore.currentRoute);
+		common.setPointInfo({ id: entity.id, entity: mainStore.currentRoute });
 		common.showPopup(calculatePopupPosition(e));
 	} else if (
 	 	mainStore.mode === 'measure' ||
@@ -42,7 +42,7 @@ export const mapContextMenu = (e: PointerEvent, lat: number, lng: number) => {
 				entity: mainStore.measure,
 			});
 		}
-		common.setPointInfo(entity);
+		common.setPointInfo({ id: entity.id });
 		common.showPopup(calculatePopupPosition(e));
 	}
 }

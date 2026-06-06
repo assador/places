@@ -64,14 +64,14 @@
 					@click.stop.prevent="(e: PointerEvent) => {
 						mainStore.setCurrentPlace(place, false);
 						if (common.compact === 2) {
-							markerContextMenu(e, mainStore.points[place.pointid], place);
+							markerContextMenu(e, mainStore.points[place.pointid]);
 						}
 					}"
 					@contextmenu.stop.prevent="(e: PointerEvent) => {
 						if (common.compact === 2 || e.shiftKey) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
-							markerContextMenu(e, mainStore.points[place.pointid], place);
+							markerContextMenu(e, mainStore.points[place.pointid]);
 						}
 					}"
 				>
@@ -107,16 +107,16 @@
 					}"
 					:visible="mainStore.commonMarkersShow && place.geomark"
 					@click.stop.prevent="(e: PointerEvent) => {
-						mainStore.setCurrentPoint(mainStore.points[place.pointid], false);
+						mainStore.setCurrentPoint(mainStore.points[place.pointid]);
 						if (common.compact === 2) {
-							markerContextMenu(e, mainStore.points[place.pointid], place);
+							markerContextMenu(e, mainStore.points[place.pointid]);
 						}
 					}"
 					@contextmenu.stop.prevent="(e: PointerEvent) => {
 						if (common.compact === 2 || e.shiftKey) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
-							markerContextMenu(e, mainStore.points[place.pointid], place);
+							markerContextMenu(e, mainStore.points[place.pointid]);
 						}
 					}"
 				>
@@ -229,14 +229,14 @@
 							@click.stop.prevent="(e: PointerEvent) => {
 								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
 								if (common.compact === 2) {
-									markerContextMenu(e, mainStore.getPointById(point.id), route);
+									markerContextMenu(e, mainStore.getPointById(point.id));
 								}
 							}"
 							@contextmenu.stop.prevent="(e: PointerEvent) => {
 								if (common.compact === 2 || e.shiftKey) {
 									markerAddPoint(mainStore.getPointById(point.id));
 								} else {
-									markerContextMenu(e, mainStore.getPointById(point.id), route);
+									markerContextMenu(e, mainStore.getPointById(point.id));
 								}
 							}"
 						>
@@ -528,20 +528,14 @@ const yandexMapContextMenu = (e: DomEvent) => {
 const markerContextMenu = (
 	e: PointerEvent,
 	point: Point,
-	of?: Place | Route | Measure | null
 ) => {
 	e.stopPropagation();
 	e.preventDefault();
-	let collection = of ?? null;
-	if (!collection) {
-		if (mainStore.notMeasureTempPointIds.has(point.id)) collection = mainStore.notMeasureFatTemps;
-		else if (mainStore.measurePointIds.has(point.id)) collection = mainStore.measure;
-	}
 	if (common.popupProps.show && common.pointInfo?.point.id === point.id) {
 		common.hidePopup();
 		common.clearPointInfo();
 	} else {
-		common.setPointInfo(point, collection);
+		common.setPointInfo({ id: point.id });
 		common.showPopup(calculatePopupPosition(e));
 	}
 };

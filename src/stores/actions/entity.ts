@@ -739,6 +739,15 @@ export const entityActions = {
 		this.saved = false;
 		this.backupState();
 	},
+	changeRoutePoint(
+		{ route, index, change }:
+		{ route: Route; index: number; change: Partial<PointDescription>; }
+	) {
+		Object.assign(route.points[index], change);
+		route.updated = true;
+		this.saved = false;
+		this.backupState();
+	},
 	changeFolder(
 		{ folder, change }: { folder: Folder; change: Partial<Folder>; }
 	) {

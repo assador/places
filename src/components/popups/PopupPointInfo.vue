@@ -50,19 +50,18 @@
 				</span>
 			</div>
 			<div
-				v-if="common.pointInfo?.of && isPlace(common.pointInfo.of)"
+				v-if="common.pointInfo?.of"
 				class="point-coordinates-controls margin_top"
 			>
 				<input
+					v-if="common.pointInfo?.of"
 					type="text"
-					:value="mainStore.places[common.pointInfo.of.id]?.name"
-					:placeholder="mainStore.t.i.inputs.placeName"
-					@change="mainStore.changePlace({
-						entity: mainStore.places[common.pointInfo.of.id],
-						change: { name: ($event.target as HTMLInputElement).value.trim() },
-					})"
+					:value="common.pointInfo.name"
+					:placeholder="mainStore.t.i.inputs.pointName"
+					@change="e => updateName((e.target as HTMLInputElement).value.trim())"
 				/>
 				<button
+					v-if="isPlace(common.pointInfo.of)"
 					class="button-iconed icon icon-cross-45-circled"
 					:title="mainStore.t.i.buttons.deletePlace"
 					@click="deletePlace(common.pointInfo.of.id)"
@@ -90,7 +89,7 @@
 import { ref, shallowRef, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Point } from '@/types';
-import { isPlace } from '@/guards';
+import { isPlace, isRoute } from '@/guards';
 import { common } from '@/services/common';
 import { ConfirmInstance } from '@/services/confirm';
 import { point2coords, latitude2string, longitude2string } from '@/shared/converters';
@@ -105,6 +104,25 @@ const copyCoords = async (point: Point) => {
 	);
 	copied.value = true;
 	setTimeout(() => copied.value = false, 2000);
+};
+const updateName = (name: string) => {
+	if (!common.pointInfo || !common.pointInfo.of) return;
+	if (isPlace(common.pointInfo.of)) {
+		mainStore.changePlace({
+			entity: common.pointInfo.of,
+			change: { name: name },
+		});
+	} else if (isRoute(common.pointInfo.of)) {
+		const updatedPoints = common.pointInfo.of.points.map(p =>
+			p.id === common.pointInfo.point.id ? { ...p, name: name } : p,
+		);
+		mainStore.changeRoute({
+			entity: common.pointInfo.of,
+			change: { points: updatedPoints },
+		});
+	} else if (common.pointInfo.of.type === 'measure') {
+		mainStore.measure.points[common.pointInfo.index].name = name;
+	}
 };
 
 const confirmPlaceDelete = shallowRef<ConfirmInstance | null>(null);
@@ -143,6 +161,20 @@ const deletePlace = async (id: string) => {
 
 <style lang="scss">
 .point-coordinates {
+	padding: 30px 20px 10px 20px !important;
+	text-align: right;
+	h3 {
+		text-align: center;
+		margin-bottom: 8px;
+	}
+	&-degminsecalt, &-copy {
+		margin-top: 12px;
+	}
+	&-copy {
+		display: block;
+		position: absolute;
+		top: -6px; left: 10px;
+	}
 	&-controls {
 		display: grid;
 		grid-template-columns: 1fr auto;

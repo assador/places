@@ -52,14 +52,17 @@
 					@click="(e: any) => {
 						mainStore.setCurrentPlace(place, false);
 						if (common.compact === 2) {
-							markerContextMenu(e, mainStore.points[place.pointid], place);
+							markerContextMenu(e, mainStore.points[place.pointid]);
 						}
 					}"
 					@contextmenu="(e: any) => {
-						if (common.compact === 2 || e.originalEvent.shiftKey) {
+						if (
+							mainStore.mode !== 'normal' &&
+							(e.originalEvent.shiftKey || common.compact === 2)
+						) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
-							markerContextMenu(e, mainStore.points[place.pointid], place);
+							markerContextMenu(e, mainStore.points[place.pointid]);
 						}
 					}"
 					@dragstart="dragging = true"
@@ -98,14 +101,17 @@
 						@click="(e: any) => {
 							mainStore.setCurrentPoint(mainStore.points[place.pointid], false);
 							if (common.compact === 2) {
-								markerContextMenu(e, mainStore.points[place.pointid], place);
+								markerContextMenu(e, mainStore.points[place.pointid]);
 							}
 						}"
 						@contextmenu="(e: any) => {
-							if (common.compact === 2 || e.originalEvent.shiftKey) {
+							if (
+								mainStore.mode !== 'normal' &&
+								(e.originalEvent.shiftKey || common.compact === 2)
+							) {
 								markerAddPoint(mainStore.points[place.pointid]);
 							} else {
-								markerContextMenu(e, mainStore.points[place.pointid], place);
+								markerContextMenu(e, mainStore.points[place.pointid]);
 							}
 						}"
 					>
@@ -192,14 +198,14 @@
 							@click="(e: any) => {
 								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
 								if (common.compact === 2) {
-									markerContextMenu(e, mainStore.getPointById(point.id), route);
+									markerContextMenu(e, mainStore.getPointById(point.id));
 								}
 							}"
 							@contextmenu="(e: any) => {
 								if (common.compact === 2 || e.originalEvent.shiftKey) {
 									markerAddPoint(mainStore.getPointById(point.id));
 								} else {
-									markerContextMenu(e, mainStore.getPointById(point.id), route);
+									markerContextMenu(e, mainStore.getPointById(point.id));
 								}
 							}"
 							@dragstart="dragging = true"
@@ -408,7 +414,7 @@ import {
 	LTileLayer,
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Point, Place, Route, Measure } from '@/types';
+import { Point, Place } from '@/types';
 import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -519,20 +525,14 @@ const leafletMapContextMenu = (e: any) => {
 const markerContextMenu = (
 	e: any,
 	point: Point,
-	of?: Place | Route | Measure | null
 ) => {
 	e.originalEvent.stopPropagation();
 	e.originalEvent.preventDefault();
-	let collection = of ?? null;
-	if (!collection) {
-		if (mainStore.notMeasureTempPointIds.has(point.id)) collection = mainStore.notMeasureFatTemps;
-		else if (mainStore.measurePointIds.has(point.id)) collection = mainStore.measure;
-	}
 	if (common.popupProps.show && common.pointInfo?.point.id === point.id) {
 		common.hidePopup();
 		common.clearPointInfo();
 	} else {
-		common.setPointInfo(point, collection);
+		common.setPointInfo({ id: point.id });
 		common.showPopup(calculatePopupPosition(e.originalEvent));
 	}
 };

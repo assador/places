@@ -94,7 +94,7 @@
 						} else {
 							const chosenFatPoint = points.find(p => p.index === of.choosing);
 							if (chosenFatPoint) {
-								common.setPointInfo(chosenFatPoint.point);
+								common.setPointInfo({ id: chosenFatPoint.point.id });
 								common.showPopup(calculatePopupPosition(e));
 							}
 						}
@@ -138,7 +138,7 @@
 						if (common.pointInfo?.point.id === fat.id) {
 							common.togglePopup(calculatePopupPosition(e));
 						} else {
-							common.setPointInfo(fat.point, of, context);
+							common.setPointInfo({ id: fat.point.id, context, entity: of });
 							common.showPopup(calculatePopupPosition(e));
 						}
 					}"
@@ -354,6 +354,8 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 			line-height: 0;
 		}
 		* {
+			overflow: hidden;
+			text-overflow: ellipsis;
 			z-index: 20;
 		}
 		.sorting-area-before, .sorting-area-after {
