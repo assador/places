@@ -1,6 +1,6 @@
 <template>
 	<Popup
-		:show="common.popupProps.show"
+		:show="common.popupProps.show && common.pointInfo !== null"
 		:position="common.popupProps.position"
 		:closeOnClick="false"
 		class="point-coordinates messages"
@@ -66,6 +66,12 @@
 					:title="mainStore.t.i.buttons.deletePlace"
 					@click="deletePlace(common.pointInfo.of.id)"
 				/>
+				<button
+					v-else
+					class="button-iconed icon icon-cross-45-circled"
+					:title="mainStore.t.i.buttons.deletePoint"
+					@click="deletePoint(common.pointInfo.index, common.pointInfo.of)"
+				/>
 			</div>
 			<div
 				v-if="confirmPlaceDelete?.show"
@@ -81,6 +87,20 @@
 					{{ mainStore.t.i.buttons.no }}
 				</button>
 			</div>
+			<div
+				v-if="confirmPointDelete?.show"
+				class="point-coordinates-confirm margin_top"
+			>
+				<button @click="confirmPointDelete.accept()">
+					{{ mainStore.t.i.buttons.yes }}
+				</button>
+				<h4 class="margin_bottom_0">
+					{{ confirmPointDelete.message }}
+				</h4>
+				<button @click="confirmPointDelete.cancel()">
+					{{ mainStore.t.i.buttons.no }}
+				</button>
+			</div>
 		</template>
 	</Popup>
 </template>
@@ -88,7 +108,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { Point } from '@/types';
+import { Point, Route, Measure } from '@/types';
 import { isPlace, isRoute } from '@/guards';
 import { common } from '@/services/common';
 import { ConfirmInstance } from '@/services/confirm';
@@ -126,13 +146,13 @@ const updateName = (name: string) => {
 };
 
 const confirmPlaceDelete = shallowRef<ConfirmInstance | null>(null);
-const confirmRoutePointDelete = shallowRef<ConfirmInstance | null>(null);
+const confirmPointDelete = shallowRef<ConfirmInstance | null>(null);
 
 const clearConfirms = () => {
 	confirmPlaceDelete.value?.cancel();
-	confirmRoutePointDelete.value?.cancel();
+	confirmPointDelete.value?.cancel();
 	confirmPlaceDelete.value = null;
-	confirmRoutePointDelete.value = null;
+	confirmPointDelete.value = null;
 }
 const clear = () => {
 	clearConfirms();
@@ -142,9 +162,6 @@ const handlePopupUpdate = (show: boolean) => {
 	common.popupProps.show = show;
 	if (!show) clear();
 };
-watch(() => common.pointInfo, () => {
-	if (!common.pointInfo) common.popupProps.show = false;
-});
 watch(() => mainStore.currentPointId, id => {
 	if (id !== common.pointInfo?.point.id) common.popupProps.show = false;
 });
@@ -159,6 +176,17 @@ const deletePlace = async (id: string) => {
 		mainStore.deleteEntities({ [id]: mainStore.places[id] });
 	}
 	confirmPlaceDelete.value = null;
+}
+const deletePoint = async (index: number, entity: Route | Measure) => {
+	const confirm = new ConfirmInstance();
+	confirmPointDelete.value = confirm;
+
+	const isConfirmed = await confirm.open(mainStore.t.i.captions.sure);
+	if (isConfirmed) {
+		common.popupProps.show = false;
+		mainStore.removePointFromPoints({ index, entity });
+	}
+	confirmPointDelete.value = null;
 }
 </script>
 

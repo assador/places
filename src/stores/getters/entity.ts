@@ -2,10 +2,10 @@ import {
 	Point,
 	Place,
 	Route,
-	Measure,
+	EntityCollection,
 	PointDescription,
 	FatPointDescription,
-	EntityCollection,
+	FatPointsPack,
 } from '@/types';
 
 export const entityGetters = {
@@ -101,12 +101,11 @@ export const entityGetters = {
 			};
 		});
 	},
-	notMeasureFatTemps(): Measure<FatPointDescription> {
+	notMeasureFatTemps(): FatPointsPack {
 		const points: FatPointDescription[] = [];
 		let index = 0;
 		for (const id of this.notMeasureTempPointIds) {
 			points.push({
-				id: id,
 				name: String(index + 1),
 				index: index,
 				key: `${id}-${index}`,
@@ -117,7 +116,7 @@ export const entityGetters = {
 		return {
 			type: 'temps',
 			points: points,
-			choosing: points.find(p => p.id === this.currentPointId)?.index ?? null,
+			choosing: points.find(p => p.point.id === this.currentPointId)?.index ?? null,
 			show: false,
 			name: this.t.i.captions.pointsTemporary,
 		};

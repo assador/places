@@ -129,24 +129,25 @@ export interface PointDescription {
 	name?: string;
 	description?: string;
 }
-export interface FatPointDescription extends PointDescription {
+export interface FatPointDescription extends Omit<PointDescription, 'id'> {
 	point: Point;
 	index: number;
 	key: string;
 }
-export interface Measure<T extends PointDescription = PointDescription> {
+export interface Measure {
 	type: string;
-	points: T[];
+	points: PointDescription[];
 	choosing: number | null;
 	show: boolean;
 	id?: string;
 	name?: string;
 	description?: string;
 }
-export interface PointInfo<
-	T extends PointDescription = FatPointDescription
-> extends FatPointDescription {
-	of?: Place | Route | Measure<T> | null;
+export interface FatPointsPack extends Omit<Measure, 'points'> {
+	points: FatPointDescription[];
+}
+export interface PointInfo extends FatPointDescription {
+	of?: Place | Route | Measure | null;
 }
 export interface FirstShow {
 	show: boolean;

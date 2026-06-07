@@ -343,7 +343,7 @@ export const useMainStore = defineStore('main', {
 					description,
 					index,
 					key,
-				} as PointInfo;
+				};
 			};
 		},
 	},

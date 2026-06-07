@@ -114,7 +114,7 @@
 				<button
 					v-for="fat in points"
 					:key="fat.key"
-					:data-entity-id="context !== 'temps' ? fat.id : null"
+					:data-entity-id="context !== 'temps' ? fat.point.id : null"
 					:data-entity-type="context !== 'temps' ? 'point' : null"
 					:data-entity-index="context !== 'temps' ? fat.index : null"
 					:data-entity-context="context !== 'temps' ? context : null"
@@ -123,7 +123,7 @@
 					class="point-button"
 					:class="{ 'button-pressed': fat.index === of.choosing }"
 					@pointerdown.stop.prevent="e => onPointerDown(e, {
-						id: fat.id,
+						id: fat.point.id,
 						index: fat.index,
 						type: fat.point.type,
 						context: context,
@@ -135,7 +135,7 @@
 					})"
 					@pointercancel="onPointerUp"
 					@contextmenu.stop.prevent="e => {
-						if (common.pointInfo?.point.id === fat.id) {
+						if (common.pointInfo?.point.id === fat.point.id) {
 							common.togglePopup(calculatePopupPosition(e));
 						} else {
 							common.setPointInfo({ id: fat.point.id, context, entity: of });
@@ -162,7 +162,7 @@
 						class="sorting-area-before"
 						:class="{
 							highlighted:
-								fat.id === dragTargetId &&
+								fat.point.id === dragTargetId &&
 								mainStore.currentDrag.position === 'before'
 						}"
 					/>
@@ -170,7 +170,7 @@
 						class="sorting-area-after"
 						:class="{
 							highlighted:
-								fat.id === dragTargetId &&
+								fat.point.id === dragTargetId &&
 								mainStore.currentDrag.position === 'after'
 						}"
 					/>
