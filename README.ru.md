@@ -1,5 +1,5 @@
 # Места (ГеоОрганайзер)
-**v6.4.7 beta** | [English version](README.md) | [Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Руководство пользователя](MANUAL.ru.md) | [Написать](mailto:places@scrofa-tridens.ru) | [Boosty](https://boosty.to/assador/donate) | [Open Collective](https://opencollective.com/places)
+**v6.5.0 beta** | [English version](README.md) | [Сервис](https://places.scrofa-tridens.ru/) | [Хабр](https://habr.com/ru/articles/1009226/) | [Руководство пользователя](MANUAL.ru.md) | [Написать](mailto:places@scrofa-tridens.ru) | [Boosty](https://boosty.to/assador/donate) | [Open Collective](https://opencollective.com/places)
 
 Это не просто ещё одно приложение с заметками на карте.  
 «Места» — это персональная ГИС со структурой, предназначенной для долгосрочного и системного управления географическими данными.

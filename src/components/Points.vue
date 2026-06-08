@@ -152,7 +152,8 @@
 						@pointerdown.stop
 						@pointerup.stop
 						@click.stop="() => {
-							mainStore.removePointFromPoints({
+							if (of.type === 'temps') delete mainStore.temps[fat.point.id];
+							else mainStore.removePointFromPoints({
 								index: fat.index,
 								entity: of,
 							});

@@ -3,103 +3,115 @@
 		:show="common.popupProps.show && common.pointInfo !== null"
 		:position="common.popupProps.position"
 		:closeOnClick="false"
-		class="point-coordinates messages"
+		class="point-info messages"
 		@update:show="handlePopupUpdate"
 	>
 		<template #popupSlot>
 			<a
 				href="javascript:void(0)"
-				class="point-coordinates-copy"
-				@click="copyCoords(common.pointInfo?.point)"
+				class="point-info-copy"
+				@click="copyCoords(common.pointInfo.point)"
 			>
 				{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
 			</a>
-			<h3 v-if="common.pointInfo?.name">
-				<span class="un_color">
-					{{ mainStore.t.i.captions.measurePoint }}:
-				</span>
-				<span class="color-01">
-					{{ common.pointInfo.name }}
-				</span>
-			</h3>
-			<template v-if="common.pointInfo">
-				<div class="nobr">
+			<div class="point-info-content">
+				<h3 v-if="common.pointInfo.name">
 					<span class="un_color">
-						{{ mainStore.t.i.captions.latitude }}:
+						{{ mainStore.t.i.captions[isPlace(common.pointInfo.of) ? 'place' : 'point'] }}:
 					</span>
 					<span class="color-01">
-						{{ latitude2string(common.pointInfo.point.latitude) }}°
+						{{ common.pointInfo.name }}
 					</span>
+				</h3>
+				<div v-if="common.pointInfo">
+					<div class="nobr">
+						<span class="un_color">
+							{{ mainStore.t.i.captions.latitude }}:
+						</span>
+						<span class="color-01">
+							{{ latitude2string(common.pointInfo.point.latitude) }}°
+						</span>
+					</div>
+					<div class="nobr">
+						<span class="un_color">
+							{{ mainStore.t.i.captions.longitude }}:
+						</span>
+						<span class="color-01">
+							{{ longitude2string(common.pointInfo.point.longitude) }}°
+						</span>
+					</div>
+					<div v-if="common.pointInfo.point.altitude" class="nobr">
+						<span class="un_color">
+							{{ mainStore.t.i.captions.altitude }}:
+						</span>
+						<span class="color-01">
+							{{ common.pointInfo.point.altitude }}
+							{{ mainStore.t.i.text.m }}
+						</span>
+					</div>
 				</div>
-				<div class="nobr">
-					<span class="un_color">
-						{{ mainStore.t.i.captions.longitude }}:
-					</span>
-					<span class="color-01">
-						{{ longitude2string(common.pointInfo.point.longitude) }}°
-					</span>
+				<div class="point-info-controls">
+					<div
+						v-if="common.pointInfo.of"
+						class="point-info-name-delete"
+					>
+						<input
+							v-if="common.pointInfo.of"
+							type="text"
+							:value="common.pointInfo.name"
+							:placeholder="mainStore.t.i.captions.untitled"
+							@change="e => updateName((e.target as HTMLInputElement).value.trim())"
+						/>
+						<button
+							v-if="isPlace(common.pointInfo.of)"
+							class="button-iconed icon icon-cross-45-circled"
+							:title="mainStore.t.i.buttons.deletePlace"
+							@click="deletePlace(common.pointInfo.of.id)"
+						/>
+						<button
+							v-else
+							class="button-iconed icon icon-cross-45-circled"
+							:title="mainStore.t.i.buttons.deletePoint"
+							@click="deletePoint(common.pointInfo.index, common.pointInfo.of)"
+						/>
+					</div>
+					<div
+						v-if="confirmPlaceDelete?.show"
+						class="point-info-confirm"
+					>
+						<button @click="confirmPlaceDelete.accept()">
+							{{ mainStore.t.i.buttons.yes }}
+						</button>
+						<h4 class="margin_bottom_0">
+							{{ confirmPlaceDelete.message }}
+						</h4>
+						<button @click="confirmPlaceDelete.cancel()">
+							{{ mainStore.t.i.buttons.no }}
+						</button>
+					</div>
+					<div
+						v-if="confirmPointDelete?.show"
+						class="point-info-confirm"
+					>
+						<button @click="confirmPointDelete.accept()">
+							{{ mainStore.t.i.buttons.yes }}
+						</button>
+						<h4 class="margin_bottom_0">
+							{{ confirmPointDelete.message }}
+						</h4>
+						<button @click="confirmPointDelete.cancel()">
+							{{ mainStore.t.i.buttons.no }}
+						</button>
+					</div>
+					<div class="point-info-buttons">
+						<button
+							v-if="!isPlace(common.pointInfo.of)"
+							@click="mainStore.upsertPlaceFromPointInfo(common.pointInfo)"
+						>
+							{{ mainStore.t.i.buttons.makePlace }}
+						</button>
+					</div>
 				</div>
-			</template>
-			<div v-if="common.pointInfo?.point.altitude" class="nobr">
-				<span class="un_color">
-					{{ mainStore.t.i.captions.altitude }}:
-				</span>
-				<span class="color-01">
-					{{ common.pointInfo.point.altitude }}
-					{{ mainStore.t.i.text.m }}
-				</span>
-			</div>
-			<div
-				v-if="common.pointInfo?.of"
-				class="point-coordinates-controls margin_top"
-			>
-				<input
-					v-if="common.pointInfo?.of"
-					type="text"
-					:value="common.pointInfo.name"
-					:placeholder="mainStore.t.i.inputs.pointName"
-					@change="e => updateName((e.target as HTMLInputElement).value.trim())"
-				/>
-				<button
-					v-if="isPlace(common.pointInfo.of)"
-					class="button-iconed icon icon-cross-45-circled"
-					:title="mainStore.t.i.buttons.deletePlace"
-					@click="deletePlace(common.pointInfo.of.id)"
-				/>
-				<button
-					v-else
-					class="button-iconed icon icon-cross-45-circled"
-					:title="mainStore.t.i.buttons.deletePoint"
-					@click="deletePoint(common.pointInfo.index, common.pointInfo.of)"
-				/>
-			</div>
-			<div
-				v-if="confirmPlaceDelete?.show"
-				class="point-coordinates-confirm margin_top"
-			>
-				<button @click="confirmPlaceDelete.accept()">
-					{{ mainStore.t.i.buttons.yes }}
-				</button>
-				<h4 class="margin_bottom_0">
-					{{ confirmPlaceDelete.message }}
-				</h4>
-				<button @click="confirmPlaceDelete.cancel()">
-					{{ mainStore.t.i.buttons.no }}
-				</button>
-			</div>
-			<div
-				v-if="confirmPointDelete?.show"
-				class="point-coordinates-confirm margin_top"
-			>
-				<button @click="confirmPointDelete.accept()">
-					{{ mainStore.t.i.buttons.yes }}
-				</button>
-				<h4 class="margin_bottom_0">
-					{{ confirmPointDelete.message }}
-				</h4>
-				<button @click="confirmPointDelete.cancel()">
-					{{ mainStore.t.i.buttons.no }}
-				</button>
 			</div>
 		</template>
 	</Popup>
@@ -144,7 +156,6 @@ const updateName = (name: string) => {
 		mainStore.measure.points[common.pointInfo.index].name = name;
 	}
 };
-
 const confirmPlaceDelete = shallowRef<ConfirmInstance | null>(null);
 const confirmPointDelete = shallowRef<ConfirmInstance | null>(null);
 
@@ -191,12 +202,12 @@ const deletePoint = async (index: number, entity: Route | Measure) => {
 </script>
 
 <style lang="scss">
-.point-coordinates {
+.point-info {
 	padding: 30px 20px 10px 20px !important;
 	text-align: right;
 	h3 {
 		text-align: center;
-		margin-bottom: 8px;
+		margin-bottom: 0 !important;
 	}
 	&-degminsecalt, &-copy {
 		margin-top: 12px;
@@ -206,9 +217,23 @@ const deletePoint = async (index: number, entity: Route | Measure) => {
 		position: absolute;
 		top: -6px; left: 10px;
 	}
+	&-content {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
 	&-controls {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+	&-name-delete {
 		display: grid;
 		grid-template-columns: 1fr auto;
+		gap: 8px;
+	}
+	&-buttons {
+		display: flex;
 		gap: 8px;
 	}
 	&-confirm {

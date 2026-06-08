@@ -42,7 +42,5 @@ export const mapContextMenu = (e: PointerEvent, lat: number, lng: number) => {
 				entity: mainStore.measure,
 			});
 		}
-		common.setPointInfo({ id: entity.id });
-		common.showPopup(calculatePopupPosition(e));
 	}
 }

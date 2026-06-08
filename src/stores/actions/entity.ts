@@ -5,6 +5,7 @@ import {
 	Route,
 	Folder,
 	PointDescription,
+	PointInfo,
 	AppendMode,
 } from '@/types';
 import { isPoint, isPlace, isRoute } from '@/guards';
@@ -168,7 +169,7 @@ export const entityActions = {
 		description?: string,
 		mode?: AppendMode,
 		silent?: boolean;
-	} = {}) {
+	} = {}): Point | null {
 
 		let point: Point;
 
@@ -188,7 +189,7 @@ export const entityActions = {
 				Object.keys(where).length >= this.serverConfig.rights.pointscount
 			) {
 				this.setMessage(this.t.m.popup.pointsCountExceeded, 3);
-				return;
+				return null;
 			}
 		}
 
@@ -258,7 +259,7 @@ export const entityActions = {
 		mode = 'new',
 		center = false,
 		silent = false,
-	}: UpsertPlaceParams = {}): Place {
+	}: UpsertPlaceParams = {}): Place | null {
 
 		let place: Place;
 		let point: Point | null;
@@ -276,7 +277,7 @@ export const entityActions = {
 				Object.keys(where).length >= this.serverConfig.rights.placescount
 			) {
 				this.setMessage(this.t.m.popup.placesCountExceeded, 3);
-				return;
+				return null;
 			}
 		}
 
@@ -330,11 +331,11 @@ export const entityActions = {
 		return place;
 	},
 	upsertPlaceFollowing(
-		entity: Place | null,
+		entity: Place | null | undefined,
 		params: UpsertPlaceParams = {},
-	): Place {
+	): Place | null {
 		if (!entity) {
-			return this.upsertPlace();
+			return this.upsertPlace({ ...params, props: { ...params.props } });
 		}
 		const neighbours = this.getNeighboursSrts(
 			entity.id,
@@ -351,6 +352,23 @@ export const entityActions = {
 		};
 		return this.upsertPlace(callParams);
 	},
+	upsertPlaceFromPointInfo(info: PointInfo | null): Place | null {
+		if (!info || !info.point) return null;
+		const pointId = info.point.id;
+		if (Object.hasOwn(this.temps, pointId)) {
+			this.points[pointId] = { ...info.point,	added: true };
+			if (!this.isMeasurePoint(pointId)) delete this.temps[pointId];
+		}
+		const upsertParams: UpsertPlaceParams = {
+			mode: 'new',
+			props: {
+				pointid: pointId,
+				name: info.name || '',
+				description: info.description || '',
+			},
+		};
+		return this.upsertPlaceFollowing(this.currentPlace, upsertParams);
+	},
 	upsertRoute({
 		object,
 		props,
@@ -363,7 +381,7 @@ export const entityActions = {
 		where?: Record<string, Route>;
 		mode?: AppendMode,
 		silent?: boolean;
-	} = {}): Route {
+	} = {}): Route | null {
 
 		let route: Route;
 
@@ -380,7 +398,7 @@ export const entityActions = {
 				Object.keys(where).length >= this.serverConfig.rights.routescount
 			) {
 				this.setMessage(this.t.m.popup.routesCountExceeded, 3);
-				return;
+				return null;
 			}
 		}
 
@@ -409,7 +427,7 @@ export const entityActions = {
 		}
 		return route;
 	},
-	upsertRouteFollowing(entity: Route | null): Route {
+	upsertRouteFollowing(entity: Route | null): Route | null {
 		if (!entity) {
 			return this.upsertRoute();
 		}
@@ -437,7 +455,7 @@ export const entityActions = {
 		where?: Record<string, Folder>;
 		mode?: AppendMode;
 		silent?: boolean;
-	} = {}): Folder | undefined {
+	} = {}): Folder | null {
 
 		let folder: Folder;
 
@@ -454,7 +472,7 @@ export const entityActions = {
 				Object.keys(where).length >= this.serverConfig.rights.folderscount
 			) {
 				this.setMessage(this.t.m.popup.foldersCountExceeded, 3);
-				return undefined;
+				return null;
 			}
 		}
 
