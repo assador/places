@@ -96,8 +96,8 @@ export const entityGetters = {
 				...p,
 				name: p.name ?? String(index + 1),
 				index: index,
-				key: `${p.id}-${index}`,
-				point: this.temps[p.id],
+				key: `measure-${p.id}`,
+				point: this.temps[p.id] || this.points[p.id],
 			};
 		});
 	},
@@ -108,7 +108,7 @@ export const entityGetters = {
 			points.push({
 				name: String(index + 1),
 				index: index,
-				key: `${id}-${index}`,
+				key: `temp-${id}`,
 				point: this.temps[id],
 			});
 			index++;

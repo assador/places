@@ -357,7 +357,7 @@ export const entityActions = {
 		const pointId = info.point.id;
 		if (Object.hasOwn(this.temps, pointId)) {
 			this.points[pointId] = { ...info.point,	added: true };
-			if (!this.isMeasurePoint(pointId)) delete this.temps[pointId];
+			delete this.temps[pointId];
 		}
 		const upsertParams: UpsertPlaceParams = {
 			mode: 'new',

@@ -56,7 +56,7 @@
 						onDragStart: () => { dragging = true },
 						onDragEnd: coords => {
 							dragging = false;
-							markerDragEnd(place, coords);
+							markerDragEnd(place.pointid, coords);
 						},
 					}"
 					:visible="place.show && place.geomark"
@@ -144,7 +144,7 @@
 					:key="route.id"
 				>
 					<yandex-map-feature
-						v-model="routeLines[route.id]"
+						v-model="routeLineRefs[route.id]"
 						:settings="{
 							geometry: {
 								type: 'LineString',
@@ -163,7 +163,7 @@
 						}"
 					/>
 					<yandex-map-feature
-						v-model="routeLines[route.id]"
+						v-model="routeLineForEventRefs[route.id]"
 						:settings="{
 							geometry: {
 								type: 'LineString',
@@ -199,10 +199,10 @@
 								onDragStart: () => { dragging = true },
 								onDragEnd: coords => {
 									dragging = false;
-									markerDragEnd(mainStore.getPointById(point.id), coords);
+									markerDragEnd(point.id, coords);
 								},
 								onDragMove: e => {
-									const lineInstance = routeLines[route.id];
+									const lineInstance = routeLineRefs[route.id];
 									if (lineInstance && lineInstance.geometry) {
 										const coords = [
 											...lineInstance.geometry.coordinates
@@ -271,12 +271,16 @@
 				</template>
 			</template>
 
-<!-- SEC Markers: Temps  -->
+<!-- SEC Markers: Measure  -->
 
-			<template v-if="mainStore.markersShow">
+			<template v-if="
+				mainStore.markersShow &&
+				mainStore.mode === 'measure' &&
+				mainStore.measure.points.length
+			">
 				<yandex-map-feature
-					v-if="mainStore.mode === 'measure'"
-					v-model="routeLines['measureId']"
+					v-if="mainStore.measure.points.length > 1"
+					v-model="routeLineRefs['measureId']"
 					:settings="{
 						geometry: {
 							type: 'LineString',
@@ -294,8 +298,8 @@
 					}"
 				/>
 				<yandex-map-feature
-					v-if="mainStore.mode === 'measure'"
-					v-model="routeLines['measureId']"
+					v-if="mainStore.measure.points.length > 1"
+					v-model="routeLineForEventRefs['measureId']"
 					:settings="{
 						geometry: {
 							type: 'LineString',
@@ -317,98 +321,125 @@
 						},
 					}"
 				/>
-				<template v-if="mainStore.tempsShow.show || mainStore.mode === 'measure'">
-					<template
-						v-for="point in computedTemps"
-						:key="point.key"
+				<template
+					v-for="fat in mainStore.measureFatPoints"
+					:key="fat.key"
+				>
+					<yandex-map-marker
+						v-model="markers[fat.point.id]"
+						:settings="{
+							coordinates: [
+								fat.point.longitude,
+								fat.point.latitude,
+							],
+							draggable: true,
+							onDragStart: () => { dragging = true },
+							onDragEnd: coords => {
+								dragging = false;
+								markerDragEnd(fat.point.id, coords);
+							},
+							onDragMove: e => {
+								const lineInstance = routeLineRefs['measureId'];
+								if (lineInstance && lineInstance.geometry) {
+									const coords = [
+										...lineInstance.geometry.coordinates
+									];
+										coords[fat.index] = [ e[0], e[1] ];
+										lineInstance.update({
+											geometry: {
+												type: 'LineString',
+												coordinates: coords as LngLat[],
+											},
+										});
+								}
+							},
+						}"
+						:visible="fat.point.show"
+						@click.stop.prevent="(e: PointerEvent) => {
+							mainStore.setCurrentPoint(fat.point, false);
+							if (common.compact === 2) {
+								markerContextMenu(e, fat.point);
+							}
+						}"
+						@contextmenu.stop.prevent="(e: PointerEvent) => {
+							if (common.compact === 2 || e.shiftKey) {
+								markerAddPoint(fat.point);
+							} else {
+								markerContextMenu(e, fat.point);
+							}
+						}"
 					>
-						<yandex-map-marker
-							v-model="markers[point.id]"
-							:settings="{
-								coordinates: [
-									point.longitude,
-									point.latitude,
-								],
-								draggable: true,
-								onDragStart: () => { dragging = true },
-								onDragEnd: coords => {
-									dragging = false;
-									markerDragEnd(mainStore.getPointById(point.id), coords);
-								},
-								onDragMove: e => {
-									const lineInstance = routeLines['measureId'];
-									if (lineInstance && lineInstance.geometry) {
-										const coords = [
-											...lineInstance.geometry.coordinates
-										];
-										const pointIndex = mainStore.measure.points.findIndex(
-											p => p.id === point.id
-										);
-										if (pointIndex !== -1) {
-											coords[pointIndex] = [ e[0], e[1] ];
-											lineInstance.update({
-												geometry: {
-													type: 'LineString',
-													coordinates: coords as LngLat[],
-												},
-											});
-										}
-									}
-								},
-							}"
-							:visible="
-								mainStore.tempsShow.show &&
-								point.show
+						<div
+							v-if="fat.point.id === mainStore.measure.points[0]?.id"
+							class="marker-current marker-start"
+						/>
+						<div
+							v-else-if="fat.point.id === mainStore.measure.points.at(-1)?.id"
+							class="marker-current marker-end"
+						/>
+						<div
+							v-else
+							class="marker-current marker-intermediate"
+						/>
+						<img
+							v-if="
+								fat.point.id === mainStore.currentPointId &&
+								!mainStore.isPlacePoint(fat.point.id)
 							"
-							@click.stop.prevent="(e: PointerEvent) => {
-								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
-								if (common.compact === 2) {
-									markerContextMenu(e, mainStore.getPointById(point.id));
-								}
-							}"
-							@contextmenu.stop.prevent="(e: PointerEvent) => {
-								if (common.compact === 2 || e.shiftKey) {
-									markerAddPoint(mainStore.getPointById(point.id));
-								} else {
-									markerContextMenu(e, mainStore.getPointById(point.id));
-								}
-							}"
-						>
-							<template v-if="mainStore.mode === 'measure'">
-								<div
-									v-if="
-										point.id === mainStore.measure.points[0]?.id
-									"
-									class="marker-current marker-start"
-								/>
-								<div
-									v-else-if="point.id === mainStore.measure.points.at(-1)?.id"
-									class="marker-current marker-end"
-								/>
-								<div
-									v-else
-									class="marker-current marker-intermediate"
-								/>
-							</template>
-							<img
-								v-if="
-									mainStore.mode === 'measure' &&
-									mainStore.isMeasurePoint(point.id) &&
-									point.id === mainStore.currentPointId
-								"
-								:src="markersOptions.icon_active.iconUrl"
-								class="marker"
-							/>
-							<img
-								v-else-if="!mainStore.isMeasurePoint(point.id)"
-								:src="markersOptions[
-									point.id === mainStore.currentPointId
-										? 'icon_temp_active' : 'icon_temp'
-								].iconUrl"
-								class="marker"
-							/>
-						</yandex-map-marker>
-					</template>
+							:src="markersOptions.icon_temp_active.iconUrl"
+							class="marker"
+						/>
+					</yandex-map-marker>
+				</template>
+			</template>
+
+<!-- SEC Markers: Temps  -->
+
+			<template v-if="
+				mainStore.markersShow &&
+				mainStore.tempsShow.show
+			">
+				<template
+					v-for="fat in mainStore.notMeasureFatTemps.points"
+					:key="fat.key"
+				>
+					<yandex-map-marker
+						v-model="markers[fat.point.id]"
+						:settings="{
+							coordinates: [
+								fat.point.longitude,
+								fat.point.latitude,
+							],
+							draggable: true,
+							onDragStart: () => { dragging = true },
+							onDragEnd: coords => {
+								dragging = false;
+								markerDragEnd(fat.point.id, coords);
+							},
+						}"
+						:visible="fat.point.show"
+						@click.stop.prevent="(e: PointerEvent) => {
+							mainStore.setCurrentPoint(fat.point, false);
+							if (common.compact === 2) {
+								markerContextMenu(e, fat.point);
+							}
+						}"
+						@contextmenu.stop.prevent="(e: PointerEvent) => {
+							if (common.compact === 2 || e.shiftKey) {
+								markerAddPoint(fat.point);
+							} else {
+								markerContextMenu(e, fat.point);
+							}
+						}"
+					>
+						<img
+							:src="markersOptions[
+								fat.point.id === mainStore.currentPointId
+									? 'icon_temp_active' : 'icon_temp'
+							].iconUrl"
+							class="marker"
+						/>
+					</yandex-map-marker>
 				</template>
 			</template>
 
@@ -432,7 +463,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { Point, Place, Route, Measure } from '@/types';
+import { Point, Route, Measure } from '@/types';
 import { common } from '@/services/common';
 import { getPointToSegmentDistance, calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -463,7 +494,8 @@ const mainStore = useMainStore();
 const map = shallowRef<YMap | null>(null);
 const markers = shallowRef<Record<string, YMapMarker | null>>({});
 const markerCenter = shallowRef<YMapMarker | null>(null);
-const routeLines = ref<Record<string, YMapFeature | null>>({});
+const routeLineRefs = ref<Record<string, YMapFeature | null>>({});
+const routeLineForEventRefs = ref<Record<string, YMapFeature | null>>({});
 createYmapsOptions({ apikey: 'f81dd454-9378-4883-86ae-c84eb24d72d6' });
 
 const mapCenter = computed(() => ({
@@ -485,14 +517,6 @@ const computedPlaces =
 const computedCommonPlaces =
 	computed(() => prepareEntities(Object.values(mainStore.commonPlaces)))
 ;
-const computedTemps = computed(() => {
-	return Object.values(mainStore.temps)
-		.map((pn, index) => ({
-			...pn,
-			idx: index,
-			key: `${pn.id}-${index}`,
-		})) || []
-});
 const computedRoutes = computed(() => {
 	return Object.values(mainStore.routes)
 		.filter(r => !r.deleted && r.geomarks === 1)
@@ -578,13 +602,9 @@ const markerAddPoint = (point: Point) => {
 
 // SEC Other
 
-const markerDragEnd = async (point: Place | Point, coords: LngLat) => {
+const markerDragEnd = async (pointId: string, coords: LngLat) => {
 	mainStore.changePoint({
-		entity: (
-			point.type === 'point'
-				? point
-				: mainStore.points[(point as Place).pointid]
-		),
+		entity: mainStore.getPointById(pointId),
 		change: {
 			latitude: Number(coords[1].toFixed(7)),
 			longitude: Number(coords[0].toFixed(7)),

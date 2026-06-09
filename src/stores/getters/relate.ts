@@ -40,4 +40,12 @@ export const relateGetters = {
 			return this.pointDescriptionIds(route.points).has(id);
 		}
 	},
+	isPlacePoint() {
+		return (id: string): boolean => {
+			for (const placeId in this.places) {
+				if (this.places[placeId].pointid === id) return true;
+			}
+			return false;
+		}
+	},
 };
