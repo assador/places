@@ -21,6 +21,8 @@ export const getT = () => ({
 			deletingAccount: 'Удаление аккаунта',
 			deletingFolder: 'Удаление папки',
 			description: 'Описание',
+			distanceFromMapCenter: 'От центра карты',
+			distanceFromCurrent: 'От выбранной точки',
 			email: 'e-mail',
 			exportPlaces: 'Экспортировать места',
 			groups: 'Группы',

@@ -49,6 +49,34 @@
 							{{ mainStore.t.i.text.m }}
 						</span>
 					</div>
+					<div class="nobr">
+						<span class="un_color">
+							{{ mainStore.t.i.captions.distanceFromMapCenter }}:
+						</span>
+						<span class="color-01">
+							{{ roundTo(distanceOnSphere(
+								mainStore.center.latitude,
+								mainStore.center.longitude,
+								common.pointInfo.point.latitude,
+								common.pointInfo.point.longitude,
+							), 3) }}
+							{{ mainStore.t.i.text.km }}
+						</span>
+					</div>
+					<div v-if="mainStore.currentPoint" class="nobr">
+						<span class="un_color">
+							{{ mainStore.t.i.captions.distanceFromCurrent }}:
+						</span>
+						<span class="color-01">
+							{{ roundTo(distanceOnSphere(
+								mainStore.currentPoint.latitude,
+								mainStore.currentPoint.longitude,
+								common.pointInfo.point.latitude,
+								common.pointInfo.point.longitude,
+							), 3) }}
+							{{ mainStore.t.i.text.km }}
+						</span>
+					</div>
 				</div>
 				<div class="point-info-controls">
 					<div
@@ -124,6 +152,7 @@ import { Point, Route, Measure } from '@/types';
 import { isPlace, isRoute } from '@/guards';
 import { common } from '@/services/common';
 import { ConfirmInstance } from '@/services/confirm';
+import { roundTo, distanceOnSphere } from '@/shared/common';
 import { point2coords, latitude2string, longitude2string } from '@/shared/converters';
 import Popup from '@/components/popups/Popup.vue';
 

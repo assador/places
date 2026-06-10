@@ -111,7 +111,7 @@ export const numbersMinMax = (
 export const distanceOnSphere = (
 	lat1: number, lon1: number,
 	lat2: number, lon2: number,
-	radius: number,
+	radius: number = constants.earthRadius,
 ): number => {
 	const a = Math.abs(90 - lat1) * Math.PI / 180;
 	const b = Math.abs(90 - lat2) * Math.PI / 180;

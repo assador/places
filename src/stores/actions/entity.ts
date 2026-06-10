@@ -719,20 +719,26 @@ export const entityActions = {
 			entity.altitude === undefined
 		;
 		Object.assign(entity, change);
-		if (coordsChanged || altitudeMissing) {
-			const altitude = await this.getAltitude(
-				entity.latitude,
-				entity.longitude,
-			);
-			entity.altitude = altitude;
-			change.altitude = altitude;
-		}
 		entity.updated = true;
 		if (this.newEntityPointId === entity.id) {
 			this.newEntityPointId = null;
 		}
 		this.saved = false;
 		this.backupState();
+
+		if (coordsChanged || altitudeMissing) {
+			const latAtRequest = entity.latitude;
+			const lngAtRequest = entity.longitude;
+			this.getAltitude(latAtRequest, lngAtRequest)
+				.then((altitude: number) => {
+					const pointChanged =
+						latAtRequest !== entity.latitude ||
+						lngAtRequest !== entity.longitude
+					;
+					if (!pointChanged) entity.altitude = altitude;
+				})
+				.catch(() => {});
+		}
 	},
 	changePlace(
 		{ entity, change }: { entity: Place; change: Partial<Place>; }

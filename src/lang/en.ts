@@ -21,6 +21,8 @@ export const getT = () => ({
 			deletingAccount: 'Deleting account',
 			deletingFolder: 'Deleting folder',
 			description: 'Description',
+			distanceFromMapCenter: 'From map center',
+			distanceFromCurrent: 'From chosen point',
 			email: 'e-mail',
 			exportPlaces: 'Export places',
 			groups: 'Groups',
