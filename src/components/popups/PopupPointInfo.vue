@@ -54,12 +54,7 @@
 							{{ mainStore.t.i.captions.distanceFromMapCenter }}:
 						</span>
 						<span class="color-01">
-							{{ roundTo(distanceOnSphere(
-								mainStore.center.latitude,
-								mainStore.center.longitude,
-								common.pointInfo.point.latitude,
-								common.pointInfo.point.longitude,
-							), 3) }}
+							{{ distanceFromCenter }}
 							{{ mainStore.t.i.text.km }}
 						</span>
 					</div>
@@ -68,12 +63,7 @@
 							{{ mainStore.t.i.captions.distanceFromCurrent }}:
 						</span>
 						<span class="color-01">
-							{{ roundTo(distanceOnSphere(
-								mainStore.currentPoint.latitude,
-								mainStore.currentPoint.longitude,
-								common.pointInfo.point.latitude,
-								common.pointInfo.point.longitude,
-							), 3) }}
+							{{ distanceFromCurrent }}
 							{{ mainStore.t.i.text.km }}
 						</span>
 					</div>
@@ -146,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef, watch } from 'vue';
+import { ref, shallowRef, computed, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Point, Route, Measure } from '@/types';
 import { isPlace, isRoute } from '@/guards';
@@ -166,6 +156,19 @@ const copyCoords = async (point: Point) => {
 	copied.value = true;
 	setTimeout(() => copied.value = false, 2000);
 };
+const distanceFromCenter = computed(() => roundTo(distanceOnSphere(
+	mainStore.center.latitude,
+	mainStore.center.longitude,
+	common.pointInfo.point.latitude,
+	common.pointInfo.point.longitude,
+), 3));
+const distanceFromCurrent = computed(() => roundTo(distanceOnSphere(
+	mainStore.currentPoint.latitude,
+	mainStore.currentPoint.longitude,
+	common.pointInfo.point.latitude,
+	common.pointInfo.point.longitude,
+), 3));
+
 const updateName = (name: string) => {
 	if (!common.pointInfo || !common.pointInfo.of) return;
 	if (isPlace(common.pointInfo.of)) {
