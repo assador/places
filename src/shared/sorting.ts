@@ -1,9 +1,9 @@
 import { constants } from '@/shared/constants';
 
 export const sortObjects = (
-	array: Array<Record<string, any>>,
+	array: Record<string, any>[],
 	field: string
-): Array<Record<string, any>> => {
+): Record<string, any>[] => {
 	const sorted = array.slice().sort((a, b) => {
 		if (a[field] > b[field]) {
 			return 1;
@@ -58,7 +58,7 @@ export const moveInObject = (
 		;
 	}
 };
-export const sortObjectsByProximity = (array: Array<Record<string, any>>): void => {
+export const sortObjectsByProximity = (array: Record<string, any>[]): void => {
 	// Sort geomarks so as to build the shortest path through them.
 	let
 		indexNearest = -1,

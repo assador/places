@@ -103,7 +103,7 @@ export const numbersMinMax = (
 		) continue;
 		insertNew(array[i]);
 	}
-	return result.reverse();
+	return result.toReversed();
 }
 /**
  * Distance in kilometers between points on a sphere with coordinates in degrees.

@@ -70,6 +70,7 @@
 						dragging = false;
 						markerDragEnd(place.pointid, e);
 					}"
+					@move="(e: any) => moveMarker(e, place.pointid)"
 				>
 					<l-icon
 						v-bind="(
@@ -185,8 +186,8 @@
 						:weight="1"
 					/>
 					<template
-						v-for="(point, pindex) in route.computedRoutePoints"
-						:key="`${route.id}-${point.id}-${pindex}`"
+						v-for="(point, index) in route.computedRoutePoints"
+						:key="`${route.id}-${point.id}-${index}`"
 					>
 						<l-marker
 							:lat-lng="[ point.latitude, point.longitude ]"
@@ -213,21 +214,7 @@
 								dragging = false;
 								markerDragEnd(point.id, e);
 							}"
-							@move="(e: any) => {
-								const { lat, lng } = e.target.getLatLng();
-								const polyline = routeLineRefs[route.id];
-								if (polyline) {
-									const latLngs = polyline.getLatLngs();
-									const pointIndex = route.points.findIndex(
-										p => p.id === point.id
-									);
-									if (pointIndex !== -1) {
-										latLngs[pointIndex] = [ lat, lng ];
-										polyline.setLatLngs(latLngs);
-									}
-								}
-								markerRefs['circle-' + point.id].setLatLng([ lat, lng ]);
-							}"
+							@move="(e: any) => moveMarker(e, point.id, route.id, index)"
 						>
 							<l-icon
 								v-bind="(point.id === mainStore.currentPointId
@@ -289,16 +276,7 @@
 							}
 							markerDragEnd(fat.point.id, e);
 						}"
-						@move="(e: any) => {
-							const { lat, lng } = e.target.getLatLng();
-							const polyline = routeLineRefs['measureId'];
-							if (polyline) {
-								const latLngs = polyline.getLatLngs();
-								latLngs[fat.index] = [ lat, lng ];
-								polyline.setLatLngs(latLngs);
-							}
-							markerRefs['circle-' + fat.point.id].setLatLng([ lat, lng ]);
-						}"
+						@move="(e: any) => moveMarker(e, fat.point.id, 'measureId', fat.index)"
 					>
 						<l-icon
 							v-bind="(fat.point.id === mainStore.currentPointId
@@ -481,26 +459,41 @@ const computedRoutes = computed(() => {
 const dragging = ref(false);
 
 const markerRefs = {} as Record<string, any>;
-const routeLineRefs = {} as Record<string, any>;
-const routeLineForEventRefs = {} as Record<string, any>;
+const routeLineRefs = {} as Record<string, { element: any, pointIds: string[] }>;
+const routeLineForEventRefs = {} as Record<string, { element: any, pointIds: string[] }>;
 
 const setRef = async (id: string, el: any, refs: any) => {
 	await nextTick();
 	if (el) {
-		const elememt = el.leafletObject;
-		refs[id] = elememt;
+		const element = el.leafletObject;
+		if (refs === markerRefs) {
+			refs[id] = element;
+		} else if (refs === routeLineRefs || refs === routeLineForEventRefs) {
+			refs[id] = {
+				element: element,
+				pointIds:
+					id === 'measureId'
+						? mainStore.measure.points.map(p => p.id)
+						: (mainStore.routes[id]?.points.map(p => p.id) ?? [])
+				,
+			};
+		}
 		if (refs === routeLineForEventRefs) {
-			elememt.off('dblclick');
-			elememt.on('dblclick', (event: any) => {
+			if (element._customDblClick) {
+				element.off('dblclick', element._customDblClick);
+			}
+			element._customDblClick = (event: any) => {
 				L.DomEvent.stopPropagation(event);
-				const latlngs = elememt.getLatLngs();
+				const latlngs = element.getLatLngs();
 				let minDistance = Infinity;
 				let segmentIndex = 0;
 				for (let i = 0; i < latlngs.length - 1; i++) {
 					const d = L.LineUtil.pointToSegmentDistance(
 						event.layerPoint,
 						map.value.leafletObject.latLngToLayerPoint(latlngs[i]),
-						map.value.leafletObject.latLngToLayerPoint(latlngs[i + 1]),
+						map.value.leafletObject.latLngToLayerPoint(
+							latlngs[i + 1],
+						),
 					);
 					if (d < minDistance) {
 						minDistance = d;
@@ -509,8 +502,11 @@ const setRef = async (id: string, el: any, refs: any) => {
 				}
 				const { lat, lng } = event.latlng;
 				const route =
-					id === 'measureId' ? mainStore.measure : mainStore.routes[id]
+					id === 'measureId'
+						? mainStore.measure
+						: mainStore.routes[id]
 				;
+				if (!route) return;
 				const point = mainStore.upsertPoint({
 					props: { latitude: lat, longitude: lng },
 					where: id === 'measureId' ? mainStore.temps : mainStore.points,
@@ -520,11 +516,51 @@ const setRef = async (id: string, el: any, refs: any) => {
 					entity: route,
 					index: segmentIndex + 1,
 				});
-			});
+			};
+			element.on('dblclick', element._customDblClick);
 		}
 	} else {
+		if (refs === routeLineForEventRefs && refs[id]?.element) {
+			const element = refs[id].element;
+			if (element._customDblClick) {
+				element.off('dblclick', element._customDblClick);
+				delete element._customDblClick;
+			}
+		}
 		delete refs[id];
 	}
+};
+const pointToLinesMap = computed(() => {
+	const mapping: Record<string, { lineId: string; index: number }[]> = {};
+	for (const [lineId, refData] of Object.entries(routeLineRefs)) {
+		refData.pointIds.forEach((pId, idx) => {
+			if (!mapping[pId]) mapping[pId] = [];
+			mapping[pId].push({ lineId, index: idx });
+		});
+	}
+	return mapping;
+});
+const moveMarker = (e: any, pointId: string, lineId?: string, pointIndex?: number) => {
+	const { lat, lng } = e.target.getLatLng();
+	const updatePolyline = (lId: string, pIdx: number) => {
+		const polyline = routeLineRefs[lId];
+		if (polyline?.element) {
+			const latLngs = polyline.element.getLatLngs();
+			if (latLngs[pIdx]) {
+				latLngs[pIdx] = [lat, lng];
+				polyline.element.setLatLngs(latLngs);
+			}
+		}
+	};
+	if (lineId !== undefined && pointIndex !== undefined) {
+		updatePolyline(lineId, pointIndex);
+	} else {
+		const targets = pointToLinesMap.value[pointId];
+		if (targets) {
+			targets.forEach(target => updatePolyline(target.lineId, target.index));
+		}
+	}
+	markerRefs['circle-' + pointId]?.setLatLng([lat, lng]);
 };
 
 // SEC Right clicks
@@ -595,7 +631,7 @@ const markerDragEnd = async (pointId: string, event: any) => {
 		},
 	});
 };
-const updateState = (payload?: { coords?: Array<number>, zoom?: number }) => {
+const updateState = (payload?: { coords?: number[], zoom?: number }) => {
 	mainStore.updateMap({
 		latitude: Number(
 			payload && payload.coords

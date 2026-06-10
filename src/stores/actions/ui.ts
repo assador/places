@@ -188,7 +188,7 @@ export const uiActions = {
 								return false;
 							}
 						}
-					) as Array<Place | Route | Folder>
+					) as (Place | Route | Folder)[]
 			;
 			for (let i = 0; i < neibours.length; i++) {
 				if (i === 0) {
@@ -252,15 +252,12 @@ export const uiActions = {
 			}
 		}
 	},
-	updateMap(payload: Record<string, any>) {
-		if (typeof payload.latitude === 'number') {
-			this.center.latitude = payload.latitude;
-		}
-		if (typeof payload.longitude === 'number') {
-			this.center.longitude = payload.longitude;
-		}
-		if (typeof payload.zoom === 'number') {
-			this.zoom = payload.zoom;
-		}
+	updateMap(
+		{ latitude, longitude, zoom }:
+		{ latitude?: number; longitude?: number; zoom?: number; }
+	) {
+		if (typeof latitude === 'number') this.center.latitude = latitude;
+		if (typeof longitude === 'number') this.center.longitude = longitude;
+		if (typeof zoom === 'number') this.zoom = zoom;
 	},
 };

@@ -235,6 +235,9 @@ const deletePoint = async (index: number, entity: Route | Measure) => {
 	&-buttons {
 		display: flex;
 		gap: 8px;
+		&:empty {
+			display: none;
+		}
 	}
 	&-confirm {
 		text-align: center;

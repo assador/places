@@ -27,7 +27,7 @@
 				:settings="{
 					...mapCenter,
 					draggable: true,
-					onDragEnd: e => updateState({ coords: e.reverse() }),
+					onDragEnd: e => updateState({ coords: e.toReversed() }),
 				}"
 				:visible="mainStore.centerMarkerShow"
 			>
@@ -46,7 +46,7 @@
 				<yandex-map-marker
 					v-for="place in computedPlaces"
 					:key="place.key"
-					v-model="markers[place.id]"
+					v-model="placeMarkers[place.id]"
 					:settings="{
 						coordinates: [
 							mainStore.points[place.pointid].longitude,
@@ -58,6 +58,7 @@
 							dragging = false;
 							markerDragEnd(place.pointid, coords);
 						},
+						onDragMove: e => moveMarker(e, place.pointid),
 					}"
 					:visible="place.show && place.geomark"
 					class="place"
@@ -97,7 +98,7 @@
 				<yandex-map-marker
 					v-for="place in computedCommonPlaces"
 					:key="place.key"
-					v-model="markers[place.id]"
+					v-model="placeMarkers[place.id]"
 					:settings="{
 						coordinates: [
 							mainStore.points[place.pointid].longitude,
@@ -144,32 +145,30 @@
 					:key="route.id"
 				>
 					<yandex-map-feature
-						v-model="routeLineRefs[route.id]"
+						v-model="routeFeauterRefs[route.id]"
 						:settings="{
 							geometry: {
 								type: 'LineString',
 								coordinates: mainStore.getPointsCoords(
 									route.points.map(p => p.id) ?? []
-								).map(coords => coords.reverse()) as unknown as LngLat[],
+								).map(coords => coords.toReversed()) as unknown as LngLat[],
 							},
 							style: {
 								stroke: [{
 									color: '#000000',
-									width: route.id === mainStore.currentRouteId
-										? 0.6 : 0.3
-									,
-								}]
+									width: route.id === mainStore.currentRouteId ? 0.6 : 0.3,
+								}],
 							}
 						}"
 					/>
 					<yandex-map-feature
-						v-model="routeLineForEventRefs[route.id]"
+						v-model="routeFeauterForEventRefs[route.id]"
 						:settings="{
 							geometry: {
 								type: 'LineString',
 								coordinates: mainStore.getPointsCoords(
 									route.points.map(p => p.id) ?? []
-								).map(coords => coords.reverse()) as unknown as LngLat[],
+								).map(coords => coords.toReversed()) as unknown as LngLat[],
 							},
 							style: {
 								stroke: [{
@@ -185,11 +184,11 @@
 						}"
 					/>
 					<template
-						v-for="point in route.computedRoutePoints"
+						v-for="(point, index) in route.computedRoutePoints"
 						:key="point.idx"
 					>
 						<yandex-map-marker
-							v-model="markers[point.id]"
+							v-model="routePointMarkers[point.id]"
 							:settings="{
 								coordinates: [
 									point.longitude,
@@ -201,26 +200,7 @@
 									dragging = false;
 									markerDragEnd(point.id, coords);
 								},
-								onDragMove: e => {
-									const lineInstance = routeLineRefs[route.id];
-									if (lineInstance && lineInstance.geometry) {
-										const coords = [
-											...lineInstance.geometry.coordinates
-										];
-										const pointIndex = route.points.findIndex(
-											p => p.id === point.id
-										);
-										if (pointIndex !== -1) {
-											coords[pointIndex] = [ e[0], e[1] ];
-											lineInstance.update({
-												geometry: {
-													type: 'LineString',
-													coordinates: coords as LngLat[],
-												},
-											});
-										}
-									}
-								},
+								onDragMove: e => moveMarker(e, point.id, route.id, index),
 							}"
 							:visible="
 								mainStore.tempsShow.show &&
@@ -280,32 +260,31 @@
 			">
 				<yandex-map-feature
 					v-if="mainStore.measure.points.length > 1"
-					v-model="routeLineRefs['measureId']"
+					v-model="routeFeauterRefs['measureId']"
 					:settings="{
 						geometry: {
 							type: 'LineString',
 							coordinates: mainStore.getPointsCoords(
 								mainStore.measure.points.map(p => p.id) ?? []
-							).map(coords => coords.reverse()) as unknown as LngLat[],
+							).map(coords => coords.toReversed()) as unknown as LngLat[],
 						},
 						style: {
 							stroke: [{
 								color: '#000000',
-								width: 0.6
-								,
-							}]
+								width: 0.6,
+							}],
 						}
 					}"
 				/>
 				<yandex-map-feature
 					v-if="mainStore.measure.points.length > 1"
-					v-model="routeLineForEventRefs['measureId']"
+					v-model="routeFeauterForEventRefs['measureId']"
 					:settings="{
 						geometry: {
 							type: 'LineString',
 							coordinates: mainStore.getPointsCoords(
 								mainStore.measure.points.map(p => p.id) ?? []
-							).map(coords => coords.reverse()) as unknown as LngLat[],
+							).map(coords => coords.toReversed()) as unknown as LngLat[],
 						},
 						style: {
 							stroke: [{
@@ -326,7 +305,7 @@
 					:key="fat.key"
 				>
 					<yandex-map-marker
-						v-model="markers[fat.point.id]"
+						v-model="measurePointMarkers[fat.point.id]"
 						:settings="{
 							coordinates: [
 								fat.point.longitude,
@@ -338,21 +317,7 @@
 								dragging = false;
 								markerDragEnd(fat.point.id, coords);
 							},
-							onDragMove: e => {
-								const lineInstance = routeLineRefs['measureId'];
-								if (lineInstance && lineInstance.geometry) {
-									const coords = [
-										...lineInstance.geometry.coordinates
-									];
-										coords[fat.index] = [ e[0], e[1] ];
-										lineInstance.update({
-											geometry: {
-												type: 'LineString',
-												coordinates: coords as LngLat[],
-											},
-										});
-								}
-							},
+							onDragMove: e => moveMarker(e, fat.point.id, 'measureId', fat.index),
 						}"
 						:visible="fat.point.show"
 						@click.stop.prevent="(e: PointerEvent) => {
@@ -404,7 +369,7 @@
 					:key="fat.key"
 				>
 					<yandex-map-marker
-						v-model="markers[fat.point.id]"
+						v-model="tempPointMarkers[fat.point.id]"
 						:settings="{
 							coordinates: [
 								fat.point.longitude,
@@ -492,10 +457,28 @@ import type {
 const mainStore = useMainStore();
 
 const map = shallowRef<YMap | null>(null);
-const markers = shallowRef<Record<string, YMapMarker | null>>({});
+const placeMarkers = shallowRef<Record<string, YMapMarker | null>>({});
+const routePointMarkers = shallowRef<Record<string, YMapMarker | null>>({});
+const measurePointMarkers = shallowRef<Record<string, YMapMarker | null>>({});
+const tempPointMarkers = shallowRef<Record<string, YMapMarker | null>>({});
 const markerCenter = shallowRef<YMapMarker | null>(null);
-const routeLineRefs = ref<Record<string, YMapFeature | null>>({});
-const routeLineForEventRefs = ref<Record<string, YMapFeature | null>>({});
+const routeFeauterRefs = ref<Record<string, YMapFeature | null>>({});
+const routeFeauterForEventRefs = ref<Record<string, YMapFeature | null>>({});
+
+const routeLineRefs = computed(() => {
+	const refs: Record<string, { element: YMapFeature | null, pointIds: string[] }> = {};
+	for (const id in routeFeauterRefs.value) {
+		refs[id] = {
+			element: routeFeauterRefs.value[id],
+			pointIds: id === 'measureId'
+				? mainStore.measure.points.map(p => p.id)
+				: mainStore.routes[id].points.map(p => p.id)
+			,
+		}
+	}
+	return refs;
+});
+
 createYmapsOptions({ apikey: 'f81dd454-9378-4883-86ae-c84eb24d72d6' });
 
 const mapCenter = computed(() => ({
@@ -535,6 +518,44 @@ const computedRoutes = computed(() => {
 });
 
 const dragging = ref(false);
+
+const pointToLinesMap = computed(() => {
+	const mapping: Record<string, { lineId: string; index: number }[]> = {};
+	for (const [lineId, refData] of Object.entries(routeLineRefs.value)) {
+		refData.pointIds.forEach((pId, idx) => {
+			if (!mapping[pId]) mapping[pId] = [];
+			mapping[pId].push({ lineId, index: idx });
+		});
+	}
+	return mapping;
+});
+const moveMarker = (e: any, pointId: string, lineId?: string, pointIndex?: number) => {
+	const updatePolyline = (lId: string, pIdx: number) => {
+		const polyline = routeFeauterRefs.value[lId];
+		if (polyline && polyline.geometry) {
+			const coords = [ ...polyline.geometry.coordinates ];
+				coords[pIdx] = [ e[0], e[1] ];
+				polyline.update({
+					geometry: {
+						type: 'LineString',
+						coordinates: coords as LngLat[],
+					},
+				});
+		}
+	};
+	if (lineId !== undefined && pointIndex !== undefined) {
+		updatePolyline(lineId, pointIndex);
+		placeMarkers.value[pointId]?.update({ coordinates: [ e[0], e[1] ] })
+	} else {
+		const targets = pointToLinesMap.value[pointId];
+		if (targets) {
+			targets.forEach(target => updatePolyline(target.lineId, target.index));
+		}
+		routePointMarkers.value[pointId]?.update({ coordinates: [ e[0], e[1] ] })
+		measurePointMarkers.value[pointId]?.update({ coordinates: [ e[0], e[1] ] })
+		tempPointMarkers.value[pointId]?.update({ coordinates: [ e[0], e[1] ] })
+	}
+};
 
 // SEC Right clicks
 
@@ -614,7 +635,7 @@ const markerDragEnd = async (pointId: string, coords: LngLat) => {
 const addPointToRoute = (route: Route | Measure, coordinates: any) => {
 	const routePointCoordinates =
 		mainStore.getPointsCoords(route.points.map(p => p.id) ?? [])
-			.map(coords => coords.reverse())
+			.map(coords => coords.toReversed())
 	;
 	let minDistance = Infinity;
 	let segmentIndex = -1;
@@ -641,7 +662,7 @@ const addPointToRoute = (route: Route | Measure, coordinates: any) => {
 		index: segmentIndex + 1,
 	});
 };
-const updateState = (payload?: { coords?: Array<number>, zoom?: number }) => {
+const updateState = (payload?: { coords?: number[], zoom?: number }) => {
 	mainStore.updateMap({
 		latitude: Number(
 			payload && payload.coords

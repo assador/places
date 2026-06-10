@@ -55,7 +55,7 @@ const props = withDefaults(defineProps<IPlacesPopupImageProps>(), {
 	imageId: '',
 });
 
-const images = ref([] as Array<Image>);
+const images = ref([] as Image[]);
 const image = ref({} as Image);
 
 const prevOver = ref(false);
