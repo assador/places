@@ -1,4 +1,5 @@
 import api from '@/api';
+import { Point } from '@/types';
 
 const FALLBACK_API = (lat: number, lon: number) =>
 	`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lon}`;
@@ -36,5 +37,19 @@ export const serviceActions = {
 		const fallbackUrl = FALLBACK_API(lat, lon);
 		alt = await fetchAltitude(fallbackUrl, parseOpenElevation);
 		return alt;
-	}
+	},
+	async setPointAltitude (entity: Point): Promise<void> {
+		const id = entity.id;
+		const lat = entity.latitude;
+		const lng = entity.longitude;
+		this.getAltitude(lat, lng)
+			.then((alt: number | null) => {
+				if (alt === null) return;
+				const point = this.getPointById(id);
+				if (!point) return;
+				if (point.latitude === lat && point.longitude === lng) point.altitude = alt;
+			})
+			.catch(() => {})
+		;
+	},
 };

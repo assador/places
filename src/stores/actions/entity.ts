@@ -239,13 +239,7 @@ export const entityActions = {
 				this.newEntityPointId = point.id;
 				break;
 		}
-		if (point.altitude === null) {
-			this.getAltitude(point.latitude, point.longitude)
-				.then((alt: number) => {
-					point.altitude = alt;
-				})
-			;
-		}
+		if (point.altitude === null) this.setPointAltitude(point);
 		if (!silent) {
 			this.saved = false;
 			this.backupState();
@@ -710,6 +704,12 @@ export const entityActions = {
 	async changePoint(
 		{ entity, change }: { entity: Point; change: Partial<Point>; }
 	) {
+		Object.assign(entity, change);
+		entity.updated = true;
+		if (this.newEntityPointId === entity.id) this.newEntityPointId = null;
+		this.saved = false;
+		this.backupState();
+
 		const coordsChanged =
 			Object.hasOwn(change, 'latitude') ||
 			Object.hasOwn(change, 'longitude')
@@ -718,27 +718,7 @@ export const entityActions = {
 			entity.altitude === null ||
 			entity.altitude === undefined
 		;
-		Object.assign(entity, change);
-		entity.updated = true;
-		if (this.newEntityPointId === entity.id) {
-			this.newEntityPointId = null;
-		}
-		this.saved = false;
-		this.backupState();
-
-		if (coordsChanged || altitudeMissing) {
-			const latAtRequest = entity.latitude;
-			const lngAtRequest = entity.longitude;
-			this.getAltitude(latAtRequest, lngAtRequest)
-				.then((altitude: number) => {
-					const pointChanged =
-						latAtRequest !== entity.latitude ||
-						lngAtRequest !== entity.longitude
-					;
-					if (!pointChanged) entity.altitude = altitude;
-				})
-				.catch(() => {});
-		}
+		if (coordsChanged || altitudeMissing) this.setPointAltitude(entity);
 	},
 	changePlace(
 		{ entity, change }: { entity: Place; change: Partial<Place>; }
@@ -782,7 +762,7 @@ export const entityActions = {
 		param: T,
 		center?: boolean,
 	) {
-		let point = null;
+		let point: Point;
 		if (typeof param === 'string') {
 			point = this.getPointById(param) ?? null;
 		} else {
@@ -790,11 +770,7 @@ export const entityActions = {
 		}
 		this.currentPointId = point?.id;
 		if (!point) return;
-		if (point.altitude === null) {
-			this.getAltitude(point.latitude, point.longitude)
-				.then((alt: number) => point.altitude = alt)
-			;
-		}
+		if (point.altitude === null) this.setPointAltitude(point);
 		let index: number;
 		if (this.currentRouteId) {
 			index = this.currentRoute.points.map((p: PointDescription) => p.id).indexOf(point.id);
