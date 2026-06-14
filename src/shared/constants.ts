@@ -1,5 +1,5 @@
 export const constants = {
-	version: 'v6.5.1 beta',
+	version: 'v6.5.2 beta',
 	shortcuts: {
 		Digit1 : 'normal mode',
 		Digit2 : 'routes mode',
@@ -45,21 +45,21 @@ export const constants = {
 	sidebars: {
 		top    : { act: 95, min: 0, max: Infinity },
 		right  : { act: 250, min: 0, max: Infinity },
-		bottom : { act: 57, min: 0, max: Infinity },
+		bottom : { act: 58, min: 0, max: Infinity },
 		left   : { act: 250, min: 0, max: Infinity },
 		center : { min: 200 },
 	},
 	sidebarsCompact: {
 		top    : { act: 80, min: 0, max: Infinity },
 		right  : { act: 200, min: 0, max: Infinity },
-		bottom : { act: 95, min: 0, max: Infinity },
+		bottom : { act: 54, min: 0, max: Infinity },
 		left   : { act: 200, min: 0, max: Infinity },
 		center : { min: 200 },
 	},
 	sidebarsCompactUltra: {
 		top    : { act: 80, min: 0, max: Infinity },
 		right  : { act: 0, min: 0, max: Infinity },
-		bottom : { act: 95, min: 0, max: Infinity },
+		bottom : { act: 54, min: 0, max: Infinity },
 		left   : { act: 0, min: 0, max: Infinity },
 		center : { min: 200 },
 	},

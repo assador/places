@@ -14,9 +14,16 @@
 			:style="!cells.top || !cells.left || !sidebarSizes.top.act || !sidebarSizes.left.act ? { display: 'none' } : null"
 		>
 			<div
+				v-if="common.compact !== 2"
 				class="basic-action-buttons action-buttons"
-				id="top-left__control-buttons-left"
-			/>
+			>
+				<div class="control-buttons">
+					<ControlsRadios />
+				</div>
+				<div class="control-buttons mode-buttons">
+					<ControlsMode />
+				</div>
+			</div>
 		</div>
 
 <!-- SEC Top-Basic -->
@@ -28,14 +35,23 @@
 			:style="!cells.top || !sidebarSizes.top.act ? { display: 'none' } : null"
 		>
 			<Header />
-			<div
-				class="basic-action-buttons action-buttons"
-				id="top-basic__control-buttons-top-left"
-			/>
-			<div
-				class="basic-action-buttons action-buttons"
-				id="top-basic__control-buttons-top-right"
-			/>
+			<div class="basic-action-buttons action-buttons">
+				<div
+					v-if="common.compact === 2"
+					class="control-buttons"
+				>
+					<ControlsRadios />
+					<ControlsMarkers />
+				</div>
+			</div>
+			<div class="basic-action-buttons action-buttons">
+				<div
+					v-if="common.compact === 2"
+					class="control-buttons"
+				>
+					<ControlsCommon />
+				</div>
+			</div>
 		</div>
 
 <!-- SEC Top-Right -->
@@ -46,9 +62,13 @@
 			:style="!cells.top || !cells.right || !sidebarSizes.top.act || !sidebarSizes.right.act ? { display: 'none' } : null"
 		>
 			<div
+				v-if="common.compact !== 2"
 				class="basic-action-buttons action-buttons"
-				id="top-right__control-buttons-right"
-			/>
+			>
+				<div class="control-buttons">
+					<ControlsCommon />
+				</div>
+			</div>
 		</div>
 
 <!-- SEC Basic-Left -->
@@ -255,10 +275,12 @@
 			class="app-cell"
 			:style="!cells.bottom || !cells.left || !sidebarSizes.bottom.act || !sidebarSizes.left.act ? { display: 'none' } : null"
 		>
-			<div
-				class="basic-action-buttons action-buttons"
-				id="bottom-left__control-buttons-bottom"
-			/>
+			<div class="basic-action-buttons action-buttons">
+				<div class="control-buttons">
+					<ControlsGeolocation v-if="common.compact === 0" />
+					<ControlsMarkers v-if="common.compact === 0" />
+				</div>
+			</div>
 		</div>
 
 <!-- SEC Bottom-Basic -->
@@ -269,12 +291,27 @@
 			:style="!cells.bottom || !sidebarSizes.bottom.act ? { display: 'none' } : null"
 		>
 			<div
+				v-if="common.compact > 0"
 				class="basic-action-buttons action-buttons"
-				id="bottom-basic__control-buttons-bottom"
-			/>
-			<div id="bottom-choose-map">
+				id="controls-mode"
+			>
+				<div class="control-buttons">
+					<ControlsMode v-if="common.compact === 2" />
+					<ControlsGeolocation v-if="common.compact === 1" />
+					<ControlsMarkers v-if="common.compact === 1" />
+				</div>
+			</div>
+			<div
+				v-if="common.compact === 2"
+				class="basic-action-buttons action-buttons"
+				id="controls-geolocation"
+			>
+				<div class="control-buttons">
+					<ControlsGeolocation />
+				</div>
+			</div>
+			<div id="controls-choosemap">
 				<select
-					id="choose-map-input"
 					:title="mainStore.t.i.hints.mapProvider"
 					@change="e => mainStore.activeMapIndex = (e.currentTarget as HTMLSelectElement).selectedIndex"
 				>
@@ -288,7 +325,25 @@
 					</option>
 				</select>
 			</div>
-			<div id="bottom-center-coordinates">
+			<div
+				v-if="common.compact === 2"
+				class="action-buttons"
+				id="controls-expand"
+			>
+				<div class="control-buttons">
+					<button
+						class="action-button"
+						:title="mainStore.t.i.hints.hideCells"
+						@click="hideCells"
+					>
+						<span class="icon icon-expand" />
+					</button>
+				</div>
+			</div>
+			<div
+				v-if="common.compact !== 2"
+				id="bottom-center-coordinates"
+			>
 				<span class="imp">
 					{{ mainStore.t.i.captions.center }}:
 				</span>
@@ -311,7 +366,11 @@
 					<span>°E</span>
 				</span>
 			</div>
-			<span id="bottom-donate" class="nobr">
+			<span
+				v-if="common.compact !== 2"
+				id="bottom-donate"
+				class="nobr"
+			>
 				<button
 					@click="popupDonate.show = !popupDonate.show"
 				>
@@ -345,38 +404,8 @@
 				</template>
 			</Popup>
 		</div>
-		<div id="ui-buttons-left">
-			<button
-				class="action-button"
-				:title="mainStore.t.i.hints.getLocation"
-				@click="geoLocation.centerTo()"
-			>
-				<span class="icon icon-center-net" />
-			</button>
-			<button
-				class="action-button"
-				:disabled="mainStore.mode === 'routes' && !mainStore.currentRoute"
-				:title="
-					`${mainStore.t.i.hints.getLocation}. ` +
-					`${mainStore.t.i.hints[mainStore.mode === 'normal' ? 'addPlace' : 'addPoint']}.`
-				"
-				@click="async () => {
-					await mainStore.upsertEntityWithCurrentLocation(mainStore.mode);
-					if (mainStore.mode === 'normal') focusCurrent(currentPlaceNameInputRef);
-				}"
-			>
-				<span class="icon icon-plus-net" />
-			</button>
-		</div>
+		<div id="ui-buttons-left" />
 		<div id="ui-buttons-right">
-			<button
-				v-if="common.compact === 2"
-				class="action-button"
-				:title="mainStore.t.i.hints.hideCells"
-				@click="hideCells"
-			>
-				<span class="icon icon-expand" />
-			</button>
 			<button
 				v-if="common.compact !== 2"
 				class="action-button basic-on-full"
@@ -476,282 +505,6 @@
 		</transition>
 	</Teleport>
 
-<!-- SEC Controls Top-Left -->
-
-	<Teleport :to="common.compact === 2
-		? '#top-basic__control-buttons-top-left'
-		: '#top-left__control-buttons-left'
-	">
-		<div class="control-buttons">
-			<button
-				id="actions-places"
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.placesShow.show }"
-				:title="mainStore.t.i.captions.places"
-				accesskey="p"
-				@click="() => mainStore.placesShow.show = !mainStore.placesShow.show"
-			>
-				<span class="icon icon-geomark-1" />
-				<span>{{ mainStore.t.i.buttons.places }}</span>
-			</button>
-			<button
-				id="actions-routes"
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.routesShow.show }"
-				:title="mainStore.t.i.captions.routes"
-				accesskey="t"
-				@click="() => mainStore.routesShow.show = !mainStore.routesShow.show"
-			>
-				<span class="icon icon-route" />
-				<span>{{ mainStore.t.i.buttons.routes }}</span>
-			</button>
-			<button
-				id="actions-points"
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.tempsShow.show }"
-				:title="mainStore.t.i.buttons.pointsTemporary"
-				accesskey="t"
-				@click="() => mainStore.tempsShow.show = !mainStore.tempsShow.show"
-			>
-				<span class="icon icon-geomark-3" />
-				<span>{{ mainStore.t.i.buttons.points }}</span>
-			</button>
-			<button
-				id="actions-range"
-				class="action-button actions-button_bigger"
-				:class="{ 'button-pressed': mainStore.rangeShow }"
-				:title="mainStore.t.i.buttons.range"
-				accesskey="r"
-				@click="() => {
-					mainStore.rangeShow = !mainStore.rangeShow;
-					mainStore.rangeShow
-						? mainStore.showInRange(mainStore.range)
-						: mainStore.showInRange(null)
-				}"
-			>
-				<span class="icon icon-compas" />
-				<span>{{ mainStore.t.i.buttons.range }}</span>
-			</button>
-			<button
-				id="actions-edit-folders"
-				class="action-button"
-				:class="{ 'button-pressed': common.folderEditability }"
-				:title="mainStore.t.i.hints.editFolders"
-				accesskey="c"
-				@click="common.toggleFolderEditability"
-			>
-				<span class="icon icon-empty icon-empty-small">A|</span>
-				<span>{{ mainStore.t.i.buttons.editFolders }}</span>
-			</button>
-		</div>
-		<div class="control-buttons mode-buttons">
-			<button
-				id="mode-normal"
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.mode === 'normal' }"
-				:title="mainStore.t.i.captions.modeNormal"
-				accesskey="m"
-				@click="changeMode('normal')"
-			>
-				<span class="icon icon-cross" />
-				<span>{{ mainStore.t.i.buttons.normal }}</span>
-			</button>
-			<button
-				id="mode-routes"
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.mode === 'routes' }"
-				:title="mainStore.t.i.captions.modeRoutes"
-				accesskey="m"
-				@click="changeMode('routes')"
-			>
-				<span class="icon icon-route" />
-				<span>{{ mainStore.t.i.buttons.routes }}</span>
-			</button>
-			<button
-				id="mode-measure"
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.mode === 'measure' }"
-				:title="mainStore.t.i.captions.modeMeasure"
-				accesskey="m"
-				@click="changeMode('measure')"
-			>
-				<span class="icon icon-ruler" />
-				<span>{{ mainStore.t.i.buttons.measure }}</span>
-			</button>
-		</div>
-	</Teleport>
-
-<!-- SEC Controls Top-Right -->
-
-	<Teleport :to="common.compact === 2
-		? '#top-basic__control-buttons-top-right'
-		: '#top-right__control-buttons-right'
-	">
-		<div class="control-buttons">
-			<input
-				id="import-from-file-input"
-				ref="importFromFileInput"
-				name="jsonFile"
-				type="file"
-				accept=".json,.gpx,text/xml,application/json"
-				@change="importFromFile();"
-			/>
-			<button
-				id="actions-undo"
-				:disabled="mainStore.stateBackupsIndex < 1"
-				class="action-button"
-				:title="mainStore.t.i.hints.undo"
-				accesskey="z"
-				@click="mainStore.undo();"
-			>
-				<span class="icon icon-undo" />
-				<span>{{ mainStore.t.i.buttons.undo }}</span>
-			</button>
-			<button
-				id="actions-redo"
-				:disabled="mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1"
-				class="action-button"
-				:title="mainStore.t.i.hints.redo"
-				accesskey="y"
-				@click="mainStore.redo();"
-			>
-				<span class="icon icon-redo" />
-				<span>{{ mainStore.t.i.buttons.redo }}</span>
-			</button>
-			<button
-				id="actions-save"
-				class="action-button"
-				:class="{ 'button-pressed': !mainStore.saved }"
-				:disabled="mainStore.saved"
-				:title="
-					(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') +
-					mainStore.t.i.hints.saveToDb
-				"
-				accesskey="s"
-				@click="() => {
-					if (mainStore.user.testaccount) {
-						mainStore.setMessage(mainStore.t.m.popup.testOnSave, 8);
-					}
-					db.saveAll();
-				}"
-			>
-				<span class="icon icon-save" />
-				<span>{{ mainStore.t.i.buttons.save }}</span>
-			</button>
-			<button
-				id="actions-install"
-				class="action-button"
-				:title="mainStore.t.i.hints.install"
-				:disabled="!installPWAEnabled"
-				@click="installPWA"
-			>
-				<span class="icon icon-save" />
-				<span>{{ mainStore.t.i.buttons.install }}</span>
-			</button>
-			<button
-				id="actions-import"
-				class="action-button"
-				:title="mainStore.t.i.hints.importPlaces"
-				accesskey="i"
-				@click="importFromFileInput.click()"
-			>
-				<span class="icon icon-import" />
-				<span>{{ mainStore.t.i.buttons.import }}</span>
-			</button>
-			<button
-				id="actions-export"
-				class="action-button"
-				:title="mainStore.t.i.hints.exportPlaces"
-				accesskey="e"
-				@click="router.push({ name: 'HomeExport' })"
-			>
-				<span class="icon icon-export" />
-				<span>{{ mainStore.t.i.buttons.export }}</span>
-			</button>
-			<button
-				id="actions-about"
-				class="action-button"
-				:title="mainStore.t.i.hints.about"
-				accesskey="h"
-				@click="
-					router.push({
-						name: 'HomeText',
-						params: { what: 'about' },
-					});
-				"
-			>
-				<span class="icon icon-empty">?</span>
-				<span>{{ mainStore.t.i.buttons.help }}</span>
-			</button>
-			<button
-				id="actions-exit"
-				class="action-button"
-				:title="mainStore.t.i.hints.exit"
-				accesskey="q"
-				@click="() => {
-					$nextTick(async () => {
-						if (await logout()) router.push({ name: 'Auth' });
-					});
-				}"
-			>
-				<span class="icon icon-exit" />
-				<span>{{ mainStore.t.i.buttons.exit }}</span>
-			</button>
-		</div>
-	</Teleport>
-
-<!-- SEC Controls Bottom-Left -->
-
-	<Teleport :to="common.compact > 0
-		? '#bottom-basic__control-buttons-bottom'
-		: '#bottom-left__control-buttons-bottom'
-	">
-		<div class="control-buttons">
-			<button
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.markersShow }"
-				:title="mainStore.t.i.hints.shMarkers"
-				@click="mainStore.markersShowHide()"
-			>
-				<span class="icon icon-geomark-1" />
-			</button>
-<!--
-			<button
-				class="action-button"
-				:class="{ 'button-pressed': commonPlacesShow }"
-				:title="mainStore.t.i.hints.shCommonPlaces"
-				@click="commonPlacesShowHide();"
-			>
-				<span class="icon icon-geomark-3" />
-			</button>
-			<button
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.commonMarkersShow }"
-				:title="mainStore.t.i.hints.shCommonMarkers"
-				@click="mainStore.commonMarkersShowHide()"
-			>
-				<span class="icon icon-geomark-2" />
-			</button>
-			<button
-				class="action-button"
-				:class="{ 'button-pressed': commonRoutesShow }"
-				:title="mainStore.t.i.hints.shCommonRoutes"
-				@click="commonRoutesShowHide();"
-			>
-				<span class="icon icon-circle" />
-			</button>
--->
-			<button
-				class="action-button"
-				:class="{ 'button-pressed': mainStore.centerMarkerShow }"
-				:title="mainStore.t.i.hints.shCenter"
-				@click="mainStore.centerMarkerShowHide()"
-			>
-				<span class="icon icon-circle-circle" />
-			</button>
-		</div>
-	</Teleport>
-
 <!-- SEC Measure Value -->
 
 	<Popup
@@ -820,7 +573,6 @@ import {
 import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { useGeolocation } from '@/services/geolocation';
 
 import * as db from '@/services/db';
 import { common, setBusy } from '@/services/common';
@@ -843,6 +595,12 @@ import Popup from '@/components/popups/Popup.vue';
 import PopupEntityMenu from '@/components/popups/PopupEntityMenu.vue';
 import PopupPointInfo from '@/components/popups/PopupPointInfo.vue';
 
+import ControlsCommon from '@/components/controls/ControlsCommon.vue';
+import ControlsMode from '@/components/controls/ControlsMode.vue';
+import ControlsRadios from '@/components/controls/ControlsRadios.vue';
+import ControlsMarkers from '@/components/controls/ControlsMarkers.vue';
+import ControlsGeolocation from '@/components/controls/ControlsGeolocation.vue';
+
 const maps = [
 	{
 		name: 'OpenStreetMap',
@@ -860,9 +618,6 @@ const maps = [
 ];
 const mainStore = useMainStore();
 const router = useRouter();
-const geoLocation = useGeolocation();
-
-const { installPWAEnabled, installPWA } = inject('pwa') as any;
 
 const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
@@ -907,6 +662,7 @@ const showMap = ref(true);
 provide('showMap', showMap);
 
 const importFromFileInput = ref<HTMLInputElement | null>(null);
+provide('importFromFileInput', importFromFileInput);
 const commonPlacesPagesCount = ref(0);
 const commonRoutesPage = ref(1);
 provide('commonRoutesPage', commonRoutesPage);
@@ -915,6 +671,28 @@ const commonRoutesOnPageCount = ref(constants.commonroutesonpagecount);
 provide('commonRoutesOnPageCount', commonRoutesOnPageCount);
 const commonPlacesShow = ref(false);
 const commonRoutesShow = ref(false);
+
+const changeMode = (mode: string): void => {
+	switch (mode) {
+		case 'normal':
+			mainStore.mode = 'normal';
+			mainStore.measure.show = false;
+			mainStore.placesShow.show = true;
+			if (mainStore.placesShow.first) mainStore.placesShow.first = false;
+			break;
+		case 'routes':
+			mainStore.mode = 'routes';
+			mainStore.measure.show = false;
+			mainStore.routesShow.show = true;
+			if (mainStore.routesShow.first) mainStore.routesShow.first = false;
+			break;
+		case 'measure':
+			mainStore.mode = 'measure';
+			mainStore.measure.show = true;
+			break;
+	}
+};
+provide('changeMode', changeMode);
 
 const focusCurrent = async (input: HTMLElement | null) => {
 	if (!input) return;
@@ -1011,26 +789,6 @@ watch(() => mainStore.currentRouteId, () => {
 	mainStore.openTreeToCurrent(mainStore.currentRoute)
 });
 
-const changeMode = (mode: string): void => {
-	switch (mode) {
-		case 'normal':
-			mainStore.mode = 'normal';
-			mainStore.measure.show = false;
-			mainStore.placesShow.show = true;
-			if (mainStore.placesShow.first) mainStore.placesShow.first = false;
-			break;
-		case 'routes':
-			mainStore.mode = 'routes';
-			mainStore.measure.show = false;
-			mainStore.routesShow.show = true;
-			if (mainStore.routesShow.first) mainStore.routesShow.first = false;
-			break;
-		case 'measure':
-			mainStore.mode = 'measure';
-			mainStore.measure.show = true;
-			break;
-	}
-};
 const commonPlacesShowHide = (show: boolean | null = null): void => {
 	commonPlacesShow.value =
 		show === null
@@ -1041,23 +799,6 @@ const commonPlacesShowHide = (show: boolean | null = null): void => {
 };
 provide('commonPlacesShowHide', commonPlacesShowHide);
 
-const importFromFile = async () => {
-	const input = importFromFileInput.value as HTMLInputElement;
-	const file = input.files[0] ?? null;
-	if (!file) return;
-	const mime = file.type;
-	if (mime !== 'application/json' && mime !== 'application/gpx+xml') {
-		mainStore.setMessage(mainStore.t.m.popup.invalidImportFileType);
-		return;
-	}
-	const reader = new FileReader();
-	reader.onload = async (event: ProgressEvent<FileReader>) => {
-		await nextTick();
-		mainStore.addImported({ mime, text: event.target?.result as string });
-		input.value = '';
-	};
-	reader.readAsText(file);
-};
 const uploadFiles = async (
 	event: Event,
 	target: Place | Route,
@@ -1234,6 +975,7 @@ watch(() => common.compact, (valNew, valOld) => {
 	(Object.keys(cells.value) as Array<keyof typeof cells.value>).forEach(key => {
 		cells.value[key] = valNew !== 2;
 	});
+	cells.value.bottom = true;
 	if (valOld === 2 && valNew < 2) {
 		windowResize();
 	}
@@ -1370,46 +1112,15 @@ const selectPlaces = (text: string): void => {
 	gap: 8px;
 	align-items: stretch;
 }
-.icon {
-	&, &::before {
-		display: block;
-	}
-	&-empty {
-		display: flex;
-		width: 100%;
-		align-items: center;
-		justify-content: center;
-		font-size: 20px;
-	}
-	&-empty-small {
-		font-size: 15px;
-	}
-	&-compas {
-		transform: rotate(45deg);
-	}
-}
 .basic-action-buttons {
 	flex-direction: column;
 	flex: 1 1 calc(20% - 16px);
+	align-self: stretch;
 	.control-buttons {
 		flex-grow: 1;
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
 		gap: 8px;
-	}
-	.action-button {
-		display: flex;
-		flex-flow: column nowrap;
-		gap: 4px;
-		align-items: center;
-		justify-content: center;
-		min-width: 0;
-		padding: 2px 0 0 0;
-	}
-	.icon {
-		&, &::before {
-			width: 15px; height: 15px;
-		}
 	}
 }
 .mode-buttons {

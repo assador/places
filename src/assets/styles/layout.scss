@@ -56,6 +56,9 @@
 	min-height: 0;
 	overflow: auto;
 }
+#top-basic {
+	overflow: visible;
+}
 #basic-basic {
 	overflow: hidden;
 }
@@ -77,7 +80,7 @@
 	display: grid;
 	grid-template-columns: auto 1fr auto;
 	grid-template-areas:
-		"bottom-choose-map  bottom-center-coordinates"
+		"controls-choosemap  bottom-center-coordinates"
 	;
 	gap: 12px;
 	align-items: baseline;
@@ -93,8 +96,8 @@
 		grid-area: bottom-basic__control-buttons-bottom;
 		display: none;
 	}
-	#bottom-choose-map {
-		grid-area: bottom-choose-map;
+	#controls-choosemap {
+		grid-area: controls-choosemap;
 	}
 	#bottom-center-coordinates {
 		grid-area: bottom-center-coordinates;
@@ -126,10 +129,10 @@
 	.header {
 		grid-area: top-basic-header;
 	}
-	#top-basic__control-buttons-top-left {
+	#top-basic__control-buttons-left {
 		grid-area: top-basic-buttons-left;
 	}
-	#top-basic__control-buttons-top-right {
+	#top-basic__control-buttons-right {
 		grid-area: top-basic-buttons-right;
 	}
 }
@@ -393,9 +396,9 @@ pre, .pre {
 			display: none;
 		}
 		#bottom-basic {
-			grid-template-columns: 200px auto 1fr auto;
+			grid-template-columns: 150px auto 1fr auto;
 			grid-template-areas:
-				"bottom-basic__control-buttons-bottom  bottom-choose-map  bottom-center-coordinates"
+				"bottom-basic__control-buttons-bottom  controls-choosemap  bottom-center-coordinates"
 			;
 			gap: 12px;
 			#bottom-center-coordinates {
@@ -405,9 +408,6 @@ pre, .pre {
 					width: 1.2em;
 					text-align: left;
 				}
-			}
-			#bottom-basic__control-buttons-bottom {
-				display: flex;
 			}
 		}
 	}
@@ -440,7 +440,7 @@ pre, .pre {
 			display: none;
 		}
 		#basic-left, #basic-right {
-			margin: 20px 20px 44px 20px;
+			margin: 20px;
 		}
 		#ui-buttons-left, #ui-buttons-right {
 			bottom: 0;
@@ -456,14 +456,8 @@ pre, .pre {
 		}
 		#bottom-basic {
 			display: flex;
-			flex-wrap: wrap;
-			align-items: start;
-			* {
-				margin: 0;
-			}
-			> * {
-				flex: 1 1 calc(25% - 24px);
-			}
+			flex-wrap: nowrap;
+			align-items: center;
 			#bottom-center-coordinates {
 				flex-basis: auto;
 				align-items: start;
@@ -472,12 +466,49 @@ pre, .pre {
 					display: none;
 				}
 			}
-			#bottom-choose-map {
+			.control-buttons {
+				display: flex;
+				flex-wrap: nowrap;
+				flex-grow: 1;
+			}
+			#controls-choosemap {
 				flex-grow: 0;
+				min-width: 0;
+				select {
+					min-width: 0;
+					width: 100%;
+				}
 			}
 		}
 	}
 	.popup, .centered {
 		padding: 20px;
+	}
+}
+@media screen and (max-width: 300px) {
+	#grid {
+		#bottom-basic {
+			display: grid;
+			grid-template-columns: auto auto auto auto;
+			grid-template-areas:
+				"controls-mode       controls-mode       controls-mode       controls-geolocation"
+				"controls-choosemap  controls-choosemap  controls-choosemap  controls-expand"
+			;
+			#controls-mode {
+				grid-area: controls-mode;
+			}
+			#controls-geolocation {
+				grid-area: controls-geolocation;
+			}
+			#controls-expand {
+				grid-area: controls-expand;
+			}
+			#controls-choosemap {
+				grid-area: controls-choosemap;
+			}
+			.control-buttons {
+				flex-wrap: wrap;
+			}
+		}
 	}
 }
