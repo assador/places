@@ -89,9 +89,6 @@
 		width: 100px;
 		margin: 2px;
 	}
-	select {
-		margin: 2px;
-	}
 	#bottom-basic__control-buttons-bottom {
 		grid-area: bottom-basic__control-buttons-bottom;
 		display: none;
@@ -396,7 +393,7 @@ pre, .pre {
 			display: none;
 		}
 		#bottom-basic {
-			grid-template-columns: 150px auto 1fr auto;
+			grid-template-columns: 200px auto 1fr auto;
 			grid-template-areas:
 				"bottom-basic__control-buttons-bottom  controls-choosemap  bottom-center-coordinates"
 			;
@@ -492,7 +489,7 @@ pre, .pre {
 			grid-template-columns: auto auto auto auto;
 			grid-template-areas:
 				"controls-mode       controls-mode       controls-mode       controls-geolocation"
-				"controls-choosemap  controls-choosemap  controls-choosemap  controls-expand"
+				"controls-choosemap  controls-choosemap  controls-choosemap  controls-other"
 			;
 			#controls-mode {
 				grid-area: controls-mode;
@@ -500,8 +497,8 @@ pre, .pre {
 			#controls-geolocation {
 				grid-area: controls-geolocation;
 			}
-			#controls-expand {
-				grid-area: controls-expand;
+			#controls-other {
+				grid-area: controls-other;
 			}
 			#controls-choosemap {
 				grid-area: controls-choosemap;

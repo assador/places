@@ -62,17 +62,17 @@
 					}"
 					:visible="place.show && place.geomark"
 					class="place"
-					@click.stop.prevent="(e: PointerEvent) => {
-						mainStore.setCurrentPlace(place, false);
-						if (common.compact === 2) {
-							markerContextMenu(e, mainStore.points[place.pointid]);
-						}
-					}"
+					@click.stop.prevent="mainStore.setCurrentPlace(place, false)"
 					@contextmenu.stop.prevent="(e: PointerEvent) => {
-						if (common.compact === 2 || e.shiftKey) {
+						if (mainStore.mode !== 'normal' && e.shiftKey) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
 							markerContextMenu(e, mainStore.points[place.pointid]);
+						}
+					}"
+					@dblclick.stop.prevent="() => {
+						if (mainStore.mode !== 'normal' && common.compact === 2) {
+							markerAddPoint(mainStore.points[place.pointid]);
 						}
 					}"
 				>
@@ -107,17 +107,17 @@
 						draggable: false,
 					}"
 					:visible="mainStore.commonMarkersShow && place.geomark"
-					@click.stop.prevent="(e: PointerEvent) => {
-						mainStore.setCurrentPoint(mainStore.points[place.pointid]);
-						if (common.compact === 2) {
-							markerContextMenu(e, mainStore.points[place.pointid]);
-						}
-					}"
+					@click.stop.prevent="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
 					@contextmenu.stop.prevent="(e: PointerEvent) => {
-						if (common.compact === 2 || e.shiftKey) {
+						if (mainStore.mode !== 'normal' && e.shiftKey) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
 							markerContextMenu(e, mainStore.points[place.pointid]);
+						}
+					}"
+					@dblclick.stop.prevent="() => {
+						if (mainStore.mode !== 'normal' && common.compact === 2) {
+							markerAddPoint(mainStore.points[place.pointid]);
 						}
 					}"
 				>
@@ -206,17 +206,17 @@
 								mainStore.tempsShow.show &&
 								point.show
 							"
-							@click.stop.prevent="(e: PointerEvent) => {
-								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
-								if (common.compact === 2) {
-									markerContextMenu(e, mainStore.getPointById(point.id));
-								}
-							}"
+							@click.stop.prevent="mainStore.setCurrentPoint(mainStore.getPointById(point.id), false)"
 							@contextmenu.stop.prevent="(e: PointerEvent) => {
-								if (common.compact === 2 || e.shiftKey) {
+								if (mainStore.mode !== 'normal' && e.shiftKey) {
 									markerAddPoint(mainStore.getPointById(point.id));
 								} else {
 									markerContextMenu(e, mainStore.getPointById(point.id));
+								}
+							}"
+							@dblclick.stop.prevent="() => {
+								if (mainStore.mode !== 'normal' && common.compact === 2) {
+									markerAddPoint(mainStore.getPointById(point.id));
 								}
 							}"
 						>
@@ -320,17 +320,17 @@
 							onDragMove: e => moveMarker(e, fat.point.id, 'measureId', fat.index),
 						}"
 						:visible="fat.point.show"
-						@click.stop.prevent="(e: PointerEvent) => {
-							mainStore.setCurrentPoint(fat.point, false);
-							if (common.compact === 2) {
-								markerContextMenu(e, fat.point);
-							}
-						}"
+						@click.stop.prevent="mainStore.setCurrentPoint(fat.point, false)"
 						@contextmenu.stop.prevent="(e: PointerEvent) => {
-							if (common.compact === 2 || e.shiftKey) {
+							if (mainStore.mode !== 'normal' && e.shiftKey) {
 								markerAddPoint(fat.point);
 							} else {
 								markerContextMenu(e, fat.point);
+							}
+						}"
+						@dblclick.stop.prevent="() => {
+							if (mainStore.mode !== 'normal' && common.compact === 2) {
+								markerAddPoint(fat.point);
 							}
 						}"
 					>
@@ -383,17 +383,17 @@
 							},
 						}"
 						:visible="fat.point.show"
-						@click.stop.prevent="(e: PointerEvent) => {
-							mainStore.setCurrentPoint(fat.point, false);
-							if (common.compact === 2) {
-								markerContextMenu(e, fat.point);
-							}
-						}"
+						@click.stop.prevent="mainStore.setCurrentPoint(fat.point, false)"
 						@contextmenu.stop.prevent="(e: PointerEvent) => {
-							if (common.compact === 2 || e.shiftKey) {
+							if (mainStore.mode !== 'normal' && e.shiftKey) {
 								markerAddPoint(fat.point);
 							} else {
 								markerContextMenu(e, fat.point);
+							}
+						}"
+						@dblclick.stop.prevent="() => {
+							if (mainStore.mode !== 'normal' && common.compact === 2) {
+								markerAddPoint(fat.point);
 							}
 						}"
 					>

@@ -49,20 +49,17 @@
 					]"
 					draggable
 					:visible="place.show && place.geomark"
-					@click="(e: any) => {
-						mainStore.setCurrentPlace(place, false);
-						if (common.compact === 2) {
-							markerContextMenu(e, mainStore.points[place.pointid]);
-						}
-					}"
+					@click="mainStore.setCurrentPlace(place, false)"
 					@contextmenu="(e: any) => {
-						if (
-							mainStore.mode !== 'normal' &&
-							(e.originalEvent.shiftKey || common.compact === 2)
-						) {
+						if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
 							markerContextMenu(e, mainStore.points[place.pointid]);
+						}
+					}"
+					@dblclick="() => {
+						if (mainStore.mode !== 'normal' && common.compact === 2) {
+							markerAddPoint(mainStore.points[place.pointid]);
 						}
 					}"
 					@dragstart="dragging = true"
@@ -99,20 +96,17 @@
 							mainStore.points[place.pointid].longitude,
 						]"
 						:visible="place.geomark"
-						@click="(e: any) => {
-							mainStore.setCurrentPoint(mainStore.points[place.pointid], false);
-							if (common.compact === 2) {
-								markerContextMenu(e, mainStore.points[place.pointid]);
-							}
-						}"
+						@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
 						@contextmenu="(e: any) => {
-							if (
-								mainStore.mode !== 'normal' &&
-								(e.originalEvent.shiftKey || common.compact === 2)
-							) {
+							if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 								markerAddPoint(mainStore.points[place.pointid]);
 							} else {
 								markerContextMenu(e, mainStore.points[place.pointid]);
+							}
+						}"
+						@dblclick="() => {
+							if (mainStore.mode !== 'normal' && common.compact === 2) {
+								markerAddPoint(mainStore.points[place.pointid]);
 							}
 						}"
 					>
@@ -196,17 +190,17 @@
 								point.show
 							"
 							draggable
-							@click="(e: any) => {
-								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
-								if (common.compact === 2) {
-									markerContextMenu(e, mainStore.getPointById(point.id));
-								}
-							}"
+							@click="mainStore.setCurrentPoint(mainStore.getPointById(point.id), false)"
 							@contextmenu="(e: any) => {
-								if (common.compact === 2 || e.originalEvent.shiftKey) {
+								if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 									markerAddPoint(mainStore.getPointById(point.id));
 								} else {
 									markerContextMenu(e, mainStore.getPointById(point.id));
+								}
+							}"
+							@dblclick="() => {
+								if (mainStore.mode !== 'normal' && common.compact === 2) {
+									markerAddPoint(mainStore.getPointById(point.id));
 								}
 							}"
 							@dragstart="dragging = true"
@@ -254,17 +248,17 @@
 						:visible="fat.point.show"
 						:z-index-offset="fat.point.id === mainStore.currentPointId ? 10000 : 0"
 						draggable
-						@click="(e: any) => {
-							mainStore.setCurrentPoint(fat.point, false);
-							if (common.compact === 2) {
-								markerContextMenu(e, fat.point);
-							}
-						}"
+						@click="mainStore.setCurrentPoint(fat.point, false)"
 						@contextmenu="(e: any) => {
-							if (common.compact === 2 || e.originalEvent.shiftKey) {
+							if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 								markerAddPoint(fat.point);
 							} else {
 								markerContextMenu(e, fat.point);
+							}
+						}"
+						@dblclick="() => {
+							if (mainStore.mode !== 'normal' && common.compact === 2) {
+								markerAddPoint(fat.point);
 							}
 						}"
 						@dragstart="dragging = true"
@@ -358,17 +352,17 @@
 						:visible="fat.point.show"
 						:z-index-offset="fat.point.id === mainStore.currentPointId ? 10000 : 0"
 						draggable
-						@click="(e: any) => {
-							mainStore.setCurrentPoint(fat.point, false);
-							if (common.compact === 2) {
-								markerContextMenu(e, fat.point);
-							}
-						}"
+						@click="mainStore.setCurrentPoint(fat.point, false)"
 						@contextmenu="(e: any) => {
-							if (common.compact === 2 || e.originalEvent.shiftKey) {
+							if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 								markerAddPoint(fat.point);
 							} else {
 								markerContextMenu(e, fat.point);
+							}
+						}"
+						@dblclick="() => {
+							if (mainStore.mode !== 'normal' && common.compact === 2) {
+								markerAddPoint(fat.point);
 							}
 						}"
 						@dragstart="dragging = true"

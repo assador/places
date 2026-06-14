@@ -275,10 +275,14 @@
 			class="app-cell"
 			:style="!cells.bottom || !cells.left || !sidebarSizes.bottom.act || !sidebarSizes.left.act ? { display: 'none' } : null"
 		>
-			<div class="basic-action-buttons action-buttons">
+			<div
+				v-if="common.compact === 0"
+				class="basic-action-buttons action-buttons"
+			>
 				<div class="control-buttons">
-					<ControlsGeolocation v-if="common.compact === 0" />
-					<ControlsMarkers v-if="common.compact === 0" />
+					<ControlsGeolocation />
+					<ControlsMarkers />
+					<ControlsOther />
 				</div>
 			</div>
 		</div>
@@ -299,6 +303,7 @@
 					<ControlsMode v-if="common.compact === 2" />
 					<ControlsGeolocation v-if="common.compact === 1" />
 					<ControlsMarkers v-if="common.compact === 1" />
+					<ControlsOther v-if="common.compact === 1" />
 				</div>
 			</div>
 			<div
@@ -328,16 +333,10 @@
 			<div
 				v-if="common.compact === 2"
 				class="action-buttons"
-				id="controls-expand"
+				id="controls-other"
 			>
 				<div class="control-buttons">
-					<button
-						class="action-button"
-						:title="mainStore.t.i.hints.hideCells"
-						@click="hideCells"
-					>
-						<span class="icon icon-expand" />
-					</button>
+					<ControlsOther />
 				</div>
 			</div>
 			<div
@@ -600,6 +599,7 @@ import ControlsMode from '@/components/controls/ControlsMode.vue';
 import ControlsRadios from '@/components/controls/ControlsRadios.vue';
 import ControlsMarkers from '@/components/controls/ControlsMarkers.vue';
 import ControlsGeolocation from '@/components/controls/ControlsGeolocation.vue';
+import ControlsOther from '@/components/controls/ControlsOther.vue';
 
 const maps = [
 	{
@@ -627,14 +627,6 @@ const basicOnFull = () => {
 	basicFulled.value = !basicFulled.value;
 	root.value?.classList.toggle('basic-fulled');
 };
-const hideCells = () => {
-	cells.value = {
-		top: false,
-		right: false,
-		bottom: false,
-		left: false,
-	}
-};
 const showMobileMeasurePopup = computed(() => {
 	return (
 		common.compact === 2 &&
@@ -660,6 +652,14 @@ provide('extmap', extmap);
 
 const showMap = ref(true);
 provide('showMap', showMap);
+
+const cells = ref({
+	top: true,
+	right: true,
+	bottom: true,
+	left: true,
+});
+provide('cells', cells);
 
 const importFromFileInput = ref<HTMLInputElement | null>(null);
 provide('importFromFileInput', importFromFileInput);
@@ -963,12 +963,6 @@ const keyup = (e: KeyboardEvent): void => {
 
 const sbs = ref('all');
 
-const cells = ref({
-	top: true,
-	right: true,
-	bottom: true,
-	left: true,
-});
 const sidebarSizes = ref(structuredClone(constants.sidebars));
 
 watch(() => common.compact, (valNew, valOld) => {

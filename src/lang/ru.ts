@@ -196,6 +196,7 @@ export const getT = () => ({
 			addRoute: 'Добавить маршрут',
 			addRoutePoint: 'Добавить точку маршрута',
 			addTemp: 'Добавить временную точку',
+			centerTo: 'Центр карты на текущую точку',
 			deleteAllRoutePoints: 'Удалить все точки маршрута',
 			deleteAllTemps: 'Удалить все временные точки',
 			deletePlace: 'Удалить это место',

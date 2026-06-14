@@ -196,6 +196,7 @@ export const getT = () => ({
 			addRoute: 'Add a route',
 			addRoutePoint: 'Add a route point',
 			addTemp: 'Add a temporary point',
+			centerTo: 'Center the map at the current point',
 			deleteAllRoutePoints: 'Delete all route points',
 			deleteAllTemps: 'Delete all temporary points',
 			deletePlace: 'Delete this place',

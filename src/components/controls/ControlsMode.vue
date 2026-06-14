@@ -7,7 +7,7 @@
 		accesskey="m"
 		@click="changeMode('normal')"
 	>
-		<span class="icon icon-cross" />
+		<span class="icon icon-geomark-1" />
 		<span>{{ mainStore.t.i.buttons.normal }}</span>
 	</button>
 	<button
