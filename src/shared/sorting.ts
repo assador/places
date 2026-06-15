@@ -36,8 +36,8 @@ export const moveInObject = (
 	let nearest = before ? -Infinity : Infinity;
 	const targetKey = targetObj[key];
 
-	for (const obj of Object.values(parent)) {
-		const val = obj[key];
+	for (const k in parent) {
+		const val = parent[k][key];
 		if (before) {
 			if (val < targetKey && val > nearest) nearest = val;
 		} else {

@@ -33,7 +33,10 @@
 					<img
 						class="image-thumbnail border_1"
 						:draggable="false"
-						:src="constants.dirs.uploads.images.small + image.file"
+						:src="image.new
+							? image.preview
+							: constants.dirs.uploads.images.small + image.file
+						"
 						:alt="current.name"
 						:title="current.name"
 					/>
@@ -75,24 +78,20 @@
 		@click.stop="inputUploadFiles.click()"
 	>
 		<button
-			:disabled="uploading"
 			class="images-add__button button-iconed icon icon-plus-circled"
 		/>
 		<div class="images-add__text">
-			{{ !uploading
-				? mainStore.t.i.buttons.addPhotos
-				: mainStore.t.i.text.loading
-			}}
+			{{ mainStore.t.i.buttons.addPhotos }}
 		</div>
 		<input
 			ref="inputUploadFiles"
 			type="file"
 			name="files"
 			accept="image/*"
+			capture="environment"
 			multiple
 			class="images-add__input"
-			:disabled="uploading"
-			@change="e => inputUploadFilesChanged(e)"
+			@change="inputUploadFilesChanged"
 		/>
 	</div>
 </template>
@@ -113,7 +112,6 @@ const props = withDefaults(defineProps<IImagesProps>(), {
 	what: 'places',
 });
 
-const uploadFiles = inject('uploadFiles') as (...args: any[]) => any;
 const current = computed(() => {
 	const map = {
 		places: mainStore.currentPlace,
@@ -127,17 +125,52 @@ const own = computed(() => current.value.userid === mainStore.user.id);
 const mainStore = useMainStore();
 const router = useRouter();
 
-const uploading = ref(false);
 const inputUploadFiles = ref<HTMLInputElement | null>(null);
 
 const orderedImages = computed<Image[]>(() =>
 	current.value ? orderBy(current.value.images, 'srt') : []
 );
-const inputUploadFilesChanged = async (e: Event) => {
-	uploading.value = true;
-	await uploadFiles(e, current.value, inputUploadFiles.value);
-	uploading.value = false;
-}
+const inputUploadFilesChanged = (e: Event) => {
+	const target = e.target as HTMLInputElement;
+	if (!target.files?.length || !current.value) return;
+
+	const filesArray = Array.from(target.files);
+	const newImagesObject = { ...(current.value.images || {}) };
+
+	const existingImages = Object.values(newImagesObject);
+	let srt = existingImages.length
+		? Math.max(...existingImages.map((img: Image) => img.srt || 0))
+		: 0
+	;
+	filesArray.forEach(file => {
+		const id = crypto.randomUUID();
+		const image: Image = {
+			id: id,
+			type: 'image',
+			file: file.name,
+			size: file.size,
+			lastmodified: file.lastModified,
+			srt: ++srt,
+			[`${current.value.type}id`]: current.value.id,
+			new: true,
+			preview: URL.createObjectURL(file),
+			raw: file,
+		};
+		newImagesObject[id] = image;
+	});
+	if (props.what === 'places') {
+		mainStore.changePlace({
+			entity: current.value,
+			change: { images: newImagesObject },
+		});
+	} else if (props.what === 'routes') {
+		mainStore.changeRoute({
+			entity: current.value,
+			change: { images: newImagesObject },
+		});
+	}
+	target.value = '';
+};
 
 // SEC DnD
 

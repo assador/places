@@ -569,7 +569,6 @@ import {
 	nextTick,
 	defineAsyncComponent,
 } from 'vue';
-import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 
@@ -579,10 +578,9 @@ import { logout } from '@/services/auth';
 import { constants } from '@/shared/constants';
 import { useElementSize } from '@/services/sizes';
 import { useLightPointerDnD } from '@/shared/dnd';
-import { sortObjects } from '@/shared/sorting';
 import { clamp, makeDropDowns } from '@/shared/common';
 
-import { Place, Route, Image, PopupProps, PopupPosition } from '@/types';
+import { Place, PopupProps, PopupPosition } from '@/types';
 
 import Header from '@/components/Header.vue';
 import MeasureDetails from '@/components/helpers/Measure.vue';
@@ -798,114 +796,6 @@ const commonPlacesShowHide = (show: boolean | null = null): void => {
 	mainStore.commonMarkersShowHide(commonPlacesShow.value);
 };
 provide('commonPlacesShowHide', commonPlacesShowHide);
-
-const uploadFiles = async (
-	event: Event,
-	target: Place | Route,
-	inputElement?: HTMLInputElement,
-) => {
-	event.preventDefault();
-	if (mainStore.user.testaccount) {
-		mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
-		return;
-	}
-	const input = inputElement || (event.currentTarget as HTMLInputElement);
-	if (!input.files || !input.files.length) return;
-	const data = new FormData();
-	const filesArray: Image[] = [];
-	let srt = 0;
-	if (target.images && Object.keys(target.images).length) {
-		const storeImages = Object.values(target.images);
-		const lastImage = sortObjects(storeImages, 'srt').pop();
-		srt = lastImage ? Number(lastImage.srt) || 0 : 0;
-	}
-	const mimes = mainStore.serverConfig.mimes;
-	const uploadSize = mainStore.serverConfig.uploadsize;
-	const popup = mainStore.t.m.popup;
-	// Validating files and creating an array for uploading
-	for (let i = 0; i < input.files.length; i++) {
-		const file = input.files[i];
-		const mimeType = file.type;
-		const fileName = file.name;
-		const fileSize = file.size;
-		if (!mimes[mimeType]) {
-			mainStore.setMessage(`${popup.file} ${fileName} ${popup.fileNotImage}`, 3);
-			continue;
-		}
-		if (fileSize > uploadSize) {
-			mainStore.setMessage(`${popup.file} ${fileName} ${popup.fileTooLarge}`, 3);
-			continue;
-		}
-		const imageId = crypto.randomUUID();
-		data.append(imageId, file);
-		filesArray.push({
-			id: imageId,
-			file: `${imageId}.${mimes[mimeType]}`,
-			size: Number(fileSize) || null,
-			type: mimeType,
-			lastmodified: Number(file.lastModified) || null,
-			srt: ++srt,
-			[`${target.type}id`]: target.id,
-		});
-	}
-	if (!filesArray.length) return;
-	data.append('userid', mainStore.user.id);
-	data.append('entityid', target.id);
-	data.append('entitytype', target.type);
-	try {
-		const response = await api.post('upload.php', data, { silent: true });
-		input.value = '';
-		const [ errorCodes, uploadedFiles ] = response.data;
-		// Remove from the array those files that were not downloaded
-		const uploadedIds = new Set(uploadedFiles.map((f: any) => f.id));
-		for (let i = filesArray.length - 1; i >= 0; i--) {
-			if (!uploadedIds.has(filesArray[i].id)) {
-				filesArray.splice(i, 1);
-			}
-		}
-		// Errors handling
-		errorCodes.forEach((code: number) => {
-			switch (code) {
-				case 2:
-					mainStore.setMessage(popup.taNotAllowFileUploads, 3);
-					break;
-				case 3:
-					mainStore.setMessage(popup.filesNotImages, 3);
-					break;
-				case 4:
-					mainStore.setMessage(
-						`${popup.filesTooLarge} ${(
-							(mainStore.serverConfig.rights.photosize / 1048576).toFixed(3)
-						) || 0} Mb.`
-					, 3);
-					break;
-			}
-		});
-		if (uploadedFiles.length) {
-			const newImagesObject: Record<string, Image> = {
-				...(target.images || {})
-			};
-			for (const image of filesArray) {
-				newImagesObject[image.id] = image;
-			}
-			if (target.type === 'place') {
-				mainStore.changePlace({
-					entity: target,
-					change: { images: newImagesObject },
-				});
-			} else if (target.type === 'route') {
-				mainStore.changeRoute({
-					entity: target,
-					change: { images: newImagesObject },
-				});
-			}
-			// mainStore.setMessage(popup.filesUploadedSuccessfully, 3);
-		}
-	} catch(error) {
-		mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);
-	}
-};
-provide('uploadFiles', uploadFiles);
 
 const isPrefixActive = ref(false);
 const LEADER_CODE = 'Backquote';

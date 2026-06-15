@@ -79,6 +79,9 @@ export interface Image {
 	srt: number;
 	placeid?: string;
 	routeid?: string;
+	new?: boolean;
+	preview?: string;
+	raw?: File;
 }
 export interface EntityCollection {
 	folders?: Partial<Folder>[];
@@ -87,7 +90,12 @@ export interface EntityCollection {
 	routes?: Partial<Route>[];
 	images?: Partial<Image>[];
 }
-
+export interface RawImage {
+	id: string;
+	raw: File;
+	entityid: string;
+	entitytype: 'place' | 'route';
+}
 export interface Tree {
 	name?: string;
 	open?: boolean;

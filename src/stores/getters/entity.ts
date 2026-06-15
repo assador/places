@@ -1,7 +1,9 @@
 import {
+	Entity,
 	Point,
 	Place,
 	Route,
+	RawImage,
 	EntityCollection,
 	PointDescription,
 	FatPointDescription,
@@ -78,6 +80,52 @@ export const entityGetters = {
 			}
 			return points;
 		}
+	},
+	collectModified() {
+		return <T extends Entity>(c: Record<string, T>): T[] => {
+			const modified: T[] = [];
+			for (const id in c) {
+				if (
+					(c[id].added || c[id].updated || c[id].deleted) &&
+					!(c[id].added && c[id].deleted)
+				) {
+					modified.push(c[id]);
+				}
+			}
+			return modified;
+		}
+	},
+	getPendingImagesPackage(): RawImage[] {
+		const pending: RawImage[] = [];
+		this.collectModified(this.places).forEach((place: Place) => {
+			if (place.images) {
+				for (const id in place.images) {
+					if (place.images[id].new && place.images[id].raw) {
+						pending.push({
+							id: id,
+							raw: place.images[id].raw,
+							entityid: place.id,
+							entitytype: 'place',
+						});
+					}
+				}
+			}
+		});
+		this.collectModified(this.routes).forEach((route: Route) => {
+			if (route.images) {
+				for (const id in route.images) {
+					if (route.images[id].new && route.images[id].raw) {
+						pending.push({
+							id: id,
+							raw: route.images[id].raw,
+							entityid: route.id,
+							entitytype: 'route',
+						});
+					}
+				}
+			}
+		});
+		return pending;
 	},
 	getAllModifiedPackage(): EntityCollection {
 		return {

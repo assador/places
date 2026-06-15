@@ -2,10 +2,71 @@ import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { EntityCollection } from '@/types';
 
+const uploadImages = async (): Promise<void> => {
+	const mainStore = useMainStore();
+	if (mainStore.user.testaccount) {
+		mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
+		return;
+	}
+	const pendingImages = mainStore.getPendingImagesPackage;
+	if (!pendingImages.length) return;
+
+	const data = new FormData();
+	pendingImages.forEach(p => data.append(p.id, p.raw));
+	data.append('userid', mainStore.user.id);
+
+	try {
+		const response = await api.post('upload.php', data, { silent: true });
+		const [ errorCodes, uploadedFiles ] = response.data;
+		errorCodes.forEach((code: number) => {
+			switch (code) {
+				case 2:
+					mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
+					break;
+				case 3:
+					mainStore.setMessage(mainStore.t.m.popup.filesNotImages, 3);
+					break;
+				case 4:
+					mainStore.setMessage(
+						`${mainStore.t.m.popup.filesTooLarge} ${
+							(mainStore.serverConfig.rights.photosize / 1048576).toFixed(3)
+						|| 0} Mb.`
+					, 3);
+					break;
+			}
+		});
+		if (uploadedFiles.length) {
+			const serverFilesMap = Object.fromEntries(
+				uploadedFiles.map((f: any) => [ f.id, f.file ]),
+			);
+			pendingImages.forEach(img => {
+				const { entityid, entitytype, id } = img;
+				const serverFile = serverFilesMap[id];
+				if (!serverFile) return;
+				const entity =
+					entitytype === 'place' ? mainStore.places[entityid] :
+					entitytype === 'route' ? mainStore.routes[entityid] :
+					null
+				;
+				if (entity && entity.images && entity.images[id]) {
+					entity.images[id].file = serverFile;
+					delete entity.images[id].new;
+					delete entity.images[id].raw;
+					delete entity.images[id].preview;
+				}
+			});
+		}
+	} catch (error) {
+		mainStore.setMessage(`${mainStore.t.m.popup.filesUploadError} ${error}`);
+		throw error;
+	}
+};
+
 export const saveEnities = async (payload: EntityCollection): Promise<void> => {
 	const mainStore = useMainStore();
 	if (!payload) payload = mainStore.getAllModifiedPackage;
 	try {
+		await uploadImages();
 		if (!mainStore.user.testaccount) {
 			await api.post(
 				`set_entities.php`,

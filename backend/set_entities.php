@@ -136,8 +136,15 @@ function updateImagesOf(AppContext $ctx, array $entity) {
 			if (is_file($pathSmall)) unlink($pathSmall);
 
 		} else {
-			$upd = $ctx->db->prepare("UPDATE images SET committed = 1 WHERE id = :id");
-			$upd->execute([ ':id' => $img['id'] ]);
+			$upd = $ctx->db->prepare("
+				UPDATE images
+				SET committed = 1, srt = :srt
+				WHERE id = :id
+			");
+			$upd->execute([
+				':id'  => $img['id'],
+				':srt' => (float)($entity['images'][$uuid]['srt'] ?? 1.0),
+			]);
 		}
 	}
 }

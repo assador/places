@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import {
 	IMainState,
-	Entity,
 	Point,
 	Place,
 	Route,
@@ -125,11 +124,6 @@ export const useMainStore = defineStore('main', {
 		...uiActions,
 		...serviceActions,
 
-		collectModified<T extends Entity>(collection: Record<string, T>): T[] {
-			return Object.values(collection).filter(i =>
-				(i.added || i.updated || i.deleted) && !(i.added && i.deleted)
-			);
-		},
 		swapSrts(payload: any[]) {
 			payload[0].srt = [ payload[1].srt, payload[1].srt = payload[0].srt ][0];
 		},
