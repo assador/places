@@ -280,8 +280,7 @@ export const getT = () => ({
 			file: 'File',
 			fileNotImage: 'is not an image and will not be uploaded.',
 			filesNotImages: 'Some files are not images and have not been uploaded.',
-			filesTooLarge: `Some files are too large and have not been uploaded.
-For your role file size is limited.`,
+			filesTooLarge: `Some files are too large and have not been uploaded.`,
 			filesUploadedSuccessfully: 'Files was uploaded successfully.',
 			filesUploadError: 'An error has occurred when uploading files.',
 			fileTooLarge: 'is too large and will not be uploaded.',
@@ -298,6 +297,10 @@ For your role file size is limited.`,
 Your data is temporary and will be cleared when you log out.`,
 			testOnSave: `Saved locally only (demo mode).
 Your data won’t be saved to your account and will be cleared when you log out.`,
+		},
+		errors: {
+			invalidServerResponse: 'Invalid server response.',
+			maxServerLimit: 'Max server limit reached.',
 		},
 		service: {
 			geoLocation: {

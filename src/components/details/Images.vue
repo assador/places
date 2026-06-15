@@ -140,7 +140,7 @@ const inputUploadFilesChanged = (e: Event) => {
 	const existingImages = Object.values(newImagesObject);
 	let srt = existingImages.length
 		? Math.max(...existingImages.map((img: Image) => img.srt || 0))
-		: 0
+		: 10
 	;
 	filesArray.forEach(file => {
 		const id = crypto.randomUUID();

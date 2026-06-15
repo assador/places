@@ -143,7 +143,7 @@ function updateImagesOf(AppContext $ctx, array $entity) {
 			");
 			$upd->execute([
 				':id'  => $img['id'],
-				':srt' => (float)($entity['images'][$uuid]['srt'] ?? 1.0),
+				':srt' => (float)($entity['images'][$uuid]['srt'] ?? 10.0),
 			]);
 		}
 	}

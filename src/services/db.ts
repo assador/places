@@ -17,25 +17,43 @@ const uploadImages = async (): Promise<void> => {
 
 	try {
 		const response = await api.post('upload.php', data, { silent: true });
+		if (!response.data || !Array.isArray(response.data)) {
+			throw new Error(typeof response.data === 'string'
+				? response.data
+				: mainStore.t.m.errors.invalidServerResponse
+			);
+		}
+
 		const [ errorCodes, uploadedFiles ] = response.data;
-		errorCodes.forEach((code: number) => {
-			switch (code) {
-				case 2:
-					mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
-					break;
-				case 3:
-					mainStore.setMessage(mainStore.t.m.popup.filesNotImages, 3);
-					break;
-				case 4:
-					mainStore.setMessage(
-						`${mainStore.t.m.popup.filesTooLarge} ${
-							(mainStore.serverConfig.rights.photosize / 1048576).toFixed(3)
-						|| 0} Mb.`
-					, 3);
-					break;
-			}
-		});
-		if (uploadedFiles.length) {
+
+		if (Array.isArray(errorCodes)) {
+			errorCodes.forEach((code: number) => {
+				switch (code) {
+					case 2:
+						mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
+						break;
+					case 3:
+						mainStore.setMessage(mainStore.t.m.popup.filesNotImages, 3);
+						break;
+					case 4: {
+						const limitBytes = Number(mainStore.serverConfig?.rights?.photosize);
+						if (limitBytes > 0) {
+							const maxMb = (limitBytes / 1048576).toFixed(3);
+							mainStore.setMessage(
+								`${mainStore.t.m.popup.filesTooLarge} ${maxMb} Mb.`, 3
+							);
+						} else {
+							mainStore.setMessage(
+								`${mainStore.t.m.popup.filesTooLarge}
+${mainStore.t.m.errors.maxServerLimit}`, 3
+							);
+						}
+						break;
+					}
+				}
+			});
+		}
+		if (Array.isArray(uploadedFiles) &&uploadedFiles.length) {
 			const serverFilesMap = Object.fromEntries(
 				uploadedFiles.map((f: any) => [ f.id, f.file ]),
 			);
