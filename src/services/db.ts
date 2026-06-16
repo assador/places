@@ -20,7 +20,7 @@ const uploadImages = async (): Promise<void> => {
 		if (!response.data || !Array.isArray(response.data)) {
 			throw new Error(typeof response.data === 'string'
 				? response.data
-				: mainStore.t.m.errors.invalidServerResponse
+				: mainStore.t.m.errors.server.invalidResponse
 			);
 		}
 
@@ -45,7 +45,7 @@ const uploadImages = async (): Promise<void> => {
 						} else {
 							mainStore.setMessage(
 								`${mainStore.t.m.popup.filesTooLarge}
-${mainStore.t.m.errors.maxServerLimit}`, 3
+${mainStore.t.m.errors.server.maxLimit}`, 3
 							);
 						}
 						break;

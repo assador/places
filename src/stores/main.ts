@@ -112,7 +112,31 @@ export const useMainStore = defineStore('main', {
 		zoom: Number(constants.map.initial.zoom),
 	}),
 
-	persist: true,
+	persist: {
+		serializer: {
+			deserialize: (value) => JSON.parse(value),
+			serialize: (state) => {
+				const skipKeys = new Set([
+					'busyCount',
+					'currentDrag',
+					'idleTime',
+					'messages',
+					'messagesInterval',
+					'messagesMouseOver',
+					'messagesTimeout',
+					'refreshing',
+					't',
+				]);
+				return JSON.stringify(state, (key, value) => {
+					if (skipKeys.has(key)) return undefined;
+					if (value && typeof value === 'object') {
+						if (value.raw) return undefined;
+					}
+					return value;
+				});
+			},
+		},
+	},
 
 	actions: {
 		...entityActions,

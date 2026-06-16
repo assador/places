@@ -299,16 +299,16 @@ Your data is temporary and will be cleared when you log out.`,
 Your data won’t be saved to your account and will be cleared when you log out.`,
 		},
 		errors: {
-			invalidServerResponse: 'Invalid server response.',
-			maxServerLimit: 'Max server limit reached.',
-		},
-		service: {
 			geoLocation: {
 				error: 'An unknown geolocation error occurred.',
 				notSupported: 'Geolocation is not supported by your device.',
 				permissionDenied: 'You have denied access to geolocation.',
 				positionUnavailable: 'Unable to determine coordinates (network/GPS is off).',
 				timeout: 'GPS timed out. Try again.',
+			},
+			server: {
+				invalidResponse: 'Invalid server response.',
+				maxLimit: 'Max server limit reached.',
 			},
 		},
 	},

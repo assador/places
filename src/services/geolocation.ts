@@ -8,7 +8,7 @@ export function useGeolocation() {
 
 	const getLocation = () => {
 		if (!navigator.geolocation) {
-			error.value = mainStore.t.m.service.geoLocation.notSupported;
+			error.value = mainStore.t.m.errors.geo.notSupported;
 			return Promise.reject(error.value);
 		}
 		mainStore.setBusy(true);
@@ -29,13 +29,13 @@ export function useGeolocation() {
 					mainStore.setBusy(false);
 					const errorsMap: Record<number, string> = {
 						[err.PERMISSION_DENIED]:
-							mainStore.t.m.service.geoLocation.permissionDenied,
+							mainStore.t.m.errors.geo.permissionDenied,
 						[err.POSITION_UNAVAILABLE]:
-							mainStore.t.m.service.geoLocation.positionUnavailable,
+							mainStore.t.m.errors.geo.positionUnavailable,
 						[err.TIMEOUT]:
-							mainStore.t.m.service.geoLocation.timeout,
+							mainStore.t.m.errors.geo.timeout,
 					};
-					error.value = errorsMap[err.code] || mainStore.t.m.service.geoLocation.error;
+					error.value = errorsMap[err.code] || mainStore.t.m.errors.geo.error;
 					reject(error.value);
 				},
 				options,
