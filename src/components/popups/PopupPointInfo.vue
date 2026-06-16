@@ -71,11 +71,32 @@
 				<div class="point-info-controls">
 					<div
 						v-if="common.pointInfo.of"
-						class="point-info-name-delete"
+						class="point-info-common"
 					>
+						<div
+							v-if="isPlace(common.pointInfo.of)"
+							class="images-add"
+							@click.stop="inputUploadFiles.click()"
+						>
+							<button
+								:title="mainStore.t.i.buttons.addPhotos"
+								class="button-iconed icon icon-plus-circled"
+							/>
+							<input
+								ref="inputUploadFiles"
+								type="file"
+								name="files"
+								accept="image/*"
+								capture="environment"
+								multiple
+								class="images-add__input"
+								@change="addImages(common.pointInfo.of, inputUploadFiles)"
+							/>
+						</div>
 						<input
 							v-if="common.pointInfo.of"
 							type="text"
+							class="point-info-common__name"
 							:value="common.pointInfo.name"
 							:placeholder="mainStore.t.i.captions.untitled"
 							@change="e => updateName((e.target as HTMLInputElement).value.trim())"
@@ -140,13 +161,15 @@ import { ref, shallowRef, computed, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Point, Route, Measure } from '@/types';
 import { isPlace, isRoute } from '@/guards';
-import { common } from '@/services/common';
+import { common, addImages } from '@/services/common';
 import { ConfirmInstance } from '@/services/confirm';
 import { roundTo, distanceOnSphere } from '@/shared/common';
 import { point2coords, latitude2string, longitude2string } from '@/shared/converters';
 import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
+
+const inputUploadFiles = ref<HTMLInputElement | null>(null);
 
 const copied = ref(false);
 const copyCoords = async (point: Point) => {
@@ -259,10 +282,23 @@ const deletePoint = async (index: number, entity: Route | Measure) => {
 		flex-direction: column;
 		gap: 20px;
 	}
-	&-name-delete {
-		display: grid;
-		grid-template-columns: 1fr auto;
+	&-common {
+		display: flex;
+		flex-wrap: nowrap;
 		gap: 8px;
+		align-items: stretch;
+		& > *:not(&__name) {
+			flex: 0 1 auto;
+		}
+		.images-add {
+			display: flex;
+			gap: 12px;
+			align-items: center;
+			cursor: pointer;
+		}
+		.images-add__input {
+			display: none;
+		}
 	}
 	&-buttons {
 		display: flex;

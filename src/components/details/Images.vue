@@ -101,6 +101,7 @@ import { ref, computed, inject } from 'vue';
 import { orderBy } from 'lodash';
 import { useRouter } from 'vue-router';
 import { useMainStore } from '@/stores/main';
+import { addImages } from '@/services/common';
 import { constants } from '@/shared/constants';
 import { usePointerDnD } from '@/shared/dnd';
 import { Image } from '@/types';
@@ -131,45 +132,7 @@ const orderedImages = computed<Image[]>(() =>
 	current.value ? orderBy(current.value.images, 'srt') : []
 );
 const inputUploadFilesChanged = (e: Event) => {
-	const target = e.target as HTMLInputElement;
-	if (!target.files?.length || !current.value) return;
-
-	const filesArray = Array.from(target.files);
-	const newImagesObject = { ...(current.value.images || {}) };
-
-	const existingImages = Object.values(newImagesObject);
-	let srt = existingImages.length
-		? Math.max(...existingImages.map((img: Image) => img.srt || 0))
-		: 10
-	;
-	filesArray.forEach(file => {
-		const id = crypto.randomUUID();
-		const image: Image = {
-			id: id,
-			type: 'image',
-			file: file.name,
-			size: file.size,
-			lastmodified: file.lastModified,
-			srt: ++srt,
-			[`${current.value.type}id`]: current.value.id,
-			new: true,
-			preview: URL.createObjectURL(file),
-			raw: file,
-		};
-		newImagesObject[id] = image;
-	});
-	if (props.what === 'places') {
-		mainStore.changePlace({
-			entity: current.value,
-			change: { images: newImagesObject },
-		});
-	} else if (props.what === 'routes') {
-		mainStore.changeRoute({
-			entity: current.value,
-			change: { images: newImagesObject },
-		});
-	}
-	target.value = '';
+	addImages(current.value, e.target as HTMLInputElement);
 };
 
 // SEC DnD

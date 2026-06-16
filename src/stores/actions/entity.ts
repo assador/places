@@ -4,6 +4,7 @@ import {
 	Place,
 	Route,
 	Folder,
+	Measure,
 	PointDescription,
 	PointInfo,
 	AppendMode,
@@ -495,7 +496,9 @@ export const entityActions = {
 		}
 		return folder;
 	},
-	async upsertEntityWithCurrentLocation(mode: Mode) {
+	async upsertEntityWithCurrentLocation(mode: Mode): Promise<
+		{ id: string | null, of: Place | Route | Measure | null } | Error
+	> {
 		try {
 			const geoLocation = useGeolocation();
 			const location = await geoLocation.getLocation();
@@ -503,29 +506,39 @@ export const entityActions = {
 				latitude: location.latitude,
 				longitude: location.longitude,
 			};
+			let id: string | null = null;
+			let of: Place | Route | Measure | null = null;
 			if (mode === 'normal') {
 				if (this.currentPlace) {
-					this.upsertPlaceFollowing(this.currentPlace, { props });
+					of = this.upsertPlaceFollowing(this.currentPlace, { props });
 				} else {
-					this.upsertPlace({ props });
+					of = this.upsertPlace({ props });
 				}
+				id = of ? (of as Place).pointid : null;
 			} else if (mode === 'routes' && this.currentRoute) {
-				this.upsertPoint({
+				of = this.currentRoute;
+				const p = this.upsertPoint({
 					where: this.points,
 					whom: this.currentRoute,
 					props,
 				});
+				id = p ? p.id : null;
 			} else if (mode === 'measure') {
-				const point = this.upsertPoint({
+				of = this.measure;
+				const p = this.upsertPoint({
 					where: this.temps,
 					props,
 				});
-				this.addPointToPoints({
-					point: point,
-					entity: this.measure,
-				});
+				if (p) {
+					this.addPointToPoints({
+						point: p,
+						entity: this.measure,
+					});
+					id = p.id;
+				}
 			}
 			geoLocation.centerTo(location);
+			return { id: id, of: of };
 		}
 		catch (error) {
 			this.setMessage(error, 5);

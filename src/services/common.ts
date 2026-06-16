@@ -5,6 +5,7 @@ import {
 	Place,
 	Route,
 	Folder,
+	Image,
 	Measure,
 	PopupProps,
 	PopupPosition,
@@ -152,3 +153,42 @@ export const setBusy = (value: boolean): void => {
 	const mainStore = useMainStore();
 	mainStore.setBusy(value);
 };
+export const addImages = (entity: Place | Route, input: HTMLInputElement) => {
+	if (!entity || !input || !input.files?.length) return;
+	const mainStore = useMainStore();
+	const filesArray = Array.from(input.files);
+	const newImagesObject = { ...(entity.images || {}) };
+	const existingImages = Object.values(newImagesObject);
+	let srt = existingImages.length
+		? Math.max(...existingImages.map((img: Image) => img.srt || 0))
+		: 0
+	;
+	filesArray.forEach(file => {
+		const id = crypto.randomUUID();
+		const image: Image = {
+			id: id,
+			type: 'image',
+			file: file.name,
+			size: file.size,
+			lastmodified: file.lastModified,
+			srt: srt += 10,
+			[`${entity.type}id`]: entity.id,
+			new: true,
+			preview: URL.createObjectURL(file),
+			raw: file,
+		};
+		newImagesObject[id] = image;
+	});
+	if (entity.type === 'place') {
+		mainStore.changePlace({
+			entity: entity,
+			change: { images: newImagesObject },
+		});
+	} else if (entity.type === 'route') {
+		mainStore.changeRoute({
+			entity: entity,
+			change: { images: newImagesObject },
+		});
+	}
+	input.value = '';
+}

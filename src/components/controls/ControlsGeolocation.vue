@@ -13,25 +13,28 @@
 			`${mainStore.t.i.hints.getLocation}. ` +
 			`${mainStore.t.i.hints[mainStore.mode === 'normal' ? 'addPlace' : 'addPoint']}.`
 		"
-		@click="async () => {
-			await mainStore.upsertEntityWithCurrentLocation(mainStore.mode);
-			if (mainStore.mode === 'normal') focusCurrent(currentPlaceNameInputRef);
-		}"
+		@click="e => upsertHere(e)"
 	>
 		<span class="icon icon-plus-net" />
 	</button>
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useGeolocation } from '@/services/geolocation';
-
-const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
-const currentPlaceNameInputRef = inject<HTMLElement | null>('currentPlaceNameInputRef');
+import { common } from '@/services/common';
+import { calculatePopupPosition } from '@/shared/common';
 
 const mainStore = useMainStore();
 const geoLocation = useGeolocation();
+
+const upsertHere = async (e: PointerEvent) => {
+	const info = await mainStore.upsertEntityWithCurrentLocation(mainStore.mode);
+	if (info && !(info instanceof Error) && info.id) {
+		common.setPointInfo({ id: info.id, entity: info.of });
+		common.showPopup(calculatePopupPosition(e));
+	}
+}
 </script>
 
 <style lang="scss" scoped>
