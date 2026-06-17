@@ -185,8 +185,8 @@
 import { ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { common } from '@/services/common';
+import { usePointerDnD } from '@/services/dnd';
 import { calculatePopupPosition } from '@/shared/common';
-import { usePointerDnD } from '@/shared/dnd';
 import {
 	PointCollectionContext,
 	FatPointDescription,

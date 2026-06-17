@@ -31,7 +31,7 @@ import {
 	handlePlaceRouteDropped,
 	handlePointInListDropped,
 	handleImageDropped,
-} from '@/shared/dnd';
+} from '@/services/dnd';
 
 import { DragHandler, PopupProps } from '@/types';
 

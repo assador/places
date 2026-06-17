@@ -5,6 +5,8 @@
 				v-if="props.id"
 				v-bind="$attrs"
 				class="popup"
+				@pointerdown="e => { if (common.compact === 2) onSwipeDown(e); }"
+				@pointerup="e => { if (common.compact === 2) onSwipeUp(e); }"
 			>
 				<img
 					v-if="image"
@@ -13,7 +15,7 @@
 					@load="setBusy(false)"
 				/>
 				<a
-					v-if="props.images?.length > 1"
+					v-if="common.compact !== 2 && props.images?.length > 1"
 					class="prev"
 					:class="{ highlighted: prevOver }"
 					@mouseenter="prevOver = true"
@@ -23,7 +25,7 @@
 					<span class="icon icon-triangle" />
 				</a>
 				<a
-					v-if="props.images?.length > 1"
+					v-if="common.compact !== 2 && props.images?.length > 1"
 					class="next"
 					:class="{ highlighted: nextOver }"
 					@mouseenter="nextOver = true"
@@ -53,7 +55,8 @@ import {
 } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
-import { setBusy } from '@/services/common';
+import { common, setBusy } from '@/services/common';
+import { useSwipe } from '@/services/swipe';
 import { constants } from '@/shared/constants';
 import { Image } from '@/types';
 
@@ -68,6 +71,11 @@ const props = withDefaults(defineProps<PopupImageProps>(), {
 const emit = defineEmits([ 'update:id' ]);
 defineOptions({ inheritAttrs: false });
 
+const { onPointerDown: onSwipeDown, onPointerUp: onSwipeUp } = useSwipe({
+	onSwipeLeft: () => showImage(1),
+	onSwipeRight: () => showImage(-1),
+	threshold: 60,
+});
 
 const index = ref<number | null>(null);
 const prevOver = ref(false);
@@ -127,6 +135,9 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .popup {
 	padding: 0;
+	user-select: none;
+	touch-action: pan-y;
+	-webkit-user-drag: none;
 	.popup-image {
 		display: block;
 		max-width: 100%;
@@ -134,6 +145,8 @@ onUnmounted(() => {
 		object-fit: contain;
 		image-orientation: from-image;
 		z-index: 10;
+		user-drag: none;
+		-webkit-user-drag: none;
 	}
 	.prev, .next {
 		position: absolute;

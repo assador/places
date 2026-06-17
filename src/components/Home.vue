@@ -572,12 +572,12 @@ import {
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 
+import { constants } from '@/shared/constants';
 import * as db from '@/services/db';
 import { common, setBusy } from '@/services/common';
 import { logout } from '@/services/auth';
-import { constants } from '@/shared/constants';
 import { useElementSize } from '@/services/sizes';
-import { useLightPointerDnD } from '@/shared/dnd';
+import { useLightPointerDnD } from '@/services/dnd';
 import { clamp, makeDropDowns } from '@/shared/common';
 
 import { Place, PopupProps, PopupPosition } from '@/types';

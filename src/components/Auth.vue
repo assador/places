@@ -210,11 +210,10 @@ import { ref, inject, nextTick, onBeforeMount, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 
-import { logged } from '@/services/auth';
+import { logged, login, loginRoutine } from '@/services/auth';
 import { setBusy } from '@/services/common';
 import { constants } from '@/shared/constants';
 import { reg, regRoutine } from '@/shared/reg';
-import { login, loginRoutine } from '@/shared/auth';
 import { forgot, forgotRoutine } from '@/shared/forgot';
 
 import Dashboard from '@/components/Dashboard.vue';

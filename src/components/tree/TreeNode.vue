@@ -343,7 +343,7 @@ import {
 	FolderContext,
 } from '@/types';
 import { common } from '@/services/common';
-import { usePointerDnD } from '@/shared/dnd';
+import { usePointerDnD } from '@/services/dnd';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;

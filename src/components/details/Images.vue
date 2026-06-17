@@ -102,9 +102,9 @@
 import { ref, computed, inject } from 'vue';
 import { orderBy } from 'lodash';
 import { useMainStore } from '@/stores/main';
-import { addImages } from '@/services/common';
 import { constants } from '@/shared/constants';
-import { usePointerDnD } from '@/shared/dnd';
+import { addImages } from '@/services/common';
+import { usePointerDnD } from '@/services/dnd';
 import { Image } from '@/types';
 import PopupImage from '@/components/popups/PopupImage.vue';
 

@@ -17,10 +17,7 @@ export function usePWAInstall() {
 	const installPWA = async () => {
 		if (!installEvent.value) return;
 		installEvent.value.prompt();
-		const { outcome } = await installEvent.value.userChoice;
-		if (outcome === 'accepted') {
-			console.log('Пользователь принял установку');
-		}
+		await installEvent.value.userChoice;
 		installEvent.value = null;
 		installPWAEnabled.value = false;
 	};
