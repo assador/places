@@ -50,6 +50,7 @@
 import {
 	ref,
 	computed,
+	watch,
 	onMounted,
 	onUnmounted,
 } from 'vue';
@@ -97,6 +98,9 @@ const imageSrc = computed<string>(() =>
 	(image.value.new && image.value.preview) ? image.value.preview :
 	(constants.dirs.uploads.images.big + image.value.file)
 );
+watch(imageSrc, (newSrc) => {
+	if (newSrc) setBusy(true);
+});
 
 const close = () => {
 	if (route.name === 'Images') router.push({ name: 'Home' });
