@@ -248,6 +248,7 @@
 <!-- SEC Basic-Basic -->
 
 		<div
+			ref="basicBasic"
 			id="basic-basic"
 			class="app-cell"
 		>
@@ -634,6 +635,7 @@ const showMobileMeasurePopup = computed(() => {
 		!cells.value.right
 	);
 });
+
 const topBasic = ref<HTMLElement | null>(null);
 const { height: topBasicHeight } = useElementSize(topBasic);
 const showMobileMeasurePopupPosition = computed<PopupPosition>(() => {
@@ -647,9 +649,18 @@ const showMobileMeasurePopupPosition = computed<PopupPosition>(() => {
 
 const extmap = ref(null);
 provide('extmap', extmap);
-
 const showMap = ref(true);
 provide('showMap', showMap);
+
+const basicBasic = ref<HTMLElement | null>(null);
+const { width: mapWidth, height: mapHeight } = useElementSize(basicBasic);
+watch([ mapWidth, mapHeight ], async () => {
+	await nextTick();
+	const leafletMap = extmap.value?.leafletObject || extmap.value;
+	if (leafletMap && typeof leafletMap.invalidateSize === 'function') {
+		leafletMap.invalidateSize();
+	}
+});
 
 const cells = ref({
 	top: true,
