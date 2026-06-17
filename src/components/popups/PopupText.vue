@@ -2,6 +2,7 @@
 	<transition name="fade">
 		<div
 			v-if="show"
+			ref="popupRef"
 			class="popup"
 		>
 			<About v-if="props.what === 'about' && mainStore.lang === 'ru'" />
@@ -9,9 +10,16 @@
 			<a
 				href="javascript:void(0)"
 				class="close"
-				@click="close()"
+				@click.prevent="close"
 			>
 				×
+			</a>
+			<a
+				href="javascript:void(0)"
+				class="up"
+				@click.prevent="scrollToTop"
+			>
+				^
 			</a>
 		</div>
 	</transition>
@@ -32,6 +40,7 @@ const props = withDefaults(defineProps<IPlacesPopupTextProps>(), {
 });
 
 const show = ref(false);
+const popupRef = ref<HTMLElement | null>(null);
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -45,6 +54,12 @@ const close = (): void => {
 };
 const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
+};
+const scrollToTop = (): void => {
+	if (popupRef.value) {
+		const container = popupRef.value.querySelector('.readable');
+		if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 };
 
 onMounted(() => {

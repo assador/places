@@ -19,14 +19,11 @@
 					id: image.id,
 					type: 'image',
 					context: props.what,
-					parentId: current.id,
+					parentId: current?.id,
 					ghostSelector: '.image-thumbnail',
 				})"
 			    @pointermove="onPointerMove"
-			    @pointerup="e => onPointerUp(e, () => router.push({
-					name: 'HomeImages',
-					params: { imageId: image.id },
-				}))"
+			    @pointerup="e => onPointerUp(e, () => popupImageId = image.id)"
 			    @pointercancel="onPointerUp"
 			>
 				<div class="block_02">
@@ -37,8 +34,8 @@
 							? image.preview
 							: constants.dirs.uploads.images.small + image.file
 						"
-						:alt="current.name"
-						:title="current.name"
+						:alt="current?.name"
+						:title="current?.name"
 					/>
 					<div
 						v-if="own"
@@ -73,7 +70,7 @@
 		</div>
 	</div>
 	<div
-		v-if="own && !current.deleted"
+		v-if="own && current && !current.deleted"
 		class="images-add"
 		@click.stop="inputUploadFiles.click()"
 	>
@@ -94,17 +91,22 @@
 			@change="inputUploadFilesChanged"
 		/>
 	</div>
+	<PopupImage
+		:id="popupImageId"
+		:images="orderedImages"
+		@update:id="popupImageId = $event"
+	/>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, inject } from 'vue';
 import { orderBy } from 'lodash';
-import { useRouter } from 'vue-router';
 import { useMainStore } from '@/stores/main';
 import { addImages } from '@/services/common';
 import { constants } from '@/shared/constants';
 import { usePointerDnD } from '@/shared/dnd';
 import { Image } from '@/types';
+import PopupImage from '@/components/popups/PopupImage.vue';
 
 export interface IImagesProps {
 	what?: 'places' | 'routes';
@@ -113,6 +115,11 @@ const props = withDefaults(defineProps<IImagesProps>(), {
 	what: 'places',
 });
 
+const mainStore = useMainStore();
+
+const popupImageId = ref<string | null>(null);
+const inputUploadFiles = ref<HTMLInputElement | null>(null);
+
 const current = computed(() => {
 	const map = {
 		places: mainStore.currentPlace,
@@ -120,20 +127,13 @@ const current = computed(() => {
 	};
 	return map[props.what] || null;
 });
-
-const own = computed(() => current.value.userid === mainStore.user.id);
-
-const mainStore = useMainStore();
-const router = useRouter();
-
-const inputUploadFiles = ref<HTMLInputElement | null>(null);
-
 const orderedImages = computed<Image[]>(() =>
 	current.value ? orderBy(current.value.images, 'srt') : []
 );
 const inputUploadFilesChanged = (e: Event) => {
-	addImages(current.value, e.target as HTMLInputElement);
+	if (current.value) addImages(current.value, e.target as HTMLInputElement);
 };
+const own = computed(() => current.value?.userid === mainStore.user.id);
 
 // SEC DnD
 

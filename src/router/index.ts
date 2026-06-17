@@ -35,11 +35,6 @@ const routes: RouteRecordRaw[] = [
 				component: PopupText,
 				props: true,
 			}, {
-				path: 'images/:imageId',
-				name: 'HomeImages',
-				component: PopupImage,
-				props: true,
-			}, {
 				path: 'folder',
 				name: 'HomeFolder',
 				component: PopupFolder,
@@ -70,6 +65,11 @@ const routes: RouteRecordRaw[] = [
 				component: AccountDelete,
 			},
 		],
+	}, {
+		path: '/images/:id',
+		name: 'Images',
+		component: PopupImage,
+		props: true,
 	}, {
 		path: '/about',
 		name: 'About',

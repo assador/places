@@ -5,6 +5,7 @@ import {
 	Place,
 	Route,
 	Folder,
+	Image,
 	PointDescription,
 	PointInfo,
 	PointInfoContext,
@@ -363,6 +364,34 @@ export const useMainStore = defineStore('main', {
 					key,
 				};
 			};
+		},
+		getAllImages() {
+			const allImages: Record<string, Image> = {};
+			for (const id in this.places) {
+				if (Object.hasOwn(this.places, id)) {
+					const images = this.places[id].images;
+					if (images) {
+						for (const imgId in images) {
+							if (Object.hasOwn(images, imgId)) {
+								allImages[imgId] = images[imgId];
+							}
+						}
+					}
+				}
+			}
+			for (const id in this.routes) {
+				if (Object.hasOwn(this.routes, id)) {
+					const images = this.routes[id].images;
+					if (images) {
+						for (const imgId in images) {
+							if (Object.hasOwn(images, imgId)) {
+								allImages[imgId] = images[imgId];
+							}
+						}
+					}
+				}
+			}
+			return allImages; // Yes, I don't have a girlfriend at the moment.
 		},
 	},
 });

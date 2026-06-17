@@ -1,108 +1,106 @@
 <template>
-	<div class="popup">
-		<img
-			v-if="image"
-			ref="imgRef"
-			class="popup-image border_1"
-			:src="constants.dirs.uploads.images.big + image.file"
-			@load="setBusy(false)"
-			@error="handleError"
-		/>
-		<a
-			class="prev"
-			:class="{ highlighted: prevOver }"
-			@mouseenter="prevOver = true"
-			@mouseleave="prevOver = false"
-			@click.stop="showImage(-1)"
-		>
-			<span class="icon icon-triangle" />
-		</a>
-		<a
-			class="next"
-			:class="{ highlighted: nextOver }"
-			@mouseenter="nextOver = true"
-			@mouseleave="nextOver = false"
-			@click.stop="showImage(1)"
-		>
-			<span class="icon icon-triangle" />
-		</a>
-		<a
-			href="javascript:void(0);"
-			class="close"
-			@click.stop="close"
-		>×</a>
-	</div>
+	<Teleport to="#popup-root">
+		<transition name="fade">
+			<div
+				v-if="props.id"
+				v-bind="$attrs"
+				class="popup"
+			>
+				<img
+					v-if="image"
+					class="popup-image border_1"
+					:src="imageSrc"
+					@load="setBusy(false)"
+				/>
+				<a
+					v-if="props.images?.length > 1"
+					class="prev"
+					:class="{ highlighted: prevOver }"
+					@mouseenter="prevOver = true"
+					@mouseleave="prevOver = false"
+					@click.stop="showImage(-1)"
+				>
+					<span class="icon icon-triangle" />
+				</a>
+				<a
+					v-if="props.images?.length > 1"
+					class="next"
+					:class="{ highlighted: nextOver }"
+					@mouseenter="nextOver = true"
+					@mouseleave="nextOver = false"
+					@click.stop="showImage(1)"
+				>
+					<span class="icon icon-triangle" />
+				</a>
+				<a
+					href="javascript:void(0);"
+					class="close"
+					@click.stop="close"
+				>
+					×
+				</a>
+			</div>
+		</transition>
+	</Teleport>
 </template>
 
 <script setup lang="ts">
 import {
 	ref,
-	watch,
+	computed,
 	onMounted,
 	onUnmounted,
 } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
 import { useMainStore } from '@/stores/main';
-import _ from 'lodash';
+import { useRouter, useRoute } from 'vue-router';
 import { setBusy } from '@/services/common';
 import { constants } from '@/shared/constants';
-import { Place, Image } from '@/types';
+import { Image } from '@/types';
 
-export interface IPlacesPopupImageProps {
-	imageId?: string;
+interface PopupImageProps {
+	id?: string | null;
+	images?: Image[] | null;
 }
-const props = withDefaults(defineProps<IPlacesPopupImageProps>(), {
-	imageId: '',
+const props = withDefaults(defineProps<PopupImageProps>(), {
+	id: null,
+	images: null,
 });
+const emit = defineEmits([ 'update:id' ]);
+defineOptions({ inheritAttrs: false });
 
-const images = ref([] as Image[]);
-const image = ref({} as Image);
 
+const index = ref<number | null>(null);
 const prevOver = ref(false);
 const nextOver = ref(false);
-const imgRef = ref<HTMLImageElement | null>(null);
 
 const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
-const handleError = () => {
-	setBusy(false);
-	if (imgRef.value) {
-		imgRef.value.src = constants.dirs.uploads.images.orphanedbig + image.value.file;
-	}
-};
-const close = (): void => {
-	router.replace(route.matched[route.matched.length - 2].path);
-};
-const defineVars = (): void => {
-	setBusy(true);
-	const places: Record<string, Place> = (
-		mainStore.currentPlace.userid === mainStore.user.id
-			? mainStore.places
-			: mainStore.commonPlaces
-	);
-	for (const id in places) {
-		if (places[id].images && props.imageId in places[id].images) {
-			image.value = places[id].images[props.imageId];
-			images.value = _.orderBy(Object.values(places[id].images));
-			return;
-		}
-	}
-	router.replace(route.matched[route.matched.length - 2].path);
+const image = computed<Image | null>(() =>
+	props.images
+		? (props.images[
+			index.value !== null ? index.value : props.images.findIndex(i => i.id === props.id)
+		])
+		: mainStore.getAllImages[props.id] ?? null
+);
+const imageSrc = computed<string>(() =>
+	!image.value ? '' :
+	(image.value.new && image.value.preview) ? image.value.preview :
+	(constants.dirs.uploads.images.big + image.value.file)
+);
+
+const close = () => {
+	if (route.name === 'Images') router.push({ name: 'Home' });
+	else emit('update:id', null);
 };
 const showImage = (step: number) => {
-	let currentIndex = images.value.indexOf(image.value);
-	if (currentIndex > -1) {
-		const ImagesLength = images.value.length;
-		currentIndex = (currentIndex + step) % ImagesLength + (
-			(currentIndex + step) % ImagesLength < 0 ? ImagesLength: 0
-		);
-		router.push({
-			name: 'HomeImages',
-			params: { imageId: images.value[currentIndex].id },
-		});
-	}
+	if (!props.images) return;
+	if (index.value === null || index.value < 0) index.value = 0;
+	const len = props.images.length;
+	index.value = (index.value + step) % len + (
+		(index.value + step) % len < 0 ? len : 0
+	);
 };
 const keyup = (event: KeyboardEvent): void => {
 	switch (event.key) {
@@ -118,11 +116,7 @@ const keyup = (event: KeyboardEvent): void => {
 	}
 };
 
-watch(() => props.imageId, () => {
-	defineVars();
-});
 onMounted(() => {
-	defineVars();
 	document.addEventListener('keyup', keyup, false);
 });
 onUnmounted(() => {

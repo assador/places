@@ -513,7 +513,7 @@
 		:position="showMobileMeasurePopupPosition"
 		:closeOnClick="false"
 		:closeButton="false"
-		class="messages"
+		class="messages modest"
 	>
 		<template #popupSlot>
 			<div id="helpers-measure-value-popup" />

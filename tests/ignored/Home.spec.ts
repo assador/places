@@ -15,7 +15,7 @@ const router = createRouter({
 	history: createMemoryHistory(),
 	routes: [
   	{ name: 'Auth', path: '/auth', component: { render: () => h('div') } },
-  	{ name: 'HomeImages', path: '/images/:imageId', component: { render: () => h('div') } },
+  	{ name: 'Images', path: '/images/:id', component: { render: () => h('div') } },
   	{ name: 'HomeExport', path: '/export', component: { render: () => h('div') } },
   	{ name: 'HomeText', path: '/text/:what', component: { render: () => h('div') } },
   	{ name: 'HomeFolder', path: '/folder', component: { render: () => h('div') } },
@@ -101,6 +101,10 @@ function createMainStoreState(): IMainState {
 		routes: {},
 		routesShow: { show: false, first: true },
 		saved: true,
+		selectedToExport: {
+			places: [],
+			routes: [],
+		},
 		serverConfig: null,
 		stateBackups: [],
 		stateBackupsIndex: -1,

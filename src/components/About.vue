@@ -1,6 +1,6 @@
 <template>
 	<div class="popup-text about readable" @click.stop>
-		<h1 id="manual-top">Места</h1>
+		<h1 id="popup-top">Места</h1>
 		<p>{{ constants.version }}</p>
 		<p>
 			<a :href="constants.links.repository" target="_blank">GitHub</a>
