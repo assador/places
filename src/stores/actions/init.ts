@@ -1,11 +1,6 @@
 import api from '@/api';
 import { constants } from '@/shared/constants';
-import {
-	Point,
-	Place,
-	Route,
-	Folder,
-} from '@/types';
+import { Place } from '@/types';
 
 export const initActions = {
 	unload() {
@@ -65,7 +60,8 @@ export const initActions = {
 				updated = true;
 				break;
 		}
-		for (const point of (Object.values(this.points) as Point[])) {
+		for (const key in this.points) {
+			const point = this.points[key];
 			point.type = 'point';
 			point.added = added;
 			point.deleted = deleted;
@@ -73,7 +69,8 @@ export const initActions = {
 			point.show = true;
 			point.common = Boolean(point.common);
 		}
-		for (const place of (Object.values(this.places) as Place[])) {
+		for (const key in this.places) {
+			const place = this.places[key];
 			place.type = 'place';
 			place.added = added;
 			place.deleted = deleted;
@@ -82,7 +79,8 @@ export const initActions = {
 			place.common = Boolean(place.common);
 			place.geomark = Boolean(place.geomark);
 		}
-		for (const route of (Object.values(this.routes) as Route[])) {
+		for (const key in this.routes) {
+			const route = this.routes[key];
 			route.type = 'route';
 			route.added = added;
 			route.deleted = deleted;
@@ -90,7 +88,8 @@ export const initActions = {
 			route.show = true;
 			route.common = Boolean(route.common);
 		}
-		for (const folder of (Object.values(this.folders) as Folder[])) {
+		for (const key in this.folders) {
+			const folder = this.folders[key];
 			folder.type = 'folder';
 			folder.added = added;
 			folder.deleted = deleted;
@@ -170,7 +169,7 @@ export const initActions = {
 				id: this.user.homeplace ? this.user.homeplace : null,
 				silent: true,
 			});
-			this.setCurrentRoute(Object.values(this.routes)[0] ?? null);
+			this.setFirstCurrentRoute();
 			this.setFirstCurrentPlace();
 		} catch (error) {
 			console.error(error);

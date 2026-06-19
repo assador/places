@@ -54,7 +54,7 @@
 						if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
-							markerContextMenu(e, mainStore.points[place.pointid]);
+							markerContextMenu(e, mainStore.points[place.pointid], place);
 						}
 					}"
 					@dblclick="() => {
@@ -101,7 +101,7 @@
 							if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 								markerAddPoint(mainStore.points[place.pointid]);
 							} else {
-								markerContextMenu(e, mainStore.points[place.pointid]);
+								markerContextMenu(e, mainStore.points[place.pointid], place);
 							}
 						}"
 						@dblclick="() => {
@@ -195,7 +195,7 @@
 								if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 									markerAddPoint(mainStore.getPointById(point.id));
 								} else {
-									markerContextMenu(e, mainStore.getPointById(point.id));
+									markerContextMenu(e, mainStore.getPointById(point.id), route);
 								}
 							}"
 							@dblclick="() => {
@@ -253,7 +253,7 @@
 							if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 								markerAddPoint(fat.point);
 							} else {
-								markerContextMenu(e, fat.point);
+								markerContextMenu(e, fat.point, mainStore.measure);
 							}
 						}"
 						@dblclick="() => {
@@ -404,7 +404,7 @@ import {
 	LTileLayer,
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Point } from '@/types';
+import { Point, Place, Route, Measure } from '@/types';
 import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -565,6 +565,7 @@ const leafletMapContextMenu = (e: any) => {
 const markerContextMenu = (
 	e: any,
 	point: Point,
+	of?: Place | Route | Measure,
 ) => {
 	e.originalEvent.stopPropagation();
 	e.originalEvent.preventDefault();
@@ -572,7 +573,7 @@ const markerContextMenu = (
 		common.hidePopup();
 		common.clearPointInfo();
 	} else {
-		common.setPointInfo({ id: point.id });
+		common.setPointInfo({ id: point.id, entity: of });
 		common.showPopup(calculatePopupPosition(e.originalEvent));
 	}
 };

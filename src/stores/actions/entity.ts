@@ -837,15 +837,28 @@ export const entityActions = {
 			this.setCurrentPlace(this.homePlace);
 			return;
 		}
-		let firstPlaceInRoot: Place = null;
+		let anyPlace: Place | null = null;
 		for (const id in this.places) {
-			if (!this.places[id].folderid) {
-				firstPlaceInRoot = this.places[id];
-				break;
+			const place = this.places[id];
+			if (!place.folderid) {
+				this.setCurrentPlace(place);
+				return;
 			}
+			if (!anyPlace) anyPlace = place;
 		}
-		if (!firstPlaceInRoot) this.setCurrentPlace(this.places[Object.keys(this.places)[0]]);
-		this.setCurrentPlace(firstPlaceInRoot);
+		this.setCurrentPlace(anyPlace);
+	},
+	setFirstCurrentRoute() {
+		let anyRoute: Route | null = null;
+		for (const id in this.routes) {
+			const route = this.routes[id];
+			if (!route.folderid) {
+				this.setCurrentRoute(route);
+				return;
+			}
+			if (!anyRoute) anyRoute = route;
+		}
+		this.setCurrentRoute(anyRoute);
 	},
 	async setHomePlace(
 		{ id, silent = false }:

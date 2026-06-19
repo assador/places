@@ -10,7 +10,7 @@
 			<a
 				href="javascript:void(0)"
 				class="point-info-copy"
-				@click="copyCoords(common.pointInfo.point)"
+				@click.stop="copyCoords(common.pointInfo.point)"
 			>
 				{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
 			</a>
@@ -105,26 +105,26 @@
 							v-if="isPlace(common.pointInfo.of)"
 							class="button-iconed icon icon-cross-45-circled"
 							:title="mainStore.t.i.buttons.deletePlace"
-							@click="deletePlace(common.pointInfo.of.id)"
+							@click.stop="deletePlace(common.pointInfo.of.id)"
 						/>
 						<button
 							v-else
 							class="button-iconed icon icon-cross-45-circled"
 							:title="mainStore.t.i.buttons.deletePoint"
-							@click="deletePoint(common.pointInfo.index, common.pointInfo.of)"
+							@click.stop="deletePoint(common.pointInfo.index, common.pointInfo.of)"
 						/>
 					</div>
 					<div
 						v-if="confirmPlaceDelete?.show"
 						class="point-info-confirm"
 					>
-						<button @click="confirmPlaceDelete.accept()">
+						<button @click.stop="confirmPlaceDelete.accept()">
 							{{ mainStore.t.i.buttons.yes }}
 						</button>
 						<h4 class="margin_bottom_0">
 							{{ confirmPlaceDelete.message }}
 						</h4>
-						<button @click="confirmPlaceDelete.cancel()">
+						<button @click.stop="confirmPlaceDelete.cancel()">
 							{{ mainStore.t.i.buttons.no }}
 						</button>
 					</div>
@@ -132,20 +132,20 @@
 						v-if="confirmPointDelete?.show"
 						class="point-info-confirm"
 					>
-						<button @click="confirmPointDelete.accept()">
+						<button @click.stop="confirmPointDelete.accept()">
 							{{ mainStore.t.i.buttons.yes }}
 						</button>
 						<h4 class="margin_bottom_0">
 							{{ confirmPointDelete.message }}
 						</h4>
-						<button @click="confirmPointDelete.cancel()">
+						<button @click.stop="confirmPointDelete.cancel()">
 							{{ mainStore.t.i.buttons.no }}
 						</button>
 					</div>
 					<div class="point-info-buttons">
 						<button
 							v-if="!isPlace(common.pointInfo.of)"
-							@click="mainStore.upsertPlaceFromPointInfo(common.pointInfo)"
+							@click.stop="placeFromPoint"
 						>
 							{{ mainStore.t.i.buttons.makePlace }}
 						</button>
@@ -192,6 +192,16 @@ const distanceFromCurrent = computed(() => roundTo(distanceOnSphere(
 	common.pointInfo.point.longitude,
 ), 3));
 
+const placeFromPoint = () => {
+	const place = mainStore.upsertPlaceFromPointInfo(common.pointInfo);
+	if (place) {
+		common.setPointInfo({
+			id: place.pointid,
+			context: common.pointInfo.context,
+			entity: place,
+		});
+	}
+}
 const updateName = (name: string) => {
 	if (!common.pointInfo || !common.pointInfo.of) return;
 	if (isPlace(common.pointInfo.of)) {
@@ -258,7 +268,7 @@ const deletePoint = async (index: number, entity: Route | Measure) => {
 
 <style lang="scss">
 .point-info {
-	padding: 30px 20px 10px 20px !important;
+	padding: 40px 20px 10px 20px !important;
 	text-align: right;
 	h3 {
 		text-align: center;
@@ -289,6 +299,9 @@ const deletePoint = async (index: number, entity: Route | Measure) => {
 		align-items: stretch;
 		& > *:not(&__name) {
 			flex: 0 1 auto;
+		}
+		&__name {
+			flex: 1 0 auto;
 		}
 		.images-add {
 			display: flex;

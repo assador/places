@@ -67,7 +67,7 @@
 						if (mainStore.mode !== 'normal' && e.shiftKey) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
-							markerContextMenu(e, mainStore.points[place.pointid]);
+							markerContextMenu(e, mainStore.points[place.pointid], place);
 						}
 					}"
 					@dblclick.stop.prevent="() => {
@@ -112,7 +112,7 @@
 						if (mainStore.mode !== 'normal' && e.shiftKey) {
 							markerAddPoint(mainStore.points[place.pointid]);
 						} else {
-							markerContextMenu(e, mainStore.points[place.pointid]);
+							markerContextMenu(e, mainStore.points[place.pointid], place);
 						}
 					}"
 					@dblclick.stop.prevent="() => {
@@ -211,7 +211,7 @@
 								if (mainStore.mode !== 'normal' && e.shiftKey) {
 									markerAddPoint(mainStore.getPointById(point.id));
 								} else {
-									markerContextMenu(e, mainStore.getPointById(point.id));
+									markerContextMenu(e, mainStore.getPointById(point.id), route);
 								}
 							}"
 							@dblclick.stop.prevent="() => {
@@ -325,7 +325,7 @@
 							if (mainStore.mode !== 'normal' && e.shiftKey) {
 								markerAddPoint(fat.point);
 							} else {
-								markerContextMenu(e, fat.point);
+								markerContextMenu(e, fat.point, mainStore.measure);
 							}
 						}"
 						@dblclick.stop.prevent="() => {
@@ -428,7 +428,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { Point, Route, Measure } from '@/types';
+import { Point, Place, Route, Measure } from '@/types';
 import { common } from '@/services/common';
 import { getPointToSegmentDistance, calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -573,6 +573,7 @@ const yandexMapContextMenu = (e: DomEvent) => {
 const markerContextMenu = (
 	e: PointerEvent,
 	point: Point,
+	of?: Place | Route | Measure,
 ) => {
 	e.stopPropagation();
 	e.preventDefault();
@@ -580,7 +581,7 @@ const markerContextMenu = (
 		common.hidePopup();
 		common.clearPointInfo();
 	} else {
-		common.setPointInfo({ id: point.id });
+		common.setPointInfo({ id: point.id, entity: of });
 		common.showPopup(calculatePopupPosition(e));
 	}
 };

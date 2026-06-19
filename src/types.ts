@@ -139,8 +139,9 @@ export interface PointDescription {
 }
 export interface FatPointDescription extends Omit<PointDescription, 'id'> {
 	point: Point;
-	index: number;
-	key: string;
+	context?: PointInfoContext;
+	index?: number;
+	key?: string;
 }
 export interface Measure {
 	type: string;
@@ -155,7 +156,7 @@ export interface FatPointsPack extends Omit<Measure, 'points'> {
 	points: FatPointDescription[];
 }
 export interface PointInfo extends FatPointDescription {
-	of?: Place | Route | Measure | null;
+	of?: Place | Route | Measure;
 }
 export interface FirstShow {
 	show: boolean;
