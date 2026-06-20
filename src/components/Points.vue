@@ -78,7 +78,11 @@
 			<div class="points-info">
 				<div
 					v-if="context === 'routes'"
-					:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
+					:title="
+						distance + ' ' +
+						mainStore.t.i.text.km + ' ' +
+						mainStore.t.i.text.betweenPointsInFolder
+					"
 					class="points-distance"
 				>
 					<span class="un_color">{{ mainStore.t.i.captions.total }}: </span>

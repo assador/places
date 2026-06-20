@@ -295,12 +295,34 @@
 			</label>
 		</div>
 		<div
-			v-if="distance > 0 && folder.open"
-			:title="distance + mainStore.t.i.hints.distanceBetweenPointsInFolder"
+			v-if="folder.open && (
+				props.what === 'places' && placesDistance ||
+				props.what === 'routes' && routesDistance.include
+			)"
+			:title="
+				mainStore.t.i.captions.measure + ' ' +
+				mainStore.t.i.text.betweenPointsInFolder
+			"
 			class="folder-distances"
 		>
 			<span class="un_color">{{ mainStore.t.i.captions.total }}: </span>
-			<span class="color-01">{{ distance }}</span>
+			<template v-if="props.what === 'places'">
+				<span class="color-01">{{ placesDistance }}</span>
+			</template>
+			<template v-if="props.what === 'routes'">
+				<span
+					:title="mainStore.t.i.text.excludeFlights"
+					class="color-01"
+				>
+					{{ routesDistance.exclude }}
+				</span> /
+				<span
+					:title="mainStore.t.i.text.includeFlights"
+					class="color-01"
+				>
+					{{ routesDistance.include }}
+				</span>
+			</template>
 			<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
 		</div>
 		<div
@@ -344,6 +366,7 @@ import {
 } from '@/types';
 import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
+import { roundTo } from '@/shared/common';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;
@@ -382,26 +405,19 @@ const routes = computed(() =>
 	.sortBy('srt')
 	.value()
 );
-const distance = computed(() => {
-	switch (props.what) {
-		case 'places':
-			return Math.round(mainStore.distanceBetweenPoints(
-				places.value.map(place => place.pointid)
-			) * 1000) / 1000;
-		case 'routes': {
-			const isTotalPath = false; // TODO Implement checkbox: Include distances between routes.
-			if (isTotalPath) {
-				return Math.round(mainStore.distanceBetweenPoints(
-					routes.value.map(route => route.points.map(pn => pn.id)).flat()
-				) * 1000) / 1000;
-			} else {
-				const sum = routes.value.reduce((s, r) => s + mainStore.distanceBetweenPoints(r.points.map(p => p.id)), 0);
-				return Math.round(sum * 1000) / 1000;
-			}
-		}
-		default:
-			return 0;
-	}
+const placesDistance = computed(() => {
+	return roundTo(mainStore.distanceBetweenPoints(
+		places.value.map(place => place.pointid)
+	), 3);
+});
+const routesDistance = computed(() => {
+	const include = roundTo(mainStore.distanceBetweenPoints(
+		routes.value.map(route => route.points.map(pn => pn.id)).flat()
+	), 3);
+	const exclude = roundTo(routes.value.reduce((s, r) =>
+		s + mainStore.distanceBetweenPoints(r.points.map(p => p.id)
+	), 0), 3);
+	return { include: include, exclude: exclude };
 });
 const selectFolderToExport = (id: string, select: boolean): void => {
 	const currentArray = mainStore.selectedToExport[props.what];

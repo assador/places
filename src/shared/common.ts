@@ -1,5 +1,9 @@
 import { constants } from '@/shared/constants';
 
+export function anyObjectValue<T>(obj: Record<string, T>): T | undefined {
+	for (const key in obj) return obj[key];
+	return undefined;
+}
 export const childrenCount = (
 	tree: Record<string, any>,
 	childrenKey: string,
