@@ -94,7 +94,7 @@
 							/>
 						</div>
 						<input
-							v-if="common.pointInfo.of"
+							v-if="common.pointInfo.of && common.pointInfo.of.id !== 'tempspack'"
 							type="text"
 							class="point-info-common__name"
 							:value="common.pointInfo.name"
@@ -108,7 +108,7 @@
 							@click.stop="deletePlace(common.pointInfo.of.id)"
 						/>
 						<button
-							v-else
+							v-else-if="common.pointInfo.of && common.pointInfo.of.id !== 'tempspack'"
 							class="button-iconed icon icon-cross-45-circled"
 							:title="mainStore.t.i.buttons.deletePoint"
 							@click.stop="deletePoint(common.pointInfo.index, common.pointInfo.of)"

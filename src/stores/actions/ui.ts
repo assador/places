@@ -3,6 +3,7 @@ import {
 	Route,
 	Folder,
 	GeomarksState,
+	Dictionary,
 } from '@/types';
 import { isFolder, isPlace, isRoute } from '@/guards';
 import { constants } from '@/shared/constants';
@@ -15,7 +16,7 @@ export const uiActions = {
 	},
 	changeLang(lang: string) {
 		const getLang = () => import(`@/lang/${lang}.ts`);
-		getLang().then(l => {
+		getLang().then((l: { getT: () => Dictionary }) => {
 			this.lang = lang;
 			this.t = l.getT();
 			this.trees.places.name = this.t.i.captions.rootFolder;
@@ -62,8 +63,8 @@ export const uiActions = {
 // SEC Tree
 
 	folderOpenClose(
-		{ folder, open, target }:
-		{ folder?: Folder; open?: boolean; target?: any; }
+		{ folder, open }:
+		{ folder: Folder; open?: boolean; }
 	) {
 		const targetOpen = typeof open !== 'undefined'
 			? open : !folder.open
@@ -73,20 +74,6 @@ export const uiActions = {
 				this.trees[folder.context].open = targetOpen;
 			} else {
 				this.folders[folder.id].open = targetOpen;
-			}
-		}
-		if (target) {
-			if (targetOpen) {
-				target.classList.add('folder_open');
-				target.classList.remove('folder_closed');
-			} else {
-				if (target.classList.contains('folder_open')) {
-					target.classList.add('folder_closed');
-					target.classList.remove('folder_open');
-				} else {
-					target.classList.add('folder_open');
-					target.classList.remove('folder_closed');
-				}
 			}
 		}
 	},

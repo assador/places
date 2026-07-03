@@ -1,10 +1,11 @@
 import { reactive } from 'vue';
 import api from '@/api';
+import { Dictionary } from '@/types'
 
 export const acc = reactive({
 	message: '',
 });
-export const accountSaveRoutine = async (account: Record<string, string>, voc) => {
+export const accountSaveRoutine = async (account: Record<string, string>, voc: Dictionary) => {
 	if (account.accountNewPassword === undefined) account.accountNewPassword = '';
 	try {
 		const { data } = await api.post('set_account.php', account);

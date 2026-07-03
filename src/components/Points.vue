@@ -92,13 +92,13 @@
 				<a
 					v-if="mainStore.currentPointId"
 					href="javascript:void(0)"
-					@pointerdown.stop.prevent="e => {
-						if (common.popupProps.show) {
-							common.hidePopup();
-						} else {
-							const chosenFatPoint = points.find(p => p.index === of.choosing);
-							if (chosenFatPoint) {
-								common.setPointInfo({ id: chosenFatPoint.point.id });
+					@pointerup="e => {
+						const fat = points.find(p => p.index === of.choosing);
+						if (fat) {
+							if (common.pointInfo?.point.id === fat.point.id) {
+								common.togglePopup(calculatePopupPosition(e));
+							} else {
+								common.setPointInfo({ id: fat.point.id, context, entity: of });
 								common.showPopup(calculatePopupPosition(e));
 							}
 						}
@@ -155,13 +155,7 @@
 						class="button-iconed icon icon-cross-45-circled"
 						@pointerdown.stop
 						@pointerup.stop
-						@click.stop="() => {
-							if (of.type === 'temps') delete mainStore.temps[fat.point.id];
-							else mainStore.removePointFromPoints({
-								index: fat.index,
-								entity: of,
-							});
-						}"
+						@click.stop="removePoint(fat.index, fat.point.id)"
 					/>
 					<span
 						class="sorting-area-before"
@@ -192,6 +186,8 @@ import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
 import { calculatePopupPosition } from '@/shared/common';
 import {
+	Route,
+	Measure,
 	PointCollectionContext,
 	FatPointDescription,
 	PointDescription,
@@ -215,11 +211,22 @@ const of = computed(() => {
 		null
 	);
 });
+const removePoint = (index: number, id: string) => {
+	if (props.context === 'temps') {
+		delete mainStore.temps[id];
+	} else if (of.value) {
+		mainStore.removePointFromPoints({
+			index: index,
+			entity: of.value as Route | Measure,
+		});
+	}
+};
 const points = computed(() => {
 	let points: FatPointDescription[] = [];
 	if (props.context === 'temps') return mainStore.notMeasureFatTemps.points;
 	else if (props.context === 'measure') return mainStore.measureFatPoints;
-	const pns: PointDescription[] = of.value?.points ?? [];
+	const currentRoute = of.value as Route | null;
+	const pns: PointDescription[] = currentRoute?.points ?? [];
 	for (let i = 0; i < pns.length; i++) {
 		const p =  mainStore.getPointById(pns[i].id);
 		if (p && !p.deleted) points.push({

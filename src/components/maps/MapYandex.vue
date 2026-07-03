@@ -136,7 +136,6 @@
 <!-- SEC Markers: Route Points  -->
 
 			<template v-if="
-				mainStore.mode === 'routes' &&
 				mainStore.routesShow.show &&
 				mainStore.markersShow
 			">

@@ -35,16 +35,19 @@ export const entityGetters = {
 // Entity Getters
 
 	homePlace(): Place | null {
-		return this.places[this.user?.homeplace] ?? null;
+		const homeplaceId = this.user?.homeplace;
+		return homeplaceId ? (this.places[homeplaceId] ?? null) : null;
 	},
-	currentPoint() {
-		return (this.points[this.currentPointId] ?? this.temps[this.currentPointId]);
+	currentPoint(): Point | null {
+		return this.currentPointId
+			? (this.points[this.currentPointId] ?? this.temps[this.currentPointId] ?? null)
+			: null;
 	},
-	currentPlace() {
-		return this.places[this.currentPlaceId];
+	currentPlace(): Place | null {
+		return this.currentPlaceId ? (this.places[this.currentPlaceId] ?? null) : null;
 	},
-	currentRoute() {
-		return this.routes[this.currentRouteId];
+	currentRoute(): Route | null {
+		return this.currentRouteId ? (this.routes[this.currentRouteId] ?? null) : null;
 	},
 	getAllPoints() {
 		return { ...this.points, ...this.temps };
@@ -154,6 +157,7 @@ export const entityGetters = {
 		let index = 0;
 		for (const id of this.notMeasureTempPointIds) {
 			points.push({
+				id: id,
 				name: String(index + 1),
 				index: index,
 				key: `temp-${id}`,
@@ -162,7 +166,8 @@ export const entityGetters = {
 			index++;
 		}
 		return {
-			type: 'temps',
+			id: 'tempspack',
+			type: 'pointspack',
 			points: points,
 			choosing: points.find(p => p.point.id === this.currentPointId)?.index ?? null,
 			show: false,

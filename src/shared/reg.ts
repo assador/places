@@ -1,10 +1,11 @@
 import { reactive } from 'vue';
 import api from '@/api';
+import { Dictionary } from '@/types'
 
 export const reg = reactive({
 	message: '',
 });
-export const regRoutine = async (payload: Record<string, string>, voc) => {
+export const regRoutine = async (payload: Record<string, string>, voc: Dictionary) => {
 	try {
 		const { data } = await api.post('reg.php', payload);
 		switch (data) {

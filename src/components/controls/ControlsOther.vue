@@ -2,7 +2,7 @@
 	<button
 		class="action-button"
 		:title="mainStore.t.i.hints.centerTo"
-		@click="centerTo"
+		@click="() => { if (!centerTo()) mainStore.setMessage('Ахахаха!!!', 3); }"
 	>
 		<span class="icon icon-cross" />
 	</button>
@@ -20,6 +20,7 @@
 import { Ref, inject } from 'vue';
 import { common } from '@/services/common';
 import { useMainStore } from '@/stores/main';
+import { Point } from '@/types';
 
 const mainStore = useMainStore();
 
@@ -30,14 +31,32 @@ const cells = inject<Ref<{
 	left: boolean,
 }>>('cells');
 
-const centerTo = () => {
-	if (mainStore.currentPoint) {
-		mainStore.center = {
-			latitude: mainStore.currentPoint.latitude,
-			longitude: mainStore.currentPoint.longitude,
-		};
+const centerTo = (): boolean => {
+	let point: Point | null = null;
+	if (mainStore.mode === 'routes') {
+		const route = mainStore.currentRoute;
+		if (route && route.choosing !== null) {
+			const pointDesc = route.points[route.choosing];
+			if (pointDesc) point = mainStore.getPointById(pointDesc.id);
+		}
+	} else {
+		const place = mainStore.currentPlace;
+		if (place?.pointid) {
+			point = mainStore.getPointById(place.pointid);
+		}
+		if (!point && mainStore.currentPointId) {
+			point = mainStore.getPointById(mainStore.currentPointId);
+		}
 	}
-}
+	if (point) {
+		mainStore.center = {
+			latitude: point.latitude,
+			longitude: point.longitude,
+		};
+		return true;
+	}
+	return false;
+};
 const hideCells = () => {
 	cells.value = {
 		top: false,

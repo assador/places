@@ -40,6 +40,27 @@
 				} ${mainStore.t.i.hints.onMap}` }}
 			</a>
 			<a
+				v-if="object.type === 'place' || object.type === 'route'"
+				class="menu-link message border_1"
+				role="button" tabindex="0"
+				@pointerdown.stop
+				@pointerup.stop
+				@click.stop="inputUploadFiles.click()"
+			>
+				<span class="icon icon-plus-circled" />
+				{{ mainStore.t.i.buttons.addPhotos }}
+				<input
+					ref="inputUploadFiles"
+					type="file"
+					name="files"
+					accept="image/*"
+					capture="environment"
+					multiple
+					class="images-add__input"
+					@change="addImages(object, inputUploadFiles)"
+				/>
+			</a>
+			<a
 				class="menu-link message border_1"
 				role="button" tabindex="0"
 				:title="object.type !== 'folder' ? (
@@ -175,12 +196,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { Folder } from '@/types';
 import { isPlace } from '@/guards';
-import { common } from '@/services/common';
+import { common, addImages } from '@/services/common';
 import { useGeolocation } from '@/services/geolocation';
 import Popup from '@/components/popups/Popup.vue';
 
@@ -204,6 +225,8 @@ const show = computed({
 	get: () => common.popupEntityMenu.show,
 	set: (val) => common.updateEntityMenu({ show: val }),
 });
+
+const inputUploadFiles = ref<HTMLInputElement | null>(null);
 
 const handlePopupUpdate = (show: boolean) => {
 	common.popupEntityMenu.show = show;
@@ -239,6 +262,9 @@ const handlePopupUpdate = (show: boolean) => {
 				line-height: 0;
 			}
 		}
+	}
+	.images-add__input {
+		display: none;
 	}
 }
 </style>

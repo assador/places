@@ -1,10 +1,11 @@
 import { reactive } from 'vue';
 import api from '@/api';
+import { Dictionary } from '@/types'
 
 export const forgot = reactive({
 	message: '',
 });
-export const forgotRoutine = async (payload: Record<string, string>, voc) => {
+export const forgotRoutine = async (payload: Record<string, string>, voc: Dictionary) => {
 	try {
 		const { data } = await api.post('forgot.php', payload);
 		switch (data) {

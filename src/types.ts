@@ -137,7 +137,7 @@ export interface PointDescription {
 	name?: string;
 	description?: string;
 }
-export interface FatPointDescription extends Omit<PointDescription, 'id'> {
+export interface FatPointDescription extends PointDescription {
 	point: Point;
 	context?: PointInfoContext;
 	index?: number;
@@ -152,11 +152,16 @@ export interface Measure {
 	name?: string;
 	description?: string;
 }
-export interface FatPointsPack extends Omit<Measure, 'points'> {
+export interface FatPointsPack {
+	type: 'pointspack';
+	name: string;
 	points: FatPointDescription[];
+	choosing: number | null;
+	show: boolean;
+	id?: string;
 }
 export interface PointInfo extends FatPointDescription {
-	of?: Place | Route | Measure;
+	of?: Place | Route | Measure | FatPointsPack;
 }
 export interface FirstShow {
 	show: boolean;
@@ -225,6 +230,9 @@ export type DragHandler = (payload: DragPayload, target: HTMLElement) => void;
 
 // SEC Store
 
+import { getT } from '@/lang/en';
+export type Dictionary = ReturnType<typeof getT>;
+
 export interface IMainState {
 	activeMapIndex: number;
 	backup: boolean;
@@ -272,7 +280,7 @@ export interface IMainState {
 	serverConfig: any | null;
 	stateBackups: any[];
 	stateBackupsIndex: number;
-	t: any;
+	t: Dictionary;
 	temps: Record<string, Point>;
 	tempsShow: FirstShow;
 	treeParams: Record<string, Tree>;

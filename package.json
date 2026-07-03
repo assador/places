@@ -1,7 +1,7 @@
 {
 	"name": "places",
 	"description": "A personal geo-organizer",
-	"version": "6.5.4 beta",
+	"version": "6.5.5:1 beta",
 	"author": "Dmitry Sokolov <assador@gmail.com>",
 	"license": "MIT",
 	"private": true,
@@ -10,7 +10,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"test": "vitest",
-		"lint": "eslint"
+		"lint": "eslint",
+		"type-check": "vue-tsc --noEmit"
 	},
 	"dependencies": {
 		"axios": "^1.16.1",

@@ -15,7 +15,7 @@
 				<div class="control-buttons">
 					<button
 						class="action-button"
-						:title="mainStore.t.i.hints.home"
+						:title="mainStore.t.i.buttons.home"
 						@click="router.push('/home')"
 					>
 						<span>⌂</span>

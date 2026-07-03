@@ -2,13 +2,14 @@ import { reactive } from 'vue';
 import api from '@/api';
 import { confirm } from '@/services/confirm';
 import { useMainStore } from '@/stores/main';
+import { Dictionary } from '@/types'
 
 export const login = reactive({
 	message: '',
 });
 export const loginRoutine = async (
 	user: { authLogin: string, authPassword: string },
-	voc: Record<string, any>,
+	voc: Dictionary,
 ): Promise<boolean> => {
 	try {
 		const { data } = await api.post('login.php', user);

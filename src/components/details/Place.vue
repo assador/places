@@ -186,7 +186,7 @@
 
 <!-- SEC Name -->
 
-			<template v-else>
+			<template v-else-if="field === 'name' || field === 'description'">
 				<dt>{{ mainStore.descriptionFields[field] }}</dt>
 				<dd>
 					<textarea
@@ -225,7 +225,7 @@
 import { ref, computed, inject } from 'vue';
 import { coords2string, string2coords } from '@/shared/converters';
 import { useMainStore } from '@/stores/main';
-import { Place } from '@/types'
+import { Place } from '@/types';
 import Images from '@/components/details/Images.vue';
 
 const currentPlaceNameInputRef = inject('currentPlaceNameInputRef');

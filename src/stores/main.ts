@@ -11,6 +11,7 @@ import {
 	PointInfoContext,
 	TreeItemType,
     Measure,
+    FatPointsPack,
 } from '@/types';
 import { isFolder } from '@/guards';
 import { constants } from '@/shared/constants';
@@ -298,7 +299,7 @@ export const useMainStore = defineStore('main', {
 				{
 					id: string | null;
 					context?: PointInfoContext;
-					entity?: Place | Route | Measure;
+					entity?: Place | Route | Measure | FatPointsPack;
 				}
 			): PointInfo | null => {
 				if (!id) return null;
@@ -329,6 +330,7 @@ export const useMainStore = defineStore('main', {
 					}
 				}
 				return {
+					id,
 					point,
 					of,
 					context,

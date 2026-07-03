@@ -47,13 +47,10 @@
 					:key="key"
 				>
 					<div
-						v-if="
-							(value !== '' || tableMode === 1) &&
-							key as unknown as string !== 'checked'
-						"
+						v-if="key in sortKeys && (value !== '' || tableMode === 1)"
 					>
 						<div v-if="tableMode !== 1">
-							{{ sortKeys[key] }}
+							{{ sortKeys[key as keyof typeof sortKeys] }}
 						</div>
 						<div :class="{'impvalue': key as unknown as string === sortBy}">
 							<a
@@ -81,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, inject, onMounted } from 'vue';
+import { ref, Ref, watch, computed, inject, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { User } from '@/types';
@@ -100,7 +97,7 @@ const adminStore = useAdminStore();
 const tableMode = ref(1);
 const sortBy = ref('');
 
-const component = inject<typeof component>('component');
+const component = inject<Ref<string>>('component');
 
 const sortKeys = computed(() => ({
 	id: mainStore.t.i.captions.id,
@@ -124,7 +121,7 @@ onMounted(() => {
 const goToUser = (id: string): void => {
 	const user = adminStore.users.find((u: User) => u.id === id);
 	if(typeof user === 'undefined') return;
-	adminStore.change({where: user, what: 'checked', to: true});
+	user.checked = true;
 	component.value = 'users';
 }
 </script>

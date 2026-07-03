@@ -7,6 +7,7 @@ import {
 	Folder,
 	Image,
 	Measure,
+	FatPointsPack,
 	PopupProps,
 	PopupPosition,
 	PopupEntityMenuProps,
@@ -43,7 +44,7 @@ const _popupEntityMenu = ref<PopupEntityMenuProps>({
 const _pointInfo = ref(null);
 const _pointInfoPointId = ref<string | null>(null);
 const _pointInfoContext = ref<PointInfoContext | undefined>(undefined);
-const _pointInfoEntity = ref<Place | Route | Measure | undefined>(undefined);
+const _pointInfoEntity = ref<Place | Route | Measure | FatPointsPack | undefined>(undefined);
 
 export const common = {
 	get compact(): number {
@@ -109,7 +110,7 @@ export const common = {
 		{
 			id: string | null;
 			context?: PointInfoContext;
-			entity?: Place | Route | Measure;
+			entity?: Place | Route | Measure | FatPointsPack;
 		}
 	): void {
 		_pointInfoPointId.value = id;

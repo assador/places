@@ -300,8 +300,12 @@
 				props.what === 'routes' && routesDistance.include
 			)"
 			:title="
-				mainStore.t.i.captions.measure + ' ' +
-				mainStore.t.i.text.betweenPointsInFolder
+				mainStore.t.i.captions.measure + (
+					props.what === 'places' ? ' ' + mainStore.t.i.text.betweenPointsInFolder :
+					props.what === 'routes' ? ' ' + mainStore.t.i.text.betweenRoutesInFolder :
+					''
+				)
+
 			"
 			class="folder-distances"
 		>

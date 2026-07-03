@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { User, Group } from '../types';
+import { User, Group } from '@/types';
 
 export interface IAdminState {
 	users: User[],
@@ -16,23 +16,14 @@ export const useAdminStore = defineStore('admin', {
 		groupsSortBy: 'id',
 	}),
 	actions: {
-		change(payload) {
-			payload.where[payload.what] = payload.to;
-		},
-		setUsersMut(payload) {
-			this.users = payload;
-		},
-		setGroupsMut(payload) {
-			this.groups = payload;
-		},
-		setUsersSortByMut(sortBy) {
+		setUsersSortByMut(sortBy: string) {
 			this.usersSortBy = sortBy;
 		},
-		setGroupsSortByMut(sortBy) {
+		setGroupsSortByMut(sortBy: string) {
 			this.groupsSortBy = sortBy;
 		},
-		sortMut(payload) {
-			this[payload.what].sort((a, b) => {
+		sortMut(payload: { what: string, by: string }) {
+			this[payload.what].sort((a: any, b: any) => {
 				const stringA = a[payload.by] ? a[payload.by].toString().toUpperCase() : '';
 				const stringB = b[payload.by] ? b[payload.by].toString().toUpperCase() : '';
 				if (stringA < stringB) return -1;
@@ -42,18 +33,18 @@ export const useAdminStore = defineStore('admin', {
 		},
 		setUsers(payload: User[]) {
 			for (const user of payload) {
-				user.confirmed = user.confirmed ? true : false;
+				user.confirmed = !!user.confirmed;
 				user.checked = false;
 			}
-			this.setUsersMut(payload);
+			this.users = payload;
 		},
 		setGroups(payload: Group[]) {
 			for (const group of payload) {
-				group.haschildren = group.haschildren ? true : false;
-				group.system = group.system ? true : false;
+				group.haschildren = !!group.haschildren;
+				group.system = !!group.system;
 				group.checked = false;
 			}
-			this.setGroupsMut(payload);
+			this.groups = payload;
 		},
 		setUsersSortBy(sortBy: string) {
 			this.setUsersSortByMut(sortBy);
@@ -61,10 +52,8 @@ export const useAdminStore = defineStore('admin', {
 		setGroupsSortBy(sortBy: string) {
 			this.setGroupsSortByMut(sortBy);
 		},
-		sort(payload: {what: string, by: string}) {
+		sort(payload: { what: string, by: string }) {
 			this.sortMut(payload);
 		},
-	},
-	getters: {
 	},
 });

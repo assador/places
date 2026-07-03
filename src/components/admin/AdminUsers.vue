@@ -73,7 +73,7 @@
 				</h3>
 			</div>
 			<div
-				v-for="(user, index) in users"
+				v-for="(user, index) in adminStore.users"
 				:key="index"
 				:class="{'active': tableMode !== 1 && user.checked}"
 			>
@@ -83,11 +83,7 @@
 							type="checkbox"
 							:checked="user.checked"
 							@change="e => {
-								adminStore.change({
-									where: user,
-									what: 'checked',
-									to: (e.currentTarget as HTMLInputElement).checked,
-								});
+								user.checked = (e.currentTarget as HTMLInputElement).checked;
 								if (!(e.currentTarget as HTMLInputElement).checked)
 									checkedAll = false
 								;
@@ -100,17 +96,11 @@
 					:key="key"
 				>
 					<div
-						v-if="
-							(value !== '' || tableMode === 1) &&
-							key as unknown as string !== 'id' &&
-							key as unknown as string !== 'password' &&
-							key as unknown as string !== 'homeplace' &&
-							key as unknown as string !== 'checked'
-						"
-						:class="{'active': tableMode === 1 && user.checked}"
+						v-if="key in sortKeys && (value !== '' || tableMode === 1)"
+						:class="{ 'active': tableMode === 1 && user.checked }"
 					>
 						<div v-if="tableMode !== 1">
-							{{ sortKeys[key] }}
+							{{ sortKeys[key as keyof typeof sortKeys] }}
 						</div>
 						<div :class="{'impvalue': key as unknown as string === sortBy}">
 							{{ (typeof value === 'boolean'
@@ -132,14 +122,7 @@
 import { ref, watch, computed, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
-/*
-export interface IAdminUsersProps {
-	prop: 0,
-}
-const props = withDefaults(defineProps<IAdminUsersProps>(), {
-	prop: 0,
-});
-*/
+
 const mainStore = useMainStore();
 const adminStore = useAdminStore();
 
@@ -163,17 +146,9 @@ onMounted(() => {
 	sortBy.value = adminStore.usersSortBy;
 });
 
-const users = computed(() => adminStore.users);
-
 const checkedAll = ref(false);
 const checkAll = (check: boolean): void => {
-	for (const user of adminStore.users) {
-		adminStore.change({
-			where: user,
-			what: 'checked',
-			to: check,
-		});
-	}
+	for (const user of adminStore.users) user.checked = check;
 	checkedAll.value = check;
 }
 </script>

@@ -70,6 +70,7 @@ export const getT = () => ({
 		text: {
 			addedEnterName: 'Added. Enter a name, the cursor is in the input field.',
 			betweenPointsInFolder: 'between all points in order in this folder',
+			betweenRoutesInFolder: 'between all routes in order in this folder (exclude / include flights between them)',
 			copied: 'Copied',
 			copy: 'Copy',
 			descGpx: 'Standard XML format for storing and exchanging GPS data. It is understood by most navigator programs (for example, Locus Map, Navitel, etc.). Only the places themselves are exported. The folder tree is not saved.',
@@ -301,7 +302,7 @@ Your data is temporary and will be cleared when you log out.`,
 Your data won’t be saved to your account and will be cleared when you log out.`,
 		},
 		errors: {
-			geoLocation: {
+			geo: {
 				error: 'An unknown geolocation error occurred.',
 				notSupported: 'Geolocation is not supported by your device.',
 				permissionDenied: 'You have denied access to geolocation.',

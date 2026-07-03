@@ -125,7 +125,6 @@
 <!-- SEC Markers: Route Points  -->
 
 			<l-layer-group v-if="
-				mainStore.mode === 'routes' &&
 				mainStore.routesShow.show &&
 				mainStore.markersShow
 			">
