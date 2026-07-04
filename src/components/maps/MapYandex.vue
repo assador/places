@@ -45,7 +45,7 @@
 			">
 				<yandex-map-marker
 					v-for="place in computedPlaces"
-					:key="place.key"
+					:key="place.id"
 					v-model="placeMarkers[place.id]"
 					:settings="{
 						coordinates: [
@@ -60,7 +60,7 @@
 						},
 						onDragMove: e => moveMarker(e, place.pointid),
 					}"
-					:visible="place.show && place.geomark"
+					:visible="place.show && !!place.geomark"
 					class="place"
 					@click.stop.prevent="mainStore.setCurrentPlace(place, false)"
 					@contextmenu.stop.prevent="(e: PointerEvent) => {
@@ -97,7 +97,7 @@
 
 				<yandex-map-marker
 					v-for="place in computedCommonPlaces"
-					:key="place.key"
+					:key="place.id"
 					v-model="placeMarkers[place.id]"
 					:settings="{
 						coordinates: [
@@ -106,7 +106,7 @@
 						],
 						draggable: false,
 					}"
-					:visible="mainStore.commonMarkersShow && place.geomark"
+					:visible="mainStore.commonMarkersShow && !!place.geomark"
 					@click.stop.prevent="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
 					@contextmenu.stop.prevent="(e: PointerEvent) => {
 						if (mainStore.mode !== 'normal' && e.shiftKey) {
@@ -187,8 +187,8 @@
 						}"
 					/>
 					<template
-						v-for="(point, index) in route.computedRoutePoints"
-						:key="point.idx"
+						v-for="(point, index) in computedRoutePointsArray(route.points)"
+						:key="`${route.id}-${point.id}-${index}`"
 					>
 						<yandex-map-marker
 							v-model="routePointMarkers[point.id]"
@@ -434,7 +434,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
-import { Point, Place, Route, Measure } from '@/types';
+import { Point, Place, Route, Measure, PointDescription } from '@/types';
 import { common } from '@/services/common';
 import { getPointToSegmentDistance, calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -494,34 +494,34 @@ const mapCenter = computed(() => ({
 	] as LngLat,
 }));
 
-const prepareEntities = (entities: any[]) => {
-	return entities
-		.filter(p => !p.deleted)
-		.map(p => ({ ...p, key: p.id }))
-	;
+const preparePlaces = (dict: Record<string, Place>): Record<string, Place> => {
+	const prepared: Record<string, Place> = {};
+	for (const key of Object.keys(dict)) {
+		if (!dict[key].deleted) prepared[key] = dict[key];
+	}
+	return prepared;
 };
-const computedPlaces =
-	computed(() => prepareEntities(Object.values(mainStore.places)))
-;
-const computedCommonPlaces =
-	computed(() => prepareEntities(Object.values(mainStore.commonPlaces)))
-;
+const computedPlaces = computed(() => preparePlaces(mainStore.places));
+const computedCommonPlaces = computed(() => preparePlaces(mainStore.commonPlaces));
+
 const computedRoutes = computed(() => {
-	return Object.values(mainStore.routes)
-		.filter(r => !r.deleted && r.geomarks === 1)
-		.map(r => ({
-			...r,
-			computedRoutePoints:
-				mainStore.routePoints(r)
-					.filter(p => !p.deleted)
-					.map((p, pindex) => ({
-						...p,
-						idx: pindex,
-					}))
-			,
-		}))
-	;
+	const prepared: Record<string, Route> = {};
+	for (const key of Object.keys(mainStore.routes)) {
+		if (!mainStore.routes[key].deleted && mainStore.routes[key].geomarks === 1) {
+			prepared[key] = mainStore.routes[key];
+		}
+	}
+	return prepared;
 });
+const computedRoutePointsArray = (descs: PointDescription[]): Point[] => {
+	const prepared: Point[] = [];
+	for (const desc of descs) {
+		if (mainStore.points[desc.id] && !mainStore.points[desc.id].deleted) {
+			prepared.push(mainStore.points[desc.id]);
+		}
+	}
+	return prepared;
+};
 
 const dragging = ref(false);
 

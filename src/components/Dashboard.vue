@@ -1,7 +1,7 @@
 <template>
 	<div id="dashboard">
 		<select
-			id="langs"
+			id="dashboard-langs"
 			v-model="lang"
 		>
 			<option
@@ -13,7 +13,7 @@
 			</option>
 		</select>
 		<select
-			id="colorthemes"
+			id="dashboard-colorthemes"
 			v-model="colortheme"
 		>
 			<option
@@ -44,3 +44,51 @@ watch(() => colortheme.value, () => {
 	mainStore.colortheme = colortheme.value;
 });
 </script>
+
+<style lang="scss" scoped>
+#dashboard {
+	display: grid;
+	grid-template-areas:
+		"dashboard-langs"
+		"dashboard-colorthemes"
+	;
+	grid-template-columns: 1fr;
+	grid-template-rows: auto 1fr;
+	gap: 12px;
+	#dashboard-langs {
+		grid-area: dashboard-langs;
+	}
+	#dashboard-colorthemes {
+		grid-area: dashboard-colorthemes;
+	}
+	#dashboard-controls-choosemap {
+		display: none;
+	}
+}
+#dashboard-controls-choosemap {
+	grid-area: dashboard-controls-choosemap;
+}
+@media screen and (max-width: 800px) {
+	.header #dashboard {
+		grid-template-areas:
+			"dashboard-langs  dashboard-colorthemes  dashboard-controls-choosemap"
+		;
+		grid-template-columns: auto auto auto;
+		grid-template-rows: auto;
+		#dashboard-controls-choosemap {
+			display: block;
+		}
+	}
+}
+@media screen and (max-width: 400px) {
+	.header #dashboard {
+		grid-template-areas:
+			"dashboard-langs"
+			"dashboard-colorthemes"
+			"dashboard-controls-choosemap"
+		;
+		grid-template-columns: 1fr;
+		grid-template-rows: auto auto 1fr;
+	}
+}
+</style>

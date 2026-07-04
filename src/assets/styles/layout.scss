@@ -114,9 +114,6 @@
 #bottom-controls-choosemap {
 	grid-area: bottom-controls-choosemap;
 }
-#dashboard-controls-choosemap {
-	grid-area: dashboard-controls-choosemap;
-}
 #top-left h3 {
 	margin: -8px 0 4px 0;
 }
@@ -131,6 +128,9 @@
 	gap: 20px;
 	.header {
 		grid-area: top-basic-header;
+		select {
+			width: 100%;
+		}
 	}
 	#top-basic__control-buttons-left {
 		grid-area: top-basic-buttons-left;
@@ -138,28 +138,6 @@
 	#top-basic__control-buttons-right {
 		grid-area: top-basic-buttons-right;
 	}
-}
-#dashboard {
-	display: grid;
-	grid-template-areas:
-		"dashboard-langs"
-		"dashboard-colorthemes"
-	;
-	grid-template-columns: 1fr;
-	grid-template-rows: auto 1fr;
-	gap: 12px;
-	#langs {
-		grid-area: dashboard-langs;
-	}
-	#colorthemes {
-		grid-area: dashboard-colorthemes;
-	}
-	#dashboard-controls-choosemap {
-		display: none;
-	}
-}
-.brand {
-	min-width: 38.2%;
 }
 #messages, .messages {
 	padding: 10px 20px 12px 20px;
@@ -471,18 +449,6 @@ pre, .pre {
 			grid-area: basic-right;
 			right: 12px;
 		}
-		#dashboard {
-			grid-template-areas:
-				"dashboard-langs  dashboard-colorthemes  dashboard-controls-choosemap"
-			;
-			grid-template-columns: auto auto auto;
-			#dashboard-controls-choosemap {
-				display: block;
-				select {
-					width: 100%;
-				}
-			}
-		}
 		#bottom-basic {
 			display: flex;
 			flex-wrap: nowrap;
@@ -526,24 +492,5 @@ pre, .pre {
 	}
 	.popup, .centered {
 		padding: 20px;
-	}
-}
-@media screen and (max-width: 400px) {
-	#grid {
-		#dashboard {
-			grid-template-areas:
-				"dashboard-langs"
-				"dashboard-colorthemes"
-				"dashboard-controls-choosemap"
-			;
-			grid-template-columns: 1fr;
-			grid-template-rows: auto auto 1fr;
-			#dashboard-controls-choosemap {
-				display: block;
-				select {
-					width: 100%;
-				}
-			}
-		}
 	}
 }

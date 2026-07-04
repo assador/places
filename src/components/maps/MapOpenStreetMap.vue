@@ -42,13 +42,13 @@
 			">
 				<l-marker
 					v-for="place in computedPlaces"
-					:key="place.key"
+					:key="place.id"
 					:lat-lng="[
 						mainStore.points[place.pointid].latitude,
 						mainStore.points[place.pointid].longitude,
 					]"
 					draggable
-					:visible="place.show && place.geomark"
+					:visible="place.show && !!place.geomark"
 					@click="mainStore.setCurrentPlace(place, false)"
 					@contextmenu="(e: any) => {
 						if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
@@ -90,12 +90,12 @@
 				<l-layer-group v-if="mainStore.commonMarkersShow">
 					<l-marker
 						v-for="place in computedCommonPlaces"
-						:key="place.key"
+						:key="place.id"
 						:lat-lng="[
 							mainStore.points[place.pointid].latitude,
 							mainStore.points[place.pointid].longitude,
 						]"
-						:visible="place.geomark"
+						:visible="!!place.geomark"
 						@click="mainStore.setCurrentPoint(mainStore.points[place.pointid], false)"
 						@contextmenu="(e: any) => {
 							if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
@@ -179,7 +179,7 @@
 						:weight="1"
 					/>
 					<template
-						v-for="(point, index) in route.computedRoutePoints"
+						v-for="(point, index) in computedRoutePointsArray(route.points)"
 						:key="`${route.id}-${point.id}-${index}`"
 					>
 						<l-marker
@@ -406,7 +406,7 @@ import {
 	LTileLayer,
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Point, Place, Route, Measure } from '@/types';
+import { Point, Place, Route, Measure, PointDescription } from '@/types';
 import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -423,34 +423,34 @@ const mapCenter = computed(() => ({
 	zoom: mainStore.zoom,
 }));
 
-const prepareEntities = (entities: any[]) => {
-	return entities
-		.filter(p => !p.deleted)
-		.map(p => ({ ...p, key: p.id }))
-	;
+const preparePlaces = (dict: Record<string, Place>): Record<string, Place> => {
+	const prepared: Record<string, Place> = {};
+	for (const key of Object.keys(dict)) {
+		if (!dict[key].deleted) prepared[key] = dict[key];
+	}
+	return prepared;
 };
-const computedPlaces =
-	computed(() => prepareEntities(Object.values(mainStore.places)))
-;
-const computedCommonPlaces =
-	computed(() => prepareEntities(Object.values(mainStore.commonPlaces)))
-;
+const computedPlaces = computed(() => preparePlaces(mainStore.places));
+const computedCommonPlaces = computed(() => preparePlaces(mainStore.commonPlaces));
+
 const computedRoutes = computed(() => {
-	return Object.values(mainStore.routes)
-		.filter(r => !r.deleted && r.geomarks === 1)
-		.map(r => ({
-			...r,
-			computedRoutePoints:
-				mainStore.routePoints(r)
-					.filter(p => !p.deleted)
-					.map((p, pindex) => ({
-						...p,
-						idx: pindex,
-					}))
-			,
-		}))
-	;
+	const prepared: Record<string, Route> = {};
+	for (const key of Object.keys(mainStore.routes)) {
+		if (!mainStore.routes[key].deleted && mainStore.routes[key].geomarks === 1) {
+			prepared[key] = mainStore.routes[key];
+		}
+	}
+	return prepared;
 });
+const computedRoutePointsArray = (descs: PointDescription[]): Point[] => {
+	const prepared: Point[] = [];
+	for (const desc of descs) {
+		if (mainStore.points[desc.id] && !mainStore.points[desc.id].deleted) {
+			prepared.push(mainStore.points[desc.id]);
+		}
+	}
+	return prepared;
+};
 
 const dragging = ref(false);
 

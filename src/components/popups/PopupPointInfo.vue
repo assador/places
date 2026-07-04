@@ -16,12 +16,22 @@
 			</a>
 			<div class="point-info-content">
 				<h3 v-if="common.pointInfo.name">
-					<span class="un_color">
-						{{ mainStore.t.i.captions[isPlace(common.pointInfo.of) ? 'place' : 'point'] }}:
-					</span>
-					<span class="color-01">
-						{{ common.pointInfo.name }}
-					</span>
+					<div>
+						<span class="un_color">
+							{{ mainStore.t.i.captions[isPlace(common.pointInfo.of) ? 'place' : 'point'] }}:
+						</span>
+						<span class="color-01">
+							{{ common.pointInfo.name }}
+						</span>
+					</div>
+					<div v-if="isRoute(common.pointInfo.of)">
+						<span class="un_color">
+							{{ mainStore.t.i.captions.route }}:
+						</span>
+						<span class="color-01">
+							{{ common.pointInfo.of.name }}
+						</span>
+					</div>
 				</h3>
 				<div v-if="common.pointInfo">
 					<div class="nobr">

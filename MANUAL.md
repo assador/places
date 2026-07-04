@@ -40,17 +40,19 @@
 
 ## 1\. Purpose
 
-**The Places** is a Geo-Organizer. It is a personal GIS — a tool for systematizing personal geographic data.
+**The Places** is a Geo-Organizer. It is a personal GIS — a tool for systematizing personal geographic data.
 
-It is not a social network.
-It is not a "map with pins."
-It is not a movement tracker.
+It is not a social network. 
+It is not a "map with pins." 
+It is not a movement tracker. 
 
 It is a tool for meaningful storage and organization of spatial information. You are not just managing markers on a map. You are managing and structuring your own collections of geographic points, associated places, routes, and related materials into a unified logical model.
 
-**Example**:
+**Example**: 
 A riverside bar where you occasionally meet friends.
 You can save the point itself on the map, add a description and photos, and then include it in a route for an evening stroll.
+
+**The Places** is a free and open-source project (AGPL-3.0). It costs absolutely nothing, and you can freely use it with no strings attached :o) Well, to be precise, if you want to create an account to store your personal data — places, routes, and all your photos — you will obviously need to sign up. So welcome aboard — feel free to use it, fork it, roast it, or toast it. I’m always open to suggestions, collaborations, feedback, bug reports, pull requests, GitHub stars, and, needless to say, donations :o)
 
 ## 2\. System Concept
 

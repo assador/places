@@ -94,7 +94,7 @@ const popupProps = ref<PopupProps>({
 <style lang="scss" scoped>
 .header {
 	display: grid;
-	grid-template-columns: auto auto;
+	grid-template-columns: 1fr auto;
 	gap: 12px;
 }
 .brand-login {

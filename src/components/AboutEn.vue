@@ -62,14 +62,15 @@
 </li>
 </ol>
 <h2 id="1-purpose">1. Purpose</h2>
-<p><strong>The Places</strong> is a Geo-Organizer. It is a personal GIS — a tool for systematizing personal geographic data.</p>
-<p>It is not a social network.
-It is not a “map with pins.”
+<p><strong>The Places</strong> is a Geo-Organizer. It is a personal GIS — a tool for systematizing personal geographic data.</p>
+<p>It is not a social network.<br />
+It is not a “map with pins.”<br />
 It is not a movement tracker.</p>
 <p>It is a tool for meaningful storage and organization of spatial information. You are not just managing markers on a map. You are managing and structuring your own collections of geographic points, associated places, routes, and related materials into a unified logical model.</p>
-<p><strong>Example</strong>:
+<p><strong>Example</strong>:<br />
 A riverside bar where you occasionally meet friends.
 You can save the point itself on the map, add a description and photos, and then include it in a route for an evening stroll.</p>
+<p><strong>The Places</strong> is a free and open-source project (AGPL-3.0). It costs absolutely nothing, and you can freely use it with no strings attached :o) Well, to be precise, if you want to create an account to store your personal data — places, routes, and all your photos — you will obviously need to sign up. So welcome aboard — feel free to use it, fork it, roast it, or toast it. I’m always open to suggestions, collaborations, feedback, bug reports, pull requests, GitHub stars, and, needless to say, donations :o)</p>
 <h2 id="2-system-concept">2. System Concept</h2>
 <p>The core of “The Places” lies in the separation of entities. There are only four:</p>
 <ul>
@@ -297,7 +298,6 @@ Only clicking the “Save” button in the top right writes them to the database
 <li>Undo actions.</li>
 <li>Control the moment of data commitment.</li>
 </ul>
-		<p><a href="#manual-top">Up</a></p>
 	</div>
 </template>
 
