@@ -189,7 +189,10 @@
 								point.show
 							"
 							draggable
-							@click="mainStore.setCurrentPoint(mainStore.getPointById(point.id), false)"
+							@click="() => {
+								mainStore.setCurrentRoute(route.id, false);
+								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
+							}"
 							@contextmenu="(e: any) => {
 								if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
 									markerAddPoint(mainStore.getPointById(point.id));
@@ -472,11 +475,23 @@ const setRef = async (id: string, el: any, refs: any) => {
 			};
 		}
 		if (refs === routeLineForEventRefs) {
-			if (element._customDblClick) {
-				element.off('dblclick', element._customDblClick);
-			}
+			if (element._customClick) element.off('click', element._customClick);
+			if (element._customDblClick) element.off('dblclick', element._customDblClick);
+			if (element._clickTimeout) clearTimeout(element._clickTimeout);
+			element._customClick = (event: any) => {
+				L.DomEvent.stopPropagation(event);
+				if (element._clickTimeout) clearTimeout(element._clickTimeout);
+				element._clickTimeout = setTimeout(() => {
+					mainStore.setCurrentRoute(id, false);
+					element._clickTimeout = null;
+				}, 220);
+			};
 			element._customDblClick = (event: any) => {
 				L.DomEvent.stopPropagation(event);
+				if (element._clickTimeout) {
+					clearTimeout(element._clickTimeout);
+					element._clickTimeout = null;
+				}
 				const latlngs = element.getLatLngs();
 				let minDistance = Infinity;
 				let segmentIndex = 0;
@@ -510,11 +525,20 @@ const setRef = async (id: string, el: any, refs: any) => {
 					index: segmentIndex + 1,
 				});
 			};
+			element.on('click', element._customClick);
 			element.on('dblclick', element._customDblClick);
 		}
 	} else {
 		if (refs === routeLineForEventRefs && refs[id]?.element) {
 			const element = refs[id].element;
+			if (element._clickTimeout) {
+				clearTimeout(element._clickTimeout);
+				delete element._clickTimeout;
+			}
+			if (element._customClick) {
+				element.off('click', element._customClick);
+				delete element._customClick;
+			}
 			if (element._customDblClick) {
 				element.off('dblclick', element._customDblClick);
 				delete element._customDblClick;

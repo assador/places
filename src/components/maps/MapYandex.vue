@@ -176,6 +176,10 @@
 								}],
 								cursor: 'pointer',
 							},
+							onClick: (_, e) => {
+								e.stopPropagation();
+								mainStore.setCurrentRoute(route.id, false);
+							},
 							onDoubleClick: (_, e) => {
 								e.stopPropagation();
 								addPointToRoute(route, e.coordinates);
@@ -205,7 +209,10 @@
 								mainStore.tempsShow.show &&
 								point.show
 							"
-							@click.stop.prevent="mainStore.setCurrentPoint(mainStore.getPointById(point.id), false)"
+							@click.stop.prevent="() => {
+								mainStore.setCurrentRoute(route.id, false);
+								mainStore.setCurrentPoint(mainStore.getPointById(point.id), false);
+							}"
 							@contextmenu.stop.prevent="(e: PointerEvent) => {
 								if (mainStore.mode !== 'normal' && e.shiftKey) {
 									markerAddPoint(mainStore.getPointById(point.id));
