@@ -80,7 +80,7 @@
 	display: grid;
 	grid-template-columns: auto 1fr auto;
 	grid-template-areas:
-		"controls-choosemap  bottom-center-coordinates"
+		"bottom-controls-choosemap  bottom-center-coordinates"
 	;
 	gap: 12px;
 	align-items: baseline;
@@ -89,12 +89,12 @@
 		width: 100px;
 		margin: 2px;
 	}
+	.control-buttons {
+		flex-wrap: nowrap;
+	}
 	#bottom-basic__control-buttons-bottom {
 		grid-area: bottom-basic__control-buttons-bottom;
 		display: none;
-	}
-	#controls-choosemap {
-		grid-area: controls-choosemap;
 	}
 	#bottom-center-coordinates {
 		grid-area: bottom-center-coordinates;
@@ -111,6 +111,12 @@
 		grid-area: bottom-altitude;
 	}
 }
+#bottom-controls-choosemap {
+	grid-area: bottom-controls-choosemap;
+}
+#dashboard-controls-choosemap {
+	grid-area: dashboard-controls-choosemap;
+}
 #top-left h3 {
 	margin: -8px 0 4px 0;
 }
@@ -122,7 +128,7 @@
 	;
 	grid-template-columns: auto auto;
 	grid-template-rows: auto auto;
-	gap: 12px;
+	gap: 20px;
 	.header {
 		grid-area: top-basic-header;
 	}
@@ -135,8 +141,22 @@
 }
 #dashboard {
 	display: grid;
+	grid-template-areas:
+		"dashboard-langs"
+		"dashboard-colorthemes"
+	;
+	grid-template-columns: 1fr;
 	grid-template-rows: auto 1fr;
 	gap: 12px;
+	#langs {
+		grid-area: dashboard-langs;
+	}
+	#colorthemes {
+		grid-area: dashboard-colorthemes;
+	}
+	#dashboard-controls-choosemap {
+		display: none;
+	}
 }
 .brand {
 	min-width: 38.2%;
@@ -395,7 +415,7 @@ pre, .pre {
 		#bottom-basic {
 			grid-template-columns: 200px auto 1fr auto;
 			grid-template-areas:
-				"bottom-basic__control-buttons-bottom  controls-choosemap  bottom-center-coordinates"
+				"bottom-basic__control-buttons-bottom  bottom-controls-choosemap  bottom-center-coordinates"
 			;
 			gap: 12px;
 			#bottom-center-coordinates {
@@ -451,10 +471,40 @@ pre, .pre {
 			grid-area: basic-right;
 			right: 12px;
 		}
+		#dashboard {
+			grid-template-areas:
+				"dashboard-langs  dashboard-colorthemes  dashboard-controls-choosemap"
+			;
+			grid-template-columns: auto auto auto;
+			#dashboard-controls-choosemap {
+				display: block;
+				select {
+					width: 100%;
+				}
+			}
+		}
 		#bottom-basic {
 			display: flex;
 			flex-wrap: nowrap;
 			align-items: center;
+			padding: 16px 12px;
+			.control-buttons {
+				flex-wrap: wrap;
+				gap: 20px;
+			}
+			.action-button-group {
+				display: grid;
+				grid-auto-flow: column;
+				grid-auto-columns: 1fr;
+				gap: 8px;
+				margin: -4px 0;
+				.action-button {
+					padding: 0;
+					& > :not(.icon) {
+						display: none;
+					}
+				}
+			}
 			#bottom-center-coordinates {
 				flex-basis: auto;
 				align-items: start;
@@ -463,18 +513,8 @@ pre, .pre {
 					display: none;
 				}
 			}
-			.control-buttons {
-				display: flex;
-				flex-wrap: nowrap;
-				flex-grow: 1;
-			}
-			#controls-choosemap {
-				flex-grow: 0;
-				min-width: 0;
-				select {
-					min-width: 0;
-					width: 100%;
-				}
+			#bottom-controls-choosemap {
+				display: none;
 			}
 		}
 		#basic-left, #basic-right {
@@ -488,29 +528,21 @@ pre, .pre {
 		padding: 20px;
 	}
 }
-@media screen and (max-width: 300px) {
+@media screen and (max-width: 400px) {
 	#grid {
-		#bottom-basic {
-			display: grid;
-			grid-template-columns: auto auto auto auto;
+		#dashboard {
 			grid-template-areas:
-				"controls-mode       controls-mode       controls-mode       controls-geolocation"
-				"controls-choosemap  controls-choosemap  controls-choosemap  controls-other"
+				"dashboard-langs"
+				"dashboard-colorthemes"
+				"dashboard-controls-choosemap"
 			;
-			#controls-mode {
-				grid-area: controls-mode;
-			}
-			#controls-geolocation {
-				grid-area: controls-geolocation;
-			}
-			#controls-other {
-				grid-area: controls-other;
-			}
-			#controls-choosemap {
-				grid-area: controls-choosemap;
-			}
-			.control-buttons {
-				flex-wrap: wrap;
+			grid-template-columns: 1fr;
+			grid-template-rows: auto auto 1fr;
+			#dashboard-controls-choosemap {
+				display: block;
+				select {
+					width: 100%;
+				}
 			}
 		}
 	}

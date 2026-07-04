@@ -1034,29 +1034,42 @@ $filter-brightness-03: brightness(0%);
 	}
 	.action-button {
 		display: flex;
-		flex-direction: column;
+		flex-flow: column nowrap;
+		gap: 4px;
 		align-items: center;
 		justify-content: center;
+		min-width: 30px;
+		min-height: 30px;
+		padding: 2px 0 0 0;
 		line-height: 0.7;
 		font-size: 11px;
 		text-transform: lowercase;
 		* {
 			text-align: center;
 			width: 100%;
+			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
+		.icon {
+			&, &::before {
+				width: 15px; height: 15px;
+			}
+		}
 	}
-	.control-buttons {
+	.control-buttons, .action-button-group {
+		flex: 1 1 auto;
 		display: flex;
 		flex-flow: row wrap;
 		gap: 8px;
-		text-align: center;
 		.action-button {
-			flex: 1 1 calc(25% - 16px);
+			flex: 0 1 calc(25% - 6px);
 			min-width: 30px;
 			min-height: 30px;
 		}
+	}
+	.action-button-group {
+		display: contents;
 	}
 	.button-iconed {
 		display: flex;
@@ -1203,11 +1216,6 @@ $filter-brightness-03: brightness(0%);
 		}
 		#basic-right {
 			box-shadow: inset 100px -100px 20px -100px $color-57;
-		}
-	}
-	@media screen and (max-width: 600px) {
-		.popup {
-			padding: 50px 12px 24px 24px;
 		}
 	}
 }

@@ -24,6 +24,7 @@
 				{{ c.title }}
 			</option>
 		</select>
+		<div id="dashboard-controls-choosemap" />
 	</div>
 </template>
 

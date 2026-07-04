@@ -1,19 +1,21 @@
 <template>
-	<button
-		class="action-button"
-		:title="mainStore.t.i.hints.centerTo"
-		@click="() => { if (!centerTo()) mainStore.setMessage('Ахахаха!!!', 3); }"
-	>
-		<span class="icon icon-cross" />
-	</button>
-	<button
-		v-if="common.compact === 2"
-		class="action-button"
-		:title="mainStore.t.i.hints.hideCells"
-		@click="hideCells"
-	>
-		<span class="icon icon-expand" />
-	</button>
+	<div class="action-button-group">
+		<button
+			class="action-button"
+			:title="mainStore.t.i.hints.centerTo"
+			@click="() => { if (!centerTo()) mainStore.setMessage('Ахахаха!!!', 3); }"
+		>
+			<span class="icon icon-cross" />
+		</button>
+		<button
+			v-if="common.compact === 2"
+			class="action-button"
+			:title="mainStore.t.i.hints.hideCells"
+			@click="hideCells"
+		>
+			<span class="icon icon-expand" />
+		</button>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -66,6 +68,3 @@ const hideCells = () => {
 	}
 };
 </script>
-
-<style lang="scss" scoped>
-</style>

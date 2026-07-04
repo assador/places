@@ -41,7 +41,6 @@
 					class="control-buttons"
 				>
 					<ControlsRadios />
-					<ControlsMarkers />
 				</div>
 			</div>
 			<div class="basic-action-buttons action-buttons">
@@ -302,44 +301,13 @@
 			>
 				<div class="control-buttons">
 					<ControlsMode v-if="common.compact === 2" />
-					<ControlsGeolocation v-if="common.compact === 1" />
-					<ControlsMarkers v-if="common.compact === 1" />
-					<ControlsOther v-if="common.compact === 1" />
-				</div>
-			</div>
-			<div
-				v-if="common.compact === 2"
-				class="basic-action-buttons action-buttons"
-				id="controls-geolocation"
-			>
-				<div class="control-buttons">
 					<ControlsGeolocation />
-				</div>
-			</div>
-			<div id="controls-choosemap">
-				<select
-					:title="mainStore.t.i.hints.mapProvider"
-					@change="e => mainStore.activeMapIndex = (e.currentTarget as HTMLSelectElement).selectedIndex"
-				>
-					<option
-						v-for="(map, index) in maps"
-						:key="index"
-						:value="map.componentName"
-						:selected="map.componentName === maps[mainStore.activeMapIndex].componentName"
-					>
-						{{ map.name }}
-					</option>
-				</select>
-			</div>
-			<div
-				v-if="common.compact === 2"
-				class="action-buttons"
-				id="controls-other"
-			>
-				<div class="control-buttons">
+					<ControlsMarkers />
 					<ControlsOther />
+					<ControlsState v-if="common.compact === 2" />
 				</div>
 			</div>
+			<div id="bottom-controls-choosemap" />
 			<div
 				v-if="common.compact !== 2"
 				id="bottom-center-coordinates"
@@ -505,6 +473,24 @@
 		</transition>
 	</Teleport>
 
+<!-- SEC Controls -->
+
+	<Teleport :to="common.compact === 2 ? '#dashboard-controls-choosemap' : '#bottom-controls-choosemap'">
+		<select
+			:title="mainStore.t.i.hints.mapProvider"
+			@change="e => mainStore.activeMapIndex = (e.currentTarget as HTMLSelectElement).selectedIndex"
+		>
+			<option
+				v-for="(map, index) in maps"
+				:key="index"
+				:value="map.componentName"
+				:selected="map.componentName === maps[mainStore.activeMapIndex].componentName"
+			>
+				{{ map.name }}
+			</option>
+		</select>
+	</Teleport>
+
 <!-- SEC Measure Value -->
 
 	<Popup
@@ -599,6 +585,7 @@ import ControlsRadios from '@/components/controls/ControlsRadios.vue';
 import ControlsMarkers from '@/components/controls/ControlsMarkers.vue';
 import ControlsGeolocation from '@/components/controls/ControlsGeolocation.vue';
 import ControlsOther from '@/components/controls/ControlsOther.vue';
+import ControlsState from '@/components/controls/ControlsState.vue';
 
 const maps = [
 	{
@@ -1005,18 +992,24 @@ const selectPlaces = (text: string): void => {
 #top-left, #top-right, #bottom-left, .basic-action-buttons {
 	display: flex;
 	gap: 8px;
-	align-items: stretch;
 }
 .basic-action-buttons {
+	display: flex;
+	gap: 8px;
+	align-items: start;
+}
+.basic-action-buttons {
+	flex: 1 1 auto;
+}
+:not(#bottom-basic) > .basic-action-buttons .control-buttons {
+	flex-grow: 1;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
+	gap: 8px;
+}
+#top-left .basic-action-buttons {
 	flex-direction: column;
-	flex: 1 1 calc(20% - 16px);
-	align-self: stretch;
-	.control-buttons {
-		flex-grow: 1;
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
-		gap: 8px;
-	}
+	align-items: stretch;
 }
 .mode-buttons {
 	grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));

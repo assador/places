@@ -1,22 +1,24 @@
 <template>
-	<button
-		class="action-button"
-		:title="mainStore.t.i.hints.getLocation"
-		@click="geoLocation.centerTo()"
-	>
-		<span class="icon icon-center-net" />
-	</button>
-	<button
-		class="action-button"
-		:disabled="mainStore.mode === 'routes' && !mainStore.currentRoute"
-		:title="
-			`${mainStore.t.i.hints.getLocation}. ` +
-			`${mainStore.t.i.hints[mainStore.mode === 'normal' ? 'addPlace' : 'addPoint']}.`
-		"
-		@click="e => upsertHere(e)"
-	>
-		<span class="icon icon-plus-net" />
-	</button>
+	<div class="action-button-group">
+		<button
+			class="action-button"
+			:title="mainStore.t.i.hints.getLocation"
+			@click="geoLocation.centerTo()"
+		>
+			<span class="icon icon-center-net" />
+		</button>
+		<button
+			class="action-button"
+			:disabled="mainStore.mode === 'routes' && !mainStore.currentRoute"
+			:title="
+				`${mainStore.t.i.hints.getLocation}. ` +
+				`${mainStore.t.i.hints[mainStore.mode === 'normal' ? 'addPlace' : 'addPoint']}.`
+			"
+			@click="e => upsertHere(e)"
+		>
+			<span class="icon icon-plus-net" />
+		</button>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -36,6 +38,3 @@ const upsertHere = async (e: PointerEvent) => {
 	}
 }
 </script>
-
-<style lang="scss" scoped>
-</style>
