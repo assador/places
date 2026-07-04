@@ -154,8 +154,8 @@
 							},
 							style: {
 								stroke: [{
-									color: '#000000',
-									width: route.id === mainStore.currentRouteId ? 0.6 : 0.3,
+									color: `rgba(0, 0, 0, ${route.id === mainStore.currentRouteId ? 0.5 : 0.2})`,
+									width: 2,
 								}],
 							}
 						}"
@@ -269,8 +269,8 @@
 						},
 						style: {
 							stroke: [{
-								color: '#000000',
-								width: 0.6,
+								color: 'rgba(0, 0, 0, 0.5)',
+								width: 2,
 							}],
 						}
 					}"

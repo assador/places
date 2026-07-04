@@ -140,8 +140,8 @@
 								route.points.map(p => p.id) ?? []
 							) as LatLngExpression[]
 						"
-						color="rgba(0, 0, 0, 1)"
-						:weight="route.id === mainStore.currentRouteId ? 0.6 : 0.3"
+						:color="`rgba(0, 0, 0, ${route.id === mainStore.currentRouteId ? 0.5 : 0.2})`"
+						:weight="2"
 					/>
 					<l-polyline
 						v-if="route.points.length"
@@ -320,8 +320,8 @@
 							mainStore.measure.points.map(p => p.id)
 						) as LatLngExpression[]
 					"
-					color="rgba(0, 0, 0, 1)"
-					:weight="0.5"
+					color="rgba(0, 0, 0, 0.5)"
+					:weight="2"
 				/>
 				<l-polyline
 					v-if="mainStore.measure.points.length > 1"
