@@ -2,6 +2,7 @@
 	<ul class="tree">
 		<TreeNode
 			:instanceid="instanceid"
+			:editable="props.editable"
 			:what="props.what"
 			:folder="mainStore.trees[props.what]"
 		/>
@@ -15,10 +16,12 @@ import TreeNode from '@/components/tree/TreeNode.vue';
 
 export interface IPlacesTreeProps {
 	instanceid?: string;
+	editable?: boolean;
 	what?: 'places' | 'routes';
 }
 const props = withDefaults(defineProps<IPlacesTreeProps>(), {
 	instanceid: '',
+	editable: true,
 	what: 'places',
 });
 

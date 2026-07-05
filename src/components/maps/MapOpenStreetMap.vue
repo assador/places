@@ -372,10 +372,6 @@
 							dragging = false;
 							markerDragEnd(fat.point.id, e);
 						}"
-						@move="(e: any) => {
-							const { lat, lng } = e.target.getLatLng();
-							markerRefs[fat.point.id].setLatLng([ lat, lng ]);
-						}"
 					>
 						<l-icon
 							v-bind="(fat.point.id === mainStore.currentPointId

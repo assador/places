@@ -14,6 +14,12 @@
 		mask-repeat: no-repeat;
 		mask-position: center;
 	}
+	&_s {
+		width: 16px; height: 16px;
+	}
+	&_xs {
+		width: 12px; height: 12px;
+	}
 	&-empty {
 		display: flex;
 		width: 100%;
@@ -54,6 +60,7 @@
 	&-geomark-2::before { mask-image: url('@/assets/icons/geomark-2.svg'); }
 	&-geomark-3-circled::before { mask-image: url('@/assets/icons/geomark-3-circled.svg'); }
 	&-geomark-3::before { mask-image: url('@/assets/icons/geomark-3.svg'); }
+	&-help::before { mask-image: url('@/assets/icons/help-circled.svg'); }
 	&-import::before, &-export::before { mask-image: url('@/assets/icons/import.svg'); }
 	&-list::before { mask-image: url('@/assets/icons/list.svg'); }
 	&-minus-circled-folder::before { mask-image: url('@/assets/icons/minus-circled-folder.svg'); }

@@ -15,30 +15,32 @@
 					<p class="margin_bottom_0">
 						{{ mainStore.t.i.text.specifyFormatToExport }}:
 					</p>
-					<fieldset class="margin_bottom">
+					<fieldset class="popup-export__settings margin_bottom">
 						<label>
 							<input
 								name="mime"
 								type="radio"
-								:checked="true"
-								value="gpx"
-							/>
-							GPX
-						</label>
-						<p>
-							{{ mainStore.t.i.text.descGpx }}
-						</p>
-						<label>
-							<input
-								name="mime"
-								type="radio"
+								checked
 								value="json"
 							/>
-							JSON
+							<span>JSON</span>
+							<span
+								class="icon icon_s icon-help"
+								@click.stop.prevent="mainStore.setMessage(mainStore.t.i.text.descJson)"
+							/>
 						</label>
-						<p>
-							{{ mainStore.t.i.text.descJson }}
-						</p>
+						<label>
+							<input
+								name="mime"
+								type="radio"
+								value="gpx"
+							/>
+							<span>GPX</span>
+							<span
+								class="icon icon_s icon-help"
+								@click.stop.prevent="mainStore.setMessage(mainStore.t.i.text.descGpx)"
+							/>
+						</label>
 					</fieldset>
 					<p>{{ mainStore.t.i.text.specifyPlacesToExport }}:</p>
 					<div
@@ -48,7 +50,7 @@
 						"
 						class="popup-export__tree menu"
 					>
-						<Tree instanceid="popupexporttree" what="places" />
+						<Tree instanceid="popupexporttree" what="places" :editable="false" />
 					</div>
 					<fieldset class="popup-export__buttons">
 						<button type="submit">
@@ -111,6 +113,9 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.popup-content {
+	overflow: hidden;
+}
 .popup-export__form {
 	display: grid;
 	grid-template-rows: auto auto auto 1fr auto;
@@ -125,7 +130,7 @@ onUnmounted(() => {
 }
 .popup-export__tree {
 	margin: 0 auto;
-	padding: 1px 12px 1px 0;
+	padding: 1px 40px 1px 0;
 	text-align: left;
 	overflow: auto;
 }
@@ -133,5 +138,25 @@ onUnmounted(() => {
 	display: flex;
 	gap: 12px;
 	justify-content: center;
+}
+.popup-export__settings {
+	display: flex;
+	gap: 24px;
+	justify-content: center;
+	label {
+		display: flex;
+		flex-flow: row nowrap;
+		gap: 8px;
+		align-items: center;
+		input {
+			line-height: 0;
+			margin-top: -3px;
+		}
+		span.icon {
+			display: inline-block;
+			opacity: 0.5;
+			cursor: pointer;
+		}
+	}
 }
 </style>

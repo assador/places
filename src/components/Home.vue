@@ -283,6 +283,14 @@
 					<ControlsGeolocation />
 					<ControlsMarkers />
 					<ControlsOther />
+					<button
+						class="action-button"
+						:class="{ 'button-pressed': basicFulled }"
+						:title="mainStore.t.i.hints.fullscreen"
+						@click="basicOnFull"
+					>
+						<span class="icon icon-expand" />
+					</button>
 				</div>
 			</div>
 		</div>
@@ -305,6 +313,15 @@
 					<ControlsMarkers />
 					<ControlsOther />
 					<ControlsState v-if="common.compact === 2" />
+					<button
+						v-if="common.compact !== 2"
+						class="action-button"
+						:class="{ 'button-pressed': basicFulled }"
+						:title="mainStore.t.i.hints.fullscreen"
+						@click="basicOnFull"
+					>
+						<span class="icon icon-expand" />
+					</button>
 				</div>
 			</div>
 			<div id="bottom-controls-choosemap" />
@@ -320,7 +337,7 @@
 						id="center-coordinates-latitude"
 						v-model.number.trim="mainStore.center.latitude"
 						placeholder="latitude"
-						title="mainStore.t.i.captions.latitude"
+						:title="mainStore.t.i.captions.latitude"
 					/>
 					<span>°N</span>
 				</span>
@@ -329,7 +346,7 @@
 						id="center-coordinates-longitude"
 						v-model.number.trim="mainStore.center.longitude"
 						placeholder="longitude"
-						title="mainStore.t.i.captions.longitude"
+						:title="mainStore.t.i.captions.longitude"
 					/>
 					<span>°E</span>
 				</span>
@@ -375,13 +392,13 @@
 		<div id="ui-buttons-left" />
 		<div id="ui-buttons-right">
 			<button
-				v-if="common.compact !== 2"
-				class="action-button basic-on-full"
+				v-if="basicFulled"
+				class="action-button"
 				:class="{ 'button-pressed': basicFulled }"
 				:title="mainStore.t.i.hints.fullscreen"
 				@click="basicOnFull"
 			>
-				<span class="icon icon-full" />
+				<span class="icon icon-expand" />
 			</button>
 		</div>
 		<div

@@ -51,11 +51,9 @@ export const backupActions = {
 	},
 	undo() {
 		this.restoreState(this.stateBackupsIndex - 1);
-		this.backup = false;
 	},
 	redo() {
 		this.restoreState(this.stateBackupsIndex + 1);
-		this.backup = false;
 	},
 	restoreObjectsAsLinks() {
 		this.refreshing = true;

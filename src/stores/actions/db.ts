@@ -25,8 +25,6 @@ export const dbActions = {
 			});
 		}
 		this.updateSavedStatus();
-		this.stateBackups = [];
-		this.stateBackupsIndex = -1;
 	},
 	updateSavedStatus() {
 		const pkg = this.getAllModifiedPackage;

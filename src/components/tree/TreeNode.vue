@@ -67,6 +67,7 @@
 					:placeholder="mainStore.t.i.captions.name"
 					class="folder-button__name fieldwidth_100"
 					@change="e => {
+						if (!props.editable) return;
 						mainStore.changeFolder({
 							folder: folder,
 							change: { name: (e.currentTarget as HTMLInputElement).value },
@@ -80,6 +81,7 @@
 					:placeholder="mainStore.t.i.captions.description"
 					class="folder-button__description fieldwidth_100"
 					@change="e => {
+						if (!props.editable) return;
 						mainStore.changeFolder({
 							folder: folder,
 							change: { description: (e.currentTarget as HTMLInputElement).value },
@@ -178,6 +180,7 @@
 					v-for="child in folder.children"
 					:key="child.id"
 					:instanceid="instanceid"
+					:editable="props.editable"
 					:what="props.what"
 					:folder="child"
 					:parent="folder"
@@ -374,12 +377,14 @@ import { roundTo } from '@/shared/common';
 
 export interface IPlacesTreeNodeProps {
 	instanceid?: string;
+	editable?: boolean;
 	what: FolderContext;
 	folder?: Folder;
 	parent?: Folder;
 }
 const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
 	instanceid: null,
+	editable: true,
 	what: 'places',
 	folder: null,
 	parent: null,
@@ -483,11 +488,24 @@ const updateHighlights = (target: HTMLElement | null) => {
 		else if (area.classList.contains('sorting-area-after')) mainStore.currentDrag.position = 'after';
 	}
 };
-const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
-    handleDrop,
-    canAcceptDrop,
-    updateHighlights,
-    onDragStateChange: (value) => { dragging.value = value; },
+
+const noop = (..._args: any[]) => {};
+
+const dnd = computed(() => {
+	if (!props.editable) return null;
+	return usePointerDnD({
+	    handleDrop,
+	    canAcceptDrop,
+	    updateHighlights,
+	    onDragStateChange: (value) => { dragging.value = value; },
+	});
+});
+const onPointerDown = computed(() => dnd.value?.onPointerDown || noop);
+const onPointerMove = computed(() => dnd.value?.onPointerMove || noop);
+
+const onPointerUp = computed(() => {
+	if (dnd.value) return dnd.value.onPointerUp;
+	return (_event: PointerEvent, click?: () => void) => click?.();
 });
 </script>
 
@@ -595,10 +613,10 @@ ul {
 	}
 }
 .place-button, .folder-button {
-	display: grid;
+	display: flex;
+	flex-flow: row nowrap;
 	gap: 8px;
-	align-items: start;
-	justify-content: center;
+	align-items: center;
 	cursor: pointer !important;
 	touch-action: none;
 	user-select: none;
@@ -619,7 +637,6 @@ ul {
 	}
 }
 .place-button {
-	grid-template-columns: 1fr auto;
 	&[class*="block_"] {
 		margin: 7px 0 10px 0;
 		padding: 4px 8px;
@@ -632,7 +649,6 @@ ul {
 	}
 }
 .folder-button {
-	grid-template-columns: 1fr auto;
 	flex: 1 0 auto;
 	z-index: 0;
 	&__content {

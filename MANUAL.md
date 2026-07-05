@@ -42,13 +42,13 @@
 
 **The Places** is a Geo-Organizer. It is a personal GIS — a tool for systematizing personal geographic data.
 
-It is not a social network. 
-It is not a "map with pins." 
-It is not a movement tracker. 
+It is not a social network.  
+It is not a "map with pins."  
+It is not a movement tracker.  
 
 It is a tool for meaningful storage and organization of spatial information. You are not just managing markers on a map. You are managing and structuring your own collections of geographic points, associated places, routes, and related materials into a unified logical model.
 
-**Example**: 
+**Example**:  
 A riverside bar where you occasionally meet friends.
 You can save the point itself on the map, add a description and photos, and then include it in a route for an evening stroll.
 
