@@ -54,7 +54,7 @@ export const generateJSON = ({
 }): string => {
 
 	const pointsSet = new Set<string>();
-	const exportFoldersDict: Record<string, any> = {};
+	const exportFoldersDict: Record<string, Partial<Folder>> = {};
 
 	const addFolderWithParents = (folderId: string) => {
 		let currentId = folderId;
@@ -117,16 +117,16 @@ export const generateJSON = ({
 
 // SEC Import
 
-export const entitiesFromJSON = (text: string): EntityCollection | null => {
+export const entitiesFromJSON = (text: string): EntityCollection => {
 	try {
 		const entities: EntityCollection = JSON.parse(text);
 		return entities;
 	} catch (e) {
 		console.error(e);
-		return null;
+		return {};
 	}
 }
-export const entitiesFromGPX = (text: string): EntityCollection | null => {
+export const entitiesFromGPX = (text: string): EntityCollection => {
 	try {
 		const folderId = crypto.randomUUID();
 		const entities: EntityCollection = {
@@ -142,7 +142,7 @@ export const entitiesFromGPX = (text: string): EntityCollection | null => {
 		const parser = new DOMParser();
 		const xml = parser.parseFromString(text, 'application/xml');
 
-		if (xml.getElementsByTagName('parsererror').length) return null;
+		if (xml.getElementsByTagName('parsererror').length) return {};
 
 		for (const wpt of Array.from(xml.getElementsByTagName('wpt'))) {
 			const pointId = crypto.randomUUID();
@@ -194,7 +194,7 @@ export const entitiesFromGPX = (text: string): EntityCollection | null => {
 		return entities;
 	} catch (e) {
 		console.error(e);
-		return null;
+		return {};
 	}
 }
 export const exportPlaces = (format: ImportExportFormat = 'json'): void => {

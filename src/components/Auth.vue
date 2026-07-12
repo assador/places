@@ -206,9 +206,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, nextTick, onBeforeMount, onMounted } from 'vue';
+import { ref, inject, nextTick, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
+import type { usePWAInstall } from '@/shared/usepwainstall';
 
 import { logged, login, loginRoutine } from '@/services/auth';
 import { setBusy } from '@/services/common';
@@ -221,7 +222,7 @@ import Dashboard from '@/components/Dashboard.vue';
 const mainStore = useMainStore();
 const router = useRouter();
 
-const { installPWAEnabled, installPWA } = inject('pwa') as any;
+const { installPWAEnabled, installPWA } = inject<ReturnType<typeof usePWAInstall>>('pwa');
 
 const authLogin = ref('');
 const authPassword = ref('');
@@ -280,9 +281,6 @@ const authForgot = (): void => {
 		forgot.message = mainStore.t.m.paged.incorrectEmail;
 	}
 };
-onBeforeMount(() => {
-	mainStore.$reset();
-});
 onMounted(async () => {
 	await nextTick();
 	setBusy(false);

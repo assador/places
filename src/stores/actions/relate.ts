@@ -1,8 +1,12 @@
+import { StoreMain, ActionsRelate } from '@/stores/types';
 import { Point, Route, Measure } from '@/types';
 import { isRoute } from '@/guards';
 
-export const relateActions = {
-	addPointToPoints(
+export function useActionsRelate(
+	store: StoreMain,
+): ActionsRelate {
+
+	const addPointToPoints = (
 		{ point, entity, index, name, description }:
 		{
 			point: Point;
@@ -11,8 +15,8 @@ export const relateActions = {
 			name?: string;
 			description?: string;
 		}
-	) {
-		if (typeof index === 'undefined') index = entity.points.length;
+	): void => {
+		if (index === undefined) index = entity.points.length;
 		if (!description) description = '';
 		if (!name) {
 			const numbers = entity.points
@@ -26,39 +30,42 @@ export const relateActions = {
 			name: name,
 			description: description,
 		});
-		if (isRoute(entity) && !Object.hasOwn(this.points, point.id)) {
-			this.points[point.id] = point;
-			if (Object.hasOwn(this.temps, point.id)) delete this.temps[point.id];
-			this.points[point.id].added = true;
-			(entity as Route).updated = true;
+		if (isRoute(entity) && !Object.hasOwn(store.points.value, point.id)) {
+			store.points.value[point.id] = point;
+			if (Object.hasOwn(store.temps.value, point.id)) delete store.temps.value[point.id];
+			store.points.value[point.id].added = true;
+			entity.updated = true;
+			store.saved.value = false;
 		}
-		this.saved = false;
-		this.backupState();
-	},
-	removePointFromPoints(
+		store.backupState();
+	};
+	const removePointFromPoints = (
 		{ index, entity }:
 		{ index: number; entity: Route | Measure; }
-	) {
+	): void => {
 		const pointId = entity.points.at(index)?.id;
 		if (!pointId) return;
 		entity.points.splice(index, 1);
-		if (entity.choosing > entity.points.length - 1) {
+		if (entity.choosing === null || entity.choosing > entity.points.length - 1) {
 			entity.choosing = entity.points.length - 1;
 		}
-		if ('updated' in entity) entity.updated = true;
-		if (Object.hasOwn(this.points, pointId)) {
-			const refs = this.pointReferences;
+		if (isRoute(entity)) entity.updated = true;
+		if (Object.hasOwn(store.points.value, pointId)) {
+			const refs = store.pointReferences.value;
 			if ((refs.get(pointId)?.size || 0) === 0) {
-				this.deleteEntities({ [pointId]: this.points[pointId] });
-				return;
+				store.deleteEntities({ [pointId]: store.points.value[pointId] });
 			}
 		} else if (
-			Object.hasOwn(this.temps, pointId) &&
+			Object.hasOwn(store.temps.value, pointId) &&
 			!entity.points.some(pd => pd.id === pointId)
 		) {
-			delete this.temps[pointId];
+			delete store.temps.value[pointId];
 		}
-		this.saved = false;
-		this.backupState();
-	},
+		store.backupState();
+	};
+
+	return {
+		addPointToPoints,
+		removePointFromPoints,
+	};
 };

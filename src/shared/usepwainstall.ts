@@ -1,11 +1,20 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 
+interface BeforeInstallPromptEvent extends Event {
+	readonly platforms: string[];
+	readonly userChoice: Promise<{
+		outcome: 'accepted' | 'dismissed';
+		platform: string;
+	}>;
+	prompt(): Promise<void>;
+}
+
 export function usePWAInstall() {
-	const installEvent = ref<any>(null);
+	const installEvent = ref<BeforeInstallPromptEvent | null>(null);
 	const installPWAEnabled = ref(false);
 	const handler = (e: Event) => {
 		e.preventDefault();
-		installEvent.value = e;
+		installEvent.value = e as BeforeInstallPromptEvent;
 		installPWAEnabled.value = true;
 	};
 	onMounted(() => {
@@ -16,7 +25,7 @@ export function usePWAInstall() {
 	});
 	const installPWA = async () => {
 		if (!installEvent.value) return;
-		installEvent.value.prompt();
+		await installEvent.value.prompt();
 		await installEvent.value.userChoice;
 		installEvent.value = null;
 		installPWAEnabled.value = false;

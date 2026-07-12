@@ -14,7 +14,7 @@ declare module 'axios' {
 export interface Entity {
 	type: string;
 	id: string | null;
-	userid: string;
+	userid: string | null;
 	common: boolean;
 	enabled: boolean;
 	show: boolean;
@@ -32,7 +32,7 @@ export interface Folder extends Entity {
 	srt: number;
 	geomarks: GeomarksState;
 	open: boolean;
-	children?: Record<string, Folder>;
+	children?: Record<string, Folder> | Folder[];
 }
 export interface Point extends Entity {
 	type: 'point';
@@ -45,8 +45,8 @@ export interface Point extends Entity {
 export interface Place extends Entity {
 	type: 'place';
 	id: string;
-	folderid: string;
-	pointid: string;
+	folderid: string | null;
+	pointid: string | null;
 	name: string;
 	description?: string;
 	link?: string;
@@ -59,7 +59,7 @@ export interface Place extends Entity {
 export interface Route extends Entity {
 	type: 'route';
 	id: string;
-	folderid: string;
+	folderid: string | null;
 	points: PointDescription[];
 	choosing: number | null;
 	name: string;
@@ -90,6 +90,11 @@ export interface EntityCollection {
 	routes?: Partial<Route>[];
 	images?: Partial<Image>[];
 }
+export interface TreeEntityCollection {
+	folders: Record<string, Folder>;
+	places: Record<string, Place>;
+	routes: Record<string, Route>;
+}
 export interface RawImage {
 	id: string;
 	raw: File;
@@ -108,7 +113,7 @@ export interface User {
 	name: string;
 	email: string;
 	phone: string;
-	homeplace: string;
+	homeplace: string | null;
 	groups?: { group: string, parent: string }[];
 	testaccount: boolean;
 	confirmed: boolean;
@@ -193,7 +198,7 @@ export interface PopupEntityMenuProps extends PopupProps {
 
 export interface DragPayload {
 	id: string;
-	type: string;
+	type: 'folder' | 'place' | 'route' | 'point' | 'image';
 	context: string;
 }
 export interface DragEntityPayload extends DragPayload {
@@ -228,68 +233,18 @@ export interface DragImagePayload extends DragEntityPayload {
 }
 export type DragHandler = (payload: DragPayload, target: HTMLElement) => void;
 
-// SEC Store
+// SEC Langs
 
 import { getT } from '@/lang/en';
 export type Dictionary = ReturnType<typeof getT>;
 
-export interface IMainState {
-	activeMapIndex: number;
-	backup: boolean;
-	busyCount: number;
-	center: Record<string, number>;
-	centerMarkerShow: boolean;
-	colortheme: string;
-	commonMarkersShow: boolean;
-	commonPlaces: Record<string, Place>;
-	commonPlacesOnPageCount: number;
-	commonPlacesPage: number;
-	commonPlacesShow: boolean;
-	commonRoutes: Record<string, Route>;
-	commonRoutesOnPageCount: number;
-	commonRoutesPage: number;
-	commonRoutesShow: boolean;
-	currentDrag: DragEntityPayload;
-	currentPlaceId: string | null;
-	currentPointId: string | null;
-	currentRouteId: string | null;
-	first: boolean;
-	folders: Record<string, Folder>;
-	idleTime: number;
-	lang: string;
-	langs: Record<string, string>[];
-	measure: Measure;
-	messages: string[];
-	messagesMouseOver: boolean;
-	messagesInterval: number | null;
-	messagesTimeout: number | null;
-	mode: Mode;
-	newEntityPointId: string | null;
-	markersShow: boolean;
-	places: Record<string, Place>;
-	placesShow: FirstShow;
-	points: Record<string, Point>;
-	range: number | null;
-	rangeShow: boolean;
-	ready: boolean;
-	refreshing: boolean;
-	routes: Record<string, Route>;
-	routesShow: FirstShow;
-	saved: boolean;
-	selectedToExport: Record<'places' | 'routes', string[]>;
-	serverConfig: any | null;
-	stateBackups: any[];
-	stateBackupsIndex: number;
-	t: Dictionary;
-	temps: Record<string, Point>;
-	tempsShow: FirstShow;
-	treeParams: Record<string, Tree>;
-	user: User | null;
-	users: Record<string, User>;
-	zoom: number;
-}
-
 // SEC Types
+
+export const DICT_KEYS = ['folders', 'points', 'places', 'routes'] as const;
+export type DictKey = typeof DICT_KEYS[number];
+
+export const TREE_ITEM_TYPES = ['folder', 'place', 'route'] as const;
+export type TreeItemType = typeof TREE_ITEM_TYPES[number];
 
 export type Context =
 	| 'folders'
@@ -298,6 +253,11 @@ export type Context =
 	| 'routes'
 	| 'images'
 	| 'measure'
+	| 'temps'
+;
+export type PointContext =
+	| 'points'
+	| 'temps'
 ;
 export type MetaEntityContext =
 	| 'places'
@@ -322,17 +282,6 @@ export type Mode =
 export type FolderContext =
 	| 'places'
 	| 'routes'
-;
-export type TreeItemType =
-	| 'folder'
-	| 'place'
-	| 'route'
-;
-export type AppendMode =
-	| 'change' // change the existing one
-	| 'clone'  // create new based on the existing one
-	| 'move'   // move the existing one to another object
-	| 'new'    // create new
 ;
 export type ImportExportFormat =
 	| 'json'

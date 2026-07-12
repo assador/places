@@ -1,358 +1,495 @@
 import {
+	StoreMain,
+	ActionsEntity,
+	BaseUpsertParams,
+	UpsertPointParams,
+	UpsertPlaceParams,
+} from '@/stores/types';
+import {
 	Mode,
+	Folder,
 	Point,
 	Place,
 	Route,
-	Folder,
 	Measure,
 	PointDescription,
 	PointInfo,
-	AppendMode,
 } from '@/types';
-import { isPoint, isPlace, isRoute } from '@/guards';
+
+import { isPoint, isPlace, isRoute, isMeasure } from '@/guards';
 import { useGeolocation } from '@/services/geolocation';
-
-interface UpsertPlaceParams {
-	object?: Place;
-	props?: Partial<Place> & Partial<Point>;
-	where?: Record<string, Place>;
-	mode?: AppendMode;
-	center?: boolean;
-	silent?: boolean;
-}
-
-export const entityActions = {
+import { findInDictByMinMaxKey } from '@/shared/common';
 
 // SEC Factories
 
-	_defaultPoint(): Point {
-		return {
-			type: 'point',
-			id: crypto.randomUUID(),
-			userid: this.user?.id,
-			latitude: this.center.latitude,
-			longitude: this.center.longitude,
-			altitude: null,
-			time: new Date().toISOString().slice(0, -5),
-			common: false,
-			enabled: true,
-			show: true,
-			added: false,
-			deleted: false,
-			updated: false,
-		};
-	},
-	_defaultPlace(): Place {
-		const nextSrt = Object.values(this.places as Record<string, Place>)
-			.filter(f => !f.folderid)
-			.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
-		;
-		return {
-			type: 'place',
-			id: crypto.randomUUID(),
-			userid: this.user?.id,
-			folderid: null,
-			name: '',
-			description: '',
-			pointid: '',
-			link: '',
-			time: new Date().toISOString().slice(0, -5),
-			images: {},
-			srt: nextSrt,
-			geomark: true,
-			common: false,
-			enabled: true,
-			show: true,
-			added: false,
-			deleted: false,
-			updated: false,
-		};
-	},
-	_defaultRoute(): Route {
-		const nextSrt = Object.values(this.routes as Record<string, Route>)
-			.filter(f => !f.folderid)
-			.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
-		;
-		return {
-			type: 'route',
-			id: crypto.randomUUID(),
-			userid: this.user?.id,
-			folderid: null,
-			points: [],
-			choosing: null,
-			name: '',
-			description: '',
-			link: '',
-			time: new Date().toISOString().slice(0, -5),
-			images: {},
-			srt: nextSrt,
-			geomarks: 1,
-			common: false,
-			enabled: true,
-			show: true,
-			added: false,
-			deleted: false,
-			updated: false,
-		};
-	},
-	_defaultFolder(): Folder {
-		const nextSrt = Object.values(this.folders as Record<string, Folder>)
-			.filter(f => !f.parent && f.context === 'places')
-			.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
-		;
-		return {
-			type: 'folder',
-			id: crypto.randomUUID(),
-			userid: this.user?.id,
-			parent: null,
-			context: 'places',
-			name: '',
-			description: '',
-			srt: nextSrt,
-			geomarks: 1,
-			common: false,
-			open: false,
-			enabled: true,
-			show: true,
-			added: false,
-			deleted: false,
-			updated: false,
-		};
-	},
+function _defaultPoint(
+	userId: string | null,
+	coords: { latitude: number, longitude: number },
+): Point {
+	return {
+		type: 'point',
+		id: crypto.randomUUID(),
+		userid: userId,
+		latitude: coords.latitude,
+		longitude: coords.longitude,
+		altitude: null,
+		time: new Date().toISOString().slice(0, -5),
+		common: false,
+		enabled: true,
+		show: true,
+		added: false,
+		deleted: false,
+		updated: false,
+	};
+};
+function _defaultPlace(userId: string | null): Place {
+	return {
+		type: 'place',
+		id: crypto.randomUUID(),
+		userid: userId,
+		folderid: null,
+		name: '',
+		description: '',
+		pointid: '',
+		link: '',
+		time: new Date().toISOString().slice(0, -5),
+		images: {},
+		srt: 10,
+		geomark: true,
+		common: false,
+		enabled: true,
+		show: true,
+		added: false,
+		deleted: false,
+		updated: false,
+	};
+};
+function _defaultRoute(userId: string | null): Route {
+	return {
+		type: 'route',
+		id: crypto.randomUUID(),
+		userid: userId,
+		folderid: null,
+		points: [],
+		choosing: null,
+		name: '',
+		description: '',
+		link: '',
+		time: new Date().toISOString().slice(0, -5),
+		images: {},
+		srt: 10,
+		geomarks: 1,
+		common: false,
+		enabled: true,
+		show: true,
+		added: false,
+		deleted: false,
+		updated: false,
+	};
+};
+function _defaultFolder(userId: string | null): Folder {
+	return {
+		type: 'folder',
+		id: crypto.randomUUID(),
+		userid: userId,
+		parent: null,
+		context: 'places',
+		name: '',
+		description: '',
+		srt: 10,
+		geomarks: 1,
+		common: false,
+		open: false,
+		enabled: true,
+		show: true,
+		added: false,
+		deleted: false,
+		updated: false,
+	};
+};
 
 // SEC Creating Entities
 
-	createPoint(overrides: Partial<Point>): Point {
-		const point: Point = {
-			...this._defaultPoint(),
-			...overrides,
-		};
-		return point;
-	},
-	createPlace(overrides: Partial<Place>): Place {
-		const place: Place = {
-			...this._defaultPlace(),
-			...overrides,
-		};
-		return place;
-	},
-	createRoute(overrides: Partial<Route>): Route {
-		const route: Route = {
-			...this._defaultRoute(),
-			...overrides,
-		};
-		return route;
-	},
-	createFolder(overrides: Partial<Folder>): Folder {
+export function initPointFactory(
+	getUserId: () => string | null,
+	getCoords: () => { latitude: number, longitude: number },
+) {
+	return function createPoint(overrides?: Partial<Point>): Point {
 		return {
-			...this._defaultFolder(),
+			..._defaultPoint(getUserId(), getCoords()),
 			...overrides,
 		};
-	},
+	};
+}
+export function initPlaceFactory(getUserId: () => string | null) {
+	return function createPlace(overrides?: Partial<Place>): Place {
+		return {
+			..._defaultPlace(getUserId()),
+			...overrides,
+		};
+	};
+}
+export function initRouteFactory(getUserId: () => string | null) {
+	return function createRoute(overrides?: Partial<Route>): Route {
+		return {
+			..._defaultRoute(getUserId()),
+			...overrides,
+		};
+	};
+}
+export function initFolderFactory(getUserId: () => string | null) {
+	return function createFolder(overrides?: Partial<Folder>): Folder {
+		return {
+			..._defaultFolder(getUserId()),
+			...overrides,
+		};
+	};
+}
+
+export function useActionsEntity(
+	store: StoreMain,
+): ActionsEntity {
+
+	const createPoint = initPointFactory(
+		() => store.user.value?.id ?? null,
+		() => ({
+			latitude: store.center.value.latitude,
+			longitude: store.center.value.longitude
+		}),
+	);
+	const createPlace = initPlaceFactory(() => store.user.value?.id ?? null);
+	const createRoute = initRouteFactory(() => store.user.value?.id ?? null);
+	const createFolder = initFolderFactory(() => store.user.value?.id ?? null);
+
+// SEC Setting Current
+
+	const setCurrentPoint = <T extends string | Point | null | undefined>(
+		param: T,
+		center?: boolean,
+	): void => {
+		let point: Point | null;
+		if (typeof param === 'string') {
+			point = store.getPointById(param) ?? null;
+		} else {
+			point = param ?? null;
+		}
+		store.currentPointId.value = point?.id ?? null;
+		if (!point) return;
+		if (point.altitude === null) store.setPointAltitude(point);
+		let index: number;
+		const currentRoute = store.currentRoute.value;
+		if (currentRoute) {
+			index = currentRoute.points.findIndex((p: PointDescription) => p.id);
+			if (index !== -1) currentRoute.choosing = index;
+		}
+		index = store.measure.value.points.findIndex((p: PointDescription) => p.id);
+		if (index !== -1) store.measure.value.choosing = index;
+		if (center !== false && point) store.center.value = {
+			latitude: point.latitude,
+			longitude: point.longitude,
+		};
+	};
+	const setCurrentPlace = <T extends string | Place | null | undefined>(
+		param: T,
+		center?: boolean,
+	): void => {
+		let place: Place | null;
+		if (typeof param === 'string') {
+			place = store.getPlaceById(param) ?? null;
+		} else {
+			place = param ?? null;
+		}
+		setCurrentPoint(place?.pointid ?? null, center);
+		store.currentPlaceId.value = place?.id ?? null;
+	};
+	const setCurrentRoute = <T extends string | Route | null | undefined>(
+		param: T,
+		center?: boolean,
+	): void => {
+		let route: Route | null;
+		if (typeof param === 'string') {
+			route = store.getRouteById(param) ?? null;
+		} else {
+			route = param ?? null;
+		}
+		store.currentRouteId.value = route?.id ?? null;
+		if (route?.points.length) {
+			if (// Damn you all
+				typeof route.choosing !== 'number' ||
+				!Number.isInteger(route.choosing) ||
+				route.choosing < 0 ||
+				route.choosing > route.points.length - 1
+			) {
+				route.choosing = 0;
+			}
+			setCurrentPoint(route.points[route.choosing].id, center);
+		}
+	};
+	const setFirstCurrentPlace = (): void => {
+		if (store.homePlace.value) {
+			setCurrentPlace(store.homePlace.value);
+			return;
+		}
+		let anyPlace: Place | null = null;
+		for (const id in store.places.value) {
+			if (!Object.hasOwn(store.places.value, id)) continue;
+			const place = store.places.value[id];
+			if (!place.folderid) {
+				setCurrentPlace(place);
+				return;
+			}
+			if (!anyPlace) anyPlace = place;
+		}
+		setCurrentPlace(anyPlace);
+	};
+	const setFirstCurrentRoute = (): void => {
+		let anyRoute: Route | null = null;
+		for (const id in store.routes.value) {
+			if (!Object.hasOwn(store.routes.value, id)) continue;
+			const route = store.routes.value[id];
+			if (!route.folderid) {
+				setCurrentRoute(route);
+				return;
+			}
+			if (!anyRoute) anyRoute = route;
+		}
+		setCurrentRoute(anyRoute);
+	};
+	const setHomePlace = (
+		{ id, silent = false }:
+		{ id: string | null; silent?: boolean; }
+	): void => {
+		if (!store.user.value) return;
+		store.user.value.homeplace = (id && store.places.value[id]) ? id : null;
+		if (!silent) {
+			store.saved.value = false;
+			store.backupState();
+		}
+	};
 
 // SEC Upserting Entities
 
-	upsertPoint({
+	const upsertPoint = ({
 		object,
 		props = {},
-		where = this.points,
+		where = store.points.value,
 		whom,
 		name,
 		description,
 		mode = 'new',
 		silent = false,
-	}: {
-		object?: Point;
-		props?: Partial<Point>;
-		where?: Record<string, Point>;
-		whom?: Place | Route,
-		name?: string,
-		description?: string,
-		mode?: AppendMode,
-		silent?: boolean;
-	} = {}): Point | null {
+	}: UpsertPointParams = {}): Point | null => {
 
-		let point: Point;
+		if (!store.user.value || !store.serverConfig.value) return null;
+		let point: Point | null = null;
 
 		if (
-			this.tempsShow.first &&
-			this.mode === 'normal' &&
-			where === this.temps
+			store.tempsShow.value.first &&
+			store.mode.value === 'normal' &&
+			where === store.temps.value
 		) {
-			this.tempsShow.show = true;
-			this.tempsShow.first = false;
+			store.tempsShow.value.show = true;
+			store.tempsShow.value.first = false;
 		}
 		if (mode === 'new' || mode === 'clone') {
 			// Check points limit
 			if (
-				!this.user.testaccount &&
-				this.serverConfig.rights.pointscount > 0 &&
-				Object.keys(where).length >= this.serverConfig.rights.pointscount
+				!store.user.value.testaccount &&
+				store.serverConfig.value.rights.pointscount > 0 &&
+				Object.keys(where).length >= store.serverConfig.value.rights.pointscount
 			) {
-				this.setMessage(this.t.m.popup.pointsCountExceeded, 3);
+				store.setMessage(store.t.value.m.popup.pointsCountExceeded, 3);
 				return null;
 			}
 		}
 
 		switch (mode) {
 			case 'move':
-				point = object!;
+				if (!object) return null;
+				Object.assign(object, { updated: true }, props);
+				point = object;
 				break;
 			case 'change':
-				Object.assign(object!, { updated: true, deleted: false }, props);
-				point = object!;
+				if (!object) return null;
+				Object.assign(object, { updated: true, deleted: false }, props);
+				point = object;
 				break;
 			case 'new':
-				point = this.createPoint({ added: true, ...props });
+				point = createPoint({ added: true, ...props });
 				where[point.id] = point;
 				if (whom) {
-					if ('pointid' in whom) whom.pointid = point.id;
-					if ('points' in whom && Array.isArray(whom.points)) {
+					if (isPlace(whom)) {
+						whom.pointid = point.id;
+					} else {
 						whom.points.push({
 							id: point.id,
 							name: name || `${whom.points.length + 1}`,
 							description: description ||
-							`${this.t.i.captions.routePoint} № ${whom.points.length + 1}`,
+							`${store.t.value.i.captions.routePoint} № ${whom.points.length + 1}`,
 						});
 					}
-					whom.updated = true;
+					if (!isMeasure(whom)) whom.updated = true;
 				}
-				this.newEntityPointId = point.id;
+				store.newEntityPointId.value = point.id;
 				break;
 			case 'clone':
-				point = this.createPoint({
-					...object!,
+				if (!object) return null;
+				point = createPoint({
+					...object,
+					...props,
 					id: crypto.randomUUID(),
 					added: true,
-					...props,
 				});
 				where[point.id] = point;
 				if (whom) {
-					if ('pointid' in whom) whom.pointid = point.id;
-					if ('points' in whom && Array.isArray(whom.points)) {
+					if (isPlace(whom)) {
+						whom.pointid = point.id;
+					} else {
 						const pn = whom.points.find(p => p.id === object.id);
-						if (pn) {
-							pn.id = point.id;
-						}
+						if (pn) pn.id = point.id;
 					}
-					whom.updated = true;
+					if (!isMeasure(whom)) whom.updated = true;
 				}
-				this.newEntityPointId = point.id;
+				store.newEntityPointId.value = point.id;
 				break;
 		}
-		if (point.altitude === null) this.setPointAltitude(point);
+		if (point.altitude === null) store.setPointAltitude(point);
 		if (!silent) {
-			this.saved = false;
-			this.backupState();
+			store.saved.value = false;
+			store.backupState();
 		}
 		return point;
-	},
-	upsertPlace({
+	};
+	const upsertPlace = ({
 		object,
 		props,
-		where = this.places,
+		where = store.places.value,
 		mode = 'new',
 		center = false,
 		silent = false,
-	}: UpsertPlaceParams = {}): Place | null {
+	}: UpsertPlaceParams = {}): Place | null => {
 
-		let place: Place;
+		if (!store.user.value || !store.serverConfig.value) return null;
+		let place: Place | null = null;
 		let point: Point | null;
-
 		const folderId = props?.folderid || object?.folderid || null;
-		const nextSrt = Object.values(where)
-			.filter(f => f.folderid === folderId)
-			.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
-		;
+
+		let srt = findInDictByMinMaxKey(where, 'srt', p => p.folderid === folderId).max?.val;
+		if (typeof srt !== 'number') srt = 10; else srt += 10;
+
 		if (mode === 'new' || mode === 'clone') {
 			// Check places limit
 			if (
-				!this.user.testaccount &&
-				this.serverConfig.rights.placescount > 0 &&
-				Object.keys(where).length >= this.serverConfig.rights.placescount
+				!store.user.value.testaccount &&
+				store.serverConfig.value.rights.placescount > 0 &&
+				Object.keys(where).length >= store.serverConfig.value.rights.placescount
 			) {
-				this.setMessage(this.t.m.popup.placesCountExceeded, 3);
+				store.setMessage(store.t.value.m.popup.placesCountExceeded, 3);
 				return null;
 			}
 		}
+		const { latitude, longitude, altitude, ...placeProps } = props || {};
 
 		switch (mode) {
 			case 'move':
-				place = object!;
+				if (!object) return null;
+				Object.assign(object, { updated: true }, placeProps);
+				place = object;
 				break;
 			case 'change':
-				Object.assign(object!, { updated: true, deleted: false }, props);
-				place = object!;
+				if (!object) return null;
+				Object.assign(object, { updated: true, deleted: false }, placeProps);
+				if (object.pointid && store.points.value[object.pointid]) {
+					const pointToChange = store.points.value[object.pointid];
+					const pointChanges: Partial<Point> = { updated: true };
+					if (latitude !== undefined) pointChanges.latitude = latitude;
+					if (longitude !== undefined) pointChanges.longitude = longitude;
+					if (altitude !== undefined) pointChanges.altitude = altitude;
+					Object.assign(pointToChange, pointChanges);
+				}
+				place = object;
 				break;
 			case 'new':
-				point = props?.pointid ? this.points[props.pointid] : null;
+				point = placeProps?.pointid ? store.points.value[placeProps.pointid] : null;
 				if (!point) {
-					point = this.createPoint({ added: true, ...props });
-					this.points[point.id] = point;
+					point = createPoint({
+						added: true,
+						latitude: latitude ?? 0,
+						longitude: longitude ?? 0,
+						altitude: altitude ?? null,
+					});
+					store.points.value[point.id] = point;
 				}
-				place = this.createPlace({
+				place = createPlace({
+					...placeProps,
 					pointid: point.id,
 					folderid: folderId,
-					srt: nextSrt,
+					srt: srt,
 					added: true,
-					...props,
 				});
 				where[place.id] = place;
 				break;
 			case 'clone': {
-				const pointOriginal = this.getPointById(object!.pointid);
-				point = this.createPoint({
-					...(pointOriginal ? pointOriginal : {}),
+				if (!object) return null;
+				let pointId = object.pointid;
+				if (latitude !== undefined || longitude !== undefined || altitude !== undefined) {
+					const pointOriginal = pointId ? store.points.value[pointId] : null;
+					const pointNew = createPoint({
+						latitude: latitude ?? pointOriginal?.latitude ?? 0,
+						longitude: longitude ?? pointOriginal?.longitude ?? 0,
+						altitude: altitude !== undefined ? altitude : (pointOriginal?.altitude ?? null),
+						added: true,
+					});
+					store.points.value[pointNew.id] = pointNew;
+					pointId = pointNew.id;
+				} else if (!pointId || !store.points.value[pointId]) {
+					const pointNew = createPoint({ added: true });
+					store.points.value[pointNew.id] = pointNew;
+					pointId = pointNew.id;
+				}
+				place = createPlace({
+					...object,
+					...placeProps,
 					id: crypto.randomUUID(),
+					pointid: pointId,
+					srt: srt,
 					added: true,
-				});
-				place = this.createPlace({
-					...object!,
-					id: crypto.randomUUID(),
-					pointid: point.id,
-					srt: nextSrt,
-					added: true,
-					...props,
 				});
 				where[place.id] = place;
 				break;
 			}
 		}
-		this.setCurrentPlace(place, center);
+		setCurrentPlace(place, center);
 		if (!silent) {
-			this.saved = false;
-			this.backupState();
+			store.saved.value = false;
+			store.backupState();
 		}
 		return place;
-	},
-	upsertPlaceFollowing(
+	};
+	const upsertPlaceFollowing = (
 		entity: Place | null | undefined,
 		params: UpsertPlaceParams = {},
-	): Place | null {
+	): Place | null => {
 		if (!entity) {
-			return this.upsertPlace({ ...params, props: { ...params.props } });
+			return upsertPlace({ ...params, props: { ...params.props } });
 		}
-		const neighbours = this.getNeighboursSrts(
-			entity.id,
-			entity.type,
-			false,
-		);
+		const srts = store.getSrts(entity.id, 'place');
 		const callParams: UpsertPlaceParams = {
 			...params,
 			props: {
 				...params.props,
 				folderid: entity.folderid,
-				srt: neighbours.new,
+				srt: srts ? srts.after : 10,
 			}
 		};
-		return this.upsertPlace(callParams);
-	},
-	upsertPlaceFromPointInfo(info: PointInfo | null): Place | null {
+		return upsertPlace(callParams);
+	};
+	const upsertPlaceFromPointInfo = (info: PointInfo | null): Place | null => {
 		if (!info || !info.point) return null;
 		const pointId = info.point.id;
-		if (Object.hasOwn(this.temps, pointId)) {
-			this.points[pointId] = { ...info.point,	added: true };
-			delete this.temps[pointId];
+		if (Object.hasOwn(store.temps.value, pointId)) {
+			store.points.value[pointId] = { ...info.point,	added: true };
+			delete store.temps.value[pointId];
 		}
 		const upsertParams: UpsertPlaceParams = {
 			mode: 'new',
@@ -362,143 +499,149 @@ export const entityActions = {
 				description: info.description || '',
 			},
 		};
-		return this.upsertPlaceFollowing(this.currentPlace, upsertParams);
-	},
-	upsertRoute({
+		return upsertPlaceFollowing(store.currentPlace.value, upsertParams);
+	};
+	const upsertRoute = ({
 		object,
 		props,
-		where = this.routes,
+		where = store.routes.value,
 		mode = 'new',
 		silent = false,
-	}: {
-		object?: Route;
-		props?: Partial<Route>;
-		where?: Record<string, Route>;
-		mode?: AppendMode,
-		silent?: boolean;
-	} = {}): Route | null {
+	}: BaseUpsertParams<Route> = {}): Route | null => {
 
-		let route: Route;
-
+		if (!store.user.value || !store.serverConfig.value) return null;
+		let route: Route | null = null;
 		const folderId = props?.folderid || object?.folderid || null;
-		const nextSrt = Object.values(where)
-			.filter(f => f.folderid === folderId)
-			.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
-		;
+
+		let srt = findInDictByMinMaxKey(where, 'srt', r => r.folderid === folderId).max?.val;
+		if (typeof srt !== 'number') srt = 10; else srt += 10;
+
 		if (mode === 'new' || mode === 'clone') {
 			// Check routes limit
 			if (
-				!this.user?.testaccount &&
-				this.serverConfig.rights.routescount > 0 &&
-				Object.keys(where).length >= this.serverConfig.rights.routescount
+				!store.user.value.testaccount &&
+				store.serverConfig.value.rights.routescount > 0 &&
+				Object.keys(where).length >= store.serverConfig.value.rights.routescount
 			) {
-				this.setMessage(this.t.m.popup.routesCountExceeded, 3);
+				store.setMessage(store.t.value.m.popup.routesCountExceeded, 3);
 				return null;
 			}
 		}
 
 		switch (mode) {
 			case 'move':
-				route = object!;
+				if (!object) return null;
+				Object.assign(object, { updated: true }, props);
+				route = object;
 				break;
 			case 'change':
-				Object.assign(object!, { updated: true, deleted: false }, props);
-				route = object!;
+				if (!object) return null;
+				Object.assign(object, { updated: true, deleted: false }, props);
+				route = object;
 				break;
 			case 'new':
-				route = this.createRoute({
-					folderid: folderId,
-					srt: nextSrt,
-					added: true,
+				route = createRoute({
 					...props,
+					folderid: folderId,
+					srt: srt,
+					added: true,
+				});
+				where[route.id] = route;
+				break;
+			case 'clone':
+				if (!object) return null;
+				route = createRoute({
+					...object,
+					...props,
+					id: crypto.randomUUID(),
+					srt: srt,
+					added: true,
 				});
 				where[route.id] = route;
 				break;
 		}
-		this.setCurrentRoute(route);
+		store.setCurrentRoute(route);
 		if (!silent) {
-			this.saved = false;
-			this.backupState();
+			store.saved.value = false;
+			store.backupState();
 		}
 		return route;
-	},
-	upsertRouteFollowing(entity: Route | null): Route | null {
+	};
+	const upsertRouteFollowing = (
+		entity: Route | null | undefined,
+		params: BaseUpsertParams<Route> = {},
+	): Route | null => {
 		if (!entity) {
-			return this.upsertRoute();
+			return upsertRoute({ ...params, props: { ...params.props } });
 		}
-		const neighbours = this.getNeighboursSrts(
-			entity.id,
-			entity.type,
-			false,
-		);
-		return this.upsertRoute({
+		const srts = store.getSrts(entity.id, 'route');
+		const callParams: BaseUpsertParams<Route> = {
+			...params,
 			props: {
+				...params.props,
 				folderid: entity.folderid,
-				srt: neighbours.new,
+				srt: srts ? srts.after : 10,
 			}
-		});
-	},
-	upsertFolder({
+		};
+		return upsertRoute(callParams);
+	};
+	const upsertFolder = ({
 		object,
 		props,
-		where = this.folders,
+		where = store.folders.value,
 		mode = 'new',
 		silent = false,
-	}: {
-		object?: Folder;
-		props?: Partial<Folder>;
-		where?: Record<string, Folder>;
-		mode?: AppendMode;
-		silent?: boolean;
-	} = {}): Folder | null {
+	}: BaseUpsertParams<Folder> = {}): Folder | null => {
 
-		let folder: Folder;
-
+		if (!store.user.value || !store.serverConfig.value) return null;
+		let folder: Folder | null = null;
 		const parentId = props?.parent || object?.parent || null;
-		const nextSrt = Object.values(where)
-			.filter(f => f.parent === parentId)
-			.reduce((max, f) => Math.max(max, f.srt || 0), 0) + 1
-		;
+
+		let srt = findInDictByMinMaxKey(where, 'srt', f => f.parent === parentId).max?.val;
+		if (typeof srt !== 'number') srt = 10; else srt += 10;
+
 		if (mode === 'new') {
 			// Check folders limit
 			if (
-				!this.user?.testaccount &&
-				this.serverConfig.rights.folderscount > 0 &&
-				Object.keys(where).length >= this.serverConfig.rights.folderscount
+				!store.user.value.testaccount &&
+				store.serverConfig.value.rights.folderscount > 0 &&
+				Object.keys(where).length >= store.serverConfig.value.rights.folderscount
 			) {
-				this.setMessage(this.t.m.popup.foldersCountExceeded, 3);
+				store.setMessage(store.t.value.m.popup.foldersCountExceeded, 3);
 				return null;
 			}
 		}
 
 		switch (mode) {
 			case 'move':
-				Object.assign(object!, props);
-				folder = object!;
+				if (!object) return null;
+				Object.assign(object, { updated: true }, props);
+				folder = object;
 				break;
 			case 'change':
-				Object.assign(object!, { updated: true, deleted: false }, props);
-				folder = object!;
+				if (!object) return null;
+				Object.assign(object, { updated: true, deleted: false }, props);
+				folder = object;
 				break;
 			case 'new':
-				folder = this.createFolder({
-					parent: parentId,
-					srt: nextSrt,
-					added: true,
+				folder = createFolder({
 					...props,
+					parent: parentId,
+					srt: srt,
+					added: true,
 				});
-				where[folder.id] = folder;
+				if (folder.id) where[folder.id] = folder;
 				break;
 		}
 		if (!silent) {
-			this.saved = false;
-			this.backupState();
+			store.saved.value = false;
+			store.backupState();
 		}
 		return folder;
-	},
-	async upsertEntityWithCurrentLocation(mode: Mode): Promise<
-		{ id: string | null, of: Place | Route | Measure | null } | Error
-	> {
+	};
+	const upsertEntityWithCurrentLocation = async (mode: Mode): Promise<
+		{ id: string | null, of: Place | Route | Measure | null } | null
+	> => {
 		try {
 			const geoLocation = useGeolocation();
 			const location = await geoLocation.getLocation();
@@ -509,51 +652,52 @@ export const entityActions = {
 			let id: string | null = null;
 			let of: Place | Route | Measure | null = null;
 			if (mode === 'normal') {
-				if (this.currentPlace) {
-					of = this.upsertPlaceFollowing(this.currentPlace, { props });
+				if (store.currentPlace.value) {
+					of = upsertPlaceFollowing(store.currentPlace.value, { props });
 				} else {
-					of = this.upsertPlace({ props });
+					of = upsertPlace({ props });
 				}
 				id = of ? (of as Place).pointid : null;
-			} else if (mode === 'routes' && this.currentRoute) {
-				of = this.currentRoute;
-				const p = this.upsertPoint({
-					where: this.points,
-					whom: this.currentRoute,
+			} else if (mode === 'routes' && store.currentRoute.value) {
+				of = store.currentRoute.value;
+				const p = upsertPoint({
+					where: store.points.value,
+					whom: store.currentRoute.value,
 					props,
 				});
 				id = p ? p.id : null;
 			} else if (mode === 'measure') {
-				of = this.measure;
-				const p = this.upsertPoint({
-					where: this.temps,
+				of = store.measure.value;
+				const p = upsertPoint({
+					where: store.temps.value,
 					props,
 				});
 				if (p) {
-					this.addPointToPoints({
+					store.addPointToPoints({
 						point: p,
-						entity: this.measure,
+						entity: store.measure.value,
 					});
 					id = p.id;
 				}
 			}
 			geoLocation.centerTo(location);
 			return { id: id, of: of };
+		} catch (error: unknown) {
+			console.error(error);
+			store.setMessage(store.t.value.m.errors.other.other, 5);
+			return null;
 		}
-		catch (error) {
-			this.setMessage(error, 5);
-			return error;
-		}
-	},
+	};
 
 // SEC Deleting Entities
 
-	deleteEntities(objects: Record<string, Point | Place | Route | Folder>) {
+	const deleteEntities = (objects: Record<string, Point | Place | Route | Folder>): void => {
 		const pointsToCheck = new Set<string>();
-		for (const id in objects) {
+		for (const id of Object.keys(objects)) {
 			const obj = objects[id];
+			if (!Object.hasOwn(objects, id)) continue;
 			if (isPlace(obj)) {
-				pointsToCheck.add(obj.pointid);
+				if (obj.pointid) pointsToCheck.add(obj.pointid);
 			} else if (isRoute(obj)) {
 				for (const pd of obj.points) pointsToCheck.add(pd.id);
 			} else if (isPoint(obj)) {
@@ -561,26 +705,26 @@ export const entityActions = {
 			}
 			obj.deleted = true;
 		}
-		const refs = this.pointReferences;
+		const refs = store.pointReferences.value;
 		pointsToCheck.forEach(pid => {
-			if (!this.points[pid]) return;
-			this.points[pid].deleted = (refs.get(pid)?.size || 0) === 0;
+			if (!store.points.value[pid]) return;
+			store.points.value[pid].deleted = (refs.get(pid)?.size || 0) === 0;
 		});
-		this.cleanupRoutesFromDeletedPoints();
-		this.fixCurrentsAfterDelete();
-		this.updateSavedStatus();
-		this.backupState();
-	},
-	cleanupRoutesFromDeletedPoints() {
+		cleanupRoutesFromDeletedPoints();
+		fixCurrentsAfterDelete();
+		store.updateSavedStatus();
+		store.backupState();
+	};
+	const cleanupRoutesFromDeletedPoints = (): void => {
 		const deletedPointIds = new Set<string>();
-		for (const id in this.points) {
-			if (this.points[id].deleted) {
+		for (const id of Object.keys(store.points.value)) {
+			if (store.points.value[id].deleted) {
 				deletedPointIds.add(id);
 			}
 		}
 		if (deletedPointIds.size === 0) return;
-		for (const id in this.routes) {
-			const route = this.routes[id];
+		for (const id of Object.keys(store.routes.value)) {
+			const route = store.routes.value[id];
 			if (route.deleted) continue;
 			const initialLength = route.points.length;
 			route.points = route.points.filter(
@@ -590,113 +734,139 @@ export const entityActions = {
 				route.updated = true;
 			}
 		}
-	},
-	fixCurrentsAfterDelete() {
-		if (this.currentPlace?.deleted) {
-			const fallbackId =
-				(this.homePlace && !this.homePlace.deleted)
-					? this.homePlace.id
-					: (
-						Object.values<Place>(this.places).find(
-							p => !p.deleted
-						) || null
-					)
-			;
-			this.setCurrentPlace(fallbackId);
+	};
+	const fixCurrentsAfterDelete = (): void => {
+		if (!store.currentPlace.value || store.currentPlace.value.deleted) {
+			if (store.homePlace.value && !store.homePlace.value.deleted) {
+				setCurrentPlace(store.homePlace.value.id);
+			} else {
+				setCurrentPlace(null);
+			}
 		}
-		if (this.currentRoute?.deleted) {
-			this.setCurrentRoute(
-				Object.values<Route>(this.routes).find(
-					r => !r.deleted
-				) || null
-			);
+		if (!store.currentRoute.value || store.currentRoute.value.deleted) {
+			store.setCurrentRoute(null);
 		}
-		if (this.currentPoint?.deleted) {
-			this.setCurrentPoint(null);
+		if (!store.currentPoint.value || store.currentPoint.value.deleted) {
+			setCurrentPoint(null);
 		}
-	},
-	prepareFolderDelete(folderId: string, mode: string) {
+	};
+	const prepareFolderDelete = (
+		folderId: string,
+		mode: string,
+	): Record<string, Place | Route | Folder> => {
 		const toDelete: Record<string, Place | Route | Folder> = {};
-		const rootFolder = this.folders[folderId];
-		if (!rootFolder) return {};
+		const rootFolder = store.folders.value[folderId];
+		if (!rootFolder) return toDelete;
 
+		const placesMap: Record<string, Place[]> = {};
+		const routesMap: Record<string, Route[]> = {};
+		const folderIdsMap: Record<string, string[]> = {};
+
+		if (mode === 'delete') {
+			for (const id in store.places.value) {
+				if (!Object.hasOwn(store.places.value, id)) continue;
+				const p = store.places.value[id];
+				if (p.folderid) {
+					if (!placesMap[p.folderid]) placesMap[p.folderid] = [];
+					placesMap[p.folderid].push(p);
+				}
+			}
+			for (const id in store.routes.value) {
+				if (!Object.hasOwn(store.routes.value, id)) continue;
+				const r = store.routes.value[id];
+				if (r.folderid) {
+					if (!routesMap[r.folderid]) routesMap[r.folderid] = [];
+					routesMap[r.folderid].push(r);
+				}
+			}
+			for (const id in store.folders.value) {
+				if (!Object.hasOwn(store.folders.value, id)) continue;
+				const f = store.folders.value[id];
+				if (f.parent) {
+					if (!folderIdsMap[f.parent]) folderIdsMap[f.parent] = [];
+					folderIdsMap[f.parent].push(id);
+				}
+			}
+		}
 		const collectRecursive = (fId: string) => {
-			const folder = this.folders[fId];
+			const folder = store.folders.value[fId];
 			if (!folder) return;
 			toDelete[fId] = folder;
 
-			Object.values<Place>(this.places).forEach(p => {
-				if (p.folderid === fId) toDelete[p.id] = p;
-			});
-			Object.values<Route>(this.routes).forEach(r => {
-				if (r.folderid === fId) toDelete[r.id] = r;
-			});
-			Object.values<Folder>(this.folders).forEach(subFolder => {
-				if (subFolder.parent === fId) {
-					collectRecursive(subFolder.id);
-				}
-			});
+			const childPlaces = placesMap[fId] || [];
+			const childRoutes = routesMap[fId] || [];
+			const childFolderIds = folderIdsMap[fId] || [];
+
+			for (const p of childPlaces) toDelete[p.id] = p;
+			for (const r of childRoutes) toDelete[r.id] = r;
+			for (const id of childFolderIds) collectRecursive(id);
 		};
 
 		if (mode === 'delete') {
 			collectRecursive(folderId);
 		} else {
 			if (rootFolder.parent !== null) toDelete[folderId] = rootFolder;
-			Object.values<Place>(this.places).forEach(p => {
-				if (p.folderid === folderId) {
-					p.folderid = null;
-					p.updated = true;
+			for (const id in store.places.value) {
+				if (!Object.hasOwn(store.places.value, id)) continue;
+				const o = store.places.value[id];
+				if (o.folderid === folderId) {
+					o.folderid = null;
+					o.updated = true;
 				}
-			});
-			Object.values<Route>(this.routes).forEach(r => {
-				if (r.folderid === folderId) {
-					r.folderid = null;
-					r.updated = true;
+			}
+			for (const id in store.routes.value) {
+				if (!Object.hasOwn(store.routes.value, id)) continue;
+				const o = store.routes.value[id];
+				if (o.folderid === folderId) {
+					o.folderid = null;
+					o.updated = true;
 				}
-			});
-			Object.values<Folder>(this.folders).forEach(f => {
-				if (f.parent === folderId) {
-					f.parent = null;
-					f.updated = true;
+			}
+			for (const id in store.folders.value) {
+				if (!Object.hasOwn(store.folders.value, id)) continue;
+				const o = store.folders.value[id];
+				if (o.parent === folderId) {
+					o.parent = null;
+					o.updated = true;
 				}
-			});
+			}
 		}
 		return toDelete;
-	},
-	deleteTemp(id: string) {
-		const measureIndex = this.measure.points.map((p: PointDescription) => p.id).indexOf(id);
-		if (measureIndex !== -1) {
-			if (this.measure.choosing > this.measure.points.length - 2) {
-				this.measure.choosing = this.measure.points.length - 2
-				if (this.measure.choosing < 0) this.measure.choosing = null;
+	};
+	const deleteTemp = (id: string): void => {
+		const measureIndex = store.measure.value.points.map((p: PointDescription) => p.id).indexOf(id);
+		if (measureIndex !== -1 && store.measure.value.choosing !== null) {
+			if (store.measure.value.choosing > store.measure.value.points.length - 2) {
+				store.measure.value.choosing = store.measure.value.points.length - 2
+				if (store.measure.value.choosing < 0) store.measure.value.choosing = null;
 			};
-			this.measure.points.splice(measureIndex, 1);
+			store.measure.value.points.splice(measureIndex, 1);
 		}
-		delete this.temps[id];
-		if (this.currentPointId && this.currentPointId === id) {
-			this.setCurrentPoint(null);
+		delete store.temps.value[id];
+		if (store.currentPointId.value && store.currentPointId.value === id) {
+			setCurrentPoint(null);
 		}
-	},
-	deleteAllTemps() {
-		for (const id in this.temps) {
-			this.deleteTemp(id);
+	};
+	const deleteAllTemps = (): void => {
+		for (const id in store.temps.value) {
+			if (Object.hasOwn(store.temps.value, id)) deleteTemp(id);
 		}
-	},
-	deleteAllMeasurePoints() {
-		this.measure.points.forEach((p: PointDescription) => {
-			if (!this.temps[p.id]) return;
-			delete this.temps[p.id];
-			if (this.currentPointId && this.currentPointId === p.id) {
-				this.setCurrentPoint(null);
+	};
+	const deleteAllMeasurePoints = (): void => {
+		store.measure.value.points.forEach((p: PointDescription) => {
+			if (!store.temps.value[p.id]) return;
+			delete store.temps.value[p.id];
+			if (store.currentPointId.value && store.currentPointId.value === p.id) {
+				setCurrentPoint(null);
 			}
 		});
-		this.measure.points.length = 0;
-		this.measure.choosing = 0;
-	},
-	deleteImages(
-		{ imageIds, entity } :
+		store.measure.value.points = [];
+		store.measure.value.choosing = 0;
+	};
+	const deleteImages = (
+		{ imageIds, entity }:
 		{ imageIds: string[]; entity: Place | Route; }
-	) {
+	): void => {
 		if (!entity.images) return;
 		let updated = false;
 		for (const id of imageIds) {
@@ -707,21 +877,21 @@ export const entityActions = {
 		}
 		if (updated) {
 			entity.updated = true;
-			this.saved = false;
-			this.backupState();
+			store.saved.value = false;
+			store.backupState();
 		}
-	},
+	};
 
 // SEC Changing Entities
 
-	async changePoint(
+	const changePoint = (
 		{ entity, change }: { entity: Point; change: Partial<Point>; }
-	) {
+	): void => {
 		Object.assign(entity, change);
 		entity.updated = true;
-		if (this.newEntityPointId === entity.id) this.newEntityPointId = null;
-		this.saved = false;
-		this.backupState();
+		if (store.newEntityPointId.value === entity.id) store.newEntityPointId.value = null;
+		store.saved.value = false;
+		store.backupState();
 
 		const coordsChanged =
 			Object.hasOwn(change, 'latitude') ||
@@ -731,170 +901,74 @@ export const entityActions = {
 			entity.altitude === null ||
 			entity.altitude === undefined
 		;
-		if (coordsChanged || altitudeMissing) this.setPointAltitude(entity);
-	},
-	changePlace(
+		if (coordsChanged || altitudeMissing) store.setPointAltitude(entity);
+	};
+	const changePlace = (
 		{ entity, change }: { entity: Place; change: Partial<Place>; }
-	) {
-		if ('srt' in change) entity.srt = Number(change.srt) || 0;
+	): void => {
+		if (Object.hasOwn(change, 'srt')) entity.srt = Number(change.srt) || 0;
 		Object.assign(entity, change);
 		entity.updated = true;
-		this.saved = false;
-		this.backupState();
-	},
-	changeRoute(
+		store.saved.value = false;
+		store.backupState();
+	};
+	const changeRoute = (
 		{ entity, change }: { entity: Route; change: Partial<Route>; }
-	) {
-		if ('srt' in change) entity.srt = Number(change.srt) || 0;
+	): void => {
+		if (Object.hasOwn(change, 'srt')) entity.srt = Number(change.srt) || 0;
 		Object.assign(entity, change);
 		entity.updated = true;
-		this.saved = false;
-		this.backupState();
-	},
-	changeRoutePoint(
+		store.saved.value = false;
+		store.backupState();
+	};
+	const changeRoutePoint = (
 		{ route, index, change }:
 		{ route: Route; index: number; change: Partial<PointDescription>; }
-	) {
+	): void => {
 		Object.assign(route.points[index], change);
 		route.updated = true;
-		this.saved = false;
-		this.backupState();
-	},
-	changeFolder(
-		{ folder, change }: { folder: Folder; change: Partial<Folder>; }
-	) {
-		Object.assign(folder, change);
-		folder.updated = true;
-		this.saved = false;
-		this.backupState();
-	},
-
-// SEC Setting Current
-
-	setCurrentPoint<T extends string | Point | null | undefined>(
-		param: T,
-		center?: boolean,
-	) {
-		let point: Point;
-		if (typeof param === 'string') {
-			point = this.getPointById(param) ?? null;
-		} else {
-			point = param ?? null;
-		}
-		this.currentPointId = point?.id;
-		if (!point) return;
-		if (point.altitude === null) this.setPointAltitude(point);
-		let index: number;
-		if (this.currentRouteId) {
-			index = this.currentRoute.points.map((p: PointDescription) => p.id).indexOf(point.id);
-			if (index !== -1) this.currentRoute.choosing = index;
-		}
-		index = this.measure.points.map((p: PointDescription) => p.id).indexOf(point.id);
-		if (index !== -1) this.measure.choosing = index;
-		if (center !== false && point) this.center = {
-			latitude: point.latitude,
-			longitude: point.longitude,
-		};
-	},
-	setCurrentPlace<T extends string | Place | null | undefined>(
-		param: T,
-		center?: boolean,
-	) {
-		let place: Place | null;
-		if (typeof param === 'string') {
-			place = this.getPlaceById(param) ?? null;
-		} else {
-			place = param ?? null;
-		}
-		this.currentPlaceId = place?.id;
-		if (place) this.setCurrentPoint(place.pointid, center);
-	},
-	setCurrentRoute<T extends string | Route | null | undefined>(
-		param: T,
-		center?: boolean,
-	) {
-		let route: Route | null;
-		if (typeof param === 'string') {
-			route = this.getRouteById(param) ?? null;
-		} else {
-			route = param ?? null;
-		}
-		this.currentRouteId = route?.id;
-		if (route?.points.length) {
-			if (// Damn you all
-				typeof route.choosing !== 'number' ||
-				!Number.isInteger(route.choosing) ||
-				route.choosing < 0 ||
-				route.choosing > route.points.length - 1
-			) {
-				route.choosing = 0;
-			}
-			this.setCurrentPoint(route.points[route.choosing].id, center);
-		}
-	},
-	setFirstCurrentPlace() {
-		if (this.homePlace) {
-			this.setCurrentPlace(this.homePlace);
-			return;
-		}
-		let anyPlace: Place | null = null;
-		for (const id in this.places) {
-			const place = this.places[id];
-			if (!place.folderid) {
-				this.setCurrentPlace(place);
-				return;
-			}
-			if (!anyPlace) anyPlace = place;
-		}
-		this.setCurrentPlace(anyPlace);
-	},
-	setFirstCurrentRoute() {
-		let anyRoute: Route | null = null;
-		for (const id in this.routes) {
-			const route = this.routes[id];
-			if (!route.folderid) {
-				this.setCurrentRoute(route);
-				return;
-			}
-			if (!anyRoute) anyRoute = route;
-		}
-		this.setCurrentRoute(anyRoute);
-	},
-	async setHomePlace(
-		{ id, silent = false }:
-		{ id: string | null; silent?: boolean; }
-	) {
-		if (!this.user) return;
-		this.user.homeplace = (id && this.places[id]) ? id  : null;
-		if (!silent) {
-			this.saved = false;
-			this.backupState();
-		}
-	},
+		store.saved.value = false;
+		store.backupState();
+	};
+	const changeFolder = (
+		{ entity, change }: { entity: Folder; change: Partial<Folder>; }
+	): void => {
+		Object.assign(entity, change);
+		entity.updated = true;
+		store.saved.value = false;
+		store.backupState();
+	};
 
 // SEC Inspections
 
-	inspectOrphanFolders() {
-		Object.values<Folder>(this.folders).forEach(f => {
-			if (f.parent && !this.folders[f.parent]) f.parent = null;
-		});
-	},
-	inspectOrphanPlaces() {
-		Object.values<Place>(this.places).forEach(p => {
-			if (p.folderid && !this.folders[p.folderid]) p.folderid = null;
-		});
-	},
-	inspectOrphanRoutes() {
-		Object.values<Route>(this.routes).forEach(r => {
-			if (r.folderid && !this.folders[r.folderid]) r.folderid = null;
-		});
-	},
-	resolveId(
+	const inspectOrphanPlaces = (): void => {
+		for (const id in store.places.value) {
+			if (!Object.hasOwn(store.places.value, id)) continue;
+			const p = store.places.value[id];
+			if (p.folderid && !store.folders.value[p.folderid]) p.folderid = null;
+		}
+	};
+	const inspectOrphanRoutes = (): void => {
+		for (const id in store.routes.value) {
+			if (!Object.hasOwn(store.routes.value, id)) continue;
+			const r = store.routes.value[id];
+			if (r.folderid && !store.folders.value[r.folderid]) r.folderid = null;
+		}
+	};
+	const inspectOrphanFolders = (): void => {
+		for (const id in store.folders.value) {
+			if (!Object.hasOwn(store.folders.value, id)) continue;
+			const f = store.folders.value[id];
+			if (f.parent && !store.folders.value[f.parent]) f.parent = null;
+		}
+	};
+	const resolveId = (
 		oldId: string,
 		idMap: Map<string, string>,
-		entityRecord: Record<string, any>,
-	): string {
-		if (idMap.has(oldId)) return idMap.get(oldId);
+		entityRecord: Record<string, unknown>,
+	): string => {
+		const knownId = idMap.get(oldId);
+		if (knownId) return knownId;
 		if (entityRecord[oldId]) {
 			idMap.set(oldId, oldId);
 			return oldId;
@@ -902,5 +976,37 @@ export const entityActions = {
 		const newId = crypto.randomUUID();
 		idMap.set(oldId, newId);
 		return newId;
-	},
+	};
+
+	return {
+		setCurrentPoint,
+		setCurrentPlace,
+		setCurrentRoute,
+		setFirstCurrentPlace,
+		setFirstCurrentRoute,
+		setHomePlace,
+		upsertPoint,
+		upsertPlace,
+		upsertPlaceFollowing,
+		upsertPlaceFromPointInfo,
+		upsertRoute,
+		upsertRouteFollowing,
+		upsertFolder,
+		upsertEntityWithCurrentLocation,
+		deleteEntities,
+		prepareFolderDelete,
+		deleteTemp,
+		deleteAllTemps,
+		deleteAllMeasurePoints,
+		deleteImages,
+		changePoint,
+		changePlace,
+		changeRoute,
+		changeFolder,
+		changeRoutePoint,
+		inspectOrphanPlaces,
+		inspectOrphanRoutes,
+		inspectOrphanFolders,
+		resolveId,
+	};
 };

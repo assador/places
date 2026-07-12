@@ -1,38 +1,41 @@
+import { StoreMain, ActionsDB } from '@/stores/types';
 import { EntityCollection } from '@/types';
+import { isDictKey } from '@/guards';
 
-export const dbActions = {
-	savedToDB(payload: EntityCollection) {
-		const collections = {
-			points: this.points,
-			places: this.places,
-			routes: this.routes,
-			folders: this.folders,
-		};
-		for (const [ key, stateDict ] of Object.entries(collections)) {
-			const items = payload[key as keyof EntityCollection];
-			if (!items) continue;
-			items.forEach((item: any) => {
+export function useActionsDB(
+	store: StoreMain,
+): ActionsDB {
+
+	const savedToDB = (payload: EntityCollection): void => {
+		for (const key of Object.keys(payload)) {
+			if (!isDictKey(key) || !payload[key]) continue;
+			for (const item of payload[key]) {
+				if (!item.id) continue;
 				if (item.deleted) {
-					delete stateDict[item.id];
+					delete store[key].value[item.id];
 				} else {
-					const stateItem = stateDict[item.id];
-					if (stateItem) {
-						stateItem.added = false;
-						stateItem.updated = false;
-						stateItem.deleted = false;
+					const entity = store[key].value[item.id];
+					if (entity) {
+						if (entity.added) entity.added = false;
+						if (entity.updated) entity.updated = false;
 					}
 				}
-			});
+			}
 		}
-		this.updateSavedStatus();
-	},
-	updateSavedStatus() {
-		const pkg = this.getAllModifiedPackage;
-		this.saved = (
-			pkg.points.length === 0 &&
-			pkg.places.length === 0 &&
-			pkg.routes.length === 0 &&
-			pkg.folders.length === 0
+		updateSavedStatus();
+	};
+	const updateSavedStatus = (): void => {
+		const pkg = store.getAllModifiedPackage.value;
+		store.saved.value = (
+			pkg.points?.length === 0 &&
+			pkg.places?.length === 0 &&
+			pkg.routes?.length === 0 &&
+			pkg.folders?.length === 0
 		);
-	},
+	};
+
+	return {
+		savedToDB,
+		updateSavedStatus,
+	};
 };

@@ -99,12 +99,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
 import { orderBy } from 'lodash';
 import { useMainStore } from '@/stores/main';
 import { constants } from '@/shared/constants';
 import { addImages } from '@/services/common';
-import { usePointerDnD } from '@/services/dnd';
+import { usePointerDnD, handleDrop } from '@/services/dnd';
 import { Image } from '@/types';
 import PopupImage from '@/components/popups/PopupImage.vue';
 
@@ -136,8 +136,6 @@ const inputUploadFilesChanged = (e: Event) => {
 const own = computed(() => current.value?.userid === mainStore.user.id);
 
 // SEC DnD
-
-const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const dragging = ref(false);
 const dragTargetId = ref(null);

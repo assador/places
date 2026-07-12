@@ -1,28 +1,29 @@
 import {
+	DragEntityPayload,
+	DragFolderPayload,
+	DragImagePayload,
+	DragPlacePayload,
+	DragPointInListPayload,
+	DragRoutePayload,
 	Place,
 	Route,
 	Measure,
-	DragHandler,
-	DragPointInListPayload,
-	DragFolderPayload,
-	DragPlacePayload,
-	DragRoutePayload,
-	DragImagePayload,
-	TreeItemType,
 } from '@/types';
+import { isTreeItemType } from '@/guards';
 import { isAncestorOf } from '@/shared/checkers';
 import { moveInArray, moveInObject } from '@/shared/sorting';
 import { useMainStore } from '@/stores/main';
 
-export const handleFolderDropped: DragHandler = (
+export const handleFolderDropped = (
 	payload: DragFolderPayload,
-	target,
-) => {
+	target: HTMLElement,
+): void => {
 	const mainStore = useMainStore();
 	const targetId = target.dataset.entityId === 'null'
 		? null : target.dataset.entityId
 	;
 	if (
+		!targetId ||
 		targetId === payload.id ||
 		target.dataset.entityType !== 'folder' ||
 		isAncestorOf({
@@ -34,44 +35,40 @@ export const handleFolderDropped: DragHandler = (
 		return;
 	}
 	const folder = mainStore.folders[payload.id];
-	const neighbours = Object.values(mainStore.folders).filter(
-		f => f.parent === targetId
-	);
-	let srt: number, parentId = targetId;
+	let parentId: string | null = targetId;
+	let srt: number;
+	const srts = mainStore.getSrts(targetId, target.dataset.entityType);
 
 	switch (payload.position) {
 		case 'before':
 		case 'after':
-			srt = mainStore.getNeighboursSrts(
-				targetId,
-				target.dataset.entityType,
-				payload.position === 'before',
-			).new;
-			parentId = mainStore.folders[targetId]?.parent ?? null;
+			srt = srts ? (payload.position === 'before' ? srts.before : srts.after) : 10;
+			parentId = targetId ? (mainStore.folders[targetId]?.parent ?? null) : null;
 			break;
 		default:
-			srt = Math.max(0, ...neighbours.map(f => f.srt)) + 10;
+			srt = srts ? srts.max + 10 : 10;
 			break;
 	}
 	mainStore.changeFolder({
-		folder: folder,
+		entity: folder,
 		change: {
 			srt: srt,
 			parent: parentId,
 		},
 	});
 };
-export const handlePlaceRouteDropped: DragHandler = (
+export const handlePlaceRouteDropped = (
 	payload: DragPlacePayload | DragRoutePayload,
-	target,
-) => {
+	target: HTMLElement,
+): void => {
 	const mainStore = useMainStore();
 	const targetId = target.dataset.entityId === 'null'
 		? null : target.dataset.entityId
 	;
 	if (
+		!targetId ||
 		targetId === payload.id ||
-		![target.dataset.entityType, 'folder'].includes(target.dataset.entityType)
+		!isTreeItemType(target.dataset.entityType)
 	) {
 		return;
 	}
@@ -83,48 +80,47 @@ export const handlePlaceRouteDropped: DragHandler = (
 	));
 	let srt: number;
 	const entity = mainStore[payload.context][payload.id];
-	const neighbours = Object.values<Place | Route>(mainStore[payload.context])
-		.filter(f => f.folderid === parentId)
-	;
+	const srts = mainStore.getSrts(targetId, target.dataset.entityType);
+
 	switch (payload.position) {
 		case 'before':
 		case 'after':
-			srt = mainStore.getNeighboursSrts(
-				targetId,
-				target.dataset.entityType as TreeItemType,
-				payload.position === 'before',
-			).new;
+			srt = srts ? (payload.position === 'before' ? srts.before : srts.after) : 10;
 			break;
 		default:
-			srt = Math.max(0, ...neighbours.map(f => f.srt)) + 10;
+			srt = srts ? srts.max + 10 : 10;
 			break;
 	}
-	type ChangePayload = { entity: Place | Route; change: Partial<Place | Route> };
-	let changeFunc: (p: ChangePayload) => void = () => {};
-	if (payload.context === 'places') changeFunc = mainStore.changePlace;
-	if (payload.context === 'routes') changeFunc = mainStore.changeRoute;
-	changeFunc({
-		entity: entity,
+	if (payload.context === 'places') mainStore.changePlace({
+		entity: entity as Place,
+		change: {
+			srt: srt,
+			folderid: parentId,
+		},
+	});
+	if (payload.context === 'routes') mainStore.changeRoute({
+		entity: entity as Route,
 		change: {
 			srt: srt,
 			folderid: parentId,
 		},
 	});
 };
-export const handlePointInListDropped: DragHandler = (
+export const handlePointInListDropped = (
 	payload: DragPointInListPayload,
-	target,
-) => {
+	target: HTMLElement,
+): void => {
 	const mainStore = useMainStore();
 	const targetIndex = Number(target.dataset.entityIndex);
 	if (
+		payload.parentId === undefined ||
 		payload.index === targetIndex ||
 		payload.context !== target.dataset.entityContext ||
 		payload.context === 'routes' && typeof payload.parentId !== 'string'
 	) {
 		return;
 	}
-	let parent: Route | Measure = undefined;
+	let parent: Route | Measure | undefined = undefined;
 	if (payload.context === 'measure') parent = mainStore.measure;
 	if (payload.context === 'routes') parent = mainStore.routes[payload.parentId];
 	if (!parent) return;
@@ -139,13 +135,15 @@ export const handlePointInListDropped: DragHandler = (
 	}
 	mainStore.backupState();
 };
-export const handleImageDropped: DragHandler = (
+export const handleImageDropped = (
 	payload: DragImagePayload,
-	target,
-) => {
+	target: HTMLElement,
+): void => {
 	const mainStore = useMainStore();
 	const targetId = target.dataset.entityId;
 	if (
+		!targetId ||
+		payload.parentId === undefined ||
 		targetId === payload.id ||
 		payload.context !== target.dataset.entityContext ||
 		typeof payload.parentId !== 'string'
@@ -155,7 +153,7 @@ export const handleImageDropped: DragHandler = (
 	let parent = undefined;
 	if (payload.context === 'places') parent = mainStore.places[payload.parentId];
 	if (payload.context === 'routes') parent = mainStore.routes[payload.parentId];
-	if (!parent) return;
+	if (!parent || !parent.images) return;
 	moveInObject(
 		parent.images,
 		payload.id,
@@ -183,7 +181,7 @@ export const usePointerDnD = (config: {
     let offset = { x: 0, y: 0 };
     let ghostEl: HTMLElement | null = null;
 
-	const onPointerDown = (event: PointerEvent, payload: any) => {
+	const onPointerDown = (event: PointerEvent, payload: DragEntityPayload) => {
 		if (event.buttons !== 1 || event.ctrlKey || event.metaKey) return;
 		const el = event.currentTarget as HTMLElement;
 		const rect = el.getBoundingClientRect();
@@ -293,4 +291,26 @@ export const useLightPointerDnD = (config: {
 		config.onDragEnd?.();
 	};
 	return { onPointerDown, onPointerMove, onPointerUp };
+};
+
+export const handleDrop = (target: HTMLElement) => {
+	const mainStore = useMainStore();
+	const payload = mainStore.currentDrag;
+	if (!payload) return;
+	switch (payload.type) {
+		case 'folder':
+			handleFolderDropped(payload as DragFolderPayload, target);
+			break;
+		case 'place':
+		case 'route':
+			handlePlaceRouteDropped(payload as DragPlacePayload | DragRoutePayload, target);
+			break;
+		case 'point':
+			handlePointInListDropped(payload as DragPointInListPayload, target);
+			break;
+		case 'image':
+			handleImageDropped(payload as DragImagePayload, target);
+			break;
+	}
+	mainStore.currentDrag = null;
 };

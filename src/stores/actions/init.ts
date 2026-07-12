@@ -1,52 +1,56 @@
+import { StoreMain, ActionsInit } from '@/stores/types';
+import { Folder, Point, Place, Route } from '@/types';
 import api from '@/api';
 import { constants } from '@/shared/constants';
-import { Place } from '@/types';
+import { isFolder, isPoint, isPlace, isRoute } from '@/guards';
 
-export const initActions = {
-	unload() {
-		this.refreshing = true;
-		this.reset();
-		localStorage.clear();
-	},
-	reset() {
-		this.saved = true;
-		this.idleTime = 0;
-		this.stateBackups = [];
-		this.stateBackupsIndex = -1;
-		this.user = null;
-		this.currentPointId = null;
-		this.currentPlaceId = null;
-		this.currentRouteId = null;
-		this.points = {};
-		this.places = {};
-		this.routes = {};
-		this.folders = {};
-		this.commonPlaces = {};
-		this.commonRoutes = {};
-		this.center = {
+export function useActionsInit(
+	store: StoreMain,
+): ActionsInit {
+
+	const reset = (): void => {
+		store.saved.value = true;
+		store.idleTime.value = 0;
+		store.stateBackups.value = [];
+		store.stateBackupsIndex.value = -1;
+		store.user.value = null;
+		store.currentPointId.value = null;
+		store.currentPlaceId.value = null;
+		store.currentRouteId.value = null;
+		store.points.value = {};
+		store.places.value = {};
+		store.routes.value = {};
+		store.folders.value = {};
+		store.commonPlaces.value = {};
+		store.commonRoutes.value = {};
+		store.center.value = {
 			latitude: Number(constants.map.initial.latitude),
 			longitude: Number(constants.map.initial.longitude),
 		};
-		this.zoom = Number(constants.map.initial.zoom);
-		this.markersShow = true;
-		this.commonMarkersShow = false;
-		this.centerMarkerShow = false;
-		this.ready = false;
-		this.messages = [];
-		this.messagesMouseOver = false;
-		this.messagesInterval = null;
-		this.messagesTimeout = null;
-		this.serverConfig = null;
-	},
-	entitiesReady(payload: Record<string, any>) {
-		const { points, places, commonPlaces, routes, commonRoutes, folders, what } = payload;
-
-		this.points = points ? points : {};
-		this.places = places ? places : {};
-		this.commonPlaces = commonPlaces ? commonPlaces : {};
-		this.routes = routes ? routes : {};
-		this.commonRoutes = commonRoutes ? commonRoutes : {};
-		this.folders = folders ? folders : {};
+		store.zoom.value = Number(constants.map.initial.zoom);
+		store.markersShow.value = true;
+		store.commonMarkersShow.value = false;
+		store.centerMarkerShow.value = false;
+		store.ready.value = false;
+		store.messages.value = [];
+		store.messagesMouseOver.value = false;
+		store.messagesInterval.value = null;
+		store.messagesTimeout.value = null;
+		store.serverConfig.value = null;
+	};
+	const unload = (): void => {
+		store.refreshing.value = true;
+		reset();
+		localStorage.clear();
+	};
+	const entitiesReady = (
+		entities: Record<string, Record<string, unknown>>,
+		what?: string,
+	): void => {
+		const folders: Record<string, Partial<Folder>> = entities.folders;
+		const points: Record<string, Partial<Point>> = entities.points;
+		const places: Record<string, Partial<Place>> = entities.places;
+		const routes: Record<string, Partial<Route>> = entities.routes;
 
 		let added = false, deleted = false, updated = false;
 		switch (what) {
@@ -60,17 +64,30 @@ export const initActions = {
 				updated = true;
 				break;
 		}
-		for (const key in this.points) {
-			const point = this.points[key];
+		for (const id in folders) {
+			if (!Object.hasOwn(folders, id)) continue;
+			const folder = folders[id];
+			folder.type = 'folder';
+			folder.added = added;
+			folder.deleted = deleted;
+			folder.updated = updated;
+			folder.open = false;
+			if (isFolder(folder)) store.folders.value[id] = folder;
+		}
+		for (const id in points) {
+			if (!Object.hasOwn(points, id)) continue;
+			const point = points[id];
 			point.type = 'point';
 			point.added = added;
 			point.deleted = deleted;
 			point.updated = updated;
 			point.show = true;
 			point.common = Boolean(point.common);
+			if (isPoint(point)) store.points.value[id] = point;
 		}
-		for (const key in this.places) {
-			const place = this.places[key];
+		for (const id in places) {
+			if (!Object.hasOwn(places, id)) continue;
+			const place = places[id];
 			place.type = 'place';
 			place.added = added;
 			place.deleted = deleted;
@@ -78,45 +95,42 @@ export const initActions = {
 			place.show = true;
 			place.common = Boolean(place.common);
 			place.geomark = Boolean(place.geomark);
+			if (isPlace(place)) store.places.value[id] = place;
 		}
-		for (const key in this.routes) {
-			const route = this.routes[key];
+		for (const id in routes) {
+			if (!Object.hasOwn(routes, id)) continue;
+			const route = routes[id];
 			route.type = 'route';
 			route.added = added;
 			route.deleted = deleted;
 			route.updated = updated;
 			route.show = true;
 			route.common = Boolean(route.common);
+			if (isRoute(route)) store.routes.value[id] = route;
 		}
-		for (const key in this.folders) {
-			const folder = this.folders[key];
-			folder.type = 'folder';
-			folder.added = added;
-			folder.deleted = deleted;
-			folder.updated = updated;
-			folder.open = false;
-		}
-	},
-	async setServerConfig() {
+	};
+	const setServerConfig = async (): Promise<void> => {
 		try {
 			const { data } = await api.get(
 				'get_config.php?useruuid=' +
 				localStorage.getItem('places-useruuid')
 			);
-			this.serverConfig = data;
+			store.serverConfig.value = data;
 		} catch (error) {
 			console.error(error);
-			this.setMessage(this.t.m.popup.cannotGetData);
-			this.serverConfig = null;
+			store.setMessage(store.t.value.m.popup.cannotGetData);
+			store.serverConfig.value = null;
 		}
-	},
-	async setUsers(payload?: string) {
+	};
+	const setUsers = async (payload?: string): Promise<void> => {
 		let ids: string[] | null = null;
 		switch (payload) {
 			case 'common':
 				ids = [];
-				for (const place of Object.values(this.commonPlaces) as Place[]) {
-					if (!ids.includes(place.userid)) ids.push(place.userid);
+				for (const id in store.commonPlaces.value) {
+					if (!Object.hasOwn(store.commonPlaces.value, id)) continue;
+					const place = store.commonPlaces.value[id];
+					if (place.userid && !ids.includes(place.userid)) ids.push(place.userid);
 				}
 				break;
 			default:
@@ -128,35 +142,37 @@ export const initActions = {
 				Array.isArray(ids) ? { users: ids } : null,
 			);
 			for (let idx = 0; idx < data.length; idx++) {
-				this.users[data[idx].id] = {
+				store.users.value[data[idx].id] = {
 					login: data[idx].login,
 					name: data[idx].name,
 				};
 			}
 		} catch (error) {
 			console.error(error);
+			store.setMessage(store.t.value.m.popup.cannotGetData);
+			store.users.value = {};
 		}
-	},
-	async setUser() {
+	};
+	const setUser = async (): Promise<void> => {
 		try {
 			const { data } = await api.get(
 				'get_account.php?id=' +
 				localStorage.getItem('places-useruuid')
 			);
-			this.user = data;
+			store.user.value = data;
 		} catch (error) {
 			console.error(error);
-			this.setMessage(this.t.m.popup.cannotGetData);
-			this.user = null;
+			store.setMessage(store.t.value.m.popup.cannotGetData);
+			store.user.value = null;
 		}
-	},
-	async setEntities() {
+	};
+	const setEntities = async (): Promise<void> => {
 		try {
 			const { data } = await api.get(
 				'get_entities.php?id=' +
 				localStorage.getItem('places-useruuid')
 			);
-			this.entitiesReady({
+			entitiesReady({
 				points: { ...data.points },
 				places: { ...data.places },
 				routes: { ...data.routes },
@@ -165,22 +181,32 @@ export const initActions = {
 				// commonPlaces: { ...data.commonPlaces },
 				// commonRoutes: { ...data.commonRoutes },
 			});
-			this.setHomePlace({
-				id: this.user.homeplace ? this.user.homeplace : null,
+			store.setHomePlace({
+				id: store.user.value?.homeplace ? store.user.value.homeplace : null,
 				silent: true,
 			});
-			this.setFirstCurrentRoute();
-			this.setFirstCurrentPlace();
+			store.setFirstCurrentRoute();
+			store.setFirstCurrentPlace();
 		} catch (error) {
 			console.error(error);
-			this.setMessage(this.t.m.popup.cannotGetDataFromDb);
-			this.entitiesReady({
+			store.setMessage(store.t.value.m.popup.cannotGetDataFromDb);
+			entitiesReady({
 				points: {},
 				places: {},
 				routes: {},
 				folders: {},
 				commonPlaces: {},
+				commonRoutes: {},
 			});
 		}
-	},
+	};
+
+	return {
+		reset,
+		unload,
+		setServerConfig,
+		setUsers,
+		setUser,
+		setEntities,
+	};
 };

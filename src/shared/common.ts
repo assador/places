@@ -1,11 +1,18 @@
+import { Ref } from 'vue';
 import { constants } from '@/shared/constants';
+import { isRecord } from '@/guards';
 
+export function getErrorMessage(error: unknown): string {
+	if (error instanceof Error) return error.message;
+	if (typeof error === 'string') return error;
+	return 'unknown error';
+}
 export function anyObjectValue<T>(obj: Record<string, T>): T | undefined {
 	for (const key in obj) return obj[key];
 	return undefined;
 }
 export const childrenCount = (
-	tree: Record<string, any>,
+	tree: Record<string, unknown>,
 	childrenKey: string,
 ): number => {
 	let count = 0;
@@ -17,43 +24,6 @@ export const childrenCount = (
 	}
 	return count;
 };
-export const changeByKeyValue = (
-	tree: Record<string, any>,
-	childrenKey: string,
-	key: string,
-	value: unknown,
-	what: string,
-): void => {
-	if (tree[childrenKey] && Object.keys(tree[childrenKey]).length > 0) {
-		for (const id in tree[childrenKey]) {
-			switch (what) {
-				case 'delete' :
-					if (tree[childrenKey][id][key] === value) {
-						delete tree[childrenKey][id];
-					} else {
-						changeByKeyValue(
-							tree[childrenKey][id],
-							childrenKey,
-							key,
-							value,
-							what
-						);
-					}
-					break;
-				case 'change' :
-					tree[childrenKey][id][key] = value;
-					changeByKeyValue(
-						tree[childrenKey][id],
-						childrenKey,
-						key,
-						value,
-						what
-					);
-					break;
-			}
-		}
-	}
-};
 
 export const clamp = (val: number, min: number, max: number): number => {
 	return Math.min(max, Math.max(min, val));
@@ -63,8 +33,8 @@ export const roundTo = (num: number, prc: number = constants.map.precision): num
 };
 
 /**
- * Finds N extreme values ​​(minimums or maximums) in an array.
- * More efficient than deep sort for large arrays when only a few values ​​are needed.
+ * Finds N extreme values (minimums or maximums) in an array.
+ * More efficient than deep sort for large arrays when only a few values are needed.
  * @param array - Original array of numbers
  * @param count - How many elements need to be found
  * @param order - If < 0, searches for maxima, if >= 0 (or undefined), searches for minima
@@ -76,7 +46,7 @@ export const roundTo = (num: number, prc: number = constants.map.precision): num
 export const numbersMinMax = (
 	array: number[], count: number, order?: number
 ): number[] => {
-	const min = order < 0 ? true : false;
+	const min = !order || order < 0 ? true : false;
 	const result = array.slice(0, count).sort((a, b) => (min ? b - a : a - b));
 	const insertNew = (el: number): number => {
 		for (let idx = 0; idx < result.length; idx++) {
@@ -110,6 +80,55 @@ export const numbersMinMax = (
 	return result.toReversed();
 }
 /**
+ * Searches the object dictionary for objects
+ * with the minimum and maximum text or numeric values for a specified key.
+ * If a validation callback is provided,
+ * only objects that pass the check are considered.
+ */
+export const findInDictByMinMaxKey = (
+	dict: Record<string, unknown>,
+	key: string,
+	check?: (o: Record<string, unknown>) => boolean,
+): {
+	min: { key: string; val: number | string } | null;
+	max: { key: string; val: number | string } | null;
+} => {
+	let min: { key: string; val: number | string } | null = null;
+	let max: { key: string; val: number | string } | null = null;
+	let expectedType: 'number' | 'string' | null = null;
+
+	const isLess = (a: number | string, b: number | string): boolean => {
+		if (typeof a === 'number' && typeof b === 'number') return a < b;
+		return (
+			String(a).localeCompare(String(b), undefined, {
+				numeric: true,
+				sensitivity: 'base',
+			}) < 0
+		);
+	};
+	for (const k of Object.keys(dict)) {
+		const current = dict[k];
+		if (!isRecord(current)) continue;
+		if (check && !check(current)) continue;
+
+		const v = current[key];
+		const currentType = typeof v;
+
+		if (currentType !== 'number' && currentType !== 'string') continue;
+		if (!expectedType) expectedType = currentType;
+		if (currentType !== expectedType) continue;
+
+		const val = v as number | string;
+		if (!min || isLess(val, min.val)) {
+			min = { key: k, val };
+		}
+		if (!max || isLess(max.val, val)) {
+			max = { key: k, val };
+		}
+	}
+	return { min, max };
+};
+/**
  * Distance in kilometers between points on a sphere with coordinates in degrees.
  */
 export const distanceOnSphere = (
@@ -126,7 +145,7 @@ export const distanceOnSphere = (
 	const distance = radius * ang;
 	return distance;
 }
-export const makeDropDowns = (parent: any): void => {
+export const makeDropDowns = (parent: Ref<HTMLElement>): void => {
 	const dropdowns = parent.value.querySelectorAll('.dropdown');
 	for (const dropdown of dropdowns) {
 		const header = dropdown.querySelectorAll('.dropdown__header')[0];
@@ -164,4 +183,25 @@ export const calculatePopupPosition = (e: PointerEvent) => {
 		bottom: isUp ? 'auto' : `${height - y + offset}px`,
 		right: isLeft ? 'auto' : `${width - x + offset}px`,
 	};
+};
+export const anyInDict = (dict: Record<string, unknown>): unknown | undefined => {
+	for (const key in dict) {
+		if (Object.hasOwn(dict, key)) return dict[key];
+	}
+	return undefined;
+};
+export const anyInDictWhere = (
+	dict: Record<string, unknown>,
+	check?: (o: unknown) => boolean,
+): unknown | undefined => {
+	if (check === undefined) {
+		return anyInDict(dict);
+	} else {
+		for (const key in dict) {
+			if (Object.hasOwn(dict, key) && check(dict[key])) {
+				return dict[key];
+			}
+		}
+	}
+	return undefined;
 };

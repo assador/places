@@ -29,6 +29,7 @@ export const loginRoutine = async (
 					return true;
 				}
 		}
+		return false;
 	} catch (error) {
 		console.error(error);
 		localStorage.clear();
@@ -40,6 +41,7 @@ export const logoutRoutine = async (
 ) => {
 	try {
 		await api.post('logout.php', ids);
+		return true;
 	} catch (error) {
 		console.error(error);
 		localStorage.clear();

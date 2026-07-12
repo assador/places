@@ -2,6 +2,28 @@ import api from '@/api';
 import { useMainStore } from '@/stores/main';
 import { EntityCollection } from '@/types';
 
+interface UploadedFile {
+	id: string;
+	file: string;
+	size: number;
+	type: string;
+}
+const isValidUploadResponse = (data: unknown): data is [number[], UploadedFile[]] => {
+	return (
+		Array.isArray(data) &&
+		data.length === 2 &&
+		Array.isArray(data[0]) &&
+		Array.isArray(data[1]) &&
+		data[1].every(f =>
+			f && typeof f === 'object' &&
+			'id' in f && typeof f.id === 'string' &&
+			'file' in f && typeof f.file === 'string' &&
+			'size' in f && typeof f.size === 'number' &&
+			'type' in f && typeof f.type === 'string'
+		)
+	);
+};
+
 const uploadImages = async (): Promise<void> => {
 	const mainStore = useMainStore();
 	if (mainStore.user.testaccount) {
@@ -17,45 +39,43 @@ const uploadImages = async (): Promise<void> => {
 
 	try {
 		const response = await api.post('upload.php', data, { silent: true });
-		if (!response.data || !Array.isArray(response.data)) {
-			throw new Error(typeof response.data === 'string'
-				? response.data
-				: mainStore.t.m.errors.server.invalidResponse
+		if (!isValidUploadResponse(response.data)) {
+			throw new Error(
+				typeof response.data === 'string'
+					? response.data
+					: mainStore.t.m.errors.server.invalidResponse,
 			);
 		}
-
 		const [ errorCodes, uploadedFiles ] = response.data;
 
-		if (Array.isArray(errorCodes)) {
-			errorCodes.forEach((code: number) => {
-				switch (code) {
-					case 2:
-						mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
-						break;
-					case 3:
-						mainStore.setMessage(mainStore.t.m.popup.filesNotImages, 3);
-						break;
-					case 4: {
-						const limitBytes = Number(mainStore.serverConfig?.rights?.photosize);
-						if (limitBytes > 0) {
-							const maxMb = (limitBytes / 1048576).toFixed(3);
-							mainStore.setMessage(
-								`${mainStore.t.m.popup.filesTooLarge} ${maxMb} Mb.`, 3
-							);
-						} else {
-							mainStore.setMessage(
-								`${mainStore.t.m.popup.filesTooLarge}
+		errorCodes.forEach((code: number) => {
+			switch (code) {
+				case 2:
+					mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
+					break;
+				case 3:
+					mainStore.setMessage(mainStore.t.m.popup.filesNotImages, 3);
+					break;
+				case 4: {
+					const limitBytes = Number(mainStore.serverConfig?.rights?.photosize);
+					if (limitBytes > 0) {
+						const maxMb = (limitBytes / 1048576).toFixed(3);
+						mainStore.setMessage(
+							`${mainStore.t.m.popup.filesTooLarge} ${maxMb} Mb.`, 3
+						);
+					} else {
+						mainStore.setMessage(
+							`${mainStore.t.m.popup.filesTooLarge}
 ${mainStore.t.m.errors.server.maxLimit}`, 3
-							);
-						}
-						break;
+						);
 					}
+					break;
 				}
-			});
-		}
-		if (Array.isArray(uploadedFiles) &&uploadedFiles.length) {
+			}
+		});
+		if (uploadedFiles.length) {
 			const serverFilesMap = Object.fromEntries(
-				uploadedFiles.map((f: any) => [ f.id, f.file ]),
+				uploadedFiles.map(f => [ f.id, f.file ]),
 			);
 			pendingImages.forEach(img => {
 				const { entityid, entitytype, id } = img;

@@ -569,7 +569,6 @@ import {
 	onUnmounted,
 	onUpdated,
 	provide,
-	inject,
 	nextTick,
 	defineAsyncComponent,
 } from 'vue';
@@ -621,8 +620,6 @@ const maps = [
 ];
 const mainStore = useMainStore();
 const router = useRouter();
-
-const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const root = ref<HTMLElement | null>(null);
 const basicFulled = ref(false);
@@ -761,7 +758,6 @@ onMounted(async () => {
 	await nextTick();
 	windowResize();
 	makeDropDowns(root);
-	document.addEventListener('drop', handleDrop, false);
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
 	setBusy(false);
@@ -776,7 +772,6 @@ onMounted(async () => {
 	}
 });
 onUnmounted(() => {
-	document.removeEventListener('drop', handleDrop);
 	document.removeEventListener('keyup', keyup);
 	window.removeEventListener('resize', windowResize);
 	stopIdleTimer();

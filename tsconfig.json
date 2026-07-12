@@ -1,33 +1,39 @@
 {
 	"compilerOptions": {
-		"noEmit": true,
-		"target": "esnext",
-		"module": "esnext",
-		"strict": false,
-		"jsx": "preserve",
-		"importHelpers": true,
-		"experimentalDecorators": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
-		"sourceMap": false,
+		"allowUnreachableCode": false,
+		"esModuleInterop": true,
+		"exactOptionalPropertyTypes": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"jsx": "preserve",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"noEmit": true,
 		"noImplicitAny": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
+		"skipLibCheck": true,
+		"sourceMap": false,
+		"strict": true,
+		"strictNullChecks": true,
+		"target": "esnext",
 		"types": [
 			"node"
 		],
-		"paths": {
-			"@/*": [
-				"./src/*"
-			]
-		},
 		"lib": [
 			"esnext",
 			"dom",
 			"dom.iterable",
 			"scripthost"
 		],
+		"paths": {
+			"@/*": [
+				"./src/*"
+			]
+		},
 		"typeRoots": [
 			"./node_modules/@types",
 			"./node_modules/@yandex/ymaps3-types"

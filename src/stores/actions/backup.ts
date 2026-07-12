@@ -1,10 +1,7 @@
-import {
-	Point,
-	Place,
-	Route,
-	IMainState,
-} from '@/types';
+import { StoreMain, StoreMainStateRefs, ActionsBackup } from '@/stores/types';
+import { Point, Place, Route } from '@/types';
 import { constants } from '@/shared/constants';
+import { hasOwnStringKey } from '@/guards';
 
 const BACKUP_IGNORE_KEYS = new Set<string>([
 	'stateBackups',
@@ -18,74 +15,89 @@ const BACKUP_IGNORE_KEYS = new Set<string>([
 	'currentDrag',
 	't',
 ]);
-export const backupActions = {
-	backupState() {
-		if (!this.backup || this.stateBackups.length >= constants.backupscount) return;
 
-		this.stateBackups.splice(++this.stateBackupsIndex);
-		const backupItem: Record<string, any> = {};
-		const stateKeys = Object.keys(this.$state);
+export function useActionsBackup(
+	store: StoreMain,
+	state: StoreMainStateRefs,
+): ActionsBackup {
 
-		for (const key of stateKeys) {
+	const backupState = (): void => {
+		if (!state.backup.value || state.stateBackups.value.length >= constants.backupscount) return;
+
+		state.stateBackups.value.splice(++state.stateBackupsIndex.value);
+		const backupItem: Record<string, unknown> = {};
+
+		for (const key of Object.keys(state) as (keyof StoreMainStateRefs)[]) {
 			if (BACKUP_IGNORE_KEYS.has(key)) continue;
-			backupItem[key] = this[key];
+			backupItem[key] = state[key].value;
 		}
-		this.stateBackups.push(JSON.stringify(backupItem));
-	},
-	restoreState(backupIndex: number) {
-		if (backupIndex < 0 || backupIndex > this.stateBackups.length - 1) return;
-		if (this.stateBackupsIndex === backupIndex) return;
+		state.stateBackups.value.push(JSON.stringify(backupItem));
+	};
+	const restoreState = (backupIndex: number): void => {
+		if (backupIndex < 0 || backupIndex > state.stateBackups.value.length - 1) return;
+		if (state.stateBackupsIndex.value === backupIndex) return;
 
-		const backupData = JSON.parse(this.stateBackups[backupIndex]);
-		for (const key in backupData) {
-			this[key] = backupData[key];
+		const backupData = JSON.parse(state.stateBackups.value[backupIndex]);
+		for (const key of Object.keys(backupData)) {
+			if (hasOwnStringKey(state, key)) state[key].value = backupData[key];
 		}
-		this.stateBackupsIndex = backupIndex;
-		this.saved = false;
-		this.restoreObjectsAsLinks();
-	},
-	replaceState(payload: IMainState) {
-		this.$state = payload;
-		this.changeLang(this.lang);
-		this.restoreObjectsAsLinks();
-	},
-	undo() {
-		this.restoreState(this.stateBackupsIndex - 1);
-	},
-	redo() {
-		this.restoreState(this.stateBackupsIndex + 1);
-	},
-	restoreObjectsAsLinks() {
-		this.refreshing = true;
-		this.backup = false;
-		this.setHomePlace({
-			id: (this.user?.homeplace ?? null),
+		state.stateBackupsIndex.value = backupIndex;
+		state.saved.value = false;
+		restoreObjectsAsLinks();
+	};
+	const replaceState = (payload: StoreMainStateRefs): void => {
+		for (const key of Object.keys(payload) as (keyof StoreMainStateRefs)[]) {
+			if (hasOwnStringKey(state, key)) state[key].value = payload[key].value;
+		}
+		store.changeLang(state.lang.value);
+		restoreObjectsAsLinks();
+	};
+	const undo = (): void => {
+		restoreState(state.stateBackupsIndex.value - 1);
+	};
+	const redo = (): void => {
+		restoreState(state.stateBackupsIndex.value + 1);
+	};
+	const restoreObjectsAsLinks = (): void => {
+		state.refreshing.value = true;
+		state.backup.value = false;
+		store.setHomePlace({
+			id: (state.user.value?.homeplace ?? null),
 			silent: true,
 		});
-		if (this.currentPlaceId) {
-			let place: Place = null;
-			if (this.commonPlaces[this.currentPlaceId])
-				place = this.commonPlaces[this.currentPlaceId];
-			if (this.places[this.currentPlaceId])
-				place = this.places[this.currentPlaceId];
-			this.setCurrentPlace(place, false);
+		if (state.currentPlaceId.value) {
+			let place: Place | null = null;
+			if (state.commonPlaces.value[state.currentPlaceId.value])
+				place = state.commonPlaces.value[state.currentPlaceId.value];
+			if (state.places.value[state.currentPlaceId.value])
+				place = state.places.value[state.currentPlaceId.value];
+			store.setCurrentPlace(place, false);
 		}
-		if (this.currentRouteId) {
-			let route: Route = null;
-			if (this.routes[this.currentRouteId]) {
-				route = this.routes[this.currentRouteId];
+		if (state.currentRouteId.value) {
+			let route: Route | null = null;
+			if (state.routes.value[state.currentRouteId.value]) {
+				route = state.routes.value[state.currentRouteId.value];
 			}
-			this.setCurrentRoute(route, false);
+			store.setCurrentRoute(route, false);
 		}
-		if (this.currentPointId) {
-			let point: Point = null;
-			if (this.points[this.currentPointId])
-				point = this.points[this.currentPointId];
-			if (this.temps[this.currentPointId])
-				point = this.temps[this.currentPointId];
-			this.setCurrentPoint(point, false);
+		if (state.currentPointId.value) {
+			let point: Point | null = null;
+			if (state.points.value[state.currentPointId.value])
+				point = state.points.value[state.currentPointId.value];
+			if (state.temps.value[state.currentPointId.value])
+				point = state.temps.value[state.currentPointId.value];
+			store.setCurrentPoint(point, false);
 		}
-		this.backup = true;
-		this.refreshing = false;
-	},
+		state.backup.value = true;
+		state.refreshing.value = false;
+	};
+
+	return {
+		backupState,
+		restoreState,
+		replaceState,
+		undo,
+		redo,
+		restoreObjectsAsLinks,
+	};
 };

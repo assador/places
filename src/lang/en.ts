@@ -309,6 +309,9 @@ Your data won’t be saved to your account and will be cleared when you log o
 				positionUnavailable: 'Unable to determine coordinates (network/GPS is off).',
 				timeout: 'GPS timed out. Try again.',
 			},
+			other: {
+				other: 'Неизвестная ошибка.',
+			},
 			server: {
 				invalidResponse: 'Invalid server response.',
 				maxLimit: 'Max server limit reached.',

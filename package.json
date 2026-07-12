@@ -18,7 +18,6 @@
 		"css-element-queries": "^1.2.3",
 		"leaflet": "^1.9.4",
 		"lodash": "^4.17.23",
-		"mitt": "^3.0.1",
 		"pinia": "^3.0.4",
 		"pinia-plugin-persistedstate": "^4.7.1",
 		"register-service-worker": "^1.7.2",

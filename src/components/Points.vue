@@ -114,15 +114,16 @@
 			>
 
 <!-- SEC Buttons -->
-
 				<button
 					v-for="fat in points"
 					:key="fat.key"
-					:data-entity-id="context !== 'temps' ? fat.point.id : null"
-					:data-entity-type="context !== 'temps' ? 'point' : null"
-					:data-entity-index="context !== 'temps' ? fat.index : null"
-					:data-entity-context="context !== 'temps' ? context : null"
-					:data-entity-parent-id="context !== 'temps' ? of.id : null"
+					v-bind="context !== 'temps' ? {
+						'data-entity-id': fat.point.id,
+						'data-entity-type': 'point',
+						'data-entity-index': fat.index,
+						'data-entity-context': context,
+						'data-entity-parent-id': of.id
+					} : {}"
 					:title="fat.name"
 					class="point-button"
 					:class="{ 'button-pressed': fat.index === of.choosing }"
@@ -180,10 +181,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { common } from '@/services/common';
-import { usePointerDnD } from '@/services/dnd';
+import { usePointerDnD, handleDrop } from '@/services/dnd';
 import { calculatePopupPosition } from '@/shared/common';
 import {
 	Route,
@@ -262,8 +263,6 @@ const distance = computed(() => {
 });
 
 // SEC DnD
-
-const handleDrop = inject('handleDrop') as (...args: any[]) => any;
 
 const dragging = ref(false);
 const dragTargetId = ref(null);

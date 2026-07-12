@@ -75,11 +75,12 @@
 import { Ref, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { logout } from '@/services/auth';
-import ControlsState from '@/components/controls/ControlsState.vue';
 import { common } from '@/services/common';
+import { logout } from '@/services/auth';
+import type { usePWAInstall } from '@/shared/usepwainstall';
+import ControlsState from '@/components/controls/ControlsState.vue';
 
-const { installPWAEnabled, installPWA } = inject('pwa') as any;
+const { installPWAEnabled, installPWA } = inject<ReturnType<typeof usePWAInstall>>('pwa');
 const importFromFileInput = inject<Ref<HTMLElement | null>>('importFromFileInput');
 
 const mainStore = useMainStore();

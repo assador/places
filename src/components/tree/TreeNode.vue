@@ -177,8 +177,8 @@
 				class="margin_bottom_0"
 			>
 				<TreeSubfolder
-					v-for="child in folder.children"
-					:key="child.id"
+					v-for="(child, index) in folder.children"
+					:key="`${index}-${child.id}`"
 					:instanceid="instanceid"
 					:editable="props.editable"
 					:what="props.what"
@@ -372,7 +372,7 @@ import {
 	FolderContext,
 } from '@/types';
 import { common } from '@/services/common';
-import { usePointerDnD } from '@/services/dnd';
+import { usePointerDnD, handleDrop } from '@/services/dnd';
 import { roundTo } from '@/shared/common';
 
 export interface IPlacesTreeNodeProps {
@@ -460,8 +460,6 @@ watch(() => mainStore.selectedToExport[props.what], (newIds) => {
 
 // SEC DnD
 
-const handleDrop = inject('handleDrop') as (...args: any[]) => any;
-
 const dragging = inject<Ref<boolean>>('dragging');
 const dragTargetId = inject<Ref<string | null>>('dragTargetId');
 const dragTargetContext = inject<Ref<string | null>>('dragTargetContext');
@@ -489,7 +487,7 @@ const updateHighlights = (target: HTMLElement | null) => {
 	}
 };
 
-const noop = (..._args: any[]) => {};
+const noop = () => {};
 
 const dnd = computed(() => {
 	if (!props.editable) return null;

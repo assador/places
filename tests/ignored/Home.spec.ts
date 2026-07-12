@@ -5,7 +5,7 @@ import { flushPromises } from '@vue/test-utils';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import { h, ref } from 'vue';
 
-import { IMainState } from '@/types';
+import { MainState } from '@/stores/types';
 import { constants } from '@/shared/constants';
 import { t } from '@/lang/ru';
 import Home from '@/components/Home.vue';
@@ -43,7 +43,7 @@ vi.mock('@/shared/common', () => ({
 vi.mock('axios', () => ({ default: { get: vi.fn().mockResolvedValue({ data: { elevation: 0 } }), post: vi.fn().mockResolvedValue({ data: [[], []] }) } }));
 
 // Pinia store shape minimal implementation
-function createMainStoreState(): IMainState {
+function createMainStoreState(): MainState {
 	return {
 		activeMapIndex: 0,
 		backup: true,

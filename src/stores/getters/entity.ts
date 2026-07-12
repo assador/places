@@ -1,106 +1,114 @@
+import { computed } from 'vue';
+import { StoreMainStateRefs } from '@/stores/types';
 import {
 	Entity,
-	Point,
-	Place,
-	Route,
-	RawImage,
 	EntityCollection,
-	PointDescription,
 	FatPointDescription,
 	FatPointsPack,
+	Folder,
+	Place,
+	Point,
+	PointDescription,
+	RawImage,
+	Route,
 } from '@/types';
 
-export const entityGetters = {
+export function useGettersEntity(
+	state: StoreMainStateRefs,
+) {
 
-// ID Set Getters
-
-	pointDescriptionIds() {
-		return (points: PointDescription[]): Set<string> => {
-			const set = new Set<string>();
-			points.forEach(pd => set.add(pd.id));
-			return set;
-		}
-	},
-	measurePointIds(): Set<string> {
+	const pointDescriptionIds = (points: PointDescription[]): Set<string> => {
 		const set = new Set<string>();
-		this.measure.points.forEach((pd: PointDescription) => set.add(pd.id));
+		points.forEach(pd => set.add(pd.id));
 		return set;
-	},
-	notMeasureTempPointIds(): Set<string> {
+	};
+	const measurePointIds = computed((): Set<string> => {
 		const set = new Set<string>();
-		for (const id in this.temps) if (!this.measurePointIds.has(id)) set.add(id);
+		state.measure.value.points.forEach((pd: PointDescription) => set.add(pd.id));
 		return set;
-	},
-
-// Entity Getters
-
-	homePlace(): Place | null {
-		const homeplaceId = this.user?.homeplace;
-		return homeplaceId ? (this.places[homeplaceId] ?? null) : null;
-	},
-	currentPoint(): Point | null {
-		return this.currentPointId
-			? (this.points[this.currentPointId] ?? this.temps[this.currentPointId] ?? null)
-			: null;
-	},
-	currentPlace(): Place | null {
-		return this.currentPlaceId ? (this.places[this.currentPlaceId] ?? null) : null;
-	},
-	currentRoute(): Route | null {
-		return this.currentRouteId ? (this.routes[this.currentRouteId] ?? null) : null;
-	},
-	getAllPoints() {
-		return { ...this.points, ...this.temps };
-	},
-	getPointById() {
-		return (id: string) => {
-			if (Object.hasOwn(this.points, id)) return this.points[id];
-			if (Object.hasOwn(this.temps, id)) return this.temps[id];
-			return null;
+	});
+	const notMeasureTempPointIds = computed((): Set<string> => {
+		const set = new Set<string>();
+		for (const id in state.temps.value) if (!measurePointIds.value.has(id)) set.add(id);
+		return set;
+	});
+	const homePlace = computed((): Place | null => {
+		const homeplaceId = state.user.value?.homeplace;
+		return homeplaceId ? (state.places.value[homeplaceId] ?? null) : null;
+	});
+	const currentPoint = computed((): Point | null => {
+		return (
+			state.currentPointId.value ? (
+				state.points.value[state.currentPointId.value]
+					?? state.temps.value[state.currentPointId.value]
+					?? null
+			) : null
+		);
+	});
+	const currentPlace = computed((): Place | null => {
+		return (
+			state.currentPlaceId.value
+				? (state.places.value[state.currentPlaceId.value] ?? null)
+				: null
+		);
+	});
+	const currentRoute = computed((): Route | null => {
+		return (
+			state.currentRouteId.value
+				? (state.routes.value[state.currentRouteId.value] ?? null)
+				: null
+		);
+	});
+	const getAllPoints = computed((): Record<string, Point> => {
+		return { ...state.points.value, ...state.temps.value };
+	});
+	const getParentFolder = (id: string): Folder | undefined => {
+		const f = state.folders.value[id];
+		const p = state.places.value[id];
+		const r = state.routes.value[id];
+		const pId = f ? f.parent : p ? p.folderid : r?.folderid;
+		if (!pId) return undefined;
+		return state.folders.value[pId];
+	};
+	const getPointById = (id: string): Point | undefined => {
+		if (Object.hasOwn(state.points.value, id)) return state.points.value[id];
+		if (Object.hasOwn(state.temps.value, id)) return state.temps.value[id];
+		return undefined;
+	};
+	const getPlaceById = (id: string): Place | undefined => {
+		if (Object.hasOwn(state.places.value, id)) return state.places.value[id];
+		if (Object.hasOwn(state.commonPlaces.value, id)) return state.commonPlaces.value[id];
+		return undefined;
+	};
+	const getRouteById = (id: string): Route | undefined => {
+		if (Object.hasOwn(state.routes.value, id)) return state.routes.value[id];
+		if (Object.hasOwn(state.commonRoutes.value, id)) return state.commonRoutes.value[id];
+		return undefined;
+	};
+	const routePoints = (route: Route): Point[] => {
+		if (route === null) return [];
+		const points: Point[] = [];
+		for (const p of route.points) {
+			if (p.id in state.points.value) points.push(state.points.value[p.id]);
+				else if (p.id in state.temps.value) points.push(state.temps.value[p.id]);
 		}
-	},
-	getPlaceById() {
-		return (id: string) => {
-			if (Object.hasOwn(this.places, id)) return this.places[id];
-			if (Object.hasOwn(this.commonPlaces, id)) return this.commonPlaces[id];
-			return null;
-		}
-	},
-	getRouteById() {
-		return (id: string) => {
-			if (Object.hasOwn(this.routes, id)) return this.routes[id];
-			if (Object.hasOwn(this.commonRoutes, id)) return this.commonRoutes[id];
-			return null;
-		}
-	},
-	routePoints() {
-		return (route: Route): Point[] => {
-			if (route === null) return [];
-			const points: Point[] = [];
-			for (const p of route.points) {
-				if (p.id in this.points) points.push(this.points[p.id]);
-					else if (p.id in this.temps) points.push(this.temps[p.id]);
+		return points;
+	};
+	const collectModified = <T extends Entity>(c: Record<string, T>): T[] => {
+		const modified: T[] = [];
+		for (const id in c) {
+			if (
+				(c[id].added || c[id].updated || c[id].deleted) &&
+				!(c[id].added && c[id].deleted)
+			) {
+				modified.push(c[id]);
 			}
-			return points;
 		}
-	},
-	collectModified() {
-		return <T extends Entity>(c: Record<string, T>): T[] => {
-			const modified: T[] = [];
-			for (const id in c) {
-				if (
-					(c[id].added || c[id].updated || c[id].deleted) &&
-					!(c[id].added && c[id].deleted)
-				) {
-					modified.push(c[id]);
-				}
-			}
-			return modified;
-		}
-	},
-	getPendingImagesPackage(): RawImage[] {
+		return modified;
+	};
+	const getPendingImagesPackage = computed((): RawImage[] => {
 		const pending: RawImage[] = [];
-		this.collectModified(this.places).forEach((place: Place) => {
+		collectModified(state.places.value).forEach((place: Place) => {
 			if (place.images) {
 				for (const id in place.images) {
 					if (place.images[id].new && place.images[id].raw) {
@@ -114,7 +122,7 @@ export const entityGetters = {
 				}
 			}
 		});
-		this.collectModified(this.routes).forEach((route: Route) => {
+		collectModified(state.routes.value).forEach((route: Route) => {
 			if (route.images) {
 				for (const id in route.images) {
 					if (route.images[id].new && route.images[id].raw) {
@@ -129,39 +137,36 @@ export const entityGetters = {
 			}
 		});
 		return pending;
-	},
-	getAllModifiedPackage(): EntityCollection {
+	});
+	const getAllModifiedPackage = computed((): EntityCollection => {
 		return {
-			points: this.collectModified(this.points),
-			places: this.collectModified(this.places),
-			routes: this.collectModified(this.routes),
-			folders: this.collectModified(this.folders),
+			points: collectModified(state.points.value),
+			places: collectModified(state.places.value),
+			routes: collectModified(state.routes.value),
+			folders: collectModified(state.folders.value),
 		};
-	},
-
-// Temp Getters
-
-	measureFatPoints(): FatPointDescription[] {
-		return this.measure.points.map((p: PointDescription, index: number) => {
+	});
+	const measureFatPoints = computed((): FatPointDescription[] => {
+		return state.measure.value.points.map((p: PointDescription, index: number) => {
 			return {
 				...p,
 				name: p.name ?? String(index + 1),
 				index: index,
 				key: `measure-${p.id}`,
-				point: this.temps[p.id] || this.points[p.id],
+				point: state.temps.value[p.id] || state.points.value[p.id],
 			};
 		});
-	},
-	notMeasureFatTemps(): FatPointsPack {
+	});
+	const notMeasureFatTemps = computed((): FatPointsPack => {
 		const points: FatPointDescription[] = [];
 		let index = 0;
-		for (const id of this.notMeasureTempPointIds) {
+		for (const id of notMeasureTempPointIds.value) {
 			points.push({
 				id: id,
 				name: String(index + 1),
 				index: index,
 				key: `temp-${id}`,
-				point: this.temps[id],
+				point: state.temps.value[id],
 			});
 			index++;
 		}
@@ -169,9 +174,30 @@ export const entityGetters = {
 			id: 'tempspack',
 			type: 'pointspack',
 			points: points,
-			choosing: points.find(p => p.point.id === this.currentPointId)?.index ?? null,
+			choosing: points.find(p => p.point.id === state.currentPointId.value)?.index ?? null,
 			show: false,
-			name: this.t.i.captions.pointsTemporary,
+			name: state.t.value.i.captions.pointsTemporary,
 		};
-	},
-};
+	});
+
+	return {
+		pointDescriptionIds,
+		measurePointIds,
+		notMeasureTempPointIds,
+		homePlace,
+		currentPoint,
+		currentPlace,
+		currentRoute,
+		getParentFolder,
+		getAllPoints,
+		getPointById,
+		getPlaceById,
+		getRouteById,
+		routePoints,
+		collectModified,
+		getPendingImagesPackage,
+		getAllModifiedPackage,
+		measureFatPoints,
+		notMeasureFatTemps,
+	};
+}

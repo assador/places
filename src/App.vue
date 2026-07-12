@@ -24,16 +24,9 @@
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue'
 import { useMainStore } from '@/stores/main';
-
 import { usePWAInstall } from '@/shared/usepwainstall';
-import {
-	handleFolderDropped,
-	handlePlaceRouteDropped,
-	handlePointInListDropped,
-	handleImageDropped,
-} from '@/services/dnd';
 
-import { DragHandler, PopupProps } from '@/types';
+import { PopupProps } from '@/types';
 
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 import Popup from '@/components/popups/Popup.vue';
@@ -67,24 +60,6 @@ onMounted(() => {
 	});
 	mainStore.restoreObjectsAsLinks();
 });
-
-// SEC DnD
-
-const handleDrop = (target: HTMLElement) => {
-	const payload = mainStore.currentDrag;
-	if (!payload) return;
-	const handlers: Record<string, DragHandler> = {
-		folder: handleFolderDropped,
-		place: handlePlaceRouteDropped,
-		route: handlePlaceRouteDropped,
-		point: handlePointInListDropped,
-		image: handleImageDropped,
-	};
-	const handler = handlers[payload.type];
-	if (handler) handler(payload, target);
-	mainStore.currentDrag = null;
-};
-provide('handleDrop', handleDrop);
 </script>
 
 <style lang="scss">

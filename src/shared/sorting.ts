@@ -1,21 +1,29 @@
-import { constants } from '@/shared/constants';
+import { isRecord } from '@/guards';
 
 export const sortObjects = (
-	array: Record<string, any>[],
-	field: string
-): Record<string, any>[] => {
-	const sorted = array.slice().sort((a, b) => {
-		if (a[field] > b[field]) {
-			return 1;
+	array: Record<string, unknown>[],
+	field: string,
+): Record<string, unknown>[] => {
+	return array.slice().sort((a, b) => {
+		const valA = a[field];
+		const valB = b[field];
+		if (typeof valA === 'number' && typeof valB === 'number') {
+			return valA - valB;
 		}
-		if (a[field] < b[field]) {
-			return -1;
-		}
-		return 0;
+		const strA = String(valA ?? '');
+		const strB = String(valB ?? '');
+		return strA.localeCompare(strB, undefined, {
+			numeric: true,
+			sensitivity: 'base',
+		});
 	});
-	return sorted;
 };
-export const moveInArray = (array: any[], from: number, to: number, before: boolean) => {
+export const moveInArray = (
+	array: unknown[],
+	from: number,
+	to: number,
+	before: boolean,
+) => {
 	const item = array.splice(from, 1)[0];
 	let insertIndex = to;
 	if (!before) insertIndex += 1;
@@ -23,7 +31,7 @@ export const moveInArray = (array: any[], from: number, to: number, before: bool
 	array.splice(insertIndex, 0, item);
 };
 export const moveInObject = (
-	parent: Record<string, any>,
+	parent: Record<string, unknown>,
 	changeId: string,
 	targetId: string,
 	key: string,
@@ -31,77 +39,40 @@ export const moveInObject = (
 ) => {
 	const changeObj = parent[changeId];
 	const targetObj = parent[targetId];
-	if (!changeObj || !targetObj) return;
-
+	if (
+		!isRecord(changeObj) ||
+		!isRecord(targetObj) ||
+		typeof changeObj[key] !== 'number' ||
+		typeof targetObj[key] !== 'number'
+	) {
+		return;
+	}
+	const targetVal = targetObj[key];
 	let nearest = before ? -Infinity : Infinity;
-	const targetKey = targetObj[key];
 
-	for (const k in parent) {
-		const val = parent[k][key];
+	for (const k of Object.keys(parent)) {
+		const current = parent[k];
+		if (!isRecord(current)) continue;
+		const val = current[key];
+		if (typeof val !== 'number') continue;
+
 		if (before) {
-			if (val < targetKey && val > nearest) nearest = val;
+			if (val < targetVal && val > nearest) nearest = val;
 		} else {
-			if (val > targetKey && val < nearest) nearest = val;
+			if (val > targetVal && val < nearest) nearest = val;
 		}
 	}
 	if (before) {
 		changeObj[key] =
 			nearest !== -Infinity
-				? (targetKey - nearest) / 2 + nearest
-				: targetKey / 2
+				? (targetVal - nearest) / 2 + nearest
+				: targetVal / 2
 		;
 	} else {
 		changeObj[key] =
 			nearest !== Infinity
-				? (nearest - targetKey) / 2 + targetKey
-				: targetKey + 10
+				? (nearest - targetVal) / 2 + targetVal
+				: targetVal + 10
 		;
-	}
-};
-export const sortObjectsByProximity = (array: Record<string, any>[]): void => {
-	// Sort geomarks so as to build the shortest path through them.
-	let
-		indexNearest = -1,
-		distCurrent: number,
-		distMin = 10,
-		lastIndex = 0
-	;
-	while (array.length > lastIndex + 1) {
-		for (let i = lastIndex + 1; i < array.length; i++) {
-			const llt = (
-				Number(array[lastIndex].latitude) ||
-				Number(constants.map.initial.latitude) ||
-				null
-			) * Math.PI / 180;
-			const lln = (
-				Number(array[lastIndex].longitude) ||
-				Number(constants.map.initial.longitude) ||
-				null
-			) * Math.PI / 180;
-			const clt = (
-				Number(array[i].latitude) ||
-				Number(constants.map.initial.latitude) ||
-				null
-			) * Math.PI / 180;
-			const cln = (
-				Number(array[i].longitude) ||
-				Number(constants.map.initial.longitude) ||
-				null
-			) * Math.PI / 180;
-			distCurrent =
-				Math.acos(
-					Math.sin(llt) * Math.sin(clt) +
-					Math.cos(llt) * Math.cos(clt) * Math.cos(cln - lln)
-				)
-			;
-			if (distCurrent < distMin) {
-				distMin = distCurrent;
-				indexNearest = i;
-			}
-		}
-		distMin = 10;
-		if (indexNearest !== -1) {
-			array.splice(lastIndex++ + 1, 0, array.splice(indexNearest, 1)[0]);
-		}
 	}
 };
