@@ -13,11 +13,7 @@ export function useActionsUI(
 			else store.busyCount.value = Math.max(0, store.busyCount.value - 1);
 	};
 	const changeLang = (lang: string): void => {
-		const getLang = () => import(`@/lang/${lang}.ts`);
-		getLang().then((l: { getT: () => Dictionary }) => {
-			store.lang.value = lang;
-			store.t.value = l.getT();
-		});
+		store.lang.value = lang;
 	};
 
 // SEC Messages

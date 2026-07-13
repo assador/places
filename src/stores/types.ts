@@ -111,6 +111,9 @@ export type GettersOther = ReturnType<typeof useGettersOther>;
 export type GettersRelate = ReturnType<typeof useGettersRelate>;
 export type GettersTree = ReturnType<typeof useGettersTree>;
 
+export interface StoreMainMethods {
+	$resetToDefault: () => void;
+};
 export interface ActionsBackup {
 	backupState: () => void;
 	restoreState: (backupIndex: number) => void;
@@ -226,6 +229,7 @@ export interface ActionsUI {
 
 export type StoreMain =
 	StoreMainStateRefs &
+	StoreMainMethods &
 	GettersEntity &
 	GettersOther &
 	GettersRelate &

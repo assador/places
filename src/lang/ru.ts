@@ -310,7 +310,8 @@ export const getT = () => ({
 				timeout: 'Время ожидания GPS истекло. Попробуйте ещё раз.',
 			},
 			other: {
-				other: 'Неизвестная ошибка.',
+				other: 'неизвестная ошибка.',
+				failedToLoadDictionary: 'Не удалось загрузить словарь для языка',
 			},
 			server: {
 				invalidResponse: 'Неверный ответ сервера.',

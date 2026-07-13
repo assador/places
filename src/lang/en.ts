@@ -310,7 +310,8 @@ Your data won’t be saved to your account and will be cleared when you log o
 				timeout: 'GPS timed out. Try again.',
 			},
 			other: {
-				other: 'Неизвестная ошибка.',
+				other: 'unknown error',
+				failedToLoadDictionary: 'Failed to load dictionary for language',
 			},
 			server: {
 				invalidResponse: 'Invalid server response.',

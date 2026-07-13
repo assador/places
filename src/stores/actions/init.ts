@@ -1,42 +1,15 @@
 import { StoreMain, ActionsInit } from '@/stores/types';
-import { Folder, Point, Place, Route } from '@/types';
 import api from '@/api';
 import { constants } from '@/shared/constants';
 import { isFolder, isPoint, isPlace, isRoute } from '@/guards';
+// import { getT } from '@/lang/ru';
 
 export function useActionsInit(
 	store: StoreMain,
 ): ActionsInit {
 
 	const reset = (): void => {
-		store.saved.value = true;
-		store.idleTime.value = 0;
-		store.stateBackups.value = [];
-		store.stateBackupsIndex.value = -1;
-		store.user.value = null;
-		store.currentPointId.value = null;
-		store.currentPlaceId.value = null;
-		store.currentRouteId.value = null;
-		store.points.value = {};
-		store.places.value = {};
-		store.routes.value = {};
-		store.folders.value = {};
-		store.commonPlaces.value = {};
-		store.commonRoutes.value = {};
-		store.center.value = {
-			latitude: Number(constants.map.initial.latitude),
-			longitude: Number(constants.map.initial.longitude),
-		};
-		store.zoom.value = Number(constants.map.initial.zoom);
-		store.markersShow.value = true;
-		store.commonMarkersShow.value = false;
-		store.centerMarkerShow.value = false;
-		store.ready.value = false;
-		store.messages.value = [];
-		store.messagesMouseOver.value = false;
-		store.messagesInterval.value = null;
-		store.messagesTimeout.value = null;
-		store.serverConfig.value = null;
+		store.$resetToDefault();
 	};
 	const unload = (): void => {
 		store.refreshing.value = true;
@@ -44,13 +17,10 @@ export function useActionsInit(
 		localStorage.clear();
 	};
 	const entitiesReady = (
-		entities: Record<string, Record<string, unknown>>,
+		entities: Record<string, Record<string, Record<string, unknown>>>,
 		what?: string,
 	): void => {
-		const folders: Record<string, Partial<Folder>> = entities.folders;
-		const points: Record<string, Partial<Point>> = entities.points;
-		const places: Record<string, Partial<Place>> = entities.places;
-		const routes: Record<string, Partial<Route>> = entities.routes;
+		const { folders, points, places, routes } = entities;
 
 		let added = false, deleted = false, updated = false;
 		switch (what) {

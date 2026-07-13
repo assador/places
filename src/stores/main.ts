@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, shallowRef, toRaw, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { StoreMain, StoreMainStateRefs } from './types';
 import {
@@ -32,7 +32,23 @@ import { useActionsRelate } from './actions/relate';
 import { useActionsService } from './actions/service';
 import { useActionsUI } from './actions/ui';
 
+const skipKeys = new Set([
+	'busyCount',
+	'currentDrag',
+	'idleTime',
+	'messages',
+	'messagesInterval',
+	'messagesMouseOver',
+	'messagesTimeout',
+	'refreshing',
+	't',
+]);
+
 export const useMainStore = defineStore('main', () => {
+
+	const currentLang = ref<string>('ru');
+	const translation = shallowRef<Dictionary>(getT());
+
 	const store = {
 		activeMapIndex:  ref<number>(0),
 		backup:  ref<boolean>(true),
@@ -59,7 +75,7 @@ export const useMainStore = defineStore('main', () => {
 		first:  ref<boolean>(true),
 		folders:  ref<Record<string, Folder>>({}),
 		idleTime:  ref<number>(0),
-		lang:  ref<string>('ru'),
+		lang:  currentLang,
 		langs: ref<Record<string, string>[]>([{
 			value: 'ru',
 			title: 'Русский',
@@ -97,7 +113,7 @@ export const useMainStore = defineStore('main', () => {
 		serverConfig:  ref<any | null>(null),
 		stateBackups:  ref<any[]>([]),
 		stateBackupsIndex:  ref<number>(-1),
-		t:  ref<Dictionary>(getT()),
+		t:  translation,
 		temps:  ref<Record<string, Point>>({}),
 		tempsShow:  ref<FirstShow>({ show: false, first: true }),
 		treeParams: ref<Record<string, Tree>>({
@@ -116,6 +132,32 @@ export const useMainStore = defineStore('main', () => {
 	} as StoreMain;
 
 	const state: StoreMainStateRefs = store;
+
+	const defaultState: Partial<StoreMainStateRefs> = {};
+	for (const key in state) {
+		if (!Object.hasOwn(state, key) || skipKeys.has(key)) continue;
+		const stateKey = key as keyof StoreMainStateRefs;
+		const stateValue = toRaw(state[stateKey].value);
+		if (stateValue && typeof stateValue === 'object') {
+			defaultState[stateKey] = structuredClone(stateValue);
+		} else {
+			defaultState[stateKey] = stateValue;
+		}
+	}
+	store.$resetToDefault = () => {
+		for (const key in defaultState) {
+			if (!Object.hasOwn(defaultState, key)) continue;
+			const stateKey = key as keyof StoreMainStateRefs;
+			if (defaultState[stateKey] !== undefined) {
+				const defaultValue = defaultState[stateKey];
+				if (defaultValue && typeof defaultValue === 'object') {
+					state[stateKey].value = structuredClone(defaultValue);
+				} else {
+					state[stateKey].value = defaultValue;
+				}
+			}
+		}
+	};
 
 	const gettersEntity = useGettersEntity(store);
 	const gettersOther  = useGettersOther(store, gettersEntity);
@@ -151,23 +193,24 @@ export const useMainStore = defineStore('main', () => {
 	};
 	Object.assign(store, actions);
 
+	watch(currentLang, async (newLang) => {
+		try {
+			const module = await import(`@/lang/${newLang}.ts`);
+			if (typeof module.getT === 'function') {
+				translation.value = module.getT();
+			}
+		} catch (error) {
+			console.error(error);
+			store.setMessage(`Failed to load dictionary for language: ${newLang}`);
+		}
+	}, { immediate: false });
+
 	return store;
 }, {
 	persist: {
 		serializer: {
 			deserialize: (value) => JSON.parse(value),
 			serialize: (state) => {
-				const skipKeys = new Set([
-					'busyCount',
-					'currentDrag',
-					'idleTime',
-					'messages',
-					'messagesInterval',
-					'messagesMouseOver',
-					'messagesTimeout',
-					'refreshing',
-					't',
-				]);
 				return JSON.stringify(state, (key, value) => {
 					if (skipKeys.has(key)) return undefined;
 					if (value && typeof value === 'object') {
