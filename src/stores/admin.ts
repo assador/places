@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { User, Group } from '@/types';
 
-export interface IAdminState {
+export interface AdminState {
 	users: User[],
 	groups: Group[],
 	usersSortBy: string,
@@ -9,7 +9,7 @@ export interface IAdminState {
 }
 
 export const useAdminStore = defineStore('admin', {
-	state: (): IAdminState => ({
+	state: (): AdminState => ({
 		users: [],
 		groups: [],
 		usersSortBy: 'login',
@@ -23,6 +23,8 @@ export const useAdminStore = defineStore('admin', {
 			this.groupsSortBy = sortBy;
 		},
 		sortMut(payload: { what: string, by: string }) {
+			if (!payload) return;
+/* Will migrate to Setup API
 			this[payload.what].sort((a: any, b: any) => {
 				const stringA = a[payload.by] ? a[payload.by].toString().toUpperCase() : '';
 				const stringB = b[payload.by] ? b[payload.by].toString().toUpperCase() : '';
@@ -30,6 +32,7 @@ export const useAdminStore = defineStore('admin', {
 				if (stringA > stringB) return 1;
 				return 0;
 			});
+*/
 		},
 		setUsers(payload: User[]) {
 			for (const user of payload) {

@@ -58,7 +58,7 @@
 								href="javascript:void(0)"
 								@click="goToUser(value as string)"
 							>
-								{{ adminStore.users.find(u => u.id === value).login }}
+								{{ adminStore.users ? adminStore.users.find(u => u.id === value)?.login ?? '' : '' }}
 							</a>
 							<span v-else>
 								{{ (typeof value === 'boolean'
@@ -83,21 +83,18 @@ import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { User } from '@/types';
 
-export interface IAdminGroupsProps {
+export interface AdminGroupsProps {
 	prop: 0,
 }
-/*
-const props = withDefaults(defineProps<IAdminGroupsProps>(), {
-	prop: 0,
-});
-*/
+// const props = defineProps<AdminGroupsProps>();
+
 const mainStore = useMainStore();
 const adminStore = useAdminStore();
 
 const tableMode = ref(1);
 const sortBy = ref('');
 
-const component = inject<Ref<string>>('component');
+const component = inject<Ref<string>>('component', ref('users'));
 
 const sortKeys = computed(() => ({
 	id: mainStore.t.i.captions.id,

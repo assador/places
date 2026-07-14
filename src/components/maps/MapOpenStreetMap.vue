@@ -168,12 +168,11 @@
 					/>
 					<l-circle-marker
 						v-if="route.points.length > 1"
-						:ref="el => setRef('circle-' + route.points.at(-1).id, el, markerRefs)"
-						:lat-lng="
-							mainStore.getPointCoords(
-								route.points.at(-1).id
-							) as LatLngExpression
-						"
+						:ref="el => {
+							const point = route.points.at(-1);
+							if (isPointDescription(point)) setRef('circle-' + point.id, el, markerRefs);
+						}"
+						:lat-lng="pointCoordsByIndex(route.points, -1) ?? [0, 0]"
 						class-name="marker-end"
 						:radius="route.id === mainStore.currentRouteId ? 13 : 8"
 						:weight="1"
@@ -195,14 +194,14 @@
 							}"
 							@contextmenu="(e: any) => {
 								if (mainStore.mode !== 'normal' && e.originalEvent.shiftKey) {
-									markerAddPoint(mainStore.getPointById(point.id));
+									markerAddPoint(point);
 								} else {
-									markerContextMenu(e, mainStore.getPointById(point.id), route);
+									markerContextMenu(e, point, route);
 								}
 							}"
 							@dblclick="() => {
 								if (mainStore.mode !== 'normal' && common.compact === 2) {
-									markerAddPoint(mainStore.getPointById(point.id));
+									markerAddPoint(point);
 								}
 							}"
 							@dragstart="dragging = true"
@@ -220,7 +219,7 @@
 							<l-circle-marker
 								v-if="
 									point.id !== route.points[0].id &&
-									point.id !== route.points.at(-1).id
+									point.id !== route.points.at(-1)?.id
 								"
 								:ref="el => setRef('circle-' + point.id, el, markerRefs)"
 								:lat-lng="[ point.latitude, point.longitude ]"
@@ -283,7 +282,7 @@
 						<l-circle-marker
 							v-if="
 								fat.point.id !== mainStore.measure.points[0].id &&
-								fat.point.id !== mainStore.measure.points.at(-1).id
+								fat.point.id !== mainStore.measure.points.at(-1)?.id
 							"
 							:ref="el => setRef('circle-' + fat.point.id, el, markerRefs)"
 							:lat-lng="[ fat.point.latitude, fat.point.longitude ]"
@@ -306,11 +305,7 @@
 				/>
 				<l-circle-marker
 					:ref="el => setRef('circle-' + mainStore.measure.points.at(-1)?.id, el, markerRefs)"
-					:lat-lng="
-						mainStore.getPointCoords(
-							mainStore.measure.points.at(-1)?.id
-						) as LatLngExpression
-					"
+					:lat-lng="pointCoordsByIndex(mainStore.measure.points, -1) ?? [0, 0]"
 					class-name="marker-end"
 					:radius="13"
 					:weight="1"
@@ -403,6 +398,7 @@ import {
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Point, Place, Route, Measure, PointDescription } from '@/types';
+import { isPointDescription } from '@/guards';
 import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
@@ -515,7 +511,7 @@ const setRef = async (id: string, el: any, refs: any) => {
 					props: { latitude: lat, longitude: lng },
 					where: id === 'measureId' ? mainStore.temps : mainStore.points,
 				});
-				mainStore.addPointToPoints({
+				if (point) mainStore.addPointToPoints({
 					point: point,
 					entity: route,
 					index: segmentIndex + 1,
@@ -553,6 +549,11 @@ const pointToLinesMap = computed(() => {
 	}
 	return mapping;
 });
+const pointCoordsByIndex = (points: PointDescription[], index: number): LatLngExpression | undefined => {
+	const point = points.at(index);
+	if (!isPointDescription(point)) return;
+	return mainStore.getPointCoords(point.id) as LatLngExpression;
+};
 const moveMarker = (e: any, pointId: string, lineId?: string, pointIndex?: number) => {
 	const { lat, lng } = e.target.getLatLng();
 	const updatePolyline = (lId: string, pIdx: number) => {
@@ -600,7 +601,8 @@ const markerAddPoint = (point: Point) => {
 	switch (mainStore.mode) {
 		case 'routes':
 			if (
-				point.id !== mainStore.currentRoute?.points.at(-1)?.id &&
+				mainStore.currentRoute &&
+				point.id !== mainStore.currentRoute.points.at(-1)?.id &&
 				!(
 					point.id === mainStore.currentPointId &&
 					mainStore.isRoutePoint(point.id, mainStore.currentRoute)
@@ -636,9 +638,11 @@ const markerAddPoint = (point: Point) => {
 // SEC Other
 
 const markerDragEnd = async (pointId: string, event: any) => {
+	const point = mainStore.getPointById(pointId);
+	if (!point) return;
 	const coordinates = event.target.getLatLng();
 	mainStore.changePoint({
-		entity: mainStore.getPointById(pointId),
+		entity: point,
 		change: {
 			latitude: Number(coordinates.lat.toFixed(7)),
 			longitude: Number(coordinates.lng.toFixed(7)),

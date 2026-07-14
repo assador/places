@@ -18,6 +18,7 @@ export const handleFolderDropped = (
 	payload: DragFolderPayload,
 	target: HTMLElement,
 ): void => {
+	if (!payload.id) return;
 	const mainStore = useMainStore();
 	const targetId = target.dataset.entityId === 'null'
 		? null : target.dataset.entityId

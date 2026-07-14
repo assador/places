@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="mainStore.routesShow.show && mainStore.currentRouteId"
+		v-if="mainStore.routesShow.show && mainStore.currentRoute"
 		id="route-description"
 		class="margin_bottom"
 	>
@@ -19,6 +19,7 @@
 						v-if="
 							field === 'link' &&
 							!linkEditing &&
+							mainStore.currentRoute[field] &&
 							mainStore.currentRoute[field].trim()
 						"
 						:href="mainStore.currentRoute[field].trim()"
@@ -82,13 +83,11 @@
 					</label>
 				</dd>
 			</template>
-			<template v-else>
+			<template v-else-if="field === 'name' || field === 'description'">
 				<dt>{{ mainStore.descriptionFields[field] }}:</dt>
 				<dd>
 					<textarea
-						:ref="el => {
-							if (field === 'name') currentRouteNameInputRef = el;
-						}"
+						:ref="setInputRef(field)"
 						:value="mainStore.currentRoute[field]"
 						:id="'route-detailed-' + field"
 						:disabled="!own"
@@ -118,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Route } from '@/types'
 import Points from '@/components/Points.vue';
@@ -126,8 +125,13 @@ import Images from '@/components/details/Images.vue';
 
 const mainStore = useMainStore();
 
-const currentRouteNameInputRef = inject('currentRouteNameInputRef');
-const own = computed(() => mainStore.currentRoute.userid === mainStore.user.id);
+const currentRouteNameInputRef = inject<Ref<HTMLInputElement | null>>('currentRouteNameInputRef', ref(null));
+const setInputRef = (field: string) => (element: unknown) => {
+	if (field === 'name') currentRouteNameInputRef.value = element as HTMLInputElement | null;
+};
+const own = computed(() =>
+	mainStore.currentRoute && mainStore.currentRoute.userid === mainStore.user?.id
+);
 
 type FieldKeys<T> = {
 	[K in keyof T]: T[K] extends string | number | boolean | undefined ? K : never

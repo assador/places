@@ -269,16 +269,17 @@ export function useActionsEntity(
 
 // SEC Upserting Entities
 
-	const upsertPoint = ({
-		object,
-		props = {},
-		where = store.points.value,
-		whom,
-		name,
-		description,
-		mode = 'new',
-		silent = false,
-	}: UpsertPointParams = {}): Point | null => {
+	const upsertPoint = (params: UpsertPointParams = {}): Point | null => {
+		const {
+			object,
+			props = {},
+			where = store.points.value,
+			whom,
+			name,
+			description,
+			mode = 'new',
+			silent = false,
+		} = params;
 
 		if (!store.user.value || !store.serverConfig.value) return null;
 		let point: Point | null = null;
@@ -360,14 +361,15 @@ export function useActionsEntity(
 		}
 		return point;
 	};
-	const upsertPlace = ({
-		object,
-		props,
-		where = store.places.value,
-		mode = 'new',
-		center = false,
-		silent = false,
-	}: UpsertPlaceParams = {}): Place | null => {
+	const upsertPlace = (params: UpsertPlaceParams = {}): Place | null => {
+		const {
+			object,
+			props,
+			where = store.places.value,
+			mode = 'new',
+			center = false,
+			silent = false,
+		} = params;
 
 		if (!store.user.value || !store.serverConfig.value) return null;
 		let place: Place | null = null;
@@ -501,13 +503,14 @@ export function useActionsEntity(
 		};
 		return upsertPlaceFollowing(store.currentPlace.value, upsertParams);
 	};
-	const upsertRoute = ({
-		object,
-		props,
-		where = store.routes.value,
-		mode = 'new',
-		silent = false,
-	}: BaseUpsertParams<Route> = {}): Route | null => {
+	const upsertRoute = (params: BaseUpsertParams<Route> = {}): Route | null => {
+		const {
+			object,
+			props,
+			where = store.routes.value,
+			mode = 'new',
+			silent = false,
+		} = params;
 
 		if (!store.user.value || !store.serverConfig.value) return null;
 		let route: Route | null = null;
@@ -585,13 +588,14 @@ export function useActionsEntity(
 		};
 		return upsertRoute(callParams);
 	};
-	const upsertFolder = ({
-		object,
-		props,
-		where = store.folders.value,
-		mode = 'new',
-		silent = false,
-	}: BaseUpsertParams<Folder> = {}): Folder | null => {
+	const upsertFolder = (params: BaseUpsertParams<Folder> = {}): Folder | null => {
+		const {
+			object,
+			props,
+			where = store.folders.value,
+			mode = 'new',
+			silent = false,
+		} = params;
 
 		if (!store.user.value || !store.serverConfig.value) return null;
 		let folder: Folder | null = null;

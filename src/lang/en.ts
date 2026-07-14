@@ -314,8 +314,9 @@ Your data won’t be saved to your account and will be cleared when you log o
 				failedToLoadDictionary: 'Failed to load dictionary for language',
 			},
 			server: {
-				invalidResponse: 'Invalid server response.',
-				maxLimit: 'Max server limit reached.',
+				invalidResponse: 'Invalid server response',
+				invalidResponseUser: 'Invalid user data structure received',
+				maxLimit: 'Max server limit reached',
 			},
 		},
 	},

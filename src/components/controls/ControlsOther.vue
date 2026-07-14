@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, inject } from 'vue';
+import { ref, Ref, inject } from 'vue';
 import { common } from '@/services/common';
 import { useMainStore } from '@/stores/main';
 import { Point } from '@/types';
@@ -31,10 +31,15 @@ const cells = inject<Ref<{
 	right: boolean,
 	bottom: boolean,
 	left: boolean,
-}>>('cells');
+}>>('cells', ref({
+	top: false,
+	right: false,
+	bottom: false,
+	left: false,
+}));
 
 const centerTo = (): boolean => {
-	let point: Point | null = null;
+	let point: Point | undefined = undefined;
 	if (mainStore.mode === 'routes') {
 		const route = mainStore.currentRoute;
 		if (route && route.choosing !== null) {

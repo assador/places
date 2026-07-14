@@ -160,7 +160,7 @@ export const entitiesFromGPX = (text: string): EntityCollection => {
 				altitude: ele ? parseFloat(ele) : null,
 				time: time || undefined,
 			};
-			entities.points.push(point);
+			(entities.points ??= []).push(point);
 
 			const place: Partial<Place> = {
 				id: placeId,
@@ -170,7 +170,7 @@ export const entitiesFromGPX = (text: string): EntityCollection => {
 				description: desc || '',
 				link: href || '',
 			};
-			entities.places.push(place);
+			(entities.places ??= []).push(place);
 		}
 		for (const rte of Array.from(xml.getElementsByTagName('rte'))) {
 			const route: Partial<Route> = {
@@ -179,17 +179,17 @@ export const entitiesFromGPX = (text: string): EntityCollection => {
 			};
 			for (const pt of Array.from(rte.getElementsByTagName('rtept'))) {
 				const pointId = crypto.randomUUID();
-				entities.points.push({
+				(entities.points ??= []).push({
 					id: pointId,
 					latitude: parseFloat(pt.getAttribute('lat') || '0'),
 					longitude: parseFloat(pt.getAttribute('lon') || '0'),
 				});
-				route.points.push({
+				(route.points ??= []).push({
 					id: pointId,
 					name: pt.getElementsByTagName('name')[0]?.textContent || '',
 				});
 			}
-			entities.routes.push(route);
+			(entities.routes ??= []).push(route);
 		}
 		return entities;
 	} catch (e) {

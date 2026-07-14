@@ -1,5 +1,6 @@
 <template>
 	<Popup
+		v-if="object && common.popupEntityMenu"
 		:show="common.popupEntityMenu.show"
 		:position="common.popupEntityMenu.position"
 		:closeOnClick="false"
@@ -45,7 +46,7 @@
 				role="button" tabindex="0"
 				@pointerdown.stop
 				@pointerup.stop
-				@click.stop="inputUploadFiles.click()"
+				@click.stop="if (isFileInput(inputUploadFiles)) { inputUploadFiles.click(); }"
 			>
 				<span class="icon icon-plus-circled" />
 				{{ mainStore.t.i.buttons.addPhotos }}
@@ -57,7 +58,7 @@
 					capture="environment"
 					multiple
 					class="images-add__input"
-					@change="addImages(object, inputUploadFiles)"
+					@change="addImages(object, $event.target as HTMLInputElement)"
 				/>
 			</a>
 			<a
@@ -70,6 +71,7 @@
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="() => {
+					if (!object) return;
 					if (object.type === 'place') {
 						mainStore.upsertPlaceFollowing(object);
 					} else if (object.type === 'route') {
@@ -89,7 +91,7 @@
 			<a
 				v-if="
 					context === 'places' ||
-					object.type === 'route' && mainStore.currentRoute.points.length
+					object.type === 'route' && mainStore.currentRoute?.points.length
 				"
 				class="menu-link message border_1"
 				role="button" tabindex="0"
@@ -101,6 +103,7 @@
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="async () => {
+					if (!object) return;
 					const loc = await geoLocation.getLocation();
 					if (object.type === 'place') {
 						mainStore.upsertPlaceFollowing(object, {
@@ -143,6 +146,7 @@
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="() => {
+					if (!object) return;
 					router.push({
 						name: 'HomeFolder',
 						query: {
@@ -163,6 +167,7 @@
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="() => {
+					if (!object) return;
 					if (object.type === 'folder') {
 						router.push({
 							name: 'HomeDeleteFolder',
@@ -196,11 +201,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { Folder } from '@/types';
-import { isPlace } from '@/guards';
+import { isPlace, isFileInput } from '@/guards';
 import { common, addImages } from '@/services/common';
 import { useGeolocation } from '@/services/geolocation';
 import Popup from '@/components/popups/Popup.vue';
@@ -209,27 +214,27 @@ const mainStore = useMainStore();
 const router = useRouter();
 const geoLocation = useGeolocation();
 
-const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
-const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
-const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
+const focusCurrent = inject<(input: HTMLElement | null) => Promise<void>>('focusCurrent', async () => {});
+const currentPlaceNameInputRef = inject<Ref<HTMLInputElement | null>>('currentPlaceNameInputRef', ref(null));
+const currentRouteNameInputRef = inject<Ref<HTMLInputElement | null>>('currentRouteNameInputRef', ref(null));
 
 const object = computed({
-	get: () => common.popupEntityMenu.object,
+	get: () => common.popupEntityMenu?.object,
 	set: (val) => common.updateEntityMenu({ object: val }),
 });
 const context = computed({
-	get: () => common.popupEntityMenu.context,
+	get: () => common.popupEntityMenu?.context,
 	set: (val) => common.updateEntityMenu({ context: val }),
 });
 const show = computed({
-	get: () => common.popupEntityMenu.show,
+	get: () => common.popupEntityMenu?.show,
 	set: (val) => common.updateEntityMenu({ show: val }),
 });
 
 const inputUploadFiles = ref<HTMLInputElement | null>(null);
 
-const handlePopupUpdate = (show: boolean) => {
-	common.popupEntityMenu.show = show;
+const handlePopupUpdate = (show: boolean): void => {
+	if (common.popupEntityMenu) common.popupEntityMenu.show = show;
 };
 </script>
 

@@ -67,16 +67,13 @@ import { FolderContext } from '@/types';
 
 const mainStore = useMainStore();
 
-export interface IPlacesPopupFolderProps {
-	parent?: string | null;
-	context?: FolderContext;
+export interface PopupFolderProps {
+	parent: string | null;
+	context: FolderContext;
 }
-const props = withDefaults(defineProps<IPlacesPopupFolderProps>(), {
-	parent: null,
-	context: 'places',
-});
+const props = defineProps<PopupFolderProps>();
 
-const folderNameInput = ref(null);
+const folderNameInput = ref<HTMLInputElement | null>(null);
 const folderName = ref('');
 const folderDescription = ref('');
 const message = ref(' ');

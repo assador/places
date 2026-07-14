@@ -15,7 +15,7 @@
 					@load="setBusy(false)"
 				/>
 				<a
-					v-if="common.compact !== 2 && props.images?.length > 1"
+					v-if="common.compact !== 2 && props.images && props.images.length > 1"
 					class="prev"
 					:class="{ highlighted: prevOver }"
 					@mouseenter="prevOver = true"
@@ -25,7 +25,7 @@
 					<span class="icon icon-triangle" />
 				</a>
 				<a
-					v-if="common.compact !== 2 && props.images?.length > 1"
+					v-if="common.compact !== 2 && props.images && props.images.length > 1"
 					class="next"
 					:class="{ highlighted: nextOver }"
 					@mouseenter="nextOver = true"
@@ -62,12 +62,12 @@ import { constants } from '@/shared/constants';
 import { Image } from '@/types';
 
 interface PopupImageProps {
-	id?: string | null;
-	images?: Image[] | null;
+	id?: string;
+	images?: Image[];
 }
 const props = withDefaults(defineProps<PopupImageProps>(), {
-	id: null,
-	images: null,
+	id: undefined,
+	images: undefined,
 });
 const emit = defineEmits([ 'update:id' ]);
 defineOptions({ inheritAttrs: false });
@@ -86,12 +86,12 @@ const mainStore = useMainStore();
 const router = useRouter();
 const route = useRoute();
 
-const image = computed<Image | null>(() =>
+const image = computed<Image | undefined>(() =>
 	props.images
 		? (props.images[
 			index.value !== null ? index.value : props.images.findIndex(i => i.id === props.id)
 		])
-		: mainStore.getAllImages[props.id] ?? null
+		: props.id ? mainStore.getAllImages[props.id] ?? undefined : undefined
 );
 const imageSrc = computed<string>(() =>
 	!image.value ? '' :

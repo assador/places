@@ -45,8 +45,13 @@ export function useGeolocation() {
 	const centerTo = async (location?: GeolocationCoordinates) => {
 		let center = location;
 		if (!center) {
-			try { center = await getLocation(); }
-			catch (err) { mainStore.setMessage(err, 5); return; }
+			try {
+				center = await getLocation();
+			} catch (error) {
+				console.error(error);
+				mainStore.setMessage(mainStore.t.m.errors.geo.error, 5);
+				return;
+			}
 		}
 		mainStore.center = {
 			latitude: center.latitude,

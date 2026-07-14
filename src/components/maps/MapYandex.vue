@@ -215,14 +215,14 @@
 							}"
 							@contextmenu.stop.prevent="(e: PointerEvent) => {
 								if (mainStore.mode !== 'normal' && e.shiftKey) {
-									markerAddPoint(mainStore.getPointById(point.id));
+									markerAddPoint(point);
 								} else {
-									markerContextMenu(e, mainStore.getPointById(point.id), route);
+									markerContextMenu(e, point, route);
 								}
 							}"
 							@dblclick.stop.prevent="() => {
 								if (mainStore.mode !== 'normal' && common.compact === 2) {
-									markerAddPoint(mainStore.getPointById(point.id));
+									markerAddPoint(point);
 								}
 							}"
 						>
@@ -234,7 +234,7 @@
 								}"
 							/>
 							<div
-								v-else-if="point.id === route.points.at(-1).id"
+								v-else-if="point.id === route.points.at(-1)?.id"
 								class="marker-end"
 								:class="{
 									'marker-current': route.id === mainStore.currentRouteId
@@ -462,7 +462,7 @@ import type {
 
 const mainStore = useMainStore();
 
-const map = shallowRef<YMap | null>(null);
+const map = shallowRef<YMap>();
 const placeMarkers = shallowRef<Record<string, YMapMarker | null>>({});
 const routePointMarkers = shallowRef<Record<string, YMapMarker | null>>({});
 const measurePointMarkers = shallowRef<Record<string, YMapMarker | null>>({});
@@ -565,12 +565,12 @@ const moveMarker = (e: any, pointId: string, lineId?: string, pointIndex?: numbe
 
 // SEC Right clicks
 
-const yandexMapContextMenuEvent = ref(null);
+const yandexMapContextMenuEvent = ref<PointerEvent>();
 const yandexMapContextMenuNative = (e: PointerEvent) => {
 	yandexMapContextMenuEvent.value = e;
 }
 const yandexMapContextMenu = (e: DomEvent) => {
-	mapContextMenu(
+	if (yandexMapContextMenuEvent.value) mapContextMenu(
 		yandexMapContextMenuEvent.value, // Greetings to the part-time perverts at Yandex.
 		e.coordinates[1],
 		e.coordinates[0],
@@ -595,7 +595,8 @@ const markerAddPoint = (point: Point) => {
 	switch (mainStore.mode) {
 		case 'routes':
 			if (
-				point.id !== mainStore.currentRoute?.points.at(-1)?.id &&
+				mainStore.currentRoute &&
+				point.id !== mainStore.currentRoute.points.at(-1)?.id &&
 				!(
 					point.id === mainStore.currentPointId &&
 					mainStore.isRoutePoint(point.id, mainStore.currentRoute)
@@ -631,8 +632,10 @@ const markerAddPoint = (point: Point) => {
 // SEC Other
 
 const markerDragEnd = async (pointId: string, coords: LngLat) => {
+	const point = mainStore.getPointById(pointId);
+	if (!point) return;
 	mainStore.changePoint({
-		entity: mainStore.getPointById(pointId),
+		entity: point,
 		change: {
 			latitude: Number(coords[1].toFixed(7)),
 			longitude: Number(coords[0].toFixed(7)),
@@ -663,28 +666,28 @@ const addPointToRoute = (route: Route | Measure, coordinates: any) => {
 		props: { latitude: coordinates[1], longitude: coordinates[0] },
 		where: route.type === 'measure' ? mainStore.temps : mainStore.points,
 	});
-	mainStore.addPointToPoints({
+	if (point) mainStore.addPointToPoints({
 		point: point,
 		entity: route,
 		index: segmentIndex + 1,
 	});
 };
-const updateState = (payload?: { coords?: number[], zoom?: number }) => {
+const updateState = (payload?: { coords?: (number | undefined)[], zoom?: number }) => {
 	mainStore.updateMap({
 		latitude: Number(
-			payload && payload.coords
+			payload && payload.coords && payload.coords[0]
 				? payload.coords[0].toFixed(7)
-				: map.value.center[1].toFixed(7)
+				: map.value?.center[1].toFixed(7)
 		),
 		longitude: Number(
-			payload && payload.coords
+			payload && payload.coords && payload.coords[1]
 				? payload.coords[1].toFixed(7)
-				: map.value.center[0].toFixed(7)
+				: map.value?.center[0].toFixed(7)
 		),
 		zoom: Number(
 			payload && payload.zoom
 				? payload.zoom
-				: map.value.zoom
+				: map.value?.zoom
 		),
 	});
 };

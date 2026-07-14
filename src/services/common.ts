@@ -18,7 +18,7 @@ import {
 
 const _compact = ref(0);
 const _folderEditability = ref(false);
-const _idleTimeInterval = ref(null);
+const _idleTimeInterval = ref<number | null>(null);
 const _foldersCheckedIds = ref(new Set<string>());
 const _popupProps = ref<PopupProps>({
 	show: false,
@@ -137,7 +137,7 @@ export const common = {
 		entity: Place | Route | Folder | null,
 		context: MetaEntityContext,
 	): void {
-		if (_popupEntityMenu.value.show && entity.id === _popupEntityMenu.value.object.id) {
+		if (_popupEntityMenu.value.show && entity && entity.id === _popupEntityMenu.value.object?.id) {
 			_popupEntityMenu.value.show = false;
 			_popupEntityMenu.value.lastEvent = null;
 		} else {

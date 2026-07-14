@@ -1,30 +1,27 @@
-import { reactive } from 'vue';
 import api from '@/api';
-import { Dictionary } from '@/types'
+import { useMainStore } from '@/stores/main';
+import { Account } from '@/types';
 
-export const acc = reactive({
-	message: '',
-});
-export const accountSaveRoutine = async (account: Record<string, string>, voc: Dictionary) => {
-	if (account.accountNewPassword === undefined) account.accountNewPassword = '';
+export const accountSaveRoutine = async (account: Account) => {
+	const mainStore = useMainStore();
 	try {
 		const { data } = await api.post('set_account.php', account);
 		switch (data) {
 			case 0 :
-				acc.message = voc.m.paged.savingDataError;
+				mainStore.setMessage(mainStore.t.m.paged.savingDataError);
 				break;
 			case 1 :
-				acc.message = voc.m.paged.confirmDataLetterSent;
+				mainStore.setMessage(mainStore.t.m.paged.confirmDataLetterSent);
 				break;
 			case 2 :
-				acc.message = voc.m.paged.taCannotBeChanged;
+				mainStore.setMessage(mainStore.t.m.paged.taCannotBeChanged);
 				break;
 			case 3 :
-				acc.message = voc.m.paged.loginTaken;
+				mainStore.setMessage(mainStore.t.m.paged.loginTaken);
 				break;
 		}
 	} catch (error) {
-		acc.message = error;
+		console.error(error);
 	}
 };
 export const accountDeletionRoutine = (

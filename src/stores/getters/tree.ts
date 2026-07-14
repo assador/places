@@ -83,13 +83,14 @@ export function useGettersTree(
 			}
 			return collection;
 	};
-	const getDescendants = (id: string, type: 'folders' | 'places' | 'routes'): Set<string> => {
+	const getDescendants = (id: string | null, type: 'folders' | 'places' | 'routes'): Set<string> => {
 		const folderIds = new Set<string>();
-		const collectFolderIds = (currentId: string) => {
-			for (const folderId in state.folders.value) {
-				if (state.folders.value[folderId].parent === currentId) {
-					folderIds.add(folderId);
-					collectFolderIds(folderId);
+		const collectFolderIds = (currentId: string | null) => {
+			for (const id in state.folders.value) {
+				if (!Object.hasOwn(state.folders.value, id)) continue;
+				if (state.folders.value[id].parent === currentId) {
+					folderIds.add(id);
+					collectFolderIds(id);
 				}
 			}
 		};

@@ -37,7 +37,7 @@ export const loginRoutine = async (
 	}
 };
 export const logoutRoutine = async (
-	ids: { userId: string, sessionId: string },
+	ids: { userId: string | null, sessionId: string | null },
 ) => {
 	try {
 		await api.post('logout.php', ids);
@@ -69,7 +69,7 @@ export const logout = async (): Promise<boolean> => {
 		await logoutRoutine({ userId: userId, sessionId: sessionId });
 		mainStore.setBusy(false);
 	};
-	if (mainStore.saved || mainStore.user.testaccount) {
+	if (mainStore.saved || !mainStore.user || mainStore.user.testaccount) {
 		await getOut();
 		return true;
 	}

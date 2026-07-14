@@ -33,7 +33,7 @@ const geoLocation = useGeolocation();
 const upsertHere = async (e: PointerEvent) => {
 	const info = await mainStore.upsertEntityWithCurrentLocation(mainStore.mode);
 	if (info && !(info instanceof Error) && info.id) {
-		common.setPointInfo({ id: info.id, entity: info.of });
+		common.setPointInfo({ id: info.id, entity: info.of ?? undefined });
 		common.showPopup(calculatePopupPosition(e));
 	}
 }

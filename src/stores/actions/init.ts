@@ -1,8 +1,6 @@
 import { StoreMain, ActionsInit } from '@/stores/types';
 import api from '@/api';
-import { constants } from '@/shared/constants';
-import { isFolder, isPoint, isPlace, isRoute } from '@/guards';
-// import { getT } from '@/lang/ru';
+import { isUser, isFolder, isPoint, isPlace, isRoute } from '@/guards';
 
 export function useActionsInit(
 	store: StoreMain,
@@ -124,12 +122,27 @@ export function useActionsInit(
 		}
 	};
 	const setUser = async (): Promise<void> => {
+		const sanitizeUserData = (raw: any): any => {
+			if (!raw || typeof raw !== 'object') return raw;
+			return {
+				...raw,
+				confirmed: raw.confirmed == 1 || raw.confirmed === true,
+				testaccount: raw.testaccount == 1 || raw.testaccount === true,
+			};
+		};
+		const uuid = localStorage.getItem('places-useruuid');
+		if (!uuid) {
+			store.user.value = null;
+			return;
+		}
 		try {
-			const { data } = await api.get(
-				'get_account.php?id=' +
-				localStorage.getItem('places-useruuid')
+			const { data } = await api.get('get_account.php?id=' + uuid);
+			const user = sanitizeUserData(data);
+			if (!isUser(user)) throw new Error(
+				store.t.value.m.errors.server.invalidResponseUser + ': ' +
+				JSON.stringify(data)
 			);
-			store.user.value = data;
+			store.user.value = user;
 		} catch (error) {
 			console.error(error);
 			store.setMessage(store.t.value.m.popup.cannotGetData);

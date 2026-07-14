@@ -66,14 +66,10 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 
-export interface IPlacesPopupFolderDeleteProps {
+export interface PopupFolderDeleteProps {
 	id: string;
-	type?: string;
 }
-const props = withDefaults(defineProps<IPlacesPopupFolderDeleteProps>(), {
-	id: undefined,
-	type: 'places',
-});
+const props = defineProps<PopupFolderDeleteProps>();
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -90,6 +86,7 @@ const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
 };
 const deleteFolder = (): void => {
+	if (!folder.value.id) return;
 	const objectsToDelete = mainStore.prepareFolderDelete(
 		folder.value.id,
 		keepContent.value,

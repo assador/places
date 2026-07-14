@@ -42,10 +42,13 @@
 						class="dd-images__delete button"
 						@pointerdown.stop
 						@pointerup.stop
-						@click.stop="mainStore.deleteImages({
-							imageIds: [ image.id ],
-							entity: current,
-						})"
+						@click.stop="() => {
+							if(!current) return;
+							mainStore.deleteImages({
+								imageIds: [ image.id ],
+								entity: current,
+							});
+						}"
 					>
 						×
 					</div>
@@ -55,6 +58,7 @@
 					:class="{
 						highlighted:
 							image.id === dragTargetId &&
+							mainStore.currentDrag &&
 							mainStore.currentDrag.position === 'before'
 					}"
 				/>
@@ -63,6 +67,7 @@
 					:class="{
 						highlighted:
 							image.id === dragTargetId &&
+							mainStore.currentDrag &&
 							mainStore.currentDrag.position === 'after'
 					}"
 				/>
@@ -72,7 +77,7 @@
 	<div
 		v-if="own && current && !current.deleted"
 		class="images-add"
-		@click.stop="inputUploadFiles.click()"
+		@click.stop="if (isFileInput(inputUploadFiles)) { inputUploadFiles.click(); }"
 	>
 		<button
 			class="images-add__button button-iconed icon icon-plus-circled"
@@ -92,6 +97,7 @@
 		/>
 	</div>
 	<PopupImage
+		v-if="popupImageId"
 		:id="popupImageId"
 		:images="orderedImages"
 		@update:id="popupImageId = $event"
@@ -102,18 +108,17 @@
 import { ref, computed } from 'vue';
 import { orderBy } from 'lodash';
 import { useMainStore } from '@/stores/main';
-import { constants } from '@/shared/constants';
+import { Image } from '@/types';
+import { isFileInput } from '@/guards';
 import { addImages } from '@/services/common';
 import { usePointerDnD, handleDrop } from '@/services/dnd';
-import { Image } from '@/types';
+import { constants } from '@/shared/constants';
 import PopupImage from '@/components/popups/PopupImage.vue';
 
-export interface IImagesProps {
-	what?: 'places' | 'routes';
+export interface ImagesProps {
+	what: 'places' | 'routes';
 }
-const props = withDefaults(defineProps<IImagesProps>(), {
-	what: 'places',
-});
+const props = defineProps<ImagesProps>();
 
 const mainStore = useMainStore();
 
@@ -125,7 +130,7 @@ const current = computed(() => {
 		places: mainStore.currentPlace,
 		routes: mainStore.currentRoute,
 	};
-	return map[props.what] || null;
+	return map[props.what];
 });
 const orderedImages = computed<Image[]>(() =>
 	current.value ? orderBy(current.value.images, 'srt') : []
@@ -133,15 +138,15 @@ const orderedImages = computed<Image[]>(() =>
 const inputUploadFilesChanged = (e: Event) => {
 	if (current.value) addImages(current.value, e.target as HTMLInputElement);
 };
-const own = computed(() => current.value?.userid === mainStore.user.id);
+const own = computed(() => current.value && current.value.userid === mainStore.user?.id);
 
 // SEC DnD
 
 const dragging = ref(false);
-const dragTargetId = ref(null);
+const dragTargetId = ref<string | undefined>(undefined);
 
 const updateHighlights = (target: HTMLElement | null) => {
-	dragTargetId.value = null;
+	dragTargetId.value = undefined;
 	if (!target || !mainStore.currentDrag) return;
 	const area = target.closest('.sorting-area-before, .sorting-area-after');
 	if (area) {

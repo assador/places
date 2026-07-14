@@ -1,4 +1,3 @@
-import { Ref } from 'vue';
 import { constants } from '@/shared/constants';
 import { isRecord } from '@/guards';
 
@@ -144,23 +143,6 @@ export const distanceOnSphere = (
 	);
 	const distance = radius * ang;
 	return distance;
-}
-export const makeDropDowns = (parent: Ref<HTMLElement>): void => {
-	const dropdowns = parent.value.querySelectorAll('.dropdown');
-	for (const dropdown of dropdowns) {
-		const header = dropdown.querySelectorAll('.dropdown__header')[0];
-		if (!header) continue;
-		if (
-			!dropdown.classList.contains('dropdown_open') &&
-			!dropdown.classList.contains('dropdown_closed')
-		) {
-			dropdown.classList.add('dropdown_open');
-		}
-		header.addEventListener('click', () => {
-			dropdown.classList.toggle('dropdown_open');
-			dropdown.classList.toggle('dropdown_closed');
-		}, false);
-	}
 }
 export const getPointToSegmentDistance = (p: number[], a: number[], b: number[]) => {
 	const dx = b[0] - a[0];

@@ -5,6 +5,7 @@
 			:editable="props.editable"
 			:what="props.what"
 			:folder="mainStore.trees[props.what]"
+			:parent="null"
 		/>
 	</ul>
 </template>
@@ -14,15 +15,14 @@ import { ref, provide } from 'vue';
 import { useMainStore } from '@/stores/main';
 import TreeNode from '@/components/tree/TreeNode.vue';
 
-export interface IPlacesTreeProps {
+export interface PlacesTreeProps {
 	instanceid?: string;
 	editable?: boolean;
-	what?: 'places' | 'routes';
+	what: 'places' | 'routes';
 }
-const props = withDefaults(defineProps<IPlacesTreeProps>(), {
+const props = withDefaults(defineProps<PlacesTreeProps>(), {
 	instanceid: '',
 	editable: true,
-	what: 'places',
 });
 
 const mainStore = useMainStore();

@@ -1,6 +1,7 @@
 <template>
 	<Popup
-		:show="common.popupProps.show && common.pointInfo !== null"
+		v-if="common.pointInfo"
+		:show="common.popupProps.show"
 		:position="common.popupProps.position"
 		:closeOnClick="false"
 		class="point-info messages"
@@ -15,7 +16,7 @@
 				{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
 			</a>
 			<div class="point-info-content">
-				<h3 v-if="common.pointInfo.name">
+				<h3 class="point-info-names" v-if="common.pointInfo.name">
 					<div>
 						<span class="un_color">
 							{{ mainStore.t.i.captions[isPlace(common.pointInfo.of) ? 'place' : 'point'] }}:
@@ -33,7 +34,7 @@
 						</span>
 					</div>
 				</h3>
-				<div v-if="common.pointInfo">
+				<div class="point-info-values">
 					<div class="nobr">
 						<span class="un_color">
 							{{ mainStore.t.i.captions.latitude }}:
@@ -86,7 +87,7 @@
 						<div
 							v-if="isPlace(common.pointInfo.of)"
 							class="images-add"
-							@click.stop="inputUploadFiles.click()"
+							@click.stop="if (isFileInput(inputUploadFiles)) { inputUploadFiles.click(); }"
 						>
 							<button
 								:title="mainStore.t.i.buttons.addPhotos"
@@ -100,7 +101,7 @@
 								capture="environment"
 								multiple
 								class="images-add__input"
-								@change="addImages(common.pointInfo.of, inputUploadFiles)"
+								@change="addImages(common.pointInfo.of, $event.target as HTMLInputElement)"
 							/>
 						</div>
 						<input
@@ -109,7 +110,7 @@
 							class="point-info-common__name"
 							:value="common.pointInfo.name"
 							:placeholder="mainStore.t.i.captions.untitled"
-							@change="e => updateName((e.target as HTMLInputElement).value.trim())"
+							@change="updateName(($event.target as HTMLInputElement).value.trim())"
 						/>
 						<button
 							v-if="isPlace(common.pointInfo.of)"
@@ -118,7 +119,11 @@
 							@click.stop="deletePlace(common.pointInfo.of.id)"
 						/>
 						<button
-							v-else-if="common.pointInfo.of && common.pointInfo.of.id !== 'tempspack'"
+							v-else-if="
+								common.pointInfo.of &&
+								common.pointInfo.of.id !== 'tempspack' &&
+								typeof common.pointInfo.index === 'number'
+							"
 							class="button-iconed icon icon-cross-45-circled"
 							:title="mainStore.t.i.buttons.deletePoint"
 							@click.stop="deletePoint(common.pointInfo.index, common.pointInfo.of)"
@@ -170,7 +175,7 @@
 import { ref, shallowRef, computed, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { Point, Route, Measure } from '@/types';
-import { isPlace, isRoute } from '@/guards';
+import { isPlace, isRoute, isFileInput } from '@/guards';
 import { common, addImages } from '@/services/common';
 import { ConfirmInstance } from '@/services/confirm';
 import { roundTo, distanceOnSphere } from '@/shared/common';
@@ -189,28 +194,33 @@ const copyCoords = async (point: Point) => {
 	copied.value = true;
 	setTimeout(() => copied.value = false, 2000);
 };
-const distanceFromCenter = computed(() => roundTo(distanceOnSphere(
-	mainStore.center.latitude,
-	mainStore.center.longitude,
-	common.pointInfo.point.latitude,
-	common.pointInfo.point.longitude,
-), 3));
-const distanceFromCurrent = computed(() => roundTo(distanceOnSphere(
-	mainStore.currentPoint.latitude,
-	mainStore.currentPoint.longitude,
-	common.pointInfo.point.latitude,
-	common.pointInfo.point.longitude,
-), 3));
+const distanceFromCenter = computed((): number | undefined  => {
+	if (!common.pointInfo) return;
+	return roundTo(distanceOnSphere(
+		mainStore.center.latitude,
+		mainStore.center.longitude,
+		common.pointInfo.point.latitude,
+		common.pointInfo.point.longitude,
+	), 3);
+});
+const distanceFromCurrent = computed((): number | undefined  => {
+	if (!common.pointInfo || !mainStore.currentPoint) return;
+	return roundTo(distanceOnSphere(
+		mainStore.currentPoint.latitude,
+		mainStore.currentPoint.longitude,
+		common.pointInfo.point.latitude,
+		common.pointInfo.point.longitude,
+	), 3);
+});
 
-const placeFromPoint = () => {
+const placeFromPoint = (): void => {
+	if (!common.pointInfo) return;
 	const place = mainStore.upsertPlaceFromPointInfo(common.pointInfo);
-	if (place) {
-		common.setPointInfo({
-			id: place.pointid,
-			context: common.pointInfo.context,
-			entity: place,
-		});
-	}
+	if (place) common.setPointInfo({
+		id: place.pointid,
+		context: common.pointInfo.context,
+		entity: place,
+	});
 }
 const updateName = (name: string) => {
 	if (!common.pointInfo || !common.pointInfo.of) return;
@@ -220,14 +230,20 @@ const updateName = (name: string) => {
 			change: { name: name },
 		});
 	} else if (isRoute(common.pointInfo.of)) {
-		const updatedPoints = common.pointInfo.of.points.map(p =>
-			p.id === common.pointInfo.point.id ? { ...p, name: name } : p,
-		);
-		mainStore.changeRoute({
-			entity: common.pointInfo.of,
-			change: { points: updatedPoints },
-		});
-	} else if (common.pointInfo.of.type === 'measure') {
+		for (const p of common.pointInfo.of.points) {
+			if (p.id === common.pointInfo.point.id) {
+				p.name = name;
+				mainStore.changeRoute({
+					entity: common.pointInfo.of,
+					change: { points: common.pointInfo.of.points },
+				});
+				break;
+			}
+		}
+	} else if (
+		common.pointInfo.of.type === 'measure' &&
+		typeof common.pointInfo.index === 'number'
+	) {
 		mainStore.measure.points[common.pointInfo.index].name = name;
 	}
 };

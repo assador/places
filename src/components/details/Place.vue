@@ -1,6 +1,6 @@
 <template>
 	<div
-		v-if="mainStore.placesShow.show && mainStore.currentPlaceId"
+		v-if="mainStore.placesShow.show && mainStore.currentPlace"
 		id="place-description"
 	>
 		<h2
@@ -20,7 +20,7 @@
 						v-if="
 							field === 'link' &&
 							!linkEditing &&
-							mainStore.currentPlace[field].trim()
+							mainStore.currentPlace[field]?.trim()
 						"
 						:href="mainStore.currentPlace[field].trim()"
 						target="_blank"
@@ -59,12 +59,7 @@
 								type="number"
 								:disabled="!own"
 								class="fieldwidth_100"
-								@change="e => mainStore.changePoint({
-									entity: mainStore.points[mainStore.currentPlace.pointid],
-									change: {
-										latitude: Number((e.currentTarget as HTMLInputElement).value.trim())
-									},
-								})"
+								@change="onChangeLatitude"
 							/>
 						</dd>
 					</div>
@@ -79,12 +74,7 @@
 								type="number"
 								:disabled="!own"
 								class="fieldwidth_100"
-								@change="e => mainStore.changePoint({
-									entity: mainStore.points[mainStore.currentPlace.pointid],
-									change: {
-										longitude: Number((e.currentTarget as HTMLInputElement).value.trim())
-									},
-								})"
+								@change="onChangeLongitude"
 							/>
 						</dd>
 					</div>
@@ -99,19 +89,7 @@
 								type="text"
 								:disabled="!own"
 								class="fieldwidth_100"
-								@change="e => {
-									const coords = string2coords(
-										(e.currentTarget as HTMLInputElement).value.trim()
-									);
-									if (coords === null) return;
-									mainStore.changePoint({
-										entity: mainStore.points[mainStore.currentPlace.pointid],
-										change: {
-											latitude: coords[0],
-											longitude: coords[1],
-										},
-									});
-								}"
+								@change="onChangeCoords"
 							/>
 						</dd>
 					</div>
@@ -169,7 +147,10 @@
 						<input
 							id="checkbox-homeplace"
 							type="checkbox"
-							:checked="mainStore.currentPlaceId && mainStore.currentPlaceId === mainStore.user.homeplace"
+							:checked="
+								mainStore.currentPlaceId !== null &&
+								mainStore.currentPlaceId === mainStore.user?.homeplace
+							"
 							@change="e => {
 								mainStore.setHomePlace({
 									id: (e.target as HTMLInputElement).checked
@@ -190,9 +171,7 @@
 				<dt>{{ mainStore.descriptionFields[field] }}</dt>
 				<dd>
 					<textarea
-						:ref="el => {
-							if (field === 'name') currentPlaceNameInputRef = el;
-						}"
+						:ref="setInputRef(field)"
 						:value="mainStore.currentPlace[field]"
 						:id="'place-detailed-' + field"
 						:disabled="!own"
@@ -222,29 +201,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, Ref, computed, inject } from 'vue';
 import { coords2string, string2coords } from '@/shared/converters';
 import { useMainStore } from '@/stores/main';
 import { Place } from '@/types';
 import Images from '@/components/details/Images.vue';
 
-const currentPlaceNameInputRef = inject('currentPlaceNameInputRef');
+const currentPlaceNameInputRef = inject<Ref<HTMLInputElement | null>>('currentPlaceNameInputRef', ref(null));
+const setInputRef = (field: string) => (element: unknown) => {
+	if (field === 'name') currentPlaceNameInputRef.value = element as HTMLInputElement | null;
+};
 
 const mainStore = useMainStore();
 
-const own = computed(() => mainStore.currentPlace.userid === mainStore.user.id);
+const own = computed(() =>
+	mainStore.currentPlace && mainStore.currentPlace.userid === mainStore.user?.id
+);
 const linkEditing = ref(false);
 
-const currentPlaceLat = computed<number | null>(() =>
-	mainStore.currentPlaceId
-		? mainStore.points[mainStore.currentPlace.pointid]?.latitude ?? null
-		: null
-);
-const currentPlaceLon = computed<number | null>(() =>
-	mainStore.currentPlaceId
-		? mainStore.points[mainStore.currentPlace.pointid]?.longitude ?? null
-		: null
-);
+const currentPlaceLat = computed<number | null>(() => {
+	if (!mainStore.currentPlace) return null;
+	return mainStore.points[mainStore.currentPlace.pointid].latitude;
+});
+const currentPlaceLon = computed<number | null>(() => {
+	if (!mainStore.currentPlace) return null;
+	return mainStore.points[mainStore.currentPlace.pointid].longitude;
+});
 
 type FieldKeys<T> = {
 	[K in keyof T]: T[K] extends string | number | boolean | undefined ? K : never
@@ -256,16 +238,40 @@ type ValidField = (FieldKeys<Place> & keyof typeof mainStore.descriptionFields) 
 const orderedCurrentPlaceFields = ref<ValidField[]>([
 	'name', 'description', 'point', 'link', 'time', 'srt', 'common', 'home',
 ]);
-const currentPlaceAlt = computed<number | null>(() => {
-	return (
-		mainStore.currentPlaceId
-			? mainStore.points[mainStore.currentPlace.pointid]?.altitude ?? null
-			: null
-		);
+const currentPlaceAlt = computed<number | null | undefined>(() => {
+	if (!mainStore.currentPlace) return null;
+	return mainStore.points[mainStore.currentPlace.pointid].altitude;
 });
-const currentDegMinSec = computed(() =>
-	coords2string([currentPlaceLat.value, currentPlaceLon.value])
-);
+const currentDegMinSec = computed(() => {
+	if (!currentPlaceLat.value || !currentPlaceLon.value) return null;
+	return coords2string([currentPlaceLat.value, currentPlaceLon.value]);
+});
+const onChangeLatitude = (e: Event) => {
+	if (!mainStore.currentPlace) return;
+	mainStore.changePoint({
+		entity: mainStore.points[mainStore.currentPlace.pointid],
+		change: { latitude: Number((e.currentTarget as HTMLInputElement).value.trim()) },
+	});
+};
+const onChangeLongitude = (e: Event) => {
+	if (!mainStore.currentPlace) return;
+	mainStore.changePoint({
+		entity: mainStore.points[mainStore.currentPlace.pointid],
+		change: { longitude: Number((e.currentTarget as HTMLInputElement).value.trim()) },
+	});
+};
+const onChangeCoords = (e: Event) => {
+	if (!mainStore.currentPlace) return;
+	const coords = string2coords((e.currentTarget as HTMLInputElement).value.trim());
+	if (!coords) return;
+	mainStore.changePoint({
+		entity: mainStore.points[mainStore.currentPlace.pointid],
+		change: {
+			latitude: coords[0],
+			longitude: coords[1],
+		},
+	});
+};
 </script>
 
 <style lang="scss" scoped>

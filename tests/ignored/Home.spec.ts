@@ -32,7 +32,6 @@ const stubs = {
 
 // Mock shared helpers used directly
 vi.mock('@/shared/common', () => ({
-	makeDropDowns: vi.fn(),
 	generateRandomString: () => 'x'.repeat(32),
 	sortObjects: (arr: any[], key: string) => [...arr].sort((a, b) => (a[key] ?? 0) - (b[key] ?? 0)),
 	coords2string: () => '0° 0\' 0"',

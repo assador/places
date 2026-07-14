@@ -194,10 +194,10 @@
 			</button>
 		</div>
 		<button
-			v-if="installPWAEnabled"
+			v-if="pwa?.installPWAEnabled"
 			id="prompt-button"
 			class="important"
-			@click="installPWA"
+			@click="pwa?.installPWA"
 		>
 			{{ mainStore.t.i.buttons.installPWA }}
 		</button>
@@ -222,7 +222,7 @@ import Dashboard from '@/components/Dashboard.vue';
 const mainStore = useMainStore();
 const router = useRouter();
 
-const { installPWAEnabled, installPWA } = inject<ReturnType<typeof usePWAInstall>>('pwa');
+const pwa = inject<ReturnType<typeof usePWAInstall>>('pwa');
 
 const authLogin = ref('');
 const authPassword = ref('');

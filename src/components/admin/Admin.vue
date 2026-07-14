@@ -82,10 +82,11 @@ const adminStore = useAdminStore();
 const router = useRouter();
 
 const getUsers = async () => {
+	if (!mainStore.user) return;
 	const { data } = await api.post('get_users.php', {
 		user: {
 			id: localStorage.getItem('places-useruuid'),
-			password: mainStore.user.password,
+			// password: mainStore.user?.password,
 		},
 	}, { silent: true });
 	switch (data) {
@@ -98,10 +99,11 @@ const getUsers = async () => {
 provide('getUsers', getUsers);
 
 const getGroups = async () => {
+	if (!mainStore.user) return;
 	const { data } = await api.post('get_allgroups.php', {
 		user: {
 			id: localStorage.getItem('places-useruuid'),
-			password: mainStore.user.password,
+			// password: mainStore.user?.password,
 		},
 	}, { silent: true });
 	switch (data) {

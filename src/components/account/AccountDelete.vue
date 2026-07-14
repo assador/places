@@ -100,9 +100,6 @@
 							{{ mainStore.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
-					<div class="acoount-delete__form__message">
-						{{ acc.message }}
-					</div>
 				</form>
 				<a
 					href="javascript:void(0)"
@@ -120,7 +117,7 @@
 import { ref, onMounted, onBeforeUpdate } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { acc, accountDeletionRoutine } from '@/shared/account';
+import { accountDeletionRoutine } from '@/shared/account';
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -140,17 +137,18 @@ const close = (): void => {
 	router.back();
 };
 const accountDeletionSubmit = async () => {
+	if (!mainStore.user) return;
 	if (mainStore.user.testaccount) {
-		acc.message = mainStore.t.m.paged.taCannotBeDeleted;
-	} else {
-		accountDeletionRoutine(
-			mainStore.user.id,
-			leavePlaces.value,
-			leaveImages.value,
-		);
-		mainStore.unload();
-		router.push({ name: 'Auth' });
+		mainStore.setMessage(mainStore.t.m.paged.taCannotBeDeleted, 3);
+		return;
 	}
+	accountDeletionRoutine(
+		mainStore.user.id,
+		leavePlaces.value,
+		leaveImages.value,
+	);
+	mainStore.unload();
+	router.push({ name: 'Auth' });
 };
 const accountDeletionConditionsChange = (event: Event): void => {
 	switch ((event.currentTarget as Element).id) {

@@ -13,8 +13,8 @@
 			id="actions-install"
 			class="action-button"
 			:title="mainStore.t.i.hints.install"
-			:disabled="!installPWAEnabled"
-			@click="installPWA"
+			:disabled="!pwa?.installPWAEnabled"
+			@click="() => { if (pwa) pwa.installPWA(); }"
 		>
 			<span class="icon icon-save" />
 			<span>{{ mainStore.t.i.buttons.install }}</span>
@@ -24,7 +24,7 @@
 			class="action-button"
 			:title="mainStore.t.i.hints.importPlaces"
 			accesskey="i"
-			@click="importFromFileInput.click()"
+			@click="importFromFileInput?.click()"
 		>
 			<span class="icon icon-import" />
 			<span>{{ mainStore.t.i.buttons.import }}</span>
@@ -75,20 +75,22 @@
 import { Ref, inject, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
+import { isFileInput } from '@/guards';
 import { common } from '@/services/common';
 import { logout } from '@/services/auth';
 import type { usePWAInstall } from '@/shared/usepwainstall';
 import ControlsState from '@/components/controls/ControlsState.vue';
 
-const { installPWAEnabled, installPWA } = inject<ReturnType<typeof usePWAInstall>>('pwa');
-const importFromFileInput = inject<Ref<HTMLElement | null>>('importFromFileInput');
+const pwa = inject<ReturnType<typeof usePWAInstall>>('pwa');
+const importFromFileInput = inject<Ref<HTMLElement>>('importFromFileInput');
 
 const mainStore = useMainStore();
 const router = useRouter();
 
 const importFromFile = async () => {
-	const input = importFromFileInput.value as HTMLInputElement;
-	const file = input.files[0] ?? null;
+	const input = importFromFileInput?.value;
+	if (!isFileInput(input)) return;
+	const file = input.files[0];
 	if (!file) return;
 	const mime = file.type;
 	if (mime !== 'application/json' && mime !== 'application/gpx+xml') {

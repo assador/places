@@ -1,5 +1,5 @@
 import { StoreMain, ActionsUI } from '@/stores/types';
-import { Place, Route, Folder, GeomarksState, Dictionary } from '@/types';
+import { Place, Route, Folder, GeomarksState } from '@/types';
 import { isFolder, isPlace, isRoute } from '@/guards';
 import { constants } from '@/shared/constants';
 import { distanceOnSphere } from '@/shared/common';
@@ -88,7 +88,7 @@ export function useActionsUI(
 			id = folder.parent;
 		}
 	};
-	const openTreeToCurrent = (current: Place | Route): void => {
+	const openTreeToCurrent = (current: Place | Route | null): void => {
 		if (
 			!current ||
 			typeof current.userid !== 'string' ||

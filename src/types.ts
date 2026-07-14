@@ -46,7 +46,7 @@ export interface Place extends Entity {
 	type: 'place';
 	id: string;
 	folderid: string | null;
-	pointid: string | null;
+	pointid: string;
 	name: string;
 	description?: string;
 	link?: string;
@@ -109,20 +109,24 @@ export interface Tree {
 export interface User {
 	id: string;
 	login: string;
-	password: string;
-	name: string;
-	email: string;
-	phone: string;
-	homeplace: string | null;
-	groups?: { group: string, parent: string }[];
-	testaccount: boolean;
 	confirmed: boolean;
-	confirmbefore: string;
+	testaccount: boolean;
+	homeplace: string | null;
+	name?: string;
+	email?: string;
+	phone?: string;
+	lastupdates?: number;
+	confirmbefore?: number;
+	groups?: { group: string, parent: string }[];
 	added?: boolean;
 	deleted?: boolean;
 	updated?: boolean;
 	checked?: boolean;
-	lastupdates: number;
+}
+export interface Account extends User {
+	password?: string,
+	passwordnew?: string,
+	passwordnewrepeat?: string,
 }
 export interface Group {
 	id: string;
@@ -176,17 +180,17 @@ export interface FirstShow {
 // SEC Popups
 
 export interface PopupPosition {
-	top: string | null;
-	right: string | null;
-	bottom: string | null;
-	left: string | null;
+	top: string;
+	right: string;
+	bottom: string;
+	left: string;
 }
 export interface PopupProps {
 	show: boolean;
 	what?: string;
 	closeButton?: boolean;
 	closeOnClick?: boolean;
-	position?: PopupPosition;
+	position: PopupPosition;
 }
 export interface PopupEntityMenuProps extends PopupProps {
 	object: Folder | Place | Route | null;
@@ -197,7 +201,7 @@ export interface PopupEntityMenuProps extends PopupProps {
 // SEC DnD
 
 export interface DragPayload {
-	id: string;
+	id: string | null;
 	type: 'folder' | 'place' | 'route' | 'point' | 'image';
 	context: string;
 }
@@ -216,19 +220,24 @@ export interface DragFolderPayload extends DragEntityPayload {
 }
 export interface DragPointPayload extends DragEntityPayload {
 	context: 'points';
+	id: string;
 }
 export interface DragPlacePayload extends DragEntityPayload {
 	context: 'places';
+	id: string;
 }
 export interface DragRoutePayload extends DragEntityPayload {
 	context: 'routes';
+	id: string;
 }
 export interface DragPointInListPayload extends DragEntityPayload {
 	context: 'routes' | 'measure';
+	id: string;
 	index: number;
 }
 export interface DragImagePayload extends DragEntityPayload {
 	context: 'places' | 'routes';
+	id: string;
 	index: number;
 }
 export type DragHandler = (payload: DragPayload, target: HTMLElement) => void;

@@ -42,7 +42,7 @@
 					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addRoutePoint"
 					@click="() => {
-						mainStore.upsertPoint({
+						if (mainStore.currentRoute) mainStore.upsertPoint({
 							where: mainStore.points,
 							whom: mainStore.currentRoute,
 						});
@@ -58,7 +58,7 @@
 					:title="mainStore.t.i.hints.addPoint"
 					@click="() => {
 						const point = mainStore.upsertPoint({ where: mainStore.temps });
-						mainStore.addPointToPoints({
+						if (point) mainStore.addPointToPoints({
 							point: point,
 							entity: mainStore.measure,
 						});
@@ -93,12 +93,16 @@
 					v-if="mainStore.currentPointId"
 					href="javascript:void(0)"
 					@pointerup="e => {
-						const fat = points.find(p => p.index === of.choosing);
+						const fat = points.find(p => p.index === of?.choosing);
 						if (fat) {
 							if (common.pointInfo?.point.id === fat.point.id) {
 								common.togglePopup(calculatePopupPosition(e));
 							} else {
-								common.setPointInfo({ id: fat.point.id, context, entity: of });
+								common.setPointInfo({
+									id: fat.point.id,
+									context,
+									entity: of ?? undefined,
+								});
 								common.showPopup(calculatePopupPosition(e));
 							}
 						}
@@ -122,17 +126,17 @@
 						'data-entity-type': 'point',
 						'data-entity-index': fat.index,
 						'data-entity-context': context,
-						'data-entity-parent-id': of.id
+						'data-entity-parent-id': of?.id
 					} : {}"
 					:title="fat.name"
 					class="point-button"
-					:class="{ 'button-pressed': fat.index === of.choosing }"
+					:class="{ 'button-pressed': fat.index === of?.choosing }"
 					@pointerdown.stop.prevent="e => onPointerDown(e, {
 						id: fat.point.id,
 						index: fat.index,
 						type: fat.point.type,
 						context: context,
-						parentId: of.id,
+						parentId: of?.id,
 					})"
 					@pointermove="onPointerMove"
 					@pointerup="e => onPointerUp(e, () => {
@@ -143,7 +147,11 @@
 						if (common.pointInfo?.point.id === fat.point.id) {
 							common.togglePopup(calculatePopupPosition(e));
 						} else {
-							common.setPointInfo({ id: fat.point.id, context, entity: of });
+							common.setPointInfo({
+								id: fat.point.id,
+								context,
+								entity: of ?? undefined,
+							});
 							common.showPopup(calculatePopupPosition(e));
 						}
 					}"
@@ -156,14 +164,16 @@
 						class="button-iconed icon icon-cross-45-circled"
 						@pointerdown.stop
 						@pointerup.stop
-						@click.stop="removePoint(fat.index, fat.point.id)"
+						@click.stop="() => {
+							if (fat.index) removePoint(fat.index, fat.point.id);
+						}"
 					/>
 					<span
 						class="sorting-area-before"
 						:class="{
 							highlighted:
 								fat.point.id === dragTargetId &&
-								mainStore.currentDrag.position === 'before'
+								mainStore.currentDrag?.position === 'before'
 						}"
 					/>
 					<span
@@ -171,7 +181,7 @@
 						:class="{
 							highlighted:
 								fat.point.id === dragTargetId &&
-								mainStore.currentDrag.position === 'after'
+								mainStore.currentDrag?.position === 'after'
 						}"
 					/>
 				</button>
@@ -241,19 +251,19 @@ const points = computed(() => {
 });
 
 const distance = computed(() => {
-	const idsArray = ref([]);
+	const idsArray = ref<string[]>([]);
 	const where = ref('points');
 	switch (props.context) {
 		case 'temps':
 			idsArray.value = Object.keys(mainStore.temps);
 			where.value = 'temps';
 			break;
-		case 'routes':
-			idsArray.value = mainStore.currentRouteId !== null
-				? mainStore.currentRoute.points.map((p: PointDescription) => p.id) : []
-			;
+		case 'routes': {
+			const route = mainStore.currentRoute;
+			idsArray.value = route ? route.points.map((p: PointDescription) => p.id) : [];
 			where.value = 'points';
 			break;
+		}
 	}
 	return (
 		Math.round(
@@ -265,19 +275,18 @@ const distance = computed(() => {
 // SEC DnD
 
 const dragging = ref(false);
-const dragTargetId = ref(null);
+const dragTargetId = ref<string>();
 
 const canAcceptDrop = (target: HTMLElement): boolean => {
-	const { currentDrag } = mainStore;
 	const { entityId, entityContext } = target.dataset;
-	return !(
-		currentDrag.id === entityId ||
-		currentDrag.context !== entityContext
+	return (
+		mainStore.currentDrag !== null &&
+		mainStore.currentDrag.id !== entityId &&
+		mainStore.currentDrag.context === entityContext
 	);
 };
 
 const updateHighlights = (target: HTMLElement | null) => {
-	dragTargetId.value = null;
 	if (!target || !mainStore.currentDrag) return;
 	const area = target.closest('.sorting-area-before, .sorting-area-after');
 	if (area) {

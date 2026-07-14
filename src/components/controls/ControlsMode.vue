@@ -40,7 +40,7 @@
 import { inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 
-const changeMode = inject<(mode: string) => void>('changeMode');
+const changeMode = inject<(mode: string) => void>('changeMode', () => {});
 
 const mainStore = useMainStore();
 </script>

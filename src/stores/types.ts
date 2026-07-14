@@ -142,21 +142,21 @@ export interface ActionsEntity {
 	setFirstCurrentPlace: () => void;
 	setFirstCurrentRoute: () => void;
 	setHomePlace: (p: { id: string | null, silent?: boolean }) => void;
-	upsertPoint: (p: UpsertPointParams) => Point | null;
-	upsertPlace: (p: UpsertPlaceParams) => Place | null;
+	upsertPoint: (params?: UpsertPointParams) => Point | null;
+	upsertPlace: (params?: UpsertPlaceParams) => Place | null;
 	upsertPlaceFollowing: (
 		entity: Place | null | undefined,
 		params?: UpsertPlaceParams,
 	) => Place | null;
 	upsertPlaceFromPointInfo: (info: PointInfo | null) => Place | null;
-	upsertRoute: (r: BaseUpsertParams<Route>) => Route | null;
+	upsertRoute: (params?: BaseUpsertParams<Route>) => Route | null;
 	upsertRouteFollowing: (
 		entity: Route | null | undefined,
 		params?: BaseUpsertParams<Route>,
 	) => Route | null;
-	upsertFolder: (f: BaseUpsertParams<Folder>) => Folder | null;
+	upsertFolder: (params?: BaseUpsertParams<Folder>) => Folder | null;
 	upsertEntityWithCurrentLocation: (mode: Mode) => Promise<
-		{ id: string | null, of: Place | Route | Measure | null } | Error
+		{ id: string | null, of: Place | Route | Measure | null } | null
 	>;
 	deleteEntities: (objects: Record<string, Point | Place | Route | Folder>) => void;
 	prepareFolderDelete: (folderId: string, mode: string) => Record<string, Place | Route | Folder>;
@@ -217,7 +217,7 @@ export interface ActionsUI {
 	clearMessages: (polyubasu?: boolean) => void;
 	folderOpenClose: (p: { folder: Folder; open?: boolean; }) => void;
 	openTreeTo: (object: Place | Route) => void;
-	openTreeToCurrent: (current: Place | Route) => void;
+	openTreeToCurrent: (current: Place | Route | null) => void;
 	centerMarkerShowHide: (show?: boolean) => void;
 	markersShowHide: (show?: boolean) => void;
 	commonMarkersShowHide: (show?: boolean) => void;

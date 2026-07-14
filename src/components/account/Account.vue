@@ -2,6 +2,7 @@
 	<div class="account">
 		<div class="app-cell">
 			<Header />
+			<Messages />
 		</div>
 		<div class="centered">
 			<h2>{{ mainStore.t.i.captions.accountPage }}</h2>
@@ -15,8 +16,7 @@
 							<th>{{ mainStore.t.i.captions.login }}:</th>
 							<td colspan="2">
 								<input
-									id="accountLogin"
-									v-model="accountLogin"
+									v-model="account.login"
 									class="fieldwidth_100"
 									required
 									type="text"
@@ -29,8 +29,7 @@
 							<td colspan="2">
 								<div class="password nobr">
 									<input
-										id="accountNewPassword"
-										v-model="accountNewPassword"
+										v-model="account.passwordnew"
 										class="fieldwidth_100"
 										type="password"
 										:placeholder="mainStore.t.i.inputs.needToChangePassword"
@@ -53,8 +52,7 @@
 							<td colspan="2">
 								<div class="password nobr">
 									<input
-										id="accountNewPasswordRepeat"
-										v-model="accountNewPasswordRepeat"
+										v-model="account.passwordnewrepeat"
 										class="fieldwidth_100"
 										type="password"
 										:placeholder="mainStore.t.i.inputs.needToChangePassword"
@@ -76,8 +74,7 @@
 							<th>{{ mainStore.t.i.inputs.regAddressBy }}:</th>
 							<td colspan="2">
 								<input
-									id="accountName"
-									v-model="accountName"
+									v-model="account.name"
 									class="fieldwidth_100"
 									type="text"
 									:placeholder="mainStore.t.i.inputs.regAddressBy"
@@ -88,8 +85,7 @@
 							<th>e-mail:</th>
 							<td colspan="2">
 								<input
-									id="accountEmail"
-									v-model="accountEmail"
+									v-model="account.email"
 									class="fieldwidth_100"
 									required
 									type="text"
@@ -101,8 +97,7 @@
 							<th>{{ mainStore.t.i.captions.phone }}:</th>
 							<td colspan="2">
 								<input
-									id="accountPhone"
-									v-model="accountPhone"
+									v-model="account.phone"
 									class="fieldwidth_100"
 									type="text"
 									:placeholder="mainStore.t.i.captions.phone"
@@ -131,15 +126,6 @@
 								</button>
 							</td>
 						</tr>
-						<tr class="back_0">
-							<th />
-							<td
-								colspan="2"
-								style="padding-top: 18px;"
-							>
-								{{ account.message }}
-							</td>
-						</tr>
 					</tbody>
 				</table>
 			</form>
@@ -150,24 +136,41 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-
-import { constants } from '@/shared/constants';
-import { acc, accountSaveRoutine } from '@/shared/account';
-
+import { useMainStore } from '@/stores/main';
+import { Account } from '@/types';
+import { isAccount } from '@/guards';
+import { accountSaveRoutine } from '@/shared/account';
 import Header from '@/components/Header.vue';
+import Messages from '@/components/Messages.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();
 
-const accountLogin = ref(mainStore.user.login);
-const accountNewPassword = ref('');
-const accountNewPasswordRepeat = ref('');
-const accountName = ref(mainStore.user.name);
-const accountEmail = ref(mainStore.user.email);
-const accountPhone = ref(mainStore.user.phone);
-const account = ref(acc);
+const account = ref<Partial<Account>>({
+	...mainStore.user,
+	passwordnew: '',
+	passwordnewrepeat: '',
+});
+
+const close = (event?: Event): void => {
+	if (event) event.stopPropagation();
+	router.push({ name: 'Home' });
+};
+const keyup = (event: KeyboardEvent): void => {
+	if (event.key === 'Escape') close(event);
+};
+const passwordShowHide = (input: HTMLInputElement): void => {
+	input.type = input.type === 'password' ? input.type = 'text' : 'password';
+}
+const accountSubmit = (): void => {
+	if (isAccount(account.value)) {
+		accountSaveRoutine(account.value);
+	} else {
+		console.log('asdfasd');
+		mainStore.setMessage(mainStore.t.m.paged.incorrectFields, 3);
+	}
+};
 
 onMounted(async () => {
 	await nextTick();
@@ -176,35 +179,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
 	document.removeEventListener('keyup', keyup, false);
 });
-
-const close = (event?: Event): void => {
-	if (event) event.stopPropagation();
-	router.push({name: 'Home'});
-};
-const keyup = (event: Event): void => {
-	if ((constants.shortcuts as Record<string, string>)[(event as KeyboardEvent).code] === 'close') close(event);
-};
-const passwordShowHide = (input: HTMLInputElement): void => {
-	input.type = input.type === 'password' ? input.type = 'text' : 'password';
-}
-const accountSubmit = (): void => {
-	if (!document.querySelector('.value_wrong')) {
-		if (accountNewPassword.value === accountNewPasswordRepeat.value) {
-			accountSaveRoutine({
-				accountId: localStorage.getItem('places-useruuid') as string,
-				accountLogin: accountLogin.value,
-				accountNewPassword: accountNewPassword.value,
-				accountName: accountName.value,
-				accountEmail: accountEmail.value,
-				accountPhone: accountPhone.value,
-			}, mainStore.t);
-		} else {
-			account.value.message = mainStore.t.m.paged.passwordsNotMatch;
-		}
-	} else {
-		account.value.message = mainStore.t.m.paged.incorrectFields;
-	}
-};
 </script>
 
 <style lang="scss" scoped>

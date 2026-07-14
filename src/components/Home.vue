@@ -89,7 +89,7 @@
 					<button
 						class="button-iconed"
 						:title="mainStore.t.i.buttons.find"
-						@click="selectPlaces(searchInput.value)"
+						@click="selectPlaces(searchInput?.value)"
 					>
 						<span>↪</span>
 					</button>
@@ -97,7 +97,7 @@
 						class="button-iconed icon icon-cross-45-circled"
 						:title="mainStore.t.i.buttons.clear"
 						@click="
-							if (searchInput.value !== '') {
+							if (searchInput && searchInput.value !== '') {
 								searchInput.value = '';
 								selectPlaces(searchInput.value);
 							}
@@ -172,17 +172,7 @@
 									mainStore.measure.points.find(p => p.id === commonRoute.id)
 										? 'active' : ''
 								"
-								@click="() => {
-									mainStore.setCurrentRoute(commonRoute.id);
-									if (commonRoute.points.length) {
-										const point = mainStore.points[
-											commonRoute.points[
-												commonRoute.choosing
-											].id
-										];
-										mainStore.setCurrentPoint(point.id);
-									}
-								}"
+								@click="mainStore.setCurrentRoute(commonRoute.id)"
 							>
 								{{ commonRoute.name }}
 							</div>
@@ -264,8 +254,8 @@
 			class="app-cell"
 			:style="!cells.right || !sidebarSizes.right.act ? { display: 'none' } : null"
 		>
-			<RouteDetails />
-			<PlaceDetails />
+			<RouteDetails v-if="mainStore.routesShow.show && mainStore.currentRouteId" />
+			<PlaceDetails v-if="mainStore.placesShow.show && mainStore.currentPlaceId" />
 		</div>
 
 <!-- SEC Bottom-Left -->
@@ -467,27 +457,7 @@
 <!-- SEC Messages -->
 
 	<Teleport :to="common.compact === 2 ? '#grid' : '#top-basic'">
-		<transition name="fade">
-			<div
-				v-if="mainStore.messages.length || mainStore.messagesMouseOver"
-				id="messages"
-				@mouseenter="mainStore.messagesMouseOver = true"
-				@mouseleave="() => {
-					mainStore.messagesMouseOver = false;
-					mainStore.clearMessages();
-				}"
-				@click="mainStore.clearMessages(true)"
-			>
-				<div
-					v-for="(message, index) in mainStore.messages"
-					:id="'message-' + index"
-					:key="'message-' + index"
-					class="message border_1"
-				>
-					{{ message }}
-				</div>
-			</div>
-		</transition>
+		<Messages />
 	</Teleport>
 
 <!-- SEC Controls -->
@@ -581,19 +551,20 @@ import { common, setBusy } from '@/services/common';
 import { logout } from '@/services/auth';
 import { useElementSize } from '@/services/sizes';
 import { useLightPointerDnD } from '@/services/dnd';
-import { clamp, makeDropDowns } from '@/shared/common';
+import { clamp } from '@/shared/common';
 
 import { Place, PopupProps, PopupPosition } from '@/types';
 
 import Header from '@/components/Header.vue';
 import MeasureDetails from '@/components/helpers/Measure.vue';
-import Points from '@/components/Points.vue';
-import Tree from '@/components/tree/Tree.vue';
-import RouteDetails from '@/components/details/Route.vue';
+import Messages from '@/components/Messages.vue';
 import PlaceDetails from '@/components/details/Place.vue';
+import Points from '@/components/Points.vue';
 import Popup from '@/components/popups/Popup.vue';
 import PopupEntityMenu from '@/components/popups/PopupEntityMenu.vue';
 import PopupPointInfo from '@/components/popups/PopupPointInfo.vue';
+import RouteDetails from '@/components/details/Route.vue';
+import Tree from '@/components/tree/Tree.vue';
 
 import ControlsCommon from '@/components/controls/ControlsCommon.vue';
 import ControlsMode from '@/components/controls/ControlsMode.vue';
@@ -621,7 +592,7 @@ const maps = [
 const mainStore = useMainStore();
 const router = useRouter();
 
-const root = ref<HTMLElement | null>(null);
+const root = ref<HTMLElement>();
 const basicFulled = ref(false);
 const basicOnFull = () => {
 	basicFulled.value = !basicFulled.value;
@@ -648,7 +619,7 @@ const showMobileMeasurePopupPosition = computed<PopupPosition>(() => {
 	};
 });
 
-const extmap = ref(null);
+const extmap = ref<any>(null);
 provide('extmap', extmap);
 const showMap = ref(true);
 provide('showMap', showMap);
@@ -657,7 +628,8 @@ const basicBasic = ref<HTMLElement | null>(null);
 const { width: mapWidth, height: mapHeight } = useElementSize(basicBasic);
 watch([ mapWidth, mapHeight ], async () => {
 	await nextTick();
-	const leafletMap = extmap.value?.leafletObject || extmap.value;
+	if (extmap.value === null) return;
+	const leafletMap = extmap.value.leafletObject ? extmap.value.leafletObject : extmap.value;
 	if (leafletMap && typeof leafletMap.invalidateSize === 'function') {
 		leafletMap.invalidateSize();
 	}
@@ -671,7 +643,7 @@ const cells = ref({
 });
 provide('cells', cells);
 
-const importFromFileInput = ref<HTMLInputElement | null>(null);
+const importFromFileInput = ref<HTMLInputElement>();
 provide('importFromFileInput', importFromFileInput);
 const commonPlacesPagesCount = ref(0);
 const commonRoutesPage = ref(1);
@@ -704,7 +676,7 @@ const changeMode = (mode: string): void => {
 };
 provide('changeMode', changeMode);
 
-const focusCurrent = async (input: HTMLElement | null) => {
+const focusCurrent = async (input: HTMLElement | null): Promise<void> => {
 	if (!input) return;
 	mainStore.setMessage(mainStore.t.i.text.addedEnterName, 3);
 	await nextTick();
@@ -757,14 +729,13 @@ onMounted(async () => {
 	}, 1000);
 	await nextTick();
 	windowResize();
-	makeDropDowns(root);
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
 	setBusy(false);
 	if (mainStore.first) {
 		mainStore.first = false;
 		mainStore.backupState();
-		if (mainStore.user.testaccount) {
+		if (mainStore.user && mainStore.user.testaccount) {
 			setTimeout(() => {
 				mainStore.setMessage(mainStore.t.m.popup.testAccount, 8);
 			}, 1000);
@@ -846,7 +817,7 @@ const keyup = (e: KeyboardEvent): void => {
 		'temps show': () => mainStore.tempsShow.show = !mainStore.tempsShow.show,
 		'add': () => mainStore.upsertPlaceFollowing(mainStore.currentPlace),
 		'add folder': () => router.push({ name: 'HomeFolder' }),
-		'import': () => importFromFileInput.value.click(),
+		'import': () => importFromFileInput?.value?.click(),
 		'export': () => router.push({ name: 'HomeExport' }),
 		'save': () => db.saveAll(),
 		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
@@ -967,7 +938,7 @@ const sidebarDragBottom = useLightPointerDnD({
 
 // SEC Search
 
-const searchInput = ref(null);
+const searchInput = ref<HTMLInputElement>();
 const searchInputEvent = (event: KeyboardEvent): void => {
 	const input = event.currentTarget as HTMLInputElement;
 	if (event.code === "Escape") {
@@ -979,20 +950,13 @@ const searchInputEvent = (event: KeyboardEvent): void => {
 		selectPlaces(input.value);
 	}
 };
-const selectPlaces = (text: string): void => {
-	const regexp = new RegExp(text, 'i');
+const selectPlaces = (text?: string | null): void => {
+	const regexp = new RegExp(text ?? '.*', 'i');
 	for (const id in mainStore.places) {
+		if (!Object.hasOwn(mainStore.places, id)) continue;
+		if (!text) { mainStore.places[id].show = true; continue; }
 		if (regexp.test(mainStore.places[id].name)) {
 			mainStore.places[id].show = true;
-			if (
-				text.length !== 0 &&
-				!mainStore.folders[mainStore.places[id].folderid].open
-			) {
-				mainStore.folderOpenClose({
-					folder: mainStore.folders[mainStore.places[id].folderid],
-					open: true,
-				});
-			}
 		} else {
 			mainStore.places[id].show = false;
 		}

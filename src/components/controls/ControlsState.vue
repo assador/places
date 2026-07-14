@@ -33,6 +33,7 @@
 			"
 			accesskey="s"
 			@click="() => {
+				if (!mainStore.user) return;
 				if (mainStore.user.testaccount) {
 					mainStore.setMessage(mainStore.t.m.popup.testOnSave, 8);
 				}

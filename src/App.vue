@@ -23,10 +23,9 @@
 
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue'
+import { PopupProps } from '@/types';
 import { useMainStore } from '@/stores/main';
 import { usePWAInstall } from '@/shared/usepwainstall';
-
-import { PopupProps } from '@/types';
 
 import PopupConfirm from '@/components/popups/PopupConfirm.vue';
 import Popup from '@/components/popups/Popup.vue';
@@ -46,8 +45,6 @@ const popupBusy = ref<PopupProps>({
 	},
 });
 const isMounted = ref(false);
-
-// SEC Lifecycle
 
 onMounted(() => {
 	isMounted.value = true;

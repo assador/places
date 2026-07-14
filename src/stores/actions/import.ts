@@ -42,22 +42,19 @@ export function useActionsImport(
 			if (!isPlace(p) || !p.id) continue;
 
 			const existing = store.places.value[p.id];
-			let pointId: string | null = null;
 
-			if (p.pointid) {
-				const ptImported = pointsRecord[p.pointid];
-				if (ptImported) {
-					const existingPoint = store.points.value[p.pointid];
-					pointId = existingPoint ? existingPoint.id! : p.pointid;
-					idMap.set(p.pointid, pointId);
-					store.upsertPoint({
-						object: existingPoint,
-						mode: existingPoint ? 'change' : 'new',
-						props: { ...ptImported, id: pointId },
-						silent: true,
-					});
-				}
-			}
+			const ptImported = pointsRecord[p.pointid];
+			if (!ptImported) continue;
+			const existingPoint = store.points.value[p.pointid];
+			const pointId = existingPoint ? existingPoint.id : p.pointid;
+			idMap.set(p.pointid, pointId);
+
+			store.upsertPoint({
+				object: existingPoint,
+				mode: existingPoint ? 'change' : 'new',
+				props: { ...ptImported, id: pointId },
+				silent: true,
+			});
 			let mappedFolderId: string | null = null;
 			if (p.folderid) mappedFolderId = idMap.get(p.folderid) ?? p.folderid;
 			store.upsertPlace({

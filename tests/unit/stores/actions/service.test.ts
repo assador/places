@@ -30,7 +30,7 @@ describe('useActionsService', () => {
 			expect(parseOpenMeteo(mockData)).toBeNull();
 		});
 
-		it('должен вернуть null, если структура некорректна', () => {
+		it('should return null if the structure is invalid', () => {
 			expect(parseOpenMeteo({ foo: 'bar' })).toBeNull();
 			expect(parseOpenMeteo(null)).toBeNull();
 		});

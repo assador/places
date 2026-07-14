@@ -47,7 +47,7 @@
 					name="folderCheckbox"
 					type="checkbox"
 					class="tree-item-checkbox"
-					:checked="common.foldersCheckedIds.has(folder.id)"
+					:checked="common.foldersCheckedIds.has(folder.id ?? 'null')"
 					@change="e => selectFolderToExport(
 						folder.id,
 						(e.currentTarget as HTMLInputElement).checked,
@@ -69,7 +69,7 @@
 					@change="e => {
 						if (!props.editable) return;
 						mainStore.changeFolder({
-							folder: folder,
+							entity: folder,
 							change: { name: (e.currentTarget as HTMLInputElement).value },
 						});
 					}"
@@ -83,7 +83,7 @@
 					@change="e => {
 						if (!props.editable) return;
 						mainStore.changeFolder({
-							folder: folder,
+							entity: folder,
 							change: { description: (e.currentTarget as HTMLInputElement).value },
 						});
 					}"
@@ -115,7 +115,7 @@
 			    @pointercancel="onPointerUp"
 				@contextmenu.stop.prevent="e => common.toggleEntityMenuPopup(
 					e,
-					mainStore.folders[folder.id] ?? mainStore.trees[folder.context],
+					folder.id ? mainStore.folders[folder.id] : mainStore.trees[folder.context],
 					props.what,
 				)"
 			>
@@ -363,7 +363,7 @@ export default {
 
 <script setup lang="ts">
 import _ from 'lodash';
-import { Ref, computed, inject, watch } from 'vue';
+import { ref, Ref, computed, inject, watch } from 'vue';
 import { useMainStore } from '@/stores/main';
 import {
 	Place,
@@ -375,45 +375,43 @@ import { common } from '@/services/common';
 import { usePointerDnD, handleDrop } from '@/services/dnd';
 import { roundTo } from '@/shared/common';
 
-export interface IPlacesTreeNodeProps {
-	instanceid?: string;
+export interface PlacesTreeNodeProps {
+	instanceid?: string | null;
 	editable?: boolean;
 	what: FolderContext;
-	folder?: Folder;
-	parent?: Folder;
+	folder: Folder;
+	parent: Folder | null;
 }
-const props = withDefaults(defineProps<IPlacesTreeNodeProps>(), {
+const props = withDefaults(defineProps<PlacesTreeNodeProps>(), {
 	instanceid: null,
 	editable: true,
-	what: 'places',
-	folder: null,
 	parent: null,
 });
 
 const mainStore = useMainStore();
 
-const focusCurrent = inject<(input: HTMLElement | null) => void>('focusCurrent');
-const currentPlaceNameInputRef = inject<HTMLElement>('currentPlaceNameInputRef');
-const currentRouteNameInputRef = inject<HTMLElement>('currentRouteNameInputRef');
+const focusCurrent = inject<(input: HTMLElement | null) => Promise<void>>('focusCurrent', async () => {});
+const currentPlaceNameInputRef = inject<Ref<HTMLElement | null>>('currentPlaceNameInputRef', ref(null));
+const currentRouteNameInputRef = inject<Ref<HTMLElement | null>>('currentRouteNameInputRef', ref(null));
 
-const places = computed(() =>
-	_.chain(mainStore.places)
-	.filter(p =>
-		p.show && !p.deleted &&
-		(p.folderid === props.folder.id || !p.folderid && props.folder.virtual)
-	)
-	.sortBy('srt')
-	.value()
-);
-const routes = computed(() =>
-	_.chain(mainStore.routes)
-	.filter(r =>
-		r.show && !r.deleted &&
-		(r.folderid === props.folder.id || !r.folderid && props.folder.virtual)
-	)
-	.sortBy('srt')
-	.value()
-);
+const places = computed((): Place[] => {
+	const array: Place[] = [];
+	for (const id in mainStore.places) {
+		if (!Object.hasOwn(mainStore.places, id)) continue;
+		const p = mainStore.places[id];
+		if (p.show && !p.deleted && p.folderid === props.folder.id) array.push(p);
+	}
+	return _.chain(array).sortBy('srt').value();
+});
+const routes = computed((): Route[] => {
+	const array: Route[] = [];
+	for (const id in mainStore.routes) {
+		if (!Object.hasOwn(mainStore.routes, id)) continue;
+		const r = mainStore.routes[id];
+		if (r.show && !r.deleted && r.folderid === props.folder.id) array.push(r);
+	}
+	return _.chain(array).sortBy('srt').value();
+});
 const placesDistance = computed(() => {
 	return roundTo(mainStore.distanceBetweenPoints(
 		places.value.map(place => place.pointid)
@@ -428,7 +426,7 @@ const routesDistance = computed(() => {
 	), 0), 3);
 	return { include: include, exclude: exclude };
 });
-const selectFolderToExport = (id: string, select: boolean): void => {
+const selectFolderToExport = (id: string | null, select: boolean): void => {
 	const currentArray = mainStore.selectedToExport[props.what];
 	const descendantsSet = mainStore.getDescendants(id, props.what);
 	if (select) {
@@ -460,27 +458,28 @@ watch(() => mainStore.selectedToExport[props.what], (newIds) => {
 
 // SEC DnD
 
-const dragging = inject<Ref<boolean>>('dragging');
-const dragTargetId = inject<Ref<string | null>>('dragTargetId');
-const dragTargetContext = inject<Ref<string | null>>('dragTargetContext');
+const dragging = inject<Ref<boolean>>('dragging', ref(false));
+const dragTargetId = inject<Ref<string | null>>('dragTargetId', ref(null));
+const dragTargetContext = inject<Ref<string | null>>('dragTargetContext', ref(null));
 
 const canAcceptDrop = (target: HTMLElement): boolean => {
-	const { currentDrag } = mainStore;
 	const { entityId, entityContext, entityType } = target.dataset;
-	return !(
-		currentDrag.id === entityId ||
-		currentDrag.context !== entityContext ||
-		(currentDrag.type === 'folder' && ['place', 'route'].includes(entityType))
+	if (!entityType || !mainStore.currentDrag) return false;
+	return (
+		mainStore.currentDrag.id !== entityId &&
+		mainStore.currentDrag.context === entityContext &&
+		!(mainStore.currentDrag.type === 'folder' && ['place', 'route'].includes(entityType))
 	);
 };
-const updateHighlights = (target: HTMLElement | null) => {
+const updateHighlights = (target: HTMLElement | null): void => {
 	dragTargetId.value = null;
 	if (!target || !mainStore.currentDrag) return;
 	const area = target.closest('.sorting-area-onto, .sorting-area-before, .sorting-area-after');
 	if (area) {
 		const item = area.closest('[data-entity-id]') as HTMLElement;
-		dragTargetId.value = item?.dataset.entityId;
-		dragTargetContext.value = item?.dataset.entityContext;
+		if (!item || !item.dataset.entityId || !item.dataset.entityContext) return;
+		dragTargetId.value = item.dataset.entityId;
+		dragTargetContext.value = item.dataset.entityContext;
 		if (area.classList.contains('sorting-area-onto')) mainStore.currentDrag.position = 'onto';
 		else if (area.classList.contains('sorting-area-before')) mainStore.currentDrag.position = 'before';
 		else if (area.classList.contains('sorting-area-after')) mainStore.currentDrag.position = 'after';
