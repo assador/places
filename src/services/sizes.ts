@@ -1,28 +1,54 @@
-import { ref, onMounted, onUnmounted, type Ref } from 'vue';
+import { ref, watch, onUnmounted, type Ref } from 'vue';
 
-export function useElementSize(elementRef: Ref<HTMLElement | null>) {
+interface UseElementSizeOptions {
+	debounceMs?: number;
+}
+
+export function useElementSize(
+	elementRef: Ref<HTMLElement | null>,
+	options: UseElementSizeOptions = {},
+) {
 	const width = ref(0);
 	const height = ref(0);
 	let resizeObserver: ResizeObserver | null = null;
-	const updateSizes = () => {
-		if (elementRef.value) {
-			width.value = elementRef.value.offsetWidth;
-			height.value = elementRef.value.offsetHeight;
+	let timeoutId: number | null = null;
+
+	const updateSizes = (element: HTMLElement) => {
+		width.value = element.offsetWidth;
+		height.value = element.offsetHeight;
+	};
+	const handleResize = (entries: ResizeObserverEntry[]) => {
+		if (!entries.length) return;
+		const element = entries[0].target as HTMLElement;
+
+		if (options.debounceMs) {
+			if (timeoutId) clearTimeout(timeoutId);
+			timeoutId = window.setTimeout(() => {
+				updateSizes(element);
+			}, options.debounceMs);
+		} else {
+			updateSizes(element);
 		}
 	};
-	onMounted(() => {
-		if (elementRef.value) {
-			resizeObserver = new ResizeObserver(entries => {
-				if (entries.length) updateSizes();
-			});
-			resizeObserver.observe(elementRef.value);
-		}
-		window.addEventListener('resize', updateSizes, { passive: true });
-		updateSizes();
-	});
+	watch(
+		elementRef,
+		(newElement, oldElement) => {
+			if (oldElement && resizeObserver) {
+				resizeObserver.unobserve(oldElement);
+			}
+			if (newElement) {
+				if (!resizeObserver) {
+					resizeObserver = new ResizeObserver(handleResize);
+				}
+				resizeObserver.observe(newElement);
+				updateSizes(newElement);
+			}
+		},
+		{ flush: 'post' },
+	);
 	onUnmounted(() => {
 		if (resizeObserver) resizeObserver.disconnect();
-		window.removeEventListener('resize', updateSizes);
+		if (timeoutId) clearTimeout(timeoutId);
 	});
 	return { width, height };
 }

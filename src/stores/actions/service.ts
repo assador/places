@@ -56,15 +56,15 @@ export function useActionsService(
 		const id = entity.id;
 		const lat = entity.latitude;
 		const lng = entity.longitude;
-		getAltitude(lat, lng)
-			.then((alt: number | null) => {
-				if (alt === null) return;
-				const point = store.getPointById(id);
-				if (!point) return;
-				if (point.latitude === lat && point.longitude === lng) point.altitude = alt;
-			})
-			.catch(() => {})
-		;
+		try {
+			const alt = await getAltitude(lat, lng);
+			if (alt === null) return;
+			const point = store.getPointById(id);
+			if (!point) return;
+			if (point.latitude === lat && point.longitude === lng) point.altitude = alt;
+		} catch {
+			return;
+		}
 	};
 
 	return {

@@ -11,6 +11,8 @@ declare module 'axios' {
 
 // SEC Entities
 
+export type Identifiable = { id: string | null };
+
 export interface Entity {
 	type: string;
 	id: string | null;

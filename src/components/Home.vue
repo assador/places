@@ -625,7 +625,7 @@ const showMap = ref(true);
 provide('showMap', showMap);
 
 const basicBasic = ref<HTMLElement | null>(null);
-const { width: mapWidth, height: mapHeight } = useElementSize(basicBasic);
+const { width: mapWidth, height: mapHeight } = useElementSize(basicBasic, { debounceMs: 120 });
 watch([ mapWidth, mapHeight ], async () => {
 	await nextTick();
 	if (extmap.value === null) return;

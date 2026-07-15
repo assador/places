@@ -1,11 +1,14 @@
 import { computed } from 'vue';
-import { StoreMainStateRefs } from '@/stores/types';
+import {
+	StoreMainStateRefs,
+} from '@/stores/types';
 import {
 	Entity,
 	EntityCollection,
 	FatPointDescription,
 	FatPointsPack,
 	Folder,
+	Identifiable,
 	Place,
 	Point,
 	PointDescription,
@@ -83,6 +86,31 @@ export function useGettersEntity(
 	const getRouteById = (id: string): Route | undefined => {
 		if (Object.hasOwn(state.routes.value, id)) return state.routes.value[id];
 		if (Object.hasOwn(state.commonRoutes.value, id)) return state.commonRoutes.value[id];
+		return undefined;
+	};
+	const matchEntityFields = <E extends object>(
+		{ entity, where }: { entity: E & Identifiable; where: Partial<E>; }
+	): boolean => {
+		for (const key in where) {
+			if (Object.hasOwn(where, key)) {
+				if (entity[key as keyof E] !== where[key as keyof E]) return false;
+			}
+		}
+		return true;
+	};
+	const getEntityIn = <E extends object>(
+		{ dict, where }: { dict: Record<string, E & Identifiable>; where: Partial<E>; }
+	): E & Identifiable | undefined => {
+		if ('id' in where && typeof where.id === 'string') {
+			const entity = dict[where.id];
+			if (entity && matchEntityFields({ entity, where })) return entity;
+			return undefined;
+		}
+		for (const id in dict) {
+			if (!Object.hasOwn(dict, id)) continue;
+			const entity = dict[id];
+			if (matchEntityFields({ entity, where })) return entity;
+		}
 		return undefined;
 	};
 	const routePoints = (route: Route): Point[] => {
@@ -181,6 +209,7 @@ export function useGettersEntity(
 	});
 
 	return {
+		matchEntityFields,
 		pointDescriptionIds,
 		measurePointIds,
 		notMeasureTempPointIds,
@@ -189,6 +218,7 @@ export function useGettersEntity(
 		currentPlace,
 		currentRoute,
 		getParentFolder,
+		getEntityIn,
 		getAllPoints,
 		getPointById,
 		getPlaceById,
@@ -200,4 +230,4 @@ export function useGettersEntity(
 		measureFatPoints,
 		notMeasureFatTemps,
 	};
-}
+};

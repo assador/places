@@ -41,7 +41,7 @@ function _defaultPoint(
 		deleted: false,
 		updated: false,
 	};
-};
+}
 function _defaultPlace(userId: string | null): Place {
 	return {
 		type: 'place',
@@ -63,7 +63,7 @@ function _defaultPlace(userId: string | null): Place {
 		deleted: false,
 		updated: false,
 	};
-};
+}
 function _defaultRoute(userId: string | null): Route {
 	return {
 		type: 'route',
@@ -86,7 +86,7 @@ function _defaultRoute(userId: string | null): Route {
 		deleted: false,
 		updated: false,
 	};
-};
+}
 function _defaultFolder(userId: string | null): Folder {
 	return {
 		type: 'folder',
@@ -106,7 +106,7 @@ function _defaultFolder(userId: string | null): Folder {
 		deleted: false,
 		updated: false,
 	};
-};
+}
 
 // SEC Creating Entities
 
@@ -120,7 +120,7 @@ export function initPointFactory(
 			...overrides,
 		};
 	};
-}
+};
 export function initPlaceFactory(getUserId: () => string | null) {
 	return function createPlace(overrides?: Partial<Place>): Place {
 		return {
@@ -128,7 +128,7 @@ export function initPlaceFactory(getUserId: () => string | null) {
 			...overrides,
 		};
 	};
-}
+};
 export function initRouteFactory(getUserId: () => string | null) {
 	return function createRoute(overrides?: Partial<Route>): Route {
 		return {
@@ -136,7 +136,7 @@ export function initRouteFactory(getUserId: () => string | null) {
 			...overrides,
 		};
 	};
-}
+};
 export function initFolderFactory(getUserId: () => string | null) {
 	return function createFolder(overrides?: Partial<Folder>): Folder {
 		return {
@@ -144,7 +144,7 @@ export function initFolderFactory(getUserId: () => string | null) {
 			...overrides,
 		};
 	};
-}
+};
 
 export function useActionsEntity(
 	store: StoreMain,

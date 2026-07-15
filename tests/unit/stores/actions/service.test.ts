@@ -50,12 +50,13 @@ describe('useActionsService', () => {
 	describe('getAltitude logic (via setPointAltitude call)', () => {
 		const createMockStore = () => ({
 			getPointById: vi.fn().mockReturnValue({
+				id: '1',
 				latitude: 55,
 				longitude: 37,
 				altitude: null,
 			}),
 		});
-		const mockPoint = { latitude: 55, longitude: 37, altitude: null } as Point;
+		const mockPoint = { id: '1', latitude: 55, longitude: 37, altitude: null } as Point;
 		it('should record the height from the main API (OpenMeteo) if available', async () => {
 			const store = createMockStore() as any;
 			const { setPointAltitude } = useActionsService(store);
@@ -87,8 +88,8 @@ describe('useActionsService', () => {
 			const { setPointAltitude } = useActionsService(store);
 			vi.mocked(api.get).mockRejectedValue(new Error('Network error'));
 			await setPointAltitude(mockPoint);
-			const pointInStore = store.getPointById(1);
-			expect(pointInStore.altitude).toBe(0);
+			const pointInStore = store.getPointById('1');
+			expect(pointInStore.altitude).toBeNull();
 		});
 	});
 });

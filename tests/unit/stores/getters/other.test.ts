@@ -6,9 +6,11 @@ const state = {
 	folders: {
 		value: {
 			'f-root': { id: 'f-root', parent: null, srt: 10 },
-			'f-child-1': { id: 'f-child-1', parent: 'f-root', srt: 100 },
-			'f-child-2': { id: 'f-child-2', parent: 'f-root', srt: 200 },
-			'f-child-3': { id: 'f-child-3', parent: 'f-root', srt: 300 },
+			'f-child-1': { id: 'f-child-1', parent: 'f-root', srt: 1 },
+			'f-child-5': { id: 'f-child-5', parent: 'f-root', srt: 5 },
+			'f-child-3': { id: 'f-child-3', parent: 'f-root', srt: 3 },
+			'f-child-2': { id: 'f-child-2', parent: 'f-root', srt: 2 },
+			'f-child-4': { id: 'f-child-4', parent: 'f-root', srt: 4 },
 			'f-lonely': { id: 'f-lonely', parent: 'f-other', srt: 500 },
 		},
 	},
@@ -33,7 +35,7 @@ describe('Neighbours (for srt)', () => {
 		});
 		it('should return a sorted array of IDs of all neighbours in the same folder', () => {
 			const res = getNeighbourIds('f-child-2', 'folder');
-			expect(res).toEqual(['f-child-1', 'f-child-2', 'f-child-3']);
+			expect(res).toEqual(['f-child-1', 'f-child-2', 'f-child-3', 'f-child-4', 'f-child-5']);
 		});
 		it('should work correctly for a single element', () => {
 			const res = getNeighbourIds('f-lonely', 'folder');
@@ -44,31 +46,37 @@ describe('Neighbours (for srt)', () => {
 		it('should return undefined if the entity does not exist', () => {
 			expect(getSrts('ghost-id', 'place')).toBeUndefined();
 		});
-		it('element is located exactly in the middle of the list', () => {
-			const res = getSrts('f-child-2', 'folder');
+		it('element is located in the middle of the list', () => {
+			const res = getSrts('f-child-4', 'folder');
 			expect(res).toEqual({
-				previous: 100,
-				next: 300,
-				before: 150,
-				after: 250,
+				previous: 3,
+				next: 5,
+				min: 1,
+				max: 5,
+				before: 3.5,
+				after: 4.5,
 			});
 		});
 		it('element is the first in the list of neighbors', () => {
 			const res = getSrts('f-child-1', 'folder');
 			expect(res).toEqual({
 				previous: undefined,
-				next: 200,
-				before: 50,
-				after: 150,
+				next: 2,
+				min: 1,
+				max: 5,
+				before: 0.5,
+				after: 1.5,
 			});
 		});
 		it('element is the last in the list of neighbors', () => {
-			const res = getSrts('f-child-3', 'folder');
+			const res = getSrts('f-child-5', 'folder');
 			expect(res).toEqual({
-				previous: 200,
+				previous: 4,
 				next: undefined,
-				before: 250,
-				after: 310,
+				min: 1,
+				max: 5,
+				before: 4.5,
+				after: 15,
 			});
 		});
 		it('element is the only one in the folder', () => {
@@ -76,6 +84,8 @@ describe('Neighbours (for srt)', () => {
 			expect(res).toEqual({
 				previous: undefined,
 				next: undefined,
+				min: 500,
+				max: 500,
 				before: 250,
 				after: 510,
 			});
@@ -85,6 +95,8 @@ describe('Neighbours (for srt)', () => {
 			expect(res).toEqual({
 				previous: undefined,
 				next: 30,
+				min: 10,
+				max: 30,
 				before: 5,
 				after: 20,
 			});

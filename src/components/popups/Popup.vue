@@ -41,10 +41,10 @@ import {
 	onMounted,
 	onUnmounted,
 	watch,
-	nextTick,
 	type CSSProperties,
 } from 'vue';
 import { PopupProps } from '@/types';
+import { useElementSize } from '@/services/sizes';
 
 const props = withDefaults(defineProps<PopupProps>(), {
 	show: false,
@@ -61,9 +61,9 @@ const props = withDefaults(defineProps<PopupProps>(), {
 const emit = defineEmits([ 'update:show' ]);
 defineOptions({ inheritAttrs: false });
 
-let resizeObserver: ResizeObserver | null = null;
-
 const popupRef = ref<HTMLElement | null>(null);
+const { width: popupWidth, height: popupHeight } = useElementSize(popupRef, { debounceMs: 50 });
+
 const correctedPosition = ref({
 	top: 'auto',
 	right: 'auto',
@@ -89,54 +89,60 @@ const keyup = (event: KeyboardEvent): void => {
 	if (event.key === 'Escape') close();
 };
 const adjustPosition = () => {
-	if (!popupRef.value) return;
+	if (!popupRef.value || !props.show) return;
 
-	const popupWidth = popupRef.value.offsetWidth;
-	const popupHeight = popupRef.value.offsetHeight;
-	if (popupWidth === 0 && popupHeight === 0) return;
+	const w = popupRef.value.offsetWidth;
+	const h = popupRef.value.offsetHeight;
+	if (!w || !h) return;
 
 	const { clientWidth, clientHeight } = document.documentElement;
 	const clientPadding = 0;
 
-	let topStr = props.position.top || 'auto';
-	let leftStr = props.position.left || 'auto';
-	let bottomStr = props.position.bottom || 'auto';
-	let rightStr = props.position.right || 'auto';
+	let tString = props.position.top || 'auto';
+	let lString = props.position.left || 'auto';
+	let bString = props.position.bottom || 'auto';
+	let rString = props.position.right || 'auto';
 
 	let maxWidth = `${clientWidth - clientPadding * 2}px`;
 	let maxHeight = `${clientHeight - clientPadding * 2}px`;
 
-	const parsePx = (val: string) => val.endsWith('px') ? parseFloat(val) : null;
-	const topVal = parsePx(topStr);
-	const leftVal = parsePx(leftStr);
-	const bottomVal = parsePx(bottomStr);
-	const rightVal = parsePx(rightStr);
-
-	if (leftVal !== null) {
-		if (leftVal + popupWidth > clientWidth - clientPadding) {
-			leftStr = `${Math.max(clientPadding, clientWidth - popupWidth - clientPadding)}px`;
+	const parsePx = (value: string) => {
+		if (value.includes('calc')) {
+			const match = value.match(/(\d+)\s*px/);
+			return match ? parseFloat(match[1]) : null;
 		}
-	} else if (rightVal !== null) {
-		const calculatedLeft = clientWidth - rightVal - popupWidth;
-		if (calculatedLeft < clientPadding) {
-			rightStr = `${Math.max(clientPadding, clientWidth - popupWidth - clientPadding)}px`;
+		return value.endsWith('px') ? parseFloat(value) : null;
+	}
+	const t = parsePx(tString);
+	const l = parsePx(lString);
+	const b = parsePx(bString);
+	const r = parsePx(rString);
+
+	if (l !== null) {
+		if (l + w > clientWidth - clientPadding) {
+			lString = `${Math.max(clientPadding, clientWidth - w - clientPadding)}px`;
+		}
+	} else if (r !== null) {
+		const lCalculated = clientWidth - r - w;
+		if (lCalculated < clientPadding) {
+			rString = `${Math.max(clientPadding, clientWidth - w - clientPadding)}px`;
 		}
 	}
-	if (topVal !== null) {
-		if (topVal + popupHeight > clientHeight - clientPadding) {
-			topStr = `${Math.max(clientPadding, clientHeight - popupHeight - clientPadding)}px`;
+	if (t !== null) {
+		if (t + h > clientHeight - clientPadding) {
+			tString = `${Math.max(clientPadding, clientHeight - h - clientPadding)}px`;
 		}
-	} else if (bottomVal !== null) {
-		const calculatedTop = clientHeight - bottomVal - popupHeight;
-		if (calculatedTop < clientPadding) {
-			bottomStr = `${Math.max(clientPadding, clientHeight - popupHeight - clientPadding)}px`;
+	} else if (b !== null) {
+		const tCalculated = clientHeight - b - h;
+		if (tCalculated < clientPadding) {
+			bString = `${Math.max(clientPadding, clientHeight - h - clientPadding)}px`;
 		}
 	}
 	correctedPosition.value = {
-		top: topStr,
-		left: leftStr,
-		bottom: bottomStr,
-		right: rightStr,
+		top: tString,
+		left: lString,
+		bottom: bString,
+		right: rString,
 		maxWidth,
 		maxHeight,
 	};
@@ -156,46 +162,18 @@ const popupStyle = computed((): CSSProperties => {
 		visibility: isReady ? 'visible' : 'hidden',
 	};
 });
-watch(() => props.show, async (isShowing) => {
-	if (isShowing) {
-		await nextTick();
-		adjustPosition();
-		if (popupRef.value && !resizeObserver) {
-			resizeObserver = new ResizeObserver(() => adjustPosition());
-			resizeObserver.observe(popupRef.value);
-		}
-	} else {
-		if (resizeObserver) {
-			resizeObserver.disconnect();
-			resizeObserver = null;
-		}
-		correctedPosition.value.maxWidth = 'none';
-	}
-});
-watch(() => props.position, () => {
+
+watch([popupWidth, popupHeight, () => props.position, () => props.show], () => {
 	if (props.show) adjustPosition();
-}, { deep: true });
+}, { deep: true, flush: 'post' });
 
 onMounted(() => {
 	document.addEventListener("keyup", keyup, false);
 	document.addEventListener("pointerdown", handleClickOutside, false);
-	if (props.show) {
-		nextTick(() => {
-			adjustPosition();
-			if (popupRef.value) {
-				resizeObserver = new ResizeObserver(() => adjustPosition());
-				resizeObserver.observe(popupRef.value);
-			}
-		});
-	}
 });
 onUnmounted(() => {
 	document.removeEventListener('keyup', keyup);
 	document.removeEventListener('pointerdown', handleClickOutside, false);
-	if (resizeObserver) {
-		resizeObserver.disconnect();
-		resizeObserver = null;
-	}
 });
 </script>
 
