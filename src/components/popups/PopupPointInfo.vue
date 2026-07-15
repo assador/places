@@ -19,7 +19,9 @@
 				<h3 class="point-info-names" v-if="common.pointInfo.name">
 					<div>
 						<span class="un_color">
-							{{ mainStore.t.i.captions[isPlace(common.pointInfo.of) ? 'place' : 'point'] }}:
+							{{ mainStore.t.i.captions[
+								isPlace(common.pointInfo.of) ? 'place' : 'point'
+							] }}:
 						</span>
 						<span class="color-01">
 							{{ common.pointInfo.name }}

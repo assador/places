@@ -114,7 +114,6 @@ export const handlePointInListDropped = (
 	const mainStore = useMainStore();
 	const targetIndex = Number(target.dataset.entityIndex);
 	if (
-		payload.parentId === undefined ||
 		payload.index === targetIndex ||
 		payload.context !== target.dataset.entityContext ||
 		payload.context === 'routes' && typeof payload.parentId !== 'string'
@@ -123,7 +122,7 @@ export const handlePointInListDropped = (
 	}
 	let parent: Route | Measure | undefined = undefined;
 	if (payload.context === 'measure') parent = mainStore.measure;
-	if (payload.context === 'routes') parent = mainStore.routes[payload.parentId];
+	if (payload.context === 'routes' && payload.parentId) parent = mainStore.routes[payload.parentId];
 	if (!parent) return;
 	moveInArray(
 		parent.points,

@@ -80,7 +80,6 @@ function createMainStoreState(): MainState {
 		measure: {
 			type: 'measure',
 			points: [],
-			choosing: null,
 			show: false,
 		},
 		messages: [],

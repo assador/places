@@ -63,7 +63,6 @@ export interface Route extends Entity {
 	id: string;
 	folderid: string | null;
 	points: PointDescription[];
-	choosing: number | null;
 	name: string;
 	description?: string;
 	link?: string;
@@ -157,7 +156,6 @@ export interface FatPointDescription extends PointDescription {
 export interface Measure {
 	type: string;
 	points: PointDescription[];
-	choosing: number | null;
 	show: boolean;
 	id?: string;
 	name?: string;
@@ -167,7 +165,6 @@ export interface FatPointsPack {
 	type: 'pointspack';
 	name: string;
 	points: FatPointDescription[];
-	choosing: number | null;
 	show: boolean;
 	id?: string;
 }

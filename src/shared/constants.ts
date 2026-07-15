@@ -1,5 +1,5 @@
 export const constants = {
-	version: 'v6.6.0:1 beta',
+	version: 'v6.6.1:1 beta',
 	shortcuts: {
 		Digit1 : 'normal mode',
 		Digit2 : 'routes mode',

@@ -202,7 +202,6 @@ export function useGettersEntity(
 			id: 'tempspack',
 			type: 'pointspack',
 			points: points,
-			choosing: points.find(p => p.point.id === state.currentPointId.value)?.index ?? null,
 			show: false,
 			name: state.t.value.i.captions.pointsTemporary,
 		};

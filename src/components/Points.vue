@@ -93,7 +93,7 @@
 					v-if="mainStore.currentPointId"
 					href="javascript:void(0)"
 					@pointerup="e => {
-						const fat = points.find(p => p.index === of?.choosing);
+						const fat = points.find(p => p.id === mainStore.currentPointId);
 						if (fat) {
 							if (common.pointInfo?.point.id === fat.point.id) {
 								common.togglePopup(calculatePopupPosition(e));
@@ -121,28 +121,34 @@
 				<button
 					v-for="fat in points"
 					:key="fat.key"
-					v-bind="context !== 'temps' ? {
-						'data-entity-id': fat.point.id,
-						'data-entity-type': 'point',
-						'data-entity-index': fat.index,
-						'data-entity-context': context,
-						'data-entity-parent-id': of?.id
-					} : {}"
+					:data-entity-id="fat.point.id"
+					:data-entity-type="'point'"
+					:data-entity-index="fat.index"
+					:data-entity-context="props.context"
+					:data-entity-parent-id="of?.id"
 					:title="fat.name"
 					class="point-button"
-					:class="{ 'button-pressed': fat.index === of?.choosing }"
-					@pointerdown.stop.prevent="e => onPointerDown(e, {
-						id: fat.point.id,
-						index: fat.index,
-						type: fat.point.type,
-						context: context,
-						parentId: of?.id,
-					})"
-					@pointermove="onPointerMove"
-					@pointerup="e => onPointerUp(e, () => {
-						mainStore.setCurrentPoint(fat.point);
-					})"
-					@pointercancel="onPointerUp"
+					:class="{ 'button-pressed': fat.id === mainStore.currentPointId }"
+					@pointerdown.stop.prevent="(e: PointerEvent) => {
+						if (props.context !== 'temps') onPointerDown(e, {
+							id: fat.point.id,
+							index: fat.index,
+							type: fat.point.type,
+							context: props.context,
+							parentId: of?.id,
+						});
+					}"
+					@pointermove="(e: PointerEvent) => {
+						if (props.context !== 'temps') onPointerMove(e);
+					}"
+					@pointerup="(e: PointerEvent) => {
+						if (props.context !== 'temps') onPointerUp(e, () => {
+							mainStore.setCurrentPoint(fat.point);
+						});
+					}"
+					@pointercancel="(e: PointerEvent) => {
+						if (props.context !== 'temps') onPointerUp(e);
+					}"
 					@contextmenu.stop.prevent="e => {
 						if (common.pointInfo?.point.id === fat.point.id) {
 							common.togglePopup(calculatePopupPosition(e));
@@ -165,10 +171,11 @@
 						@pointerdown.stop
 						@pointerup.stop
 						@click.stop="() => {
-							if (fat.index) removePoint(fat.index, fat.point.id);
+							if (fat.index !== undefined) removePoint(fat.index, fat.point.id);
 						}"
 					/>
 					<span
+						v-if="props.context !== 'temps'"
 						class="sorting-area-before"
 						:class="{
 							highlighted:
@@ -177,6 +184,7 @@
 						}"
 					/>
 					<span
+						v-if="props.context !== 'temps'"
 						class="sorting-area-after"
 						:class="{
 							highlighted:
@@ -232,22 +240,30 @@ const removePoint = (index: number, id: string) => {
 		});
 	}
 };
-const points = computed(() => {
-	let points: FatPointDescription[] = [];
-	if (props.context === 'temps') return mainStore.notMeasureFatTemps.points;
-	else if (props.context === 'measure') return mainStore.measureFatPoints;
-	const currentRoute = of.value as Route | null;
-	const pns: PointDescription[] = currentRoute?.points ?? [];
-	for (let i = 0; i < pns.length; i++) {
-		const p =  mainStore.getPointById(pns[i].id);
-		if (p && !p.deleted) points.push({
-			...pns[i],
-			point: p,
-			index: i,
-			key: `${p.id}-${i}`,
-		});
+const points = computed<FatPointDescription[]>(() => {
+	switch (props.context) {
+		case 'temps':
+			return mainStore.notMeasureFatTemps.points;
+		case 'measure':
+			return mainStore.measureFatPoints;
+		case 'routes': {
+			if (!of.value) return [];
+			const pds: PointDescription[] = of.value.points;
+			let points: FatPointDescription[] = [];
+			for (let i = 0; i < pds.length; i++) {
+				const p =  mainStore.getPointById(pds[i].id);
+				if (p && !p.deleted) points.push({
+					...pds[i],
+					point: p,
+					index: i,
+					key: `${p.id}-${i}`,
+				});
+			}
+			return points;
+		}
+		default:
+			return [];
 	}
-	return points;
 });
 
 const distance = computed(() => {

@@ -46,9 +46,6 @@ export function useActionsRelate(
 		const pointId = entity.points.at(index)?.id;
 		if (!pointId) return;
 		entity.points.splice(index, 1);
-		if (entity.choosing === null || entity.choosing > entity.points.length - 1) {
-			entity.choosing = entity.points.length - 1;
-		}
 		if (isRoute(entity)) entity.updated = true;
 		if (Object.hasOwn(store.points.value, pointId)) {
 			const refs = store.pointReferences.value;

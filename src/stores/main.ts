@@ -86,7 +86,6 @@ export const useMainStore = defineStore('main', () => {
 		measure: ref<Measure>({
 			type: 'measure',
 			points: [],
-			choosing: null,
 			show: false,
 		}),
 		messages:  ref<string[]>([]),

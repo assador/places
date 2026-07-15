@@ -40,20 +40,8 @@ const cells = inject<Ref<{
 
 const centerTo = (): boolean => {
 	let point: Point | undefined = undefined;
-	if (mainStore.mode === 'routes') {
-		const route = mainStore.currentRoute;
-		if (route && route.choosing !== null) {
-			const pointDesc = route.points[route.choosing];
-			if (pointDesc) point = mainStore.getPointById(pointDesc.id);
-		}
-	} else {
-		const place = mainStore.currentPlace;
-		if (place?.pointid) {
-			point = mainStore.getPointById(place.pointid);
-		}
-		if (!point && mainStore.currentPointId) {
-			point = mainStore.getPointById(mainStore.currentPointId);
-		}
+	if (mainStore.currentPointId) {
+		point = mainStore.getPointById(mainStore.currentPointId);
 	}
 	if (point) {
 		mainStore.center = {

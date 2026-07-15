@@ -71,7 +71,6 @@ function _defaultRoute(userId: string | null): Route {
 		userid: userId,
 		folderid: null,
 		points: [],
-		choosing: null,
 		name: '',
 		description: '',
 		link: '',
@@ -176,14 +175,6 @@ export function useActionsEntity(
 		store.currentPointId.value = point?.id ?? null;
 		if (!point) return;
 		if (point.altitude === null) store.setPointAltitude(point);
-		let index: number;
-		const currentRoute = store.currentRoute.value;
-		if (currentRoute) {
-			index = currentRoute.points.findIndex((p: PointDescription) => p.id);
-			if (index !== -1) currentRoute.choosing = index;
-		}
-		index = store.measure.value.points.findIndex((p: PointDescription) => p.id);
-		if (index !== -1) store.measure.value.choosing = index;
 		if (center !== false && point) store.center.value = {
 			latitude: point.latitude,
 			longitude: point.longitude,
@@ -213,16 +204,8 @@ export function useActionsEntity(
 			route = param ?? null;
 		}
 		store.currentRouteId.value = route?.id ?? null;
-		if (route?.points.length) {
-			if (// Damn you all
-				typeof route.choosing !== 'number' ||
-				!Number.isInteger(route.choosing) ||
-				route.choosing < 0 ||
-				route.choosing > route.points.length - 1
-			) {
-				route.choosing = 0;
-			}
-			setCurrentPoint(route.points[route.choosing].id, center);
+		if (center !== false && route?.points.length) {
+			setCurrentPoint(route.points[0].id, center);
 		}
 	};
 	const setFirstCurrentPlace = (): void => {
@@ -838,16 +821,12 @@ export function useActionsEntity(
 		return toDelete;
 	};
 	const deleteTemp = (id: string): void => {
-		const measureIndex = store.measure.value.points.map((p: PointDescription) => p.id).indexOf(id);
-		if (measureIndex !== -1 && store.measure.value.choosing !== null) {
-			if (store.measure.value.choosing > store.measure.value.points.length - 2) {
-				store.measure.value.choosing = store.measure.value.points.length - 2
-				if (store.measure.value.choosing < 0) store.measure.value.choosing = null;
-			};
+		const measureIndex = store.measure.value.points.findIndex((p: PointDescription) => p.id);
+		if (measureIndex !== -1) {
 			store.measure.value.points.splice(measureIndex, 1);
 		}
 		delete store.temps.value[id];
-		if (store.currentPointId.value && store.currentPointId.value === id) {
+		if (store.currentPointId.value === id) {
 			setCurrentPoint(null);
 		}
 	};
@@ -865,7 +844,6 @@ export function useActionsEntity(
 			}
 		});
 		store.measure.value.points = [];
-		store.measure.value.choosing = 0;
 	};
 	const deleteImages = (
 		{ imageIds, entity }:
