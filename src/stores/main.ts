@@ -95,6 +95,8 @@ export const useMainStore = defineStore('main', () => {
 		mode:  ref<Mode>('normal'),
 		newEntityPointId:  ref<string | null>(null),
 		markersShow:  ref<boolean>(true),
+		offlineMode:  ref<boolean>(false),
+		online:  ref<boolean>(true),
 		places:  ref<Record<string, Place>>({}),
 		placesShow:  ref<FirstShow>({ show: true, first: true }),
 		points:  ref<Record<string, Point>>({}),
@@ -212,9 +214,7 @@ export const useMainStore = defineStore('main', () => {
 			serialize: (state) => {
 				return JSON.stringify(state, (key, value) => {
 					if (skipKeys.has(key)) return undefined;
-					if (value && typeof value === 'object') {
-						if (value.raw) return undefined;
-					}
+					if (value && typeof value === 'object' && value.raw) return undefined;
 					return value;
 				});
 			},

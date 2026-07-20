@@ -10,6 +10,8 @@ import {
 	FirstShow,
 	Folder,
 	GeomarksState,
+	Image,
+	ImageableEntity,
 	Measure,
 	Mode,
 	Place,
@@ -79,6 +81,8 @@ export interface MainState {
 	mode: Mode;
 	newEntityPointId: string | null;
 	markersShow: boolean;
+	offlineMode: boolean;
+	online: boolean;
 	places: Record<string, Place>;
 	placesShow: FirstShow;
 	points: Record<string, Point>;
@@ -158,6 +162,7 @@ export interface ActionsEntity {
 	upsertEntityWithCurrentLocation: (mode: Mode) => Promise<
 		{ id: string | null, of: Place | Route | Measure | null } | null
 	>;
+	upsertImage: (params: { image: Image; entity: ImageableEntity; }) => Image | null;
 	deleteEntities: (objects: Record<string, Point | Place | Route | Folder>) => void;
 	prepareFolderDelete: (folderId: string, mode: string) => Record<string, Place | Route | Folder>;
 	deleteTemp: (id: string) => void;
@@ -206,6 +211,9 @@ export interface ActionsRelate {
 	) => void;
 }
 export interface ActionsService {
+	onServerOut: () => void;
+	onServerOn: () => void;
+	setOffline: (offlineMode?: boolean) => void;
 	setPointAltitude: (entity: Point) => Promise<void>;
 }
 export interface ActionsUI {

@@ -13,6 +13,26 @@ declare module 'axios' {
 
 export type Identifiable = { id: string | null };
 
+export interface Image {
+	type: string;
+	id: string;
+	file: string;
+	lastmodified: number;
+	size: number;
+	srt: number;
+	placeid?: string;
+	routeid?: string;
+	new?: boolean;
+	preview?: string;
+	raw?: File;
+}
+export interface RawImage {
+	id: string;
+	raw: File;
+	entityid: string;
+	entitytype: 'place' | 'route';
+}
+
 export interface Entity {
 	type: string;
 	id: string | null;
@@ -23,6 +43,9 @@ export interface Entity {
 	added: boolean;
 	deleted: boolean;
 	updated: boolean;
+}
+export interface ImageableEntity extends Entity {
+	images?: Record<string, Image>;
 }
 export interface Folder extends Entity {
 	type: 'folder';
@@ -44,7 +67,7 @@ export interface Point extends Entity {
 	altitude?: number | null;
 	time?: string;
 }
-export interface Place extends Entity {
+export interface Place extends ImageableEntity {
 	type: 'place';
 	id: string;
 	folderid: string | null;
@@ -55,10 +78,9 @@ export interface Place extends Entity {
 	time?: string;
 	srt: number;
 	geomark: number | boolean;
-	images?: Record<string, Image>;
 	home?: boolean;
 }
-export interface Route extends Entity {
+export interface Route extends ImageableEntity {
 	type: 'route';
 	id: string;
 	folderid: string | null;
@@ -69,38 +91,11 @@ export interface Route extends Entity {
 	time?: string;
 	srt: number;
 	geomarks: GeomarksState;
-	images?: Record<string, Image>;
-}
-export interface Image {
-	type: string;
-	id: string;
-	file: string;
-	lastmodified: number;
-	size: number;
-	srt: number;
-	placeid?: string;
-	routeid?: string;
-	new?: boolean;
-	preview?: string;
-	raw?: File;
-}
-export interface EntityCollection {
-	folders?: Partial<Folder>[];
-	points?: Partial<Point>[];
-	places?: Partial<Place>[];
-	routes?: Partial<Route>[];
-	images?: Partial<Image>[];
 }
 export interface TreeEntityCollection {
 	folders: Record<string, Folder>;
 	places: Record<string, Place>;
 	routes: Record<string, Route>;
-}
-export interface RawImage {
-	id: string;
-	raw: File;
-	entityid: string;
-	entitytype: 'place' | 'route';
 }
 export interface Tree {
 	name?: string;
@@ -250,6 +245,26 @@ export type Dictionary = ReturnType<typeof getT>;
 
 export const DICT_KEYS = ['folders', 'points', 'places', 'routes'] as const;
 export type DictKey = typeof DICT_KEYS[number];
+
+export const IMAGEABLE_CONTEXT = ['places', 'routes'] as const;
+export type ImageableContext = typeof IMAGEABLE_CONTEXT[number];
+
+export const ENTITY_COLLECTION_KEYS = ['folders', 'points', 'places', 'routes', 'images'] as const;
+export type EntityCollectionKeys = typeof ENTITY_COLLECTION_KEYS[number];
+export interface EntityCollection {
+	folders?: Partial<Folder>[];
+	points?: Partial<Point>[];
+	places?: Partial<Place>[];
+	routes?: Partial<Route>[];
+	images?: Partial<Image>[];
+}
+export type EntityPartial =
+	| Partial<Folder>
+	| Partial<Point>
+	| Partial<Place>
+	| Partial<Route>
+	| Partial<Image>
+;
 
 export const TREE_ITEM_TYPES = ['folder', 'place', 'route'] as const;
 export type TreeItemType = typeof TREE_ITEM_TYPES[number];

@@ -1,6 +1,6 @@
+import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import { configDefaults } from 'vitest/config';
-import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
 import { VitePWA } from 'vite-plugin-pwa';
 import basicSsl from '@vitejs/plugin-basic-ssl';
@@ -12,10 +12,10 @@ export default defineConfig({
 			registerType: 'autoUpdate',
 			includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
 			manifest: {
-				name: 'Места — Персональный ГеоОрганайзер',
 				short_name: 'Места',
-				description: 'Персональная геобиблиотека: коллекции мест и маршрутов, иерархии, взаимосвязи, описания, фотоальбомы, поиск, сортировка и инструменты работы с пространством.',
-				theme_color: '#ffffff',
+				name: 'Места — Персональный ГеоОрганайзер',
+				description: 'Персональная ГИС со структурой, предназначенной для долгосрочного и системного управления географическими данными',
+				theme_color: '#462917',
 				icons: [
 					{
 						src: 'masked-icon.svg',
@@ -49,7 +49,7 @@ export default defineConfig({
 		alias: {
 			'@': fileURLToPath(new URL('./src', import.meta.url)),
 		},
-		extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
+		// extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
 	},
 	define: {
 		'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),

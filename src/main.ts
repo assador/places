@@ -1,9 +1,12 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import { createPing } from '@/services/ping';
+
+import { registerSW } from 'virtual:pwa-register';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+
 import App from '@/App.vue';
 import router from '@/router';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { registerSW } from 'virtual:pwa-register';
 
 registerSW({ immediate: true });
 
@@ -13,4 +16,8 @@ pinia.use(piniaPluginPersistedstate);
 
 app.use(router);
 app.use(pinia);
+
+const ping = createPing();
+ping.init();
+
 app.mount("#app");

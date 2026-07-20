@@ -12,7 +12,6 @@ import {
 	Place,
 	Point,
 	PointDescription,
-	RawImage,
 	Route,
 } from '@/types';
 
@@ -125,6 +124,7 @@ export function useGettersEntity(
 	const collectModified = <T extends Entity>(c: Record<string, T>): T[] => {
 		const modified: T[] = [];
 		for (const id in c) {
+			if (!Object.hasOwn(c, id)) continue;
 			if (
 				(c[id].added || c[id].updated || c[id].deleted) &&
 				!(c[id].added && c[id].deleted)
@@ -134,38 +134,6 @@ export function useGettersEntity(
 		}
 		return modified;
 	};
-	const getPendingImagesPackage = computed((): RawImage[] => {
-		const pending: RawImage[] = [];
-		collectModified(state.places.value).forEach((place: Place) => {
-			if (place.images) {
-				for (const id in place.images) {
-					if (place.images[id].new && place.images[id].raw) {
-						pending.push({
-							id: id,
-							raw: place.images[id].raw,
-							entityid: place.id,
-							entitytype: 'place',
-						});
-					}
-				}
-			}
-		});
-		collectModified(state.routes.value).forEach((route: Route) => {
-			if (route.images) {
-				for (const id in route.images) {
-					if (route.images[id].new && route.images[id].raw) {
-						pending.push({
-							id: id,
-							raw: route.images[id].raw,
-							entityid: route.id,
-							entitytype: 'route',
-						});
-					}
-				}
-			}
-		});
-		return pending;
-	});
 	const getAllModifiedPackage = computed((): EntityCollection => {
 		return {
 			points: collectModified(state.points.value),
@@ -224,7 +192,6 @@ export function useGettersEntity(
 		getRouteById,
 		routePoints,
 		collectModified,
-		getPendingImagesPackage,
 		getAllModifiedPackage,
 		measureFatPoints,
 		notMeasureFatTemps,

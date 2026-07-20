@@ -1,3 +1,4 @@
+@use "variables" as *;
 @use "colors-opacities" as *;
 @use "icons" as *;
 
@@ -347,6 +348,24 @@ $filter-brightness-03: brightness(0%);
 	:is(ul > li, .pseudo_button)::before {
 		color: $color-23;
 	}
+	.color-grey {
+		color: var(--color-grey);
+		&.indicator-online {
+			background-color: var(--color-grey);
+		}
+	}
+	.color-green {
+		color: var(--color-green);
+		&.indicator-online {
+			background-color: var(--color-green);
+		}
+	}
+	.color-red {
+		color: var(--color-red);
+		&.indicator-online {
+			background-color: var(--color-red);
+		}
+	}
 	.button-pressed {
 		color: $color-24 !important;
 	}
@@ -599,7 +618,7 @@ $filter-brightness-03: brightness(0%);
 		padding-right: 7px; padding-left: 7px;
 		vertical-align: top;
 	}
-	:is(input, select, .selectspan, textarea):is(:hover, :focus) {
+	:is(input, select, .selectspan, textarea):is(:hover, :focus), .focused {
 		background-color: $color-27;
 		box-shadow: 0 0 8px $color-38;
 	}

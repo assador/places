@@ -25,6 +25,7 @@
 			</option>
 		</select>
 		<div id="dashboard-controls-choosemap" />
+		<div id="dashboard-controls-offline" />
 	</div>
 </template>
 
@@ -61,9 +62,12 @@ watch(() => colortheme.value, () => {
 	#dashboard-colorthemes {
 		grid-area: dashboard-colorthemes;
 	}
-	#dashboard-controls-choosemap {
+	#dashboard-controls-offline, #dashboard-controls-choosemap {
 		display: none;
 	}
+}
+#dashboard-controls-offline {
+	grid-area: dashboard-controls-offline;
 }
 #dashboard-controls-choosemap {
 	grid-area: dashboard-controls-choosemap;
@@ -71,11 +75,11 @@ watch(() => colortheme.value, () => {
 @media screen and (max-width: 800px) {
 	.header #dashboard {
 		grid-template-areas:
-			"dashboard-langs  dashboard-colorthemes  dashboard-controls-choosemap"
+			"dashboard-langs  dashboard-colorthemes  dashboard-controls-choosemap  dashboard-controls-offline"
 		;
 		grid-template-columns: auto auto auto;
 		grid-template-rows: auto;
-		#dashboard-controls-choosemap {
+		#dashboard-controls-offline, #dashboard-controls-choosemap {
 			display: block;
 		}
 	}
@@ -86,9 +90,10 @@ watch(() => colortheme.value, () => {
 			"dashboard-langs"
 			"dashboard-colorthemes"
 			"dashboard-controls-choosemap"
+			"dashboard-controls-offline"
 		;
 		grid-template-columns: 1fr;
-		grid-template-rows: auto auto 1fr;
+		grid-template-rows: auto auto auto 1fr;
 	}
 }
 </style>

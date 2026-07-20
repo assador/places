@@ -314,6 +314,7 @@
 					</button>
 				</div>
 			</div>
+			<div id="bottom-controls-offline" />
 			<div id="bottom-controls-choosemap" />
 			<div
 				v-if="common.compact !== 2"
@@ -478,6 +479,31 @@
 		</select>
 	</Teleport>
 
+	<Teleport :to="common.compact === 2 ? '#dashboard-controls-offline' : '#bottom-controls-offline'">
+		<div class="online-mode">
+			<select
+				v-model="offlineMode"
+				:class="{ focused: offlineMode }"
+			>
+				<option :value="false">
+					{{ mainStore.t.i.inputs.online }}
+				</option>
+				<option :value="true">
+					{{ mainStore.t.i.inputs.offline }}
+				</option>
+			</select>
+			<div
+				:class="`indicator-online ${
+					offlineMode ? 'color-grey' : mainStore.online ? 'color-green' : 'color-red'
+				}`"
+				:title="offlineMode || !mainStore.online
+					? mainStore.t.i.text.offline + '\n' + mainStore.t.i.text.offlineSaving
+					: mainStore.t.i.text.online + '\n' + mainStore.t.i.text.onlineSaving
+				"
+			/>
+		</div>
+	</Teleport>
+
 <!-- SEC Measure Value -->
 
 	<Popup
@@ -592,6 +618,18 @@ const maps = [
 const mainStore = useMainStore();
 const router = useRouter();
 
+const extmap = ref<any>(null);
+provide('extmap', extmap);
+const showMap = ref(true);
+provide('showMap', showMap);
+
+const offlineMode = computed({
+	get: () => mainStore.offlineMode,
+	set: (newValue) => {
+		mainStore.setOffline(newValue);
+	},
+});
+
 const root = ref<HTMLElement>();
 const basicFulled = ref(false);
 const basicOnFull = () => {
@@ -618,11 +656,6 @@ const showMobileMeasurePopupPosition = computed<PopupPosition>(() => {
 		left: '50%',
 	};
 });
-
-const extmap = ref<any>(null);
-provide('extmap', extmap);
-const showMap = ref(true);
-provide('showMap', showMap);
 
 const basicBasic = ref<HTMLElement | null>(null);
 const { width: mapWidth, height: mapHeight } = useElementSize(basicBasic, { debounceMs: 120 });
@@ -762,10 +795,10 @@ const blur = (el?: HTMLElement): void => {
 		else document.querySelectorAll<HTMLElement>(':focus').forEach(el => el.blur());
 };
 watch(() => mainStore.currentPlaceId, () => {
-	mainStore.openTreeToCurrent(mainStore.currentPlace)
+	mainStore.openTreeToCurrent(mainStore.currentPlace);
 });
 watch(() => mainStore.currentRouteId, () => {
-	mainStore.openTreeToCurrent(mainStore.currentRoute)
+	mainStore.openTreeToCurrent(mainStore.currentRoute);
 });
 
 const commonPlacesShowHide = (show: boolean | null = null): void => {
@@ -836,12 +869,12 @@ const sbs = ref('all');
 
 const sidebarSizes = ref(structuredClone(constants.sidebars));
 
-watch(() => common.compact, (valNew, valOld) => {
+watch(() => common.compact, (newValue, oldValue) => {
 	(Object.keys(cells.value) as Array<keyof typeof cells.value>).forEach(key => {
-		cells.value[key] = valNew !== 2;
+		cells.value[key] = newValue !== 2;
 	});
 	cells.value.bottom = true;
-	if (valOld === 2 && valNew < 2) {
+	if (oldValue === 2 && newValue < 2) {
 		windowResize();
 	}
 });
@@ -1030,6 +1063,18 @@ const selectPlaces = (text?: string | null): void => {
 	}
 	h2 {
 		margin: 0 !important;
+	}
+}
+.online-mode {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	align-items: center;
+	gap: 6px;
+	.indicator-online {
+		display: block;
+		width: 12px;
+		height: 12px;
+		border-radius: 999999px;
 	}
 }
 </style>

@@ -212,10 +212,10 @@ import {
 	PointDescription,
 } from '@/types';
 
-export interface IPointsProps {
+export interface PointsProps {
 	context?: PointCollectionContext;
 }
-const props = withDefaults(defineProps<IPointsProps>(), {
+const props = withDefaults(defineProps<PointsProps>(), {
 	context: 'temps',
 });
 

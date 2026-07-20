@@ -167,7 +167,6 @@ const accountSubmit = (): void => {
 	if (isAccount(account.value)) {
 		accountSaveRoutine(account.value);
 	} else {
-		console.log('asdfasd');
 		mainStore.setMessage(mainStore.t.m.paged.incorrectFields, 3);
 	}
 };

@@ -1,7 +1,7 @@
 {
 	"name": "places",
 	"description": "A personal geo-organizer",
-	"version": "6.6.1:1 beta",
+	"version": "6.7.0:1 beta",
 	"author": "Dmitry Sokolov <assador@gmail.com>",
 	"license": "MIT",
 	"private": true,
@@ -17,6 +17,7 @@
 		"axios": "^1.16.1",
 		"css-element-queries": "^1.2.3",
 		"leaflet": "^1.9.4",
+		"localforage": "^1.10.0",
 		"lodash": "^4.17.23",
 		"pinia": "^3.0.4",
 		"pinia-plugin-persistedstate": "^4.7.1",

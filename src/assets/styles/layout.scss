@@ -78,9 +78,9 @@
 }
 #bottom-basic {
 	display: grid;
-	grid-template-columns: auto 1fr auto;
+	grid-template-columns: auto auto 1fr auto;
 	grid-template-areas:
-		"bottom-controls-choosemap  bottom-center-coordinates"
+		"bottom-controls-offline  bottom-controls-choosemap  bottom-center-coordinates"
 	;
 	gap: 12px;
 	align-items: baseline;
@@ -110,6 +110,9 @@
 	#bottom-altitude {
 		grid-area: bottom-altitude;
 	}
+}
+#bottom-controls-offline {
+	grid-area: bottom-controls-offline;
 }
 #bottom-controls-choosemap {
 	grid-area: bottom-controls-choosemap;
@@ -391,9 +394,9 @@ pre, .pre {
 			display: none;
 		}
 		#bottom-basic {
-			grid-template-columns: 225px auto 1fr auto;
+			grid-template-columns: 225px auto auto 1fr auto;
 			grid-template-areas:
-				"bottom-basic__control-buttons-bottom  bottom-controls-choosemap  bottom-center-coordinates"
+				"bottom-basic__control-buttons-bottom  bottom-controls-offline  bottom-controls-choosemap  bottom-center-coordinates"
 			;
 			gap: 12px;
 			#bottom-center-coordinates {
@@ -479,7 +482,7 @@ pre, .pre {
 					display: none;
 				}
 			}
-			#bottom-controls-choosemap {
+			#bottom-controls-offline, #bottom-controls-choosemap {
 				display: none;
 			}
 		}

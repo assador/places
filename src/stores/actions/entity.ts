@@ -6,14 +6,16 @@ import {
 	UpsertPlaceParams,
 } from '@/stores/types';
 import {
-	Mode,
 	Folder,
-	Point,
-	Place,
-	Route,
+	Image,
+	ImageableEntity,
 	Measure,
+	Mode,
+	Place,
+	Point,
 	PointDescription,
 	PointInfo,
+	Route,
 } from '@/types';
 
 import { isPoint, isPlace, isRoute, isMeasure } from '@/guards';
@@ -675,6 +677,18 @@ export function useActionsEntity(
 			return null;
 		}
 	};
+	const upsertImage = (params: {
+		image: Image;
+		entity: ImageableEntity;
+	}): Image | null => {
+		const {
+			image,
+			entity,
+		} = params;
+		if (!entity.images) entity.images = {};
+		entity.images[image.id] = image;
+		return image;
+	}
 
 // SEC Deleting Entities
 
@@ -975,6 +989,7 @@ export function useActionsEntity(
 		upsertRouteFollowing,
 		upsertFolder,
 		upsertEntityWithCurrentLocation,
+		upsertImage,
 		deleteEntities,
 		prepareFolderDelete,
 		deleteTemp,

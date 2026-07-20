@@ -89,6 +89,8 @@ function createMainStoreState(): MainState {
 		mode: 'normal',
 		newEntityPointId: null,
 		markersShow: true,
+		offlineMode: false,
+		online: true,
 		places: {},
 		placesShow: { show: true, first: true },
 		points: {},

@@ -1,5 +1,6 @@
-import { StoreMain, ActionsService } from '@/stores/types';
 import api from '@/api';
+import { StoreMain, ActionsService } from '@/stores/types';
+import { syncBufferOfModified } from '@/services/db';
 import { Point } from '@/types';
 
 const FALLBACK_API = (lat: number, lon: number) =>
@@ -52,6 +53,30 @@ export function useActionsService(
 	store: StoreMain,
 ): ActionsService {
 
+	const onServerOut = (): void => {
+		store.online.value = false;
+		store.setMessage(
+			store.t.value.i.text.offline + '\n' +
+			store.t.value.i.text.offlineSaving
+		);
+	};
+	const onServerOn = (): void => {
+		store.online.value = true;
+		syncBufferOfModified();
+		store.setMessage(
+			store.t.value.i.text.online + '\n' +
+			store.t.value.i.text.onlineSaving
+		);
+	};
+	const setOffline = (offlineMode?: boolean): void => {
+		store.offlineMode.value = offlineMode ?? true;
+		if (offlineMode) onServerOut();
+		store.setMessage(
+			offlineMode
+				? store.t.value.i.text.offline + '\n' + store.t.value.i.text.offlineSaving
+				: store.t.value.i.text.online + '\n' + store.t.value.i.text.onlineSaving
+		);
+	};
 	const setPointAltitude = async (entity: Point): Promise<void> => {
 		const id = entity.id;
 		const lat = entity.latitude;
@@ -68,6 +93,9 @@ export function useActionsService(
 	};
 
 	return {
+		onServerOut,
+		onServerOn,
+		setOffline,
 		setPointAltitude,
 	};
 };

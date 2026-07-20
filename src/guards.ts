@@ -1,14 +1,18 @@
 import {
-	User,
 	Account,
-	Folder,
-	Point,
-	Place,
-	Route,
-	Measure,
-	PointDescription,
 	DictKey, DICT_KEYS,
+	EntityCollectionKeys, ENTITY_COLLECTION_KEYS,
+	Folder,
+	Image,
+	ImageableContext, IMAGEABLE_CONTEXT,
+	ImageableEntity,
+	Measure,
+	Place,
+	Point,
+	PointDescription,
+	Route,
 	TreeItemType, TREE_ITEM_TYPES,
+	User,
 } from '@/types';
 
 const isOptionalString = (value: unknown): boolean =>
@@ -132,6 +136,22 @@ export const isRoute = (value: unknown): value is Route => {
 	}
 	return true;
 };
+export const isImage = (value: unknown): value is Image => {
+	if (
+		!isRecord(value) ||
+		typeof value.type !== 'string' ||
+		typeof value.id !== 'string' ||
+		typeof value.file !== 'string' ||
+		typeof value.lastmodified !== 'number' ||
+		typeof value.size !== 'number' ||
+		typeof value.srt !== 'number' ||
+		!isOptionalString(value.placeid) ||
+		!isOptionalString(value.routeid)
+	) {
+		return false;
+	}
+	return true;
+};
 export const isMeasure = (value: unknown): value is Measure => {
 	if (
 		!isRecord(value) ||
@@ -165,6 +185,30 @@ export const isDictKey = (value: unknown): value is DictKey => {
 	}
 	return true;
 };
+export const isImageableContext = (value: unknown): value is ImageableContext => {
+	if (
+		typeof value !== 'string' ||
+		!(IMAGEABLE_CONTEXT as readonly string[]).includes(value)
+	) {
+		return false;
+	}
+	return true;
+};
+export const isEntityCollectionKey = (value: unknown): value is EntityCollectionKeys => {
+	if (
+		typeof value !== 'string' ||
+		!(ENTITY_COLLECTION_KEYS as readonly string[]).includes(value)
+	) {
+		return false;
+	}
+	return true;
+};
+export const isImageableCollectionKey = (key: unknown): key is 'places' | 'routes' => {
+	return typeof key === 'string' && (key === 'places' || key === 'routes');
+};
+export const isImageableEntity = (value: unknown): value is ImageableEntity => {
+	return isPlace(value) || isRoute(value);
+};
 export const isTreeItemType = (value: unknown): value is TreeItemType => {
 	if (
 		typeof value !== 'string' ||
@@ -174,7 +218,8 @@ export const isTreeItemType = (value: unknown): value is TreeItemType => {
 	}
 	return true;
 };
-export const hasOwnStringKey = <T extends object>(value: T, key: string): key is Extract<keyof T, string> => {
+export const hasOwnStringKey =
+	<T extends object>(value: T, key: string): key is Extract<keyof T, string> => {
 	return Object.hasOwn(value, key);
 };
 export const isFileInput = (value: unknown): value is HTMLInputElement & { files: FileList } => {

@@ -1,6 +1,6 @@
 {
     "short_name": "Места",
-    "name": "Персональный ГеоОрганайзер «Места»",
+    "name": "Места — Персональный ГеоОрганайзер",
     "start_url":"/",
     "display": "standalone",
     "orientation": "any",

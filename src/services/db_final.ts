@@ -123,7 +123,7 @@ const uploadImages = async (payload: EntityCollection): Promise<void> => {
 					delete img.raw;
 					delete img.preview;
 
-					const image: unknown = { ...img, ...serverFile };
+					const image = { ...img, ...serverFile };
 					if (!isImage(image)) return;
 
 					mainStore.upsertImage({ image, entity });
