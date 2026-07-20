@@ -250,7 +250,7 @@ export const IMAGEABLE_CONTEXT = ['places', 'routes'] as const;
 export type ImageableContext = typeof IMAGEABLE_CONTEXT[number];
 
 export const ENTITY_COLLECTION_KEYS = ['folders', 'points', 'places', 'routes', 'images'] as const;
-export type EntityCollectionKeys = typeof ENTITY_COLLECTION_KEYS[number];
+export type EntityCollectionKey = typeof ENTITY_COLLECTION_KEYS[number];
 export interface EntityCollection {
 	folders?: Partial<Folder>[];
 	points?: Partial<Point>[];

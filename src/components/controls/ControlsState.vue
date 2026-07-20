@@ -37,7 +37,7 @@
 				if (mainStore.user.testaccount) {
 					mainStore.setMessage(mainStore.t.m.popup.testOnSave, 8);
 				}
-				db.saveAll();
+				db.saveEntities();
 			}"
 		>
 			<span class="icon icon-save" />

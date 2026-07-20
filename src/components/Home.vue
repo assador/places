@@ -852,7 +852,7 @@ const keyup = (e: KeyboardEvent): void => {
 		'add folder': () => router.push({ name: 'HomeFolder' }),
 		'import': () => importFromFileInput?.value?.click(),
 		'export': () => router.push({ name: 'HomeExport' }),
-		'save': () => db.saveAll(),
+		'save': () => db.saveEntities(),
 		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
 		'quit': () => { logout(); router.push({ name: 'Auth' }); },
 		'marks': () => mainStore.markersShowHide(),

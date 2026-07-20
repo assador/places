@@ -1,7 +1,7 @@
 import {
 	Account,
 	DictKey, DICT_KEYS,
-	EntityCollectionKeys, ENTITY_COLLECTION_KEYS,
+	EntityCollectionKey, ENTITY_COLLECTION_KEYS,
 	Folder,
 	Image,
 	ImageableContext, IMAGEABLE_CONTEXT,
@@ -194,7 +194,7 @@ export const isImageableContext = (value: unknown): value is ImageableContext =>
 	}
 	return true;
 };
-export const isEntityCollectionKey = (value: unknown): value is EntityCollectionKeys => {
+export const isEntityCollectionKey = (value: unknown): value is EntityCollectionKey => {
 	if (
 		typeof value !== 'string' ||
 		!(ENTITY_COLLECTION_KEYS as readonly string[]).includes(value)

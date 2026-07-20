@@ -1,6 +1,5 @@
 import api from '@/api';
 import { StoreMain, ActionsService } from '@/stores/types';
-import { syncBufferOfModified } from '@/services/db';
 import { Point } from '@/types';
 
 const FALLBACK_API = (lat: number, lon: number) =>
@@ -62,7 +61,6 @@ export function useActionsService(
 	};
 	const onServerOn = (): void => {
 		store.online.value = true;
-		syncBufferOfModified();
 		store.setMessage(
 			store.t.value.i.text.online + '\n' +
 			store.t.value.i.text.onlineSaving
