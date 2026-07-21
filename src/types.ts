@@ -37,7 +37,7 @@ export interface Entity {
 	type: string;
 	id: string | null;
 	userid: string | null;
-	common: boolean;
+	common?: boolean;
 	enabled: boolean;
 	show: boolean;
 	added: boolean;

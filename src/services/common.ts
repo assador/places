@@ -2,18 +2,19 @@ import { ref } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { calculatePopupPosition } from '@/shared/common';
 import {
-	Place,
-	Route,
+	FatPointsPack,
 	Folder,
+	EntityCollection,
 	Image,
 	Measure,
-	FatPointsPack,
-	PopupProps,
-	PopupPosition,
-	PopupEntityMenuProps,
 	MetaEntityContext,
+	Place,
 	PointInfo,
 	PointInfoContext,
+	PopupEntityMenuProps,
+	PopupPosition,
+	PopupProps,
+	Route,
 } from '@/types';
 
 const _compact = ref(0);
@@ -150,6 +151,16 @@ export const common = {
 	},
 };
 
+export const isEntityCollectionEmpty = (pkg: EntityCollection | null | undefined): boolean => {
+	if (!pkg) return true;
+	return (
+		(!pkg.points || pkg.points.length === 0) &&
+		(!pkg.places || pkg.places.length === 0) &&
+		(!pkg.routes || pkg.routes.length === 0) &&
+		(!pkg.folders || pkg.folders.length === 0) &&
+		(!pkg.images || pkg.images.length === 0)
+	);
+};
 export const setBusy = (value: boolean): void => {
 	const mainStore = useMainStore();
 	mainStore.setBusy(value);

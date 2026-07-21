@@ -1,6 +1,8 @@
 import { StoreMain, ActionsDB } from '@/stores/types';
 import { EntityCollection } from '@/types';
 import { isDictKey } from '@/guards';
+import { isEntityCollectionEmpty } from '@/services/common';
+import { bufferInstance } from '@/services/localforage';
 
 export function useActionsDB(
 	store: StoreMain,
@@ -24,13 +26,18 @@ export function useActionsDB(
 		}
 		updateSavedStatus();
 	};
-	const updateSavedStatus = (): void => {
-		const pkg = store.getAllModifiedPackage.value;
+	const updateSavedStatus = async (): Promise<void> => {
+		const isOffline = store.offlineMode.value || !store.online.value;
 		store.saved.value = (
-			pkg.points?.length === 0 &&
-			pkg.places?.length === 0 &&
-			pkg.routes?.length === 0 &&
-			pkg.folders?.length === 0
+			isEntityCollectionEmpty(store.getAllModifiedPackage.value) && (
+				isOffline || (
+					isEntityCollectionEmpty(
+						await bufferInstance.getItem<EntityCollection>('entities')
+					) && !(
+						await bufferInstance.getItem<EntityCollection>('home')
+					)
+				)
+			)
 		);
 	};
 

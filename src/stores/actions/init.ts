@@ -1,11 +1,16 @@
-import { StoreMain, ActionsInit } from '@/stores/types';
 import api from '@/api';
-import { isUser, isFolder, isPoint, isPlace, isRoute } from '@/guards';
+import { StoreMain, ActionsInit } from '@/stores/types';
+import { isRecord, isUser, isFolder, isPoint, isPlace, isRoute } from '@/guards';
 
 export function useActionsInit(
 	store: StoreMain,
 ): ActionsInit {
 
+	const toSafeString = (value: unknown): string | undefined => {
+		if (value === undefined || value === null) return undefined;
+		if (typeof value === 'string') return value;
+		return String(value);
+	};
 	const reset = (): void => {
 		store.$resetToDefault();
 	};
@@ -50,7 +55,6 @@ export function useActionsInit(
 			point.deleted = deleted;
 			point.updated = updated;
 			point.show = true;
-			point.common = Boolean(point.common);
 			if (isPoint(point)) store.points.value[id] = point;
 		}
 		for (const id in places) {
@@ -122,7 +126,7 @@ export function useActionsInit(
 		}
 	};
 	const setUser = async (): Promise<void> => {
-		const sanitizeUserData = (raw: any): any => {
+		const sanitizeUserData = (raw: any): unknown => {
 			if (!raw || typeof raw !== 'object') return raw;
 			return {
 				...raw,
@@ -150,20 +154,48 @@ export function useActionsInit(
 		}
 	};
 	const setEntities = async (): Promise<void> => {
-		try {
-			const { data } = await api.get(
-				'get_entities.php?id=' +
-				localStorage.getItem('places-useruuid')
-			);
-			entitiesReady({
-				points: { ...data.points },
-				places: { ...data.places },
-				routes: { ...data.routes },
-				folders: { ...data.folders },
+		const sanitizeEntitiesData = (raw: any): Record<string, Record<string, Record<string, unknown>>> => {
+			if (!raw || typeof raw !== 'object') return raw;
+
+			const cleanDict = (dict: Record<string, unknown> | undefined): Record<string, any> => {
+				if (!dict || typeof dict !== 'object') return {};
+				const result: Record<string, any> = {};
+
+				for (const [key, item] of Object.entries(dict)) {
+					if (item && isRecord(item)) {
+						const entity = { ...item };
+						if ('name' in entity) {
+							entity.name = toSafeString(entity.name) ?? '';
+						}
+						if ('description' in entity) {
+							entity.description = toSafeString(entity.description);
+						}
+						result[key] = entity;
+					} else {
+						result[key] = item;
+					}
+				}
+				return result;
+			};
+
+			return {
+				folders: cleanDict(raw.folders),
+				points: cleanDict(raw.points),
+				places: cleanDict(raw.places),
+				routes: cleanDict(raw.routes),
 				// TODO Implement Commons:
-				// commonPlaces: { ...data.commonPlaces },
-				// commonRoutes: { ...data.commonRoutes },
-			});
+				// commonPlaces: cleanDict(raw.commonPlaces),
+				// commonRoutes: cleanDict(raw.commonRoutes),
+			};
+		};
+		const uuid = localStorage.getItem('places-useruuid');
+		if (!uuid) return;
+
+		try {
+			const { data } = await api.get('get_entities.php?id=' + uuid);
+			const cleanData = sanitizeEntitiesData(data);
+
+			entitiesReady(cleanData);
 			store.setHomePlace({
 				id: store.user.value?.homeplace ? store.user.value.homeplace : null,
 				silent: true,
@@ -174,10 +206,10 @@ export function useActionsInit(
 			console.error(error);
 			store.setMessage(store.t.value.m.popup.cannotGetDataFromDb);
 			entitiesReady({
+				folders: {},
 				points: {},
 				places: {},
 				routes: {},
-				folders: {},
 				commonPlaces: {},
 				commonRoutes: {},
 			});

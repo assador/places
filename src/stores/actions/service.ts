@@ -54,6 +54,7 @@ export function useActionsService(
 
 	const onServerOut = (): void => {
 		store.online.value = false;
+		store.updateSavedStatus();
 		store.setMessage(
 			store.t.value.i.text.offline + '\n' +
 			store.t.value.i.text.offlineSaving
@@ -61,6 +62,7 @@ export function useActionsService(
 	};
 	const onServerOn = (): void => {
 		store.online.value = true;
+		store.updateSavedStatus();
 		store.setMessage(
 			store.t.value.i.text.online + '\n' +
 			store.t.value.i.text.onlineSaving
