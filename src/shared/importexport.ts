@@ -148,7 +148,6 @@ export const entitiesFromGPX = (text: string): EntityCollection => {
 			const pointId = crypto.randomUUID();
 			const placeId = crypto.randomUUID();
 			const ele = wpt.getElementsByTagName('ele')[0]?.textContent;
-			const time = wpt.getElementsByTagName('time')[0]?.textContent;
 			const name = wpt.getElementsByTagName('name')[0]?.textContent;
 			const desc = wpt.getElementsByTagName('desc')[0]?.textContent;
 			const href = wpt.getElementsByTagName('link')[0]?.getAttribute('href');
@@ -158,7 +157,6 @@ export const entitiesFromGPX = (text: string): EntityCollection => {
 				latitude: parseFloat(wpt.getAttribute('lat') || '0'),
 				longitude: parseFloat(wpt.getAttribute('lon') || '0'),
 				altitude: ele ? parseFloat(ele) : null,
-				time: time || undefined,
 			};
 			(entities.points ??= []).push(point);
 

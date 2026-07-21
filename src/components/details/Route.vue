@@ -52,15 +52,13 @@
 				<dd>
 					<input
 						:id="'route-detailed-' + field"
-						:value="mainStore.currentRoute[field]"
+						:value="unixTimestampToISO8601(mainStore.currentRoute[field])"
 						type="datetime-local"
 						:disabled="!own"
 						class="fieldwidth_100"
 						@change="mainStore.changeRoute({
 							entity: mainStore.currentRoute,
-							change: {
-								[field]: ($event.target as HTMLInputElement).value.trim(),
-							},
+							change: { [field]: iso8601ToUnixTimestamp(($event.target as HTMLInputElement).value) },
 						})"
 					/>
 				</dd>
@@ -118,8 +116,12 @@
 
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
-import { useMainStore } from '@/stores/main';
 import { Route } from '@/types'
+import { useMainStore } from '@/stores/main';
+import {
+	iso8601ToUnixTimestamp,
+	unixTimestampToISO8601,
+} from '@/shared/converters';
 import Points from '@/components/Points.vue';
 import Images from '@/components/details/Images.vue';
 

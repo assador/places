@@ -84,10 +84,10 @@ function getImages(AppContext $ctx, string $userIdBin): array {
 
 	$images = [];
 	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-		$row['id'] = binToUuid($row['id']);
-		$row['placeid'] = binToUuid($row['placeid']);
-		$row['routeid'] = binToUuid($row['routeid']);
-		$images[$row['id']] = $row;
+		$row["id"] = binToUuid($row["id"]);
+		$row["placeid"] = binToUuid($row["placeid"]);
+		$row["routeid"] = binToUuid($row["routeid"]);
+		$images[$row["id"]] = $row;
 	}
 	return $images;
 }
@@ -104,18 +104,23 @@ function getPlaces(AppContext $ctx, string $userIdBin): array {
 	$stmt->execute();
 
 	$places = [
-		'places'       => [],
-		'commonPlaces' => [],
+		"places"       => [],
+		"commonPlaces" => [],
 	];
 	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 		$row["id"] = binToUuid($row["id"]);
 		$row["userid"] = binToUuid($row["userid"]);
 		$row["pointid"] = binToUuid($row["pointid"]);
 		$row["folderid"] = binToUuid($row["folderid"]);
+		if (!empty($row["time"])) {
+			$row["time"] = (int)$row["time"];
+		} else {
+			unset($row["time"]);
+		}
 		if ($row["userid"] === $_GET["id"]) {
-			$places['places'][$row["id"]] = $row;
+			$places["places"][$row["id"]] = $row;
 		} elseif ($row["common"] == 1) {
-			$places['commonPlaces'][$row["id"]] = $row;
+			$places["commonPlaces"][$row["id"]] = $row;
 		}
 	}
 	return $places;
@@ -133,17 +138,22 @@ function getRoutes(AppContext $ctx, string $userIdBin): array {
 	$stmt->execute();
 
 	$routes = [
-		'routes'       => [],
-		'commonRoutes' => [],
+		"routes"       => [],
+		"commonRoutes" => [],
 	];
 	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 		$row["id"] = binToUuid($row["id"]);
 		$row["userid"] = binToUuid($row["userid"]);
 		$row["folderid"] = binToUuid($row["folderid"]);
+		if (!empty($row["time"])) {
+			$row["time"] = (int)$row["time"];
+		} else {
+			unset($row["time"]);
+		}
 		if ($row["userid"] === $_GET["id"]) {
-			$routes['routes'][$row["id"]] = $row;
+			$routes["routes"][$row["id"]] = $row;
 		} elseif ($row["common"] == 1) {
-			$routes['commonRoutes'][$row["id"]] = $row;
+			$routes["commonRoutes"][$row["id"]] = $row;
 		}
 	}
 	$all = function & (array &$a, array &$b) {
@@ -161,19 +171,19 @@ function getRoutes(AppContext $ctx, string $userIdBin): array {
 		WHERE pr.routeid = :routeid
 		ORDER BY pr.srt ASC
 	");
-	foreach ($all($routes['routes'], $routes['commonRoutes']) as &$row) {
-		$routePointsStmt->bindValue(':routeid', uuidToBin($row['id']), PDO::PARAM_LOB);
+	foreach ($all($routes["routes"], $routes["commonRoutes"]) as &$row) {
+		$routePointsStmt->bindValue(":routeid", uuidToBin($row["id"]), PDO::PARAM_LOB);
 		$routePointsStmt->execute();
 		$pointRows = $routePointsStmt->fetchAll(PDO::FETCH_ASSOC);
 		$points = [];
 		foreach ($pointRows as $pointRow) {
 			$points[] = [
-				'id'          => binToUuid($pointRow['pointid']),
-				'name'        => $pointRow['name'] ?? '',
-				'description' => $pointRow['description'] ?? '',
+				"id"          => binToUuid($pointRow["pointid"]),
+				"name"        => $pointRow["name"] ?? "",
+				"description" => $pointRow["description"] ?? "",
 			];
 		}
-		$row['points'] = $points;
+		$row["points"] = $points;
 	}
 	unset($row);
 	return $routes;
@@ -185,15 +195,15 @@ function getFolders(AppContext $ctx, string $userIdBin): array {
 	$stmt = $ctx->db->prepare("
 		SELECT * FROM folders WHERE userid = :uid
 	");
-	$stmt->bindValue(':uid', $userIdBin, PDO::PARAM_LOB);
+	$stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
 	$stmt->execute();
 
 	$folders = [];
 	foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-		$row['id'] = binToUuid($row['id']);
-		$row['parent'] = binToUuid($row['parent']);
-		$row['userid'] = binToUuid($row['userid']);
-		$folders[$row['id']] = $row;
+		$row["id"] = binToUuid($row["id"]);
+		$row["parent"] = binToUuid($row["parent"]);
+		$row["userid"] = binToUuid($row["userid"]);
+		$folders[$row["id"]] = $row;
 	}
 	return $folders;
 }
@@ -205,29 +215,29 @@ $places = getPlaces($ctx, $userIdBin);
 $routes = getRoutes($ctx, $userIdBin);
 
 foreach ($images as $img) {
-	if ($img['placeid']) {
-		if (isset($places['places'][$img['placeid']])) {
-			$places['places'][$img['placeid']]['images'][$img['id']] = $img;
+	if ($img["placeid"]) {
+		if (isset($places["places"][$img["placeid"]])) {
+			$places["places"][$img["placeid"]]["images"][$img["id"]] = $img;
 		}
-		if (isset($places['commonPlaces'][$img['placeid']])) {
-			$places['commonPlaces'][$img['placeid']]['images'][$img['id']] = $img;
+		if (isset($places["commonPlaces"][$img["placeid"]])) {
+			$places["commonPlaces"][$img["placeid"]]["images"][$img["id"]] = $img;
 		}
 	}
-	if ($img['routeid']) {
-		if (isset($routes['routes'][$img['routeid']])) {
-			$routes['routes'][$img['routeid']]['images'][$img['id']] = $img;
+	if ($img["routeid"]) {
+		if (isset($routes["routes"][$img["routeid"]])) {
+			$routes["routes"][$img["routeid"]]["images"][$img["id"]] = $img;
 		}
-		if (isset($routes['commonRoutes'][$img['routeid']])) {
-			$routes['commonRoutes'][$img['routeid']]['images'][$img['id']] = $img;
+		if (isset($routes["commonRoutes"][$img["routeid"]])) {
+			$routes["commonRoutes"][$img["routeid"]]["images"][$img["id"]] = $img;
 		}
 	}
 }
 
 echo json_encode([
-	'folders'      => getFolders($ctx, $userIdBin),
-	'points'       => getPoints($ctx, $userIdBin),
-	'places'       => $places['places'],
-	'routes'       => $routes['routes'],
-	'commonPlaces' => $places['commonPlaces'],
-	'commonRoutes' => $routes['commonRoutes'],
+	"folders"      => getFolders($ctx, $userIdBin),
+	"points"       => getPoints($ctx, $userIdBin),
+	"places"       => $places["places"],
+	"routes"       => $routes["routes"],
+	"commonPlaces" => $places["commonPlaces"],
+	"commonRoutes" => $routes["commonRoutes"],
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);

@@ -92,18 +92,18 @@ function cleanupPointIfOrphaned(AppContext $ctx, string $pointIdBin): void {
 // SEC Images
 
 function updateImagesOf(AppContext $ctx, array $entity) {
-	if ($entity['type'] !== 'place' && $entity['type'] !== 'route') return;
+	if ($entity["type"] !== "place" && $entity["type"] !== "route") return;
 	global $config;
 
-	$entityIdBin = uuidToBin($entity['id']);
-	$idField = $entity['type'] === 'place' ? 'placeid' : 'routeid';
+	$entityIdBin = uuidToBin($entity["id"]);
+	$idField = $entity["type"] === "place" ? "placeid" : "routeid";
 
-	$keepIds = array_keys($entity['images'] ?? []);
-	if ($entity['deleted'] === true) $keepIds = [];
+	$keepIds = array_keys($entity["images"] ?? []);
+	if ($entity["deleted"] === true) $keepIds = [];
 
 	if (!empty($keepIds)) {
-		$keepIdsBin = array_map('uuidToBin', $keepIds);
-		$placeholders = implode(',', array_fill(0, count($keepIdsBin), '?'));
+		$keepIdsBin = array_map("uuidToBin", $keepIds);
+		$placeholders = implode(",", array_fill(0, count($keepIdsBin), "?"));
 		$sqlAdopt = "
 			UPDATE images
 			SET $idField = ?
@@ -119,18 +119,18 @@ function updateImagesOf(AppContext $ctx, array $entity) {
 		FROM images
 		WHERE $idField = :entityid
 	");
-	$stmt->execute([ ':entityid' => $entityIdBin ]);
+	$stmt->execute([ ":entityid" => $entityIdBin ]);
 	$images = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 	foreach ($images as $img) {
-		$uuid = binToUuid($img['id']);
+		$uuid = binToUuid($img["id"]);
 
 		if (!in_array($uuid, $keepIds)) {
 			$del = $ctx->db->prepare("DELETE FROM images WHERE id = :id");
-			$del->execute([ ':id' => $img['id'] ]);
+			$del->execute([ ":id" => $img["id"] ]);
 
-			$pathBig = $config['dirs']['uploads']['images']['big'] . $img['file'];
-			$pathSmall = $config['dirs']['uploads']['images']['small'] . $img['file'];
+			$pathBig = $config["dirs"]["uploads"]["images"]["big"] . $img["file"];
+			$pathSmall = $config["dirs"]["uploads"]["images"]["small"] . $img["file"];
 
 			if (is_file($pathBig)) unlink($pathBig);
 			if (is_file($pathSmall)) unlink($pathSmall);
@@ -142,8 +142,8 @@ function updateImagesOf(AppContext $ctx, array $entity) {
 				WHERE id = :id
 			");
 			$upd->execute([
-				':id'  => $img['id'],
-				':srt' => (float)($entity['images'][$uuid]['srt'] ?? 10.0),
+				":id"  => $img["id"],
+				":srt" => (float)($entity["images"][$uuid]["srt"] ?? 10.0),
 			]);
 		}
 	}
@@ -216,26 +216,39 @@ function addPlace(AppContext $ctx, array $row): void {
 			common      = VALUES(common)
 	";
 	$stmt = $ctx->db->prepare($sql);
+
+	$folderId = isset($row["folderid"]) && $row["folderid"] !== null
+		? uuidToBin($row["folderid"])
+		: null
+	;
+	$time = !empty($row["time"]) ? (int)$row["time"] : null;
+
 	$stmt->execute([
 		":id"          => uuidToBin($row["id"]),
 		":pointid"     => uuidToBin($row["pointid"]),
 		":name"        => $row["name"] ?? "",
 		":description" => $row["description"] ?? "",
 		":link"        => $row["link"] ?? "",
-		":time"        => $row["time"] ?? "",
-		":srt"         => $row["srt"] ?? 0,
+		":time"        => $time,
+		":srt"         => (float)($row["srt"] ?? 0),
 		":geomark"     => (int)($row["geomark"] ?? 0),
 		":common"      => (int)($row["common"] ?? 0),
 		":userid"      => uuidToBin($row["userid"]),
-		":folderid"    => uuidToBin($row["folderid"]) ?? null,
+		":folderid"    => $folderId,
 	]);
 	updateImagesOf($ctx, $row);
 }
 function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
-	$pointIdBin = !empty($row['pointid'])
-		? uuidToBin($row['pointid'])
+	$pointIdBin = !empty($row["pointid"])
+		? uuidToBin($row["pointid"])
 		: null
 	;
+	$folderId = isset($row["folderid"]) && $row["folderid"] !== null
+		? uuidToBin($row["folderid"])
+		: null
+	;
+	$time = !empty($row["time"]) ? (int)$row["time"] : null;
+
 	$sql = "
 		UPDATE places
 		SET
@@ -254,20 +267,20 @@ function updatePlace(AppContext $ctx, array $row, string $myuserid): void {
 	";
 	$stmt = $ctx->db->prepare($sql);
 	$bindingArray = [
-		':id'          => uuidToBin($row['id']),
-		':name'        => $row['name'] ?? '',
-		':description' => $row['description'] ?? '',
-		':link'        => $row['link'] ?? '',
-		':time'        => $row['time'] ?? '',
-		':srt'         => $row['srt'] ?? 0,
-		':geomark'     => (int)($row['geomark'] ?? 0),
-		':common'      => (int)($row['common'] ?? 0),
-		':userid'      => uuidToBin($row['userid']),
-		':myuserid'    => uuidToBin($myuserid),
-		':folderid'    => uuidToBin($row['folderid']) ?? null,
+		":id"          => uuidToBin($row["id"]),
+		":name"        => $row["name"] ?? "",
+		":description" => $row["description"] ?? "",
+		":link"        => $row["link"] ?? "",
+		":time"        => $time,
+		":srt"         => (float)($row["srt"] ?? 0),
+		":geomark"     => (int)($row["geomark"] ?? 0),
+		":common"      => (int)($row["common"] ?? 0),
+		":userid"      => uuidToBin($row["userid"]),
+		":myuserid"    => uuidToBin($myuserid),
+		":folderid"    => $folderId,
 	];
 	if ($pointIdBin !== null) {
-		$bindingArray[':pointid'] = $pointIdBin;
+		$bindingArray[":pointid"] = $pointIdBin;
 	}
 	$stmt->execute($bindingArray);
 	updateImagesOf($ctx, $row);
@@ -296,7 +309,12 @@ function deletePlace(AppContext $ctx, array $row, string $myuserid): void {
 function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$idBin = uuidToBin($row["id"]);
 	$userIdBin = uuidToBin($myuserid);
-	$folderId = uuidToBin($row["folderid"]);
+	$folderId = isset($row["folderid"]) && $row["folderid"] !== null
+		? uuidToBin($row["folderid"])
+		: null
+	;
+	$time = !empty($row["time"]) ? (int)$row["time"] : null;
+
 	$ctx->db->prepare("
 		INSERT INTO routes (id, userid, name, description, folderid, srt, time, link, geomarks, common)
 		VALUES (:id, :userid, :name, :description, :folderid, :srt, :time, :link, :geomarks, :common)
@@ -306,8 +324,8 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 		":name"        => $row["name"] ?? "",
 		":description" => $row["description"] ?? "",
 		":folderid"    => $folderId,
-		":srt"         => (int)($row["srt"] ?? 0),
-		":time"        => (int)(microtime(true) * 1000),
+		":srt"         => (float)($row["srt"] ?? 0),
+		":time"        => $time,
 		":link"        => $row["link"] ?? "",
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
 		":common"      => (int)($row["common"] ?? 0),
@@ -334,7 +352,12 @@ function addRoute(AppContext $ctx, array $row, string $myuserid): void {
 function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 	$idBin = uuidToBin($row["id"]);
 	$userIdBin = uuidToBin($myuserid);
-	$folderId = uuidToBin($row["folderid"]);
+	$folderId = isset($row["folderid"]) && $row["folderid"] !== null
+		? uuidToBin($row["folderid"])
+		: null
+	;
+	$time = !empty($row["time"]) ? (int)$row["time"] : null;
+
 	$ctx->db->prepare("
 		UPDATE routes
 		SET
@@ -342,6 +365,7 @@ function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 			description = :description,
 			folderid    = :folderid,
 			srt         = :srt,
+			time        = :time,
 			link        = :link,
 			geomarks    = :geomarks,
 			common      = :common
@@ -351,6 +375,7 @@ function updateRoute(AppContext $ctx, array $row, string $myuserid): void {
 		":description" => $row["description"] ?? "",
 		":folderid"    => $folderId,
 		":srt"         => (int)($row["srt"] ?? 0),
+		":time"        => $time,
 		":link"        => $row["link"] ?? "",
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
 		":common"      => (int)($row["common"] ?? 0),
@@ -460,7 +485,7 @@ function addFolder(AppContext $ctx, array $row): void {
 		":context"     => $row["context"] ?? "places",
 		":name"        => $row["name"] ?? "",
 		":description" => $row["description"] ?? "",
-		":srt"         => $row["srt"] ?? 0,
+		":srt"         => (float)($row["srt"] ?? 0),
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
 	]);
 }
@@ -487,7 +512,7 @@ function updateFolder(AppContext $ctx, array $row, string $myuserid): void {
 		":context"     => $row["context"] ?? "places",
 		":name"        => $row["name"] ?? "",
 		":description" => $row["description"] ?? "",
-		":srt"         => $row["srt"] ?? 0,
+		":srt"         => (float)($row["srt"] ?? 0),
 		":geomarks"    => (int)($row["geomarks"] ?? 0),
 	]);
 }

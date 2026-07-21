@@ -196,6 +196,7 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 
 	try {
 		await uploadImages(dataToSend);
+
 		await api.post(
 			`set_entities.php`,
 			{
@@ -225,7 +226,7 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 	await bufferInstance.removeItem('home');
 
 	mainStore.savedToDB(dataToSend);
-	mainStore.setMessage(mainStore.t.m.popup.savedToDb);
+	mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
 };
 
 export const syncBuffer = async (payload?: EntityCollection): Promise<void> => {

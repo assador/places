@@ -111,8 +111,8 @@ export const isPlace = (value: unknown): value is Place => {
 		typeof value.name !== 'string' ||
 		typeof value.srt !== 'number' ||
 		(typeof value.folderid !== 'string' && value.folderid !== null) ||
+		!isOptionalNumber(value.time) ||
 		!isOptionalString(value.link) ||
-		!isOptionalString(value.time) ||
 		!isOptionalString(value.description)
 	) {
 		return false;
@@ -128,8 +128,8 @@ export const isRoute = (value: unknown): value is Route => {
 		typeof value.name !== 'string' ||
 		typeof value.srt !== 'number' ||
 		(typeof value.folderid !== 'string' && value.folderid !== null) ||
+		!isOptionalNumber(value.time) ||
 		!isOptionalString(value.link) ||
-		!isOptionalString(value.time) ||
 		!isOptionalString(value.description)
 	) {
 		return false;

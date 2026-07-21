@@ -71,4 +71,21 @@ export const point2coords = (p: Point, m: string, h: string): string => {
 		coords2string([ p.latitude, p.longitude ]) +
 		(typeof p.altitude === 'number' ? `, ${h} ${p.altitude} ${m}` : '')
 	);
-}
+};
+export const unixTimestampToISO8601 = (ms: number | undefined): string => {
+	if (!ms) return '';
+
+	const date = new Date(ms);
+	const pad = (n: number) => String(n).padStart(2, '0');
+
+	const year = date.getUTCFullYear();
+	const month = pad(date.getUTCMonth() + 1);
+	const day = pad(date.getUTCDate());
+	const hours = pad(date.getUTCHours());
+	const minutes = pad(date.getUTCMinutes());
+
+	return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+export const iso8601ToUnixTimestamp = (str: string | undefined): number | undefined => {
+	return str ? new Date(str + ':00Z').getTime() : undefined;
+};

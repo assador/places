@@ -109,13 +109,13 @@
 				<dd>
 					<input
 						:id="'detailed-' + field"
-						:value="mainStore.currentPlace[field]"
+						:value="unixTimestampToISO8601(mainStore.currentPlace[field])"
 						type="datetime-local"
 						:disabled="!own"
 						class="fieldwidth_100"
 						@change="mainStore.changePlace({
 							entity: mainStore.currentPlace,
-							change: { [field]: ($event.target as HTMLInputElement).value.trim() },
+							change: { [field]: iso8601ToUnixTimestamp(($event.target as HTMLInputElement).value) },
 						})"
 					/>
 				</dd>
@@ -202,9 +202,14 @@
 
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
-import { coords2string, string2coords } from '@/shared/converters';
-import { useMainStore } from '@/stores/main';
 import { Place } from '@/types';
+import { useMainStore } from '@/stores/main';
+import {
+	coords2string,
+	string2coords,
+	iso8601ToUnixTimestamp,
+	unixTimestampToISO8601,
+} from '@/shared/converters';
 import Images from '@/components/details/Images.vue';
 
 const currentPlaceNameInputRef = inject<Ref<HTMLInputElement | null>>('currentPlaceNameInputRef', ref(null));

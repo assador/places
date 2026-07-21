@@ -65,7 +65,6 @@ export interface Point extends Entity {
 	latitude: number;
 	longitude: number;
 	altitude?: number | null;
-	time?: string;
 }
 export interface Place extends ImageableEntity {
 	type: 'place';
@@ -75,7 +74,7 @@ export interface Place extends ImageableEntity {
 	name: string;
 	description?: string;
 	link?: string;
-	time?: string;
+	time?: number;
 	srt: number;
 	geomark: number | boolean;
 	home?: boolean;
@@ -88,7 +87,7 @@ export interface Route extends ImageableEntity {
 	name: string;
 	description?: string;
 	link?: string;
-	time?: string;
+	time?: number;
 	srt: number;
 	geomarks: GeomarksState;
 }
