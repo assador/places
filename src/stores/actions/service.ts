@@ -58,7 +58,7 @@ export function useActionsService(
 		store.setMessage(
 			store.t.value.i.text.offline + '\n' +
 			store.t.value.i.text.offlineSaving
-		);
+		, 5);
 	};
 	const onServerOn = (): void => {
 		store.online.value = true;
@@ -66,7 +66,7 @@ export function useActionsService(
 		store.setMessage(
 			store.t.value.i.text.online + '\n' +
 			store.t.value.i.text.onlineSaving
-		);
+		, 5);
 	};
 	const setOffline = (offlineMode?: boolean): void => {
 		store.offlineMode.value = offlineMode ?? true;
@@ -75,7 +75,7 @@ export function useActionsService(
 			offlineMode
 				? store.t.value.i.text.offline + '\n' + store.t.value.i.text.offlineSaving
 				: store.t.value.i.text.online + '\n' + store.t.value.i.text.onlineSaving
-		);
+		, 5);
 	};
 	const setPointAltitude = async (entity: Point): Promise<void> => {
 		const id = entity.id;

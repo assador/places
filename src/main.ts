@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import { createPing } from '@/services/ping';
+import { buffer } from '@/services/buffer';
 
 import { registerSW } from 'virtual:pwa-register';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
@@ -19,5 +20,7 @@ app.use(pinia);
 
 const ping = createPing();
 ping.init();
+
+buffer.init();
 
 app.mount("#app");

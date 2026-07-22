@@ -170,6 +170,13 @@ export interface FirstShow {
 	first: boolean;
 }
 
+// SEC Buffer
+
+export interface BufferItems {
+	entities?: EntityCollection;
+	home?: string;
+}
+
 // SEC Popups
 
 export interface PopupPosition {

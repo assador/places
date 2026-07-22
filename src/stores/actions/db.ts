@@ -1,8 +1,8 @@
 import { StoreMain, ActionsDB } from '@/stores/types';
 import { EntityCollection } from '@/types';
 import { isDictKey } from '@/guards';
+import { buffer } from '@/services/buffer';
 import { isEntityCollectionEmpty } from '@/services/common';
-import { bufferInstance } from '@/services/localforage';
 
 export function useActionsDB(
 	store: StoreMain,
@@ -27,14 +27,15 @@ export function useActionsDB(
 		updateSavedStatus();
 	};
 	const updateSavedStatus = async (): Promise<void> => {
+		if (!store.user.value || store.user.value.testaccount) return;
 		const isOffline = store.offlineMode.value || !store.online.value;
 		store.saved.value = (
 			isEntityCollectionEmpty(store.getAllModifiedPackage.value) && (
 				isOffline || (
 					isEntityCollectionEmpty(
-						await bufferInstance.getItem<EntityCollection>('entities')
+						(await buffer.getOf(store.user.value.id)).entities
 					) && !(
-						await bufferInstance.getItem<EntityCollection>('home')
+						(await buffer.getOf(store.user.value.id)).home
 					)
 				)
 			)

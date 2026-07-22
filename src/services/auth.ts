@@ -69,14 +69,17 @@ export const logout = async (): Promise<boolean> => {
 		await logoutRoutine({ userId: userId, sessionId: sessionId });
 		mainStore.setBusy(false);
 	};
-	if (mainStore.saved || !mainStore.user || mainStore.user.testaccount) {
-		await getOut();
-		return true;
+	const confirmMessages: string[] = [];
+	if (mainStore.offlineMode || !mainStore.online) {
+		confirmMessages.push(mainStore.t.i.text.offlineExit);
 	}
-	const confirmed = await confirm.open(mainStore.t.i.text.notSaved);
-	if (confirmed) {
-		await getOut();
-		return true;
+	if (!mainStore.saved) {
+		confirmMessages.push(mainStore.t.i.text.notSaved);
 	}
-	return false;
+	if (confirmMessages.length) {
+		const confirmed = await confirm.open(confirmMessages.join('\n\n'));
+		if (!confirmed) return false;
+	}
+	await getOut();
+	return true;
 };

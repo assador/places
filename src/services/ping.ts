@@ -9,7 +9,7 @@ class PingService {
 	private intervalDuration = 7000;
 	private pingUrl = 'ping.php';
 
-	init() {
+	init(): void {
 		this.store = useMainStore();
 		watch(
 			() => this.store?.offlineMode,

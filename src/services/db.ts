@@ -13,7 +13,7 @@ import {
 } from '@/guards';
 
 import api from '@/api';
-import { bufferInstance } from '@/services/localforage';
+import { buffer } from '@/services/buffer';
 import { useMainStore } from '@/stores/main';
 
 interface UploadedFile {
@@ -157,8 +157,8 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 		const storeModifiedEntities: EntityCollection =
 			mainStore.getAllModifiedPackage
 		;
-		const bufferedEntities: EntityCollection | null =
-			await bufferInstance.getItem<EntityCollection>('entities')
+		const bufferedEntities: EntityCollection | undefined =
+			(await buffer.getOf(mainStore.user.id)).entities
 		;
 		if (!bufferedEntities) {
 			dataToSend = storeModifiedEntities;
@@ -206,7 +206,7 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 			},
 			{ silent: true },
 		);
-		const bufferedHome = await bufferInstance.getItem<string>('home');
+		const bufferedHome = (await buffer.getOf(mainStore.user.id)).home;
 		if (bufferedHome || mainStore.user.homeplace) {
 			await api.post(
 				'set_home.php',
@@ -222,8 +222,7 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);
 		throw error;
 	}
-	await bufferInstance.removeItem('entities');
-	await bufferInstance.removeItem('home');
+	await buffer.clearAllFor(mainStore.user.id);
 
 	mainStore.savedToDB(dataToSend);
 	mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
@@ -231,6 +230,7 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 
 export const syncBuffer = async (payload?: EntityCollection): Promise<void> => {
 	const mainStore = useMainStore();
+	if (!mainStore.user || mainStore.user.testaccount) return;
 
 	try {
 		if (!payload) payload = mainStore.getAllModifiedPackage;
@@ -243,7 +243,7 @@ export const syncBuffer = async (payload?: EntityCollection): Promise<void> => {
 		}
 		if (!hasChanges) return;
 
-		const entities = await bufferInstance.getItem<EntityCollection>('entities') || {};
+		const entities = (await buffer.getOf(mainStore.user.id)).entities || {};
 		const rawPayload: EntityCollection = JSON.parse(JSON.stringify(payload));
 
 		for (const key in payload) {
@@ -293,10 +293,10 @@ export const syncBuffer = async (payload?: EntityCollection): Promise<void> => {
 				});
 			}
 		}
-		await bufferInstance.setItem('entities', entities);
+		await buffer.setFor(mainStore.user.id).entities(entities);
 
 		if (mainStore.user?.homeplace) {
-			await bufferInstance.setItem('home', mainStore.user.homeplace);
+			await buffer.setFor(mainStore.user.id).home(mainStore.user.homeplace);
 		}
 	} catch (error) {
 		console.error(error);

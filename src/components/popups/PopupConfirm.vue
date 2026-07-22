@@ -6,10 +6,13 @@
 		>
 			<div class="popup-content centered confirm">
 				<div class="brand">
-					<h1 class="margin_bottom_0">
+					<h1>
 						{{ mainStore.t.i.captions.sure }}
 					</h1>
-					<p v-if="props.instance.message">
+					<p
+						v-if="props.instance.message"
+						class="confirm__message"
+					>
 						{{ props.instance.message }}
 					</p>
 				</div>
@@ -79,6 +82,9 @@ onUnmounted(() => {
 			gap: 8px;
 			justify-content: center;
 		}
+	}
+	&__message {
+		white-space: pre-line;
 	}
 }
 </style>

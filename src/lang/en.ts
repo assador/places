@@ -87,6 +87,7 @@ export const getT = () => ({
 			no: 'no',
 			notSaved: 'There are unsaved in the database changes.',
 			offline: 'You are offline',
+			offlineExit: 'You are currently offline. If you log out now, you will only be able to log back in once a network connection is available!',
 			offlineSaving: 'All changes are saved only on your device\nAnd only when you click the “Save” button',
 			online: 'You are online',
 			onlineSaving: 'All changes are saved in the database on the server\nBut only when you click the “Save” button',
