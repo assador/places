@@ -69,10 +69,15 @@ export const logout = async (): Promise<boolean> => {
 		await logoutRoutine({ userId: userId, sessionId: sessionId });
 		mainStore.setBusy(false);
 	};
-	const confirmMessages: string[] = [];
+
+// TODO This is temporary. Implement encrypted store in IndexedDB and authentication in offline mode.
 	if (mainStore.offlineMode || !mainStore.online) {
-		confirmMessages.push(mainStore.t.i.text.offlineExit);
+		mainStore.setMessage(mainStore.t.i.text.offlineExit, 3);
+		return false;
 	}
+
+	const confirmMessages: string[] = [];
+
 	if (!mainStore.saved) {
 		confirmMessages.push(mainStore.t.i.text.notSaved);
 	}

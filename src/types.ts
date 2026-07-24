@@ -23,7 +23,6 @@ export interface Image {
 	placeid?: string;
 	routeid?: string;
 	new?: boolean;
-	preview?: string;
 	raw?: File;
 }
 export interface RawImage {
@@ -174,7 +173,7 @@ export interface FirstShow {
 
 export interface BufferItems {
 	entities?: EntityCollection;
-	home?: string;
+	home?: string | null;
 }
 
 // SEC Popups
@@ -264,6 +263,11 @@ export interface EntityCollection {
 	routes?: Partial<Route>[];
 	images?: Partial<Image>[];
 }
+
+export const BUFFER_ENTITY_COLLECTION_KEYS = ['folders', 'points', 'places', 'routes'] as const;
+export type BufferEntityCollectionKey = typeof BUFFER_ENTITY_COLLECTION_KEYS[number];
+export type BufferEntityCollection = Omit<EntityCollection, 'images'>;
+
 export type EntityPartial =
 	| Partial<Folder>
 	| Partial<Point>

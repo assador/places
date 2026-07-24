@@ -1,6 +1,27 @@
 import api from '@/api';
+import { buffer } from '@/services/buffer';
 import { StoreMain, ActionsInit } from '@/stores/types';
-import { isRecord, isUser, isFolder, isPoint, isPlace, isRoute } from '@/guards';
+import {
+	Folder,
+	Place,
+	Point,
+	Route,
+} from '@/types';
+import {
+	isBufferEntityCollectionKey,
+	isFolder,
+	isPlace,
+	isPoint,
+	isRecord,
+	isRoute,
+	isUser,
+} from '@/guards';
+import {
+	initFolderFactory,
+	initPlaceFactory,
+	initPointFactory,
+	initRouteFactory,
+} from '@/stores/actions/entity';
 
 export function useActionsInit(
 	store: StoreMain,
@@ -19,10 +40,62 @@ export function useActionsInit(
 		reset();
 		localStorage.clear();
 	};
-	const entitiesReady = (
+	const takeAwayFromBuffer = async (): Promise<void> => {
+		if (!store.user.value || store.user.value.testaccount) return;
+
+		const createPoint = initPointFactory(
+			() => store.user.value?.id ?? null,
+			() => ({ latitude: 0, longitude: 0 }),
+		);
+		const createPlace = initPlaceFactory(() => store.user.value?.id ?? null);
+		const createRoute = initRouteFactory(() => store.user.value?.id ?? null);
+		const createFolder = initFolderFactory(() => store.user.value?.id ?? null);
+
+		const buffered = await buffer.getOf(store.user.value.id);
+		const entities = buffered.entities || {};
+		let hasChanges = false;
+
+		if (buffered.home !== undefined && buffered.home !== store.user.value.homeplace) {
+			store.user.value.homeplace = buffered.home;
+			hasChanges = true;
+		}
+		for (const key in entities) {
+			if (isBufferEntityCollectionKey(key) && entities[key]?.length) {
+				const sourceArray = entities[key];
+				sourceArray.forEach(entity => {
+					if (!entity.id) return;
+					switch (key) {
+						case 'points':
+							store.points.value[entity.id] = createPoint(
+								entity as Partial<Point>,
+							);
+							break;
+						case 'places':
+							store.places.value[entity.id] = createPlace(
+								entity as Partial<Place>,
+							);
+							break;
+						case 'routes':
+							store.routes.value[entity.id] = createRoute(
+								entity as Partial<Route>,
+							);
+							break;
+						case 'folders':
+							store.folders.value[entity.id] = createFolder(
+								entity as Partial<Folder>,
+							);
+							break;
+					}
+					hasChanges = true;
+				});
+			}
+		}
+		if (hasChanges) store.saved.value = false;
+	}
+	const entitiesReady = async (
 		entities: Record<string, Record<string, Record<string, unknown>>>,
 		what?: string,
-	): void => {
+	): Promise<void> => {
 		const { folders, points, places, routes } = entities;
 
 		let added = false, deleted = false, updated = false;
@@ -80,6 +153,7 @@ export function useActionsInit(
 			route.common = Boolean(route.common);
 			if (isRoute(route)) store.routes.value[id] = route;
 		}
+		await takeAwayFromBuffer();
 	};
 	const setServerConfig = async (): Promise<void> => {
 		try {
@@ -195,7 +269,7 @@ export function useActionsInit(
 			const { data } = await api.get('get_entities.php?id=' + uuid);
 			const cleanData = sanitizeEntitiesData(data);
 
-			entitiesReady(cleanData);
+			await entitiesReady(cleanData);
 			store.setHomePlace({
 				id: store.user.value?.homeplace ? store.user.value.homeplace : null,
 				silent: true,
@@ -205,7 +279,7 @@ export function useActionsInit(
 		} catch (error) {
 			console.error(error);
 			store.setMessage(store.t.value.m.popup.cannotGetDataFromDb);
-			entitiesReady({
+			await entitiesReady({
 				folders: {},
 				points: {},
 				places: {},

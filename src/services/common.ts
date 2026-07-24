@@ -186,7 +186,6 @@ export const addImages = (entity: Place | Route, input: HTMLInputElement) => {
 			srt: srt += 10,
 			[`${entity.type}id`]: entity.id,
 			new: true,
-			preview: URL.createObjectURL(file),
 			raw: file,
 		};
 		newImagesObject[id] = image;

@@ -9,11 +9,13 @@ import {
 	FatPointsPack,
 	Folder,
 	Identifiable,
+	Image,
 	Place,
 	Point,
 	PointDescription,
 	Route,
 } from '@/types';
+import { constants } from '@/shared/constants';
 
 export function useGettersEntity(
 	state: StoreMainStateRefs,
@@ -87,6 +89,17 @@ export function useGettersEntity(
 		if (Object.hasOwn(state.commonRoutes.value, id)) return state.commonRoutes.value[id];
 		return undefined;
 	};
+	const getImageUrl = (image?: Image | null, preview: boolean = false): string => {
+		if (!image) return '';
+
+		if (image.raw instanceof File) {
+			return URL.createObjectURL(image.raw);
+		}
+		if (image.file) {
+			return constants.dirs.uploads.images[preview ? 'small' : 'big'] + image.file;
+		}
+		return '';
+	}
 	const matchEntityFields = <E extends object>(
 		{ entity, where }: { entity: E & Identifiable; where: Partial<E>; }
 	): boolean => {
@@ -190,6 +203,7 @@ export function useGettersEntity(
 		getPointById,
 		getPlaceById,
 		getRouteById,
+		getImageUrl,
 		routePoints,
 		collectModified,
 		getAllModifiedPackage,

@@ -101,6 +101,7 @@ function createMainStoreState(): MainState {
 		routes: {},
 		routesShow: { show: false, first: true },
 		saved: true,
+		saving: false,
 		selectedToExport: {
 			places: [],
 			routes: [],

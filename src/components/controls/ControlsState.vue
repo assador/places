@@ -26,7 +26,7 @@
 			id="actions-save"
 			class="action-button"
 			:class="{ 'button-pressed': !mainStore.saved }"
-			:disabled="mainStore.saved"
+			:disabled="mainStore.saved || mainStore.saving"
 			:title="
 				(!mainStore.saved ? (mainStore.t.i.hints.notSaved + '. ') : '') +
 				mainStore.t.i.hints.saveToDb
@@ -40,7 +40,14 @@
 				db.saveEntities();
 			}"
 		>
-			<span class="icon icon-save" />
+			<span
+				v-if="!mainStore.saving"
+				class="icon icon-save"
+			/>
+			<span
+				v-else
+				class="icon icon-eye-open-circled spinner"
+			/>
 			<span>{{ mainStore.t.i.buttons.save }}</span>
 		</button>
 	</div>

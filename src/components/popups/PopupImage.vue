@@ -58,7 +58,6 @@ import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
 import { common, setBusy } from '@/services/common';
 import { useSwipe } from '@/services/swipe';
-import { constants } from '@/shared/constants';
 import { Image } from '@/types';
 
 interface PopupImageProps {
@@ -93,11 +92,7 @@ const image = computed<Image | undefined>(() =>
 		])
 		: props.id ? mainStore.getAllImages[props.id] ?? undefined : undefined
 );
-const imageSrc = computed<string>(() =>
-	!image.value ? '' :
-	(image.value.new && image.value.preview) ? image.value.preview :
-	(constants.dirs.uploads.images.big + image.value.file)
-);
+const imageSrc = computed<string>(() => mainStore.getImageUrl(image.value));
 watch(imageSrc, (newSrc) => {
 	if (newSrc) setBusy(true);
 });

@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import { constants } from '@/shared/constants';
 import { isRecord } from '@/guards';
 
@@ -187,3 +188,24 @@ export const anyInDictWhere = (
 	}
 	return undefined;
 };
+export const toRawDeep = <T>(val: T): T => {
+	const raw = toRaw(val);
+	if (
+		!raw ||
+		typeof raw !== 'object' ||
+		raw instanceof File ||
+		raw instanceof Blob ||
+		raw instanceof ArrayBuffer ||
+		raw instanceof Date ||
+		raw instanceof RegExp
+	) {
+		return raw;
+	}
+	if (Array.isArray(raw)) return raw.map(toRawDeep) as unknown as T;
+
+	const cleanObj: Record<string, unknown> = {};
+	for (const key of Object.keys(raw)) {
+		cleanObj[key] = toRawDeep((raw as Record<string, unknown>)[key]);
+	}
+	return cleanObj as T;
+}

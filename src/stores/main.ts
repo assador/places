@@ -107,6 +107,7 @@ export const useMainStore = defineStore('main', () => {
 		routes:  ref<Record<string, Route>>({}),
 		routesShow:  ref<FirstShow>({ show: false, first: true }),
 		saved:  ref<boolean>(true),
+		saving:  ref<boolean>(false),
 		selectedToExport: ref<Record<'places' | 'routes', string[]>>({
 			places: [],
 			routes: [],

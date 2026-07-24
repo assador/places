@@ -22,7 +22,7 @@ class BufferService {
 				const current = await this.getOf(uuid);
 				await this.buffer.setItem(uuid, { ...current, entities: payload });
 			},
-			home: async (payload: string): Promise<void> => {
+			home: async (payload: string | null): Promise<void> => {
 				if (!this.buffer || !uuid) return;
 				const current = await this.getOf(uuid);
 				await this.buffer.setItem(uuid, { ...current, home: payload });

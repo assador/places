@@ -93,6 +93,7 @@ export interface MainState {
 	routes: Record<string, Route>;
 	routesShow: FirstShow;
 	saved: boolean;
+	saving: boolean;
 	selectedToExport: Record<'places' | 'routes', string[]>;
 	serverConfig: any | null;
 	stateBackups: any[];

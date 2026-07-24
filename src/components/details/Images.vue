@@ -30,10 +30,7 @@
 					<img
 						class="image-thumbnail border_1"
 						:draggable="false"
-						:src="image.new
-							? image.preview
-							: constants.dirs.uploads.images.small + image.file
-						"
+						:src="mainStore.getImageUrl(image, true)"
 						:alt="current?.name"
 						:title="current?.name"
 					/>
@@ -112,7 +109,6 @@ import { Image } from '@/types';
 import { isFileInput } from '@/guards';
 import { addImages } from '@/services/common';
 import { usePointerDnD, handleDrop } from '@/services/dnd';
-import { constants } from '@/shared/constants';
 import PopupImage from '@/components/popups/PopupImage.vue';
 
 export interface ImagesProps {

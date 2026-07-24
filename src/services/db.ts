@@ -1,13 +1,13 @@
 import {
+	BufferEntityCollection,
+	BufferItems,
 	EntityCollection,
-	EntityPartial,
 	Identifiable,
 	ImageableEntity,
 } from '@/types';
 import {
-	isEntityCollectionKey,
+	isBufferEntityCollectionKey,
 	isImage,
-	isImageableCollectionKey,
 	isImageableContext,
 	isImageableEntity,
 } from '@/guards';
@@ -15,6 +15,7 @@ import {
 import api from '@/api';
 import { buffer } from '@/services/buffer';
 import { useMainStore } from '@/stores/main';
+import { toRawDeep } from '@/shared/common';
 
 interface UploadedFile {
 	id: string;
@@ -119,12 +120,11 @@ const uploadImages = async (payload: EntityCollection): Promise<void> => {
 					const entity = mainStore[context][pi.entity.id];
 					if (!entity) return;
 
-					const img = pi.entity.images[pi.id];
-					delete img.new;
-					delete img.raw;
-					delete img.preview;
+					const image = pi.entity.images[pi.id];
+					delete image.new;
+					delete image.raw;
 
-					const image: unknown = { ...img, ...serverFile };
+					Object.assign(image, serverFile);
 					if (!isImage(image)) return;
 
 					mainStore.upsertImage({ image, entity });
@@ -142,164 +142,109 @@ const uploadImages = async (payload: EntityCollection): Promise<void> => {
 
 export const saveEntities = async (payload?: EntityCollection): Promise<void> => {
 	const mainStore = useMainStore();
-	if (!mainStore.user || mainStore.user.testaccount) return;
-
-	if (mainStore.offlineMode || !mainStore.online) {
-		await syncBuffer(payload || mainStore.getAllModifiedPackage);
-		mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
-		return;
-	}
-
-	let dataToSend: EntityCollection = payload || {};
-	if (payload) {
-		dataToSend = payload;
-	} else {
-		const storeModifiedEntities: EntityCollection =
-			mainStore.getAllModifiedPackage
-		;
-		const bufferedEntities: EntityCollection | undefined =
-			(await buffer.getOf(mainStore.user.id)).entities
-		;
-		if (!bufferedEntities) {
-			dataToSend = storeModifiedEntities;
-		} else {
-			dataToSend = {};
-			const keys = new Set([
-				...Object.keys(storeModifiedEntities),
-				...Object.keys(bufferedEntities),
-			]);
-			keys.forEach(key => {
-				if (!isEntityCollectionKey(key)) return;
-
-				const storeArray = storeModifiedEntities[key] || [];
-				const bufferArray = bufferedEntities[key] || [];
-				const mergedMap = new Map<string, EntityPartial>();
-
-				bufferArray.forEach(item => {
-					if (item.id) mergedMap.set(item.id, item);
-				});
-				storeArray.forEach(item => {
-					if (item.id) mergedMap.set(item.id, item);
-				});
-				dataToSend[key] = Array.from(mergedMap.values()) as any;
-			});
-		}
-	}
-
-	let hasChanges = false;
-	for (const key in dataToSend) {
-		if (isEntityCollectionKey(key) && dataToSend[key] && dataToSend[key].length) {
-			hasChanges = true;
-		}
-	}
-	if (!hasChanges) return;
+	if (mainStore.saving || !mainStore.user || mainStore.user.testaccount) return;
+	mainStore.saving = true;
 
 	try {
-		await uploadImages(dataToSend);
+		let buffered = await syncBuffer(payload || mainStore.getAllModifiedPackage);
 
-		await api.post(
-			`set_entities.php`,
-			{
-				data: dataToSend,
-				userid: localStorage.getItem('places-useruuid'),
-				sessionid: localStorage.getItem('places-session'),
-			},
-			{ silent: true },
-		);
-		const bufferedHome = (await buffer.getOf(mainStore.user.id)).home;
-		if (bufferedHome || mainStore.user.homeplace) {
+		if (mainStore.offlineMode || !mainStore.online) {
+			mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
+			return;
+		}
+
+		if (!buffered) buffered = await buffer.getOf(mainStore.user.id);
+
+		if (buffered.entities && Object.keys(buffered.entities).length) {
+			await uploadImages(buffered.entities);
 			await api.post(
-				'set_home.php',
+				`set_entities.php`,
 				{
-					id: localStorage.getItem('places-useruuid'),
-					data: bufferedHome || mainStore.user.homeplace,
+					data: buffered.entities,
+					userid: localStorage.getItem('places-useruuid'),
+					sessionid: localStorage.getItem('places-session'),
 				},
 				{ silent: true },
 			);
 		}
+		if (buffered.home !== undefined) {
+			await api.post(
+				'set_home.php',
+				{
+					id: localStorage.getItem('places-useruuid'),
+					data: buffered.home,
+				},
+				{ silent: true },
+			);
+		}
+		await buffer.clearAllFor(mainStore.user.id);
+		mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
+		mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
 	} catch (error) {
 		console.error(error);
 		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);
 		throw error;
+	} finally {
+		mainStore.saving = false;
 	}
-	await buffer.clearAllFor(mainStore.user.id);
-
-	mainStore.savedToDB(dataToSend);
-	mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
 };
 
-export const syncBuffer = async (payload?: EntityCollection): Promise<void> => {
+let syncQueue = Promise.resolve<BufferItems | null>(null);
+
+export const syncBuffer = (payload?: BufferEntityCollection): Promise<BufferItems | null> => {
+	syncQueue = syncQueue
+		.then(() => runSyncBuffer(payload))
+		.catch((error) => {
+			console.error(error);
+			return null;
+		})
+	;
+	return syncQueue;
+};
+export const runSyncBuffer = async (payload?: BufferEntityCollection): Promise<BufferItems | null> => {
 	const mainStore = useMainStore();
-	if (!mainStore.user || mainStore.user.testaccount) return;
+	if (!mainStore.user || mainStore.user.testaccount) return null;
+
+	if (!payload) payload = mainStore.getAllModifiedPackage;
+	const buffered = await buffer.getOf(mainStore.user.id);
+	const entities = buffered.entities || {};
+	const home = mainStore.user.homeplace;
+
+	let hasEntityChanges = false;
+	for (const key in payload) {
+		if (isBufferEntityCollectionKey(key) && payload[key]?.length) {
+			hasEntityChanges = true;
+			break;
+		}
+	}
+	const hasHomeChanges = (buffered.home ?? null) !== mainStore.user.homeplace;
+	if (!hasEntityChanges && !hasHomeChanges) return null;
 
 	try {
-		if (!payload) payload = mainStore.getAllModifiedPackage;
-
-		let hasChanges = false;
-		for (const key in payload) {
-			if (isEntityCollectionKey(key) && payload[key] && payload[key].length) {
-				hasChanges = true;
-			}
-		}
-		if (!hasChanges) return;
-
-		const entities = (await buffer.getOf(mainStore.user.id)).entities || {};
-		const rawPayload: EntityCollection = JSON.parse(JSON.stringify(payload));
-
-		for (const key in payload) {
-			if (isImageableCollectionKey(key) && payload[key]) {
-				const sourceArray = payload[key]!;
-				const targetArray = rawPayload[key];
-
-				sourceArray.forEach((entity, index) => {
-					if (
-						!isImageableEntity(entity) ||
-						!entity.images ||
-						!targetArray?.[index]
-					) {
-						return;
-					}
-					const clonedEntity = targetArray[index] as ImageableEntity;
-					if (!clonedEntity.images) clonedEntity.images = {};
-
-					for (const imgId in entity.images) {
-						if (!Object.hasOwn(entity.images, imgId)) continue;
-						const sourceImg = entity.images[imgId];
-
-						if (sourceImg?.raw instanceof File) {
-							if (!clonedEntity.images[imgId]) {
-								clonedEntity.images[imgId] = { ...sourceImg };
-							}
-							clonedEntity.images[imgId].raw = sourceImg.raw;
-						}
-					}
-				});
-			}
-		}
+		const rawPayload: BufferEntityCollection = structuredClone(toRawDeep(payload));
 		for (const key in rawPayload) {
-			if (isEntityCollectionKey(key) && rawPayload[key]?.length) {
-				if (!entities[key]) entities[key] = [];
-				const targetArray = entities[key] as Identifiable[];
-				const sourceArray = rawPayload[key] as Identifiable[];
+			if (!isBufferEntityCollectionKey(key) || !rawPayload[key]?.length) continue;
 
-				sourceArray.forEach(newEntity => {
-					if (!newEntity.id) return;
-					const idx = targetArray.findIndex(e => e.id === newEntity.id);
-					if (idx !== -1) {
-						targetArray[idx] = newEntity;
-					} else {
-						targetArray.push(newEntity);
-					}
-				});
-			}
+			if (!entities[key]) entities[key] = [];
+			const targetArray = entities[key] as Identifiable[];
+			const sourceArray = rawPayload[key] as Identifiable[];
+
+			sourceArray.forEach(entity => {
+				if (!entity.id) return;
+				const idx = targetArray.findIndex(e => e.id === entity.id);
+				if (idx !== -1) {
+					targetArray[idx] = entity;
+				} else {
+					targetArray.push(entity);
+				}
+			});
 		}
 		await buffer.setFor(mainStore.user.id).entities(entities);
-
-		if (mainStore.user?.homeplace) {
-			await buffer.setFor(mainStore.user.id).home(mainStore.user.homeplace);
-		}
+		await buffer.setFor(mainStore.user.id).home(home);
+		return { entities, home };
 	} catch (error) {
 		console.error(error);
 		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);
+		throw error;
 	}
 };

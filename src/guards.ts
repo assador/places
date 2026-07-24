@@ -1,5 +1,6 @@
 import {
 	Account,
+	BufferEntityCollectionKey, BUFFER_ENTITY_COLLECTION_KEYS,
 	DictKey, DICT_KEYS,
 	EntityCollectionKey, ENTITY_COLLECTION_KEYS,
 	Folder,
@@ -198,6 +199,15 @@ export const isEntityCollectionKey = (value: unknown): value is EntityCollection
 	if (
 		typeof value !== 'string' ||
 		!(ENTITY_COLLECTION_KEYS as readonly string[]).includes(value)
+	) {
+		return false;
+	}
+	return true;
+};
+export const isBufferEntityCollectionKey = (value: unknown): value is BufferEntityCollectionKey => {
+	if (
+		typeof value !== 'string' ||
+		!(BUFFER_ENTITY_COLLECTION_KEYS as readonly string[]).includes(value)
 	) {
 		return false;
 	}
