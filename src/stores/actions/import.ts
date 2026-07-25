@@ -1,7 +1,7 @@
 import { StoreMain, ActionsImport } from '@/stores/types';
 import { Point, EntityCollection } from '@/types';
 import { entitiesFromJSON, entitiesFromGPX } from '@/shared/importexport';
-import { isFolder, isPlace } from '@/guards';
+import { isRecord, isFolder, isPlace } from '@/guards';
 
 export function useActionsImport(
 	store: StoreMain,
@@ -12,6 +12,8 @@ export function useActionsImport(
 		idMap: Map<string, string>,
 	): void => {
 		for (const f of foldersArray) {
+			if (!isRecord(f)) continue;
+			if (!Object.hasOwn(f, 'type')) f.type = 'folder';
 			if (!isFolder(f) || !f.id) continue;
 
 			const existing = store.folders.value[f.id];
@@ -39,6 +41,8 @@ export function useActionsImport(
 		pointsRecord: Record<string, Point>,
 	): void => {
 		for (const p of placesArray) {
+			if (!isRecord(p)) continue;
+			if (!Object.hasOwn(p, 'type')) p.type = 'place';
 			if (!isPlace(p) || !p.id) continue;
 
 			const existing = store.places.value[p.id];
@@ -83,14 +87,12 @@ export function useActionsImport(
 				entities = entitiesFromGPX(text);
 				break;
 		}
-
 		if (!entities) {
 			store.setMessage(store.t.value.m.popup.parsingImportError);
 			store.setBusy(false);
 			return;
 		}
 
-		// Импортируем папки
 		if (entities.folders) addImportedFolders(entities.folders, idMap);
 		store.inspectOrphanFolders();
 
@@ -101,7 +103,6 @@ export function useActionsImport(
 			return;
 		}
 
-		// Индексируем входящие точки по их ID для быстрого O(1) доступа внутри addImportedPlaces
 		const points: Record<string, Point> = {};
 		for (const pt of entities.points) {
 			if (pt && pt.id) {
@@ -109,7 +110,6 @@ export function useActionsImport(
 			}
 		}
 
-		// Импортируем места
 		if (entities.places) addImportedPlaces(entities.places, idMap, points);
 		store.inspectOrphanPlaces();
 

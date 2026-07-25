@@ -75,11 +75,11 @@ watch(() => colortheme.value, () => {
 @media screen and (max-width: 800px) {
 	.header #dashboard {
 		grid-template-areas:
-			"dashboard-langs  dashboard-colorthemes  dashboard-controls-choosemap  dashboard-controls-offline"
+			"dashboard-langs  dashboard-colorthemes  dashboard-controls-choosemap"
 		;
 		grid-template-columns: auto auto auto;
 		grid-template-rows: auto;
-		#dashboard-controls-offline, #dashboard-controls-choosemap {
+		#dashboard-controls-choosemap {
 			display: block;
 		}
 	}

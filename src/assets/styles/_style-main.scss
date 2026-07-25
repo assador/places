@@ -1129,8 +1129,19 @@ $filter-brightness-03: brightness(0%);
 			align-items: center;
 		}
 	}
+	.progress-bar {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		&__line {
+			position: absolute;
+			top: 0; right: auto; bottom: 0; left: 0;
+		}
+	}
 
 	/* Оформление декорирования */
+
 	pre, .pre, .drag-clone,
 	.block_01, .block_02, .block_03, .block_04, .block_05, .block_11 {
 		border-radius: 3px;

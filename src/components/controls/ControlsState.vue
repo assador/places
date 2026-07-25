@@ -1,6 +1,35 @@
 <template>
 	<div class="action-button-group">
 		<button
+			id="actions-offline"
+			class="action-button"
+			:class="{ 'button-pressed': mainStore.offlineMode }"
+			:title="mainStore.offlineMode
+				? `${mainStore.t.i.buttons.modeOff} ${mainStore.t.i.inputs.offline}`
+				: `${mainStore.t.i.buttons.modeOn} ${mainStore.t.i.inputs.offline}`
+			"
+			accesskey="o"
+			@click="offlineMode = !offlineMode"
+		>
+			<span class="icon icon-net-swith" />
+			<span>
+				{{
+					mainStore.offlineMode
+						? mainStore.t.i.inputs.offline
+						: mainStore.t.i.inputs.online
+				}}
+			</span>
+			<span
+				:class="`indicator-online ${
+					offlineMode ? 'color-grey' : mainStore.online ? 'color-green' : 'color-red'
+				}`"
+				:title="offlineMode || !mainStore.online
+					? mainStore.t.i.text.offline + '\n' + mainStore.t.i.text.offlineSaving
+					: mainStore.t.i.text.online + '\n' + mainStore.t.i.text.onlineSaving
+				"
+			/>
+		</button>
+		<button
 			id="actions-undo"
 			:disabled="mainStore.stateBackupsIndex < 1"
 			class="action-button"
@@ -54,8 +83,32 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useMainStore } from '@/stores/main';
 import * as db from '@/services/db';
 
 const mainStore = useMainStore();
+
+const offlineMode = computed({
+	get: () => mainStore.offlineMode,
+	set: (newValue) => {
+		mainStore.setOffline(newValue);
+	},
+});
 </script>
+
+<style lang="scss" scoped>
+#actions-offline {
+	position: relative;
+	.indicator-online {
+		display: block !important;
+		position: absolute;
+		top: -3px; right: -3px;
+		width: 12px; height: 12px;
+		border-radius: 999999px;
+	}
+}
+#bottom-basic #actions-offline {
+	margin-right: 12px;
+}
+</style>

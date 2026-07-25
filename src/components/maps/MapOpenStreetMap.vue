@@ -1,7 +1,7 @@
 <template>
 	<div id="mapblock">
 		<l-map
-			ref="map"
+			ref="extmap"
 			v-model:zoom="mapCenter.zoom"
 			:center="mapCenter.coords as PointExpression"
 			@ready="ready"
@@ -9,14 +9,17 @@
 			@contextmenu="leafletMapContextMenu"
 		>
 			<l-control-layers />
-			<l-tile-layer
-				v-for="(provider, index) in providers"
-				:key="'key' + index"
-				:name="provider.name"
-				:url="provider.url"
-				:visible="provider.visible"
-				layer-type="base"
-			/>
+			<template v-if="!isOffline">
+				<l-tile-layer
+					v-for="(provider, index) in providers"
+					:key="'key' + index"
+					:name="provider.name"
+					:url="provider.url"
+					:visible="provider.visible"
+					layer-type="base"
+				/>
+			</template>
+			<l-tile-layer v-else url="" />
 
 <!-- SEC Markers: Center Marker  -->
 
@@ -382,10 +385,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, computed, inject, nextTick } from 'vue';
+import { ref, Ref, computed, inject, watch, nextTick } from 'vue';
 import { useMainStore } from '@/stores/main';
-import L from "leaflet";
-import { LatLngExpression, PointExpression } from "leaflet";
+import L from 'leaflet';
+import { LatLngExpression, PointExpression, type LatLngTuple } from 'leaflet';
 import {
 	LCircleMarker,
 	LControlLayers,
@@ -395,17 +398,21 @@ import {
 	LMarker,
 	LPolyline,
 	LTileLayer,
-} from "@vue-leaflet/vue-leaflet";
-import "leaflet/dist/leaflet.css";
+} from '@vue-leaflet/vue-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Point, Place, Route, Measure, PointDescription } from '@/types';
 import { isPointDescription } from '@/guards';
 import { common } from '@/services/common';
 import { calculatePopupPosition } from '@/shared/common';
 import { mapContextMenu } from '@/shared/map';
+import {
+	createStrictOfflineLayer,
+} from '@/services/leaflet/strictofflinetilelayer';
 
 const mainStore = useMainStore();
 
-const map = inject('extmap') as Ref;
+const extmap = inject<Ref>('extmap');
+const map = ref<L.Map>();
 
 const mapCenter = computed(() => ({
 	coords: [
@@ -414,6 +421,8 @@ const mapCenter = computed(() => ({
 	],
 	zoom: mainStore.zoom,
 }));
+
+const isOffline = computed(() => mainStore.offlineMode || !mainStore.online);
 
 const preparePlaces = (dict: Record<string, Place>): Record<string, Place> => {
 	const prepared: Record<string, Place> = {};
@@ -479,6 +488,7 @@ const setRef = async (id: string, el: any, refs: any) => {
 				}, 220);
 			};
 			element._customDblClick = (event: any) => {
+				if (!map.value) return;
 				L.DomEvent.stopPropagation(event);
 				if (element._clickTimeout) {
 					clearTimeout(element._clickTimeout);
@@ -490,8 +500,8 @@ const setRef = async (id: string, el: any, refs: any) => {
 				for (let i = 0; i < latlngs.length - 1; i++) {
 					const d = L.LineUtil.pointToSegmentDistance(
 						event.layerPoint,
-						map.value.leafletObject.latLngToLayerPoint(latlngs[i]),
-						map.value.leafletObject.latLngToLayerPoint(
+						map.value.latLngToLayerPoint(latlngs[i]),
+						map.value.latLngToLayerPoint(
 							latlngs[i + 1],
 						),
 					);
@@ -654,22 +664,19 @@ const updateState = (payload?: { coords?: number[], zoom?: number }) => {
 		latitude: Number(
 			payload && payload.coords
 				? payload.coords[0].toFixed(7)
-				: (map as Ref).value.leafletObject.getCenter().lat.toFixed(7)
+				: map.value ? map.value.getCenter().lat.toFixed(7) : 0
 		),
 		longitude: Number(
 			payload && payload.coords
 				? payload.coords[1].toFixed(7)
-				: (map as Ref).value.leafletObject.getCenter().lng.toFixed(7)
+				: map.value ? map.value.getCenter().lng.toFixed(7) : 0
 		),
 		zoom: Number(
 			payload && payload.zoom
 				? payload.zoom
-				: (map as Ref).value.leafletObject.getZoom()
+				: map.value ? map.value.getZoom() : 0
 		),
 	});
-};
-const ready = (): void => {
-	(map as Ref).value.leafletObject.panTo(mapCenter.value.coords);
 };
 
 const icon_null = ref({
@@ -781,6 +788,44 @@ const providers = ref([{
 	url: 'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
 	visible: false,
 }]);
+
+// SEC Offline shenanigans
+
+const offlineTileLayer = createStrictOfflineLayer();
+
+const syncOfflineLayer = () => {
+	if (!map.value) return;
+
+	if (isOffline.value) {
+		if (!map.value.hasLayer(offlineTileLayer)) {
+			offlineTileLayer.addTo(map.value);
+		}
+		offlineTileLayer.redraw();
+	} else {
+		if (map.value.hasLayer(offlineTileLayer)) {
+			map.value.removeLayer(offlineTileLayer);
+		}
+	}
+};
+watch(isOffline, () => {
+	syncOfflineLayer();
+});
+
+const updateMapTileLayer = () => {
+	if (offlineTileLayer) offlineTileLayer.redraw();
+};
+defineExpose({
+	updateMapTileLayer,
+});
+
+// SEC Ready
+
+const ready = (): void => {
+	map.value = extmap?.value?.leafletObject ?? null;
+	if (map.value) map.value.panTo(mapCenter.value.coords as LatLngTuple);
+	syncOfflineLayer();
+};
+
 </script>
 
 <style lang="scss">

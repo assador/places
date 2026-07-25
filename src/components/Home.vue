@@ -314,7 +314,6 @@
 					</button>
 				</div>
 			</div>
-			<div id="bottom-controls-offline" />
 			<div id="bottom-controls-choosemap" />
 			<div
 				v-if="common.compact !== 2"
@@ -464,43 +463,30 @@
 <!-- SEC Controls -->
 
 	<Teleport :to="common.compact === 2 ? '#dashboard-controls-choosemap' : '#bottom-controls-choosemap'">
-		<select
-			:title="mainStore.t.i.hints.mapProvider"
-			@change="e => mainStore.activeMapIndex = (e.currentTarget as HTMLSelectElement).selectedIndex"
-		>
-			<option
-				v-for="(map, index) in maps"
-				:key="index"
-				:value="map.componentName"
-				:selected="map.componentName === maps[mainStore.activeMapIndex].componentName"
-			>
-				{{ map.name }}
-			</option>
-		</select>
-	</Teleport>
-
-	<Teleport :to="common.compact === 2 ? '#dashboard-controls-offline' : '#bottom-controls-offline'">
-		<div class="online-mode">
+		<div class="map-actions">
 			<select
-				v-model="offlineMode"
-				:class="{ focused: offlineMode }"
+				:title="mainStore.t.i.hints.mapProvider"
+				@change="e => mainStore.activeMapIndex = (e.currentTarget as HTMLSelectElement).selectedIndex"
 			>
-				<option :value="false">
-					{{ mainStore.t.i.inputs.online }}
-				</option>
-				<option :value="true">
-					{{ mainStore.t.i.inputs.offline }}
+				<option
+					v-for="(map, index) in maps"
+					:key="index"
+					:value="map.componentName"
+					:selected="map.componentName === maps[mainStore.activeMapIndex].componentName"
+				>
+					{{ map.name }}
 				</option>
 			</select>
-			<div
-				:class="`indicator-online ${
-					offlineMode ? 'color-grey' : mainStore.online ? 'color-green' : 'color-red'
-				}`"
-				:title="offlineMode || !mainStore.online
-					? mainStore.t.i.text.offline + '\n' + mainStore.t.i.text.offlineSaving
-					: mainStore.t.i.text.online + '\n' + mainStore.t.i.text.onlineSaving
-				"
-			/>
+			<button
+				id="actions-tiles"
+				class="action-button"
+				:title="mainStore.t.i.maps.mapImport"
+				accesskey="m"
+				@click="showPopupImportTiles = true"
+			>
+				<span class="icon icon-save" />
+				<span>{{ mainStore.t.i.maps.maps }}</span>
+			</button>
 		</div>
 	</Teleport>
 
@@ -547,8 +533,20 @@
 
 <!-- SEC Popups -->
 
-	<PopupPointInfo />
 	<PopupEntityMenu />
+	<PopupPointInfo />
+
+	<transition name="fade">
+		<PopupExchange v-if="showPopupExchange" />
+	</transition>
+
+	<transition name="fade">
+		<PopupTilesImport
+			v-if="showPopupImportTiles"
+			@imported="onTilesUpdated"
+			@cleared="onTilesUpdated"
+		/>
+	</transition>
 
 	<div
 		v-if="isPrefixActive"
@@ -588,7 +586,9 @@ import PlaceDetails from '@/components/details/Place.vue';
 import Points from '@/components/Points.vue';
 import Popup from '@/components/popups/Popup.vue';
 import PopupEntityMenu from '@/components/popups/PopupEntityMenu.vue';
+import PopupExchange from '@/components/popups/PopupExchange.vue';
 import PopupPointInfo from '@/components/popups/PopupPointInfo.vue';
+import PopupTilesImport from '@/components/popups/PopupTilesImport.vue';
 import RouteDetails from '@/components/details/Route.vue';
 import Tree from '@/components/tree/Tree.vue';
 
@@ -622,13 +622,6 @@ const extmap = ref<any>(null);
 provide('extmap', extmap);
 const showMap = ref(true);
 provide('showMap', showMap);
-
-const offlineMode = computed({
-	get: () => mainStore.offlineMode,
-	set: (newValue) => {
-		mainStore.setOffline(newValue);
-	},
-});
 
 const root = ref<HTMLElement>();
 const basicFulled = ref(false);
@@ -676,8 +669,6 @@ const cells = ref({
 });
 provide('cells', cells);
 
-const importFromFileInput = ref<HTMLInputElement>();
-provide('importFromFileInput', importFromFileInput);
 const commonPlacesPagesCount = ref(0);
 const commonRoutesPage = ref(1);
 provide('commonRoutesPage', commonRoutesPage);
@@ -730,6 +721,10 @@ const popupDonate = ref<PopupProps>({
 		left: '0',
 	},
 });
+const showPopupExchange = ref(false);
+provide('showPopupExchange', showPopupExchange);
+const showPopupImportTiles = ref(false);
+provide('showPopupImportTiles', showPopupImportTiles);
 
 const commonPlaces = computed<Record<string, Place>>(() => {
 	const ids = Object.keys(mainStore.commonPlaces);
@@ -850,8 +845,7 @@ const keyup = (e: KeyboardEvent): void => {
 		'temps show': () => mainStore.tempsShow.show = !mainStore.tempsShow.show,
 		'add': () => mainStore.upsertPlaceFollowing(mainStore.currentPlace),
 		'add folder': () => router.push({ name: 'HomeFolder' }),
-		'import': () => importFromFileInput?.value?.click(),
-		'export': () => router.push({ name: 'HomeExport' }),
+		'exchange': () => showPopupExchange.value = true,
 		'save': () => db.saveEntities(),
 		'help': () => router.push({ name: 'HomeText', params: { what: 'about' } }),
 		'quit': () => { logout(); router.push({ name: 'Auth' }); },
@@ -995,6 +989,12 @@ const selectPlaces = (text?: string | null): void => {
 		}
 	}
 };
+
+// SEC Offline shenanigans
+
+const onTilesUpdated = () => {
+	extmap.value?.updateMapTileLayer?.();
+};
 </script>
 
 <style lang="scss" scoped>
@@ -1065,16 +1065,15 @@ const selectPlaces = (text?: string | null): void => {
 		margin: 0 !important;
 	}
 }
-.online-mode {
+.map-actions {
 	display: grid;
 	grid-template-columns: 1fr auto;
-	align-items: center;
-	gap: 6px;
-	.indicator-online {
-		display: block;
-		width: 12px;
-		height: 12px;
-		border-radius: 999999px;
+	gap: 8px;
+	.action-button {
+		min-height: 0;
+		& > :not(.icon) {
+			display: none;
+		}
 	}
 }
 </style>

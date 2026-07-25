@@ -9,7 +9,6 @@ const PopupText = () => import('@/components/popups/PopupText.vue');
 const PopupImage = () => import('@/components/popups/PopupImage.vue');
 const PopupFolder = () => import('@/components/popups/PopupFolder.vue');
 const PopupFolderDelete = () => import('@/components/popups/PopupFolderDelete.vue');
-const PopupExport = () => import('@/components/popups/PopupExport.vue');
 
 const routes: RouteRecordRaw[] = [
 	{
@@ -46,11 +45,6 @@ const routes: RouteRecordRaw[] = [
 				path: 'deletefolder?id=:id&type=:type?',
 				name: 'HomeDeleteFolder',
 				component: PopupFolderDelete,
-				props: true,
-			}, {
-				path: 'export',
-				name: 'HomeExport',
-				component: PopupExport,
 				props: true,
 			},
 		],
