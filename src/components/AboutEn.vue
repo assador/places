@@ -55,7 +55,11 @@
 <li><a href="#working-with-images">Working with Images</a></li>
 </ul>
 </li>
-<li><a href="#7-architectural-features">Architectural Features</a><ul>
+<li><a href="#7-offline-mode">Offline Mode</a><ul>
+<li><a href="#offline-openstreetmap-maps">Offline OpenStreetMap Maps</a></li>
+</ul>
+</li>
+<li><a href="#8-architectural-features">Architectural Features</a><ul>
 <li><a href="#deletion-and-data-safety">Deletion and Data Safety</a></li>
 <li><a href="#saving-principle">Saving Principle</a></li>
 </ul>
@@ -275,7 +279,87 @@ The mode determines the map behavior and Right-Click (RMB) actions.</p>
 <li>Use Drag &amp; Drop to change the preview order.</li>
 <li>The order is also synchronized with the database.</li>
 </ul>
-<h2 id="7-architectural-features">7. Architectural Features</h2>
+<h2 id="7-offline-mode">7. Offline Mode</h2>
+<p>
+	You can work with “The Places” completely offline, without internet access.
+	For this, a special <strong>Offline Mode</strong> is provided, which you
+	toggle manually and explicitly. Think of it like “Airplane Mode” for mobile
+	devices.
+</p>
+<p>
+	Also, technically independent of the Offline Mode itself, you have a current
+	<strong>network status</strong> — Online / Offline.
+</p>
+<p>
+	<strong>Offline Mode</strong> is toggled via a dedicated button
+	in the header. Click it — it highlights — and you are fully offline.
+	Click it again — the highlight disappears — and depending on actual network
+	availability, you are either Online or Offline.
+</p>
+<p>
+	On the button itself, there is a colored indicator dot in the corner showing
+	the <strong>network status</strong>:<br />
+	<strong>Gray</strong> — <strong>Offline Mode</strong> is ON (the <strong
+		>network status</strong
+	>
+	is obviously Offline).<br />
+	<strong>Red</strong> — <strong>Offline Mode</strong> is OFF, but the network
+	itself is unavailable; the <strong>network status</strong> is Offline.<br />
+	<strong>Green</strong> — <strong>Offline Mode</strong> is OFF, the network
+	is available; the <strong>network status</strong> is Online. This is
+	the default operational state.
+</p>
+<p>
+	If manual Offline Mode is <strong>OFF</strong>, the app periodically pings
+	its server on the network, which hosts the backend and database. If a ping
+	fails, the network status changes to <strong>Offline</strong>, and
+	the indicator turns red (a notification popup also appears, etc.). Pings
+	continue until connection is restored. As soon as pings succeed,
+	the network status switches back to <strong>Online</strong>, and
+	the indicator turns green.
+</p>
+<p>
+	If you <strong>turn ON</strong> Offline Mode, the network status changes
+	to <strong>Offline</strong>, all pings stop, and any network requests to the
+	backend and database are completely halted. You are entirely autonomous, and
+	the indicator dot turns gray. When you
+	<strong>turn OFF</strong> Offline Mode, a corresponding notification
+	appears, pings resume, and as soon as they succeed, your network status
+	becomes <strong>Online</strong>, turning the indicator green.
+</p>
+<p>
+	Now regarding the mechanics. As mentioned earlier in this manual,
+	“The Places” operates on the explicit change-saving principle
+	(“batch saving”) — any requests to modify data in the server database via
+	backend occur only when you explicitly click the “Save” button.
+</p>
+<p>
+	If the <strong>network status</strong> is Online — all your changes are sent
+	to the server and saved to the database upon clicking “Save”.
+</p>
+<p>
+	If the <strong>network status</strong> is Offline — everything is written
+	locally to your device’s disk and nowhere else. Once the <strong
+		>network status</strong
+	>
+	becomes Online, you can click “Save” again, and only then will all your
+	accumulated changes on the local disk be pushed to the server database.
+</p>
+<h3 id="offline-openstreetmap-maps">Offline OpenStreetMap Maps</h3>
+<p>
+	Specifically for <strong>Offline Mode</strong> (or simply when the network
+	is unavailable and the <strong>network status</strong> is Offline),
+	“The Places” provides the ability to import OpenStreetMap tiles from
+	a pre-downloaded ZIP archive. The import button is located right next to the
+	map selection dropdown (OpenStreetMap / Yandex.Maps), but only when
+	OpenStreetMap is selected.
+</p>
+<p>
+	Thus, by importing maps from a ZIP archive onto your device and switching
+	to <strong>Offline Mode</strong>, you can work completely autonomously,
+	without any network connection.
+</p>
+<h2 id="8-architectural-features">8. Architectural Features</h2>
 <ul>
 <li><strong>Frontend</strong>: Vue 3, Pinia, Axios.</li>
 <li>Centralized state.</li>

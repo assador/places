@@ -196,6 +196,41 @@
 					]
 				}}
 			</a>
+			<a
+				v-if="
+					object.type === 'place' && (
+						mainStore.mode === 'measure' ||
+						mainStore.mode === 'routes' && mainStore.currentRouteId
+					)
+				"
+				class="menu-link message border_1"
+				role="button" tabindex="0"
+				@pointerdown.stop
+				@pointerup.stop
+				@click.stop="() => {
+					const point = isPlace(object) ? mainStore.getPointById(object.pointid) : undefined;
+					if (!point) return;
+					if (mainStore.mode === 'measure') {
+						mainStore.addPointToPoints({
+							point: point,
+							entity: mainStore.measure,
+						});
+					} else if (mainStore.mode === 'routes') {
+						const route = mainStore.currentRoute;
+						if (!route) return;
+						mainStore.addPointToPoints({
+							point: point,
+							entity: route,
+						});
+					}
+				}"
+			>
+				<span class="icon icon-plus-circled" />
+				{{ mainStore.t.i.buttons[mainStore.mode === 'measure'
+					? 'addPlacePointToMeasure'
+					: 'addPlacePointToRoute'
+				] }}
+			</a>
 		</template>
 	</Popup>
 </template>

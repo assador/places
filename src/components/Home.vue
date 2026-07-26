@@ -478,13 +478,14 @@
 				</option>
 			</select>
 			<button
+				v-if="mainStore.activeMapIndex === 0"
 				id="actions-tiles"
 				class="action-button"
 				:title="mainStore.t.i.maps.mapImport"
 				accesskey="m"
 				@click="showPopupImportTiles = true"
 			>
-				<span class="icon icon-save" />
+				<span class="icon icon-download" />
 				<span>{{ mainStore.t.i.maps.maps }}</span>
 			</button>
 		</div>
@@ -1066,8 +1067,7 @@ const onTilesUpdated = () => {
 	}
 }
 .map-actions {
-	display: grid;
-	grid-template-columns: 1fr auto;
+	display: flex;
 	gap: 8px;
 	.action-button {
 		min-height: 0;

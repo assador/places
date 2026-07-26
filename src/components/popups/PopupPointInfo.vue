@@ -322,7 +322,6 @@ const deletePoint = async (index: number, entity: Route | Measure) => {
 	}
 	&-common {
 		display: flex;
-		flex-wrap: nowrap;
 		gap: 8px;
 		align-items: stretch;
 		& > *:not(&__name) {

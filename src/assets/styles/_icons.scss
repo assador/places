@@ -71,15 +71,15 @@
 	&-plus-net::before { mask-image: url('@/assets/icons/plus-net.svg'); }
 	&-route::before { mask-image: url('@/assets/icons/route.svg'); }
 	&-ruler::before { mask-image: url('@/assets/icons/ruler.svg'); }
-	&-save::before { mask-image: url('@/assets/icons/save.svg'); }
 	&-text::before { mask-image: url('@/assets/icons/text.svg'); }
 	&-triangle::before { mask-image: url('@/assets/icons/triangle.svg'); }
 	&-undo::before, &-redo::before { mask-image: url('@/assets/icons/undo.svg'); }
+	&-upload::before, &-download::before { mask-image: url('@/assets/icons/save.svg'); }
 
 	&-redo::before {
 		transform: scaleX(-1);
 	}
-	&-export::before {
+	&-export::before, &-upload::before {
 		transform: rotate(180deg);
 	}
 }

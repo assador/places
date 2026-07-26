@@ -71,7 +71,7 @@
 		>
 			<span
 				v-if="!mainStore.saving"
-				class="icon icon-save"
+				class="icon icon-upload"
 			/>
 			<span
 				v-else

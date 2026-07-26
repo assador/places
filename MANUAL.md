@@ -34,7 +34,9 @@
 	- [Creating a Place](#creating-a-place)
 	- [Creating a Route](#creating-a-route)
 	- [Working with Images](#working-with-images)
-7. [Architectural Features](#7-architectural-features)
+7. [Offline Mode](#7-offline-mode)
+	- [Offline OpenStreetMap Maps](#offline-openstreetmap-maps)
+8. [Architectural Features](#8-architectural-features)
 	- [Deletion and Data Safety](#deletion-and-data-safety)
 	- [Saving Principle](#saving-principle)
 
@@ -302,7 +304,36 @@ A Point can be added multiple times — the system does not create duplicates.
 - Use Drag & Drop to change the preview order.
 - The order is also synchronized with the database.
 
-## 7\. Architectural Features
+## 7\. Offline Mode
+
+You can work with “The Places” completely offline, without internet access. For this, a special **Offline Mode** is provided, which you toggle manually and explicitly. Think of it like “Airplane Mode” for mobile devices.
+
+Also, technically independent of the Offline Mode itself, you have a current **network status** — Online / Offline.
+
+**Offline Mode** is toggled via a dedicated button in the header. Click it — it highlights — and you are fully offline. Click it again — the highlight disappears — and depending on actual network availability, you are either Online or Offline.
+
+On the button itself, there is a colored indicator dot in the corner showing the **network status**:  
+**Gray** — **Offline Mode** is ON (the **network status** is obviously Offline).  
+**Red** — **Offline Mode** is OFF, but the network itself is unavailable; the **network status** is Offline.  
+**Green** — **Offline Mode** is OFF, the network is available; the **network status** is Online. This is the default operational state.
+
+If manual Offline Mode is **OFF**, the app periodically pings its server on the network, which hosts the backend and database. If a ping fails, the network status changes to **Offline**, and the indicator turns red (a notification popup also appears, etc.). Pings continue until connection is restored. As soon as pings succeed, the network status switches back to **Online**, and the indicator turns green.
+
+If you **turn ON** Offline Mode, the network status changes to **Offline**, all pings stop, and any network requests to the backend and database are completely halted. You are entirely autonomous, and the indicator dot turns gray. When you **turn OFF** Offline Mode, a corresponding notification appears, pings resume, and as soon as they succeed, your network status becomes **Online**, turning the indicator green.
+
+Now regarding the mechanics. As mentioned earlier in this manual, “The Places” operates on the explicit change-saving principle (“batch saving”) — any requests to modify data in the server database via backend occur only when you explicitly click the “Save” button.
+
+If the **network status** is Online — all your changes are sent to the server and saved to the database upon clicking “Save”.
+
+If the **network status** is Offline — everything is written locally to your device’s disk and nowhere else. Once the **network status** becomes Online, you can click “Save” again, and only then will all your accumulated changes on the local disk be pushed to the server database.
+
+### Offline OpenStreetMap Maps
+
+Specifically for **Offline Mode** (or simply when the network is unavailable and the **network status** is Offline), “The Places” provides the ability to import OpenStreetMap tiles from a pre-downloaded ZIP archive. The import button is located right next to the map selection dropdown (OpenStreetMap / Yandex.Maps), but only when OpenStreetMap is selected.
+
+Thus, by importing maps from a ZIP archive onto your device and switching to **Offline Mode**, you can work completely autonomously, without any network connection.
+
+## 8\. Architectural Features
 
 - **Frontend**: Vue 3, Pinia, Axios.
 - Centralized state.

@@ -18,7 +18,7 @@
 			:disabled="!pwa?.installPWAEnabled"
 			@click="() => { if (pwa) pwa.installPWA(); }"
 		>
-			<span class="icon icon-save" />
+			<span class="icon icon-download" />
 			<span>{{ mainStore.t.i.buttons.install }}</span>
 		</button>
 		<button
