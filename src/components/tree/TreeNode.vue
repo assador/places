@@ -273,7 +273,7 @@
 						}
 					})"
 					@pointercancel.stop="onPointerUp"
-					@contextmenu.stop.prevent="e => common.toggleEntityMenuPopup(e, object, props.what)"
+					@contextmenu.stop.prevent="contextPlaceRoute($event, object)"
 				>
 					{{ object.name || mainStore.t.i.captions.untitled }}
 				</span>
@@ -371,6 +371,7 @@ import {
 	Folder,
 	FolderContext,
 } from '@/types';
+import { isPlace } from '@/guards';
 import { common } from '@/services/common';
 import { usePointerDnD, handleDrop } from '@/services/dnd';
 import { roundTo } from '@/shared/common';
@@ -426,6 +427,27 @@ const routesDistance = computed(() => {
 	), 0), 3);
 	return { include: include, exclude: exclude };
 });
+const contextPlaceRoute = (e: PointerEvent, o: Place | Route): void => {
+	if (!e.shiftKey) {
+		common.toggleEntityMenuPopup(e, o, props.what);
+	} else {
+		const point = isPlace(o) ? mainStore.getPointById(o.pointid) : undefined;
+		if (!point) return;
+		if (mainStore.mode === 'measure') {
+			mainStore.addPointToPoints({
+				point: point,
+				entity: mainStore.measure,
+			});
+		} else if (mainStore.mode === 'routes') {
+			const route = mainStore.currentRoute;
+			if (!route) return;
+			mainStore.addPointToPoints({
+				point: point,
+				entity: route,
+			});
+		}
+	}
+};
 const selectFolderToExport = (id: string | null, select: boolean): void => {
 	const currentArray = mainStore.selectedToExport[props.what];
 	const descendantsSet = mainStore.getDescendants(id, props.what);
