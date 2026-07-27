@@ -59,8 +59,7 @@ export function useActionsImport(
 				props: { ...ptImported, id: pointId },
 				silent: true,
 			});
-			let mappedFolderId: string | null = null;
-			if (p.folderid) mappedFolderId = idMap.get(p.folderid) ?? p.folderid;
+			const mappedFolderId = p.folderid ? (idMap.get(p.folderid) ?? p.folderid) : null;
 			store.upsertPlace({
 				object: existing,
 				mode: existing ? 'change' : 'new',

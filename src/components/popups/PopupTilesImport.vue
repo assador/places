@@ -93,7 +93,7 @@ const handleFileSelect = async (event: Event) => {
 		});
 		mainStore.setMessage(`${mainStore.t.i.maps.tilesLoaded}: ${result.count}`);
 		emit('imported', result.count);
-	} catch (error: any) {
+	} catch (error) {
 		console.error(error);
 		mainStore.setMessage(mainStore.t.m.errors.maps.failedToImportZip);
 	} finally {

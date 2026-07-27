@@ -24,7 +24,7 @@ export const handleFolderDropped = (
 		? null : target.dataset.entityId
 	;
 	if (
-		!targetId ||
+		targetId === undefined ||
 		targetId === payload.id ||
 		target.dataset.entityType !== 'folder' ||
 		isAncestorOf({
@@ -38,7 +38,7 @@ export const handleFolderDropped = (
 	const folder = mainStore.folders[payload.id];
 	let parentId: string | null = targetId;
 	let srt: number;
-	const srts = mainStore.getSrts(targetId, target.dataset.entityType);
+	const srts = targetId ? mainStore.getSrts(targetId, target.dataset.entityType) : undefined;
 
 	switch (payload.position) {
 		case 'before':
@@ -67,21 +67,21 @@ export const handlePlaceRouteDropped = (
 		? null : target.dataset.entityId
 	;
 	if (
-		!targetId ||
+		targetId === undefined ||
 		targetId === payload.id ||
 		!isTreeItemType(target.dataset.entityType)
 	) {
 		return;
 	}
-	const parentId = (target.dataset.entityType !== 'folder'
+	const parentId = targetId ? (target.dataset.entityType !== 'folder'
 		? mainStore[payload.context][targetId].folderid
 		: (target.dataset.entitySortArea
 			? mainStore.folders[targetId]?.parent ?? null
 			: targetId
-	));
+	)) : null;
 	let srt: number;
 	const entity = mainStore[payload.context][payload.id];
-	const srts = mainStore.getSrts(targetId, target.dataset.entityType);
+	const srts = targetId ? mainStore.getSrts(targetId, target.dataset.entityType) : undefined;
 
 	switch (payload.position) {
 		case 'before':

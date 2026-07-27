@@ -86,11 +86,11 @@ export function useGettersTree(
 	const getDescendants = (id: string | null, type: 'folders' | 'places' | 'routes'): Set<string> => {
 		const folderIds = new Set<string>();
 		const collectFolderIds = (currentId: string | null) => {
-			for (const id in state.folders.value) {
-				if (!Object.hasOwn(state.folders.value, id)) continue;
-				if (state.folders.value[id].parent === currentId) {
-					folderIds.add(id);
-					collectFolderIds(id);
+			for (const fId in state.folders.value) {
+				if (!Object.hasOwn(state.folders.value, fId)) continue;
+				if (!folderIds.has(fId) && state.folders.value[fId].parent === currentId) {
+					folderIds.add(fId);
+					collectFolderIds(fId);
 				}
 			}
 		};
@@ -102,7 +102,7 @@ export function useGettersTree(
 		const targetCollection = state[type];
 		for (const itemId in targetCollection.value) {
 			const itemFolderId = targetCollection.value[itemId].folderid;
-			if (itemFolderId && (itemFolderId === id || folderIds.has(itemFolderId))) {
+			if (itemFolderId === id || itemFolderId && folderIds.has(itemFolderId)) {
 				collection.add(itemId);
 			}
 		}

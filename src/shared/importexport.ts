@@ -200,11 +200,10 @@ export const exportPlaces = (format: ImportExportFormat = 'json'): void => {
 	let content: string;
 	let filename = 'places.json';
 	let mimeType = 'application/json';
-	const places: Record<string, Place> = Object.fromEntries(
-		Object.entries(mainStore.places).filter(
-			([id]) => mainStore.selectedToExport.places?.includes(id)
-		)
-	);
+	const places: Record<string, Place> = {};
+	for (const id of mainStore.selectedToExport.places) {
+		if (mainStore.places[id]) places[id] = mainStore.places[id];
+	}
 	if (format === 'gpx') {
 		content = generateGPX({
 			places: places,
