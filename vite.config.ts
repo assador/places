@@ -34,11 +34,23 @@ export default defineConfig({
 				],
 			},
 			workbox: {
+				globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+				globIgnores: ['**/screenshot*.png', '**/raw/**'],
 				navigateFallbackDenylist: [/^\/backend/],
 				runtimeCaching: [
 					{
 						urlPattern: /^\/(backend|raw)\/.*$/,
 						handler: 'NetworkOnly',
+					}, {
+						urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webmanifest|woff2?)$/,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'static-assets-cache',
+							expiration: {
+								maxEntries: 100,
+								maxAgeSeconds: 60 * 60 * 24 * 30,
+							},
+						},
 					},
 				],
 			},
