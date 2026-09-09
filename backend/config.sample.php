@@ -18,7 +18,7 @@ return [
 	"db" => [
 		"name"      => "db_places",
 		"username"  => "dbu_places",
-		"password"  => "sql3rxb2sa",
+		"password"  => "dbu_places_password",
 		"host"      => "localhost",
 		"port"      => "3306",
 		"driver"    => "mysql",
