@@ -1,3 +1,6 @@
+backend/vendor
+backend/phinx.yml
+
 dist
 node_modules
 log/mails/*
