@@ -74,7 +74,7 @@
 
 1.  **Клонирование:** `git clone https://github.com/assador/places.git`
 2.  **База данных:** Создайте БД и импортируйте дамп из `/mezzanine/db_places.sql`.
-3.  **Настройка:** Отредактируйте параметры в `/src/shared/constants.js` и `/backend/config.php`.
+3.  **Настройка:** Отредактируйте параметры в `/src/shared/constants.js`. Скопируйте `/backend/config.sample.php` как `/backend/config.php` и отредактируйте параметры уже там.
 4.  **Права доступа:** Убедитесь, что директории в `/dist/uploads/images/` доступны для записи.
 5.  **Cron:** Настройте запуск `/backend/dist/cron.php` по расписанию для очистки временных данных.
 6.  **Сборка:**

@@ -74,7 +74,7 @@ The Places is built as a **privacy-first alternative** to proprietary map pl
 
 1.  **Clone:** `git clone https://github.com/assador/places.git`
 2.  **Database:** Create a MariaDB/MySQL database and import the schema from `/mezzanine/db_places.sql`.
-3.  **Configuration:** Edit `/src/shared/constants.js` and `/backend/config.php`.
+3.  **Configuration:** Edit `/src/shared/constants.js`. Copy `/backend/config.sample.php` as `/backend/config.php` and edit the last one.
 4.  **Permissions:** Ensure `/dist/uploads/images/` subdirectories (big, small, and their orphaned counterparts) are writable.
 5.  **Cron:** Set up a cron job for `/backend/dist/cron.php` to clean up orphaned images and points.
 6.  **Build:**

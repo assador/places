@@ -21,7 +21,7 @@ if (!$login || !$email || strlen($password) < 1) {
 	exit;
 }
 
-$confirmBefore = (new DateTime())->add(new DateInterval("P1D"))->format("Y-m-d H:i:s");
+$confirmBefore = (int)(microtime(true) * 1000 + 86400000);
 $token = bin2hex(random_bytes(16));
 $userId = uuidv4(); 
 $userIdBin = uuidToBin($userId);

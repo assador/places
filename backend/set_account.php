@@ -12,9 +12,6 @@ $input = json_decode(
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 );
 
-$date = new DateTime();
-$date->add(new DateInterval("P1D"));
-
 $idBin = uuidToBin($input["accountId"]);
 if (testAccountCheck($ctx, $config["testaccountuuid"], $input["accountId"])) {
 	echo 2; exit;
@@ -106,7 +103,7 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $input["accountId"])) {
 	$query->bindValue(':email', $input["accountEmail"]);
 	$query->bindValue(':phone', $input["accountPhone"]);
 	$query->bindValue(':confirmed', 0);
-	$query->bindValue(':confirmbefore', $date->format("Y-m-d H:i:s"));
+	$query->bindValue(':confirmbefore', (int)(microtime(true) * 1000 + 86400000));
 	$query->bindValue(':token', $token);
 	$result = $query->execute();
 

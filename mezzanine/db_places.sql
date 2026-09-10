@@ -1,9 +1,9 @@
 /*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19-12.3.2-MariaDB, for Linux (x86_64)
+-- MariaDB dump 10.20-12.3.3-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: db_places
 -- ------------------------------------------------------
--- Server version	12.3.2-MariaDB
+-- Server version	12.3.3-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -225,6 +225,23 @@ CREATE TABLE `images` (
   KEY `idx_images_routeid` (`routeid`),
   CONSTRAINT `fk_images_place` FOREIGN KEY (`placeid`) REFERENCES `places` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_images_route` FOREIGN KEY (`routeid`) REFERENCES `routes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `phinxlog`
+--
+
+DROP TABLE IF EXISTS `phinxlog`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `phinxlog` (
+  `version` bigint(20) NOT NULL,
+  `migration_name` varchar(100) DEFAULT NULL,
+  `start_time` timestamp NULL DEFAULT NULL,
+  `end_time` timestamp NULL DEFAULT NULL,
+  `breakpoint` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -592,7 +609,7 @@ CREATE TABLE `users` (
   `email` varchar(100) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `confirmed` tinyint(1) NOT NULL DEFAULT 0,
-  `confirmbefore` datetime NOT NULL,
+  `confirmbefore` bigint(20) unsigned NOT NULL DEFAULT 0,
   `token` varchar(32) DEFAULT NULL,
   `homeplace` binary(16) DEFAULT NULL,
   `id` binary(16) NOT NULL,
@@ -619,7 +636,7 @@ CREATE TABLE `userschange` (
   `email` varchar(100) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `confirmed` tinyint(1) NOT NULL DEFAULT 0,
-  `confirmbefore` datetime NOT NULL,
+  `confirmbefore` bigint(20) unsigned NOT NULL DEFAULT 0,
   `token` varchar(32) DEFAULT NULL,
   `homeplace` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -694,4 +711,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-07-21 22:30:55
+-- Dump completed on 2026-09-11  0:08:18
