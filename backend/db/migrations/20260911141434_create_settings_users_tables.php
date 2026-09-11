@@ -28,7 +28,6 @@ final class CreateSettingsUsersTables extends AbstractMigration
 				baseval VARBINARY(255) NOT NULL,
 				name VARCHAR(255) NOT NULL,
 				description VARCHAR(2044) DEFAULT '',
-				options JSON,
 				public BOOLEAN DEFAULT TRUE,
 				srt DOUBLE DEFAULT 0,
 				INDEX (groupid),

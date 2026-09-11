@@ -578,6 +578,65 @@ CREATE TABLE `sessions` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `settings_users`
+--
+
+DROP TABLE IF EXISTS `settings_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `settings_users` (
+  `userid` binary(16) NOT NULL,
+  `settingid` smallint(5) unsigned NOT NULL,
+  `value` varbinary(255) NOT NULL,
+  `updated` bigint(20) unsigned DEFAULT NULL,
+  PRIMARY KEY (`userid`,`settingid`),
+  KEY `settingid` (`settingid`),
+  CONSTRAINT `1` FOREIGN KEY (`settingid`) REFERENCES `settings_users_voc` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `settings_users_groups`
+--
+
+DROP TABLE IF EXISTS `settings_users_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `settings_users_groups` (
+  `id` smallint(5) unsigned NOT NULL,
+  `parent` smallint(5) unsigned DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(2044) DEFAULT '',
+  `srt` double DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `parent` (`parent`),
+  CONSTRAINT `1` FOREIGN KEY (`parent`) REFERENCES `settings_users_groups` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `settings_users_voc`
+--
+
+DROP TABLE IF EXISTS `settings_users_voc`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `settings_users_voc` (
+  `id` smallint(5) unsigned NOT NULL,
+  `groupid` smallint(5) unsigned DEFAULT NULL,
+  `type` tinyint(3) unsigned NOT NULL,
+  `baseval` varbinary(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(2044) DEFAULT '',
+  `public` tinyint(1) DEFAULT 1,
+  `srt` double DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `groupid` (`groupid`),
+  CONSTRAINT `1` FOREIGN KEY (`groupid`) REFERENCES `settings_users_groups` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `usergroup`
 --
 
@@ -711,4 +770,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-09-11  0:08:18
+-- Dump completed on 2026-09-11 20:16:36
