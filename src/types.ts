@@ -142,8 +142,28 @@ export interface SettingsGroup {
 	name?: string;
 	description?: string;
 }
+export type SettingType =
+	| null
+	| boolean
+	| number
+	| string
+;
+export interface SettingEnum {
+	val: SettingType;
+	srt: number;
+}
+export interface SettingsVocRec {
+	type: number;
+	baseval: SettingType;
+	enum?: SettingEnum[];
+	name?: string;
+	description?: string;
+}
 export interface Settings {
-	user: Record<number, null | boolean | number | string>;
+	user: Record<number, SettingType>;
+	vocs: {
+		user: Record<number, SettingsVocRec>;
+	};
 	groups: {
 		user?: SettingsGroup[];
 	};

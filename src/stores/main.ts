@@ -114,10 +114,7 @@ export const useMainStore = defineStore('main', () => {
 			routes: [],
 		}),
 		serverConfig:  ref<any | null>(null),
-		settings: ref<Settings>({
-			user: {},
-			groups: {},
-		}),
+		settings: ref<Settings | null>(null),
 		stateBackups:  ref<any[]>([]),
 		stateBackupsIndex:  ref<number>(-1),
 		t:  translation,

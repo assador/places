@@ -7,7 +7,9 @@ require_once __DIR__ . "/bootstrap.php";
 
 $userId = uuidToBin($_GET["id"] ?? "");
 
-function castSettingValue(?string $value, int $type): null|bool|float|int|string {
+function castSettingValue(?string $value, int $type)
+	: null|bool|float|int|string
+{
 	if ($value === null) return null;
 	return match ($type) {
 		0 => null,
@@ -18,8 +20,15 @@ function castSettingValue(?string $value, int $type): null|bool|float|int|string
 	};
 }
 
+$settings = [
+	"user" => [],
+	"vocs" => [
+		"user" => [],
+	],
+];
+
 $stmt = $ctx->db->query("
-	SELECT `id`, `name`, `type`, `baseval`
+	SELECT `id`, `type`, `baseval`, `name`, `description`
 	FROM `settings_users_voc`
 	WHERE `public` = TRUE
 ");
@@ -34,10 +43,24 @@ $stmtUser->bindValue(":userid", $userId, PDO::PARAM_LOB);
 $stmtUser->execute();
 $userValues = $stmtUser->fetchAll(PDO::FETCH_KEY_PAIR);
 
-$settings = [];
 foreach ($voc as $item) {
-	$id = $item["id"];
-	$val = array_key_exists($id, $userValues) ? $userValues[$id] : $item["baseval"];
-	$settings[$id] = castSettingValue($val, (int)$item["type"]);
+	$id = (int)$item["id"];
+	$type = (int)$item["type"];
+	$baseval = castSettingValue($item["baseval"], $type);
+	$settings["vocs"]["user"][$id] = [
+		"type" => $type,
+		"baseval" => $baseval,
+	] + array_filter([
+		"name" => $item["name"] ?? null,
+		"description" => $item["description"] ?? null,
+	]);
+
+	$settings["user"][$id] = array_key_exists($id, $userValues)
+		? castSettingValue($userValues[$id], $type)
+		: $baseval
+	;
 }
-echo json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+echo json_encode(
+	$settings,
+	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+);

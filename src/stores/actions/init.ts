@@ -231,12 +231,15 @@ export function useActionsInit(
 		const uuid = localStorage.getItem('places-useruuid');
 		if (!uuid) return;
 		try {
-			const { data } = await api.get('get_account_settings.php?id=' + uuid);
-			if (store.settings.value) store.settings.value.user = data;
+			const { data } = await api.get('get_settings.php?id=' + uuid);
+			if (data) {
+				const s = (store.settings.value ??= { user: {}, vocs: { user: {} }, groups: {} });
+				Object.assign(s, data);
+			}
 		} catch (error) {
 			console.error(error);
 			store.setMessage(store.t.value.m.popup.cannotGetData);
-			if (store.settings.value) store.settings.value.user = {};
+			if (store.settings.value?.user) store.settings.value.user = {};
 		}
 	};
 	const setSettings = async (): Promise<void> => {

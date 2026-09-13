@@ -6,8 +6,8 @@ ini_set("display_errors", "1");
 require_once __DIR__ . "/bootstrap.php";
 
 $stmt = $ctx->db->query("
-    SELECT `id`, `parent`, `srt` 
-    FROM `settings_groups` 
+    SELECT `id`, `parent`, `srt`, `name`, `description`
+    FROM `settings_groups`
 ");
 
 echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
