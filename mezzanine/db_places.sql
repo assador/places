@@ -609,7 +609,7 @@ CREATE TABLE `settings_users` (
   `value` varbinary(255) NOT NULL,
   `updated` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`userid`,`settingid`),
-  KEY `fk_settings_users_settingid` (`settingid`),
+  KEY `settingid` (`settingid`),
   CONSTRAINT `fk_settings_users_settingid` FOREIGN KEY (`settingid`) REFERENCES `settings_users_voc` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -770,4 +770,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-09-13  3:15:23
+-- Dump completed on 2026-09-13  4:09:44
