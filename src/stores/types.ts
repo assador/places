@@ -19,6 +19,7 @@ import {
 	PointDescription,
 	PointInfo,
 	Route,
+	Settings,
 	Tree,
 	User,
 } from '@/types';
@@ -96,6 +97,7 @@ export interface MainState {
 	saving: boolean;
 	selectedToExport: Record<'places' | 'routes', string[]>;
 	serverConfig: any | null;
+	settings: Settings | null;
 	stateBackups: any[];
 	stateBackupsIndex: number;
 	t: Dictionary;
@@ -195,6 +197,8 @@ export interface ActionsInit {
 	setServerConfig: () => Promise<void>;
 	setUsers: (payload?: string) => Promise<void>;
 	setUser: () => Promise<void>;
+	setUserSettings: () => Promise<void>;
+	setSettings: () => Promise<void>;
 	setEntities: () => Promise<void>;
 }
 export interface ActionsRelate {

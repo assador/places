@@ -2,17 +2,18 @@ import { ref, shallowRef, toRaw, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { StoreMain, StoreMainStateRefs } from './types';
 import {
-	User,
-	Point,
-	Place,
-	Route,
 	Folder,
-    Measure,
+	Place,
+	Point,
+	Route,
+	User,
     Dictionary,
-    FirstShow,
     DragEntityPayload,
-    Tree,
+    FirstShow,
+    Measure,
     Mode,
+    Settings,
+    Tree,
 } from '@/types';
 
 import { constants } from '@/shared/constants';
@@ -113,6 +114,10 @@ export const useMainStore = defineStore('main', () => {
 			routes: [],
 		}),
 		serverConfig:  ref<any | null>(null),
+		settings: ref<Settings>({
+			user: {},
+			groups: {},
+		}),
 		stateBackups:  ref<any[]>([]),
 		stateBackupsIndex:  ref<number>(-1),
 		t:  translation,

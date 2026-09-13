@@ -135,6 +135,19 @@ export interface Group {
 	updated?: boolean;
 	checked?: boolean;
 }
+export interface SettingsGroup {
+	id: number;
+	parent: number | null;
+	srt: number;
+	name?: string;
+	description?: string;
+}
+export interface Settings {
+	user: Record<number, null | boolean | number | string>;
+	groups: {
+		user?: SettingsGroup[];
+	};
+}
 export interface PointDescription {
 	id: string;
 	name?: string;

@@ -7,7 +7,7 @@ require_once __DIR__ . "/bootstrap.php";
 
 $stmt = $ctx->db->query("
     SELECT `id`, `parent`, `srt` 
-    FROM `settings_users_groups` 
+    FROM `settings_groups` 
 ");
 
 echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
