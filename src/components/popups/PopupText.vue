@@ -5,8 +5,11 @@
 			ref="popupRef"
 			class="popup"
 		>
-			<About v-if="props.what === 'about' && mainStore.lang === 'ru'" />
-			<AboutEn v-if="props.what === 'about' && mainStore.lang === 'en'" />
+			<About v-if="
+				props.what === 'about' &&
+				mainStore.settings.user[SettingKey.Lang] === 'ru'
+			" />
+			<AboutEn v-else />
 			<a
 				href="javascript:void(0)"
 				class="close"
@@ -29,6 +32,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
+import { SettingKey } from '@/types/settings';
 import About from '@/components/About.vue';
 import AboutEn from '@/components/AboutEn.vue';
 

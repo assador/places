@@ -231,21 +231,15 @@ export function useActionsInit(
 		const uuid = localStorage.getItem('places-useruuid');
 		if (!uuid) return;
 		try {
-			const { data } = await api.get('get_settings.php?id=' + uuid);
+			const { data } = await api.get('get_settings_user.php?id=' + uuid);
 			if (data) {
-				const s = (store.settings.value ??= { user: {}, vocs: { user: {} }, groups: {} });
-				Object.assign(s, data);
+				Object.assign(store.settings.value, data);
 			}
 		} catch (error) {
 			console.error(error);
 			store.setMessage(store.t.value.m.popup.cannotGetData);
-			if (store.settings.value?.user) store.settings.value.user = {};
+			store.settings.value.user = {};
 		}
-	};
-	const setSettings = async (): Promise<void> => {
-		await Promise.all([
-			setUserSettings(),
-		]);
 	};
 	const setEntities = async (): Promise<void> => {
 		const sanitizeEntitiesData = (raw: any): Record<string, Record<string, Record<string, unknown>>> => {
@@ -317,7 +311,6 @@ export function useActionsInit(
 		setUsers,
 		setUser,
 		setUserSettings,
-		setSettings,
 		setEntities,
 	};
 };

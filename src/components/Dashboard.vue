@@ -1,27 +1,33 @@
 <template>
 	<div id="dashboard">
 		<select
-			id="dashboard-langs"
 			v-model="lang"
+			id="dashboard-langs"
 		>
 			<option
-				v-for="(l, i) in mainStore.langs"
+				v-for="(l, i) in
+					mainStore.settings.vocs.user[SettingKey.Lang]?.enum
+					?? defaultLangs
+				"
 				:key="i"
-				:value="l.value"
+				:value="l.val"
 			>
-				{{ l.title }}
+				{{ getOptionLabel(l) }}
 			</option>
 		</select>
 		<select
+			v-model="theme"
 			id="dashboard-colorthemes"
-			v-model="colortheme"
 		>
 			<option
-				v-for="(c, i) in mainStore.colorthemes"
+				v-for="(c, i) in
+					mainStore.settings.vocs.user[SettingKey.ColorTheme]?.enum
+					?? defaultColorThemes
+				"
 				:key="i"
-				:value="c.value"
+				:value="c.val"
 			>
-				{{ c.title }}
+				{{ getOptionLabel(c) }}
 			</option>
 		</select>
 		<div id="dashboard-controls-choosemap" />
@@ -30,20 +36,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed } from 'vue';
+import { Dictionary } from '@/types';
+import { SettingKey, SettingType } from '@/types/settings';
 import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();
 
-const lang = ref(mainStore.lang);
-const colortheme = ref(mainStore.colortheme);
+const defaultLangs = [
+	{ val: 'en' , extra: 'langEn' },
+	{ val: 'ru' , extra: 'langRu' },
+];
+const defaultColorThemes = [
+	{ val: 'brown'        , extra: 'colorthemeBrown'       },
+	{ val: 'blue'         , extra: 'colorthemeBlue'        },
+	{ val: 'pink'         , extra: 'colorthemePink'        },
+	{ val: 'green'        , extra: 'colorthemeGreen'       },
+	{ val: 'pink-light'   , extra: 'colorthemePinkLight'   },
+	{ val: 'blue-light'   , extra: 'colorthemeBlueLight'   },
+	{ val: 'purple-light' , extra: 'colorthemePurpleLight' },
+	{ val: 'green-light'  , extra: 'colorthemeGreenLight'  },
+];
 
-watch(() => lang.value, () => {
-	mainStore.changeLang(lang.value);
+const lang = computed({
+	get: () => mainStore.settings.user[SettingKey.Lang] ?? 'ru',
+	set: (val) => mainStore.changeSetting({ id: SettingKey.Lang, value: val }),
 });
-watch(() => colortheme.value, () => {
-	mainStore.colortheme = colortheme.value;
+const theme = computed({
+	get: () => mainStore.settings.user[SettingKey.ColorTheme] ?? 'brown',
+	set: (val) => mainStore.changeSetting({ id: SettingKey.ColorTheme, value: val }),
 });
+
+type DictionaryInputKey = keyof Dictionary['s'];
+const getOptionLabel = (opt: { val: SettingType; extra?: string }): string => {
+	if (!opt.extra) return String(opt.val);
+	if (opt.extra in mainStore.t.s) {
+		return mainStore.t.s[opt.extra as DictionaryInputKey];
+	}
+	return opt.extra;
+}
 </script>
 
 <style lang="scss" scoped>

@@ -589,7 +589,7 @@ CREATE TABLE `settings_groups` (
   `parent` smallint(5) unsigned DEFAULT NULL,
   `name` varchar(255) DEFAULT '',
   `description` varchar(2044) DEFAULT '',
-  `srt` double DEFAULT 0,
+  `srt` double DEFAULT 10,
   PRIMARY KEY (`id`),
   KEY `parent` (`parent`),
   CONSTRAINT `fk_settings_groups_parent` FOREIGN KEY (`parent`) REFERENCES `settings_groups` (`id`) ON DELETE NO ACTION
@@ -628,11 +628,30 @@ CREATE TABLE `settings_users_voc` (
   `baseval` varbinary(255) NOT NULL,
   `name` varchar(255) DEFAULT '',
   `description` varchar(2044) DEFAULT '',
-  `public` tinyint(1) DEFAULT 1,
-  `srt` double DEFAULT 0,
+  `public` tinyint(1) NOT NULL DEFAULT 1,
+  `srt` double DEFAULT 10,
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   CONSTRAINT `fk_settings_users_voc_groupid` FOREIGN KEY (`groupid`) REFERENCES `settings_groups` (`id`) ON DELETE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `settings_users_voc_options`
+--
+
+DROP TABLE IF EXISTS `settings_users_voc_options`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `settings_users_voc_options` (
+  `settingid` smallint(5) unsigned NOT NULL,
+  `value` varbinary(255) NOT NULL,
+  `srt` double DEFAULT 10,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `extra` blob DEFAULT NULL,
+  UNIQUE KEY `uq_settingid_value` (`settingid`,`value`),
+  KEY `settingid` (`settingid`),
+  CONSTRAINT `fk_settings_users_voc_options_settingid` FOREIGN KEY (`settingid`) REFERENCES `settings_users_voc` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -770,4 +789,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-09-13  4:09:44
+-- Dump completed on 2026-09-14 16:13:27

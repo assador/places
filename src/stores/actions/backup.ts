@@ -49,7 +49,6 @@ export function useActionsBackup(
 		for (const key of Object.keys(payload) as (keyof StoreMainStateRefs)[]) {
 			if (hasOwnStringKey(state, key)) state[key].value = payload[key].value;
 		}
-		store.changeLang(state.lang.value);
 		restoreObjectsAsLinks();
 	};
 	const undo = (): void => {

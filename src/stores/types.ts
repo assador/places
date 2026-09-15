@@ -1,8 +1,9 @@
 import { Ref } from 'vue';
 import { useGettersEntity } from '@/stores/getters/entity';
-import { useGettersRelate } from '@/stores/getters/relate';
-import { useGettersTree } from '@/stores/getters/tree';
 import { useGettersOther } from '@/stores/getters/other';
+import { useGettersRelate } from '@/stores/getters/relate';
+import { useGettersSettings } from '@/stores/getters/settings';
+import { useGettersTree } from '@/stores/getters/tree';
 import {
 	Dictionary,
 	DragEntityPayload,
@@ -19,10 +20,10 @@ import {
 	PointDescription,
 	PointInfo,
 	Route,
-	Settings,
 	Tree,
 	User,
 } from '@/types';
+import { SettingsContext, SettingType, Settings } from '@/types/settings';
 
 export type EntityAppendMode =
 	| 'change' // change the existing one
@@ -55,7 +56,6 @@ export interface MainState {
 	busyCount: number;
 	center: Record<string, number>;
 	centerMarkerShow: boolean;
-	colortheme: string;
 	commonMarkersShow: boolean;
 	commonPlaces: Record<string, Place>;
 	commonPlacesOnPageCount: number;
@@ -72,8 +72,6 @@ export interface MainState {
 	first: boolean;
 	folders: Record<string, Folder>;
 	idleTime: number;
-	lang: string;
-	langs: Record<string, string>[];
 	measure: Measure;
 	messages: string[];
 	messagesMouseOver: boolean;
@@ -97,7 +95,7 @@ export interface MainState {
 	saving: boolean;
 	selectedToExport: Record<'places' | 'routes', string[]>;
 	serverConfig: any | null;
-	settings: Settings | null;
+	settings: Settings;
 	stateBackups: any[];
 	stateBackupsIndex: number;
 	t: Dictionary;
@@ -116,6 +114,7 @@ export type StoreMainStateRefs = {
 export type GettersEntity = ReturnType<typeof useGettersEntity>;
 export type GettersOther = ReturnType<typeof useGettersOther>;
 export type GettersRelate = ReturnType<typeof useGettersRelate>;
+export type GettersSettings = ReturnType<typeof useGettersSettings>;
 export type GettersTree = ReturnType<typeof useGettersTree>;
 
 export interface StoreMainMethods {
@@ -198,22 +197,17 @@ export interface ActionsInit {
 	setUsers: (payload?: string) => Promise<void>;
 	setUser: () => Promise<void>;
 	setUserSettings: () => Promise<void>;
-	setSettings: () => Promise<void>;
 	setEntities: () => Promise<void>;
 }
 export interface ActionsRelate {
 	addPointToPoints: (p: {
-			point: Point;
-			entity: Route | Measure;
-			index?: number;
-			name?: string;
-			description?: string;
-		}
-	) => void;
-	removePointFromPoints: (
-		{ index, entity }:
-		{ index: number; entity: Route | Measure; }
-	) => void;
+		point: Point;
+		entity: Route | Measure;
+		index?: number;
+		name?: string;
+		description?: string;
+	}) => void;
+	removePointFromPoints: (p: { index: number; entity: Route | Measure; }) => void;
 }
 export interface ActionsService {
 	onServerOut: () => void;
@@ -221,9 +215,16 @@ export interface ActionsService {
 	setOffline: (offlineMode?: boolean) => void;
 	setPointAltitude: (entity: Point) => Promise<void>;
 }
+export interface ActionsSettings {
+	changeSetting: (p: {
+		id: number;
+		value: SettingType;
+		context?: SettingsContext;
+	}) => void;
+	saveSettings: () => void;
+}
 export interface ActionsUI {
 	setBusy: (busy: boolean) => void;
-	changeLang: (lang: string) => void;
 	clearMessagesTiming: () => void;
 	setMessage: (message: string, secondsForAll?: number, secondsForOne?: number) => void;
 	deleteMessage: (index: number) => void;
@@ -246,6 +247,7 @@ export type StoreMain =
 	GettersEntity &
 	GettersOther &
 	GettersRelate &
+	GettersSettings &
 	GettersTree &
 	ActionsBackup &
 	ActionsDB &
@@ -254,5 +256,6 @@ export type StoreMain =
 	ActionsInit &
 	ActionsRelate &
 	ActionsService &
+	ActionsSettings &
 	ActionsUI
 ;

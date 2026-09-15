@@ -34,6 +34,21 @@ $stmt = $ctx->db->query("
 ");
 $voc = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$stmtOptions = $ctx->db->query("
+	SELECT o.`settingid`, o.`value`, o.`srt`, o.`extra`
+	FROM `settings_users_voc_options` o
+	INNER JOIN `settings_users_voc` v ON v.`id` = o.`settingid`
+	WHERE o.`enabled` = TRUE 
+	  AND v.`public` = TRUE
+	ORDER BY o.`settingid` ASC, o.`srt` ASC
+");
+$rawOptions = $stmtOptions->fetchAll(PDO::FETCH_ASSOC);
+
+$vocOptions = [];
+foreach ($rawOptions as $opt) {
+	$vocOptions[(int)$opt["settingid"]][] = $opt;
+}
+
 $stmtUser = $ctx->db->prepare("
 	SELECT `settingid`, `value`
 	FROM `settings_users`
@@ -47,14 +62,37 @@ foreach ($voc as $item) {
 	$id = (int)$item["id"];
 	$type = (int)$item["type"];
 	$baseval = castSettingValue($item["baseval"], $type);
+
+	$enumList = [];
+	if (isset($vocOptions[$id])) {
+		foreach ($vocOptions[$id] as $opt) {
+			$enumItem = [
+				"val" => castSettingValue($opt["value"], $type),
+				"srt" => (float)$opt["srt"],
+			];
+			if ($opt["extra"] !== null) {
+				/*
+				// For future reference, if it’s a binary image:
+				$enumItem["extra"] =
+					"data:image/png;base64," . base64_encode($opt["extra"])
+				;
+    			// or SVG: "data:image/svg+xml;base64,..."
+       			*/
+				$enumItem["extra"] = $opt["extra"];
+			}
+			$enumList[] = $enumItem;
+		}
+	}
 	$settings["vocs"]["user"][$id] = [
 		"type" => $type,
 		"baseval" => $baseval,
-	] + array_filter([
-		"name" => $item["name"] ?? null,
-		"description" => $item["description"] ?? null,
-	]);
-
+	]
+		+ ($enumList ? ["enum" => $enumList] : [])
+		+ array_filter([
+			"name" => $item["name"] ?? null,
+			"description" => $item["description"] ?? null,
+		])
+	;
 	$settings["user"][$id] = array_key_exists($id, $userValues)
 		? castSettingValue($userValues[$id], $type)
 		: $baseval

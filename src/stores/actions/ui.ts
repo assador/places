@@ -12,9 +12,6 @@ export function useActionsUI(
 		if (busy) store.busyCount.value++;
 			else store.busyCount.value = Math.max(0, store.busyCount.value - 1);
 	};
-	const changeLang = (lang: string): void => {
-		store.lang.value = lang;
-	};
 
 // SEC Messages
 
@@ -273,7 +270,6 @@ export function useActionsUI(
 
 	return {
 		setBusy,
-		changeLang,
 		clearMessagesTiming,
 		setMessage,
 		deleteMessage,

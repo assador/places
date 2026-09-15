@@ -177,14 +177,6 @@ export const getT = () => ({
 			authTest: '(test для ознакомления)',
 			checkboxCommon: 'Видно другим',
 			checkboxHome: 'Домашнее место',
-			colorthemeBlue: 'Синяя тема',
-			colorthemeBlueLight: 'Синяя светлая тема',
-			colorthemeBrown: 'Коричневая тема',
-			colorthemeGreen: 'Зелёная тема',
-			colorthemeGreenLight: 'Зелёная светлая тема',
-			colorthemePink: 'Пурпурная тема',
-			colorthemePinkLight: 'Розовая светлая тема',
-			colorthemePurpleLight: 'Пурпурная светлая тема',
 			daDeleteImages: 'Удалить мои фотографии',
 			daDeletePlaces: 'Удалить все мои места',
 			daLeaveAllPlaces: 'Оставить все мои места, сделав их видимыми всем',
@@ -352,6 +344,18 @@ export const getT = () => ({
 	o: {
 		importedFolderDescription: 'Импортированные места',
 		importedFolderName: 'Импортированное',
+	},
+	s: {
+		colorthemeBlue: 'Синяя тема',
+		colorthemeBlueLight: 'Синяя светлая тема',
+		colorthemeBrown: 'Коричневая тема',
+		colorthemeGreen: 'Зелёная тема',
+		colorthemeGreenLight: 'Зелёная светлая тема',
+		colorthemePink: 'Пурпурная тема',
+		colorthemePinkLight: 'Розовая светлая тема',
+		colorthemePurpleLight: 'Пурпурная светлая тема',
+		langEn: 'English',
+		langRu: 'Русский',
 	},
 });
 export const t = getT();

@@ -2,7 +2,10 @@
 	<div
 		ref="container"
 		id="container"
-		:class="['colortheme-' + mainStore.colortheme]"
+		:class="[
+			'colortheme-' +
+			(mainStore.settings.user[SettingKey.ColorTheme] ?? 'brown')
+		]"
 	>
 		<div id="popup-root" />
 		<PopupConfirm />
@@ -24,6 +27,7 @@
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue'
 import { PopupProps } from '@/types';
+import { SettingKey } from '@/types/settings';
 import { useMainStore } from '@/stores/main';
 import { usePWAInstall } from '@/shared/usepwainstall';
 

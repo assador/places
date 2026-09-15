@@ -52,7 +52,6 @@ function createMainStoreState(): MainState {
 			longitude: Number(constants.map.initial.longitude),
 		},
 		centerMarkerShow: true,
-		colortheme: 'brown',
 		commonMarkersShow: false,
 		commonPlaces: {},
 		commonPlacesOnPageCount: constants.commonplacesonpagecount,
@@ -69,14 +68,6 @@ function createMainStoreState(): MainState {
 		first: true,
 		folders: {},
 		idleTime: 0,
-		lang: 'ru',
-		langs: [{
-			value: 'ru',
-			title: 'Русский',
-		}, {
-			value: 'en',
-			title: 'English',
-		}],
 		measure: {
 			type: 'measure',
 			points: [],

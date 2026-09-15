@@ -177,14 +177,6 @@ export const getT = () => ({
 			authTest: '(test to familiarize)',
 			checkboxCommon: 'Visible to others',
 			checkboxHome: 'The home place',
-			colorthemeBlue: 'Blue theme',
-			colorthemeBlueLight: 'Blue light theme',
-			colorthemeBrown: 'Brown theme',
-			colorthemeGreen: 'Green theme',
-			colorthemeGreenLight: 'Green light theme',
-			colorthemePink: 'Purple theme',
-			colorthemePinkLight: 'Pink light theme',
-			colorthemePurpleLight: 'Purple light theme',
 			daDeleteImages: 'Delete my photos',
 			daDeletePlaces: 'Delete all my places',
 			daLeaveAllPlaces: 'Leave all my places, making them visible to others',
@@ -352,6 +344,18 @@ Your data won’t be saved to your account and will be cleared when you log o
 	o: {
 		importedFolderDescription: 'Imported places',
 		importedFolderName: 'Imported',
+	},
+	s: {
+		colorthemeBlue: 'Blue theme',
+		colorthemeBlueLight: 'Blue light theme',
+		colorthemeBrown: 'Brown theme',
+		colorthemeGreen: 'Green theme',
+		colorthemeGreenLight: 'Green light theme',
+		colorthemePink: 'Purple theme',
+		colorthemePinkLight: 'Pink light theme',
+		colorthemePurpleLight: 'Purple light theme',
+		langEn: 'English',
+		langRu: 'Русский',
 	},
 });
 export const t = getT();

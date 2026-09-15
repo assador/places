@@ -1,4 +1,4 @@
-import { ref, shallowRef, toRaw, watch } from 'vue';
+import { ref, shallowRef, toRaw, computed, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { StoreMain, StoreMainStateRefs } from './types';
 import {
@@ -12,9 +12,9 @@ import {
     FirstShow,
     Measure,
     Mode,
-    Settings,
     Tree,
 } from '@/types';
+import { SettingKey, Settings } from '@/types/settings';
 
 import { constants } from '@/shared/constants';
 import { getT } from '@/lang/ru';
@@ -22,6 +22,7 @@ import { getT } from '@/lang/ru';
 import { useGettersEntity } from './getters/entity';
 import { useGettersOther } from './getters/other';
 import { useGettersRelate } from './getters/relate';
+import { useGettersSettings } from './getters/settings';
 import { useGettersTree } from './getters/tree';
 
 import { useActionsBackup } from './actions/backup';
@@ -31,6 +32,7 @@ import { useActionsImport } from './actions/import';
 import { useActionsInit } from './actions/init';
 import { useActionsRelate } from './actions/relate';
 import { useActionsService } from './actions/service';
+import { useActionsSettings } from './actions/settings';
 import { useActionsUI } from './actions/ui';
 
 const skipKeys = new Set([
@@ -47,8 +49,30 @@ const skipKeys = new Set([
 
 export const useMainStore = defineStore('main', () => {
 
-	const currentLang = ref<string>('ru');
+	const settings = ref<Settings>({
+		user: {
+			[SettingKey.Lang]: 'ru',
+			[SettingKey.ColorTheme]: 'brown',
+		},
+		vocs: { user: {} },
+		groups: {},
+	});
+	const currentLang = computed<string>(() => {
+		return (settings.value.user[SettingKey.Lang] as string) ?? 'ru';
+	});
 	const translation = shallowRef<Dictionary>(getT());
+
+	watch(currentLang, async (newLang) => {
+		try {
+			const module = await import(`@/lang/${newLang}.ts`);
+			if (typeof module.getT === 'function') {
+				translation.value = module.getT();
+			}
+		} catch (error) {
+			console.error(error);
+			store.setMessage(`Failed to load dictionary for language: ${newLang}`);
+		}
+	}, { immediate: false });
 
 	const store = {
 		activeMapIndex:  ref<number>(0),
@@ -59,7 +83,6 @@ export const useMainStore = defineStore('main', () => {
 			longitude: Number(constants.map.initial.longitude),
 		}),
 		centerMarkerShow:  ref<boolean>(true),
-		colortheme:  ref<string>('brown'),
 		commonMarkersShow:  ref<boolean>(false),
 		commonPlaces:  ref<Record<string, Place>>({}),
 		commonPlacesOnPageCount:  ref<number>(constants.commonplacesonpagecount),
@@ -76,14 +99,6 @@ export const useMainStore = defineStore('main', () => {
 		first:  ref<boolean>(true),
 		folders:  ref<Record<string, Folder>>({}),
 		idleTime:  ref<number>(0),
-		lang:  currentLang,
-		langs: ref<Record<string, string>[]>([{
-			value: 'ru',
-			title: 'Русский',
-		}, {
-			value: 'en',
-			title: 'English',
-		}]),
 		measure: ref<Measure>({
 			type: 'measure',
 			points: [],
@@ -114,7 +129,7 @@ export const useMainStore = defineStore('main', () => {
 			routes: [],
 		}),
 		serverConfig:  ref<any | null>(null),
-		settings: ref<Settings | null>(null),
+		settings,
 		stateBackups:  ref<any[]>([]),
 		stateBackupsIndex:  ref<number>(-1),
 		t:  translation,
@@ -163,27 +178,30 @@ export const useMainStore = defineStore('main', () => {
 		}
 	};
 
-	const gettersEntity = useGettersEntity(store);
-	const gettersOther  = useGettersOther(store, gettersEntity);
-	const gettersRelate = useGettersRelate(store, gettersEntity);
-	const gettersTree   = useGettersTree(store);
+	const gettersEntity   = useGettersEntity(store);
+	const gettersOther    = useGettersOther(store, gettersEntity);
+	const gettersRelate   = useGettersRelate(store, gettersEntity);
+	const gettersSettings = useGettersSettings(store);
+	const gettersTree     = useGettersTree(store);
 
 	const getters = {
 		...gettersEntity,
 		...gettersOther,
 		...gettersRelate,
+		...gettersSettings,
 		...gettersTree,
 	};
 	Object.assign(store, getters);
 
-	const actionsBackup  = useActionsBackup(store, state);
-	const actionsDB      = useActionsDB(store);
-	const actionsEntity  = useActionsEntity(store);
-	const actionsImport  = useActionsImport(store);
-	const actionsInit    = useActionsInit(store);
-	const actionsRelate  = useActionsRelate(store);
-	const actionsService = useActionsService(store);
-	const actionsUI      = useActionsUI(store);
+	const actionsBackup   = useActionsBackup(store, state);
+	const actionsDB       = useActionsDB(store);
+	const actionsEntity   = useActionsEntity(store);
+	const actionsImport   = useActionsImport(store);
+	const actionsInit     = useActionsInit(store);
+	const actionsRelate   = useActionsRelate(store);
+	const actionsService  = useActionsService(store);
+	const actionsSettings = useActionsSettings(store);
+	const actionsUI       = useActionsUI(store);
 
 	const actions = {
 		...actionsBackup,
@@ -193,21 +211,10 @@ export const useMainStore = defineStore('main', () => {
 		...actionsInit,
 		...actionsRelate,
 		...actionsService,
+		...actionsSettings,
 		...actionsUI,
 	};
 	Object.assign(store, actions);
-
-	watch(currentLang, async (newLang) => {
-		try {
-			const module = await import(`@/lang/${newLang}.ts`);
-			if (typeof module.getT === 'function') {
-				translation.value = module.getT();
-			}
-		} catch (error) {
-			console.error(error);
-			store.setMessage(`Failed to load dictionary for language: ${newLang}`);
-		}
-	}, { immediate: false });
 
 	return store;
 }, {

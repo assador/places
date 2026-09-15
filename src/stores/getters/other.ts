@@ -22,18 +22,6 @@ export function useGettersOther(
 	state: StoreMainStateRefs,
 	getters: GettersEntity,
 ) {
-	const colorthemes = computed((): { value: string, title: string }[] => {
-		return [
-			{ value: 'brown',        title: state.t.value.i.inputs.colorthemeBrown },
-			{ value: 'blue',         title: state.t.value.i.inputs.colorthemeBlue },
-			{ value: 'pink',         title: state.t.value.i.inputs.colorthemePink },
-			{ value: 'green',        title: state.t.value.i.inputs.colorthemeGreen },
-			{ value: 'pink-light',   title: state.t.value.i.inputs.colorthemePinkLight },
-			{ value: 'blue-light',   title: state.t.value.i.inputs.colorthemeBlueLight },
-			{ value: 'purple-light', title: state.t.value.i.inputs.colorthemePurpleLight },
-			{ value: 'green-light',  title: state.t.value.i.inputs.colorthemeGreenLight },
-		];
-	});
 	const descriptionFields = computed((): Record<string, string> => {
 		const descriptionFields = {
 			name               : state.t.value.i.captions.name,
@@ -263,7 +251,6 @@ export function useGettersOther(
 	});
 
 	return {
-		colorthemes,
 		descriptionFields,
 		busy,
 		distanceBetweenPoints,

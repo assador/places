@@ -54,7 +54,7 @@ export const logged = async (): Promise<void> => {
 	mainStore.setBusy(true);
 	await mainStore.setUser();
 	await mainStore.setServerConfig();
-	await mainStore.setSettings();
+	await mainStore.setUserSettings();
 	await mainStore.setEntities();
 	mainStore.ready = true;
 	mainStore.openTreeToCurrent(mainStore.currentPlace);
