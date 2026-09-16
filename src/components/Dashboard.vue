@@ -7,7 +7,7 @@
 			<option
 				v-for="(l, i) in
 					mainStore.settings.vocs.user[SettingKey.Lang]?.enum
-					?? defaultLangs
+					?? vocLangs
 				"
 				:key="i"
 				:value="l.val"
@@ -22,7 +22,7 @@
 			<option
 				v-for="(c, i) in
 					mainStore.settings.vocs.user[SettingKey.ColorTheme]?.enum
-					?? defaultColorThemes
+					?? vocColorThemes
 				"
 				:key="i"
 				:value="c.val"
@@ -38,25 +38,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Dictionary } from '@/types';
-import { SettingKey, SettingType } from '@/types/settings';
+import { SettingKey, SettingType, vocLangs, vocColorThemes } from '@/types/settings';
 import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();
-
-const defaultLangs = [
-	{ val: 'en' , extra: 'langEn' },
-	{ val: 'ru' , extra: 'langRu' },
-];
-const defaultColorThemes = [
-	{ val: 'brown'        , extra: 'colorthemeBrown'       },
-	{ val: 'blue'         , extra: 'colorthemeBlue'        },
-	{ val: 'pink'         , extra: 'colorthemePink'        },
-	{ val: 'green'        , extra: 'colorthemeGreen'       },
-	{ val: 'pink-light'   , extra: 'colorthemePinkLight'   },
-	{ val: 'blue-light'   , extra: 'colorthemeBlueLight'   },
-	{ val: 'purple-light' , extra: 'colorthemePurpleLight' },
-	{ val: 'green-light'  , extra: 'colorthemeGreenLight'  },
-];
 
 const lang = computed({
 	get: () => mainStore.settings.user[SettingKey.Lang] ?? 'ru',

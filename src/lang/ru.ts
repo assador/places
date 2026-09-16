@@ -59,6 +59,7 @@ export const getT = () => ({
 			routePoint: 'Точка маршрута',
 			route: 'Маршрут',
 			routes: 'Маршруты',
+			settings: 'Настройки',
 			srt: 'Сортировка',
 			sure: 'Вы уверены?',
 			system: 'Системн.',
@@ -158,6 +159,7 @@ export const getT = () => ({
 			range: 'Радиус',
 			redo: 'Вернуть',
 			register: 'Зарегистрироваться',
+			reset: 'Сбросить',
 			routes: 'Маршруты',
 			save: 'Сохранить',
 			sendPassword: 'Прислать',
@@ -356,6 +358,7 @@ export const getT = () => ({
 		colorthemePurpleLight: 'Пурпурная светлая тема',
 		langEn: 'English',
 		langRu: 'Русский',
+		resetUserSettings: 'Сбросить все пользовательские настройки',
 	},
 });
 export const t = getT();

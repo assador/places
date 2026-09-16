@@ -13,12 +13,13 @@
 <script setup lang="ts">
 import { ref, provide } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { FolderContext } from '@/types';
 import TreeNode from '@/components/tree/TreeNode.vue';
 
 export interface PlacesTreeProps {
 	instanceid?: string;
 	editable?: boolean;
-	what: 'places' | 'routes';
+	what: FolderContext;
 }
 const props = withDefaults(defineProps<PlacesTreeProps>(), {
 	instanceid: '',

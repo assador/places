@@ -1,14 +1,15 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
-const Auth = () => import('@/components/Auth.vue');
-const Home = () => import('@/components/Home.vue');
-const Admin = () => import('@/components/admin/Admin.vue');
 const Account = () => import('@/components/account/Account.vue');
 const AccountDelete = () => import('@/components/account/AccountDelete.vue');
-const PopupText = () => import('@/components/popups/PopupText.vue');
-const PopupImage = () => import('@/components/popups/PopupImage.vue');
+const Admin = () => import('@/components/admin/Admin.vue');
+const Auth = () => import('@/components/Auth.vue');
+const Home = () => import('@/components/Home.vue');
 const PopupFolder = () => import('@/components/popups/PopupFolder.vue');
 const PopupFolderDelete = () => import('@/components/popups/PopupFolderDelete.vue');
+const PopupImage = () => import('@/components/popups/PopupImage.vue');
+const PopupText = () => import('@/components/popups/PopupText.vue');
+const Settings = () => import('@/components/settings/Settings.vue');
 
 const routes: RouteRecordRaw[] = [
 	{
@@ -59,6 +60,10 @@ const routes: RouteRecordRaw[] = [
 				component: AccountDelete,
 			},
 		],
+	}, {
+		path: '/settings',
+		name: 'Settings',
+		component: Settings,
 	}, {
 		path: '/images/:id',
 		name: 'Images',

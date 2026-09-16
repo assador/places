@@ -96,9 +96,10 @@ export interface TreeEntityCollection {
 	routes: Record<string, Route>;
 }
 export interface Tree {
+	context: string;
 	name?: string;
 	open?: boolean;
-	context: string;
+	folders: Record<string, Folder>;
 }
 export interface User {
 	id: string;
@@ -201,7 +202,7 @@ export interface PopupEntityMenuProps extends PopupProps {
 
 export interface DragPayload {
 	id: string | null;
-	type: 'folder' | 'place' | 'route' | 'point' | 'image';
+	type: 'folder' | 'place' | 'route' | 'point' | 'image' | 'setting';
 	context: string;
 }
 export interface DragEntityPayload extends DragPayload {
@@ -276,7 +277,7 @@ export type EntityPartial =
 	| Partial<Image>
 ;
 
-export const TREE_ITEM_TYPES = ['folder', 'place', 'route'] as const;
+export const TREE_ITEM_TYPES = ['folder', 'place', 'route', 'setting'] as const;
 export type TreeItemType = typeof TREE_ITEM_TYPES[number];
 
 export type Context =
@@ -286,6 +287,7 @@ export type Context =
 	| 'routes'
 	| 'images'
 	| 'measure'
+	| 'settings'
 	| 'temps'
 ;
 export type PointContext =
@@ -295,6 +297,7 @@ export type PointContext =
 export type MetaEntityContext =
 	| 'places'
 	| 'routes'
+	| 'settings'
 ;
 export type PointInfoContext =
 	| 'places'
@@ -315,6 +318,7 @@ export type Mode =
 export type FolderContext =
 	| 'places'
 	| 'routes'
+	| 'settings'
 ;
 export type ImportExportFormat =
 	| 'json'

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import { StoreMain, StoreMainStateRefs } from './types';
 import {
 	Folder,
+	FolderContext,
 	Place,
 	Point,
 	Route,
@@ -45,10 +46,12 @@ const skipKeys = new Set([
 	'messagesTimeout',
 	'refreshing',
 	't',
+	'treeParams',
 ]);
 
 export const useMainStore = defineStore('main', () => {
 
+	const folders = ref<Record<string, Folder>>({});
 	const settings = ref<Settings>({
 		user: {
 			[SettingKey.Lang]: 'ru',
@@ -56,6 +59,23 @@ export const useMainStore = defineStore('main', () => {
 		},
 		vocs: { user: {} },
 		groups: {},
+	});
+	const treeParams = ref<Record<string, Tree>>({
+		places: {
+			context: 'places',
+			open: false,
+			get folders() { return folders.value; },
+		},
+		routes: {
+			context: 'routes',
+			open: false,
+			get folders() { return folders.value; },
+		},
+		settings: {
+			context: 'settings',
+			open: false,
+			get folders() { return settings.value.groups; },
+		},
 	});
 	const currentLang = computed<string>(() => {
 		return (settings.value.user[SettingKey.Lang] as string) ?? 'ru';
@@ -97,7 +117,7 @@ export const useMainStore = defineStore('main', () => {
 		currentPointId:  ref<string | null>(null),
 		currentRouteId:  ref<string | null>(null),
 		first:  ref<boolean>(true),
-		folders:  ref<Record<string, Folder>>({}),
+		folders,
 		idleTime:  ref<number>(0),
 		measure: ref<Measure>({
 			type: 'measure',
@@ -124,9 +144,10 @@ export const useMainStore = defineStore('main', () => {
 		routesShow:  ref<FirstShow>({ show: false, first: true }),
 		saved:  ref<boolean>(true),
 		saving:  ref<boolean>(false),
-		selectedToExport: ref<Record<'places' | 'routes', string[]>>({
+		selectedToExport: ref<Record<FolderContext, string[]>>({
 			places: [],
 			routes: [],
+			settings: [],
 		}),
 		serverConfig:  ref<any | null>(null),
 		settings,
@@ -135,16 +156,7 @@ export const useMainStore = defineStore('main', () => {
 		t:  translation,
 		temps:  ref<Record<string, Point>>({}),
 		tempsShow:  ref<FirstShow>({ show: false, first: true }),
-		treeParams: ref<Record<string, Tree>>({
-			places: {
-				context: 'places',
-				open: false,
-			},
-			routes: {
-				context: 'routes',
-				open: false,
-			},
-		}),
+		treeParams,
 		user:  ref<User | null>(null),
 		users:  ref<Record<string, Partial<User>>>({}),
 		zoom:  ref<number>(constants.map.initial.zoom),
@@ -179,10 +191,10 @@ export const useMainStore = defineStore('main', () => {
 	};
 
 	const gettersEntity   = useGettersEntity(store);
-	const gettersOther    = useGettersOther(store, gettersEntity);
-	const gettersRelate   = useGettersRelate(store, gettersEntity);
 	const gettersSettings = useGettersSettings(store);
 	const gettersTree     = useGettersTree(store);
+	const gettersRelate   = useGettersRelate(store, gettersEntity);
+	const gettersOther    = useGettersOther(store, gettersEntity, gettersSettings);
 
 	const getters = {
 		...gettersEntity,

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { useGettersOther } from '@/stores/getters/other';
 import { useGettersEntity } from '@/stores/getters/entity';
+import { useGettersSettings } from '@/stores/getters/settings';
 
 const state = {
 	folders: {
@@ -23,9 +24,11 @@ const state = {
 	routes: { value: {} },
 } as any;
 const gettersEntity = useGettersEntity(state);
+const gettersSettings = useGettersSettings(state);
 const { getNeighbourIds, getSrts } = useGettersOther(
 	state,
 	gettersEntity,
+	gettersSettings,
 );
 
 describe('Neighbours (for srt)', () => {

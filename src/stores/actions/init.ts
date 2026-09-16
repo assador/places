@@ -227,20 +227,6 @@ export function useActionsInit(
 			store.user.value = null;
 		}
 	};
-	const setUserSettings = async (): Promise<void> => {
-		const uuid = localStorage.getItem('places-useruuid');
-		if (!uuid) return;
-		try {
-			const { data } = await api.get('get_settings_user.php?id=' + uuid);
-			if (data) {
-				Object.assign(store.settings.value, data);
-			}
-		} catch (error) {
-			console.error(error);
-			store.setMessage(store.t.value.m.popup.cannotGetData);
-			store.settings.value.user = {};
-		}
-	};
 	const setEntities = async (): Promise<void> => {
 		const sanitizeEntitiesData = (raw: any): Record<string, Record<string, Record<string, unknown>>> => {
 			if (!raw || typeof raw !== 'object') return raw;
@@ -310,7 +296,6 @@ export function useActionsInit(
 		setServerConfig,
 		setUsers,
 		setUser,
-		setUserSettings,
 		setEntities,
 	};
 };

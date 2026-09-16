@@ -105,7 +105,7 @@ export const unpackTilesZip = async (
 
 	const total = tileEntries.length;
 	if (total === 0) {
-		throw new Error('В ZIP-архиве не найдено тайлов структуры z/x/y');
+		throw new Error('No structure tiles of type z/x/y were found in the ZIP archive.');
 	}
 
 	const db = await openTileDb();
@@ -162,7 +162,6 @@ export const clearOfflineTiles = async (): Promise<void> => {
 		store.clear();
 
 		tx.oncomplete = () => {
-			console.log('🧹 Offline tiles cleared completely!');
 			resolve();
 		};
 		tx.onerror = () => reject(tx.error);

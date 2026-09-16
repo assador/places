@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { StoreMainStateRefs, GettersEntity } from '@/stores/types';
+import { StoreMainStateRefs, GettersEntity, GettersSettings } from '@/stores/types';
 import {
 	Folder,
 	Place,
@@ -20,7 +20,8 @@ import { distanceOnSphere } from '@/shared/common';
 
 export function useGettersOther(
 	state: StoreMainStateRefs,
-	getters: GettersEntity,
+	gettersEntity: GettersEntity,
+	gettersSettings: GettersSettings,
 ) {
 	const descriptionFields = computed((): Record<string, string> => {
 		const descriptionFields = {
@@ -46,7 +47,7 @@ export function useGettersOther(
 	});
 	const distanceBetweenPoints = (ids: string[], where?: PointContext): number => {
 		if (ids.length < 2) return 0;
-		const points = where ? state[where].value : getters.getAllPoints.value;
+		const points = where ? state[where].value : gettersEntity.getAllPoints.value;
 		let distance = 0;
 		for (let i = 1; i < ids.length; i++) {
 			if (!points[ids[i]]) continue;
@@ -62,12 +63,13 @@ export function useGettersOther(
 	};
 	const getNeighbourIds = (
 		id: string,
-		type: 'folder' | 'place' | 'route',
+		type: 'folder' | 'place' | 'route' | 'setting',
 	): string[] | undefined => {
 		const typeDict = {
 			folder: state.folders,
 			place: state.places,
 			route: state.routes,
+			setting: gettersSettings.getSettingsUser,
 		};
 		const dict = typeDict[type].value;
 		const item = dict[id];
@@ -111,6 +113,7 @@ export function useGettersOther(
 			folder: state.folders,
 			place: state.places,
 			route: state.routes,
+			setting: gettersSettings.getSettingsUser,
 		};
 		const dict = typeDict[type].value;
 		const item = dict[id];
@@ -135,13 +138,13 @@ export function useGettersOther(
 		return { before, after, min, max, previous, next };
 	};
 	const getPointCoords = (pointId: string): number[] | undefined => {
-		const point = getters.getPointById(pointId);
+		const point = gettersEntity.getPointById(pointId);
 		return point ? [ point.latitude, point.longitude ] : undefined;
 	};
 	const getPointsCoords = (pointIdsArray: string[]): number[][] => {
 		const coords: number[][] = [];
 		for (const id of pointIdsArray) {
-			const point = getters.getPointById(id);
+			const point = gettersEntity.getPointById(id);
 			if (point) coords.push([ point.latitude, point.longitude ]);
 		}
 		return coords;
@@ -153,8 +156,8 @@ export function useGettersOther(
 		if (pointIds.length < 2) return 0;
 		let distance = 0;
 		for (let i = 0; i < pointIds.length - 1; i++) {
-			const p1 = getters.getPointById(pointIds[i]);
-			const p2 = getters.getPointById(pointIds[i + 1]);
+			const p1 = gettersEntity.getPointById(pointIds[i]);
+			const p2 = gettersEntity.getPointById(pointIds[i + 1]);
 			if (p1 && p2) {
 				const d = distanceOnSphere(
 					p1.latitude, p1.longitude,

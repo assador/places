@@ -1,5 +1,5 @@
 import { StoreMain, ActionsImport } from '@/stores/types';
-import { Point, EntityCollection } from '@/types';
+import { Point, EntityCollection, FolderContext } from '@/types';
 import { entitiesFromJSON, entitiesFromGPX } from '@/shared/importexport';
 import { isRecord, isFolder, isPlace } from '@/guards';
 
@@ -116,7 +116,7 @@ export function useActionsImport(
 		store.backupState();
 		store.setBusy(false);
 	};
-	const selectToExport = (type: 'places' | 'routes', id: string, checked: boolean): void => {
+	const selectToExport = (type: FolderContext, id: string, checked: boolean): void => {
 		const set = store.selectedToExport.value[type];
 		if (checked) {
 			if (!set.includes(id)) set.push(id);
@@ -125,7 +125,7 @@ export function useActionsImport(
 			if (index !== -1) set.splice(index, 1);
 		}
 	};
-	const toggleToExport = (type: 'places' | 'routes', id: string): void => {
+	const toggleToExport = (type: FolderContext, id: string): void => {
 		const set = store.selectedToExport.value[type];
 		const index = set.indexOf(id);
 		if (index !== -1) set.splice(index, 1);

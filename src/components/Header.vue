@@ -19,6 +19,12 @@
 								{{ mainStore.t.i.buttons.profile }}
 							</router-link>
 							<router-link
+								to="/settings"
+								class="menu-link message border_1"
+							>
+								{{ mainStore.t.i.captions.settings }}
+							</router-link>
+							<router-link
 								v-if="
 									!!mainStore['user'] &&
 									!!mainStore.user['groups'] &&

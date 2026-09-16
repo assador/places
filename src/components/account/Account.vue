@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMainStore } from '@/stores/main';
 import { Account } from '@/types';
@@ -157,9 +157,6 @@ const close = (event?: Event): void => {
 	if (event) event.stopPropagation();
 	router.push({ name: 'Home' });
 };
-const keyup = (event: KeyboardEvent): void => {
-	if (event.key === 'Escape') close(event);
-};
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
 }
@@ -170,14 +167,6 @@ const accountSubmit = (): void => {
 		mainStore.setMessage(mainStore.t.m.paged.incorrectFields, 3);
 	}
 };
-
-onMounted(async () => {
-	await nextTick();
-	document.addEventListener('keyup', keyup, false);
-});
-onBeforeUnmount(() => {
-	document.removeEventListener('keyup', keyup, false);
-});
 </script>
 
 <style lang="scss" scoped>

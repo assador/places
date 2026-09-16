@@ -115,7 +115,7 @@
 			    @pointercancel="onPointerUp"
 				@contextmenu.stop.prevent="e => common.toggleEntityMenuPopup(
 					e,
-					folder.id ? mainStore.folders[folder.id] : mainStore.trees[folder.context],
+					folder.id ? folders[folder.id] : mainStore.trees[folder.context],
 					props.what,
 				)"
 			>
@@ -200,10 +200,10 @@
 			}"
 		>
 
-<!-- SEC place/route-button  -->
+<!-- SEC place/route/setting-button  -->
 
 			<label
-				v-for="object in (props.what === 'places' ? places : routes)"
+				v-for="object in entities"
 				:id="
 					(instanceid === 'popupexporttree' ? 'to-export-place-' : '') +
 					object.id
@@ -273,7 +273,9 @@
 						}
 					})"
 					@pointercancel.stop="onPointerUp"
-					@contextmenu.stop.prevent="contextPlaceRoute($event, object)"
+					@contextmenu.stop.prevent="e => {
+						if (isPlace(object) || isRoute(object)) contextPlaceRoute(e, object);
+					}"
 				>
 					{{ object.name || mainStore.t.i.captions.untitled }}
 				</span>
@@ -371,7 +373,8 @@ import {
 	Folder,
 	FolderContext,
 } from '@/types';
-import { isPlace } from '@/guards';
+import { Setting } from '@/types/settings';
+import { isPlace, isRoute } from '@/guards';
 import { common } from '@/services/common';
 import { usePointerDnD, handleDrop } from '@/services/dnd';
 import { roundTo } from '@/shared/common';
@@ -395,6 +398,9 @@ const focusCurrent = inject<(input: HTMLElement | null) => Promise<void>>('focus
 const currentPlaceNameInputRef = inject<Ref<HTMLElement | null>>('currentPlaceNameInputRef', ref(null));
 const currentRouteNameInputRef = inject<Ref<HTMLElement | null>>('currentRouteNameInputRef', ref(null));
 
+const folders = computed((): Record<string, Folder> => {
+	return mainStore.treeParams[props.what].folders;
+});
 const places = computed((): Place[] => {
 	const array: Place[] = [];
 	for (const id in mainStore.places) {
@@ -412,6 +418,28 @@ const routes = computed((): Route[] => {
 		if (r.show && !r.deleted && r.folderid === props.folder.id) array.push(r);
 	}
 	return _.chain(array).sortBy('srt').value();
+});
+const settings = computed((): Setting[] => {
+	const array: Setting[] = [];
+	const dict = mainStore.getSettingsUser;
+	for (const id in dict) {
+		if (!Object.hasOwn(dict, id)) continue;
+		const s = dict[id];
+		if (s.folderid === props.folder.id) array.push(s);
+	}
+	return _.chain(array).sortBy('srt').value();
+});
+const entities = computed((): (Place | Route | Setting)[] => {
+	switch (props.what) {
+		case 'places':
+			return places.value;
+		case 'routes':
+			return routes.value;
+		case 'settings':
+			return settings.value;
+		default:
+			return [];
+	}
 });
 const placesDistance = computed(() => {
 	return roundTo(mainStore.distanceBetweenPoints(
@@ -465,10 +493,14 @@ watch(() => mainStore.selectedToExport[props.what], (newIds) => {
 	const checkedFolders = new Set<string>();
 	if (newIds) {
 		for (const id of newIds) {
-			const directFolderId = mainStore[props.what][id]?.folderid;
+			const directFolderId =
+				props.what === 'settings'
+					? mainStore[props.what].vocs.user[id]?.folderid
+					: mainStore[props.what][id]?.folderid
+			;
 			if (directFolderId) {
 				checkedFolders.add(directFolderId);
-				const ancestors = mainStore.getAncestors(directFolderId);
+				const ancestors = mainStore.getAncestors(directFolderId, props.what);
 				for (const ancestorId of ancestors) {
 					checkedFolders.add(ancestorId);
 				}

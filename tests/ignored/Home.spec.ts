@@ -5,6 +5,8 @@ import { flushPromises } from '@vue/test-utils';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import { h, ref } from 'vue';
 
+import { Folder } from '@/types';
+import { SettingKey, Settings } from '@/types/settings';
 import { MainState } from '@/stores/types';
 import { constants } from '@/shared/constants';
 import { t } from '@/lang/ru';
@@ -41,6 +43,16 @@ vi.mock('@/shared/common', () => ({
 // Mock axios
 vi.mock('axios', () => ({ default: { get: vi.fn().mockResolvedValue({ data: { elevation: 0 } }), post: vi.fn().mockResolvedValue({ data: [[], []] }) } }));
 
+const folders = ref<Record<string, Folder>>({});
+const settings = ref<Settings>({
+	user: {
+		[SettingKey.Lang]: 'ru',
+		[SettingKey.ColorTheme]: 'brown',
+	},
+	vocs: { user: {} },
+	groups: {},
+});
+
 // Pinia store shape minimal implementation
 function createMainStoreState(): MainState {
 	return {
@@ -66,7 +78,7 @@ function createMainStoreState(): MainState {
 		currentPointId: null,
 		currentRouteId: null,
 		first: true,
-		folders: {},
+		folders: folders.value,
 		idleTime: 0,
 		measure: {
 			type: 'measure',
@@ -96,8 +108,10 @@ function createMainStoreState(): MainState {
 		selectedToExport: {
 			places: [],
 			routes: [],
+			settings: [],
 		},
 		serverConfig: null,
+		settings: settings.value,
 		stateBackups: [],
 		stateBackupsIndex: -1,
 		t: t,
@@ -107,10 +121,17 @@ function createMainStoreState(): MainState {
 			places: {
 				context: 'places',
 				open: false,
+				folders: folders.value,
 			},
 			routes: {
 				context: 'routes',
 				open: false,
+				folders: folders.value,
+			},
+			settings: {
+				context: 'settings',
+				open: false,
+				folders: settings.value.groups,
 			},
 		},
 		user: null,

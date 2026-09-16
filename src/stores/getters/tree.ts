@@ -2,25 +2,26 @@ import { computed } from 'vue';
 import { StoreMainStateRefs } from '@/stores/types';
 import { initFolderFactory } from '@/stores/actions/entity';
 import _ from 'lodash';
-import { Folder } from '@/types';
+import { Folder, FolderContext } from '@/types';
 
 export function useGettersTree(
 	state: StoreMainStateRefs,
 ) {
-	const allChildrenMap = computed((): Record<string, Record<string, Folder>> => {
+	const allChildrenMap = (context: FolderContext): Record<string, Record<string, Folder>> => {
+		const folders = state.treeParams.value[context].folders;
 		const map: Record<string, Record<string, Folder>> = {};
-		for (const id in state.folders.value) {
-			if (!Object.hasOwn(state.folders.value, id)) continue;
-			const pId = String(state.folders.value[id].parent || null);
-			if (!state.folders.value[id].deleted) {
+		for (const id in folders) {
+			if (!Object.hasOwn(folders, id)) continue;
+			const pId = String(folders[id].parent || null);
+			if (!folders[id].deleted) {
 				if (!map[pId]) map[pId] = {};
-				map[pId][id] = state.folders.value[id];
+				map[pId][id] = folders[id];
 			}
 		}
 		return map;
-	});
-	const folderChildren = (fId: string | null, context?: string): Record<string, Folder> => {
-		const children = allChildrenMap.value[String(fId || null)] || {};
+	};
+	const folderChildren = (fId: string | null, context: FolderContext): Record<string, Folder> => {
+		const children = allChildrenMap(context)[String(fId || null)] || {};
 		if (!context) return children;
 		return Object.fromEntries(
 			Object.values(children)
@@ -28,10 +29,12 @@ export function useGettersTree(
 				.map((folder: Folder) => [folder.id, folder])
 		);
 	};
-	const buildTree = (context: 'places' | 'routes'): Folder => {
+	const buildTree = (context: FolderContext): Folder | undefined => {
+		const folders = state.treeParams.value[context].folders;
+		if (!folders) return;
 		const createFolder = initFolderFactory(() => state.user.value?.id ?? null);
 		const prepareNode = (parent: Folder): Folder => {
-			const folder = parent.id ? state.folders.value[parent.id] : parent;
+			const folder = parent.id ? folders[parent.id] : parent;
 			if (!folder) return parent;
 			if (!Object.prototype.hasOwnProperty.call(folder, 'children')) {
 				Object.defineProperty(folder, 'children', {
@@ -62,48 +65,95 @@ export function useGettersTree(
 		});
 		return prepareNode(tree);
 	};
-	const treePlaces = computed((): Folder => {
+	const treePlaces = computed((): Folder | undefined => {
 		return buildTree('places');
 	});
-	const treeRoutes = computed((): Folder => {
+	const treeRoutes = computed((): Folder | undefined => {
 		return buildTree('routes');
 	});
-	const trees = computed((): { places: Folder, routes: Folder } => {
-		return {
-			places: treePlaces.value,
-			routes: treeRoutes.value,
-		};
+	const treeSettings = computed((): Folder | undefined => {
+		return buildTree('settings');
 	});
-	const getAncestors = (id: string): Set<string> => {
-			const collection = new Set<string>();
-			let parentId = state.folders.value[id]?.parent;
-			while (parentId) {
-				collection.add(parentId);
-				parentId = state.folders.value[parentId]?.parent;
-			}
-			return collection;
+	const trees = computed(() => {
+		const result = {} as {
+			readonly places: Folder;
+			readonly routes: Folder;
+			readonly settings: Folder;
+		};
+		Object.defineProperties(result, {
+			places: {
+				get: () => treePlaces.value,
+				enumerable: true,
+			},
+			routes: {
+				get: () => treeRoutes.value,
+				enumerable: true,
+			},
+			settings: {
+				get: () => treeSettings.value,
+				enumerable: true,
+			},
+		});
+		return result;
+	});
+	const getAncestors = (
+		id: string,
+		context: FolderContext,
+	): Set<string> => {
+		const collection = new Set<string>();
+		const folders = state.treeParams.value[context].folders;
+		if (!folders) return collection;
+		let parentId = folders[id]?.parent;
+		while (parentId) {
+			collection.add(parentId);
+			parentId = folders[parentId]?.parent;
+		}
+		return collection;
 	};
-	const getDescendants = (id: string | null, type: 'folders' | 'places' | 'routes'): Set<string> => {
+	const getDescendants = (
+		id: string | null,
+		context: 'folders' | FolderContext,
+	): Set<string> => {
 		const folderIds = new Set<string>();
+		const folders = state.treeParams.value[context].folders;
 		const collectFolderIds = (currentId: string | null) => {
-			for (const fId in state.folders.value) {
-				if (!Object.hasOwn(state.folders.value, fId)) continue;
-				if (!folderIds.has(fId) && state.folders.value[fId].parent === currentId) {
+			for (const fId in folders) {
+				if (!Object.hasOwn(folders, fId)) continue;
+				if (
+					!folderIds.has(fId) &&
+					folders[fId].parent === currentId
+				) {
 					folderIds.add(fId);
 					collectFolderIds(fId);
 				}
 			}
 		};
 		collectFolderIds(id);
-		if (type === 'folders') {
+		if (context === 'folders') {
 			return folderIds;
 		}
 		const collection = new Set<string>();
-		const targetCollection = state[type];
-		for (const itemId in targetCollection.value) {
-			const itemFolderId = targetCollection.value[itemId].folderid;
-			if (itemFolderId === id || itemFolderId && folderIds.has(itemFolderId)) {
-				collection.add(itemId);
+		if (context === 'settings') {
+			const targetCol = state[context].value.user;
+			const targetVoc = state[context].value.vocs.user;
+			for (const itemId in targetCol) {
+				const itemFolderId = targetVoc[itemId]?.folderid;
+				if (
+					itemFolderId === id ||
+					itemFolderId && folderIds.has(itemFolderId)
+				) {
+					collection.add(itemId);
+				}
+			}
+		} else {
+			for (const itemId in state[context].value) {
+				const itemFolderId = state[context].value[itemId].folderid;
+				if (
+					itemFolderId === id ||
+					itemFolderId && folderIds.has(itemFolderId)
+				) {
+					collection.add(itemId);
+				}
 			}
 		}
 		return collection;

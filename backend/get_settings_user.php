@@ -28,7 +28,7 @@ $settings = [
 ];
 
 $stmt = $ctx->db->query("
-	SELECT `id`, `type`, `baseval`, `name`, `description`
+	SELECT `id`, `groupid`, `type`, `baseval`, `name`, `description`, `srt`
 	FROM `settings_users_voc`
 	WHERE `public` = TRUE
 ");
@@ -61,6 +61,7 @@ $userValues = $stmtUser->fetchAll(PDO::FETCH_KEY_PAIR);
 foreach ($voc as $item) {
 	$id = (int)$item["id"];
 	$type = (int)$item["type"];
+	$srt = (float)$item["srt"];
 	$baseval = castSettingValue($item["baseval"], $type);
 
 	$enumList = [];
@@ -84,8 +85,10 @@ foreach ($voc as $item) {
 		}
 	}
 	$settings["vocs"]["user"][$id] = [
-		"type" => $type,
+		"valtype" => $type,
 		"baseval" => $baseval,
+		"folderid" => $item["groupid"],
+		"srt" => $srt,
 	]
 		+ ($enumList ? ["enum" => $enumList] : [])
 		+ array_filter([

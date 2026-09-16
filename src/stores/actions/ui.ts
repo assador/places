@@ -1,5 +1,5 @@
 import { StoreMain, ActionsUI } from '@/stores/types';
-import { Place, Route, Folder, GeomarksState } from '@/types';
+import { Place, Route, Folder, GeomarksState, FolderContext } from '@/types';
 import { isFolder, isPlace, isRoute } from '@/guards';
 import { constants } from '@/shared/constants';
 import { distanceOnSphere } from '@/shared/common';
@@ -65,9 +65,10 @@ export function useActionsUI(
 		{ folder: Folder; open?: boolean; }
 	): void => {
 		const targetOpen = open !== undefined ? open : !folder.open;
+		const folders = store.treeParams.value[folder.context].folders;
 		if (folder) {
 			if (folder.virtual) store.trees.value[folder.context].open = targetOpen;
-			else if (folder.id) store.folders.value[folder.id].open = targetOpen;
+			else if (folder.id) folders[folder.id].open = targetOpen;
 		}
 	};
 	const openTreeTo = (object: Place | Route): void => {
@@ -161,7 +162,7 @@ export function useActionsUI(
 		}
 		const showHideParentGeomarks = (
 			parentId: string | null,
-			context: 'places' | 'routes',
+			context: FolderContext,
 		) => {
 			const parent = parentId
 				? store.folders.value[parentId]
@@ -172,7 +173,7 @@ export function useActionsUI(
 			let isPartial = false;
 			const pIdStr = String(parentId);
 
-			const siblingFolders = store.allChildrenMap.value[pIdStr] || {};
+			const siblingFolders = store.allChildrenMap(context)[pIdStr] || {};
 			for (const id in siblingFolders) {
 				if (!Object.hasOwn(siblingFolders, id)) continue;
 				const f = siblingFolders[id];

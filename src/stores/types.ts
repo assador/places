@@ -10,6 +10,7 @@ import {
 	EntityCollection,
 	FirstShow,
 	Folder,
+	FolderContext,
 	GeomarksState,
 	Image,
 	ImageableEntity,
@@ -93,7 +94,7 @@ export interface MainState {
 	routesShow: FirstShow;
 	saved: boolean;
 	saving: boolean;
-	selectedToExport: Record<'places' | 'routes', string[]>;
+	selectedToExport: Record<FolderContext, string[]>;
 	serverConfig: any | null;
 	settings: Settings;
 	stateBackups: any[];
@@ -187,8 +188,8 @@ export interface ActionsEntity {
 }
 export interface ActionsImport {
 	addImported: (p: { mime: string; text: string; }) => void;
-	selectToExport: (type: 'places' | 'routes', id: string, checked: boolean) => void;
-	toggleToExport: (type: 'places' | 'routes', id: string) => void;
+	selectToExport: (type: FolderContext, id: string, checked: boolean) => void;
+	toggleToExport: (type: FolderContext, id: string) => void;
 }
 export interface ActionsInit {
 	reset: () => void;
@@ -196,7 +197,6 @@ export interface ActionsInit {
 	setServerConfig: () => Promise<void>;
 	setUsers: (payload?: string) => Promise<void>;
 	setUser: () => Promise<void>;
-	setUserSettings: () => Promise<void>;
 	setEntities: () => Promise<void>;
 }
 export interface ActionsRelate {
@@ -216,12 +216,17 @@ export interface ActionsService {
 	setPointAltitude: (entity: Point) => Promise<void>;
 }
 export interface ActionsSettings {
+	resetSettings: () => void;
+	resetSettingsGroups: () => void;
+	resetUserSettings: () => void;
 	changeSetting: (p: {
 		id: number;
 		value: SettingType;
 		context?: SettingsContext;
 	}) => void;
-	saveSettings: () => void;
+	setSettingsGroups: () => Promise<void>;
+	setUserSettings: () => Promise<void>;
+	saveUserSettings: () => Promise<void>;
 }
 export interface ActionsUI {
 	setBusy: (busy: boolean) => void;

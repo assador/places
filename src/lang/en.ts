@@ -59,6 +59,7 @@ export const getT = () => ({
 			routePoint: 'Route point',
 			route: 'Route',
 			routes: 'Routes',
+			settings: 'Settings',
 			srt: 'Sorting',
 			sure: 'Are you sure?',
 			system: 'System',
@@ -158,6 +159,7 @@ export const getT = () => ({
 			range: 'Radius',
 			redo: 'Redo',
 			register: 'Register',
+			reset: 'Reset',
 			routes: 'Routes',
 			save: 'Save',
 			sendPassword: 'Send',
@@ -356,6 +358,7 @@ Your data won’t be saved to your account and will be cleared when you log o
 		colorthemePurpleLight: 'Purple light theme',
 		langEn: 'English',
 		langRu: 'Русский',
+		resetUserSettings: 'Reset all user settings',
 	},
 });
 export const t = getT();

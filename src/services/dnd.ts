@@ -20,6 +20,7 @@ export const handleFolderDropped = (
 ): void => {
 	if (!payload.id) return;
 	const mainStore = useMainStore();
+	const folders = mainStore.treeParams[payload.context].folders;
 	const targetId = target.dataset.entityId === 'null'
 		? null : target.dataset.entityId
 	;
@@ -30,12 +31,12 @@ export const handleFolderDropped = (
 		isAncestorOf({
 			ancestorId: payload.id,
 			descendantId: targetId,
-			relativesList: mainStore.folders,
+			relativesList: folders,
 		})
 	) {
 		return;
 	}
-	const folder = mainStore.folders[payload.id];
+	const folder = folders[payload.id];
 	let parentId: string | null = targetId;
 	let srt: number;
 	const srts = targetId ? mainStore.getSrts(targetId, target.dataset.entityType) : undefined;
@@ -44,7 +45,7 @@ export const handleFolderDropped = (
 		case 'before':
 		case 'after':
 			srt = srts ? (payload.position === 'before' ? srts.before : srts.after) : 10;
-			parentId = targetId ? (mainStore.folders[targetId]?.parent ?? null) : null;
+			parentId = targetId ? (folders[targetId]?.parent ?? null) : null;
 			break;
 		default:
 			srt = srts ? srts.max + 10 : 10;
@@ -63,6 +64,7 @@ export const handlePlaceRouteDropped = (
 	target: HTMLElement,
 ): void => {
 	const mainStore = useMainStore();
+	const folders = mainStore.treeParams[payload.context].folders;
 	const targetId = target.dataset.entityId === 'null'
 		? null : target.dataset.entityId
 	;
@@ -76,7 +78,7 @@ export const handlePlaceRouteDropped = (
 	const parentId = targetId ? (target.dataset.entityType !== 'folder'
 		? mainStore[payload.context][targetId].folderid
 		: (target.dataset.entitySortArea
-			? mainStore.folders[targetId]?.parent ?? null
+			? folders[targetId]?.parent ?? null
 			: targetId
 	)) : null;
 	let srt: number;
