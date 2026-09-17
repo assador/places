@@ -9,7 +9,7 @@ import {
 	Route,
 	Measure,
 } from '@/types';
-import { isTreeItemType } from '@/guards';
+import { isTreeBranchType } from '@/guards';
 import { isAncestorOf } from '@/shared/checkers';
 import { moveInArray, moveInObject } from '@/shared/sorting';
 import { useMainStore } from '@/stores/main';
@@ -59,7 +59,7 @@ export const handleFolderDropped = (
 		},
 	});
 };
-export const handlePlaceRouteDropped = (
+export const handleEntityDropped = (
 	payload: DragPlacePayload | DragRoutePayload,
 	target: HTMLElement,
 ): void => {
@@ -71,7 +71,7 @@ export const handlePlaceRouteDropped = (
 	if (
 		targetId === undefined ||
 		targetId === payload.id ||
-		!isTreeItemType(target.dataset.entityType)
+		!isTreeBranchType(target.dataset.entityType)
 	) {
 		return;
 	}
@@ -305,7 +305,7 @@ export const handleDrop = (target: HTMLElement) => {
 			break;
 		case 'place':
 		case 'route':
-			handlePlaceRouteDropped(payload as DragPlacePayload | DragRoutePayload, target);
+			handleEntityDropped(payload as DragPlacePayload | DragRoutePayload, target);
 			break;
 		case 'point':
 			handlePointInListDropped(payload as DragPointInListPayload, target);

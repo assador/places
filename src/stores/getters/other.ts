@@ -11,7 +11,7 @@ import {
 	PointInfo,
 	PointContext,
 	PointInfoContext,
-	TreeItemType,
+	TreeBranchType,
 } from '@/types';
 
 // import { isFolder } from '@/guards';
@@ -96,7 +96,7 @@ export function useGettersOther(
 	};
 	const getSrts = (
 		id: string,
-		type: TreeItemType,
+		type: TreeBranchType,
 	): {
 		before: number;
 		after: number;

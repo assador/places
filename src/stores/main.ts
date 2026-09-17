@@ -53,11 +53,7 @@ export const useMainStore = defineStore('main', () => {
 
 	const folders = ref<Record<string, Folder>>({});
 	const settings = ref<Settings>({
-		user: {
-			[SettingKey.Lang]: 'ru',
-			[SettingKey.ColorTheme]: 'brown',
-		},
-		vocs: { user: {} },
+		user: {},
 		groups: {},
 	});
 	const treeParams = ref<Record<string, Tree>>({
@@ -77,9 +73,7 @@ export const useMainStore = defineStore('main', () => {
 			get folders() { return settings.value.groups; },
 		},
 	});
-	const currentLang = computed<string>(() => {
-		return (settings.value.user[SettingKey.Lang] as string) ?? 'ru';
-	});
+	const currentLang = computed(() => settings.value.user[SettingKey.Lang]?.val ?? 'ru');
 	const translation = shallowRef<Dictionary>(getT());
 
 	watch(currentLang, async (newLang) => {
@@ -143,6 +137,7 @@ export const useMainStore = defineStore('main', () => {
 		routes:  ref<Record<string, Route>>({}),
 		routesShow:  ref<FirstShow>({ show: false, first: true }),
 		saved:  ref<boolean>(true),
+		savedSettings:  ref<boolean>(true),
 		saving:  ref<boolean>(false),
 		selectedToExport: ref<Record<FolderContext, string[]>>({
 			places: [],

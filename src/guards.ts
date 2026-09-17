@@ -12,9 +12,10 @@ import {
 	Point,
 	PointDescription,
 	Route,
-	TreeItemType, TREE_ITEM_TYPES,
+	TreeBranchType, TREE_ITEM_TYPES,
 	User,
 } from '@/types';
+import { Setting, SettingEnum, SettingType } from '@/types/settings';
 
 const isOptionalString = (value: unknown): boolean =>
 	value === undefined || typeof value === 'string'
@@ -70,6 +71,44 @@ export const isAccount = (value: unknown): value is Account => {
 		!isOptionalString(account.passwordnew) ||
 		!isOptionalString(account.passwordnewrepeat) ||
 		account.passwordnew !== account.passwordnewrepeat
+	) {
+		return false;
+	}
+	return true;
+};
+export const isSettingType = (value: unknown): value is SettingType =>
+	value === null ||
+	typeof value === 'boolean' ||
+	typeof value === 'number' ||
+	typeof value === 'string'
+;
+export const isSettingEnum = (value: unknown): value is SettingEnum => {
+	if (
+		!isRecord(value) ||
+		typeof value.srt !== 'number' ||
+		!isSettingType(value.val) ||
+		!isOptionalString(value.extra)
+	) {
+		return false;
+	}
+	return true;
+};
+export const isSetting = (value: unknown): value is Setting => {
+	if (
+		!isRecord(value) ||
+		value.type !== 'setting' ||
+		typeof value.id !== 'string' ||
+		typeof value.srt !== 'number' ||
+		typeof value.valtype !== 'number' ||
+		(typeof value.folderid !== 'string' && value.folderid !== null) ||
+		!isSettingType(value.val) ||
+		!isSettingType(value.baseval) ||
+		!isOptionalString(value.name) ||
+		!isOptionalString(value.description) ||
+		(value.enum !== undefined && (
+			!Array.isArray(value.enum) ||
+			!value.enum.every(isSettingEnum)
+		))
 	) {
 		return false;
 	}
@@ -219,7 +258,7 @@ export const isImageableCollectionKey = (key: unknown): key is 'places' | 'route
 export const isImageableEntity = (value: unknown): value is ImageableEntity => {
 	return isPlace(value) || isRoute(value);
 };
-export const isTreeItemType = (value: unknown): value is TreeItemType => {
+export const isTreeBranchType = (value: unknown): value is TreeBranchType => {
 	if (
 		typeof value !== 'string' ||
 		!(TREE_ITEM_TYPES as readonly string[]).includes(value)

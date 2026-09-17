@@ -20,13 +20,6 @@ function castSettingValue(?string $value, int $type)
 	};
 }
 
-$settings = [
-	"user" => [],
-	"vocs" => [
-		"user" => [],
-	],
-];
-
 $stmt = $ctx->db->query("
 	SELECT `id`, `groupid`, `type`, `baseval`, `name`, `description`, `srt`
 	FROM `settings_users_voc`
@@ -58,6 +51,8 @@ $stmtUser->bindValue(":userid", $userId, PDO::PARAM_LOB);
 $stmtUser->execute();
 $userValues = $stmtUser->fetchAll(PDO::FETCH_KEY_PAIR);
 
+$settings = [];
+
 foreach ($voc as $item) {
 	$id = (int)$item["id"];
 	$type = (int)$item["type"];
@@ -84,21 +79,21 @@ foreach ($voc as $item) {
 			$enumList[] = $enumItem;
 		}
 	}
-	$settings["vocs"]["user"][$id] = [
+	$settings[(string)$id] = [
 		"valtype" => $type,
 		"baseval" => $baseval,
-		"folderid" => $item["groupid"],
+		"folderid" => (string)$item["groupid"],
 		"srt" => $srt,
+		"val" => array_key_exists($id, $userValues)
+			? castSettingValue($userValues[$id], $type)
+			: $baseval
+		,
 	]
 		+ ($enumList ? ["enum" => $enumList] : [])
 		+ array_filter([
 			"name" => $item["name"] ?? null,
 			"description" => $item["description"] ?? null,
 		])
-	;
-	$settings["user"][$id] = array_key_exists($id, $userValues)
-		? castSettingValue($userValues[$id], $type)
-		: $baseval
 	;
 }
 echo json_encode(

@@ -21,12 +21,12 @@ export interface Setting extends SettingsVocRec {
 	id: string;
 	type: 'setting';
 	val: SettingType;
+	added: boolean;
+	deleted: boolean;
+	updated: boolean;
 }
 export interface Settings {
-	user: Record<string, SettingType>;
-	vocs: {
-		user: Record<string, SettingsVocRec>;
-	};
+	user: Record<string, Setting>;
 	groups: Record<string, Folder>;
 }
 export enum SettingKey {

@@ -1,9 +1,10 @@
 <template>
 	<ul class="tree">
-		<TreeNode
+		<component
+			:is="itemComponent"
 			:instanceid="instanceid"
-			:editable="props.editable"
 			:what="props.what"
+			:editable="props.editable"
 			:folder="mainStore.trees[props.what]"
 			:parent="null"
 		/>
@@ -11,10 +12,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from 'vue';
+import { ref, computed, provide } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { FolderContext } from '@/types';
-import TreeNode from '@/components/tree/TreeNode.vue';
+import TreeBranch from './TreeBranch.vue';
+import TreeBranchSettings from './TreeBranchSettings.vue';
 
 export interface PlacesTreeProps {
 	instanceid?: string;
@@ -36,6 +38,10 @@ provide('dragTargetId', dragTargetId);
 
 const dragTargetContext = ref(null);
 provide('dragTargetContext', dragTargetContext);
+
+const itemComponent = computed(() => {
+	return props.what === 'settings' ? TreeBranchSettings : TreeBranch;
+});
 </script>
 
 <style lang="scss" scoped>

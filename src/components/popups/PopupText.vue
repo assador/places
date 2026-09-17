@@ -7,7 +7,7 @@
 		>
 			<About v-if="
 				props.what === 'about' &&
-				mainStore.settings.user[SettingKey.Lang] === 'ru'
+				mainStore.settings.user[SettingKey.Lang]?.val === 'ru'
 			" />
 			<AboutEn v-else />
 			<a

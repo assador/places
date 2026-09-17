@@ -24,7 +24,7 @@ import {
 	Tree,
 	User,
 } from '@/types';
-import { SettingsContext, SettingType, Settings } from '@/types/settings';
+import { Setting, Settings } from '@/types/settings';
 
 export type EntityAppendMode =
 	| 'change' // change the existing one
@@ -93,6 +93,7 @@ export interface MainState {
 	routes: Record<string, Route>;
 	routesShow: FirstShow;
 	saved: boolean;
+	savedSettings: boolean;
 	saving: boolean;
 	selectedToExport: Record<FolderContext, string[]>;
 	serverConfig: any | null;
@@ -219,11 +220,7 @@ export interface ActionsSettings {
 	resetSettings: () => void;
 	resetSettingsGroups: () => void;
 	resetUserSettings: () => void;
-	changeSetting: (p: {
-		id: number;
-		value: SettingType;
-		context?: SettingsContext;
-	}) => void;
+	changeSetting: (p: { setting: Setting; change: Partial<Setting>; }) => void;
 	setSettingsGroups: () => Promise<void>;
 	setUserSettings: () => Promise<void>;
 	saveUserSettings: () => Promise<void>;

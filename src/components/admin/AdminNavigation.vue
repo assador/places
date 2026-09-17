@@ -3,7 +3,7 @@
 		<div
 			v-for="(section, key) in sections"
 			:key="key"
-			class="place-button block_01"
+			class="tree-item block_01"
 			:class="{' active': key === component}"
 			@click="component = key"
 		>

@@ -6,7 +6,7 @@
 		>
 			<option
 				v-for="(l, i) in
-					mainStore.settings.vocs.user[SettingKey.Lang]?.enum
+					mainStore.settings.user[SettingKey.Lang]?.enum
 					?? vocLangs
 				"
 				:key="i"
@@ -21,7 +21,7 @@
 		>
 			<option
 				v-for="(c, i) in
-					mainStore.settings.vocs.user[SettingKey.ColorTheme]?.enum
+					mainStore.settings.user[SettingKey.ColorTheme]?.enum
 					?? vocColorThemes
 				"
 				:key="i"
@@ -44,19 +44,25 @@ import { useMainStore } from '@/stores/main';
 const mainStore = useMainStore();
 
 const lang = computed({
-	get: () => mainStore.settings.user[SettingKey.Lang] ?? 'ru',
-	set: (val) => mainStore.changeSetting({ id: SettingKey.Lang, value: val }),
+	get: () => mainStore.settings.user[SettingKey.Lang]?.val ?? 'ru',
+	set: (val) => mainStore.changeSetting({
+		setting: mainStore.settings.user[SettingKey.Lang],
+		change: { val: val },
+	}),
 });
 const theme = computed({
-	get: () => mainStore.settings.user[SettingKey.ColorTheme] ?? 'brown',
-	set: (val) => mainStore.changeSetting({ id: SettingKey.ColorTheme, value: val }),
+	get: () => mainStore.settings.user[SettingKey.ColorTheme]?.val ?? 'brown',
+	set: (val) => mainStore.changeSetting({
+		setting: mainStore.settings.user[SettingKey.ColorTheme],
+		change: { val: val },
+	}),
 });
 
-type DictionaryInputKey = keyof Dictionary['s'];
+type DictionaryExtraKey = keyof Dictionary['s']['extra'];
 const getOptionLabel = (opt: { val: SettingType; extra?: string }): string => {
 	if (!opt.extra) return String(opt.val);
-	if (opt.extra in mainStore.t.s) {
-		return mainStore.t.s[opt.extra as DictionaryInputKey];
+	if (opt.extra in mainStore.t.s.extra) {
+		return mainStore.t.s.extra[opt.extra as DictionaryExtraKey];
 	}
 	return opt.extra;
 }

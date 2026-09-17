@@ -278,7 +278,7 @@ export type EntityPartial =
 ;
 
 export const TREE_ITEM_TYPES = ['folder', 'place', 'route', 'setting'] as const;
-export type TreeItemType = typeof TREE_ITEM_TYPES[number];
+export type TreeBranchType = typeof TREE_ITEM_TYPES[number];
 
 export type Context =
 	| 'folders'

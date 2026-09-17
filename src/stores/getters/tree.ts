@@ -133,27 +133,18 @@ export function useGettersTree(
 			return folderIds;
 		}
 		const collection = new Set<string>();
-		if (context === 'settings') {
-			const targetCol = state[context].value.user;
-			const targetVoc = state[context].value.vocs.user;
-			for (const itemId in targetCol) {
-				const itemFolderId = targetVoc[itemId]?.folderid;
-				if (
-					itemFolderId === id ||
-					itemFolderId && folderIds.has(itemFolderId)
-				) {
-					collection.add(itemId);
-				}
-			}
-		} else {
-			for (const itemId in state[context].value) {
-				const itemFolderId = state[context].value[itemId].folderid;
-				if (
-					itemFolderId === id ||
-					itemFolderId && folderIds.has(itemFolderId)
-				) {
-					collection.add(itemId);
-				}
+		const source =
+			context === 'settings'
+				? state[context].value.user
+				: state[context].value
+		;
+		for (const itemId in source) {
+			const itemFolderId = source[itemId].folderid;
+			if (
+				itemFolderId === id ||
+				itemFolderId && folderIds.has(itemFolderId)
+			) {
+				collection.add(itemId);
 			}
 		}
 		return collection;

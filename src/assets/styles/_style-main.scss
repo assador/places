@@ -370,23 +370,23 @@ $filter-brightness-03: brightness(0%);
 		color: $color-24 !important;
 	}
 	a,
-	.place-button, .color-01 {
+	.tree-item, .color-01 {
 		color: $color-25;
 	}
 	a:hover,
-	.place-button.active, .place-button:hover, .place-button.activated-by-function {
+	.tree-item.active, .tree-item:hover, .tree-item.activated-by-function {
 		color: $color-26;
 	}
-	.place-button.active,
-	.place-button.chosen,
-	.place-button:hover,
-	.place-button.activated-by-function,
+	.tree-item.active,
+	.tree-item.chosen,
+	.tree-item:hover,
+	.tree-item.activated-by-function,
 	::-webkit-scrollbar-thumb {
 		background-color: $color-28;
 		border-color: $color-30 $color-32 $color-34 $color-36;
 		box-shadow: 0 0 8px $color-39;
 	}
-	.place-button.active {
+	.tree-item.active {
 		background-color: $color-73;
 	}
 	.table .active {
@@ -1104,7 +1104,7 @@ $filter-brightness-03: brightness(0%);
 			transform: scale(0.7);
 		}
 	}
-	.folder-button.over {
+	.tree-folder.over {
 		text-shadow: 0 0 3px $color-65;
 	}
 	.save-button {
@@ -1236,7 +1236,7 @@ $filter-brightness-03: brightness(0%);
 	#detailed-description {
 		height: 115px;
 	}
-	#to-export-places-menu-folder-link-root, #places-menu-folder-link-routesroot {
+	#to-export-tree-menu-folder-link-root, #tree-menu-folder-link-routesroot {
 		white-space: nowrap;
 	}
 

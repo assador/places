@@ -166,7 +166,7 @@
 								v-for="commonRoute in mainStore.commonRoutes"
 								:id="commonRoute.id"
 								:key="commonRoute.id"
-								class="place-button block_01"
+								class="tree-item block_01"
 								:class="
 									commonRoute === mainStore.currentRoute ||
 									mainStore.measure.points.find(p => p.id === commonRoute.id)
@@ -208,7 +208,7 @@
 							v-for="commonPlace in commonPlaces"
 							:id="commonPlace.id"
 							:key="commonPlace.id"
-							class="place-button block_01"
+							class="tree-item block_01"
 							:class="{ active:
 								commonPlace.id === mainStore.currentPlaceId ||
 								mainStore.measure.points.find(p => p.id === commonPlace.id)

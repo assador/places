@@ -4,7 +4,7 @@
 		id="container"
 		:class="[
 			'colortheme-' +
-			(mainStore.settings.user[SettingKey.ColorTheme] ?? 'brown')
+			(mainStore.settings.user[SettingKey.ColorTheme]?.val ?? 'brown')
 		]"
 	>
 		<div id="popup-root" />

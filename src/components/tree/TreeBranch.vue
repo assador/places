@@ -2,7 +2,7 @@
 	<li
 		:id="
 			(instanceid === 'popupexporttree' ? 'to-export-' : '') +
-			'places-menu-folder-' + folder.id
+			'tree-menu-folder-' + folder.id
 		"
 		:srt="folder.srt"
 		:title="folder.description"
@@ -43,7 +43,7 @@
 				class="tree-item-checkbox-container"
 			>
 				<input
-					:id="'to-export-places-menu-folder-checkbox-' + folder.id"
+					:id="'to-export-tree-menu-folder-checkbox-' + folder.id"
 					name="folderCheckbox"
 					type="checkbox"
 					class="tree-item-checkbox"
@@ -58,14 +58,14 @@
 				v-if="common.folderEditability"
 				:id="
 					(instanceid === 'popupexporttree' ? 'to-export-' : '') +
-					'places-menu-folder-link-' + folder.id
+					'tree-menu-folder-link-' + folder.id
 				"
-				class="folder-button__content"
+				class="tree-folder__content"
 			>
 				<input
 					:value="folder.name"
 					:placeholder="mainStore.t.i.captions.name"
-					class="folder-button__name fieldwidth_100"
+					class="tree-folder__name fieldwidth_100"
 					@change="e => {
 						if (!props.editable) return;
 						mainStore.changeFolder({
@@ -79,7 +79,7 @@
 					:value="folder.description"
 					rows="2"
 					:placeholder="mainStore.t.i.captions.description"
-					class="folder-button__description fieldwidth_100"
+					class="tree-folder__description fieldwidth_100"
 					@change="e => {
 						if (!props.editable) return;
 						mainStore.changeFolder({
@@ -91,11 +91,11 @@
 				/>
 			</div>
 
-<!-- SEC folder-button  -->
+<!-- SEC Folder  -->
 
 			<div
 				v-if="!common.folderEditability"
-				class="folder-button sorting-area-onto"
+				class="tree-folder sorting-area-onto"
 				:class="{
 					draggable: !folder.virtual,
 					highlighted:
@@ -122,9 +122,9 @@
 				<div
 					:id="
 						(instanceid === 'popupexporttree' ? 'to-export-' : '') +
-						'places-menu-folder-link-' + folder.id
+						'tree-menu-folder-link-' + folder.id
 					"
-					class="folder-button__content"
+					class="tree-folder__content"
 				>
 					<div
 						class="icon icon-triangle"
@@ -192,7 +192,7 @@
 				(instanceid === 'popupexporttree' ? 'to-export-folder-' : '') +
 				folder.id
 			"
-			class="folder-places"
+			class="folder-items"
 			:class="{
 				'folder_open': folder.open,
 				'folder_closed': !folder.open,
@@ -200,7 +200,7 @@
 			}"
 		>
 
-<!-- SEC place/route/setting-button  -->
+<!-- SEC Place/Route  -->
 
 			<label
 				v-for="object in entities"
@@ -212,7 +212,7 @@
 				:type="object.type"
 				:srt="object.srt"
 				:title="object.description"
-				class="place-button block_01 draggable"
+				class="tree-item block_01 draggable"
 				:class="{
 					active:
 						props.what === 'places' &&
@@ -251,7 +251,7 @@
 					/>
 				</span>
 				<span
-					class="place-button__content"
+					class="tree-item__content"
 					:class="{ placeholder: !object.name }"
 				>
 					{{ object.name || mainStore.t.i.captions.untitled }}
@@ -373,20 +373,19 @@ import {
 	Folder,
 	FolderContext,
 } from '@/types';
-import { Setting } from '@/types/settings';
 import { isPlace, isRoute } from '@/guards';
 import { common } from '@/services/common';
 import { usePointerDnD, handleDrop } from '@/services/dnd';
 import { roundTo } from '@/shared/common';
 
-export interface PlacesTreeNodeProps {
+interface TreeBranchProps {
 	instanceid?: string | null;
 	editable?: boolean;
 	what: FolderContext;
 	folder: Folder;
 	parent: Folder | null;
 }
-const props = withDefaults(defineProps<PlacesTreeNodeProps>(), {
+const props = withDefaults(defineProps<TreeBranchProps>(), {
 	instanceid: null,
 	editable: true,
 	parent: null,
@@ -419,24 +418,12 @@ const routes = computed((): Route[] => {
 	}
 	return _.chain(array).sortBy('srt').value();
 });
-const settings = computed((): Setting[] => {
-	const array: Setting[] = [];
-	const dict = mainStore.getSettingsUser;
-	for (const id in dict) {
-		if (!Object.hasOwn(dict, id)) continue;
-		const s = dict[id];
-		if (s.folderid === props.folder.id) array.push(s);
-	}
-	return _.chain(array).sortBy('srt').value();
-});
-const entities = computed((): (Place | Route | Setting)[] => {
+const entities = computed((): (Place | Route)[] => {
 	switch (props.what) {
 		case 'places':
 			return places.value;
 		case 'routes':
 			return routes.value;
-		case 'settings':
-			return settings.value;
 		default:
 			return [];
 	}
@@ -495,7 +482,7 @@ watch(() => mainStore.selectedToExport[props.what], (newIds) => {
 		for (const id of newIds) {
 			const directFolderId =
 				props.what === 'settings'
-					? mainStore[props.what].vocs.user[id]?.folderid
+					? mainStore[props.what].user[id]?.folderid
 					: mainStore[props.what][id]?.folderid
 			;
 			if (directFolderId) {
@@ -581,9 +568,9 @@ ul {
 	} // So poetic and sad!
 	&.folder_open:is(
 		.points,
-		#places-menu-folder-null
+		#tree-menu-folder-null
 	) > .folder-subs:has(~ .folder-subfolders *),
-	:is(#places-header, #routes-header):has(~ .folder-places:not(:empty)) {
+	:is(#places-header, #routes-header):has(~ .folder-items:not(:empty)) {
 		margin-bottom: 12px;
 	}
 	&.folder-root {
@@ -600,7 +587,7 @@ ul {
 			flex: 0 1 auto;
 			flex-flow: column wrap;
 		}
-		.folder-button {
+		.tree-folder {
 			margin: 0 -8px 8px -1px;
 			&__content {
 				display: flex;
@@ -645,7 +632,7 @@ ul {
 	> .folder-subfolders {
 		display: none;
 	}
-	> .folder-places {
+	> .folder-items {
 		display: none !important;
 	}
 }
@@ -663,7 +650,8 @@ ul {
 		float: none;
 	}
 }
-.place-button, .folder-button {
+.tree-item, .tree-folder {
+	position: relative;
 	display: flex;
 	flex-flow: row nowrap;
 	gap: 8px;
@@ -687,7 +675,7 @@ ul {
 		z-index: 40;
 	}
 }
-.place-button {
+.tree-item {
 	&[class*="block_"] {
 		margin: 7px 0 10px 0;
 		padding: 4px 8px;
@@ -699,7 +687,7 @@ ul {
 		bottom: -7px;
 	}
 }
-.folder-button {
+.tree-folder {
 	flex: 1 0 auto;
 	z-index: 0;
 	&__content {
@@ -709,12 +697,12 @@ ul {
 	}
 }
 @media (pointer: coarse) {
-	.folder-button {
+	.tree-folder {
 		padding-top: 4px;
 		padding-bottom: 4px;
 	}
 }
-:not(:is(.folder-root)) > .folder-places:is(:not(.unparented )) {
+:not(:is(.folder-root)) > .folder-items:is(:not(.unparented)) {
 	display: block;
 	margin-left: 18px;
 }
@@ -734,9 +722,9 @@ ul {
 	.control-buttons {
 		justify-content: end;
 	}
-	.folder-button {
+	.tree-folder {
 		grid-template-columns: 1fr auto;
-		.folder-button__description {
+		&__description {
 			height: 44px;
 		}
 	}
@@ -750,7 +738,7 @@ ul {
 		background-color: var(--color-23);
 	}
 }
-.place-button .tree-item-checkbox-container {
+.tree-item .tree-item-checkbox-container {
 	margin-right: 8px;
 }
 .sorting-area {

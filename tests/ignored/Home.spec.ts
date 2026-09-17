@@ -6,7 +6,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import { h, ref } from 'vue';
 
 import { Folder } from '@/types';
-import { SettingKey, Settings } from '@/types/settings';
+import { Settings } from '@/types/settings';
 import { MainState } from '@/stores/types';
 import { constants } from '@/shared/constants';
 import { t } from '@/lang/ru';
@@ -45,11 +45,7 @@ vi.mock('axios', () => ({ default: { get: vi.fn().mockResolvedValue({ data: { el
 
 const folders = ref<Record<string, Folder>>({});
 const settings = ref<Settings>({
-	user: {
-		[SettingKey.Lang]: 'ru',
-		[SettingKey.ColorTheme]: 'brown',
-	},
-	vocs: { user: {} },
+	user: {},
 	groups: {},
 });
 
@@ -104,6 +100,7 @@ function createMainStoreState(): MainState {
 		routes: {},
 		routesShow: { show: false, first: true },
 		saved: true,
+		savedSettings: true,
 		saving: false,
 		selectedToExport: {
 			places: [],
