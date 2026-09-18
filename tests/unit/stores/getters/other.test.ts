@@ -1,56 +1,76 @@
+import { ref } from 'vue';
 import { describe, it, expect } from 'vitest';
 import { useGettersOther } from '@/stores/getters/other';
 import { useGettersEntity } from '@/stores/getters/entity';
 import { useGettersSettings } from '@/stores/getters/settings';
+import { useGettersTree } from '@/stores/getters/tree';
 
-const state = {
-	folders: {
-		value: {
-			'f-root': { id: 'f-root', parent: null, srt: 10 },
-			'f-child-1': { id: 'f-child-1', parent: 'f-root', srt: 1 },
-			'f-child-5': { id: 'f-child-5', parent: 'f-root', srt: 5 },
-			'f-child-3': { id: 'f-child-3', parent: 'f-root', srt: 3 },
-			'f-child-2': { id: 'f-child-2', parent: 'f-root', srt: 2 },
-			'f-child-4': { id: 'f-child-4', parent: 'f-root', srt: 4 },
-			'f-lonely': { id: 'f-lonely', parent: 'f-other', srt: 500 },
-		},
-	},
+const folders = ref({
+	'f-root': { id: 'f-root', parent: null, srt: 10 },
+	'f-child-1': { id: 'f-child-1', parent: 'f-root', srt: 1 },
+	'f-child-5': { id: 'f-child-5', parent: 'f-root', srt: 5 },
+	'f-child-3': { id: 'f-child-3', parent: 'f-root', srt: 3 },
+	'f-child-2': { id: 'f-child-2', parent: 'f-root', srt: 2 },
+	'f-child-4': { id: 'f-child-4', parent: 'f-root', srt: 4 },
+	'f-lonely': { id: 'f-lonely', parent: 'f-other', srt: 500 },
+});
+const places = ref({
+	'p-1': { id: 'p-1', folderid: 'f-child-1', srt: 10 },
+	'p-2': { id: 'p-2', folderid: 'f-child-1', srt: 30 },
+});
+const settings = ref({
+	user: {},
+	groups: {},
+});
+const treeParams = ref({
 	places: {
-		value: {
-			'p-1': { id: 'p-1', folderid: 'f-child-1', srt: 10 },
-			'p-2': { id: 'p-2', folderid: 'f-child-1', srt: 30 },
-		},
+		context: 'places',
+		open: false,
+		get folders() { return folders.value; },
+		get entities() { return places.value; },
 	},
-	routes: { value: {} },
+	settings: {
+		context: 'settings',
+		open: false,
+		get folders() { return settings.value.groups; },
+		get entities() { return settings.value.user; },
+	},
+});
+const state = {
+	folders,
+	places,
+	treeParams,
 } as any;
 const gettersEntity = useGettersEntity(state);
 const gettersSettings = useGettersSettings(state);
+const gettersTree = useGettersTree(state);
 const { getNeighbourIds, getSrts } = useGettersOther(
 	state,
 	gettersEntity,
 	gettersSettings,
+	gettersTree,
 );
 
 describe('Neighbours (for srt)', () => {
 	describe('getNeighbourIds', () => {
 		it('should return undefined if the entity is not found', () => {
-			expect(getNeighbourIds('ghost-id', 'folder')).toBeUndefined();
+			expect(getNeighbourIds('ghost-id', 'folder', 'places')).toBeUndefined();
 		});
 		it('should return a sorted array of IDs of all neighbours in the same folder', () => {
-			const res = getNeighbourIds('f-child-2', 'folder');
+			const res = getNeighbourIds('f-child-2', 'folder', 'places');
 			expect(res).toEqual(['f-child-1', 'f-child-2', 'f-child-3', 'f-child-4', 'f-child-5']);
 		});
 		it('should work correctly for a single element', () => {
-			const res = getNeighbourIds('f-lonely', 'folder');
+			const res = getNeighbourIds('f-lonely', 'folder', 'places');
 			expect(res).toEqual(['f-lonely']);
 		});
 	});
 	describe('getSrts', () => {
 		it('should return undefined if the entity does not exist', () => {
-			expect(getSrts('ghost-id', 'place')).toBeUndefined();
+			expect(getSrts('ghost-id', 'place', 'places')).toBeUndefined();
 		});
 		it('element is located in the middle of the list', () => {
-			const res = getSrts('f-child-4', 'folder');
+			const res = getSrts('f-child-4', 'folder', 'places');
 			expect(res).toEqual({
 				previous: 3,
 				next: 5,
@@ -61,7 +81,7 @@ describe('Neighbours (for srt)', () => {
 			});
 		});
 		it('element is the first in the list of neighbors', () => {
-			const res = getSrts('f-child-1', 'folder');
+			const res = getSrts('f-child-1', 'folder', 'places');
 			expect(res).toEqual({
 				previous: undefined,
 				next: 2,
@@ -72,7 +92,7 @@ describe('Neighbours (for srt)', () => {
 			});
 		});
 		it('element is the last in the list of neighbors', () => {
-			const res = getSrts('f-child-5', 'folder');
+			const res = getSrts('f-child-5', 'folder', 'places');
 			expect(res).toEqual({
 				previous: 4,
 				next: undefined,
@@ -83,7 +103,7 @@ describe('Neighbours (for srt)', () => {
 			});
 		});
 		it('element is the only one in the folder', () => {
-			const res = getSrts('f-lonely', 'folder');
+			const res = getSrts('f-lonely', 'folder', 'places');
 			expect(res).toEqual({
 				previous: undefined,
 				next: undefined,
@@ -94,7 +114,7 @@ describe('Neighbours (for srt)', () => {
 			});
 		});
 		it('check for places with a parent field folderid', () => {
-			const res = getSrts('p-1', 'place');
+			const res = getSrts('p-1', 'place', 'places');
 			expect(res).toEqual({
 				previous: undefined,
 				next: 30,

@@ -12,7 +12,7 @@ import {
 	Point,
 	PointDescription,
 	Route,
-	TreeBranchType, TREE_ITEM_TYPES,
+	TreeItemType, TREE_ITEM_TYPES,
 	User,
 } from '@/types';
 import { Setting, SettingEnum, SettingType } from '@/types/settings';
@@ -258,7 +258,7 @@ export const isImageableCollectionKey = (key: unknown): key is 'places' | 'route
 export const isImageableEntity = (value: unknown): value is ImageableEntity => {
 	return isPlace(value) || isRoute(value);
 };
-export const isTreeBranchType = (value: unknown): value is TreeBranchType => {
+export const isTreeItemType = (value: unknown): value is TreeItemType => {
 	if (
 		typeof value !== 'string' ||
 		!(TREE_ITEM_TYPES as readonly string[]).includes(value)

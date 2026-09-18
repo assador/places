@@ -34,6 +34,13 @@ export enum SettingKey {
 	ColorTheme = 2,
 };
 
+export const SETTING_COLLECTION_KEYS = ['folders', 'settings'] as const;
+export type SettingCollectionKey = typeof SETTING_COLLECTION_KEYS[number];
+export interface SettingCollection {
+	folders?: Partial<Folder>[];
+	settings?: Partial<Setting>[];
+}
+
 export const vocLangs = [
 	{ val: 'en' , extra: 'langEn' },
 	{ val: 'ru' , extra: 'langRu' },

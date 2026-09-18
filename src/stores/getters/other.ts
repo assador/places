@@ -1,7 +1,8 @@
 import { computed } from 'vue';
-import { StoreMainStateRefs, GettersEntity, GettersSettings } from '@/stores/types';
+import { StoreMainStateRefs, GettersEntity, GettersSettings, GettersTree } from '@/stores/types';
 import {
 	Folder,
+	FolderContext,
 	Place,
 	Route,
 	Image,
@@ -11,17 +12,18 @@ import {
 	PointInfo,
 	PointContext,
 	PointInfoContext,
-	TreeBranchType,
+	TreeItemType,
 } from '@/types';
 
-// import { isFolder } from '@/guards';
 import { constants } from '@/shared/constants';
 import { distanceOnSphere } from '@/shared/common';
+import { Setting } from '@/types/settings';
 
 export function useGettersOther(
 	state: StoreMainStateRefs,
 	gettersEntity: GettersEntity,
 	gettersSettings: GettersSettings,
+	gettersTree: GettersTree,
 ) {
 	const descriptionFields = computed((): Record<string, string> => {
 		const descriptionFields = {
@@ -42,6 +44,18 @@ export function useGettersOther(
 		}
 		return descriptionFields;
 	});
+	const getDict = (
+		type: TreeItemType,
+		context: FolderContext,
+	): Record<string, Folder | Place | Route | Setting> | undefined => {
+		switch (type) {
+			case 'folder': return gettersTree.getFolders(context);
+			case 'place': return state.places.value;
+			case 'route': return state.routes.value;
+			case 'setting': return gettersSettings.getSettings.value;
+			default: return undefined;
+		}
+	};
 	const busy = computed((): boolean => {
 		return state.busyCount.value > 0;
 	});
@@ -64,14 +78,10 @@ export function useGettersOther(
 	const getNeighbourIds = (
 		id: string,
 		type: 'folder' | 'place' | 'route' | 'setting',
+		context: FolderContext,
 	): string[] | undefined => {
-		const typeDict = {
-			folder: state.folders,
-			place: state.places,
-			route: state.routes,
-			setting: gettersSettings.getSettingsUser,
-		};
-		const dict = typeDict[type].value;
+		const dict = getDict(type, context);
+		if (!dict) return undefined;
 		const item = dict[id];
 		if (!item) return undefined;
 
@@ -96,7 +106,8 @@ export function useGettersOther(
 	};
 	const getSrts = (
 		id: string,
-		type: TreeBranchType,
+		type: TreeItemType,
+		context: FolderContext,
 	): {
 		before: number;
 		after: number;
@@ -109,16 +120,11 @@ export function useGettersOther(
 		let after: number | undefined;
 		let previous: number | undefined = undefined;
 		let next: number | undefined = undefined;
-		const typeDict = {
-			folder: state.folders,
-			place: state.places,
-			route: state.routes,
-			setting: gettersSettings.getSettingsUser,
-		};
-		const dict = typeDict[type].value;
+		const dict = getDict(type, context);
+		if (!dict) return undefined;
 		const item = dict[id];
 		if (!item) return undefined;
-		const neighbourIds = getNeighbourIds(id, type);
+		const neighbourIds = getNeighbourIds(id, type, context);
 		if (!neighbourIds) return undefined;
 		const min = dict[neighbourIds[0]].srt;
 		const max = dict[neighbourIds[neighbourIds.length - 1]].srt;

@@ -173,87 +173,6 @@ export interface FirstShow {
 	first: boolean;
 }
 
-// SEC Buffer
-
-export interface BufferItems {
-	entities?: EntityCollection;
-	home?: string | null;
-}
-
-// SEC Popups
-
-export interface PopupPosition {
-	top: string;
-	right: string;
-	bottom: string;
-	left: string;
-}
-export interface PopupProps {
-	show: boolean;
-	what?: string;
-	closeButton?: boolean;
-	closeOnClick?: boolean;
-	position: PopupPosition;
-}
-export interface PopupEntityMenuProps extends PopupProps {
-	object: Folder | Place | Route | null;
-	context: MetaEntityContext | null;
-	lastEvent: PointerEvent | null;
-}
-
-// SEC DnD
-
-export interface DragPayload {
-	id: string | null;
-	type: 'folder' | 'place' | 'route' | 'point' | 'image' | 'setting';
-	context: string;
-}
-export interface DragEntityPayload extends DragPayload {
-	context: Context;
-	parentId?: string;
-	index?: number;
-	dragging?: boolean;
-	position?: 'before' | 'onto' | 'after';
-	ghostSelector?: string;
-	startTime?: number;
-	nondraggable?: boolean;
-}
-export interface DragFolderPayload extends DragEntityPayload {
-	context: 'folders';
-}
-export interface DragPointPayload extends DragEntityPayload {
-	context: 'points';
-	id: string;
-}
-export interface DragPlacePayload extends DragEntityPayload {
-	context: 'places';
-	id: string;
-}
-export interface DragRoutePayload extends DragEntityPayload {
-	context: 'routes';
-	id: string;
-}
-export interface DragSettingPayload extends DragEntityPayload {
-	context: 'settings';
-	id: string;
-}
-export interface DragPointInListPayload extends DragEntityPayload {
-	context: 'routes' | 'measure';
-	id: string;
-	index: number;
-}
-export interface DragImagePayload extends DragEntityPayload {
-	context: 'places' | 'routes';
-	id: string;
-	index: number;
-}
-export type DragHandler = (payload: DragPayload, target: HTMLElement) => void;
-
-// SEC Langs
-
-import { getT } from '@/lang/en';
-export type Dictionary = ReturnType<typeof getT>;
-
 // SEC Types
 
 export const DICT_KEYS = ['folders', 'points', 'places', 'routes'] as const;
@@ -285,7 +204,7 @@ export type EntityPartial =
 ;
 
 export const TREE_ITEM_TYPES = ['folder', 'place', 'route', 'setting'] as const;
-export type TreeBranchType = typeof TREE_ITEM_TYPES[number];
+export type TreeItemType = typeof TREE_ITEM_TYPES[number];
 
 export type Context =
 	| 'folders'
@@ -336,3 +255,84 @@ export enum GeomarksState {
 	All = 1,
 	Partial = 2,
 };
+
+// SEC Buffer
+
+export interface BufferItems {
+	entities?: EntityCollection;
+	home?: string | null;
+}
+
+// SEC Popups
+
+export interface PopupPosition {
+	top: string;
+	right: string;
+	bottom: string;
+	left: string;
+}
+export interface PopupProps {
+	show: boolean;
+	what?: string;
+	closeButton?: boolean;
+	closeOnClick?: boolean;
+	position: PopupPosition;
+}
+export interface PopupEntityMenuProps extends PopupProps {
+	object: Folder | Place | Route | null;
+	context: MetaEntityContext | null;
+	lastEvent: PointerEvent | null;
+}
+
+// SEC DnD
+
+export interface DragPayload {
+	id: string | null;
+	type: 'folder' | 'place' | 'route' | 'point' | 'image' | 'setting';
+	context: string;
+}
+export interface DragEntityPayload extends DragPayload {
+	context: Context;
+	parentId?: string;
+	index?: number;
+	dragging?: boolean;
+	position?: 'before' | 'onto' | 'after';
+	ghostSelector?: string;
+	startTime?: number;
+	nondraggable?: boolean;
+}
+export interface DragFolderPayload extends DragEntityPayload {
+	context: FolderContext;
+}
+export interface DragPointPayload extends DragEntityPayload {
+	context: 'points' | 'temps';
+	id: string;
+}
+export interface DragPlacePayload extends DragEntityPayload {
+	context: 'places';
+	id: string;
+}
+export interface DragRoutePayload extends DragEntityPayload {
+	context: 'routes';
+	id: string;
+}
+export interface DragSettingPayload extends DragEntityPayload {
+	context: 'settings';
+	id: string;
+}
+export interface DragPointInListPayload extends DragEntityPayload {
+	context: 'routes' | 'measure';
+	id: string;
+	index: number;
+}
+export interface DragImagePayload extends DragEntityPayload {
+	context: 'places' | 'routes';
+	id: string;
+	index: number;
+}
+export type DragHandler = (payload: DragPayload, target: HTMLElement) => void;
+
+// SEC Langs
+
+import { getT } from '@/lang/en';
+export type Dictionary = ReturnType<typeof getT>;

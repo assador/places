@@ -459,7 +459,7 @@ export function useActionsEntity(
 		if (!entity) {
 			return upsertPlace({ ...params, props: { ...params.props } });
 		}
-		const srts = store.getSrts(entity.id, 'place');
+		const srts = store.getSrts(entity.id, 'place', 'places');
 		const callParams: UpsertPlaceParams = {
 			...params,
 			props: {
@@ -561,7 +561,7 @@ export function useActionsEntity(
 		if (!entity) {
 			return upsertRoute({ ...params, props: { ...params.props } });
 		}
-		const srts = store.getSrts(entity.id, 'route');
+		const srts = store.getSrts(entity.id, 'route', 'routes');
 		const callParams: BaseUpsertParams<Route> = {
 			...params,
 			props: {
@@ -621,8 +621,9 @@ export function useActionsEntity(
 				if (folder.id) where[folder.id] = folder;
 				break;
 		}
-		if (!silent) {
-			store.saved.value = false;
+		if (!silent && folder) {
+			if (folder.context === 'settings') store.savedSettings.value = false;
+			else store.saved.value = false;
 			store.backupState();
 		}
 		return folder;
@@ -930,7 +931,8 @@ export function useActionsEntity(
 	): void => {
 		Object.assign(entity, change);
 		entity.updated = true;
-		store.saved.value = false;
+		if (entity.context === 'settings') store.savedSettings.value = false;
+		else store.saved.value = false;
 		store.backupState();
 	};
 

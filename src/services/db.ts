@@ -189,6 +189,55 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 	}
 };
 
+export const saveSettings = async (payload?: EntityCollection): Promise<void> => {
+	const mainStore = useMainStore();
+	if (mainStore.saving || !mainStore.user || mainStore.user.testaccount) return;
+	mainStore.saving = true;
+
+	try {
+		let buffered = await syncBuffer(payload || mainStore.getAllModifiedPackage);
+
+		if (mainStore.offlineMode || !mainStore.online) {
+			mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
+			return;
+		}
+
+		if (!buffered) buffered = await buffer.getOf(mainStore.user.id);
+
+		if (buffered.entities && Object.keys(buffered.entities).length) {
+			await uploadImages(buffered.entities);
+			await api.post(
+				`set_entities.php`,
+				{
+					data: buffered.entities,
+					userid: localStorage.getItem('places-useruuid'),
+					sessionid: localStorage.getItem('places-session'),
+				},
+				{ silent: true },
+			);
+		}
+		if (buffered.home !== undefined) {
+			await api.post(
+				'set_home.php',
+				{
+					id: localStorage.getItem('places-useruuid'),
+					data: buffered.home,
+				},
+				{ silent: true },
+			);
+		}
+		await buffer.clearAllFor(mainStore.user.id);
+		mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
+		mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
+	} catch (error) {
+		console.error(error);
+		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);
+		throw error;
+	} finally {
+		mainStore.saving = false;
+	}
+};
+
 let syncQueue = Promise.resolve<BufferItems | null>(null);
 
 export const syncBuffer = (payload?: BufferEntityCollection): Promise<BufferItems | null> => {

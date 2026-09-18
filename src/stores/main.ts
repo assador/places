@@ -194,7 +194,7 @@ export const useMainStore = defineStore('main', () => {
 	const gettersSettings = useGettersSettings(store);
 	const gettersTree     = useGettersTree(store);
 	const gettersRelate   = useGettersRelate(store, gettersEntity);
-	const gettersOther    = useGettersOther(store, gettersEntity, gettersSettings);
+	const gettersOther    = useGettersOther(store, gettersEntity, gettersSettings, gettersTree);
 
 	const getters = {
 		...gettersEntity,

@@ -7,8 +7,11 @@ import { Folder, FolderContext } from '@/types';
 export function useGettersTree(
 	state: StoreMainStateRefs,
 ) {
+	const getFolders = (context: FolderContext): Record<string, Folder> => {
+		return state.treeParams.value[context].folders;
+	};
 	const allChildrenMap = (context: FolderContext): Record<string, Record<string, Folder>> => {
-		const folders = state.treeParams.value[context].folders;
+		const folders = getFolders(context);
 		const map: Record<string, Record<string, Folder>> = {};
 		for (const id in folders) {
 			if (!Object.hasOwn(folders, id)) continue;
@@ -30,7 +33,7 @@ export function useGettersTree(
 		);
 	};
 	const buildTree = (context: FolderContext): Folder | undefined => {
-		const folders = state.treeParams.value[context].folders;
+		const folders = getFolders(context);
 		if (!folders) return;
 		const createFolder = initFolderFactory(() => state.user.value?.id ?? null);
 		const prepareNode = (parent: Folder): Folder => {
@@ -101,7 +104,7 @@ export function useGettersTree(
 		context: FolderContext,
 	): Set<string> => {
 		const collection = new Set<string>();
-		const folders = state.treeParams.value[context].folders;
+		const folders = getFolders(context);
 		if (!folders) return collection;
 		let parentId = folders[id]?.parent;
 		while (parentId) {
@@ -112,10 +115,11 @@ export function useGettersTree(
 	};
 	const getDescendants = (
 		id: string | null,
-		context: 'folders' | FolderContext,
+		context: FolderContext,
+		onlyFolders: boolean = false,
 	): Set<string> => {
 		const folderIds = new Set<string>();
-		const folders = state.treeParams.value[context].folders;
+		const folders = getFolders(context);
 		const collectFolderIds = (currentId: string | null) => {
 			for (const fId in folders) {
 				if (!Object.hasOwn(folders, fId)) continue;
@@ -129,9 +133,7 @@ export function useGettersTree(
 			}
 		};
 		collectFolderIds(id);
-		if (context === 'folders') {
-			return folderIds;
-		}
+		if (onlyFolders) return folderIds;
 		const collection = new Set<string>();
 		const source =
 			context === 'settings'
@@ -152,8 +154,9 @@ export function useGettersTree(
 
 	return {
 		allChildrenMap,
-		trees,
 		getAncestors,
 		getDescendants,
+		getFolders,
+		trees,
 	};
 }

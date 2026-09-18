@@ -563,12 +563,12 @@ ul {
 		background: none;
 		box-shadow: none;
 	}
-	padding: 4px 30px 4px 0;
+	padding: 4px 0 4px 30px;
 	.dragging-area {
-		top: 50%; right: 2px; bottom: auto; left: auto;
+		top: 50%; right: auto; bottom: auto; left: 0;
 		transform: translateY(-50%);
-		width: 20px; height: 20px;
-		opacity: 0.6;
+		width: 16px; height: 16px;
+		opacity: 0.2;
 	}
 	&__content {
 		grid-column: span 2;

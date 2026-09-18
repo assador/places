@@ -11,7 +11,7 @@ import {
 	Measure,
 } from '@/types';
 import { Setting } from '@/types/settings';
-import { isTreeBranchType } from '@/guards';
+import { isTreeItemType } from '@/guards';
 import { isAncestorOf } from '@/shared/checkers';
 import { moveInArray, moveInObject } from '@/shared/sorting';
 import { useMainStore } from '@/stores/main';
@@ -42,8 +42,7 @@ export const handleFolderDropped = (
 	const folder = folders[payload.id];
 	let parentId: string | null = targetId;
 	let srt: number;
-	const srts = targetId ? mainStore.getSrts(targetId, targetType) : undefined;
-
+	const srts = targetId ? mainStore.getSrts(targetId, targetType, payload.context) : undefined;
 	switch (payload.position) {
 		case 'before':
 		case 'after':
@@ -76,7 +75,7 @@ export const handleEntityDropped = (
 	if (
 		targetId === undefined ||
 		targetId === payload.id && targetType === payload.type ||
-		!isTreeBranchType(targetType)
+		!isTreeItemType(targetType)
 	) {
 		return;
 	}
@@ -88,7 +87,7 @@ export const handleEntityDropped = (
 	)) : null;
 	let srt: number;
 	const entity = entities[payload.id];
-	const srts = targetId ? mainStore.getSrts(targetId, targetType) : undefined;
+	const srts = targetId ? mainStore.getSrts(targetId, targetType, payload.context) : undefined;
 
 	switch (payload.position) {
 		case 'before':
