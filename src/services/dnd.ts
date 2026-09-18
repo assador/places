@@ -5,10 +5,12 @@ import {
 	DragPlacePayload,
 	DragPointInListPayload,
 	DragRoutePayload,
+	DragSettingPayload,
 	Place,
 	Route,
 	Measure,
 } from '@/types';
+import { Setting } from '@/types/settings';
 import { isTreeBranchType } from '@/guards';
 import { isAncestorOf } from '@/shared/checkers';
 import { moveInArray, moveInObject } from '@/shared/sorting';
@@ -21,13 +23,14 @@ export const handleFolderDropped = (
 	if (!payload.id) return;
 	const mainStore = useMainStore();
 	const folders = mainStore.treeParams[payload.context].folders;
-	const targetId = target.dataset.entityId === 'null'
-		? null : target.dataset.entityId
+	const targetType = target.dataset.entityType;
+	const targetId =
+		target.dataset.entityId === 'null' ? null : target.dataset.entityId
 	;
 	if (
 		targetId === undefined ||
 		targetId === payload.id ||
-		target.dataset.entityType !== 'folder' ||
+		targetType !== 'folder' ||
 		isAncestorOf({
 			ancestorId: payload.id,
 			descendantId: targetId,
@@ -39,7 +42,7 @@ export const handleFolderDropped = (
 	const folder = folders[payload.id];
 	let parentId: string | null = targetId;
 	let srt: number;
-	const srts = targetId ? mainStore.getSrts(targetId, target.dataset.entityType) : undefined;
+	const srts = targetId ? mainStore.getSrts(targetId, targetType) : undefined;
 
 	switch (payload.position) {
 		case 'before':
@@ -60,30 +63,32 @@ export const handleFolderDropped = (
 	});
 };
 export const handleEntityDropped = (
-	payload: DragPlacePayload | DragRoutePayload,
+	payload: DragPlacePayload | DragRoutePayload | DragSettingPayload,
 	target: HTMLElement,
 ): void => {
 	const mainStore = useMainStore();
 	const folders = mainStore.treeParams[payload.context].folders;
-	const targetId = target.dataset.entityId === 'null'
-		? null : target.dataset.entityId
+	const entities = mainStore.treeParams[payload.context].entities;
+	const targetType = target.dataset.entityType;
+	const targetId =
+		target.dataset.entityId === 'null' ? null : target.dataset.entityId
 	;
 	if (
 		targetId === undefined ||
-		targetId === payload.id ||
-		!isTreeBranchType(target.dataset.entityType)
+		targetId === payload.id && targetType === payload.type ||
+		!isTreeBranchType(targetType)
 	) {
 		return;
 	}
-	const parentId = targetId ? (target.dataset.entityType !== 'folder'
-		? mainStore[payload.context][targetId].folderid
+	const parentId = targetId ? (targetType !== 'folder'
+		? entities[targetId].folderid
 		: (target.dataset.entitySortArea
 			? folders[targetId]?.parent ?? null
 			: targetId
 	)) : null;
 	let srt: number;
-	const entity = mainStore[payload.context][payload.id];
-	const srts = targetId ? mainStore.getSrts(targetId, target.dataset.entityType) : undefined;
+	const entity = entities[payload.id];
+	const srts = targetId ? mainStore.getSrts(targetId, targetType) : undefined;
 
 	switch (payload.position) {
 		case 'before':
@@ -103,6 +108,13 @@ export const handleEntityDropped = (
 	});
 	if (payload.context === 'routes') mainStore.changeRoute({
 		entity: entity as Route,
+		change: {
+			srt: srt,
+			folderid: parentId,
+		},
+	});
+	if (payload.context === 'settings') mainStore.changeSetting({
+		entity: entity as Setting,
 		change: {
 			srt: srt,
 			folderid: parentId,
@@ -305,7 +317,11 @@ export const handleDrop = (target: HTMLElement) => {
 			break;
 		case 'place':
 		case 'route':
-			handleEntityDropped(payload as DragPlacePayload | DragRoutePayload, target);
+		case 'setting':
+			handleEntityDropped(
+				payload as DragPlacePayload | DragRoutePayload | DragSettingPayload,
+				target,
+			);
 			break;
 		case 'point':
 			handlePointInListDropped(payload as DragPointInListPayload, target);

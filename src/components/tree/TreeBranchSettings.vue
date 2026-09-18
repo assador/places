@@ -224,7 +224,7 @@
 								:value="mainStore.settings.user[object.id].val"
 								@change="e => {
 									mainStore.changeSetting({
-										setting: object,
+										entity: object,
 										change: { val: (e.currentTarget as HTMLSelectElement).value },
 									});
 								}"
@@ -398,8 +398,8 @@ const canAcceptDrop = (target: HTMLElement): boolean => {
 	const { entityId, entityContext, entityType } = target.dataset;
 	if (!entityType || !mainStore.currentDrag) return false;
 	return (
-		mainStore.currentDrag.id !== entityId &&
 		mainStore.currentDrag.context === entityContext &&
+		!(mainStore.currentDrag.id === entityId && mainStore.currentDrag.type === entityType) &&
 		!(mainStore.currentDrag.type === 'folder' && entityType === 'setting')
 	);
 };

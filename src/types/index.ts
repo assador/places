@@ -1,3 +1,4 @@
+import { Setting } from '@/types/settings';
 import 'axios';
 
 declare module 'axios' {
@@ -94,12 +95,14 @@ export interface TreeEntityCollection {
 	folders: Record<string, Folder>;
 	places: Record<string, Place>;
 	routes: Record<string, Route>;
+	settings: Record<string, Setting>;
 }
 export interface Tree {
 	context: string;
 	name?: string;
 	open?: boolean;
 	folders: Record<string, Folder>;
+	entities: Record<string, Place | Route | Setting>;
 }
 export interface User {
 	id: string;
@@ -228,6 +231,10 @@ export interface DragPlacePayload extends DragEntityPayload {
 }
 export interface DragRoutePayload extends DragEntityPayload {
 	context: 'routes';
+	id: string;
+}
+export interface DragSettingPayload extends DragEntityPayload {
+	context: 'settings';
 	id: string;
 }
 export interface DragPointInListPayload extends DragEntityPayload {

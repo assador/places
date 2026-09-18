@@ -22,10 +22,10 @@ export function useActionsSettings(
 		store.settings.value.user = {};
 	};
 	const changeSetting = (
-		{ setting, change }: { setting: Setting; change: Partial<Setting>; }
+		{ entity, change }: { entity: Setting; change: Partial<Setting>; }
 	): void => {
-		Object.assign(setting, change);
-		setting.updated = true;
+		Object.assign(entity, change);
+		entity.updated = true;
 		store.savedSettings.value = false;
 		store.backupState();
 	};

@@ -46,14 +46,14 @@ const mainStore = useMainStore();
 const lang = computed({
 	get: () => mainStore.settings.user[SettingKey.Lang]?.val ?? 'ru',
 	set: (val) => mainStore.changeSetting({
-		setting: mainStore.settings.user[SettingKey.Lang],
+		entity: mainStore.settings.user[SettingKey.Lang],
 		change: { val: val },
 	}),
 });
 const theme = computed({
 	get: () => mainStore.settings.user[SettingKey.ColorTheme]?.val ?? 'brown',
 	set: (val) => mainStore.changeSetting({
-		setting: mainStore.settings.user[SettingKey.ColorTheme],
+		entity: mainStore.settings.user[SettingKey.ColorTheme],
 		change: { val: val },
 	}),
 });

@@ -10,7 +10,7 @@ export interface SettingEnum {
 }
 export interface SettingsVocRec {
 	valtype: number;
-	folderid: string;
+	folderid: string | null;
 	baseval: SettingType;
 	srt: number;
 	enum?: SettingEnum[];

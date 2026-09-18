@@ -52,6 +52,8 @@ const skipKeys = new Set([
 export const useMainStore = defineStore('main', () => {
 
 	const folders = ref<Record<string, Folder>>({});
+	const places = ref<Record<string, Place>>({});
+	const routes = ref<Record<string, Route>>({});
 	const settings = ref<Settings>({
 		user: {},
 		groups: {},
@@ -61,16 +63,19 @@ export const useMainStore = defineStore('main', () => {
 			context: 'places',
 			open: false,
 			get folders() { return folders.value; },
+			get entities() { return places.value; },
 		},
 		routes: {
 			context: 'routes',
 			open: false,
 			get folders() { return folders.value; },
+			get entities() { return routes.value; },
 		},
 		settings: {
 			context: 'settings',
 			open: false,
 			get folders() { return settings.value.groups; },
+			get entities() { return settings.value.user; },
 		},
 	});
 	const currentLang = computed(() => settings.value.user[SettingKey.Lang]?.val ?? 'ru');
@@ -127,14 +132,14 @@ export const useMainStore = defineStore('main', () => {
 		markersShow:  ref<boolean>(true),
 		offlineMode:  ref<boolean>(false),
 		online:  ref<boolean>(true),
-		places:  ref<Record<string, Place>>({}),
+		places,
 		placesShow:  ref<FirstShow>({ show: true, first: true }),
 		points:  ref<Record<string, Point>>({}),
 		range:  ref<number | null>(null),
 		rangeShow:  ref<boolean>(false),
 		ready:  ref<boolean>(false),
 		refreshing:  ref<boolean>(false),
-		routes:  ref<Record<string, Route>>({}),
+		routes,
 		routesShow:  ref<FirstShow>({ show: false, first: true }),
 		saved:  ref<boolean>(true),
 		savedSettings:  ref<boolean>(true),

@@ -220,7 +220,7 @@ export interface ActionsSettings {
 	resetSettings: () => void;
 	resetSettingsGroups: () => void;
 	resetUserSettings: () => void;
-	changeSetting: (p: { setting: Setting; change: Partial<Setting>; }) => void;
+	changeSetting: (p: { entity: Setting; change: Partial<Setting>; }) => void;
 	setSettingsGroups: () => Promise<void>;
 	setUserSettings: () => Promise<void>;
 	saveUserSettings: () => Promise<void>;

@@ -5,7 +5,7 @@ import { flushPromises } from '@vue/test-utils';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import { h, ref } from 'vue';
 
-import { Folder } from '@/types';
+import { Folder, Place, Route } from '@/types';
 import { Settings } from '@/types/settings';
 import { MainState } from '@/stores/types';
 import { constants } from '@/shared/constants';
@@ -44,6 +44,8 @@ vi.mock('@/shared/common', () => ({
 vi.mock('axios', () => ({ default: { get: vi.fn().mockResolvedValue({ data: { elevation: 0 } }), post: vi.fn().mockResolvedValue({ data: [[], []] }) } }));
 
 const folders = ref<Record<string, Folder>>({});
+const places = ref<Record<string, Place>>({});
+const routes = ref<Record<string, Route>>({});
 const settings = ref<Settings>({
 	user: {},
 	groups: {},
@@ -119,16 +121,19 @@ function createMainStoreState(): MainState {
 				context: 'places',
 				open: false,
 				folders: folders.value,
+				entities: places.value,
 			},
 			routes: {
 				context: 'routes',
 				open: false,
 				folders: folders.value,
+				entities: routes.value,
 			},
 			settings: {
 				context: 'settings',
 				open: false,
 				folders: settings.value.groups,
+				entities: settings.value.user,
 			},
 		},
 		user: null,

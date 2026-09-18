@@ -14,6 +14,7 @@ export function useGettersRelate(
 			folders: {},
 			places: {},
 			routes: {},
+			settings: {},
 		};
 		if (folderId !== null && !state.folders.value[folderId]) return result;
 
