@@ -1,9 +1,47 @@
 import api from '@/api';
 import { Folder } from '@/types';
-import { Setting } from '@/types/settings';
+import { Setting, SettingType } from '@/types/settings';
 import { isSetting } from '@/guards';
 import { StoreMain, ActionsSettings } from '@/stores/types';
 import { initFolderFactory } from '@/stores/actions/entity';
+
+// SEC Factories
+
+function _defaultSetting(
+	id: string,
+	valtype: number,
+	val: SettingType,
+	baseval: SettingType,
+): Setting {
+	return {
+		type: 'setting',
+		id: id,
+		valtype: valtype,
+		val: val,
+		baseval: baseval,
+		folderid: null,
+		srt: 10,
+		added: false,
+		deleted: false,
+		updated: false,
+	};
+}
+
+// SEC Creating Settings
+
+export function initSettingFactory(
+	getId: () => string,
+	getValType: () => number,
+	getVal: () => SettingType,
+	getBaseVal: () => SettingType,
+) {
+	return function createSetting(overrides?: Partial<Setting>): Setting {
+		return {
+			..._defaultSetting(getId(), getValType(), getVal(), getBaseVal()),
+			...overrides,
+		};
+	};
+};
 
 export function useActionsSettings(
 	store: StoreMain,
@@ -74,7 +112,7 @@ export function useActionsSettings(
 		if (!uuid) return;
 		resetUserSettings();
 		try {
-			const { data } = await api.get('get_settings_user.php?id=' + uuid);
+			const { data } = await api.get('get_settings_users.php?id=' + uuid);
 			if (data) {
 				const settings = combUserSettings(data);
 				Object.assign(store.settings.value.user, settings);
@@ -85,8 +123,6 @@ export function useActionsSettings(
 			resetUserSettings();
 		}
 	};
-	const saveUserSettings = async (): Promise<void> => {
-	};
 
 	return {
 		resetSettings,
@@ -95,6 +131,5 @@ export function useActionsSettings(
 		changeSetting,
 		setSettingsGroups,
 		setUserSettings,
-		saveUserSettings,
 	};
 };

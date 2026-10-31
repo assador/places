@@ -368,7 +368,7 @@ export const getT = () => ({
 			'privacy': 'Приватность',
 			'ui': 'UI',
 			'ui.lang': 'Язык',
-			'ui.colortheme': 'Цветовая схема',
+			'ui.colortheme': 'Цвета',
 		},
 	},
 });

@@ -24,7 +24,7 @@ import {
 	Tree,
 	User,
 } from '@/types';
-import { Setting, Settings } from '@/types/settings';
+import { Setting, Settings, SettingCollection } from '@/types/settings';
 
 export type EntityAppendMode =
 	| 'change' // change the existing one
@@ -131,7 +131,7 @@ export interface ActionsBackup {
 	restoreObjectsAsLinks: () => void;
 }
 export interface ActionsDB {
-	savedToDB: (payload: EntityCollection) => void;
+	savedToDB: (context: 'entities' | 'settings', payload: EntityCollection & SettingCollection) => void;
 	updateSavedStatus: () => void;
 }
 export interface ActionsEntity {
@@ -223,7 +223,6 @@ export interface ActionsSettings {
 	changeSetting: (p: { entity: Setting; change: Partial<Setting>; }) => void;
 	setSettingsGroups: () => Promise<void>;
 	setUserSettings: () => Promise<void>;
-	saveUserSettings: () => Promise<void>;
 }
 export interface ActionsUI {
 	setBusy: (busy: boolean) => void;

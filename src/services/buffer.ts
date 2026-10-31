@@ -1,5 +1,6 @@
 import localforage from 'localforage';
 import { BufferItems, EntityCollection } from '@/types';
+import { SettingCollection } from '@/types/settings';
 
 class BufferService {
 	private buffer: LocalForage | null = null;
@@ -22,6 +23,11 @@ class BufferService {
 				const current = await this.getOf(uuid);
 				await this.buffer.setItem(uuid, { ...current, entities: payload });
 			},
+			settings: async (payload: SettingCollection): Promise<void> => {
+				if (!this.buffer || !uuid) return;
+				const current = await this.getOf(uuid);
+				await this.buffer.setItem(uuid, { ...current, settings: payload });
+			},
 			home: async (payload: string | null): Promise<void> => {
 				if (!this.buffer || !uuid) return;
 				const current = await this.getOf(uuid);
@@ -35,6 +41,12 @@ class BufferService {
 				if (!this.buffer || !uuid) return;
 				const current = await this.getOf(uuid);
 				delete current.entities;
+				await this.buffer.setItem(uuid, current);
+			},
+			clearSettings: async (): Promise<void> => {
+				if (!this.buffer || !uuid) return;
+				const current = await this.getOf(uuid);
+				delete current.settings;
 				await this.buffer.setItem(uuid, current);
 			},
 			clearHome: async (): Promise<void> => {

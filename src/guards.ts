@@ -1,5 +1,6 @@
 import {
 	Account,
+	BufferCollectionKey, BUFFER_COLLECTION_KEYS,
 	BufferEntityCollectionKey, BUFFER_ENTITY_COLLECTION_KEYS,
 	DictKey, DICT_KEYS,
 	EntityCollectionKey, ENTITY_COLLECTION_KEYS,
@@ -15,7 +16,13 @@ import {
 	TreeItemType, TREE_ITEM_TYPES,
 	User,
 } from '@/types';
-import { Setting, SettingEnum, SettingType } from '@/types/settings';
+import {
+	BufferSettingCollectionKey, BUFFER_SETTING_COLLECTION_KEYS,
+	Setting,
+	SettingCollectionKey, SETTING_COLLECTION_KEYS,
+	SettingEnum,
+	SettingType,
+} from '@/types/settings';
 
 const isOptionalString = (value: unknown): boolean =>
 	value === undefined || typeof value === 'string'
@@ -217,40 +224,25 @@ export const isPointDescription = (value: unknown): value is PointDescription =>
 	return true;
 };
 export const isDictKey = (value: unknown): value is DictKey => {
-	if (
-		typeof value !== 'string' ||
-		!(DICT_KEYS as readonly string[]).includes(value)
-	) {
-		return false;
-	}
-	return true;
+	return typeof value === 'string' && (DICT_KEYS as readonly string[]).includes(value);
 };
 export const isImageableContext = (value: unknown): value is ImageableContext => {
-	if (
-		typeof value !== 'string' ||
-		!(IMAGEABLE_CONTEXT as readonly string[]).includes(value)
-	) {
-		return false;
-	}
-	return true;
+	return typeof value === 'string' && (IMAGEABLE_CONTEXT as readonly string[]).includes(value);
 };
 export const isEntityCollectionKey = (value: unknown): value is EntityCollectionKey => {
-	if (
-		typeof value !== 'string' ||
-		!(ENTITY_COLLECTION_KEYS as readonly string[]).includes(value)
-	) {
-		return false;
-	}
-	return true;
+	return typeof value === 'string' && (ENTITY_COLLECTION_KEYS as readonly string[]).includes(value);
+};
+export const isSettingCollectionKey = (value: unknown): value is SettingCollectionKey => {
+	return typeof value === 'string' && (SETTING_COLLECTION_KEYS as readonly string[]).includes(value);
 };
 export const isBufferEntityCollectionKey = (value: unknown): value is BufferEntityCollectionKey => {
-	if (
-		typeof value !== 'string' ||
-		!(BUFFER_ENTITY_COLLECTION_KEYS as readonly string[]).includes(value)
-	) {
-		return false;
-	}
-	return true;
+	return typeof value === 'string' && (BUFFER_ENTITY_COLLECTION_KEYS as readonly string[]).includes(value);
+};
+export const isBufferSettingCollectionKey = (value: unknown): value is BufferSettingCollectionKey => {
+	return typeof value === 'string' && (BUFFER_SETTING_COLLECTION_KEYS as readonly string[]).includes(value);
+};
+export const isBufferCollectionKey = (value: unknown): value is BufferCollectionKey => {
+	return typeof value === 'string' && (BUFFER_COLLECTION_KEYS as readonly string[]).includes(value);
 };
 export const isImageableCollectionKey = (key: unknown): key is 'places' | 'routes' => {
 	return typeof key === 'string' && (key === 'places' || key === 'routes');

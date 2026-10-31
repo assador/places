@@ -1,5 +1,6 @@
 import { StoreMain, ActionsDB } from '@/stores/types';
-import { EntityCollection } from '@/types';
+import { EntityCollection, BufferEntityCollectionKey } from '@/types';
+import { SettingCollection, BufferSettingCollectionKey } from '@/types/settings';
 import { isDictKey } from '@/guards';
 import { buffer } from '@/services/buffer';
 import { isEntityCollectionEmpty } from '@/services/common';
@@ -8,15 +9,22 @@ export function useActionsDB(
 	store: StoreMain,
 ): ActionsDB {
 
-	const savedToDB = (payload: EntityCollection): void => {
+	const savedToDB = (
+		context: 'entities' | 'settings',
+		payload: EntityCollection & SettingCollection,
+	): void => {
 		for (const key of Object.keys(payload)) {
 			if (!isDictKey(key) || !payload[key]) continue;
 			for (const item of payload[key]) {
 				if (!item.id) continue;
+				const dict = context === 'settings'
+					? store.settings.value[key as BufferSettingCollectionKey]
+					: store[key as BufferEntityCollectionKey].value
+				;
 				if (item.deleted) {
-					delete store[key].value[item.id];
+					delete dict[item.id];
 				} else {
-					const entity = store[key].value[item.id];
+					const entity = dict[item.id];
 					if (entity) {
 						if (entity.added) entity.added = false;
 						if (entity.updated) entity.updated = false;

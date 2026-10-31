@@ -38,24 +38,55 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Dictionary } from '@/types';
-import { SettingKey, SettingType, vocLangs, vocColorThemes } from '@/types/settings';
+import {
+	SettingKey,
+	SettingType,
+	vocLangs,
+	vocColorThemes
+} from '@/types/settings';
+import { initSettingFactory } from '@/stores/actions/settings';
 import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();
 
+const createSetting = initSettingFactory(
+	() => crypto.randomUUID(),
+	() => 3,
+	() => '',
+	() => '',
+);
+
 const lang = computed({
 	get: () => mainStore.settings.user[SettingKey.Lang]?.val ?? 'ru',
-	set: (val) => mainStore.changeSetting({
-		entity: mainStore.settings.user[SettingKey.Lang],
-		change: { val: val },
-	}),
+	set: (val) => {
+		if (!mainStore.settings.user[SettingKey.Lang]) { // If unauthorized
+			mainStore.settings.user[SettingKey.Lang] = createSetting({
+				id: SettingKey.Lang,
+				val: 'ru',
+				baseval: 'ru',
+			});
+		}
+		mainStore.changeSetting({
+			entity: mainStore.settings.user[SettingKey.Lang],
+			change: { val: val },
+		});
+	},
 });
 const theme = computed({
 	get: () => mainStore.settings.user[SettingKey.ColorTheme]?.val ?? 'brown',
-	set: (val) => mainStore.changeSetting({
-		entity: mainStore.settings.user[SettingKey.ColorTheme],
-		change: { val: val },
-	}),
+	set: (val) => {
+		if (!mainStore.settings.user[SettingKey.ColorTheme]) { // If unauthorized
+			mainStore.settings.user[SettingKey.ColorTheme] = createSetting({
+				id: SettingKey.ColorTheme,
+				val: 'brown',
+				baseval: 'brown',
+			});
+		}
+		mainStore.changeSetting({
+			entity: mainStore.settings.user[SettingKey.ColorTheme],
+			change: { val: val },
+		});
+	},
 });
 
 type DictionaryExtraKey = keyof Dictionary['s']['extra'];

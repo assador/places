@@ -94,7 +94,7 @@
 				v-if="!common.folderEditability"
 				class="tree-folder sorting-area-onto"
 				:class="{
-					draggable: !folder.virtual,
+					draggable: !folder.virtual && props.editable,
 					highlighted:
 						String(folder.id) === dragTargetId &&
 						folder.context === dragTargetContext &&
@@ -105,7 +105,7 @@
 					id: folder.id,
 					type: folder.type,
 					context: props.what,
-					nondraggable: folder.virtual,
+					nondraggable: folder.virtual || !props.editable,
 				})"
 			    @pointermove="onPointerMove"
 			    @pointerup="e => onPointerUp(e, () => mainStore.folderOpenClose({ folder }))"
@@ -180,10 +180,11 @@
 					:type="object.type"
 					:srt="object.srt"
 					:title="mainStore.t.s.name[object.name as DictionaryNameKey]"
-					class="tree-item draggable"
+					class="tree-item"
 					:class="{
 						active: false,
 						chosen: false,
+						draggable: props.editable,
 						dragging: dragging,
 					}"
 					:data-entity-id="object.id"
@@ -240,6 +241,7 @@
 						</span>
 					</span>
 					<span
+						v-if="props.editable"
 						class="dragging-area icon icon-expand"
 						@pointerdown.stop="e => onPointerDown(e, {
 							id: object.id,
@@ -251,6 +253,7 @@
 						@pointercancel.stop="onPointerUp"
 					/>
 					<span
+						v-if="props.editable"
 						class="sorting-area sorting-area-before"
 						:class="{
 							'sorting-area-border-top':
@@ -260,6 +263,7 @@
 						}"
 					/>
 					<span
+						v-if="props.editable"
 						class="sorting-area sorting-area-after"
 						:class="{
 							'sorting-area-border-bottom':
@@ -272,7 +276,7 @@
 			</template>
 		</div>
 		<div
-			v-if="!folder.virtual"
+			v-if="!folder.virtual && props.editable"
 			class="sorting-area sorting-area-before"
 			:class="{
 				'sorting-area-border-top':
@@ -282,7 +286,7 @@
 			}"
 		/>
 		<div
-			v-if="!folder.virtual"
+			v-if="!folder.virtual && props.editable"
 			class="sorting-area sorting-area-after"
 			:class="{
 				'sorting-area-border-bottom':
@@ -563,7 +567,11 @@ ul {
 		background: none;
 		box-shadow: none;
 	}
-	padding: 4px 0 4px 30px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	&.draggable {
+		padding-left: 30px;
+	}
 	.dragging-area {
 		top: 50%; right: auto; bottom: auto; left: 0;
 		transform: translateY(-50%);

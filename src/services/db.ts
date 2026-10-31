@@ -1,4 +1,5 @@
 import {
+	BufferCollection,
 	BufferEntityCollection,
 	BufferItems,
 	EntityCollection,
@@ -6,7 +7,14 @@ import {
 	ImageableEntity,
 } from '@/types';
 import {
+	BufferSettingCollection,
+	Setting,
+	SettingCollection,
+} from '@/types/settings';
+import {
+	isBufferCollectionKey,
 	isBufferEntityCollectionKey,
+	isBufferSettingCollectionKey,
 	isImage,
 	isImageableContext,
 	isImageableEntity,
@@ -146,10 +154,11 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 	mainStore.saving = true;
 
 	try {
-		let buffered = await syncBuffer(payload || mainStore.getAllModifiedPackage);
+		let buffered = await syncBuffer('entities');
+		if (!payload) payload = mainStore.getAllModifiedPackage;
 
 		if (mainStore.offlineMode || !mainStore.online) {
-			mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
+			mainStore.savedToDB('entities', payload);
 			return;
 		}
 
@@ -166,6 +175,7 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 				},
 				{ silent: true },
 			);
+			await buffer.for(mainStore.user.id).clearEntities();
 		}
 		if (buffered.home !== undefined) {
 			await api.post(
@@ -176,9 +186,9 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 				},
 				{ silent: true },
 			);
+			await buffer.for(mainStore.user.id).clearHome();
 		}
-		await buffer.clearAllFor(mainStore.user.id);
-		mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
+		mainStore.savedToDB('entities', payload);
 		mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
 	} catch (error) {
 		console.error(error);
@@ -189,45 +199,61 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 	}
 };
 
-export const saveSettings = async (payload?: EntityCollection): Promise<void> => {
+const saveSettings = async (
+	payload: SettingCollection | null,
+	voc: boolean,
+): Promise<void> => {
 	const mainStore = useMainStore();
 	if (mainStore.saving || !mainStore.user || mainStore.user.testaccount) return;
 	mainStore.saving = true;
 
 	try {
-		let buffered = await syncBuffer(payload || mainStore.getAllModifiedPackage);
+		let buffered = await syncBuffer('settings');
+		if (!payload) payload = mainStore.getAllModifiedSettings;
 
 		if (mainStore.offlineMode || !mainStore.online) {
-			mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
+			mainStore.savedToDB('settings', payload);
 			return;
 		}
 
 		if (!buffered) buffered = await buffer.getOf(mainStore.user.id);
 
-		if (buffered.entities && Object.keys(buffered.entities).length) {
-			await uploadImages(buffered.entities);
-			await api.post(
-				`set_entities.php`,
-				{
-					data: buffered.entities,
-					userid: localStorage.getItem('places-useruuid'),
-					sessionid: localStorage.getItem('places-session'),
-				},
-				{ silent: true },
-			);
+		if (buffered.settings && Object.keys(buffered.settings).length) {
+			if (!voc && buffered.settings.user?.length) {
+				const data: Partial<Setting>[] = [];
+				for (const setting of buffered.settings.user) {
+					data.push({
+						id: setting.id,
+						val: setting.val,
+						valtype: setting.valtype,
+						added: setting.added,
+						updated: setting.updated,
+						deleted: setting.deleted,
+					});
+				}
+				await api.post(
+					`set_settings_users.php`,
+					{
+						data: data,
+						userid: localStorage.getItem('places-useruuid'),
+						sessionid: localStorage.getItem('places-session'),
+					},
+					{ silent: true },
+				);
+			} else {
+				await api.post(
+					`set_settings_users_voc.php`,
+					{
+						data: buffered.settings,
+						userid: localStorage.getItem('places-useruuid'),
+						sessionid: localStorage.getItem('places-session'),
+					},
+					{ silent: true },
+				);
+			}
+			await buffer.for(mainStore.user.id).clearSettings();
 		}
-		if (buffered.home !== undefined) {
-			await api.post(
-				'set_home.php',
-				{
-					id: localStorage.getItem('places-useruuid'),
-					data: buffered.home,
-				},
-				{ silent: true },
-			);
-		}
-		await buffer.clearAllFor(mainStore.user.id);
-		mainStore.savedToDB(payload || mainStore.getAllModifiedPackage);
+		mainStore.savedToDB('settings', payload);
 		mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
 	} catch (error) {
 		console.error(error);
@@ -237,12 +263,43 @@ export const saveSettings = async (payload?: EntityCollection): Promise<void> =>
 		mainStore.saving = false;
 	}
 };
+export const saveSettingsUsers = (payload?: SettingCollection): void => {
+	saveSettings(payload ?? null, false);
+}
+export const saveSettingsUsersVoc = (payload?: SettingCollection): void => {
+	saveSettings(payload ?? null, true);
+}
 
 let syncQueue = Promise.resolve<BufferItems | null>(null);
 
-export const syncBuffer = (payload?: BufferEntityCollection): Promise<BufferItems | null> => {
+export const updateInBuffer = (
+	buf: BufferCollection,
+	raw: BufferCollection,
+): void => {
+	for (const key in raw) {
+		if (!isBufferCollectionKey(key) || !raw[key]?.length) continue;
+
+		if (!buf[key]) buf[key] = [];
+		const targetArray = buf[key] as Identifiable[];
+		const sourceArray = raw[key] as Identifiable[];
+
+		sourceArray.forEach(obj => {
+			if (!obj.id) return;
+			const idx = targetArray.findIndex(e => e.id === obj.id);
+			if (idx !== -1) {
+				targetArray[idx] = obj;
+			} else {
+				targetArray.push(obj);
+			}
+		});
+	}
+};
+
+export const syncBuffer = (
+	context?: 'entities' | 'settings'
+): Promise<BufferItems | null> => {
 	syncQueue = syncQueue
-		.then(() => runSyncBuffer(payload))
+		.then(() => runSyncBuffer(context))
 		.catch((error) => {
 			console.error(error);
 			return null;
@@ -250,47 +307,54 @@ export const syncBuffer = (payload?: BufferEntityCollection): Promise<BufferItem
 	;
 	return syncQueue;
 };
-export const runSyncBuffer = async (payload?: BufferEntityCollection): Promise<BufferItems | null> => {
+
+export const runSyncBuffer = async (
+	context?: 'entities' | 'settings'
+): Promise<BufferItems | null> => {
 	const mainStore = useMainStore();
 	if (!mainStore.user || mainStore.user.testaccount) return null;
-
-	if (!payload) payload = mainStore.getAllModifiedPackage;
 	const buffered = await buffer.getOf(mainStore.user.id);
 	const entities = buffered.entities || {};
+	const settings = buffered.settings || {};
 	const home = mainStore.user.homeplace;
-
+	let modifiedEntities: BufferEntityCollection = {};
+	let modifiedSettings: BufferSettingCollection = {};
 	let hasEntityChanges = false;
-	for (const key in payload) {
-		if (isBufferEntityCollectionKey(key) && payload[key]?.length) {
-			hasEntityChanges = true;
-			break;
+	let hasSettingChanges = false;
+	const hasHomeChanges = (buffered.home ?? null) !== mainStore.user.homeplace;
+
+	if (!context || context === 'entities') {
+		modifiedEntities = mainStore.getAllModifiedPackage;
+		for (const key in modifiedEntities) {
+			if (isBufferEntityCollectionKey(key) && modifiedEntities[key]?.length) {
+				hasEntityChanges = true;
+				break;
+			}
 		}
 	}
-	const hasHomeChanges = (buffered.home ?? null) !== mainStore.user.homeplace;
-	if (!hasEntityChanges && !hasHomeChanges) return null;
-
-	try {
-		const rawPayload: BufferEntityCollection = structuredClone(toRawDeep(payload));
-		for (const key in rawPayload) {
-			if (!isBufferEntityCollectionKey(key) || !rawPayload[key]?.length) continue;
-
-			if (!entities[key]) entities[key] = [];
-			const targetArray = entities[key] as Identifiable[];
-			const sourceArray = rawPayload[key] as Identifiable[];
-
-			sourceArray.forEach(entity => {
-				if (!entity.id) return;
-				const idx = targetArray.findIndex(e => e.id === entity.id);
-				if (idx !== -1) {
-					targetArray[idx] = entity;
-				} else {
-					targetArray.push(entity);
-				}
-			});
+	if (!context || context === 'settings') {
+		modifiedSettings = mainStore.getAllModifiedSettings;
+		for (const key in modifiedSettings) {
+			if (isBufferSettingCollectionKey(key) && modifiedSettings[key]?.length) {
+				hasSettingChanges = true;
+				break;
+			}
 		}
-		await buffer.setFor(mainStore.user.id).entities(entities);
-		await buffer.setFor(mainStore.user.id).home(home);
-		return { entities, home };
+	}
+	if (!hasEntityChanges && !hasSettingChanges && !hasHomeChanges) return null;
+	try {
+		if (hasEntityChanges) {
+			updateInBuffer(entities, structuredClone(toRawDeep(modifiedEntities)));
+			await buffer.setFor(mainStore.user.id).entities(entities);
+		}
+		if (hasSettingChanges) {
+			updateInBuffer(settings, structuredClone(toRawDeep(modifiedSettings)));
+			await buffer.setFor(mainStore.user.id).settings(settings);
+		}
+		if (hasHomeChanges) {
+			await buffer.setFor(mainStore.user.id).home(home);
+		}
+		return { entities, settings, home };
 	} catch (error) {
 		console.error(error);
 		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);

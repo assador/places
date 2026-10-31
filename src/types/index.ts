@@ -1,4 +1,8 @@
-import { Setting } from '@/types/settings';
+import {
+	BufferSettingCollection, BUFFER_SETTING_COLLECTION_KEYS,
+	Setting,
+	SettingCollection,
+} from '@/types/settings';
 import 'axios';
 
 declare module 'axios' {
@@ -175,7 +179,7 @@ export interface FirstShow {
 
 // SEC Types
 
-export const DICT_KEYS = ['folders', 'points', 'places', 'routes'] as const;
+export const DICT_KEYS = ['folders', 'points', 'places', 'routes', 'user', 'groups'] as const;
 export type DictKey = typeof DICT_KEYS[number];
 
 export const IMAGEABLE_CONTEXT = ['places', 'routes'] as const;
@@ -194,6 +198,13 @@ export interface EntityCollection {
 export const BUFFER_ENTITY_COLLECTION_KEYS = ['folders', 'points', 'places', 'routes'] as const;
 export type BufferEntityCollectionKey = typeof BUFFER_ENTITY_COLLECTION_KEYS[number];
 export type BufferEntityCollection = Omit<EntityCollection, 'images'>;
+
+export const BUFFER_COLLECTION_KEYS = [
+	...BUFFER_ENTITY_COLLECTION_KEYS,
+	...BUFFER_SETTING_COLLECTION_KEYS,
+] as const;
+export type BufferCollectionKey = typeof BUFFER_COLLECTION_KEYS[number];
+export type BufferCollection = BufferEntityCollection & BufferSettingCollection;
 
 export type EntityPartial =
 	| Partial<Folder>
@@ -260,6 +271,7 @@ export enum GeomarksState {
 
 export interface BufferItems {
 	entities?: EntityCollection;
+	settings?: SettingCollection;
 	home?: string | null;
 }
 

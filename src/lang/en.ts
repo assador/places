@@ -368,7 +368,7 @@ Your data won’t be saved to your account and will be cleared when you log o
 			'privacy': 'Privacy',
 			'ui': 'UI',
 			'ui.lang': 'Language',
-			'ui.colortheme': 'Color theme',
+			'ui.colortheme': 'Colors',
 		},
 	},
 });

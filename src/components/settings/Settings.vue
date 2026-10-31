@@ -14,7 +14,11 @@
 						<tr class="back_0">
 							<th />
 							<td colspan="2">
-								<Tree instanceid="settingstree" what="settings" />
+								<Tree
+									instanceid="settingstree"
+									what="settings"
+									:editable="false"
+								/>
 							</td>
 						</tr>
 						<tr class="settings-form-buttons back_0">
@@ -51,6 +55,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMainStore } from '@/stores/main';
+import * as db from '@/services/db';
 import Header from '@/components/Header.vue';
 import Messages from '@/components/Messages.vue';
 import Tree from '@/components/tree/Tree.vue';
@@ -65,13 +70,11 @@ const close = (event?: Event): void => {
 const resetUserSettings = (): void => {
 }
 const settingsSubmit = (): void => {
-/* Gueards and save
-	if () {
-		mainStore.saveUserSettings();
-	} else {
-		mainStore.setMessage(mainStore.t.m.paged.incorrectFields, 3);
+	if (!mainStore.user) return;
+	if (mainStore.user.testaccount) {
+		mainStore.setMessage(mainStore.t.m.popup.testOnSave, 8);
 	}
-*/
+	db.saveSettingsUsers();
 };
 onMounted(() => {
 	mainStore.setSettingsGroups().then(() => mainStore.trees.settings.open = true);

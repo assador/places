@@ -29,17 +29,22 @@ export interface Settings {
 	user: Record<string, Setting>;
 	groups: Record<string, Folder>;
 }
-export enum SettingKey {
-	Lang = 1,
-	ColorTheme = 2,
-};
 
-export const SETTING_COLLECTION_KEYS = ['folders', 'settings'] as const;
+export const SETTING_COLLECTION_KEYS = ['user', 'groups'] as const;
 export type SettingCollectionKey = typeof SETTING_COLLECTION_KEYS[number];
 export interface SettingCollection {
-	folders?: Partial<Folder>[];
-	settings?: Partial<Setting>[];
+	user?: Partial<Setting>[];
+	groups?: Partial<Folder>[];
 }
+
+export const BUFFER_SETTING_COLLECTION_KEYS = ['user'] as const;
+export type BufferSettingCollectionKey = typeof BUFFER_SETTING_COLLECTION_KEYS[number];
+export type BufferSettingCollection = Omit<SettingCollection, 'groups'>;
+
+export enum SettingKey {
+	Lang = '1',
+	ColorTheme = '2',
+};
 
 export const vocLangs = [
 	{ val: 'en' , extra: 'langEn' },

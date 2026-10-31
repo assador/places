@@ -1,11 +1,29 @@
 import { computed } from 'vue';
 import { StoreMainStateRefs } from '@/stores/types';
 import { Folder } from '@/types';
-import { Setting } from '@/types/settings';
+import { Setting, SettingCollection } from '@/types/settings';
 
 export function useGettersSettings(
 	state: StoreMainStateRefs,
 ) {
+	const collectModifiedSettings = <T extends Setting>(c: Record<string, T>): T[] => {
+		const modified: T[] = [];
+		for (const id in c) {
+			if (!Object.hasOwn(c, id)) continue;
+			if (
+				(c[id].added || c[id].updated || c[id].deleted) &&
+				!(c[id].added && c[id].deleted)
+			) {
+				modified.push(c[id]);
+			}
+		}
+		return modified;
+	};
+	const getAllModifiedSettings = computed((): SettingCollection => {
+		return {
+			user: collectModifiedSettings(state.settings.value.user),
+		};
+	});
 	const getSettingsGroups = computed((): Record<string, Folder> => {
 		return state.settings.value.groups;
 	});
@@ -17,6 +35,8 @@ export function useGettersSettings(
 	});
 
 	return {
+		collectModifiedSettings,
+		getAllModifiedSettings,
 		getSettingsGroups,
 		getSettingsUser,
 		getSettings,
