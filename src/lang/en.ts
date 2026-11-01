@@ -361,6 +361,7 @@ Your data won’t be saved to your account and will be cleared when you log o
 			colorthemePurpleLight: 'Purple light theme',
 			langEn: 'English',
 			langRu: 'Русский',
+			resetUserSetting: 'Reset to default value',
 			resetUserSettings: 'Reset all user settings',
 		},
 		name: {

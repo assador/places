@@ -103,25 +103,26 @@ try {
 		foreach ($list as $row) {
 			if (
 				!isset($voc[$row["id"]]) ||
-				(int)$voc[$row["id"]]["type"] !== (int) $row["valtype"]
+				(int) $voc[$row["id"]]["type"] !== (int) $row["valtype"]
 			) {
 				$ctx->db->rollBack();
 				echo 1;
 				exit;
 			}
-			if (!empty($row["deleted"])) {
-				$deleteStmt->execute([
-					":userid"    => $binUserId,
-					":settingid" => (int) $row["id"],
-				]);
-			}
-			elseif (!empty($row["added"]) || !empty($row["updated"])) {
-				$insertStmt->execute([
-					":userid"    => $binUserId,
-					":settingid" => (int) ($row["id"]),
-					":value"     => prepareSettingValue($row["val"], $row["valtype"]),
-					":updated"   => (int) (microtime(true) * 1000),
-				]);
+			if (!empty($row["updated"])) {
+				if ($row["val"] === $voc[$row["id"]]["baseval"]) {
+					$deleteStmt->execute([
+						":userid"    => $binUserId,
+						":settingid" => (int) $row["id"],
+					]);
+				} else {
+					$insertStmt->execute([
+						":userid"    => $binUserId,
+						":settingid" => (int) ($row["id"]),
+						":value"     => prepareSettingValue($row["val"], $row["valtype"]),
+						":updated"   => (int) (microtime(true) * 1000),
+					]);
+				}
 			}
 		}
 	}

@@ -361,6 +361,7 @@ export const getT = () => ({
 			colorthemePurpleLight: 'Пурпурная светлая тема',
 			langEn: 'English',
 			langRu: 'Русский',
+			resetUserSetting: 'Сбросить до значения по умолчанию',
 			resetUserSettings: 'Сбросить все пользовательские настройки',
 		},
 		name: {

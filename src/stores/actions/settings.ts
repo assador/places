@@ -47,17 +47,24 @@ export function useActionsSettings(
 	store: StoreMain,
 ): ActionsSettings {
 
-	const resetSettings = (): void => {
+	const clearSettings = (): void => {
 		store.settings.value = {
 			user: {},
 			groups: {},
 		};
 	};
-	const resetSettingsGroups = (): void => {
+	const clearSettingsGroups = (): void => {
 		store.settings.value.groups = {};
 	};
-	const resetUserSettings = (): void => {
+	const clearUserSettings = (): void => {
 		store.settings.value.user = {};
+	};
+	const resetUserSettings = (ids?: string[]): void => {
+		if (!ids) ids = Object.keys(store.settings.value.user);
+		for (const id of ids) {
+			store.settings.value.user[id].val = store.settings.value.user[id].baseval;
+			store.settings.value.user[id].updated = true;
+		}
 	};
 	const changeSetting = (
 		{ entity, change }: { entity: Setting; change: Partial<Setting>; }
@@ -65,7 +72,6 @@ export function useActionsSettings(
 		Object.assign(entity, change);
 		entity.updated = true;
 		store.savedSettings.value = false;
-		store.backupState();
 	};
 	const combUserSettings = (source: Record<string, Setting>): Record<string, Setting> => {
 		const settings: Record<string, Setting> = {};
@@ -85,7 +91,7 @@ export function useActionsSettings(
 // SEC DB
 
 	const setSettingsGroups = async (): Promise<void> => {
-		resetSettingsGroups();
+		clearSettingsGroups();
 		try {
 			const { data } = await api.get('get_settings_groups.php');
 			if (Array.isArray(data)) {
@@ -104,13 +110,13 @@ export function useActionsSettings(
 		} catch (error) {
 			console.error(error);
 			store.setMessage(store.t.value.m.popup.cannotGetData);
-			resetSettingsGroups();
+			clearSettingsGroups();
 		}
 	};
 	const setUserSettings = async (): Promise<void> => {
 		const uuid = localStorage.getItem('places-useruuid');
 		if (!uuid) return;
-		resetUserSettings();
+		clearUserSettings();
 		try {
 			const { data } = await api.get('get_settings_users.php?id=' + uuid);
 			if (data) {
@@ -120,13 +126,14 @@ export function useActionsSettings(
 		} catch (error) {
 			console.error(error);
 			store.setMessage(store.t.value.m.popup.cannotGetData);
-			resetUserSettings();
+			clearUserSettings();
 		}
 	};
 
 	return {
-		resetSettings,
-		resetSettingsGroups,
+		clearSettings,
+		clearSettingsGroups,
+		clearUserSettings,
 		resetUserSettings,
 		changeSetting,
 		setSettingsGroups,

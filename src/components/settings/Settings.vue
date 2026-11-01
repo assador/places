@@ -37,7 +37,8 @@
 							<td>
 								<button
 									type="button"
-									@click="resetUserSettings"
+									:title="mainStore.t.s.extra.resetUserSettings"
+									@click="mainStore.resetUserSettings()"
 								>
 									{{ mainStore.t.i.buttons.reset }}
 								</button>
@@ -67,8 +68,6 @@ const close = (event?: Event): void => {
 	if (event) event.stopPropagation();
 	router.push({ name: 'Home' });
 };
-const resetUserSettings = (): void => {
-}
 const settingsSubmit = (): void => {
 	if (!mainStore.user) return;
 	if (mainStore.user.testaccount) {

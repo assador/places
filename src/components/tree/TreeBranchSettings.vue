@@ -184,6 +184,7 @@
 					:class="{
 						active: false,
 						chosen: false,
+						back_1: object.added || object.updated || object.deleted,
 						draggable: props.editable,
 						dragging: dragging,
 					}"
@@ -239,6 +240,11 @@
 								</option>
 							</select>
 						</span>
+						<span
+							class="tree-item__reset icon icon-undo"
+							:title="mainStore.t.s.extra.resetUserSetting"
+							@click="mainStore.resetUserSettings([object.id])"
+						/>
 					</span>
 					<span
 						v-if="props.editable"
@@ -556,19 +562,20 @@ ul {
 }
 .folder-items {
 	display: grid !important;
-	grid-template-columns: auto 1fr;
+	grid-template-columns: auto 1fr auto;
 	padding: 6px 0;
 }
 .tree-item {
-	grid-column: span 2;
+	grid-column: span 3;
 	display: grid;
 	grid-template-columns: subgrid;
 	&:hover {
-		background: none;
 		box-shadow: none;
 	}
-	padding-top: 4px;
-	padding-bottom: 4px;
+	&:is(:not(.back_1)):hover {
+		background: none;
+	}
+	padding: 2px 8px 6px 8px;
 	&.draggable {
 		padding-left: 30px;
 	}
@@ -579,7 +586,7 @@ ul {
 		opacity: 0.2;
 	}
 	&__content {
-		grid-column: span 2;
+		grid-column: span 3;
 		display: grid;
 		grid-template-columns: subgrid;
 		gap: 8px;
@@ -587,6 +594,10 @@ ul {
 	}
 	&__name {
 		text-align: right;
+	}
+	&__reset {
+		top: 5px;
+		cursor: pointer;
 	}
 }
 .tree-folder {

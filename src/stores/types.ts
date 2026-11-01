@@ -217,9 +217,10 @@ export interface ActionsService {
 	setPointAltitude: (entity: Point) => Promise<void>;
 }
 export interface ActionsSettings {
-	resetSettings: () => void;
-	resetSettingsGroups: () => void;
-	resetUserSettings: () => void;
+	clearSettings: () => void;
+	clearSettingsGroups: () => void;
+	clearUserSettings: () => void;
+	resetUserSettings: (ids?: string[]) => void;
 	changeSetting: (p: { entity: Setting; change: Partial<Setting>; }) => void;
 	setSettingsGroups: () => Promise<void>;
 	setUserSettings: () => Promise<void>;
