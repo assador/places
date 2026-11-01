@@ -16,6 +16,7 @@ import {
 	PopupProps,
 	Route,
 } from '@/types';
+import { SettingCollection } from '@/types/settings';
 
 const _compact = ref(0);
 const _folderEditability = ref(false);
@@ -159,6 +160,13 @@ export const isEntityCollectionEmpty = (pkg: EntityCollection | null | undefined
 		(!pkg.routes || pkg.routes.length === 0) &&
 		(!pkg.folders || pkg.folders.length === 0) &&
 		(!pkg.images || pkg.images.length === 0)
+	);
+};
+export const isSettingCollectionEmpty = (pkg: SettingCollection | null | undefined): boolean => {
+	if (!pkg) return true;
+	return (
+		(!pkg.user || pkg.user.length === 0) &&
+		(!pkg.groups || pkg.groups.length === 0) 
 	);
 };
 export const setBusy = (value: boolean): void => {

@@ -316,12 +316,10 @@ export const runSyncBuffer = async (
 	const buffered = await buffer.getOf(mainStore.user.id);
 	const entities = buffered.entities || {};
 	const settings = buffered.settings || {};
-	const home = mainStore.user.homeplace;
 	let modifiedEntities: BufferEntityCollection = {};
 	let modifiedSettings: BufferSettingCollection = {};
 	let hasEntityChanges = false;
 	let hasSettingChanges = false;
-	const hasHomeChanges = (buffered.home ?? null) !== mainStore.user.homeplace;
 
 	if (!context || context === 'entities') {
 		modifiedEntities = mainStore.getAllModifiedPackage;
@@ -341,7 +339,7 @@ export const runSyncBuffer = async (
 			}
 		}
 	}
-	if (!hasEntityChanges && !hasSettingChanges && !hasHomeChanges) return null;
+	if (!hasEntityChanges && !hasSettingChanges) return null;
 	try {
 		if (hasEntityChanges) {
 			updateInBuffer(entities, structuredClone(toRawDeep(modifiedEntities)));
@@ -351,10 +349,7 @@ export const runSyncBuffer = async (
 			updateInBuffer(settings, structuredClone(toRawDeep(modifiedSettings)));
 			await buffer.setFor(mainStore.user.id).settings(settings);
 		}
-		if (hasHomeChanges) {
-			await buffer.setFor(mainStore.user.id).home(home);
-		}
-		return { entities, settings, home };
+		return { entities, settings };
 	} catch (error) {
 		console.error(error);
 		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);

@@ -3,7 +3,7 @@ import { EntityCollection, BufferEntityCollectionKey } from '@/types';
 import { SettingCollection, BufferSettingCollectionKey } from '@/types/settings';
 import { isDictKey } from '@/guards';
 import { buffer } from '@/services/buffer';
-import { isEntityCollectionEmpty } from '@/services/common';
+import { isEntityCollectionEmpty, isSettingCollectionEmpty } from '@/services/common';
 
 export function useActionsDB(
 	store: StoreMain,
@@ -37,15 +37,18 @@ export function useActionsDB(
 	const updateSavedStatus = async (): Promise<void> => {
 		if (!store.user.value || store.user.value.testaccount) return;
 		const isOffline = store.offlineMode.value || !store.online.value;
+		const buffered = await buffer.getOf(store.user.value.id);
 		store.saved.value = (
 			isEntityCollectionEmpty(store.getAllModifiedPackage.value) && (
 				isOffline || (
-					isEntityCollectionEmpty(
-						(await buffer.getOf(store.user.value.id)).entities
-					) && !(
-						(await buffer.getOf(store.user.value.id)).home
-					)
+					!buffered.home &&
+					isEntityCollectionEmpty(buffered.entities)
 				)
+			)
+		);
+		store.savedSettings.value = (
+			isSettingCollectionEmpty(store.getAllModifiedSettings.value) && (
+				isOffline || isSettingCollectionEmpty(buffered.settings)
 			)
 		);
 	};

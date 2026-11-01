@@ -90,28 +90,27 @@ function pointByCoords(AppContext $ctx, float $latitude, float $longitude) {
 	return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function cleanupPointIfOrphaned(AppContext $ctx, string $pointIdBin): void {
-	if ($pointIdBin !== null) {
-		$sqlCount = "
-			SELECT COUNT(*) AS refcount
-			FROM (
-				SELECT pointid FROM places WHERE pointid = :pointid
-				UNION ALL
-				SELECT pointid FROM pointroute WHERE pointid = :pointid
-			) t;
-		";
-		$pointRefsStmt = getCachedStmt($ctx, "count_point_refs", $sqlCount);
-		$pointRefsStmt->execute([":pointid" => $pointIdBin]);
-		$pointRefs = $pointRefsStmt->fetch(PDO::FETCH_ASSOC);
+function cleanupPointIfOrphaned(AppContext $ctx, ?string $pointIdBin): void {
+	if ($pointIdBin === null) return;
+	$sqlCount = "
+		SELECT COUNT(*) AS refcount
+		FROM (
+			SELECT pointid FROM places WHERE pointid = :pointid
+			UNION ALL
+			SELECT pointid FROM pointroute WHERE pointid = :pointid
+		) t;
+	";
+	$pointRefsStmt = getCachedStmt($ctx, "count_point_refs", $sqlCount);
+	$pointRefsStmt->execute([":pointid" => $pointIdBin]);
+	$pointRefs = $pointRefsStmt->fetch(PDO::FETCH_ASSOC);
 
-		if ((int) $pointRefs["refcount"] === 0) {
-			$sqlDel = "
-				DELETE FROM points
-				WHERE id = :pointid
-			";
-			$delPointStmt = getCachedStmt($ctx, "del_orphan_point", $sqlDel);
-			$delPointStmt->execute([":pointid" => $pointIdBin]);
-		}
+	if ((int) $pointRefs["refcount"] === 0) {
+		$sqlDel = "
+			DELETE FROM points
+			WHERE id = :pointid
+		";
+		$delPointStmt = getCachedStmt($ctx, "del_orphan_point", $sqlDel);
+		$delPointStmt->execute([":pointid" => $pointIdBin]);
 	}
 }
 
@@ -211,15 +210,17 @@ function updatePoint(AppContext $ctx, array $row): void {
 			latitude  = :latitude,
 			longitude = :longitude,
 			altitude  = :altitude,
-			location  = ST_GeomFromText(CONCAT('POINT(', :longitude, ' ', :latitude, ')'), 4326)
+			location  = ST_GeomFromText(CONCAT('POINT(', :longitudeloc, ' ', :latitudeloc, ')'), 4326)
 		WHERE id = :id
 	";
 	$stmt = getCachedStmt($ctx, "update_point", $sql);
 	$stmt->execute([
-		":id"        => uuidToBin($row["id"]),
-		":latitude"  => $row["latitude"] ?? 0,
-		":longitude" => $row["longitude"] ?? 0,
-		":altitude"  => $row["altitude"] ?? null,
+		":id"           => uuidToBin($row["id"]),
+		":latitude"     => $row["latitude"] ?? 0,
+		":latitudeloc"  => $row["latitude"] ?? 0,
+		":longitude"    => $row["longitude"] ?? 0,
+		":longitudeloc" => $row["longitude"] ?? 0,
+		":altitude"     => $row["altitude"] ?? null,
 	]);
 }
 
@@ -559,7 +560,6 @@ function updateFolder(AppContext $ctx, array $row, string $binUserId): void {
 		UPDATE folders
 		SET
 			parent      = :parent,
-			userid      = :userid,
 			context     = :context,
 			name        = :name,
 			description = :description,

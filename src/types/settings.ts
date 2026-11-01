@@ -37,9 +37,9 @@ export interface SettingCollection {
 	groups?: Partial<Folder>[];
 }
 
-export const BUFFER_SETTING_COLLECTION_KEYS = ['user'] as const;
+export const BUFFER_SETTING_COLLECTION_KEYS = ['user', 'groups'] as const;
 export type BufferSettingCollectionKey = typeof BUFFER_SETTING_COLLECTION_KEYS[number];
-export type BufferSettingCollection = Omit<SettingCollection, 'groups'>;
+export type BufferSettingCollection = SettingCollection;
 
 export enum SettingKey {
 	Lang = '1',
