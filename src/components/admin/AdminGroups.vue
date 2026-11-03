@@ -104,7 +104,7 @@ const groups = computed(() => adminStore.groups);
 
 onMounted(() => {
 	watch(() => sortBy.value, () => {
-		adminStore.sort({ what: 'groups', by: sortBy.value });
+		adminStore.getSorted({ what: 'groups', by: sortBy.value });
 		adminStore.groupsSortBy = sortBy.value;
 	});
 });

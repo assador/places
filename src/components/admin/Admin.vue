@@ -1,31 +1,32 @@
 <template>
-	<div
-		v-if="
-			mainStore.user &&
-			mainStore.user.groups &&
-			Object.keys(mainStore.user.groups).includes('management')
-		"
-	>
+	<div v-if="mainStore.user?.groups?.admins">
 		<div id="grid">
 			<div id="top-basic" class="app-cell">
 				<Header />
+				<Messages />
 			</div>
 			<div id="top-right" class="app-cell">
 				<div class="control-buttons">
 					<button
+						id="actions-home"
 						class="action-button"
 						:title="mainStore.t.i.buttons.home"
 						@click="router.push('/home')"
 					>
-						<span>⌂</span>
+						<span class="icon icon-undo" />
 						<span>{{ mainStore.t.i.buttons.home }}</span>
 					</button>
 					<button
+						id="actions-exit"
 						class="action-button"
 						:title="mainStore.t.i.hints.exit"
-						@click="exit()"
+						@click="() => {
+							$nextTick(async () => {
+								if (await logout()) router.push({ name: 'Auth' });
+							});
+						}"
 					>
-						<span>↪</span>
+						<span class="icon icon-exit" />
 						<span>{{ mainStore.t.i.buttons.exit }}</span>
 					</button>
 				</div>
@@ -40,29 +41,6 @@
 			</div>
 			<router-view />
 		</div>
-		<Teleport :to="common.compact === 2 ? '#grid' : '#top-basic'">
-			<transition name="fade">
-				<div
-					v-if="mainStore.messages.length || mainStore.messagesMouseOver"
-					id="messages"
-					@mouseenter="mainStore.messagesMouseOver = true"
-					@mouseleave="() => {
-						mainStore.messagesMouseOver = false;
-						mainStore.clearMessages();
-					}"
-					@click="mainStore.clearMessages(true)"
-				>
-					<div
-						v-for="(message, index) in mainStore.messages"
-						:id="'message-' + index"
-						:key="'message-' + index"
-						class="message border_1"
-					>
-						{{ message }}
-					</div>
-				</div>
-			</transition>
-		</Teleport>
 	</div>
 </template>
 
@@ -71,8 +49,9 @@ import { ref, defineAsyncComponent, provide, onMounted, type Component } from 'v
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { useRouter } from 'vue-router';
-import { common } from '@/services/common';
+import { logout } from '@/services/auth';
 import Header from '@/components/Header.vue';
+import Messages from '@/components/Messages.vue';
 import AdminNavigation from '@/components/admin/AdminNavigation.vue';
 
 const mainStore = useMainStore();
@@ -83,11 +62,6 @@ onMounted(() => {
 	adminStore.setUsers();
 	adminStore.setGroups();
 })
-
-const exit = async (): Promise<void> => {
-	mainStore.unload();
-	router.push({ name: 'Auth' });
-};
 
 const component = ref('users');
 provide('component', component);
@@ -116,19 +90,6 @@ const components: Record<string, { name: string, component: Component }> = {
 	;
 	grid-template-columns: 1fr auto;
 	grid-template-rows: auto 1fr;
-	#top-basic {
-		grid-area: top-basic;
-	}
-	#top-right {
-		grid-area: top-right;
-		display: block !important;
-	}
-	#basic-basic {
-		grid-area: basic-basic;
-	}
-	#basic-right {
-		grid-area: basic-right;
-	}
 }
 #admin-basic {
 	position: absolute;
@@ -139,6 +100,13 @@ const components: Record<string, { name: string, component: Component }> = {
 		padding: 12px;
 	}
 }
+#basic-right nav > * {
+	margin-bottom: 8px;
+	cursor: pointer;
+}
+.control-buttons .action-button {
+	flex-basis: calc(50% - 4px);
+}
 @media screen and (max-width: 800px) {
 	#grid {
 		grid-template-areas:
@@ -148,20 +116,27 @@ const components: Record<string, { name: string, component: Component }> = {
 		;
 		grid-template-columns: 1fr auto;
 		grid-template-rows: auto auto 1fr;
-		#basic-right nav {
-			display: flex;
-			flex-flow: row wrap;
-			gap: 8px;
-			& > * {
-				flex: 1 1 auto;
-				align-items: center;
-				justify-content: center;
-				box-sizing: border-box;
-				min-width: 50px;
-				min-height: 30px;
-				margin: 0;
-				padding-top: 0;
-				padding-bottom: 0;
+		#top-right {
+			display: block;
+		}
+		#basic-right {
+			margin: 0;
+			padding: 12px;
+			nav {
+				display: flex;
+				flex-flow: row wrap;
+				gap: 8px;
+				& > * {
+					flex: 1 1 auto;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					min-width: 50px;
+					min-height: 30px;
+					margin: 0;
+					padding-top: 0;
+					padding-bottom: 0;
+				}
 			}
 		}
 	}

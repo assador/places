@@ -45,6 +45,7 @@ export const getT = () => ({
 			newPassword: 'Новый пароль',
 			owner: 'Владелец',
 			parent: 'Родитель',
+			person: 'Имя',
 			phone: 'Телефон',
 			place: 'Место',
 			places: 'Места',

@@ -29,25 +29,27 @@
 			>
 				<img src="@/assets/icons/dark/tiles.svg" />
 			</button>
+<!--
 			<button
 				:title="mainStore.t.i.buttons.viewHybrid"
 				@click="tableMode = 3"
 			>
 				<img src="@/assets/icons/dark/list_01.svg" />
 			</button>
+-->
 		</div>
 		<div class="control-panel__sortby">
 			<span>{{ mainStore.t.i.captions.srt }}:</span>
 			<select
 				id="sort"
-				v-model="sortBy"
+				v-model="adminStore.usersSortBy"
 			>
 				<option
-					v-for="(value, key) in sortKeys"
+					v-for="(field, key) in fields"
 					:key="key"
 					:value="key"
 				>
-					{{ value }}
+					{{ field?.caption }}
 				</option>
 			</select>
 		</div>
@@ -61,66 +63,56 @@
 			</button>
 		</div>
 	</div>
-	<div class="table">
-		<div :class="`table-${tableMode} table-${tableMode}_7`">
-			<div v-if="tableMode === 1">
-				<div />
-				<h3
-					v-for="(value, key) in sortKeys"
-					:key="key"
-				>
-					{{ value }}
-				</h3>
-			</div>
-			<div
-				v-for="(user, index) in adminStore.users"
-				:key="index"
-				:class="{'active': tableMode !== 1 && user.checked}"
+	<div
+		:class="`table table-${tableMode}`"
+		:style="tableMode === 1 ? `grid-template-columns: auto repeat(${columnsCount+1}, auto);` : ''"
+	>
+		<div v-if="tableMode === 1">
+			<div />
+			<h3
+				v-for="key in keysArray"
+				:key="key"
 			>
-				<div class="user-actions">
-					<label>
-						<input
-							type="checkbox"
-							:checked="user.checked"
-							@change="e => {
-								user.checked = (e.currentTarget as HTMLInputElement).checked;
-								if (!(e.currentTarget as HTMLInputElement).checked)
-									checkedAll = false
-								;
-							}"
-						/>
-					</label>
-				</div>
-				<template
-					v-for="(value, key) in user"
-					:key="key"
-				>
-					<div
-						v-if="key in sortKeys && (value !== '' || tableMode === 1)"
-						:class="{ 'active': tableMode === 1 && user.checked }"
-					>
-						<div v-if="tableMode !== 1">
-							{{ sortKeys[key as keyof typeof sortKeys] }}
-						</div>
-						<div :class="{'impvalue': key as unknown as string === sortBy}">
-							{{ (typeof value === 'boolean'
-								? (value === true
-									? mainStore.t.i.text.yes
-									: mainStore.t.i.text.no
-								)
-								: value
-							) }}
-						</div>
-					</div>
-				</template>
+				{{ fields[key]?.caption }}
+			</h3>
+		</div>
+		<div
+			v-for="(user, index) in usersArray"
+			:key="index"
+			:class="{ 'active': user.checked }"
+		>
+			<div class="user-actions">
+				<label>
+					<input
+						type="checkbox"
+						:checked="user.checked"
+						@change="e => {
+							user.checked = (e.currentTarget as HTMLInputElement).checked;
+							if (!(e.currentTarget as HTMLInputElement).checked)
+								checkedAll = false
+							;
+						}"
+					/>
+				</label>
 			</div>
+			<template
+				v-for="key in keysArray"
+				:key="key"
+			>
+				<div :class="{ impvalue: key === adminStore.usersSortBy }">
+					{{ (typeof user[key] !== 'boolean'
+						? user[key]
+						: (!user[key] ? mainStore.t.i.text.no : mainStore.t.i.text.yes)
+					) }}
+				</div>
+			</template>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
-import { UserKey } from '@/stores/types';
+import { ref, computed } from 'vue';
+import { User } from '@/types';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 
@@ -128,22 +120,25 @@ const mainStore = useMainStore();
 const adminStore = useAdminStore();
 
 const tableMode = ref(1);
-const sortBy = ref<UserKey>('name');
 
-const sortKeys = computed(() => ({
-	login: mainStore.t.i.captions.login,
-	name: mainStore.t.i.captions.name,
-	email: mainStore.t.i.captions.email,
-	phone: mainStore.t.i.captions.phone,
-	confirmed: mainStore.t.i.captions.confirmed,
-	confirmbefore: mainStore.t.i.captions.confirmbefore,
-}));
+const fields = ref<Partial<Record<keyof User, { enabled: boolean, caption: string }>>>({
+	login         : { enabled: true, caption: mainStore.t.i.captions.login },
+	name          : { enabled: true, caption: mainStore.t.i.captions.person },
+	email         : { enabled: true, caption: mainStore.t.i.captions.email },
+	phone         : { enabled: true, caption: mainStore.t.i.captions.phone },
+	confirmed     : { enabled: true, caption: mainStore.t.i.captions.confirmed },
+	confirmbefore : { enabled: true, caption: mainStore.t.i.captions.confirmbefore },
+});
+const keysArray = computed(() => Object.keys(fields.value) as (keyof typeof fields.value)[]);
 
-onMounted(() => {
-	watch(() => sortBy.value, () => {
-		adminStore.sort({ what: 'users', by: sortBy.value });
-		adminStore.usersSortBy = sortBy.value;
-	});
+const usersArray = computed(() => {
+	return (adminStore.getSorted({ what: 'users', by: adminStore.usersSortBy }) as User[]);
+});
+
+const columnsCount = computed(() => {
+	return Object.values(fields.value).reduce((count, field) => {
+		return field?.enabled ? count + 1 : count;
+	}, 0);
 });
 
 const checkedAll = ref(false);

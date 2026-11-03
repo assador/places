@@ -1,7 +1,7 @@
 import api from '@/api';
 import { User, Group } from '@/types';
 import { isUser } from '@/guards';
-import { StoreAdmin, ActionsAdmin, UserKey, GroupKey } from '@/stores/types';
+import { StoreAdmin, ActionsAdmin } from '@/stores/types';
 
 export function useActionsAdmin(
 	store: StoreAdmin,
@@ -43,33 +43,9 @@ export function useActionsAdmin(
 		const groups: Record<string, Group> = {};
 		store.groups.value = groups;
 	};
-	function performSort<T>(arr: T[], key: keyof T): void {
-		arr.slice().sort((a, b) => {
-			const valA = a[key];
-			const valB = b[key];
-			if (typeof valA === 'number' && typeof valB === 'number') return valA - valB;
-			const strA = String(valA ?? '');
-			const strB = String(valB ?? '');
-			return strA.localeCompare(strB, undefined, {
-				numeric: true,
-						sensitivity: 'base',
-			});
-		});
-	}
-	const sort = ({ what, by }:
-		| { what: 'groups'; by: GroupKey; }
-		| { what: 'users'; by: UserKey; }
-	): void => {
-		if (what === 'groups') {
-			performSort(Object.values(store.groups.value) as Group[], by);
-		} else if (what === 'users') {
-			performSort(Object.values(store.users.value) as User[], by);
-		}
-	};
 
 	return {
 		setUsers,
 		setGroups,
-		sort,
 	};
 };

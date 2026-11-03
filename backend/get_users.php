@@ -19,6 +19,8 @@ require_once __DIR__ . "/bootstrap.php";
 $raw = file_get_contents("php://input");
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 $users = $data["users"];
+$useridBin = uuidToBin($data["userid"]);
+$sessionidBin = uuidToBin($data["sessionid"]);
 
 $result = [];
 
@@ -26,20 +28,37 @@ if (empty($data["userid"]) || empty($data["sessionid"])) {
 	throw new Exception("Wrong account.");
 }
 
-function checkSession(AppContext $ctx, string $sessionid): bool {
+function checkSession(AppContext $ctx, string $useridBin, string $sessionidBin): bool {
 	$stmt = $ctx->db->prepare("
 		SELECT 1 FROM `sessions`
 		WHERE `id` = :sessionid
 		LIMIT 1
 	");
-	$stmt->bindValue(":sessionid", uuidToBin($sessionid), PDO::PARAM_LOB);
+	$stmt->bindValue(":sessionid", $sessionidBin, PDO::PARAM_LOB);
 	$stmt->execute();
-	return (bool) $stmt->fetch();
+	if (!$stmt->fetch()) return false;
+
+	$stmt = $ctx->db->prepare("
+		SELECT `id`, `parent` FROM `groups`
+		WHERE `id` IN (
+			SELECT `group` FROM `usergroup`
+			WHERE `user` = :id
+		)
+			AND `parent` = 'management' OR `id` = 'superusers'
+	");
+	$stmt->bindValue(":id", $useridBin, PDO::PARAM_LOB);
+	$stmt->execute();
+	if (!$stmt->fetch()) return false;
+	return true;
 }
 
 // SEC Session check
 
-if (checkSession($ctx, $data["sessionid"]) === false) {
+if (checkSession(
+	$ctx,
+	$useridBin,
+	$sessionidBin
+) === false) {
 	throw new Exception("Invalid or expired session.");
 }
 
@@ -49,23 +68,43 @@ try {
 	$ctx->db->beginTransaction();
 
 	if (!empty($users) && is_array($users)) {
-		$ids = array_map("uuidToBin", $users);
+		$ids = array_map("uuidToBin", $data["users"]);
 		$in  = implode(",", array_fill(0, count($ids), "?"));
-		$query = $ctx->db->prepare("
+		$stmt = $ctx->db->prepare("
 			SELECT `id`, `login`, `name` FROM `users`
 			WHERE `id` IN ($in)
 		");
 		foreach ($ids as $i => $bin) {
-			$query->bindValue($i + 1, $bin, PDO::PARAM_LOB);
+			$stmt->bindValue($i + 1, $bin, PDO::PARAM_LOB);
 		}
-		$query->execute();
-		$result = $query->fetchAll(PDO::FETCH_ASSOC);
+		$stmt->execute();
+/*
+		$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($result as &$row) {
 			$row["id"] = binToUuid($row["id"]);
 		}
+*/
 	} else {
-		$query = $ctx->db->query("SELECT `login`, `name` FROM `users`");
-		$result = $query->fetchAll(PDO::FETCH_ASSOC);
+		$stmt = $ctx->db->query("
+			SELECT
+				`id`,
+				`login`,
+				`confirmed`,
+				`homeplace`,
+				`name`,
+				`email`,
+				`phone`,
+				`lastupdates`,
+				`confirmbefore`
+			FROM `users`
+		");
+		$stmt->execute();
+	}
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		$row["id"] = binToUuid($row["id"]);
+		$row["homeplace"] = binToUuid($row["homeplace"]);
+		$row["confirmed"] = (bool) $row["confirmed"];
+		$result[$row["id"]] = $row;
 	}
 
 	$ctx->db->commit();

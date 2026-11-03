@@ -45,6 +45,7 @@ export const getT = () => ({
 			newPassword: 'New password',
 			owner: 'Owner',
 			parent: 'Parent',
+			person: 'Name',
 			phone: 'Phone',
 			place: 'Place',
 			places: 'Places',

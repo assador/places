@@ -285,7 +285,6 @@ export type UserGroupKey = UserKey & GroupKey;
 export interface ActionsAdmin {
 	setUsers: (ids?: string[]) => Promise<void>;
 	setGroups: () => Promise<void>;
-	sort: (p: { what: 'groups'; by: GroupKey; } | { what: 'users'; by: UserKey; }) => void;
 }
 
 export type StoreAdmin =
