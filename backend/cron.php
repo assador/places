@@ -49,7 +49,7 @@ try {
 			$pathSmall = $smallDir . $img['file'];
 			if (is_file($pathBig)) @unlink($pathBig);
 			if (is_file($pathSmall)) @unlink($pathSmall);
-			$deletedIds[] = (int)$img['id'];
+			$deletedIds[] = (int) $img['id'];
 		}
 		if (!empty($deletedIds)) {
 			$inQuery = implode(',', $deletedIds);

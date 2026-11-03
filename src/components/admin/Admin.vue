@@ -1,10 +1,9 @@
 <template>
 	<div
 		v-if="
-			!!mainStore.user &&
-			!!adminStore.groups.find(
-				g => g.parent === 'management'
-			)
+			mainStore.user &&
+			mainStore.user.groups &&
+			Object.keys(mainStore.user.groups).includes('management')
 		"
 	>
 		<div id="grid">
@@ -41,30 +40,30 @@
 			</div>
 			<router-view />
 		</div>
-	</div>
-	<Teleport :to="common.compact === 2 ? '#grid' : '#top-basic'">
-		<transition name="fade">
-			<div
-				v-if="mainStore.messages.length || mainStore.messagesMouseOver"
-				id="messages"
-				@mouseenter="mainStore.messagesMouseOver = true"
-				@mouseleave="() => {
-					mainStore.messagesMouseOver = false;
-					mainStore.clearMessages();
-				}"
-				@click="mainStore.clearMessages(true)"
-			>
+		<Teleport :to="common.compact === 2 ? '#grid' : '#top-basic'">
+			<transition name="fade">
 				<div
-					v-for="(message, index) in mainStore.messages"
-					:id="'message-' + index"
-					:key="'message-' + index"
-					class="message border_1"
+					v-if="mainStore.messages.length || mainStore.messagesMouseOver"
+					id="messages"
+					@mouseenter="mainStore.messagesMouseOver = true"
+					@mouseleave="() => {
+						mainStore.messagesMouseOver = false;
+						mainStore.clearMessages();
+					}"
+					@click="mainStore.clearMessages(true)"
 				>
-					{{ message }}
+					<div
+						v-for="(message, index) in mainStore.messages"
+						:id="'message-' + index"
+						:key="'message-' + index"
+						class="message border_1"
+					>
+						{{ message }}
+					</div>
 				</div>
-			</div>
-		</transition>
-	</Teleport>
+			</transition>
+		</Teleport>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -72,7 +71,6 @@ import { ref, defineAsyncComponent, provide, onMounted, type Component } from 'v
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { useRouter } from 'vue-router';
-import api from '@/api';
 import { common } from '@/services/common';
 import Header from '@/components/Header.vue';
 import AdminNavigation from '@/components/admin/AdminNavigation.vue';
@@ -81,48 +79,14 @@ const mainStore = useMainStore();
 const adminStore = useAdminStore();
 const router = useRouter();
 
-const getUsers = async () => {
-	if (!mainStore.user) return;
-	const { data } = await api.post('get_users.php', {
-		user: {
-			id: localStorage.getItem('places-useruuid'),
-			// password: mainStore.user?.password,
-		},
-	}, { silent: true });
-	switch (data) {
-		case false :
-			throw new Error('Administrator’s password failed the verification');
-		default :
-			adminStore.setUsers(data);
-	}
-};
-provide('getUsers', getUsers);
-
-const getGroups = async () => {
-	if (!mainStore.user) return;
-	const { data } = await api.post('get_allgroups.php', {
-		user: {
-			id: localStorage.getItem('places-useruuid'),
-			// password: mainStore.user?.password,
-		},
-	}, { silent: true });
-	switch (data) {
-		case false :
-			throw new Error('Administrator’s password failed the verification');
-		default :
-			adminStore.setGroups(data);
-	}
-};
-provide('getGroups', getGroups);
-
 onMounted(() => {
-	getUsers();
-	getGroups();
+	adminStore.setUsers();
+	adminStore.setGroups();
 })
 
 const exit = async (): Promise<void> => {
 	mainStore.unload();
-	router.push({name: 'Auth'});
+	router.push({ name: 'Auth' });
 };
 
 const component = ref('users');

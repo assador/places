@@ -113,7 +113,7 @@ function getPlaces(AppContext $ctx, string $userIdBin): array {
 		$row["pointid"] = binToUuid($row["pointid"]);
 		$row["folderid"] = binToUuid($row["folderid"]);
 		if (!empty($row["time"])) {
-			$row["time"] = (int)$row["time"];
+			$row["time"] = (int) $row["time"];
 		} else {
 			unset($row["time"]);
 		}
@@ -146,7 +146,7 @@ function getRoutes(AppContext $ctx, string $userIdBin): array {
 		$row["userid"] = binToUuid($row["userid"]);
 		$row["folderid"] = binToUuid($row["folderid"]);
 		if (!empty($row["time"])) {
-			$row["time"] = (int)$row["time"];
+			$row["time"] = (int) $row["time"];
 		} else {
 			unset($row["time"]);
 		}

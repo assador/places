@@ -584,8 +584,7 @@ function updateFolder(AppContext $ctx, array $row, string $binUserId): void {
 // SEC Session check
 
 if (checkSession($ctx, $data["sessionid"]) === false) {
-	echo 2;
-	exit();
+	throw new Exception("Invalid or expired session.");
 }
 
 // SEC Transaction

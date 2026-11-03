@@ -9,7 +9,7 @@ $_POST = json_decode(file_get_contents("php://input"), true);
 
 $userIdBin = uuidToBin($_POST["userId"]);
 if (testAccountCheck($ctx, $config["testaccountuuid"], $_POST["userId"])) {
-	echo 2; exit;
+	throw new Exception("Test account.");
 } else {
 	// Delete, if neccessary, images as entries in DB and files.
 	if (!($_POST["leavePlaces"] == "all" && $_POST["leaveImages"] == "all")) {
@@ -88,6 +88,4 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $_POST["userId"])) {
 	");
 	$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
 	$result = $query->execute();
-
-	echo 1; exit;
 }

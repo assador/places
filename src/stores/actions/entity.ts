@@ -696,7 +696,6 @@ export function useActionsEntity(
 		const pointsToCheck = new Set<string>();
 		for (const id of Object.keys(objects)) {
 			const obj = objects[id];
-			if (!Object.hasOwn(objects, id)) continue;
 			if (isPlace(obj)) {
 				if (obj.pointid) pointsToCheck.add(obj.pointid);
 			} else if (isRoute(obj)) {

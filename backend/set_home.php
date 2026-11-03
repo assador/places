@@ -9,8 +9,7 @@ $raw = file_get_contents("php://input");
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
 if (testAccountCheck($ctx, $config["testaccountuuid"], $data["id"])) {
-	echo 2;
-	exit;
+	throw new Exception("Test account.");
 } else {
 	$sql = "
 		UPDATE users
@@ -22,6 +21,4 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $data["id"])) {
 		":id"        => uuidToBin($data["id"]),
 		":homeplace" => $data["data"] == null ? null : uuidToBin($data["data"]),
 	]);
-	echo 1;
-	exit;
 }

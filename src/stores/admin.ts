@@ -1,62 +1,34 @@
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
+import { StoreAdmin } from './types';
 import { User, Group } from '@/types';
+import { useGettersAdmin } from './getters/admin';
+import { useActionsAdmin } from './actions/admin';
 
-export interface AdminState {
-	users: User[],
-	groups: Group[],
-	usersSortBy: string,
-	groupsSortBy: string,
-}
+export const useAdminStore = defineStore('admin', () => {
 
-export const useAdminStore = defineStore('admin', {
-	state: (): AdminState => ({
-		users: [],
-		groups: [],
-		usersSortBy: 'login',
-		groupsSortBy: 'id',
-	}),
-	actions: {
-		setUsersSortByMut(sortBy: string) {
-			this.usersSortBy = sortBy;
-		},
-		setGroupsSortByMut(sortBy: string) {
-			this.groupsSortBy = sortBy;
-		},
-		sortMut(payload: { what: string, by: string }) {
-			if (!payload) return;
-/* Will migrate to Setup API
-			this[payload.what].sort((a: any, b: any) => {
-				const stringA = a[payload.by] ? a[payload.by].toString().toUpperCase() : '';
-				const stringB = b[payload.by] ? b[payload.by].toString().toUpperCase() : '';
-				if (stringA < stringB) return -1;
-				if (stringA > stringB) return 1;
-				return 0;
-			});
-*/
-		},
-		setUsers(payload: User[]) {
-			for (const user of payload) {
-				user.confirmed = !!user.confirmed;
-				user.checked = false;
-			}
-			this.users = payload;
-		},
-		setGroups(payload: Group[]) {
-			for (const group of payload) {
-				group.haschildren = !!group.haschildren;
-				group.system = !!group.system;
-				group.checked = false;
-			}
-			this.groups = payload;
-		},
-		setUsersSortBy(sortBy: string) {
-			this.setUsersSortByMut(sortBy);
-		},
-		setGroupsSortBy(sortBy: string) {
-			this.setGroupsSortByMut(sortBy);
-		},
-		sort(payload: { what: string, by: string }) {
-			this.sortMut(payload);
-		},
-	},
+	const store = {
+		users: ref<Record<string, User>>({}),
+		groups: ref<Record<string, Group>>({}),
+		usersSortBy: ref<string>('login'),
+		groupsSortBy: ref<string>('id'),
+	} as StoreAdmin;
+
+	// const state = shallowReactive({ ...store });
+
+	const gettersAdmin = useGettersAdmin(store);
+
+	const getters = {
+		...gettersAdmin,
+	};
+	Object.assign(store, getters);
+
+	const actionsAdmin = useActionsAdmin(store);
+
+	const actions = {
+		...actionsAdmin,
+	};
+	Object.assign(store, actions);
+
+	return store;
 });

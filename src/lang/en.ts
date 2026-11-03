@@ -4,7 +4,7 @@ export const getT = () => ({
 			accountPage: 'User account page',
 			actions: 'Actions',
 			add: 'Add',
-			admin: 'admin',
+			admin: 'Admin',
 			altitude: 'Altitude',
 			altitudecapability: 'Altitude capability',
 			auth: 'Authorization',

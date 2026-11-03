@@ -82,7 +82,7 @@ function createSession(AppContext $ctx, string $userIdBin, array $payload = []):
 	$sessionUuid = uuidv4();
 	$sessionIdBin = uuidToBin($sessionUuid);
 
-	$lifetime = (int)$payload['lifetime'];
+	$lifetime = (int) $payload['lifetime'];
 
 	$query = $ctx->db->prepare("
 		INSERT INTO `sessions` (`id`, `userid`, `createdat`, `expiresat`, `reason`)

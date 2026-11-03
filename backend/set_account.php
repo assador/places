@@ -14,17 +14,18 @@ $input = json_decode(
 
 $idBin = uuidToBin($input["accountId"]);
 if (testAccountCheck($ctx, $config["testaccountuuid"], $input["accountId"])) {
-	echo 2; exit;
+	throw new Exception("Test account.");
 } else {
 	$query = $ctx->db->prepare("
 		SELECT * FROM `users`
 		WHERE `id` = :id
 			AND `confirmed` = 1
+		LIMIT 1
 	");
 	$query->bindValue(':id', $idBin, PDO::PARAM_LOB);
 	$query->execute();
 	$result = $query->fetch(PDO::FETCH_ASSOC);
-	if(!!$result) {
+	if(!empty($result)) {
 		$passwordchange =
 			$input["accountNewPassword"] == "" ||
 			password_verify($input["accountNewPassword"], $result["password"])
@@ -36,21 +37,22 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $input["accountId"])) {
 		$result["name"  ] == $input["accountName"  ] &&
 		$result["email" ] == $input["accountEmail" ] &&
 		$result["phone" ] == $input["accountPhone" ] &&
-		!$passwordchange
+		empty($passwordchange)
 	) {
-		echo 0; exit;
+		exit(0);
 	}
 	$currentuser = $result;
 	if ($currentuser["login" ] != $input["accountLogin" ]) {
 		$query = $ctx->db->prepare("
 			SELECT `id` FROM `users`
 			WHERE `login` = :login
+			LIMIT 1
 		");
 		$query->bindValue(':login', $input["accountLogin"], PDO::PARAM_LOB);
 		$query->execute();
 		$result = $query->fetch(PDO::FETCH_ASSOC);
-		if(!!$result) {
-			echo 3; exit;
+		if(!empty($result)) {
+			throw new Exception("Wrong account.");
 		}
 	}
 	$query = $ctx->db->prepare("
@@ -95,7 +97,7 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $input["accountId"])) {
 	$query->bindValue(':id', $idBin, PDO::PARAM_LOB);
 	$query->bindValue(':login', $input["accountLogin"]);
 	$query->bindValue(':password', (
-		$passwordchange
+		!empty($passwordchange)
 			? password_hash($input["accountNewPassword"], PASSWORD_DEFAULT)
 			: $currentuser["password"]
 	));
@@ -131,9 +133,6 @@ if (testAccountCheck($ctx, $config["testaccountuuid"], $input["accountId"])) {
 		$config,
 	);
 	if (!$sent) {
-		echo 0;
-		exit;
+		throw new Exception("Error sending email.");
 	}
-	echo 1;
-	exit;
 }

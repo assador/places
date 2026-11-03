@@ -39,10 +39,10 @@ function prepareSettingValue(mixed $value, int $type): string {
 	$rawString = match ($type) {
 		0 => "",
 		1 => $value ? "1" : "0",
-		2 => (string)$value,
+		2 => (string) $value,
 		3 => is_array($value) || is_object($value)
 			? json_encode($value, JSON_UNESCAPED_UNICODE)
-			: (string)$value
+			: (string) $value
 		,
 		default => "",
 	};
@@ -56,14 +56,13 @@ function checkSession(AppContext $ctx, string $sessionid): bool {
 	");
 	$stmt->bindValue(":sessionid", uuidToBin($sessionid), PDO::PARAM_LOB);
 	$stmt->execute();
-	return (bool)$stmt->fetch();
+	return (bool) $stmt->fetch();
 }
 
 // SEC Session check
 
 if (checkSession($ctx, $data["sessionid"]) === false) {
-	echo 2;
-	exit;
+	throw new Exception("Invalid or expired session.");
 }
 
 // SEC Transaction
@@ -106,7 +105,7 @@ try {
 				(int) $voc[$row["id"]]["type"] !== (int) $row["valtype"]
 			) {
 				$ctx->db->rollBack();
-				echo 1;
+				echo json_encode([1], JSON_NUMERIC_CHECK);
 				exit;
 			}
 			if (!empty($row["updated"])) {

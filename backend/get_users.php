@@ -1,30 +1,58 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set("display_errors", "1");
 
-require_once __DIR__ . '/bootstrap.php';
-
-$input = json_decode(
-	file_get_contents("php://input"),
-	true,
-	512,
-	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-);
-if (!$ctx->db) {
+/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
+set_exception_handler(function($e) {
+	header("Content-Type: application/json");
 	http_response_code(500);
-	echo json_encode(["error" => "DB connection failed"]);
+	echo $e->getMessage();
+	echo "\nfile: {$e->getFile()}";
+	echo "\nline: {$e->getLine()}";
 	exit;
+});
+*/
+
+require_once __DIR__ . "/bootstrap.php";
+
+$raw = file_get_contents("php://input");
+$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+$users = $data["users"];
+
+$result = [];
+
+if (empty($data["userid"]) || empty($data["sessionid"])) {
+	throw new Exception("Wrong account.");
 }
-header("Content-Type: application/json; charset=utf-8");
+
+function checkSession(AppContext $ctx, string $sessionid): bool {
+	$stmt = $ctx->db->prepare("
+		SELECT 1 FROM `sessions`
+		WHERE `id` = :sessionid
+		LIMIT 1
+	");
+	$stmt->bindValue(":sessionid", uuidToBin($sessionid), PDO::PARAM_LOB);
+	$stmt->execute();
+	return (bool) $stmt->fetch();
+}
+
+// SEC Session check
+
+if (checkSession($ctx, $data["sessionid"]) === false) {
+	throw new Exception("Invalid or expired session.");
+}
+
+// SEC Transaction
 
 try {
-	if (!empty($input["users"]) && is_array($input["users"])) {
-		$ids = array_map('uuidToBin', $input["users"]);
-		$in  = implode(',', array_fill(0, count($ids), '?'));
+	$ctx->db->beginTransaction();
+
+	if (!empty($users) && is_array($users)) {
+		$ids = array_map("uuidToBin", $users);
+		$in  = implode(",", array_fill(0, count($ids), "?"));
 		$query = $ctx->db->prepare("
-			SELECT `id`, `login`, `name`
-			FROM `users`
+			SELECT `id`, `login`, `name` FROM `users`
 			WHERE `id` IN ($in)
 		");
 		foreach ($ids as $i => $bin) {
@@ -35,25 +63,15 @@ try {
 		foreach ($result as &$row) {
 			$row["id"] = binToUuid($row["id"]);
 		}
-		echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-		exit;
+	} else {
+		$query = $ctx->db->query("SELECT `login`, `name` FROM `users`");
+		$result = $query->fetchAll(PDO::FETCH_ASSOC);
 	}
-	if (!empty($input["user"]["id"]) && !empty($input["user"]["password"])) {
-		$id = uuidToBin($input["user"]["id"]);
-		$password = $input["user"]["password"];
-		if (passwordHashCheck($ctx, $id, $password)) {
-			$query = $ctx->db->query("SELECT * FROM `users`");
-			$result = $query->fetchAll(PDO::FETCH_ASSOC);
-			foreach ($result as &$row) {
-				$row["id"] = binToUuid($row["id"]);
-			}
-			echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-			exit;
-		}
-	}
-	http_response_code(403);
-	echo json_encode(["error" => "Access denied"]);
-} catch (Exception $e) {
-	http_response_code(500);
-	echo json_encode(["error" => $e->getMessage()]);
+
+	$ctx->db->commit();
+
+} catch (Throwable $e) {
+	error_log($e->getMessage());
+	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
 }
+echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

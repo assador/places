@@ -119,7 +119,7 @@ export interface User {
 	phone?: string;
 	lastupdates?: number;
 	confirmbefore?: number;
-	groups?: { group: string, parent: string }[];
+	groups?: Record<string, Group>;
 	added?: boolean;
 	deleted?: boolean;
 	updated?: boolean;
@@ -132,16 +132,16 @@ export interface Account extends User {
 }
 export interface Group {
 	id: string;
-	parent: string;
-	name: string;
-	description: string;
+	parent: string | null;
 	owner: string;
 	system: boolean;
 	haschildren: boolean;
+	name?: string;
+	description?: string;
+	checked?: boolean;
 	added?: boolean;
 	deleted?: boolean;
 	updated?: boolean;
-	checked?: boolean;
 }
 export interface PointDescription {
 	id: string;

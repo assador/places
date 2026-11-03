@@ -25,13 +25,7 @@
 								{{ mainStore.t.i.captions.settings }}
 							</router-link>
 							<router-link
-								v-if="
-									!!mainStore['user'] &&
-									!!mainStore.user['groups'] &&
-									!!mainStore.user['groups'].find(
-										g => g.parent === 'management'
-									)
-								"
+								v-if="mainStore.user?.groups?.admins"
 								to="/admin"
 								class="menu-link message border_1"
 							>

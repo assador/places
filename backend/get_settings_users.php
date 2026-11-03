@@ -39,7 +39,7 @@ $rawOptions = $stmtOptions->fetchAll(PDO::FETCH_ASSOC);
 
 $vocOptions = [];
 foreach ($rawOptions as $opt) {
-	$vocOptions[(int)$opt["settingid"]][] = $opt;
+	$vocOptions[(int) $opt["settingid"]][] = $opt;
 }
 
 $stmtUser = $ctx->db->prepare("
@@ -54,9 +54,9 @@ $userValues = $stmtUser->fetchAll(PDO::FETCH_KEY_PAIR);
 $settings = [];
 
 foreach ($voc as $item) {
-	$id = (int)$item["id"];
-	$type = (int)$item["type"];
-	$srt = (float)$item["srt"];
+	$id = (int) $item["id"];
+	$type = (int) $item["type"];
+	$srt = (float) $item["srt"];
 	$baseval = castSettingValue($item["baseval"], $type);
 
 	$enumList = [];
@@ -64,7 +64,7 @@ foreach ($voc as $item) {
 		foreach ($vocOptions[$id] as $opt) {
 			$enumItem = [
 				"val" => castSettingValue($opt["value"], $type),
-				"srt" => (float)$opt["srt"],
+				"srt" => (float) $opt["srt"],
 			];
 			if ($opt["extra"] !== null) {
 				/*
@@ -79,10 +79,10 @@ foreach ($voc as $item) {
 			$enumList[] = $enumItem;
 		}
 	}
-	$settings[(string)$id] = [
+	$settings[(string) $id] = [
 		"valtype" => $type,
 		"baseval" => $baseval,
-		"folderid" => (string)$item["groupid"],
+		"folderid" => (string) $item["groupid"],
 		"srt" => $srt,
 		"val" => array_key_exists($id, $userValues)
 			? castSettingValue($userValues[$id], $type)

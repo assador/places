@@ -168,46 +168,7 @@ export function useActionsInit(
 			store.serverConfig.value = null;
 		}
 	};
-	const setUsers = async (payload?: string): Promise<void> => {
-		let ids: string[] | null = null;
-		switch (payload) {
-			case 'common':
-				ids = [];
-				for (const id in store.commonPlaces.value) {
-					if (!Object.hasOwn(store.commonPlaces.value, id)) continue;
-					const place = store.commonPlaces.value[id];
-					if (place.userid && !ids.includes(place.userid)) ids.push(place.userid);
-				}
-				break;
-			default:
-				break;
-		}
-		try {
-			const { data } = await api.post(
-				'get_users.php',
-				Array.isArray(ids) ? { users: ids } : null,
-			);
-			for (let idx = 0; idx < data.length; idx++) {
-				store.users.value[data[idx].id] = {
-					login: data[idx].login,
-					name: data[idx].name,
-				};
-			}
-		} catch (error) {
-			console.error(error);
-			store.setMessage(store.t.value.m.popup.cannotGetData);
-			store.users.value = {};
-		}
-	};
 	const setUser = async (): Promise<void> => {
-		const sanitizeUserData = (raw: any): unknown => {
-			if (!raw || typeof raw !== 'object') return raw;
-			return {
-				...raw,
-				confirmed: raw.confirmed == 1 || raw.confirmed === true,
-				testaccount: raw.testaccount == 1 || raw.testaccount === true,
-			};
-		};
 		const uuid = localStorage.getItem('places-useruuid');
 		if (!uuid) {
 			store.user.value = null;
@@ -215,12 +176,11 @@ export function useActionsInit(
 		}
 		try {
 			const { data } = await api.get('get_account.php?id=' + uuid);
-			const user = sanitizeUserData(data);
-			if (!isUser(user)) throw new Error(
+			if (!isUser(data)) throw new Error(
 				store.t.value.m.errors.server.invalidResponseUser + ': ' +
 				JSON.stringify(data)
 			);
-			store.user.value = user;
+			store.user.value = data;
 		} catch (error) {
 			console.error(error);
 			store.setMessage(store.t.value.m.popup.cannotGetData);
@@ -294,7 +254,6 @@ export function useActionsInit(
 		reset,
 		unload,
 		setServerConfig,
-		setUsers,
 		setUser,
 		setEntities,
 	};

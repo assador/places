@@ -58,7 +58,7 @@
 								href="javascript:void(0)"
 								@click="goToUser(value as string)"
 							>
-								{{ adminStore.users ? adminStore.users.find(u => u.id === value)?.login ?? '' : '' }}
+								{{ adminStore.users ? adminStore.users[group.owner]?.login ?? '' : '' }}
 							</a>
 							<span v-else>
 								{{ (typeof value === 'boolean'
@@ -79,20 +79,15 @@
 
 <script setup lang="ts">
 import { ref, Ref, watch, computed, inject, onMounted } from 'vue';
+import { GroupKey } from '@/stores/types';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
-import { User } from '@/types';
-
-export interface AdminGroupsProps {
-	prop: 0,
-}
-// const props = defineProps<AdminGroupsProps>();
 
 const mainStore = useMainStore();
 const adminStore = useAdminStore();
 
 const tableMode = ref(1);
-const sortBy = ref('');
+const sortBy = ref<GroupKey>('name');
 
 const component = inject<Ref<string>>('component', ref('users'));
 
@@ -109,15 +104,14 @@ const groups = computed(() => adminStore.groups);
 
 onMounted(() => {
 	watch(() => sortBy.value, () => {
-		adminStore.setGroupsSortBy(sortBy.value);
-		adminStore.sort({what: 'groups', by: sortBy.value});
+		adminStore.sort({ what: 'groups', by: sortBy.value });
+		adminStore.groupsSortBy = sortBy.value;
 	});
-	sortBy.value = adminStore.groupsSortBy;
 });
 
 const goToUser = (id: string): void => {
-	const user = adminStore.users.find((u: User) => u.id === id);
-	if(typeof user === 'undefined') return;
+	const user = adminStore.users[id];
+	if(!user) return;
 	user.checked = true;
 	component.value = 'users';
 }

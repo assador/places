@@ -25,13 +25,12 @@ $query = $ctx->db->prepare("
 		);
 ");
 $query->bindValue(':email', $input["forgotEmail"]);
-$query->bindValue(':now', (int)(microtime(true) * 1000));
+$query->bindValue(':now', (int) (microtime(true) * 1000));
 $query->execute();
 
 $result = $query->fetch(PDO::FETCH_ASSOC);
 if(!$result) {
-	echo 2;
-	exit;
+	throw new Exception("Wrong account.");
 }
 $id = $result["id"];
 $name = $result["name"];
@@ -63,6 +62,5 @@ $sent = sendMail(
 	$config,
 );
 if (!$sent) {
-	echo 1;
-	exit;
+	throw new Exception("Error sending email.");
 }

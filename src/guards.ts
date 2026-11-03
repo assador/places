@@ -5,6 +5,7 @@ import {
 	DictKey, DICT_KEYS,
 	EntityCollectionKey, ENTITY_COLLECTION_KEYS,
 	Folder,
+	Group,
 	Image,
 	ImageableContext, IMAGEABLE_CONTEXT,
 	ImageableEntity,
@@ -37,16 +38,18 @@ const isOptionalBoolean = (value: unknown): boolean =>
 export const isRecord = (value: unknown): value is Record<string, unknown> => {
 	return value !== null && typeof value === 'object' && !Array.isArray(value);
 };
-export const isGroupsArray = (value: unknown): value is { group: string; parent: string; }[] => {
-	if (!Array.isArray(value)) {
-		return false;
-	}
-	const isValid = value.every(item =>
-			isRecord(item) &&
-			typeof item.group === 'string' &&
-			typeof item.parent === 'string'
-	);
-	if (!isValid) {
+export const isGroup = (value: unknown): value is Group => {
+	if (
+		!isRecord(value) ||
+		typeof value.id !== 'string' ||
+		typeof value.owner !== 'string' ||
+		typeof value.system !== 'boolean' ||
+		typeof value.haschildren !== 'boolean' ||
+		(typeof value.parent !== 'string' && value.parent !== null) ||
+		!isOptionalString(value.name) ||
+		!isOptionalString(value.description) ||
+		!isOptionalBoolean(value.checked)
+	) {
 		return false;
 	}
 	return true;
@@ -63,11 +66,31 @@ export const isUser = (value: unknown): value is User => {
 		!isOptionalString(value.email) ||
 		!isOptionalString(value.phone) ||
 		!isOptionalNumber(value.lastupdates) ||
-		!isOptionalNumber(value.confirmbefore) ||
-		('groups' in value && !isGroupsArray(value.groups))
+		!isOptionalNumber(value.confirmbefore)/* ||
+		('groups' in value && !isGroups(value.groups))*/
 	) {
 		return false;
 	}
+	return true;
+};
+export const isGroups = (value: unknown): value is Record<string, Group> => {
+	if (!isRecord(value)) return false;
+	let isValid = true;
+	for (const key in value) {
+		if (!Object.hasOwn(value, key)) continue;
+		if (!isGroup(value[key])) { isValid = false; break; }
+	}
+	if (!isValid) return false;
+	return true;
+};
+export const isUsers = (value: unknown): value is Record<string, User> => {
+	if (!isRecord(value)) return false;
+	let isValid = true;
+	for (const key in value) {
+		if (!Object.hasOwn(value, key)) continue;
+		if (!isUser(value[key])) { isValid = false; break; }
+	}
+	if (!isValid) return false;
 	return true;
 };
 export const isAccount = (value: unknown): value is Account => {

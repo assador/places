@@ -120,6 +120,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue';
+import { UserKey } from '@/stores/types';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 
@@ -127,7 +128,7 @@ const mainStore = useMainStore();
 const adminStore = useAdminStore();
 
 const tableMode = ref(1);
-const sortBy = ref('');
+const sortBy = ref<UserKey>('name');
 
 const sortKeys = computed(() => ({
 	login: mainStore.t.i.captions.login,
@@ -140,15 +141,17 @@ const sortKeys = computed(() => ({
 
 onMounted(() => {
 	watch(() => sortBy.value, () => {
-		adminStore.setUsersSortBy(sortBy.value);
-		adminStore.sort({what: 'users', by: sortBy.value});
+		adminStore.sort({ what: 'users', by: sortBy.value });
+		adminStore.usersSortBy = sortBy.value;
 	});
-	sortBy.value = adminStore.usersSortBy;
 });
 
 const checkedAll = ref(false);
 const checkAll = (check: boolean): void => {
-	for (const user of adminStore.users) user.checked = check;
+	for (const id in adminStore.users) {
+		if (!Object.hasOwn(adminStore.users, id)) continue;
+		adminStore.users[id].checked = check;
+	}
 	checkedAll.value = check;
 }
 </script>

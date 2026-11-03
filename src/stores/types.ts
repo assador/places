@@ -1,4 +1,5 @@
 import { Ref } from 'vue';
+import { useGettersAdmin } from '@/stores/getters/admin';
 import { useGettersEntity } from '@/stores/getters/entity';
 import { useGettersOther } from '@/stores/getters/other';
 import { useGettersRelate } from '@/stores/getters/relate';
@@ -12,6 +13,7 @@ import {
 	Folder,
 	FolderContext,
 	GeomarksState,
+	Group,
 	Image,
 	ImageableEntity,
 	Measure,
@@ -196,7 +198,6 @@ export interface ActionsInit {
 	reset: () => void;
 	unload: () => void;
 	setServerConfig: () => Promise<void>;
-	setUsers: (payload?: string) => Promise<void>;
 	setUser: () => Promise<void>;
 	setEntities: () => Promise<void>;
 }
@@ -260,4 +261,35 @@ export type StoreMain =
 	ActionsService &
 	ActionsSettings &
 	ActionsUI
+;
+
+// SEC Admin
+
+export interface AdminState {
+	users: Record<string, User>,
+	groups: Record<string, Group>,
+	usersSortBy: UserKey,
+	groupsSortBy: GroupKey,
+}
+
+export type StoreAdminStateRefs = {
+	[K in keyof AdminState]: Ref<AdminState[K]>;
+};
+
+export type GettersAdmin = ReturnType<typeof useGettersAdmin>;
+
+export type UserKey = keyof User;
+export type GroupKey = keyof Group;
+export type UserGroupKey = UserKey & GroupKey;
+
+export interface ActionsAdmin {
+	setUsers: (ids?: string[]) => Promise<void>;
+	setGroups: () => Promise<void>;
+	sort: (p: { what: 'groups'; by: GroupKey; } | { what: 'users'; by: UserKey; }) => void;
+}
+
+export type StoreAdmin =
+	StoreAdminStateRefs &
+	GettersAdmin &
+	ActionsAdmin
 ;
