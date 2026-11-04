@@ -10,20 +10,18 @@
 				mainStore.settings.user[SettingKey.Lang]?.val === 'ru'
 			" />
 			<AboutEn v-else />
-			<a
-				href="javascript:void(0)"
-				class="close"
+			<button
+				class="link close"
 				@click.prevent="close"
 			>
 				×
-			</a>
-			<a
-				href="javascript:void(0)"
-				class="up"
+			</button>
+			<button
+				class="link up"
 				@click.prevent="scrollToTop"
 			>
 				^
-			</a>
+			</button>
 		</div>
 	</transition>
 </template>

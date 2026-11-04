@@ -47,13 +47,12 @@
 						{{ message }}
 					</div>
 				</form>
-				<a
-					href="javascript:void(0)"
-					class="close"
+				<button
+					class="link close"
 					@click="close()"
 				>
 					×
-				</a>
+				</button>
 			</div>
 		</div>
 	</transition>

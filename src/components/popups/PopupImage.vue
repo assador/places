@@ -34,13 +34,12 @@
 				>
 					<span class="icon icon-triangle" />
 				</a>
-				<a
-					href="javascript:void(0);"
-					class="close"
+				<button
+					class="link close"
 					@click.stop="close"
 				>
 					×
-				</a>
+				</button>
 			</div>
 		</transition>
 	</Teleport>

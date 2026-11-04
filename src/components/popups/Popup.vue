@@ -10,14 +10,13 @@
 				@pointerup="handleClickInside"
 				@pointerdown.stop
 			>
-				<a
+				<button
 					v-if="props.closeButton"
-					href="javascript:void(0)"
-					class="close"
+					class="link close"
 					@click.stop="close()"
 				>
 					×
-				</a>
+				</button>
 				<div
 					v-if="props.what"
 					class="popup-title"

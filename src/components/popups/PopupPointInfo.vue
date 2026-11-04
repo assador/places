@@ -8,13 +8,12 @@
 		@update:show="handlePopupUpdate"
 	>
 		<template #popupSlot>
-			<a
-				href="javascript:void(0)"
-				class="point-info-copy"
+			<button
+				class="link point-info-copy"
 				@click.stop="copyCoords(common.pointInfo.point)"
 			>
 				{{ mainStore.t.i.text[copied ? 'copied' : 'copy'] }}
-			</a>
+			</button>
 			<div class="point-info-content">
 				<h3 class="point-info-names" v-if="common.pointInfo.name">
 					<div>
@@ -302,13 +301,10 @@ const deletePoint = async (index: number, entity: Route | Measure) => {
 		text-align: center;
 		margin-bottom: 0 !important;
 	}
-	&-degminsecalt, &-copy {
-		margin-top: 12px;
-	}
 	&-copy {
 		display: block;
 		position: absolute;
-		top: -6px; left: 10px;
+		top: 6px; left: 10px;
 	}
 	&-content {
 		display: flex;

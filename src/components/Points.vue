@@ -89,9 +89,9 @@
 					<span class="color-01">{{ distance }}</span>
 					<span class="un_color"> {{ mainStore.t.i.text.km }}</span>
 				</div>
-				<a
+				<button
 					v-if="mainStore.currentPointId"
-					href="javascript:void(0)"
+					class="link"
 					@pointerup="e => {
 						const fat = points.find(p => p.id === mainStore.currentPointId);
 						if (fat) {
@@ -110,7 +110,7 @@
 					@contextmenu.stop.prevent
 				>
 					{{ mainStore.t.i.captions.coords }}
-				</a>
+				</button>
 			</div>
 			<div
 				class="points-list-buttons"
@@ -360,7 +360,7 @@ const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
 	&.dragging :is(.sorting-area-before, .sorting-area-after) {
 		z-index: 30;
 	}
-	button {
+	button:not(:where(.link)) {
 		position: relative;
 		display: flex;
 		align-items: center;

@@ -11,9 +11,8 @@
 			<h2 class="menu-link message border_1">
 				{{ object.name }}
 			</h2>
-			<a
-				class="menu-link message border_1"
-				role="button" tabindex="0"
+			<button
+				class="link menu-link message border_1"
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="mainStore.showHideGeomarks({
@@ -39,11 +38,10 @@
 						? mainStore.t.i.hints.show
 						: mainStore.t.i.hints.hide
 				} ${mainStore.t.i.hints.onMap}` }}
-			</a>
-			<a
+			</button>
+			<button
 				v-if="object.type === 'place' || object.type === 'route'"
-				class="menu-link message border_1"
-				role="button" tabindex="0"
+				class="link menu-link message border_1"
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="if (isFileInput(inputUploadFiles)) { inputUploadFiles.click(); }"
@@ -60,10 +58,9 @@
 					class="images-add__input"
 					@change="addImages(object, $event.target as HTMLInputElement)"
 				/>
-			</a>
-			<a
-				class="menu-link message border_1"
-				role="button" tabindex="0"
+			</button>
+			<button
+				class="link menu-link message border_1"
 				:title="object.type !== 'folder' ? (
 					mainStore.t.i.hints[context === 'places' ? 'addPlace' : 'addRoute'] + ' ' +
 					mainStore.t.i.hints.addNext
@@ -87,14 +84,13 @@
 			>
 				<span class="icon icon-plus-circled" />
 				{{ mainStore.t.i.hints[context === 'places' ? 'addPlace' : 'addRoute'] }}
-			</a>
-			<a
+			</button>
+			<button
 				v-if="
 					context === 'places' ||
 					object.type === 'route' && mainStore.currentRoute?.points.length
 				"
-				class="menu-link message border_1"
-				role="button" tabindex="0"
+				class="link menu-link message border_1"
 				:title="
 					(mainStore.t.i.hints[context === 'places' ? 'addPlace' : 'addPoint']) + ' ' +
 					mainStore.t.i.hints.usingGeoLocation +
@@ -137,11 +133,10 @@
 				<span class="icon icon-plus-net" />
 				{{ mainStore.t.i.hints[context === 'places' ? 'addPlace' : 'addPoint'] }}
 				{{ mainStore.t.i.hints.usingGeoLocation }}
-			</a>
-			<a
+			</button>
+			<button
 				v-if="object.type === 'folder'"
-				class="menu-link message border_1"
-				role="button" tabindex="0"
+				class="link menu-link message border_1"
 				:title="mainStore.t.i.hints.addFolderIn"
 				@pointerdown.stop
 				@pointerup.stop
@@ -159,11 +154,10 @@
 			>
 				<span class="icon icon-plus-circled-folder" />
 				{{ mainStore.t.i.hints.addFolder }}
-			</a>
-			<a
+			</button>
+			<button
 				v-if="object.type !== 'folder' || !object.virtual"
-				class="menu-link message border_1"
-				role="button" tabindex="0"
+				class="link menu-link message border_1"
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="() => {
@@ -195,16 +189,15 @@
 						: 'deleteFolder'
 					]
 				}}
-			</a>
-			<a
+			</button>
+			<button
 				v-if="
 					object.type === 'place' && (
 						mainStore.mode === 'measure' ||
 						mainStore.mode === 'routes' && mainStore.currentRouteId
 					)
 				"
-				class="menu-link message border_1"
-				role="button" tabindex="0"
+				class="link menu-link message border_1"
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="() => {
@@ -230,7 +223,7 @@
 					? 'addPlacePointToMeasure'
 					: 'addPlacePointToRoute'
 				] }}
-			</a>
+			</button>
 		</template>
 	</Popup>
 </template>

@@ -75,13 +75,12 @@
 				</fieldset>
 			</form>
 		</div>
-		<a
-			href="javascript:void(0)"
-			class="close"
+		<button
+			class="link close"
 			@click="showPopupExchange = false"
 		>
 			×
-		</a>
+		</button>
 	</div>
 </template>
 

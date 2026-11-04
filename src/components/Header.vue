@@ -31,18 +31,17 @@
 							>
 								{{ mainStore.t.i.captions.admin }}
 							</router-link>
-							<a
-								href="javascript:void(0)"
-								class="menu-link message border_1"
+							<button
+								class="link menu-link message border_1"
 								@click="() => { logout(); router.push({ name: 'Auth' }); }"
 							>
 								{{ mainStore.t.i.buttons.exit }}
-							</a>
+							</button>
 						</template>
 					</Popup>
 				</span>
-				<a
-					href="javascript:void(0)"
+				<button
+					class="link"
 					@pointerdown.stop.prevent="e => {
 						if (popupProps.show) {
 							popupProps.show = false;
@@ -59,7 +58,7 @@
 						: mainStore.user?.login ? mainStore.user.login
 						: 'o_O'
 					}}
-				</a>
+				</button>
 			</h1>
 			<div>{{ mainStore.t.i.brand.slogan }}</div>
 		</div>

@@ -83,7 +83,7 @@
 		transform: rotate(180deg);
 	}
 }
-button, .button {
+button:not(:where(.link)), .button {
 	.icon, &.icon {
 		&::before {
 			background-color: var(--color-68);

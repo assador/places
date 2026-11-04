@@ -96,9 +96,8 @@ const components: Record<string, { name: string, component: Component }> = {
 	top: 0; right: 0; bottom: 0; left: 0;
 	display: grid;
 	grid-template-rows: auto auto 1fr;
-	> * {
-		padding: 12px;
-	}
+	gap: 12px;
+	padding: 12px;
 }
 #basic-right nav > * {
 	margin-bottom: 8px;

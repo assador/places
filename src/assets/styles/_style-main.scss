@@ -369,11 +369,21 @@ $filter-brightness-03: brightness(0%);
 	.button-pressed {
 		color: $color-24 !important;
 	}
-	a,
+	button:where(.link) {
+		margin: 0;
+		padding: 0;
+		padding-block: 0;
+		padding-inline: 0;
+		background: none;
+		border: none;
+		text-align: left;
+		cursor: pointer;
+	}
+	:is(a, button:where(.link)),
 	.tree-item, .color-01 {
 		color: $color-25;
 	}
-	a:hover,
+	:is(a, button:where(.link)):hover,
 	.tree-item.active, .tree-item:hover, .tree-item.activated-by-function {
 		color: $color-26;
 	}
@@ -448,7 +458,7 @@ $filter-brightness-03: brightness(0%);
 		text-indent: 0;
 		text-align: left;
 	}
-	a, a:hover {
+	:is(a, button:where(.link)), :is(a, button:where(.link)):hover {
 		text-decoration: none;
 		transition: all 0.5s;
 	}
@@ -522,7 +532,7 @@ $filter-brightness-03: brightness(0%);
 	pre, .pre {
 		overflow: auto;
 	}
-	.button, button, input, select, .selectspan, textarea {
+	.button, button:not(:where(.link)), input, select, .selectspan, textarea {
 		display: inline-block;
 		box-sizing: border-box;
 		height: 22px;
@@ -550,11 +560,11 @@ $filter-brightness-03: brightness(0%);
 		background-color: transparent;
 		border: none;
 	}
-	.button, button, input:is([type="button"], [type="reset"], [type="submit"]) {
+	.button, button:not(:where(.link)), input:is([type="button"], [type="reset"], [type="submit"]) {
 		text-align: center;
 		cursor: pointer;
 	}
-	.button, button {
+	.button, button:not(:where(.link)) {
 		height: auto;
 		min-height: 22px;
 	}
@@ -578,6 +588,9 @@ $filter-brightness-03: brightness(0%);
 	}
 	input:is([type="checkbox"], [type="radio"]):is(:checked) {
 		background: url('/img/icons/checkbox_checked.svg') center / contain no-repeat;
+	}
+	input[type="checkbox"]:indeterminate {
+		background: url('/img/icons/checkbox_indeterminate.svg') center / contain no-repeat;
 	}
 	input:is([type="checkbox"], [type="radio"]):focus-visible {
 		opacity: 1;
@@ -634,7 +647,7 @@ $filter-brightness-03: brightness(0%);
 	option {
 		background-color: $color-42;
 	}
-	.button, button,
+	.button, button:not(:where(.link)),
 	input[type="button"] {
 		background-color: $color-43;
 		border-color: $color-44 $color-45 $color-46 $color-47;
@@ -648,7 +661,7 @@ $filter-brightness-03: brightness(0%);
 	}
 	@media (hover: hover) {
 		:is(
-			.button, button,
+			.button, button:not(:where(.link)),
 			input:is([type="button"], [type="submit"], [type="reset"])
 		):hover {
 			background-color: $color-29;
@@ -660,13 +673,13 @@ $filter-brightness-03: brightness(0%);
 	.button-pressed,
 	input.important:is([type="button"], [type="reset"], [type="submit"]),
 	.button.important,
-	button.important {
+	button:not(:where(.link)).important {
 		background-color: $color-29;
 		border-color: $color-31 $color-33 $color-35 $color-37;
 		box-shadow: 0 0 8px $color-40;
 		color: $color-68;
 	}
-	button .highlighted {
+	button:not(:where(.link)) .highlighted {
 		background-color: $color-25;
 		box-shadow: 0 0 12px $color-25;
 	}
@@ -945,7 +958,7 @@ $filter-brightness-03: brightness(0%);
 		input {
 			padding-right: 2rem;
 		}
-		button, button:hover {
+		button:not(:where(.link)), button:not(:where(.link)):hover {
 			position: absolute;
 			top: calc(50% + 10px); right: 0;
 			background-color: transparent;
@@ -1185,6 +1198,7 @@ $filter-brightness-03: brightness(0%);
 	}
 	.menu-link {
 		display: block;
+		width: 100%;
 	}
 	#import-from-file-input {
 		display: none;

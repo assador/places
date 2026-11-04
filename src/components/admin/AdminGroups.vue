@@ -53,13 +53,13 @@
 							{{ sortKeys[key as keyof typeof sortKeys] }}
 						</div>
 						<div :class="{'impvalue': key as unknown as string === sortBy}">
-							<a
+							<button
 								v-if="key === 'owner'"
-								href="javascript:void(0)"
+								class="link"
 								@click="goToUser(value as string)"
 							>
 								{{ adminStore.users ? adminStore.users[group.owner]?.login ?? '' : '' }}
-							</a>
+							</button>
 							<span v-else>
 								{{ (typeof value === 'boolean'
 									? (value === true
@@ -130,12 +130,11 @@ h1, h3 {
 		gap: 12px;
 		align-items: center;
 	}
-	button {
+	button:not(:where(.link)) {
 		min-width: 32px;
 	}
 }
 .table {
-	margin-top: 12px;
 	padding: 6px;
 	overflow: auto;
 	.impvalue {

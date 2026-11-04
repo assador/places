@@ -33,13 +33,12 @@
 						</button>
 					</fieldset>
 				</form>
-				<a
-					href="javascript:void(0);"
-					class="close"
+				<button
+					class="link close"
 					@click="props.instance.cancel()"
 				>
 					×
-				</a>
+				</button>
 			</div>
 		</div>
 	</transition>

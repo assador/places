@@ -107,9 +107,8 @@
 			</div>
 			<form
 				v-if="mainStore.rangeShow"
-				action="javascript:void(0)"
 				class="helpers-range"
-				@submit="mainStore.showInRange(mainStore.range)"
+				@submit.prevent="mainStore.showInRange(mainStore.range)"
 			>
 				<input
 					id="range-input"
@@ -178,16 +177,15 @@
 							</div>
 						</div>
 						<div class="margin_bottom">
-							<a
+							<button
 								v-for="(_, index) in commonRoutesPagesCount"
 								:key="index"
-								href="javascript:void(0);"
-								class="pseudo_button"
+								class="link pseudo_button"
 								:class="{ un_imp: index + 1 === mainStore.commonPlacesPage }"
 								@click="mainStore.commonPlacesPage = index + 1;"
 							>
 								{{ index + 1 }}
-							</a>
+							</button>
 						</div>
 					</div>
 				</div>
@@ -219,16 +217,15 @@
 						</div>
 					</div>
 					<div class="margin_bottom">
-						<a
+						<button
 							v-for="(_, index) in commonPlacesPagesCount"
 							:key="index"
-							href="javascript:void(0);"
-							class="pseudo_button"
+							class="link pseudo_button"
 							:class="{ un_imp: index + 1 === mainStore.commonPlacesPage }"
 							@click="mainStore.commonPlacesPage = index + 1;"
 						>
 							{{ index + 1 }}
-						</a>
+						</button>
 					</div>
 				</div>
 			</div>

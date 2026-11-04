@@ -46,13 +46,12 @@
 				</p>
 			</div>
 		</div>
-		<a
-			href="javascript:void(0)"
-			class="close"
+		<button
+			class="link close"
 			@click="showPopupImportTiles = false"
 		>
 			×
-		</a>
+		</button>
 	</div>
 </template>
 
