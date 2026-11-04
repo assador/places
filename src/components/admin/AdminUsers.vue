@@ -100,10 +100,7 @@
 				:key="key"
 			>
 				<div :class="{ impvalue: key === adminStore.usersSortBy }">
-					{{ (typeof user[key] !== 'boolean'
-						? user[key]
-						: (!user[key] ? mainStore.t.i.text.no : mainStore.t.i.text.yes)
-					) }}
+					{{ getFieldValue(user, key) }}
 				</div>
 			</template>
 		</div>
@@ -121,13 +118,49 @@ const adminStore = useAdminStore();
 
 const tableMode = ref(1);
 
-const fields = ref<Partial<Record<keyof User, { enabled: boolean, caption: string }>>>({
+type Field<K extends keyof User> = {
+	enabled: boolean;
+	caption: string;
+	callback?: (value: Exclude<User[K], undefined>) => unknown;
+};
+type Fields = {
+	[K in keyof User]?: Field<K>;
+};
+const getFieldValue = (user: User, key: keyof User): unknown => {
+	const field = fields.value[key];
+	const value = user[key];
+
+	if (field?.callback && value !== undefined) {
+		return field.callback(value as never);
+	}
+	return typeof value === 'boolean'
+		? (!value ? mainStore.t.i.text.no : mainStore.t.i.text.yes)
+		: value
+	;
+};
+const formatUTC = (timestamp: number): string => {
+	const date = new Date(timestamp);
+	return date.toLocaleString(undefined, {
+		timeZone: 'UTC',
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+	});
+}
+const fields = ref<Fields>({
 	login         : { enabled: true, caption: mainStore.t.i.captions.login },
 	name          : { enabled: true, caption: mainStore.t.i.captions.person },
 	email         : { enabled: true, caption: mainStore.t.i.captions.email },
 	phone         : { enabled: true, caption: mainStore.t.i.captions.phone },
 	confirmed     : { enabled: true, caption: mainStore.t.i.captions.confirmed },
-	confirmbefore : { enabled: true, caption: mainStore.t.i.captions.confirmbefore },
+	confirmbefore : {
+		enabled: true,
+		caption: mainStore.t.i.captions.confirmbefore,
+		callback: formatUTC,
+	},
 });
 const keysArray = computed(() => Object.keys(fields.value) as (keyof typeof fields.value)[]);
 
