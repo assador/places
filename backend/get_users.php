@@ -19,25 +19,12 @@ require_once __DIR__ . "/bootstrap.php";
 $raw = file_get_contents("php://input");
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 $users = $data["users"];
-$useridBin = uuidToBin($data["userid"]);
-$sessionidBin = uuidToBin($data["sessionid"]);
+$binUserId = uuidToBin($data["userid"]);
+$binSessionId = uuidToBin($data["sessionid"]);
 
 $result = [];
 
-if (empty($data["userid"]) || empty($data["sessionid"])) {
-	throw new Exception("Wrong account.");
-}
-
-function checkSession(AppContext $ctx, string $useridBin, string $sessionidBin): bool {
-	$stmt = $ctx->db->prepare("
-		SELECT 1 FROM `sessions`
-		WHERE `id` = :sessionid
-		LIMIT 1
-	");
-	$stmt->bindValue(":sessionid", $sessionidBin, PDO::PARAM_LOB);
-	$stmt->execute();
-	if (!$stmt->fetch()) return false;
-
+function isValidRights(AppContext $ctx, string $binUserId): bool {
 	$stmt = $ctx->db->prepare("
 		SELECT `id`, `parent` FROM `groups`
 		WHERE `id` IN (
@@ -46,19 +33,18 @@ function checkSession(AppContext $ctx, string $useridBin, string $sessionidBin):
 		)
 			AND `parent` = 'management' OR `id` = 'superusers'
 	");
-	$stmt->bindValue(":id", $useridBin, PDO::PARAM_LOB);
+	$stmt->bindValue(":id", $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 	if (!$stmt->fetch()) return false;
 	return true;
 }
 
-// SEC Session check
+// SEC Check
 
-if (checkSession(
-	$ctx,
-	$useridBin,
-	$sessionidBin
-) === false) {
+if (
+	!isValidSession($ctx, $binUserId, $binSessionId) ||
+	!isValidRights($ctx, $binUserId)
+) {
 	throw new Exception("Invalid or expired session.");
 }
 

@@ -3,7 +3,19 @@ declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-function testAccountCheck(AppContext $ctx, $testaccountuuid, $uuid) {
+function isValidSession(AppContext $ctx, string $binUserId, string $binSessionId): bool {
+	$stmt = $ctx->db->prepare("
+		SELECT 1 FROM `sessions`
+		WHERE `id` = :sessionid AND `userid` = :userid
+		LIMIT 1
+	");
+	$stmt->bindValue(":userid", $binUserId, PDO::PARAM_LOB);
+	$stmt->bindValue(":sessionid", $binSessionId, PDO::PARAM_LOB);
+	$stmt->execute();
+	if (!$stmt->fetch()) return false;
+	return true;
+}
+function testAccountCheck(AppContext $ctx, string $testaccountuuid, string $uuid) {
 	$query = $ctx->db->prepare("SELECT id FROM users WHERE id = :id");
 	$query->bindValue(':id', uuidToBin($uuid), PDO::PARAM_LOB);
 	$query->execute();
@@ -12,12 +24,10 @@ function testAccountCheck(AppContext $ctx, $testaccountuuid, $uuid) {
 }
 function passwordHashCheck(AppContext $ctx, string $id, string $password): bool {
 	$query = $ctx->db->prepare("SELECT `password` FROM `users` WHERE `id` = :id LIMIT 1");
-	$query->bindValue(':id', $id, PDO::PARAM_LOB);
+	$query->bindValue(':id', uuidToBin($id), PDO::PARAM_LOB);
 	$query->execute();
 	$result = $query->fetch(PDO::FETCH_ASSOC);
-	if (!$result) {
-		return false;
-	}
+	if (!$result) return false;
 	return password_verify($password, $result["password"]);
 }
 function generateRandomString($length = 32) {
@@ -201,7 +211,7 @@ function sendMailSmtp($to, $subject, $message, $headers, $config) {
 			fclose($fp);
 			return false;
 		}
-		$write($fp, "EHLO " . $host);
+		$write($fp, "EHLO " . $config["host"]);
 	}
 	if ($username && $password) {
 		$write($fp, "AUTH LOGIN");

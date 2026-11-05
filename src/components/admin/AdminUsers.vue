@@ -32,40 +32,44 @@
 				: null
 		"
 	>
-		<div v-if="tableMode === 1">
+		<div>
 			<div>
 				<input
 					type="checkbox"
 					:checked="checked === 1"
 					.indeterminate="checked === 2"
 					:title="mainStore.t.i.buttons[checked ? 'uncheckAll' : 'checkAll']"
-					@change="checkAll(!checked)"
+					@change="checkAll(checked === 2 ? true : !checked)"
 				/>
 			</div>
 			<h3
 				v-for="key in keysArray"
 				:key="key"
-				class="margin_bottom_0"
+				class="table-column-caption margin_bottom_0"
+				@click="sortBy(key)"
 			>
+				<div
+					class="icon icon-triangle"
+					:class="isReverse ? 'icon-triangle_down' : 'icon-triangle_up'"
+				/>
 				<button
 					v-if="fields[key]"
 					class="link"
-					@click="adminStore.usersSortBy = key"
 				>
 					{{ fields[key].caption }}
 				</button>
 			</h3>
 		</div>
 		<div
-			v-for="(user, index) in usersArray"
-			:key="index"
-			:class="{ 'active': user.checked }"
+			v-for="n in usersArray.length"
+			:key="getUser(n).id"
+			:class="{ 'active': getUser(n).checked }"
+			@click="getUser(n).checked = !getUser(n).checked"
 		>
 			<div class="user-actions">
 				<input
 					type="checkbox"
-					:checked="user.checked"
-					@change="e => user.checked = (e.currentTarget as HTMLInputElement).checked"
+					:checked="getUser(n).checked"
 				/>
 			</div>
 			<template
@@ -73,7 +77,7 @@
 				:key="key"
 			>
 				<div :class="{ impvalue: key === adminStore.usersSortBy }">
-					{{ getFieldValue(user, key) }}
+					{{ getFieldValue(getUser(n), key) }}
 				</div>
 			</template>
 		</div>
@@ -90,6 +94,7 @@ const mainStore = useMainStore();
 const adminStore = useAdminStore();
 
 const tableMode = ref(1);
+const isReverse = ref(false);
 
 type Field<K extends keyof User> = {
 	enabled: boolean;
@@ -99,18 +104,7 @@ type Field<K extends keyof User> = {
 type Fields = {
 	[K in keyof User]?: Field<K>;
 };
-const getFieldValue = (user: User, key: keyof User): unknown => {
-	const field = fields.value[key];
-	const value = user[key];
 
-	if (field?.formatter && value !== undefined) {
-		return field.formatter(value as never);
-	}
-	return typeof value === 'boolean'
-		? (!value ? mainStore.t.i.text.no : mainStore.t.i.text.yes)
-		: value
-	;
-};
 const formatUTC = (timestamp: number): string => {
 	const date = new Date(timestamp);
 	return date.toLocaleString(undefined, {
@@ -135,18 +129,34 @@ const fields = ref<Fields>({
 		formatter : formatUTC,
 	},
 });
+
 const keysArray = computed(() =>
 	(Object.keys(fields.value) as (keyof User)[])
 		.filter(key => fields.value[key]?.enabled)
 );
-
 const usersArray = computed(() => {
 	return (adminStore.getSorted({ what: 'users', by: adminStore.usersSortBy }) as User[]);
 });
 
+const getUser = (n: number) =>
+	usersArray.value[isReverse.value ? usersArray.value.length - n : n - 1]
+;
+const getFieldValue = (user: User, key: keyof User): unknown => {
+	const field = fields.value[key];
+	const value = user[key];
+
+	if (field?.formatter && value !== undefined) {
+		return field.formatter(value as never);
+	}
+	return typeof value === 'boolean'
+		? (!value ? mainStore.t.i.text.no : mainStore.t.i.text.yes)
+		: value
+	;
+};
+
 const check = (id: string, val: boolean): void => {
 	adminStore.users[id].checked = val;
-}
+};
 const checked = computed((): number => {
 	let prev: boolean | undefined;
 	for (const id in adminStore.users) {
@@ -167,7 +177,14 @@ const checkAll = (val: boolean): void => {
 		if (!Object.hasOwn(adminStore.users, id)) continue;
 		check(id, val);
 	}
-}
+};
+const sortBy = (key: keyof User): void => {
+	if (key !== adminStore.usersSortBy) {
+		adminStore.usersSortBy = key;
+	} else {
+		isReverse.value = !isReverse.value;
+	}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -187,11 +204,32 @@ const checkAll = (val: boolean): void => {
 		min-width: 32px;
 	}
 }
+.icon-triangle {
+	flex: 0 0 10px;
+	width: 10px; height: 10px;
+	min-width: 0; min-height: 0;
+	line-height: 0;
+	&::before {
+		background-color: var(--color-23);
+	}
+}
 .table {
 	overflow: auto;
 	.impvalue {
 		margin-top: -0.3rem;
-		font-size: 1.5rem;
+		font-size: 1.5em;
+	}
+	&-column-caption {
+		display: flex;
+		gap: 8px;
+		align-items: baseline;
+		cursor: pointer;
+	}
+	& > * {
+		cursor: pointer;
+	}
+	&.table-2 > * > :first-child {
+		margin-bottom: 12px;
 	}
 }
 .user-actions {

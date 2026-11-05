@@ -3,6 +3,40 @@ import { User, Group } from '@/types';
 import { isUser } from '@/guards';
 import { StoreAdmin, ActionsAdmin } from '@/stores/types';
 
+// SEC Factories
+
+function _defaultGroup(
+	id: string,
+	owner: string,
+): Group {
+	return {
+		id: id,
+		owner: owner,
+		parent: null,
+		system: false,
+		haschildren: false,
+		name: '',
+		description: '',
+		added: false,
+		deleted: false,
+		updated: false,
+	};
+}
+
+// SEC Creating
+
+export function initGroupFactory(
+	getId: () => string,
+	getOwner: () => string,
+) {
+	return function createGroup(overrides?: Partial<Group>): Group {
+		return {
+			..._defaultGroup(getId(), getOwner()),
+			...overrides,
+		};
+	};
+};
+
 export function useActionsAdmin(
 	store: StoreAdmin,
 ): ActionsAdmin {
@@ -40,8 +74,29 @@ export function useActionsAdmin(
 		}
 	};
 	const setGroups = async (): Promise<void> => {
-		const groups: Record<string, Group> = {};
-		store.groups.value = groups;
+		store.groups.value = {};
+		try {
+			const { data } = await api.get('get_groups.php');
+			if (Array.isArray(data)) {
+				const groups: Record<string, Group> = {};
+				for (const groupData of data) {
+					groupData.id = String(groupData.id);
+					if (groupData.parent) groupData.parent = String(groupData.parent);
+					const createGroup = initGroupFactory(
+						() => groupData.id,
+						() => groupData.owner,
+					);
+					groups[groupData.id] = createGroup({
+						...groupData,
+						context: 'admin',
+					});
+				}
+				Object.assign(store.groups.value, groups);
+			}
+		} catch (error) {
+			console.error(error);
+			store.groups.value = {};
+		}
 	};
 
 	return {

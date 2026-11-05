@@ -79,6 +79,7 @@ export function useGettersTree(
 	});
 	const trees = computed(() => {
 		const result = {} as {
+			readonly admin: Folder;
 			readonly places: Folder;
 			readonly routes: Folder;
 			readonly settings: Folder;

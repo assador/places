@@ -18,6 +18,8 @@ require_once __DIR__ . "/bootstrap.php";
 
 $raw = file_get_contents("php://input");
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+$binUserId = uuidToBin($data["userid"]);
+$binSessionId = uuidToBin($data["sessionid"]);
 $list = $data["data"] ?? [];
 
 $faults = [];
@@ -43,17 +45,6 @@ function getCachedStmt(AppContext $ctx, string $key, string $sql): PDOStatement 
 }
 
 // Helpers
-
-function checkSession(AppContext $ctx, string $sessionid): bool {
-	$stmt = $ctx->db->prepare("
-		SELECT 1 FROM sessions
-		WHERE id = :sessionid
-		LIMIT 1
-	");
-	$stmt->bindValue(":sessionid", uuidToBin($sessionid), PDO::PARAM_LOB);
-	$stmt->execute();
-	return (bool) $stmt->fetch();
-}
 
 function getById(AppContext $ctx, string $table, string $id) {
 	$sql = "
@@ -583,7 +574,7 @@ function updateFolder(AppContext $ctx, array $row, string $binUserId): void {
 
 // SEC Session check
 
-if (checkSession($ctx, $data["sessionid"]) === false) {
+if (!isValidSession($ctx, $binUserId, $binSessionId)) {
 	throw new Exception("Invalid or expired session.");
 }
 
@@ -592,8 +583,7 @@ if (checkSession($ctx, $data["sessionid"]) === false) {
 try {
 	$ctx->db->beginTransaction();
 
-	$globalBinUserId = uuidToBin($data["userid"]);
-	$quotedBinUserId = $ctx->db->quote($globalBinUserId);
+	$quotedBinUserId = $ctx->db->quote($binUserId);
 
 	$visiting = $ctx->db->query("
 		SELECT `id` FROM `groups`
@@ -647,7 +637,7 @@ try {
 			if (!empty($row["deleted"])) {
 				$delFolderStmt->execute([
 					":id"     => uuidToBin($row["id"]),
-					":userid" => $globalBinUserId,
+					":userid" => $binUserId,
 				]);
 			} elseif (!empty($row["added"])) {
 				if ($foldersLimit >= 0 && $folderscount >= $foldersLimit) {
@@ -657,9 +647,9 @@ try {
 				if ($foldersLimit >= 0) {
 					$folderscount++;
 				}
-				addFolder($ctx, $row, $globalBinUserId);
+				addFolder($ctx, $row, $binUserId);
 			} elseif (!empty($row["updated"])) {
-				updateFolder($ctx, $row, $globalBinUserId);
+				updateFolder($ctx, $row, $binUserId);
 			}
 		}
 	}
@@ -677,16 +667,16 @@ try {
 
 		foreach ($list["places"] as $row) {
 			if (!empty($row["deleted"])) {
-				deletePlace($ctx, $row, $globalBinUserId);
+				deletePlace($ctx, $row, $binUserId);
 			} elseif (!empty($row["added"]) && getById($ctx, "points", $row["pointid"])) {
 				if ($placesLimit >= 0 && $placescount >= $placesLimit) {
 					if (!in_array(4, $faults, true)) $faults[] = 4;
 					continue;
 				}
 				$placescount++;
-				addPlace($ctx, $row, $globalBinUserId);
+				addPlace($ctx, $row, $binUserId);
 			} elseif (!empty($row["updated"])) {
-				updatePlace($ctx, $row, $globalBinUserId);
+				updatePlace($ctx, $row, $binUserId);
 			}
 		}
 	}
@@ -704,16 +694,16 @@ try {
 
 		foreach ($list["routes"] as $row) {
 			if (!empty($row["deleted"])) {
-				deleteRoute($ctx, $row, $globalBinUserId);
+				deleteRoute($ctx, $row, $binUserId);
 			} elseif (!empty($row["added"])) {
 				if ($routesLimit >= 0 && $routescount >= $routesLimit) {
 					if (!in_array(5, $faults, true)) $faults[] = 5;
 					continue;
 				}
 				$routescount++;
-				addRoute($ctx, $row, $globalBinUserId);
+				addRoute($ctx, $row, $binUserId);
 			} elseif (!empty($row["updated"])) {
-				updateRoute($ctx, $row, $globalBinUserId);
+				updateRoute($ctx, $row, $binUserId);
 			}
 		}
 	}

@@ -169,13 +169,11 @@ export function useActionsInit(
 		}
 	};
 	const setUser = async (): Promise<void> => {
-		const uuid = localStorage.getItem('places-useruuid');
-		if (!uuid) {
-			store.user.value = null;
-			return;
-		}
 		try {
-			const { data } = await api.get('get_account.php?id=' + uuid);
+			const { data } = await api.post(`get_account.php`, {
+				userid: localStorage.getItem('places-useruuid'),
+				sessionid: localStorage.getItem('places-session'),
+			});
 			if (!isUser(data)) throw new Error(
 				store.t.value.m.errors.server.invalidResponseUser + ': ' +
 				JSON.stringify(data)

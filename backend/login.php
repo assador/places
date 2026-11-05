@@ -21,14 +21,13 @@ $query = $ctx->db->prepare("
 $query->execute([ ":login" => $input["authLogin" ]]);
 $result = $query->fetch(PDO::FETCH_ASSOC);
 
-if (!$result) {
-	exit(0);
-}
-if (!password_verify($input["authPassword"], $result["password"])) {
+if (!$result || !password_verify($input["authPassword"], $result["password"])) {
 	throw new Exception("Authorization error.");
 }
+unset($result["password"]);
 $result["session"] = createSession($ctx, $result["id"]);
 $result["id"] = binToUuid($result["id"]);
 $result["homeplace"] = binToUuid($result["homeplace"]);
+$result["confirmed"] = (bool) $result["homeplace"];
 
 echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);

@@ -18,6 +18,8 @@ require_once __DIR__ . "/bootstrap.php";
 
 $raw = file_get_contents("php://input");
 $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+$binUserId = uuidToBin($data["userid"]);
+$binSessionId = uuidToBin($data["sessionid"]);
 $list = $data["data"] ?? [];
 
 $faults = [];
@@ -48,20 +50,10 @@ function prepareSettingValue(mixed $value, int $type): string {
 	};
 	return mb_strcut($rawString, 0, 255, "8bit");
 }
-function checkSession(AppContext $ctx, string $sessionid): bool {
-	$stmt = $ctx->db->prepare("
-		SELECT 1 FROM `sessions`
-		WHERE `id` = :sessionid
-		LIMIT 1
-	");
-	$stmt->bindValue(":sessionid", uuidToBin($sessionid), PDO::PARAM_LOB);
-	$stmt->execute();
-	return (bool) $stmt->fetch();
-}
 
 // SEC Session check
 
-if (checkSession($ctx, $data["sessionid"]) === false) {
+if (!isValidSession($ctx, $binUserId, $binSessionId)) {
 	throw new Exception("Invalid or expired session.");
 }
 
@@ -96,8 +88,6 @@ try {
 			WHERE `settingid` = :settingid AND `userid` = :userid
 		";
 		$deleteStmt = $ctx->db->prepare($deleteSql);
-
-		$binUserId = uuidToBin($data["userid"]);
 
 		foreach ($list as $row) {
 			if (

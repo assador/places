@@ -219,11 +219,11 @@ export type TreeItemType = typeof TREE_ITEM_TYPES[number];
 
 export type Context =
 	| 'folders'
-	| 'points'
-	| 'places'
-	| 'routes'
 	| 'images'
 	| 'measure'
+	| 'places'
+	| 'points'
+	| 'routes'
 	| 'settings'
 	| 'temps'
 ;
@@ -237,20 +237,20 @@ export type MetaEntityContext =
 	| 'settings'
 ;
 export type PointInfoContext =
+	| 'measure'
 	| 'places'
 	| 'routes'
-	| 'measure'
 	| 'temps'
 ;
 export type PointCollectionContext =
-	| 'routes'
 	| 'measure'
+	| 'routes'
 	| 'temps'
 ;
 export type Mode =
+	| 'measure'
 	| 'normal'
 	| 'routes'
-	| 'measure'
 ;
 export type FolderContext =
 	| 'places'
@@ -258,8 +258,8 @@ export type FolderContext =
 	| 'settings'
 ;
 export type ImportExportFormat =
-	| 'json'
 	| 'gpx'
+	| 'json'
 ;
 export enum GeomarksState {
 	None = 0,
