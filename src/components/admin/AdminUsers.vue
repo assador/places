@@ -63,7 +63,7 @@
 		<div
 			v-for="n in usersArray.length"
 			:key="getUser(n).id"
-			:class="{ 'active': getUser(n).checked }"
+			:class="{ active: getUser(n).checked }"
 			@click="getUser(n).checked = !getUser(n).checked"
 		>
 			<div class="user-actions">

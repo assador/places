@@ -55,7 +55,7 @@
 		<div
 			v-for="n in groupsArray.length"
 			:key="getGroup(n).id"
-			:class="{ 'active': getGroup(n).checked }"
+			:class="{ active: getGroup(n).checked }"
 			@click="getGroup(n).checked = !getGroup(n).checked"
 		>
 			<div class="group-actions">
