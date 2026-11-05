@@ -50,12 +50,6 @@ try {
 	$group = $stmt->fetch(PDO::FETCH_ASSOC);
 	$groupId = $group["id"] ?? null;
 
-	$result = [
-		"mail"       => $config["mail"],
-		"lengths"    => $config["lengths"],
-		"mimes"      => $config["mimes"],
-		"uploadsize" => $config["uploadsize"],
-	];
 	foreach ($config["rights"] as $key => $value) {
 		$result["rights"][$key] = $groupId !== null
 			? ($config["rights"][$key][$groupId] ?? 0)

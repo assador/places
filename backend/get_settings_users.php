@@ -97,8 +97,8 @@ try {
 					$enumItem["extra"] =
 						"data:image/png;base64," . base64_encode($opt["extra"])
 					;
-    			// or SVG: "data:image/svg+xml;base64,..."
-       			*/
+	    			// or SVG: "data:image/svg+xml;base64,..."
+	       			*/
 					$enumItem["extra"] = $opt["extra"];
 				}
 				$enumList[] = $enumItem;
