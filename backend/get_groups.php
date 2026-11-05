@@ -16,46 +16,56 @@ set_exception_handler(function($e) {
 
 require_once __DIR__ . "/bootstrap.php";
 
-if(testAccountCheck($ctx, $config["testaccountuuid"], $_POST["userid"])) {
-	throw new Exception("Test account.");
+$raw = file_get_contents("php://input");
+$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+$binUserId = uuidToBin($data["userid"]);
+$binSessionId = uuidToBin($data["sessionid"]);
+
+$result = [];
+
+function isValidRights(AppContext $ctx, string $binUserId): bool {
+	$stmt = $ctx->db->prepare("
+		SELECT `id`, `parent` FROM `groups`
+		WHERE `id` IN (
+			SELECT `group` FROM `usergroup`
+			WHERE `user` = :id
+		)
+			AND `parent` = 'management' OR `id` = 'superusers'
+	");
+	$stmt->bindValue(":id", $binUserId, PDO::PARAM_LOB);
+	$stmt->execute();
+	if (!$stmt->fetch()) return false;
+	return true;
 }
 
-switch ($_POST["need"]) {
-	case "visiting" :
-		$query = $ctx->db->query("
-			SELECT `id`
-			FROM `groups`
-			WHERE `id`
-			IN (
-				SELECT `group`
-				FROM `usergroup`
-				WHERE `user` = :userid
-			)
-			AND `parent` = 'visiting'
-		");
-		$query->execute([
-			":userid" => $_POST["userid"],
-		]);
-		$groups = $query->fetchAll(PDO::FETCH_COLUMN);
-		break;
-	default :
-		$query = $ctx->db->query("
-			SELECT *
-			FROM `groups`
-			WHERE `id`
-			IN (
-				SELECT `group`
-				FROM `usergroup`
-				WHERE `user` = :userid
-			)
-		");
-		$query->execute([
-			":userid" => $_POST["userid"],
-		]);
-		$groups = $query->fetchAll(PDO::FETCH_COLUMN);
-		break;
+// SEC Check
+
+if (
+	!isValidSession($ctx, $binUserId, $binSessionId) ||
+	!isValidRights($ctx, $binUserId)
+) {
+	throw new Exception("Invalid or expired session.");
 }
-echo json_encode(
-	$groups,
-	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
-);
+
+// SEC Transaction
+
+try {
+	$ctx->db->beginTransaction();
+
+	$stmt = $ctx->db->query("SELECT * FROM `groups`");
+	$stmt->execute();
+
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		$row["owner"] = binToUuid($row["owner"]);
+		$row["system"] = (bool) $row["system"];
+		$row["haschildren"] = (bool) $row["haschildren"];
+		$result[$row["id"]] = $row;
+	}
+
+	$ctx->db->commit();
+
+} catch (Throwable $e) {
+	error_log($e->getMessage());
+	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
+}
+echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

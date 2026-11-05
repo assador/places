@@ -1,6 +1,6 @@
 import api from '@/api';
 import { User, Group } from '@/types';
-import { isUser } from '@/guards';
+import { isUser, isGroup } from '@/guards';
 import { StoreAdmin, ActionsAdmin } from '@/stores/types';
 
 // SEC Factories
@@ -74,25 +74,30 @@ export function useActionsAdmin(
 		}
 	};
 	const setGroups = async (): Promise<void> => {
-		store.groups.value = {};
-		try {
-			const { data } = await api.get('get_groups.php');
-			if (Array.isArray(data)) {
-				const groups: Record<string, Group> = {};
-				for (const groupData of data) {
-					groupData.id = String(groupData.id);
-					if (groupData.parent) groupData.parent = String(groupData.parent);
-					const createGroup = initGroupFactory(
-						() => groupData.id,
-						() => groupData.owner,
-					);
-					groups[groupData.id] = createGroup({
-						...groupData,
-						context: 'admin',
-					});
-				}
-				Object.assign(store.groups.value, groups);
+		const sanitizeGroupsData = (raw: any): Record<string, Group> => {
+			if (!raw || typeof raw !== 'object' && Array.isArray(raw)) return {};
+			const sntzd: Record<string, unknown> = {};
+			const groups: Record<string, Group> = {};
+			for (const id in raw) {
+				if (!Object.hasOwn(raw, id)) continue;
+				sntzd[id] = {
+					...raw[id],
+					system: raw[id].system == 1 || raw[id].system === true,
+					haschildren: raw[id].haschildren == 1 || raw[id].haschildren === true,
+					added: false,
+					deleted: false,
+					updated: false,
+				};
+				if (isGroup(sntzd[id])) groups[id] = sntzd[id];
 			}
+			return groups;
+		};
+		try {
+			const { data } = await api.post('get_groups.php', {
+				userid: localStorage.getItem('places-useruuid'),
+				sessionid: localStorage.getItem('places-session'),
+			});
+			store.groups.value = sanitizeGroupsData(data);
 		} catch (error) {
 			console.error(error);
 			store.groups.value = {};

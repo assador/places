@@ -120,10 +120,10 @@ export interface User {
 	lastupdates?: number;
 	confirmbefore?: number;
 	groups?: Record<string, Group>;
+	checked?: boolean;
 	added?: boolean;
 	deleted?: boolean;
 	updated?: boolean;
-	checked?: boolean;
 }
 export interface Account extends User {
 	password?: string,
