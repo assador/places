@@ -74,4 +74,9 @@ try {
 	error_log($e->getMessage());
 	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
 }
-echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+header("Content-Type: application/json");
+echo json_encode(
+	$result,
+	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+);

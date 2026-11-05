@@ -1,8 +1,13 @@
 import api from '@/api';
 import { Folder } from '@/types';
-import { Setting, SettingType } from '@/types/settings';
-import { isSetting } from '@/guards';
-import { StoreMain, ActionsSettings } from '@/stores/types';
+import { Setting, SettingType, SettingsVocRec } from '@/types/settings';
+import { isSetting, isSettingsVocRec } from '@/guards';
+import {
+	StoreMain,
+	StoreAdmin,
+	ActionsSettings,
+	ActionsSettingsAdmin,
+} from '@/stores/types';
 import { initFolderFactory } from '@/stores/actions/entity';
 
 // SEC Factories
@@ -62,8 +67,10 @@ export function useActionsSettings(
 	const resetUserSettings = (ids?: string[]): void => {
 		if (!ids) ids = Object.keys(store.settings.value.user);
 		for (const id of ids) {
-			store.settings.value.user[id].val = store.settings.value.user[id].baseval;
-			store.settings.value.user[id].updated = true;
+			const setting = store.settings.value.user[id];
+			if (!setting) continue;
+			setting.val = setting.baseval;
+			setting.updated = true;
 		}
 	};
 	const changeSetting = (
@@ -73,7 +80,9 @@ export function useActionsSettings(
 		entity.updated = true;
 		store.savedSettings.value = false;
 	};
-	const combUserSettings = (source: Record<string, Setting>): Record<string, Setting> => {
+	const combUserSettings = (
+		source: Record<string, Setting>
+	): Record<string, Setting> => {
 		const settings: Record<string, Setting> = {};
 		for (const id in source) {
 			if (!Object.hasOwn(source, id)) continue;
@@ -114,11 +123,15 @@ export function useActionsSettings(
 		}
 	};
 	const setUserSettings = async (): Promise<void> => {
-		const uuid = localStorage.getItem('places-useruuid');
-		if (!uuid) return;
+		const userid = localStorage.getItem('places-useruuid');
+		const sessionid = localStorage.getItem('places-session');
+		if (!userid) return;
 		clearUserSettings();
 		try {
-			const { data } = await api.get('get_settings_users.php?id=' + uuid);
+			const { data } = await api.post(
+				`get_settings_users.php`,
+				{ userid, sessionid },
+			);
 			if (data) {
 				const settings = combUserSettings(data);
 				Object.assign(store.settings.value.user, settings);
@@ -138,5 +151,60 @@ export function useActionsSettings(
 		changeSetting,
 		setSettingsGroups,
 		setUserSettings,
+	};
+};
+
+export function useActionsSettingsAdmin(
+	store: StoreAdmin,
+): ActionsSettingsAdmin {
+
+	const clearSettings = (): void => {
+		store.settings.value = {
+			usersvoc: {},
+			groups: {},
+		};
+	};
+	const combUserSettingsVoc = (
+		source: Record<string, SettingsVocRec>
+	): Record<string, SettingsVocRec> => {
+		const voc: Record<string, SettingsVocRec> = {};
+		for (const id in source) {
+			if (!Object.hasOwn(source, id)) continue;
+			const rec = source[id];
+			rec.id = String(id);
+			rec.added = false;
+			rec.deleted = false;
+			rec.updated = false;
+			if (isSettingsVocRec(rec)) voc[id] = rec;
+		}
+		return voc;
+	};
+	const clearUserSettingsVoc = (): void => {
+		store.settings.value.usersvoc = {};
+	};
+	const resetUserSettingsVoc = async (): Promise<void> => {
+		await setUserSettingsVoc();
+	};
+	const setUserSettingsVoc = async (): Promise<void> => {
+		const userid = localStorage.getItem('places-useruuid');
+		if (!userid) return;
+		clearUserSettingsVoc();
+		try {
+			const { data } = await api.get('get_settings_users_voc.php?id=' + userid);
+			if (data) {
+				const voc = combUserSettingsVoc(data);
+				Object.assign(store.settings.value.usersvoc, voc);
+			}
+		} catch (error) {
+			console.error(error);
+			clearUserSettingsVoc();
+		}
+	};
+
+	return {
+		clearSettings,
+		clearUserSettingsVoc,
+		resetUserSettingsVoc,
+		setUserSettingsVoc,
 	};
 };

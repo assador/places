@@ -1,5 +1,7 @@
 import { reactive } from 'vue';
 import api from '@/api';
+import { ping } from '@/services/ping';
+import { buffer } from '@/services/buffer';
 import { confirm } from '@/services/confirm';
 import { useMainStore } from '@/stores/main';
 import { Dictionary } from '@/types'
@@ -50,6 +52,8 @@ export const logoutRoutine = async (
 };
 
 export const logged = async (): Promise<void> => {
+	ping.init();
+	buffer.init();
 	const mainStore = useMainStore();
 	mainStore.setBusy(true);
 	await mainStore.setUser();
@@ -87,5 +91,6 @@ export const logout = async (): Promise<boolean> => {
 		if (!confirmed) return false;
 	}
 	await getOut();
+	ping.destroy();
 	return true;
 };

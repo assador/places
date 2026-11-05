@@ -6,7 +6,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import { h, ref } from 'vue';
 
 import { Folder, Place, Route } from '@/types';
-import { Settings } from '@/types/settings';
+import { SettingsMain } from '@/types/settings';
 import { MainState } from '@/stores/types';
 import { constants } from '@/shared/constants';
 import { t } from '@/lang/ru';
@@ -46,7 +46,7 @@ vi.mock('axios', () => ({ default: { get: vi.fn().mockResolvedValue({ data: { el
 const folders = ref<Record<string, Folder>>({});
 const places = ref<Record<string, Place>>({});
 const routes = ref<Record<string, Route>>({});
-const settings = ref<Settings>({
+const settings = ref<SettingsMain>({
 	user: {},
 	groups: {},
 });

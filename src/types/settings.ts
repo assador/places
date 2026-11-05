@@ -9,32 +9,41 @@ export interface SettingEnum {
 	extra?: string;
 }
 export interface SettingsVocRec {
+	id: string;
 	valtype: number;
-	folderid: string | null;
 	baseval: SettingType;
+	folderid: string | null;
 	srt: number;
 	enum?: SettingEnum[];
 	name?: string;
 	description?: string;
+	checked?: boolean;
+	added?: boolean;
+	deleted?: boolean;
+	updated?: boolean;
 }
 export interface Setting extends SettingsVocRec {
-	id: string;
 	type: 'setting';
 	val: SettingType;
-	added: boolean;
-	deleted: boolean;
-	updated: boolean;
 }
 export interface Settings {
-	user: Record<string, Setting>;
 	groups: Record<string, Folder>;
+	user?: Record<string, Setting>;
+	usersvoc?: Record<string, SettingsVocRec>;
+}
+export interface SettingsMain extends Settings {
+	user: Record<string, Setting>;
+}
+export interface SettingsAdmin extends Settings {
+	usersvoc: Record<string, SettingsVocRec>;
 }
 
 export const SETTING_COLLECTION_KEYS = ['user', 'groups'] as const;
 export type SettingCollectionKey = typeof SETTING_COLLECTION_KEYS[number];
 export interface SettingCollection {
-	user?: Partial<Setting>[];
 	groups?: Partial<Folder>[];
+	user?: Partial<Setting>[];
+	usersvoc?: Partial<SettingsVocRec>[];
 }
 
 export const BUFFER_SETTING_COLLECTION_KEYS = ['user', 'groups'] as const;

@@ -26,7 +26,7 @@ import {
 	Tree,
 	User,
 } from '@/types';
-import { Setting, Settings, SettingCollection } from '@/types/settings';
+import { Setting, SettingCollection, SettingsMain, SettingsAdmin } from '@/types/settings';
 
 export type EntityAppendMode =
 	| 'change' // change the existing one
@@ -99,7 +99,7 @@ export interface MainState {
 	saving: boolean;
 	selectedToExport: Record<FolderContext, string[]>;
 	serverConfig: any | null;
-	settings: Settings;
+	settings: SettingsMain;
 	stateBackups: any[];
 	stateBackupsIndex: number;
 	t: Dictionary;
@@ -226,6 +226,12 @@ export interface ActionsSettings {
 	setSettingsGroups: () => Promise<void>;
 	setUserSettings: () => Promise<void>;
 }
+export interface ActionsSettingsAdmin {
+	clearSettings: () => void;
+	clearUserSettingsVoc: () => void;
+	resetUserSettingsVoc: () => void;
+	setUserSettingsVoc: () => Promise<void>;
+}
 export interface ActionsUI {
 	setBusy: (busy: boolean) => void;
 	clearMessagesTiming: () => void;
@@ -266,8 +272,10 @@ export type StoreMain =
 // SEC Admin
 
 export interface AdminState {
+	settings: SettingsAdmin,
 	users: Record<string, User>,
 	groups: Record<string, Group>,
+	settingsSortBy: SettingKey,
 	usersSortBy: UserKey,
 	groupsSortBy: GroupKey,
 }
@@ -278,6 +286,7 @@ export type StoreAdminStateRefs = {
 
 export type GettersAdmin = ReturnType<typeof useGettersAdmin>;
 
+export type SettingKey = keyof Setting;
 export type UserKey = keyof User;
 export type GroupKey = keyof Group;
 export type UserGroupKey = UserKey & GroupKey;
@@ -290,5 +299,7 @@ export interface ActionsAdmin {
 export type StoreAdmin =
 	StoreAdminStateRefs &
 	GettersAdmin &
-	ActionsAdmin
+	ActionsAdmin &
+	ActionsSettings &
+	ActionsSettingsAdmin
 ;

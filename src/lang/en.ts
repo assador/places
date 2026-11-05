@@ -364,6 +364,8 @@ Your data won’t be saved to your account and will be cleared when you log o
 			langRu: 'Русский',
 			resetUserSetting: 'Reset to default value',
 			resetUserSettings: 'Reset all user settings',
+			resetUserSettingsVoc: 'Reset the voc of user settings',
+			resetUserSettingsVocRec: 'Reset to default value',
 		},
 		name: {
 			'maps': 'Maps',

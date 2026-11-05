@@ -129,4 +129,3 @@ echo json_encode(
 	$faults,
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
 );
-exit;

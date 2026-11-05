@@ -52,7 +52,7 @@ export function useGettersOther(
 			case 'folder': return gettersTree.getFolders(context);
 			case 'place': return state.places.value;
 			case 'route': return state.routes.value;
-			case 'setting': return gettersSettings.getSettings.value;
+			case 'setting': return gettersSettings.getSettingsUser.value;
 			default: return undefined;
 		}
 	};

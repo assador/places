@@ -56,7 +56,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMainStore } from '@/stores/main';
-import * as db from '@/services/db';
+import { saveSettingsUsers } from '@/services/db';
 import Header from '@/components/Header.vue';
 import Messages from '@/components/Messages.vue';
 import Tree from '@/components/tree/Tree.vue';
@@ -73,7 +73,7 @@ const settingsSubmit = (): void => {
 	if (mainStore.user.testaccount) {
 		mainStore.setMessage(mainStore.t.m.popup.testOnSave, 8);
 	}
-	db.saveSettingsUsers();
+	saveSettingsUsers();
 };
 onMounted(() => {
 	mainStore.setSettingsGroups().then(() => mainStore.trees.settings.open = true);

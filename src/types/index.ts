@@ -1,6 +1,7 @@
 import {
 	BufferSettingCollection, BUFFER_SETTING_COLLECTION_KEYS,
 	Setting,
+	SettingsVocRec,
 	SettingCollection,
 } from '@/types/settings';
 import 'axios';
@@ -106,7 +107,7 @@ export interface Tree {
 	name?: string;
 	open?: boolean;
 	folders: Record<string, Folder>;
-	entities: Record<string, Place | Route | Setting>;
+	entities: Record<string, Place | Route | Setting | SettingsVocRec>;
 }
 export interface User {
 	id: string;

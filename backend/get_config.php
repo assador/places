@@ -1,41 +1,77 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set("display_errors", "1");
 
-require_once __DIR__ . '/bootstrap.php';
+/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
+set_exception_handler(function($e) {
+	header("Content-Type: application/json");
+	http_response_code(500);
+	echo $e->getMessage();
+	echo "\nfile: {$e->getFile()}";
+	echo "\nline: {$e->getLine()}";
+	exit;
+});
+*/
 
-$userId = uuidToBin($_GET["useruuid"]);
+require_once __DIR__ . "/bootstrap.php";
 
-$query = $ctx->db->prepare("
-	SELECT `id`
-	FROM `groups`
-	WHERE `id`
-	IN (
-		SELECT `group`
-		FROM `usergroup`
-		WHERE `user` = :user
-	)
-	AND `parent` = 'visiting'
-");
-$query->bindValue(':user', $userId, PDO::PARAM_LOB);
-$query->execute();
-$group = $query->fetch(PDO::FETCH_ASSOC);
-$groupId = $group['id'] ?? null;
+$raw = file_get_contents("php://input");
+$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+$binUserId = uuidToBin($data["userid"]);
+$binSessionId = uuidToBin($data["sessionid"]);
 
-$conf = [
-	"mail"       => $config["mail"],
-	"lengths"    => $config["lengths"],
-	"mimes"      => $config["mimes"],
-	"uploadsize" => $config["uploadsize"],
-];
-foreach ($config['rights'] as $key => $value) {
-	$conf["rights"][$key] = $groupId !== null
-		? ($config['rights'][$key][$groupId] ?? 0)
-		: 0 // It looks like the account is not a member of any group at all.
-	;
+$result = [];
+
+// SEC Check
+
+if (!isValidSession($ctx, $binUserId, $binSessionId)) {
+	throw new Exception("Invalid or expired session.");
 }
 
-echo json_encode($conf, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+// SEC Transaction
 
-exit;
+try {
+	$ctx->db->beginTransaction();
+
+	$stmt = $ctx->db->prepare("
+		SELECT `id` FROM `groups`
+		WHERE `id`
+		IN (
+			SELECT `group`
+			FROM `usergroup`
+			WHERE `user` = :id
+		)
+		AND `parent` = 'visiting'
+		LIMIT 1
+	");
+	$stmt->bindValue(':id', $binUserId, PDO::PARAM_LOB);
+	$stmt->execute();
+	$group = $stmt->fetch(PDO::FETCH_ASSOC);
+	$groupId = $group["id"] ?? null;
+
+	$result = [
+		"mail"       => $config["mail"],
+		"lengths"    => $config["lengths"],
+		"mimes"      => $config["mimes"],
+		"uploadsize" => $config["uploadsize"],
+	];
+	foreach ($config["rights"] as $key => $value) {
+		$result["rights"][$key] = $groupId !== null
+			? ($config["rights"][$key][$groupId] ?? 0)
+			: 0 // It looks like the account is not a member of any group at all.
+		;
+	}
+
+	$ctx->db->commit();
+
+} catch (Throwable $e) {
+	error_log($e->getMessage());
+	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
+}
+
+header("Content-Type: application/json");
+echo json_encode(
+	$result,
+	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
+);

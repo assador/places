@@ -157,10 +157,10 @@ export function useActionsInit(
 	};
 	const setServerConfig = async (): Promise<void> => {
 		try {
-			const { data } = await api.get(
-				'get_config.php?useruuid=' +
-				localStorage.getItem('places-useruuid')
-			);
+			const { data } = await api.post(`get_config.php`, {
+				userid: localStorage.getItem('places-useruuid'),
+				sessionid: localStorage.getItem('places-session'),
+			});
 			store.serverConfig.value = data;
 		} catch (error) {
 			console.error(error);
@@ -224,7 +224,10 @@ export function useActionsInit(
 		if (!uuid) return;
 
 		try {
-			const { data } = await api.get('get_entities.php?id=' + uuid);
+			const { data } = await api.post(`get_entities.php`, {
+				userid: localStorage.getItem('places-useruuid'),
+				sessionid: localStorage.getItem('places-session'),
+			});
 			const cleanData = sanitizeEntitiesData(data);
 
 			await entitiesReady(cleanData);

@@ -23,6 +23,7 @@ import {
 	SettingCollectionKey, SETTING_COLLECTION_KEYS,
 	SettingEnum,
 	SettingType,
+	SettingsVocRec,
 } from '@/types/settings';
 
 const isOptionalString = (value: unknown): boolean =>
@@ -123,15 +124,13 @@ export const isSettingEnum = (value: unknown): value is SettingEnum => {
 	}
 	return true;
 };
-export const isSetting = (value: unknown): value is Setting => {
+export const isSettingsVocRec = (value: unknown): value is SettingsVocRec => {
 	if (
 		!isRecord(value) ||
-		value.type !== 'setting' ||
 		typeof value.id !== 'string' ||
 		typeof value.srt !== 'number' ||
 		typeof value.valtype !== 'number' ||
 		(typeof value.folderid !== 'string' && value.folderid !== null) ||
-		!isSettingType(value.val) ||
 		!isSettingType(value.baseval) ||
 		!isOptionalString(value.name) ||
 		!isOptionalString(value.description) ||
@@ -139,6 +138,16 @@ export const isSetting = (value: unknown): value is Setting => {
 			!Array.isArray(value.enum) ||
 			!value.enum.every(isSettingEnum)
 		))
+	) {
+		return false;
+	}
+	return true;
+};
+export const isSetting = (value: unknown): value is Setting => {
+	if (
+		!isSettingsVocRec(value) ||
+		(value as Setting).type !== 'setting' ||
+		!isSettingType((value as Setting).type)
 	) {
 		return false;
 	}

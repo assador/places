@@ -10,4 +10,7 @@ $stmt = $ctx->db->query("
     FROM `settings_groups`
 ");
 
-echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+echo json_encode(
+	$stmt->fetchAll(PDO::FETCH_ASSOC),
+	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+);

@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set("display_errors", "1");
 
 /* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
 set_exception_handler(function($e) {
-	header('Content-Type: application/json');
+	header("Content-Type: application/json");
 	http_response_code(500);
 	echo $e->getMessage();
 	echo "\nfile: {$e->getFile()}";
@@ -14,13 +14,22 @@ set_exception_handler(function($e) {
 });
 */
 
-require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . "/bootstrap.php";
 
-$userIdBin = uuidToBin($_GET["id"]);
+$raw = file_get_contents("php://input");
+$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+$binUserId = uuidToBin($data["userid"]);
+$binSessionId = uuidToBin($data["sessionid"]);
+
+// SEC Check
+
+if (!isValidSession($ctx, $binUserId, $binSessionId)) {
+	throw new Exception("Invalid or expired session.");
+}
 
 // SEC Points
 
-function getPoints(AppContext $ctx, string $userIdBin): array {
+function getPoints(AppContext $ctx, string $binUserId): array {
 	$stmt = $ctx->db->prepare("
 	SELECT DISTINCT
 		pt.id,
@@ -44,7 +53,7 @@ function getPoints(AppContext $ctx, string $userIdBin): array {
 				AND (rt.userid = :uid OR rt.common = 1)
 		);
 	");
-	$stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
+	$stmt->bindValue(":uid", $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 	$points_bin = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -58,7 +67,7 @@ function getPoints(AppContext $ctx, string $userIdBin): array {
 
 // SEC Images
 
-function getImages(AppContext $ctx, string $userIdBin): array {
+function getImages(AppContext $ctx, string $binUserId): array {
 	$stmt = $ctx->db->prepare("
 		SELECT i.*
 		FROM images i
@@ -79,7 +88,7 @@ function getImages(AppContext $ctx, string $userIdBin): array {
 			)
 		)
 	");
-	$stmt->bindValue(':uid', $userIdBin, PDO::PARAM_LOB);
+	$stmt->bindValue(':uid', $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 
 	$images = [];
@@ -94,19 +103,20 @@ function getImages(AppContext $ctx, string $userIdBin): array {
 
 // SEC Places
 
-function getPlaces(AppContext $ctx, string $userIdBin): array {
+function getPlaces(AppContext $ctx, string $binUserId): array {
 	$stmt = $ctx->db->prepare("
 		SELECT p.*
 		FROM places p
 		WHERE p.userid = :uid OR p.common = 1
 	");
-	$stmt->bindValue(':uid', $userIdBin, PDO::PARAM_LOB);
+	$stmt->bindValue(':uid', $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 
 	$places = [
 		"places"       => [],
 		"commonPlaces" => [],
 	];
+	$userid = binToUuid($binUserId);
 	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 		$row["id"] = binToUuid($row["id"]);
 		$row["userid"] = binToUuid($row["userid"]);
@@ -117,7 +127,7 @@ function getPlaces(AppContext $ctx, string $userIdBin): array {
 		} else {
 			unset($row["time"]);
 		}
-		if ($row["userid"] === $_GET["id"]) {
+		if ($row["userid"] === $userid) {
 			$places["places"][$row["id"]] = $row;
 		} elseif ($row["common"] == 1) {
 			$places["commonPlaces"][$row["id"]] = $row;
@@ -128,19 +138,20 @@ function getPlaces(AppContext $ctx, string $userIdBin): array {
 
 // SEC Routes
 
-function getRoutes(AppContext $ctx, string $userIdBin): array {
+function getRoutes(AppContext $ctx, string $binUserId): array {
 	$stmt = $ctx->db->prepare("
 		SELECT r.*
 		FROM routes r
 		WHERE r.userid = :uid OR r.common = 1
 	");
-	$stmt->bindValue(':uid', $userIdBin, PDO::PARAM_LOB);
+	$stmt->bindValue(':uid', $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 
 	$routes = [
 		"routes"       => [],
 		"commonRoutes" => [],
 	];
+	$userid = binToUuid($binUserId);
 	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 		$row["id"] = binToUuid($row["id"]);
 		$row["userid"] = binToUuid($row["userid"]);
@@ -150,7 +161,7 @@ function getRoutes(AppContext $ctx, string $userIdBin): array {
 		} else {
 			unset($row["time"]);
 		}
-		if ($row["userid"] === $_GET["id"]) {
+		if ($row["userid"] === $userid) {
 			$routes["routes"][$row["id"]] = $row;
 		} elseif ($row["common"] == 1) {
 			$routes["commonRoutes"][$row["id"]] = $row;
@@ -191,11 +202,11 @@ function getRoutes(AppContext $ctx, string $userIdBin): array {
 
 // SEC Folders
 
-function getFolders(AppContext $ctx, string $userIdBin): array {
+function getFolders(AppContext $ctx, string $binUserId): array {
 	$stmt = $ctx->db->prepare("
 		SELECT * FROM folders WHERE userid = :uid
 	");
-	$stmt->bindValue(":uid", $userIdBin, PDO::PARAM_LOB);
+	$stmt->bindValue(":uid", $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 
 	$folders = [];
@@ -208,36 +219,54 @@ function getFolders(AppContext $ctx, string $userIdBin): array {
 	return $folders;
 }
 
-// SEC JSON to front
+$images = [];
+$places = [];
+$routes = [];
 
-$images = getImages($ctx, $userIdBin);
-$places = getPlaces($ctx, $userIdBin);
-$routes = getRoutes($ctx, $userIdBin);
+// SEC Transaction
 
-foreach ($images as $img) {
-	if ($img["placeid"]) {
-		if (isset($places["places"][$img["placeid"]])) {
-			$places["places"][$img["placeid"]]["images"][$img["id"]] = $img;
+try {
+	$ctx->db->beginTransaction();
+
+	$images = getImages($ctx, $binUserId);
+	$places = getPlaces($ctx, $binUserId);
+	$routes = getRoutes($ctx, $binUserId);
+
+	foreach ($images as $img) {
+		if ($img["placeid"]) {
+			if (isset($places["places"][$img["placeid"]])) {
+				$places["places"][$img["placeid"]]["images"][$img["id"]] = $img;
+			}
+			if (isset($places["commonPlaces"][$img["placeid"]])) {
+				$places["commonPlaces"][$img["placeid"]]["images"][$img["id"]] = $img;
+			}
 		}
-		if (isset($places["commonPlaces"][$img["placeid"]])) {
-			$places["commonPlaces"][$img["placeid"]]["images"][$img["id"]] = $img;
+		if ($img["routeid"]) {
+			if (isset($routes["routes"][$img["routeid"]])) {
+				$routes["routes"][$img["routeid"]]["images"][$img["id"]] = $img;
+			}
+			if (isset($routes["commonRoutes"][$img["routeid"]])) {
+				$routes["commonRoutes"][$img["routeid"]]["images"][$img["id"]] = $img;
+			}
 		}
 	}
-	if ($img["routeid"]) {
-		if (isset($routes["routes"][$img["routeid"]])) {
-			$routes["routes"][$img["routeid"]]["images"][$img["id"]] = $img;
-		}
-		if (isset($routes["commonRoutes"][$img["routeid"]])) {
-			$routes["commonRoutes"][$img["routeid"]]["images"][$img["id"]] = $img;
-		}
-	}
+
+	$ctx->db->commit();
+
+} catch (Throwable $e) {
+	error_log($e->getMessage());
+	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
 }
 
-echo json_encode([
-	"folders"      => getFolders($ctx, $userIdBin),
-	"points"       => getPoints($ctx, $userIdBin),
-	"places"       => $places["places"],
-	"routes"       => $routes["routes"],
-	"commonPlaces" => $places["commonPlaces"],
-	"commonRoutes" => $routes["commonRoutes"],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+header("Content-Type: application/json");
+echo json_encode(
+	[
+		"folders"      => getFolders($ctx, $binUserId),
+		"points"       => getPoints($ctx, $binUserId),
+		"places"       => $places["places"],
+		"routes"       => $routes["routes"],
+		"commonPlaces" => $places["commonPlaces"],
+		"commonRoutes" => $routes["commonRoutes"],
+	],
+	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
+);

@@ -364,6 +364,8 @@ export const getT = () => ({
 			langRu: 'Русский',
 			resetUserSetting: 'Сбросить до значения по умолчанию',
 			resetUserSettings: 'Сбросить все пользовательские настройки',
+			resetUserSettingsVoc: 'Сбросить словарь пользовательских настроек',
+			resetUserSettingsVocRec: 'Сбросить до значения по умолчанию',
 		},
 		name: {
 			'maps': 'Карты',

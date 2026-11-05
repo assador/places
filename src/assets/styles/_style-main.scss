@@ -584,13 +584,13 @@ $filter-brightness-03: brightness(0%);
 		opacity: 0.5;
 	}
 	input:is([type="checkbox"], [type="radio"]):not(:checked) {
-		background: url('/img/icons/checkbox_unchecked.svg') center / contain no-repeat;
+		background: url('@/assets/icons/checkbox_unchecked.svg') center / contain no-repeat;
 	}
 	input:is([type="checkbox"], [type="radio"]):is(:checked) {
-		background: url('/img/icons/checkbox_checked.svg') center / contain no-repeat;
+		background: url('@/assets/icons/checkbox_checked.svg') center / contain no-repeat;
 	}
 	input[type="checkbox"]:indeterminate {
-		background: url('/img/icons/checkbox_indeterminate.svg') center / contain no-repeat;
+		background: url('@/assets/icons/checkbox_indeterminate.svg') center / contain no-repeat;
 	}
 	input:is([type="checkbox"], [type="radio"]):focus-visible {
 		opacity: 1;

@@ -15,7 +15,7 @@ import {
     Mode,
     Tree,
 } from '@/types';
-import { SettingKey, Settings } from '@/types/settings';
+import { SettingKey, SettingsMain } from '@/types/settings';
 
 import { constants } from '@/shared/constants';
 import { getT } from '@/lang/ru';
@@ -54,9 +54,9 @@ export const useMainStore = defineStore('main', () => {
 	const folders = ref<Record<string, Folder>>({});
 	const places = ref<Record<string, Place>>({});
 	const routes = ref<Record<string, Route>>({});
-	const settings = ref<Settings>({
-		user: {},
+	const settings = ref<SettingsMain>({
 		groups: {},
+		user: {},
 	});
 	const treeParams = ref<Record<string, Tree>>({
 		places: {

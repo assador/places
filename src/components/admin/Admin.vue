@@ -67,6 +67,12 @@ const component = ref('users');
 provide('component', component);
 
 const components: Record<string, { name: string, component: Component }> = {
+	settings: {
+		name: 'AdminSettings',
+		component: defineAsyncComponent(() =>
+			import('@/components/admin/AdminSettings.vue')
+		),
+	},
 	users: {
 		name: 'AdminUsers',
 		component: defineAsyncComponent(() =>

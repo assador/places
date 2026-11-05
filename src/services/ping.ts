@@ -23,6 +23,9 @@ class PingService {
 			{ immediate: true },
 		);
 	}
+	destroy(): void {
+		this.stopPingLoop();
+	}
 	private async checkServer(): Promise<boolean> {
 		if (this.isPinging) return false;
 		this.isPinging = true;
@@ -80,3 +83,5 @@ class PingService {
 export function createPing() {
 	return new PingService();
 }
+
+export const ping = createPing();
