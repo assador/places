@@ -1,9 +1,9 @@
 /*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.20-12.3.3-MariaDB, for Linux (x86_64)
+-- MariaDB dump 10.20-13.0.2-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: db_places
 -- ------------------------------------------------------
--- Server version	12.3.3-MariaDB
+-- Server version	13.0.2-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -24,9 +24,9 @@ DROP TABLE IF EXISTS `folders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `folders` (
-  `name` varchar(500) DEFAULT 'Без названия',
-  `description` varchar(2044) DEFAULT '',
-  `srt` double DEFAULT 0,
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(2044) DEFAULT NULL,
+  `srt` double NOT NULL DEFAULT 10,
   `geomarks` tinyint(1) NOT NULL DEFAULT 0,
   `userid` binary(16) NOT NULL,
   `id` binary(16) NOT NULL,
@@ -103,8 +103,8 @@ DROP TABLE IF EXISTS `groups`;
 CREATE TABLE `groups` (
   `id` varchar(32) NOT NULL,
   `parent` varchar(32) DEFAULT NULL,
-  `name` varchar(500) NOT NULL,
-  `description` varchar(2044) NOT NULL DEFAULT '',
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(2044) DEFAULT NULL,
   `system` tinyint(1) NOT NULL DEFAULT 0,
   `haschildren` tinyint(1) NOT NULL DEFAULT 0,
   `owner` binary(16) NOT NULL,
@@ -253,11 +253,11 @@ DROP TABLE IF EXISTS `places`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `places` (
-  `name` varchar(500) DEFAULT 'Без названия',
-  `description` varchar(2044) DEFAULT '',
-  `link` varchar(512) DEFAULT '',
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(2044) DEFAULT NULL,
+  `link` varchar(512) DEFAULT NULL,
   `time` bigint(20) unsigned DEFAULT NULL,
-  `srt` double DEFAULT 0,
+  `srt` double NOT NULL DEFAULT 10,
   `geomark` tinyint(1) NOT NULL DEFAULT 0,
   `common` tinyint(1) NOT NULL DEFAULT 0,
   `pointid` binary(16) NOT NULL,
@@ -483,11 +483,11 @@ DROP TABLE IF EXISTS `routes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `routes` (
-  `name` varchar(500) DEFAULT 'Без названия',
-  `description` varchar(2044) DEFAULT '',
-  `link` varchar(512) DEFAULT '',
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(2044) DEFAULT NULL,
+  `link` varchar(2044) DEFAULT NULL,
   `time` bigint(20) unsigned DEFAULT NULL,
-  `srt` double DEFAULT 0,
+  `srt` double NOT NULL DEFAULT 10,
   `geomarks` tinyint(1) DEFAULT 1,
   `common` tinyint(1) DEFAULT 0,
   `id` binary(16) NOT NULL,
@@ -683,9 +683,9 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `login` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `phone` varchar(30) DEFAULT NULL,
   `confirmed` tinyint(1) NOT NULL DEFAULT 0,
   `confirmbefore` bigint(20) unsigned NOT NULL DEFAULT 0,
   `token` varchar(32) DEFAULT NULL,
@@ -789,4 +789,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-09-17  2:07:53
+-- Dump completed on 2026-11-06 18:15:48

@@ -6,6 +6,7 @@ import {
 	Place,
 	Point,
 	Route,
+	User,
 } from '@/types';
 import {
 	isBufferEntityCollectionKey,
@@ -113,6 +114,8 @@ export function useActionsInit(
 		for (const id in folders) {
 			if (!Object.hasOwn(folders, id)) continue;
 			const folder = folders[id];
+			if ('name' in folder) folder.name = toSafeString(folder.name) ?? '';
+			if ('description' in folder) folder.description = toSafeString(folder.description);
 			folder.type = 'folder';
 			folder.added = added;
 			folder.deleted = deleted;
@@ -133,6 +136,8 @@ export function useActionsInit(
 		for (const id in places) {
 			if (!Object.hasOwn(places, id)) continue;
 			const place = places[id];
+			if ('name' in place) place.name = toSafeString(place.name) ?? '';
+			if ('description' in place) place.description = toSafeString(place.description);
 			place.type = 'place';
 			place.added = added;
 			place.deleted = deleted;
@@ -145,6 +150,14 @@ export function useActionsInit(
 		for (const id in routes) {
 			if (!Object.hasOwn(routes, id)) continue;
 			const route = routes[id];
+			if ('name' in route) route.name = toSafeString(route.name) ?? '';
+			if ('description' in route) route.description = toSafeString(route.description);
+			if ('points' in route && Array.isArray(route.points)) {
+				for (const pd of route.points) {
+					if ('name' in pd) pd.name = toSafeString(pd.name) ?? '';
+					if ('description' in pd) pd.description = toSafeString(pd.description);
+				}
+			}
 			route.type = 'route';
 			route.added = added;
 			route.deleted = deleted;
@@ -169,12 +182,26 @@ export function useActionsInit(
 		}
 	};
 	const setUser = async (): Promise<void> => {
+		const sanitizeUserData = (raw: any): User | undefined => {
+			if (!raw || typeof raw !== 'object' && Array.isArray(raw)) return undefined;
+			const sntzd: Record<string, unknown> = {
+				...raw,
+				confirmed: raw.confirmed == 1 || raw.confirmed === true,
+				testaccount: raw.testaccount == 1 || raw.testaccount === true,
+				added: false,
+				deleted: false,
+				updated: false,
+			};
+			if (isUser(sntzd)) return sntzd;
+			return undefined;
+		};
 		try {
 			const { data } = await api.post(`get_account.php`, {
 				userid: localStorage.getItem('places-useruuid'),
 				sessionid: localStorage.getItem('places-session'),
 			});
-			if (!isUser(data)) throw new Error(
+			const user = sanitizeUserData(data);
+			if (!user) throw new Error(
 				store.t.value.m.errors.server.invalidResponseUser + ': ' +
 				JSON.stringify(data)
 			);
@@ -187,38 +214,22 @@ export function useActionsInit(
 	};
 	const setEntities = async (): Promise<void> => {
 		const sanitizeEntitiesData = (raw: any): Record<string, Record<string, Record<string, unknown>>> => {
-			if (!raw || typeof raw !== 'object') return raw;
+			const entities = { folders: {}, points: {}, places: {}, routes: {} };
+			if (!isRecord(raw)) return entities;
 
-			const cleanDict = (dict: Record<string, unknown> | undefined): Record<string, any> => {
-				if (!dict || typeof dict !== 'object') return {};
-				const result: Record<string, any> = {};
-
-				for (const [key, item] of Object.entries(dict)) {
-					if (item && isRecord(item)) {
-						const entity = { ...item };
-						if ('name' in entity) {
-							entity.name = toSafeString(entity.name) ?? '';
-						}
-						if ('description' in entity) {
-							entity.description = toSafeString(entity.description);
-						}
-						result[key] = entity;
-					} else {
-						result[key] = item;
-					}
-				}
-				return result;
+			const sanitizeDict = (dict: unknown): Record<string, unknown> => {
+				if (!isRecord(dict)) return {};
+				return dict;
 			};
+			entities.folders = sanitizeDict(raw.folders);
+			entities.points = sanitizeDict(raw.points);
+			entities.places = sanitizeDict(raw.places);
+			entities.routes = sanitizeDict(raw.routes);
+			// TODO Implement Commons:
+			// entities.commonPlaces = sanitizeDict(raw.commonPlaces),
+			// entities.commonRoutes = sanitizeDict(raw.commonRoutes),
 
-			return {
-				folders: cleanDict(raw.folders),
-				points: cleanDict(raw.points),
-				places: cleanDict(raw.places),
-				routes: cleanDict(raw.routes),
-				// TODO Implement Commons:
-				// commonPlaces: cleanDict(raw.commonPlaces),
-				// commonRoutes: cleanDict(raw.commonRoutes),
-			};
+			return entities;
 		};
 		const uuid = localStorage.getItem('places-useruuid');
 		if (!uuid) return;
