@@ -70,11 +70,22 @@
 				@click.stop="() => {
 					if (!object) return;
 					if (object.type === 'place') {
-						mainStore.upsertPlaceFollowing(object);
+						mainStore.upsertPlaceFollowing(object, {
+							props: {
+								latitude: mainStore.center.latitude,
+								longitude: mainStore.center.longitude,
+							},
+						});
 					} else if (object.type === 'route') {
 						mainStore.upsertRouteFollowing(object);
 					} else if (object.type === 'folder' && context === 'places') {
-						mainStore.upsertPlace({ props: { folderid: object.id } });
+						mainStore.upsertPlace({
+							props: {
+								latitude: mainStore.center.latitude,
+								longitude: mainStore.center.longitude,
+								folderid: object.id,
+							},
+						});
 					} else if (object.type === 'folder' && context === 'routes') {
 						mainStore.upsertRoute({ props: { folderid: object.id } });
 					}

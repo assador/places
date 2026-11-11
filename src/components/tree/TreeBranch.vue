@@ -161,7 +161,12 @@
 					@pointerdown.stop
 					@pointerup.stop="() => {
 						if (folder.context === 'places') {
-							mainStore.upsertPlace();
+							mainStore.upsertPlaceFollowing(mainStore.currentPlace, {
+								props: {
+									latitude: mainStore.center.latitude,
+									longitude: mainStore.center.longitude,
+								},
+							});
 							focusCurrent(currentPlaceNameInputRef);
 						} else if (folder.context === 'routes') {
 							mainStore.upsertRoute();

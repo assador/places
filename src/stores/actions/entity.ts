@@ -352,9 +352,6 @@ export function useActionsEntity(
 		let point: Point | null;
 		const folderId = props?.folderid || object?.folderid || null;
 
-		let srt = findInDictByMinMaxKey(where, 'srt', p => p.folderid === folderId).max?.val;
-		if (typeof srt !== 'number') srt = 10; else srt += 10;
-
 		if (mode === 'new' || mode === 'clone') {
 			// Check places limit
 			if (
@@ -367,6 +364,14 @@ export function useActionsEntity(
 			}
 		}
 		const { latitude, longitude, altitude, ...placeProps } = props || {};
+
+		let srt = 10;
+		if (typeof props?.srt === 'number') {
+			srt = props.srt;
+		} else {
+			const max = findInDictByMinMaxKey(where, 'srt', p => p.folderid === folderId).max?.val;
+			if (typeof max !== 'number') srt = 10; else srt += 10;
+		}
 
 		switch (mode) {
 			case 'move':
