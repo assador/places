@@ -1,91 +1,100 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set("display_errors", "0");
 
-require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . "/bootstrap.php";
 
-$_POST = json_decode(file_get_contents("php://input"), true);
+apiRun($ctx, function () use ($ctx, $config) {
+	$raw = file_get_contents("php://input");
+	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+	$binUserId = uuidToBin($data["userid"]);
+	$binSessionId = uuidToBin($data["sessionid"]);
 
-$userIdBin = uuidToBin($_POST["userId"]);
-if (testAccountCheck($ctx, $config["testaccountuuid"], $_POST["userId"])) {
-	throw new Exception("Test account.");
-} else {
-	// Delete, if neccessary, images as entries in DB and files.
-	if (!($_POST["leavePlaces"] == "all" && $_POST["leaveImages"] == "all")) {
-		$sqlpart = "
-			FROM `places` `p`
-			INNER JOIN `images` `i`
-				ON `i`.`placeid` = `p`.`id`
-				" . (
-					$_POST["leavePlaces"] == "common" && $_POST["leaveImages"] != "none"
-						? " AND `p`.`common` = 0"
-						: ""
-				) . "
-				AND `p`.`userid` = :id
-		";
-		$query = $ctx->db->prepare("SELECT * " . $sqlpart);
-		$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
-		$result = $query->execute();
-		$result_images = $query->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($result_images as $row) {
-			unlink($config["dirs"]["uploads"]["images"]["big"] . $row["file"]);
-			unlink($config["dirs"]["uploads"]["images"]["small"] . $row["file"]);
-		}
-		$query = $ctx->db->prepare("DELETE `i` " . $sqlpart);
-		$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
-		$result = $query->execute();
+	if (!isValidSession($ctx, $binUserId, $binSessionId)) {
+		throw new ApiException(401, "invalid_session");
 	}
-	// Delete places or mark them as visible for another users.
-	switch ($_POST["leavePlaces"]) {
-		case "none" :
-			$query = $ctx->db->prepare("
-				DELETE FROM `places`
-				WHERE `userid` = :id
-			");
-			$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
-			$result = $query->execute();
-			break;
-		case "common" :
-			$query = $ctx->db->prepare("
-				DELETE FROM `places`
-				WHERE `userid` = :id
-					AND `common` = 0
-			");
-			$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
-			$result = $query->execute();
-			break;
-		case "all" :
-			$query = $ctx->db->prepare("
-				UPDATE `places`
-				SET `common` = 1
-				WHERE `userid` = :id
-			");
-			$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
-			$result = $query->execute();
-			break;
-		default :
-			echo 0; exit;
+	if ($data["userid"] === $config["testaccountuuid"]) {
+		throw new ApiException(403, "test_account");
 	}
 
-	$query = $ctx->db->prepare("
-		DELETE FROM `folders`
+	/*
+	 * Collect image files before deleting database records.
+	 * Images belonging to Places and Routes are removed by
+	 * database cascades, so the files must be collected first.
+	 */
+	$stmt = $ctx->db->prepare("
+		SELECT `file`
+		FROM `images`
+		WHERE `placeid` IN (
+			SELECT `id`
+			FROM `places`
+			WHERE `userid` = :id
+		)
+		OR `routeid` IN (
+			SELECT `id`
+			FROM `routes`
+			WHERE `userid` = :id
+		)
+	");
+	$stmt->bindValue(":id", $binUserId, PDO::PARAM_LOB);
+	$stmt->execute();
+	$files = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+	$ctx->db->beginTransaction();
+
+	/*
+	 * Groups survive account deletion.
+	 * Only their ownership is removed.
+	 */
+	$stmt = $ctx->db->prepare("
+		UPDATE `groups`
+		SET `owner` = NULL
+		WHERE `owner` = :id
+	");
+	$stmt->bindValue(":id", $binUserId, PDO::PARAM_LOB);
+	$stmt->execute();
+
+	/*
+	 * Remove user-specific non-default settings.
+	 */
+	$stmt = $ctx->db->prepare("
+		DELETE FROM `settings_users`
 		WHERE `userid` = :id
 	");
-	$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
-	$result = $query->execute();
+	$stmt->bindValue(":id", $binUserId, PDO::PARAM_LOB);
+	$stmt->execute();
 
-	$query = $ctx->db->prepare("
-		DELETE FROM `usergroup`
-		WHERE `user` = :id
-	");
-	$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
-	$result = $query->execute();
-
-	$query = $ctx->db->prepare("
+	/*
+	 * Delete the user.
+	 *
+	 * Database cascades take care of the user’s Places, Routes,
+	 * Folders, Sessions, Images, route-point relations, etc.
+	 * Points themselves are deliberately left untouched.
+	 */
+	$stmt = $ctx->db->prepare("
 		DELETE FROM `users`
 		WHERE `id` = :id
 	");
-	$query->bindValue(':id', $userIdBin, PDO::PARAM_LOB);
-	$result = $query->execute();
-}
+	$stmt->bindValue(":id", $binUserId, PDO::PARAM_LOB);
+	$stmt->execute();
+
+	if ($stmt->rowCount() !== 1) {
+		throw new ApiException(404, "user_not_found");
+	}
+
+	$ctx->db->commit();
+
+	/*
+	 * Delete physical image files only after the database
+	 * transaction has been successfully committed.
+	 */
+	foreach ($files as $file) {
+		$big = $config["dirs"]["uploads"]["images"]["big"] . $file;
+		$small = $config["dirs"]["uploads"]["images"]["small"] . $file;
+		if (is_file($big)) unlink($big);
+		if (is_file($small)) unlink($small);
+	}
+
+	apiSuccess();
+});

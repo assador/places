@@ -24,6 +24,7 @@ import api from '@/api';
 import { buffer } from '@/services/buffer';
 import { useMainStore } from '@/stores/main';
 import { toRawDeep } from '@/shared/common';
+import { ennobleError } from '@/shared/response';
 
 interface UploadedFile {
 	id: string;
@@ -54,6 +55,10 @@ const uploadImages = async (payload: EntityCollection): Promise<void> => {
 		mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
 		return;
 	}
+	const userid = localStorage.getItem('places-useruuid');
+	const sessionid = localStorage.getItem('places-session');
+	if (!userid || !sessionid) return;
+
 	const pendingImages: { id: string; raw: File; entity: Partial<ImageableEntity> }[] = [];
 
 	const collectFromEntities = (entities: Partial<ImageableEntity>[] | undefined) => {
@@ -74,19 +79,20 @@ const uploadImages = async (payload: EntityCollection): Promise<void> => {
 	if (!pendingImages.length) return;
 
 	try {
-		const data = new FormData();
-		pendingImages.forEach(p => data.append(p.id, p.raw));
-		data.append('userid', mainStore.user.id);
+		const formData = new FormData();
+		pendingImages.forEach(p => formData.append(p.id, p.raw));
+		formData.append('userid', userid);
+		formData.append('sessionid', sessionid);
 
-		const response = await api.post('upload.php', data, { silent: true });
-		if (!isValidUploadResponse(response.data)) {
+		const data = await api.post('upload.php', formData, { silent: true });
+		if (!isValidUploadResponse(data)) {
 			throw new Error(
-				typeof response.data === 'string'
-					? response.data
-					: mainStore.t.m.errors.server.invalidResponse,
+				typeof data === 'string'
+					? data
+					: mainStore.t.m.response.errorsServer.internalError,
 			);
 		}
-		const [errorCodes, uploadedFiles] = response.data;
+		const [errorCodes, uploadedFiles] = data;
 
 		errorCodes.forEach((code: number) => {
 			switch (code) {
@@ -140,7 +146,6 @@ const uploadImages = async (payload: EntityCollection): Promise<void> => {
 			});
 		}
 	} catch (error) {
-		console.error(error);
 		mainStore.setMessage(
 			`${mainStore.t.m.popup.filesUploadError} ${error}`,
 		);
@@ -181,8 +186,9 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 			await api.post(
 				'set_home.php',
 				{
-					id: localStorage.getItem('places-useruuid'),
 					data: buffered.home,
+					userid: localStorage.getItem('places-useruuid'),
+					sessionid: localStorage.getItem('places-session'),
 				},
 				{ silent: true },
 			);
@@ -191,9 +197,7 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 		mainStore.savedToDB('entities', payload);
 		mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
 	} catch (error) {
-		console.error(error);
-		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);
-		throw error;
+		mainStore.setMessage(ennobleError(error));
 	} finally {
 		mainStore.saving = false;
 	}
@@ -256,9 +260,7 @@ const saveSettings = async (
 		mainStore.savedToDB('settings', payload);
 		mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
 	} catch (error) {
-		console.error(error);
-		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);
-		throw error;
+		mainStore.setMessage(ennobleError(error));
 	} finally {
 		mainStore.saving = false;
 	}
@@ -351,8 +353,7 @@ export const runSyncBuffer = async (
 		}
 		return { entities, settings };
 	} catch (error) {
-		console.error(error);
-		mainStore.setMessage(mainStore.t.m.popup.cannotSendDataToDb);
+		mainStore.setMessage(mainStore.t.m.errors.other.cannotSendDataToDb);
 		throw error;
 	}
 };

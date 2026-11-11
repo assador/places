@@ -50,6 +50,7 @@ import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { useRouter } from 'vue-router';
 import { logout } from '@/services/auth';
+import { ennobleError } from '@/shared/response';
 import Header from '@/components/Header.vue';
 import Messages from '@/components/Messages.vue';
 import AdminNavigation from '@/components/admin/AdminNavigation.vue';
@@ -58,9 +59,14 @@ const mainStore = useMainStore();
 const adminStore = useAdminStore();
 const router = useRouter();
 
-onMounted(() => {
-	adminStore.setUsers();
-	adminStore.setGroups();
+onMounted(async () => {
+	try {
+		await adminStore.setUsers();
+		await adminStore.setGroups();
+	} catch (error) {
+		router.push({ name: 'Home' });
+		mainStore.setMessage(ennobleError(error));
+	}
 })
 
 const component = ref('users');

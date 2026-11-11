@@ -2,15 +2,20 @@ import { toRaw } from 'vue';
 import { constants } from '@/shared/constants';
 import { isRecord } from '@/guards';
 
-export function getErrorMessage(error: unknown): string {
-	if (error instanceof Error) return error.message;
-	if (typeof error === 'string') return error;
-	return 'unknown error';
-}
-export function anyObjectValue<T>(obj: Record<string, T>): T | undefined {
-	for (const key in obj) return obj[key];
-	return undefined;
-}
+export function toSafeString(value: unknown): string | undefined {
+	if (value === undefined || value === null) return undefined;
+	if (typeof value === 'string') return value;
+	return String(value);
+};
+export function normalizeOptionalStringFields(
+	rec: Record<string, unknown>,
+	keys: string[],
+): void {
+	for (const key of keys) {
+		if (typeof rec[key] === 'number') rec[key] = String(rec[key]);
+		if (typeof rec[key] !== 'string') delete rec[key];
+	}
+};
 export const childrenCount = (
 	tree: Record<string, unknown>,
 	childrenKey: string,

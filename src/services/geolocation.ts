@@ -48,9 +48,8 @@ export function useGeolocation() {
 			try {
 				center = await getLocation();
 			} catch (error) {
-				console.error(error);
 				mainStore.setMessage(mainStore.t.m.errors.geo.error, 5);
-				return;
+				throw error;
 			}
 		}
 		mainStore.center = {

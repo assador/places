@@ -2,6 +2,7 @@ import api from '@/api';
 import { User, Group } from '@/types';
 import { isUser, isGroup } from '@/guards';
 import { StoreAdmin, ActionsAdmin } from '@/stores/types';
+import { normalizeOptionalStringFields } from '@/shared/common';
 
 // SEC Factories
 
@@ -15,8 +16,6 @@ function _defaultGroup(
 		parent: null,
 		system: false,
 		haschildren: false,
-		name: '',
-		description: '',
 		added: false,
 		deleted: false,
 		updated: false,
@@ -44,10 +43,11 @@ export function useActionsAdmin(
 	const setUsers = async (ids?: string[]): Promise<void> => {
 		const sanitizeUsersData = (raw: any): Record<string, User> => {
 			if (!raw || typeof raw !== 'object' && Array.isArray(raw)) return {};
-			const sntzd: Record<string, unknown> = {};
+			const sntzd: Record<string, Record<string, unknown>> = {};
 			const users: Record<string, User> = {};
 			for (const id in raw) {
 				if (!Object.hasOwn(raw, id)) continue;
+				normalizeOptionalStringFields(raw[id], ['name', 'email', 'phone']);
 				sntzd[id] = {
 					...raw[id],
 					checked: raw[id].checked == 1 || raw[id].checked === true,
@@ -62,15 +62,15 @@ export function useActionsAdmin(
 			return users;
 		};
 		try {
-			const { data } = await api.post(`get_users.php`, {
+			const data = await api.post(`get_users.php`, {
 				users: Array.isArray(ids) ? { users: ids } : null,
 				userid: localStorage.getItem('places-useruuid'),
 				sessionid: localStorage.getItem('places-session'),
 			});
 			store.users.value = sanitizeUsersData(data);
 		} catch (error) {
-			console.error(error);
 			store.users.value = {};
+			throw error;
 		}
 	};
 	const setGroups = async (): Promise<void> => {
@@ -80,6 +80,7 @@ export function useActionsAdmin(
 			const groups: Record<string, Group> = {};
 			for (const id in raw) {
 				if (!Object.hasOwn(raw, id)) continue;
+				normalizeOptionalStringFields(raw[id], ['description']);
 				sntzd[id] = {
 					...raw[id],
 					system: raw[id].system == 1 || raw[id].system === true,
@@ -93,14 +94,14 @@ export function useActionsAdmin(
 			return groups;
 		};
 		try {
-			const { data } = await api.post('get_groups.php', {
+			const data = await api.post('get_groups.php', {
 				userid: localStorage.getItem('places-useruuid'),
 				sessionid: localStorage.getItem('places-session'),
 			});
 			store.groups.value = sanitizeGroupsData(data);
 		} catch (error) {
-			console.error(error);
 			store.groups.value = {};
+			throw error;
 		}
 	};
 

@@ -8,95 +8,95 @@
 		</div>
 		<Dashboard />
 		<div class="auth-forms">
-			<div class="auth-login margin_bottom">
-				<form
-					ref="authLoginForm"
-					class="margin_bottom"
-					@submit.prevent="authLoginSubmit"
-				>
-					<h2>{{ mainStore.t.i.captions.auth }}</h2>
-					<div class="auth-login-fields margin_bottom">
-						<input
-							id="auth-login-input"
-							v-model.trim="authLogin"
-							class="fieldwidth_100"
-							required
-							type="text"
-							:placeholder="mainStore.t.i.inputs.regLogin"
-							autofocus
-						/>
-						<div class="password nobr">
-							<input
-								id="auth-password-input"
-								v-model.trim="authPassword"
-								class="fieldwidth_100"
-								required
-								type="password"
-								:placeholder="mainStore.t.i.inputs.regPassword"
-							/>
-							<button
-								type="button"
-								class="button-iconed icon icon-eye-closed-circled"
-								@click.prevent="e => {
-									passwordShowHide(
-										(e.currentTarget as HTMLElement)
-											.previousElementSibling as HTMLInputElement
-									);
-								}"
-							/>
-						</div>
-					</div>
-					<div class="buttons">
-						<button type="submit">
-							{{ mainStore.t.i.buttons.login }}
-						</button>
-						<button
-							type="button"
-							@click="testAuth"
-						>
-							{{ mainStore.t.i.buttons.try }}
-						</button>
-						<div v-if="login.message">
-							{{ login.message }}
-						</div>
-						<button
-							type="button"
-							onclick="document.querySelector('.auth-forgot')
-								.classList.toggle('hidden');
-							"
-						>
-							{{ mainStore.t.i.buttons.forgot }}
-						</button>
-					</div>
-				</form>
-				<form
-					class="auth-forgot hidden"
-					@submit.prevent="authForgot"
-				>
-					<p>{{ mainStore.t.i.text.emailToSendPassword }}</p>
+			<form
+				ref="authLoginForm"
+				class="auth-login"
+				@submit.prevent="authLoginSubmit"
+			>
+				<h2>{{ mainStore.t.i.captions.auth }}</h2>
+				<div class="auth-login-fields">
 					<input
-						id="forgot-email-input"
-						v-model.trim="forgotEmail"
-						class="fieldwidth_100 margin_bottom"
+						id="auth-login-input"
+						v-model.trim="authLogin"
+						class="fieldwidth_100"
 						required
 						type="text"
-						placeholder="e-mail *"
+						:placeholder="mainStore.t.i.inputs.regLogin"
+						autofocus
 					/>
+					<div class="password nobr">
+						<input
+							id="auth-password-input"
+							v-model.trim="authPassword"
+							class="fieldwidth_100"
+							required
+							type="password"
+							:placeholder="mainStore.t.i.inputs.regPassword"
+						/>
+						<button
+							type="button"
+							class="button-iconed icon icon-eye-closed-circled"
+							@click.prevent="e => {
+								passwordShowHide(
+									(e.currentTarget as HTMLElement)
+										.previousElementSibling as HTMLInputElement
+								);
+							}"
+						/>
+					</div>
+				</div>
+				<div class="buttons">
+					<button type="submit">
+						{{ mainStore.t.i.buttons.login }}
+					</button>
+					<button
+						type="button"
+						@click="testAuth"
+					>
+						{{ mainStore.t.i.buttons.try }}
+					</button>
+					<button
+						type="button"
+						onclick="document.querySelector('.auth-forgot')
+							.classList.toggle('hidden');
+						"
+					>
+						{{ mainStore.t.i.buttons.forgot }}
+					</button>
+				</div>
+				<div v-if="login.message">
+					{{ login.message }}
+				</div>
+			</form>
+			<form
+				class="auth-forgot hidden"
+				@submit.prevent="authForgot"
+			>
+				<div>{{ mainStore.t.i.text.emailToSendPassword }}</div>
+				<input
+					id="forgot-email-input"
+					v-model.trim="forgotEmail"
+					class="fieldwidth_100"
+					required
+					type="text"
+					placeholder="e-mail *"
+				/>
+				<div>
 					<button type="submit">
 						{{ mainStore.t.i.buttons.sendPassword }}
 					</button>
-					<div class="auth-forgot-message">
-						{{ forgot.message }}
-					</div>
-				</form>
-			</div>
+				</div>
+				<div v-if="forgot.message">
+					{{ forgot.message }}
+				</div>
+			</form>
 			<form
 				ref="authRegForm"
-				class="auth-registration margin_bottom"
+				class="auth-registration"
 				@submit.prevent="authRegSubmit"
 			>
 				<h2>{{ mainStore.t.i.captions.reg }}</h2>
-				<div class="auth-registration-fields margin_bottom">
+				<div class="auth-registration-fields">
 					<input
 						id="reg-login-input"
 						v-model.trim="regLogin"
@@ -174,15 +174,18 @@
 						@keyup.enter="authRegSubmit"
 					/>
 				</div>
-				<button type="submit">
-					{{ mainStore.t.i.buttons.register }}
-				</button>
-				<div v-if="reg.message" class="margin_top">
+				<div>
+					<button type="submit">
+						{{ mainStore.t.i.buttons.register }}
+					</button>
+				</div>
+				<div v-if="reg.message">
 					{{ reg.message }}
 				</div>
 			</form>
+			<div class="auth-separator" />
 		</div>
-		<div>
+		<div class="auth-footer buttons">
 			<button
 				:title="mainStore.t.i.hints.about"
 				@click="router.push({
@@ -192,17 +195,18 @@
 			>
 				{{ mainStore.t.i.buttons.whatIsIt }}
 			</button>
+			<button
+				v-if="pwa?.installPWAEnabled"
+				id="prompt-button"
+				class="important"
+				@click="pwa?.installPWA"
+			>
+				{{ mainStore.t.i.buttons.installPWA }}
+			</button>
 		</div>
-		<button
-			v-if="pwa?.installPWAEnabled"
-			id="prompt-button"
-			class="important"
-			@click="pwa?.installPWA"
-		>
-			{{ mainStore.t.i.buttons.installPWA }}
-		</button>
 		<router-view />
 	</div>
+	<Messages />
 </template>
 
 <script setup lang="ts">
@@ -216,8 +220,10 @@ import { setBusy } from '@/services/common';
 import { constants } from '@/shared/constants';
 import { reg, regRoutine } from '@/shared/reg';
 import { forgot, forgotRoutine } from '@/shared/forgot';
+import { ennobleError } from '@/shared/response';
 
 import Dashboard from '@/components/Dashboard.vue';
+import Messages from '@/components/Messages.vue';
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -237,15 +243,20 @@ const forgotEmail = ref('');
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
 }
-const authLoginSubmit = async () => {
+const authLoginSubmit = async (): Promise<void> => {
 	if (!authLogin.value || !authPassword.value) return;
-	const success = await loginRoutine({
-		authLogin: authLogin.value,
-		authPassword: authPassword.value,
-	}, mainStore.t);
-	if (success) {
+	mainStore.setBusy(true);
+	try {
+		await loginRoutine({
+			authLogin: authLogin.value,
+			authPassword: authPassword.value,
+		});
 		await logged();
 		router.push({ name: 'Home' });
+	} catch (error) {
+		login.message = ennobleError(error);
+	} finally {
+		mainStore.setBusy(false);
 	}
 };
 const testAuth = (): void => {
@@ -262,7 +273,7 @@ const authRegSubmit = (): boolean => {
 		return false;
 	}
 	if (regPassword.value !== regPasswordRepeat.value) {
-		reg.message = mainStore.t.m.paged.passwordsNotMatch;
+		reg.message = mainStore.t.m.errors.authreg.passwordsNotMatch;
 		return false;
 	}
 	regRoutine({
@@ -278,7 +289,7 @@ const authForgot = (): void => {
 	if (!document.getElementById('forgot-email-input')!.classList.contains('value_wrong')) {
 		forgotRoutine({ forgotEmail: forgotEmail.value }, mainStore.t);
 	} else {
-		forgot.message = mainStore.t.m.paged.incorrectEmail;
+		forgot.message = mainStore.t.m.errors.mail.incorrectEmail;
 	}
 };
 onMounted(async () => {
@@ -288,13 +299,6 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.margin_bottom {
-	margin-bottom: 12px !important;
-}
-.auth-forms {
-	display: flex;
-	margin-bottom: 12px;
-}
 .auth {
 	.button-iconed {
 		right: 5px;
@@ -314,25 +318,54 @@ onMounted(async () => {
 		mask-image: url('@/assets/icons/eye-open-1-circled.svg');
 	}
 }
-.auth-login, .auth-registration {
-	width: 50%;
+#dashboard {
+	margin: -40px 0 40px 0;
+}
+.auth-forms {
+	display: grid;
+	grid-template-areas:
+		"auth-login   auth-separator   auth-registration"
+		"auth-forgot  auth-separator   auth-registration"
+	;
+	grid-template-columns: 1fr auto 1fr;
+	gap: 20px;
+	margin-bottom: 12px;
+	align-items: start;
+}
+.auth-login, .auth-forgot, .auth-registration {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 12px;
+	margin: 0 !important;
+	align-items: start;
+	h2 {
+		margin-bottom: 6px !important;
+	}
+}
+.auth-separator {
+	grid-area: auth-separator;
+	align-self: stretch;
+	width: 1px;
+	background-color: var(--color-12);
 }
 .auth-login {
-	padding-right: 20px;
+	grid-area: auth-login;
+	text-align: right;
+}
+.auth-forgot {
+	grid-area: auth-forgot;
 	text-align: right;
 }
 .auth-registration {
-	padding-left: 20px;
+	grid-area: auth-registration;
 }
 .auth-login-fields, .auth-registration-fields {
 	display: grid;
-	grid-gap: 12px;
+	grid-template-columns: 1fr;
+	gap: 12px;
 }
 .auth-registration-fields {
 	grid-template-columns: 1fr 1fr;
-}
-.auth-forgot-message:not(:empty) {
-	margin-top: 12px;
 }
 .buttons {
 	display: flex;
@@ -340,11 +373,8 @@ onMounted(async () => {
 	gap: 12px;
 	justify-content: right;
 }
-#dashboard {
-	margin: -40px 0 40px 0;
-}
-#prompt-button {
-	margin-top: 18px;
+.auth-footer {
+	margin-top: 12px;
 }
 @media screen and (max-width: 720px) {
 	.auth {
@@ -352,6 +382,18 @@ onMounted(async () => {
 	}
 }
 @media screen and (max-width: 450px) {
+	.auth-separator {
+		display: none;
+	}
+	.auth-forms {
+		display: grid;
+		grid-template-areas:
+			"auth-login"
+			"auth-forgot"
+			"auth-registration"
+		;
+		grid-template-columns: 1fr;
+	}
 	.auth-forms, .buttons {
 		flex-wrap: wrap;
 		justify-content: center;
@@ -360,9 +402,6 @@ onMounted(async () => {
 		width: 100%;
 		padding: 0;
 		text-align: center;
-	}
-	.auth-login {
-		border: none;
 	}
 }
 </style>

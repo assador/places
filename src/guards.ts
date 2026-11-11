@@ -26,13 +26,13 @@ import {
 	SettingsVocRec,
 } from '@/types/settings';
 
-const isOptionalString = (value: unknown): boolean =>
+export const isOptionalString = (value: unknown): boolean =>
 	value === undefined || typeof value === 'string'
 ;
-const isOptionalNumber = (value: unknown): boolean =>
+export const isOptionalNumber = (value: unknown): boolean =>
 	value === undefined || typeof value === 'number'
 ;
-const isOptionalBoolean = (value: unknown): boolean =>
+export const isOptionalBoolean = (value: unknown): boolean =>
 	value === undefined || typeof value === 'boolean'
 ;
 
@@ -157,11 +157,11 @@ export const isFolder = (value: unknown): value is Folder => {
 	if (
 		!isRecord(value) ||
 		value.type !== 'folder' ||
-		typeof value.name !== 'string' ||
 		typeof value.srt !== 'number' ||
 		(typeof value.id !== 'string' && value.id !== null) ||
 		(typeof value.parent !== 'string' && value.parent !== null) ||
 		!isOptionalBoolean(value.virtual) ||
+		!isOptionalString(value.name) ||
 		!isOptionalString(value.description)
 	) {
 		return false;
@@ -187,12 +187,12 @@ export const isPlace = (value: unknown): value is Place => {
 		value.type !== 'place' ||
 		typeof value.id !== 'string' ||
 		typeof value.pointid !== 'string' ||
-		typeof value.name !== 'string' ||
 		typeof value.srt !== 'number' ||
 		(typeof value.folderid !== 'string' && value.folderid !== null) ||
-		!isOptionalNumber(value.time) ||
+		!isOptionalString(value.name) ||
+		!isOptionalString(value.description) ||
 		!isOptionalString(value.link) ||
-		!isOptionalString(value.description)
+		!isOptionalNumber(value.time)
 	) {
 		return false;
 	}
@@ -204,12 +204,12 @@ export const isRoute = (value: unknown): value is Route => {
 		value.type !== 'route' ||
 		!Array.isArray(value.points) ||
 		typeof value.id !== 'string' ||
-		typeof value.name !== 'string' ||
 		typeof value.srt !== 'number' ||
 		(typeof value.folderid !== 'string' && value.folderid !== null) ||
-		!isOptionalNumber(value.time) ||
+		!isOptionalString(value.name) ||
+		!isOptionalString(value.description) ||
 		!isOptionalString(value.link) ||
-		!isOptionalString(value.description)
+		!isOptionalNumber(value.time)
 	) {
 		return false;
 	}
@@ -291,6 +291,9 @@ export const isTreeItemType = (value: unknown): value is TreeItemType => {
 	}
 	return true;
 };
+export const hasKey = <T extends object>(obj: T, key: PropertyKey): key is keyof T => {
+	return key in obj;
+}
 export const hasOwnStringKey =
 	<T extends object>(value: T, key: string): key is Extract<keyof T, string> => {
 	return Object.hasOwn(value, key);

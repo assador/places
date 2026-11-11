@@ -68,8 +68,9 @@ const treeMode = ref(1);
 const settingsSubmit = (): void => {
 	saveSettingsUsersVoc();
 };
-onMounted(() => {
-	mainStore.setSettingsGroups().then(() => mainStore.trees.settings.open = true);
+onMounted(async () => {
+	await mainStore.setSettingsGroups();
+	mainStore.trees.settings.open = true;
 });
 </script>
 

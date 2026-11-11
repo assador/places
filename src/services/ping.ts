@@ -23,18 +23,18 @@ class PingService {
 			{ immediate: true },
 		);
 	}
+
 	destroy(): void {
 		this.stopPingLoop();
 	}
+
 	private async checkServer(): Promise<boolean> {
 		if (this.isPinging) return false;
 		this.isPinging = true;
-
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 3000);
 		try {
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-			const response = await api.get(this.pingUrl, {
+			await api.get(this.pingUrl, {
 				signal: controller.signal,
 				silent: true,
 				headers: {
@@ -43,37 +43,36 @@ class PingService {
 					'Expires': '0',
 				},
 			});
-			clearTimeout(timeoutId);
-			return response.status >= 200 && response.status < 300;
+			return true;
 		} catch {
 			return false;
 		} finally {
+			clearTimeout(timeoutId);
 			this.isPinging = false;
 		}
 	}
+
 	private startPingLoop() {
 		if (this.pingIntervalId) return;
-
 		this.executePing();
-
 		this.pingIntervalId = window.setInterval(() => {
 			this.executePing();
 		}, this.intervalDuration);
 	}
+
 	private stopPingLoop() {
 		if (this.pingIntervalId) {
 			clearInterval(this.pingIntervalId);
 			this.pingIntervalId = null;
 		}
 	}
+
 	private async executePing() {
 		if (!this.store) return;
 		if (this.store.offlineMode) return;
 		const isAlive = await this.checkServer();
-
 		if (this.store.online !== isAlive) {
 			this.store.online = isAlive;
-
 			if (!isAlive) this.store.onServerOut();
 			else this.store.onServerOn();
 		}

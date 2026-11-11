@@ -7,18 +7,18 @@ export const reg = reactive({
 });
 export const regRoutine = async (payload: Record<string, string>, voc: Dictionary) => {
 	try {
-		const { data } = await api.post('reg.php', payload);
+		const data = await api.post('reg.php', payload);
 		switch (data) {
 			case 0 :
-				reg.message = voc.m.paged.regError;
+				reg.message = voc.m.errors.authreg.regError;
 				break;
 			case 1 :
-				reg.message = voc.m.paged.loginTaken;
+				reg.message = voc.m.errors.authreg.loginTaken;
 				break;
 			default :
 				reg.message = voc.m.paged.regLetterSent;
 		}
 	} catch {
-		reg.message = voc.m.paged.regError;
+		reg.message = voc.m.errors.authreg.regError;
 	}
 };

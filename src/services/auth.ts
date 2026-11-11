@@ -4,58 +4,31 @@ import { ping } from '@/services/ping';
 import { buffer } from '@/services/buffer';
 import { confirm } from '@/services/confirm';
 import { useMainStore } from '@/stores/main';
-import { Dictionary } from '@/types'
 
 export const login = reactive({
 	message: '',
 });
 export const loginRoutine = async (
 	user: { authLogin: string, authPassword: string },
-	voc: Dictionary,
-): Promise<boolean> => {
+): Promise<void> => {
 	try {
-		const { data } = await api.post('login.php', user);
-		switch (data) {
-			case 0 :
-				localStorage.clear();
-				login.message = voc.m.paged.authError;
-				return false;
-			case 1 :
-				localStorage.clear();
-				login.message = voc.m.paged.wrongLoginPassword;
-				return false;
-			default :
-				if (typeof data === 'object') {
-					localStorage.setItem('places-useruuid', data.id);
-					localStorage.setItem('places-session', data.session);
-					return true;
-				}
-		}
-		return false;
+		const data = await api.post('login.php', user);
+		localStorage.setItem('places-useruuid', data.id);
+		localStorage.setItem('places-session', data.session);
 	} catch (error) {
-		console.error(error);
-		localStorage.clear();
-		return false;
+		localStorage.removeItem('places-useruuid');
+		localStorage.removeItem('places-session');
+		throw error;
 	}
 };
 export const logoutRoutine = async (
-	ids: { userId: string | null, sessionId: string | null },
-) => {
-	try {
-		await api.post('logout.php', ids);
-		return true;
-	} catch (error) {
-		console.error(error);
-		localStorage.clear();
-		return false;
-	}
+	ids: { userid: string | null, sessionid: string | null },
+): Promise<void> => {
+	await api.post('logout.php', ids);
 };
 
 export const logged = async (): Promise<void> => {
-	ping.init();
-	buffer.init();
 	const mainStore = useMainStore();
-	mainStore.setBusy(true);
 	await mainStore.setUser();
 	await mainStore.setServerConfig();
 	await mainStore.setUserSettings();
@@ -63,16 +36,22 @@ export const logged = async (): Promise<void> => {
 	mainStore.ready = true;
 	mainStore.openTreeToCurrent(mainStore.currentPlace);
 	mainStore.openTreeToCurrent(mainStore.currentRoute);
+	ping.init();
+	buffer.init();
 };
 export const logout = async (): Promise<boolean> => {
 	const mainStore = useMainStore();
 	const getOut = async () => {
-		mainStore.setBusy(true);
-		const userId = localStorage.getItem('places-useruuid');
-		const sessionId = localStorage.getItem('places-session');
-		mainStore.unload();
-		await logoutRoutine({ userId: userId, sessionId: sessionId });
-		mainStore.setBusy(false);
+		try {
+			mainStore.setBusy(true);
+			await logoutRoutine({
+				userid: localStorage.getItem('places-useruuid'),
+				sessionid: localStorage.getItem('places-session'),
+			});
+			mainStore.unload();
+		} finally {
+			mainStore.setBusy(false);
+		}
 	};
 
 // TODO This is temporary. Implement encrypted store in IndexedDB and authentication in offline mode.

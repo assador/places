@@ -1,9 +1,20 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set("display_errors", "1");
 
-require_once __DIR__ . '/bootstrap.php';
+/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
+set_exception_handler(function($e) {
+	header("Content-Type: application/json");
+	http_response_code(500);
+	echo $e->getMessage();
+	echo "\nfile: {$e->getFile()}";
+	echo "\nline: {$e->getLine()}";
+	exit;
+});
+*/
+
+require_once __DIR__ . "/bootstrap.php";
 
 $input = json_decode(
 	file_get_contents("php://input"),
@@ -11,13 +22,13 @@ $input = json_decode(
 	512,
 	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 );
-$login = trim($input["regLogin"] ?? '');
-$email = filter_var($input["regEmail"] ?? '', FILTER_VALIDATE_EMAIL);
-$password  = $input["regPassword"] ?? '';
+$login = trim($input["regLogin"] ?? "");
+$email = filter_var($input["regEmail"] ?? "", FILTER_VALIDATE_EMAIL);
+$password  = $input["regPassword"] ?? "";
 
 if (!$login || !$email || strlen($password) < 1) {
 	http_response_code(400);
-	echo json_encode([ 'error' => 'Invalid input' ]);
+	echo json_encode([ "error" => "Invalid input" ]);
 	exit;
 }
 
@@ -65,13 +76,13 @@ try {
 	]);
 } catch (PDOException $e) {
 	if ($e->getCode() == 23000) {
-		echo json_encode([ 'error' => 'User already exists' ]);
+		echo json_encode([ "error" => "User already exists" ]);
 		exit;
 	}
 	throw $e;
 }
 
-$confirmUrl = $config['host'] . "/backend/confirm.php?token=" . $token;
+$confirmUrl = $config["host"] . "/backend/confirm.php?token=" . $token;
 $message = '
 	<html>
 	<head>
@@ -97,4 +108,4 @@ $sent = sendMail(
 	$message,
 	$config,
 );
-echo json_encode([ 'success' => $sent ]);
+echo json_encode([ "success" => $sent ]);

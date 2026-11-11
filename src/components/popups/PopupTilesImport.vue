@@ -93,8 +93,8 @@ const handleFileSelect = async (event: Event) => {
 		mainStore.setMessage(`${mainStore.t.i.maps.tilesLoaded}: ${result.count}`);
 		emit('imported', result.count);
 	} catch (error) {
-		console.error(error);
 		mainStore.setMessage(mainStore.t.m.errors.maps.failedToImportZip);
+		throw error;
 	} finally {
 		isProcessing.value = false;
 		target.value = '';
@@ -106,8 +106,8 @@ const onClearTiles = async () => {
 		mainStore.setMessage(mainStore.t.i.maps.tileDatabaseCleared, 3);
 		emit('cleared');
 	} catch (error) {
-		console.error(error);
 		mainStore.setMessage(mainStore.t.m.errors.maps.failedToClearTileDatabase);
+		throw error;
 	}
 };
 </script>

@@ -278,28 +278,12 @@ export const getT = () => ({
 	},
 	m: {
 		paged: {
-			authError: 'An error occurred while logging in.',
 			confirmDataLetterSent: 'An e-mail has been sent to the e-mail address you specified with instructions to confirm the change in data, execute them within a day.',
 			folderCreated: 'Folder created.',
 			forgotLetterSent: 'An e-mail with a link to confirm the creation of a new password has been sent to the e-mail address you specified.',
-			incorrectEmail: 'Incorrect e-mail.',
-			incorrectFields: 'Some fields are not filled in correctly.',
-			letterError: 'There was an error while sending the e-mail.',
-			letterErrorEmail: 'Unable to send e-mail to this address.',
-			loginTaken: 'This account is taken, please choose another one.',
-			passwordsNotMatch: 'The passwords you entered do not match.',
-			regError: 'An error occurred while registering.',
 			regLetterSent: 'An e-mail has been sent to the e-mail address you provided with instructions on how to confirm your registration. Complete them within 24 hours.',
-			savingDataError: 'An error occurred while saving the data.',
-			taCannotBeChanged: 'You are logged in with a test account that cannot be changed.',
-			taCannotBeDeleted: 'You are logged in with a test account that cannot be deleted.',
-			wrongLoginPassword: 'Wrong login or password.',
 		},
 		popup: {
-			cannotFindReference: 'Can’t find the reference.',
-			cannotGetData: 'Can’t get the data.',
-			cannotGetDataFromDb: 'Can’t get the data from the database.',
-			cannotSendDataToDb: 'Can’t send the data to the database.',
 			file: 'File',
 			fileNotImage: 'is not an image and will not be uploaded.',
 			filesNotImages: 'Some files are not images and have not been uploaded.',
@@ -322,6 +306,15 @@ Your data is temporary and will be cleared when you log out.`,
 Your data won’t be saved to your account and will be cleared when you log out.`,
 		},
 		errors: {
+			authreg: {
+				authError: 'An error occurred while logging in.',
+				loginTaken: 'This account is taken, please choose another one.',
+				passwordsNotMatch: 'The passwords you entered do not match.',
+				regError: 'An error occurred while registering.',
+				taCannotBeChanged: 'You are logged in with a test account that cannot be changed.',
+				taCannotBeDeleted: 'You are logged in with a test account that cannot be deleted.',
+				wrongLoginPassword: 'Wrong login or password.',
+			},
 			geo: {
 				error: 'An unknown geolocation error occurred.',
 				notSupported: 'Geolocation is not supported by your device.',
@@ -329,18 +322,51 @@ Your data won’t be saved to your account and will be cleared when you log o
 				positionUnavailable: 'Unable to determine coordinates (network/GPS is off).',
 				timeout: 'GPS timed out. Try again.',
 			},
+			mail: {
+				incorrectEmail: 'Incorrect e-mail.',
+				letterError: 'There was an error while sending the e-mail.',
+				letterErrorEmail: 'Unable to send e-mail to this address.',
+			},
 			maps: {
 				failedToClearTileDatabase: 'Failed to clear tile database.',
 				failedToImportZip: 'Failed to import ZIP archive.',
 			},
 			other: {
-				other: 'unknown error',
+				cannotFindReference: 'Can’t find the reference.',
+				cannotGetData: 'Can’t get the data.',
+				cannotGetDataFromDb: 'Can’t get the data from the database.',
+				cannotSendDataToDb: 'Can’t send the data to the database.',
 				failedToLoadDictionary: 'Failed to load dictionary for language',
+				incorrectFields: 'Some fields are not filled in correctly.',
+				other: 'unknown error',
+				savingDataError: 'An error occurred while saving the data.',
 			},
 			server: {
-				invalidResponse: 'Invalid server response',
 				invalidResponseUser: 'Invalid user data structure received',
 				maxLimit: 'Max server limit reached',
+			},
+		},
+		response: {
+			errorsClient: {
+				insufficientPermissions: 'You do not have the necessary permissions to perform this action.',
+				invalidRequest: 'Invalid request to the server.',
+				nothingToDo: 'There’s nothing for me to do here. If you’re bored, we could just talk…',
+				userDataConflict: 'The account details are incorrect.',
+				wrongAccount: 'The account details are incorrect.',
+			},
+			errorsServer: {
+				internalError: 'Invalid server response.',
+				mailError: 'An error occurred while sending an email to you.',
+			},
+			info: {
+			},
+			redirect: {
+			},
+			success: {
+				ok: 'Successfully.',
+			},
+			unknown: {
+				message: 'The server rejected the request for an unknown reason.',
 			},
 		},
 	},

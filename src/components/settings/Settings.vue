@@ -75,8 +75,9 @@ const settingsSubmit = (): void => {
 	}
 	saveSettingsUsers();
 };
-onMounted(() => {
-	mainStore.setSettingsGroups().then(() => mainStore.trees.settings.open = true);
+onMounted(async () => {
+	await mainStore.setSettingsGroups();
+	mainStore.trees.settings.open = true;
 });
 </script>
 

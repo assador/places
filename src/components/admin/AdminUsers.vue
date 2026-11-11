@@ -128,6 +128,7 @@ const fields = ref<Fields>({
 		caption   : mainStore.t.i.captions.confirmbefore,
 		formatter : formatUTC,
 	},
+	id            : { enabled: true, caption: mainStore.t.i.captions.id },
 });
 
 const keysArray = computed(() =>

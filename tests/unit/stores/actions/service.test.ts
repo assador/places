@@ -61,7 +61,7 @@ describe('useActionsService', () => {
 			const store = createMockStore() as any;
 			const { setPointAltitude } = useActionsService(store);
 			vi.mocked(api.get).mockResolvedValueOnce({
-				data: { elevation: [150] },
+				elevation: [150],
 			});
 			await setPointAltitude(mockPoint);
 			const pointInStore = store.getPointById(1);
@@ -73,10 +73,10 @@ describe('useActionsService', () => {
 			const store = createMockStore() as any;
 			const { setPointAltitude } = useActionsService(store);
 			vi.mocked(api.get).mockResolvedValueOnce({
-				data: { elevation: null },
+				elevation: null,
 			});
 			vi.mocked(api.get).mockResolvedValueOnce({
-				data: { results: [{ elevation: 280 }] },
+				results: [{ elevation: 280 }],
 			});
 			await setPointAltitude(mockPoint);
 			const pointInStore = store.getPointById(1);

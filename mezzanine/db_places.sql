@@ -587,8 +587,8 @@ DROP TABLE IF EXISTS `settings_groups`;
 CREATE TABLE `settings_groups` (
   `id` smallint(5) unsigned NOT NULL,
   `parent` smallint(5) unsigned DEFAULT NULL,
-  `name` varchar(255) DEFAULT '',
-  `description` varchar(2044) DEFAULT '',
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(2044) DEFAULT NULL,
   `srt` double DEFAULT 10,
   PRIMARY KEY (`id`),
   KEY `parent` (`parent`),
@@ -626,8 +626,8 @@ CREATE TABLE `settings_users_voc` (
   `groupid` smallint(5) unsigned DEFAULT NULL,
   `type` tinyint(3) unsigned NOT NULL,
   `baseval` varbinary(255) NOT NULL,
-  `name` varchar(255) DEFAULT '',
-  `description` varchar(2044) DEFAULT '',
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(2044) DEFAULT NULL,
   `public` tinyint(1) NOT NULL DEFAULT 1,
   `srt` double DEFAULT 10,
   PRIMARY KEY (`id`),
@@ -684,7 +684,7 @@ CREATE TABLE `users` (
   `login` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
+  `email` varchar(255) NOT NULL,
   `phone` varchar(30) DEFAULT NULL,
   `confirmed` tinyint(1) NOT NULL DEFAULT 0,
   `confirmbefore` bigint(20) unsigned NOT NULL DEFAULT 0,
@@ -789,4 +789,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-11-06 18:15:48
+-- Dump completed on 2026-11-11  1:54:41

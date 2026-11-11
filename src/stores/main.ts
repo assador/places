@@ -88,8 +88,8 @@ export const useMainStore = defineStore('main', () => {
 				translation.value = module.getT();
 			}
 		} catch (error) {
-			console.error(error);
 			store.setMessage(`Failed to load dictionary for language: ${newLang}`);
+			throw error;
 		}
 	}, { immediate: false });
 

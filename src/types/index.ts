@@ -57,7 +57,7 @@ export interface Folder extends Entity {
 	context: FolderContext;
 	virtual?: boolean;
 	parent: string | null;
-	name: string;
+	name?: string;
 	description?: string;
 	srt: number;
 	geomarks: GeomarksState;
@@ -76,7 +76,7 @@ export interface Place extends ImageableEntity {
 	id: string;
 	folderid: string | null;
 	pointid: string;
-	name: string;
+	name?: string;
 	description?: string;
 	link?: string;
 	time?: number;
@@ -89,7 +89,7 @@ export interface Route extends ImageableEntity {
 	id: string;
 	folderid: string | null;
 	points: PointDescription[];
-	name: string;
+	name?: string;
 	description?: string;
 	link?: string;
 	time?: number;

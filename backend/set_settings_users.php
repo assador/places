@@ -1,40 +1,9 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set("display_errors", "1");
-
-/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
-set_exception_handler(function($e) {
-	header("Content-Type: application/json");
-	http_response_code(500);
-	echo $e->getMessage();
-	echo "\nfile: {$e->getFile()}";
-	echo "\nline: {$e->getLine()}";
-	exit;
-});
-*/
+ini_set("display_errors", "0");
 
 require_once __DIR__ . "/bootstrap.php";
-
-$raw = file_get_contents("php://input");
-$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-$binUserId = uuidToBin($data["userid"]);
-$binSessionId = uuidToBin($data["sessionid"]);
-$list = $data["data"] ?? [];
-
-$faults = [];
-/*
-1: wrong data,
-2: wrong session,
-3: test account,
-*/
-
-if (empty($data["userid"]) || empty($data["sessionid"])) {
-	echo json_encode([1], JSON_NUMERIC_CHECK);
-	exit;
-}
-
-// Helpers
 
 function prepareSettingValue(mixed $value, int $type): string {
 	if ($value === null) return "";
@@ -51,81 +20,76 @@ function prepareSettingValue(mixed $value, int $type): string {
 	return mb_strcut($rawString, 0, 255, "8bit");
 }
 
-// SEC Session check
+apiRun($ctx, function () use ($ctx, $config) {
+	$raw = file_get_contents("php://input");
+	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
-if (!isValidSession($ctx, $binUserId, $binSessionId)) {
-	throw new Exception("Invalid or expired session.");
-}
+	$list = $data["data"] ?? [];
+	if (empty($list)) apiSuccess();
 
-// SEC Transaction
+	$binUserId = uuidToBin($data["userid"]);
+	$binSessionId = uuidToBin($data["sessionid"]);
 
-try {
+	if (!isValidSession($ctx, $binUserId, $binSessionId)) {
+		throw new ApiException(401, "invalid_session");
+	}
+	if ($data["userid"] === $config["testaccountuuid"]) {
+		throw new ApiException(403, "test_account");
+	}
+
 	$ctx->db->beginTransaction();
 
-	if (!empty($list)) {
+	$usersVocStmt = $ctx->db->query("
+		SELECT `id`, `type`, `baseval`
+		FROM `settings_users_voc`
+		WHERE `public` = TRUE
+	");
+	$voc = $usersVocStmt->fetchAll(PDO::FETCH_UNIQUE);
 
-		$usersVocStmt = $ctx->db->query("
-			SELECT `id`, `type`, `baseval`
-			FROM `settings_users_voc`
-			WHERE `public` = TRUE
-		");
-		$voc = $usersVocStmt->fetchAll(PDO::FETCH_UNIQUE);
+	$insertSql = "
+		INSERT INTO `settings_users` (
+			`userid`, `settingid`, `value`, `updated`
+		) VALUES (
+			:userid, :settingid, :value, :updated
+		)
+		ON DUPLICATE KEY UPDATE
+			`value`   = VALUES(`value`),
+			`updated` = VALUES(`updated`)
+	";
+	$insertStmt = $ctx->db->prepare($insertSql);
 
-		$insertSql = "
-			INSERT INTO `settings_users` (
-				`userid`, `settingid`, `value`, `updated`
-			) VALUES (
-				:userid, :settingid, :value, :updated
-			)
-			ON DUPLICATE KEY UPDATE
-				`value`   = VALUES(`value`),
-				`updated` = VALUES(`updated`)
-		";
-		$insertStmt = $ctx->db->prepare($insertSql);
+	$deleteSql = "
+		DELETE FROM `settings_users`
+		WHERE `settingid` = :settingid AND `userid` = :userid
+	";
+	$deleteStmt = $ctx->db->prepare($deleteSql);
 
-		$deleteSql = "
-			DELETE FROM `settings_users`
-			WHERE `settingid` = :settingid AND `userid` = :userid
-		";
-		$deleteStmt = $ctx->db->prepare($deleteSql);
-
-		foreach ($list as $row) {
-			if (
-				!isset($voc[$row["id"]]) ||
-				(int) $voc[$row["id"]]["type"] !== (int) $row["valtype"]
-			) {
-				$ctx->db->rollBack();
-				echo json_encode([1], JSON_NUMERIC_CHECK);
-				exit;
-			}
-			if (!empty($row["updated"])) {
-				if ($row["val"] === $voc[$row["id"]]["baseval"]) {
-					$deleteStmt->execute([
-						":userid"    => $binUserId,
-						":settingid" => (int) $row["id"],
-					]);
-				} else {
-					$insertStmt->execute([
-						":userid"    => $binUserId,
-						":settingid" => (int) ($row["id"]),
-						":value"     => prepareSettingValue($row["val"], $row["valtype"]),
-						":updated"   => (int) (microtime(true) * 1000),
-					]);
-				}
+	foreach ($list as $row) {
+		if (
+			!isset($voc[$row["id"]]) ||
+			(int) $voc[$row["id"]]["type"] !== (int) $row["valtype"]
+		) {
+			$ctx->db->rollBack();
+			echo json_encode([1], JSON_NUMERIC_CHECK);
+			exit;
+		}
+		if (!empty($row["updated"])) {
+			if ($row["val"] === $voc[$row["id"]]["baseval"]) {
+				$deleteStmt->execute([
+					":userid"    => $binUserId,
+					":settingid" => (int) $row["id"],
+				]);
+			} else {
+				$insertStmt->execute([
+					":userid"    => $binUserId,
+					":settingid" => (int) ($row["id"]),
+					":value"     => prepareSettingValue($row["val"], $row["valtype"]),
+					":updated"   => (int) (microtime(true) * 1000),
+				]);
 			}
 		}
 	}
 
 	$ctx->db->commit();
-
-} catch (Throwable $e) {
-	error_log($e->getMessage());
-	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
-	if (!in_array(1, $faults, true)) $faults[] = 1;
-}
-
-header("Content-Type: application/json");
-echo json_encode(
-	$faults,
-	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
-);
+	apiSuccess();
+});

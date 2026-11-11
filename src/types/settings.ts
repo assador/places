@@ -1,6 +1,6 @@
 import { Folder } from '@/types';
 
-export type SettingsContext = 'user';
+export type SettingsContext = 'user' | 'admin';
 export type SettingType = null | boolean | number | string;
 
 export interface SettingEnum {

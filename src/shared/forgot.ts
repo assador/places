@@ -7,18 +7,18 @@ export const forgot = reactive({
 });
 export const forgotRoutine = async (payload: Record<string, string>, voc: Dictionary) => {
 	try {
-		const { data } = await api.post('forgot.php', payload);
+		const data = await api.post('forgot.php', payload);
 		switch (data) {
 			case 1 :
-				forgot.message = voc.m.paged.letterError;
+				forgot.message = voc.m.errors.mail.letterError;
 				break;
 			case 2 :
-				forgot.message = voc.m.paged.letterErrorEmail;
+				forgot.message = voc.m.errors.mail.letterErrorEmail;
 				break;
 			default :
 				forgot.message = voc.m.paged.forgotLetterSent;
 		}
 	} catch {
-		forgot.message = voc.m.paged.letterError;
+		forgot.message = voc.m.errors.mail.letterError;
 	}
 };

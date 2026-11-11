@@ -1,5 +1,5 @@
 import { StoreMain, ActionsRelate } from '@/stores/types';
-import { Point, Route, Measure } from '@/types';
+import { Point, Route, Measure, PointDescription } from '@/types';
 import { isRoute } from '@/guards';
 
 export function useActionsRelate(
@@ -17,7 +17,6 @@ export function useActionsRelate(
 		}
 	): void => {
 		if (index === undefined) index = entity.points.length;
-		if (!description) description = '';
 		if (!name) {
 			const numbers = entity.points
 				.filter(p => p.name && /^\d+$/.test(p.name))
@@ -25,11 +24,10 @@ export function useActionsRelate(
 			;
 			name = (Math.max(0, ...numbers) + 1).toString();
 		}
-		entity.points.splice(index, 0, {
-			id: point.id,
-			name: name,
-			description: description,
-		});
+		const pd: PointDescription = { id: point.id };
+		if (name) pd.name = name;
+		if (description) pd.description = description;
+		entity.points.splice(index, 0, pd);
 		if (isRoute(entity) && !Object.hasOwn(store.points.value, point.id)) {
 			store.points.value[point.id] = point;
 			if (Object.hasOwn(store.temps.value, point.id)) delete store.temps.value[point.id];

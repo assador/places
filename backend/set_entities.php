@@ -1,36 +1,9 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set("display_errors", "1");
-
-/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
-set_exception_handler(function($e) {
-	header("Content-Type: application/json");
-	http_response_code(500);
-	echo $e->getMessage();
-	echo "\nfile: {$e->getFile()}";
-	echo "\nline: {$e->getLine()}";
-	exit;
-});
-*/
+ini_set("display_errors", "0");
 
 require_once __DIR__ . "/bootstrap.php";
-
-$raw = file_get_contents("php://input");
-$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-$binUserId = uuidToBin($data["userid"]);
-$binSessionId = uuidToBin($data["sessionid"]);
-$list = $data["data"] ?? [];
-
-$faults = [];
-/*
-1: wrong data,
-2: wrong session,
-3: test account,
-4: places limit,
-5: routes limit,
-6: folders limit
-*/
 
 // SEC Statements cache
 
@@ -257,9 +230,9 @@ function addPlace(AppContext $ctx, array $row, string $binUserId): void {
 	$stmt->execute([
 		":id"          => $binPlaceId,
 		":pointid"     => uuidToBin($row["pointid"]),
-		":name"        => $row["name"] ?? "",
-		":description" => $row["description"] ?? "",
-		":link"        => $row["link"] ?? "",
+		":name"        => $row["name"] ?? null,
+		":description" => $row["description"] ?? null,
+		":link"        => $row["link"] ?? null,
 		":time"        => $time,
 		":srt"         => (float) ($row["srt"] ?? 0),
 		":geomark"     => (int) ($row["geomark"] ?? 0),
@@ -320,9 +293,9 @@ function updatePlace(AppContext $ctx, array $row, string $binUserId): void {
 	}
 	$bindingArray += [
 		":id"          => $binPlaceId,
-		":name"        => $row["name"] ?? "",
-		":description" => $row["description"] ?? "",
-		":link"        => $row["link"] ?? "",
+		":name"        => $row["name"] ?? null,
+		":description" => $row["description"] ?? null,
+		":link"        => $row["link"] ?? null,
 		":time"        => $time,
 		":srt"         => (float) ($row["srt"] ?? 0),
 		":geomark"     => (int) ($row["geomark"] ?? 0),
@@ -382,12 +355,12 @@ function addRoute(AppContext $ctx, array $row, string $binUserId): void {
 	$stmtRoute->execute([
 		":id"          => $idBin,
 		":userid"      => $binUserId,
-		":name"        => $row["name"] ?? "",
-		":description" => $row["description"] ?? "",
+		":name"        => $row["name"] ?? null,
+		":description" => $row["description"] ?? null,
 		":folderid"    => $folderId,
 		":srt"         => (float) ($row["srt"] ?? 0),
 		":time"        => $time,
-		":link"        => $row["link"] ?? "",
+		":link"        => $row["link"] ?? null,
 		":geomarks"    => (int) ($row["geomarks"] ?? 0),
 		":common"      => (int) ($row["common"] ?? 0),
 	]);
@@ -436,12 +409,12 @@ function updateRoute(AppContext $ctx, array $row, string $binUserId): void {
 	";
 	$stmtRoute = getCachedStmt($ctx, "update_route", $sqlRoute);
 	$stmtRoute->execute([
-		":name"        => $row["name"] ?? "",
-		":description" => $row["description"] ?? "",
+		":name"        => $row["name"] ?? null,
+		":description" => $row["description"] ?? null,
 		":folderid"    => $folderId,
 		":srt"         => (int) ($row["srt"] ?? 0),
 		":time"        => $time,
-		":link"        => $row["link"] ?? "",
+		":link"        => $row["link"] ?? null,
 		":geomarks"    => (int) ($row["geomarks"] ?? 0),
 		":common"      => (int) ($row["common"] ?? 0),
 		":id"          => $idBin,
@@ -539,8 +512,8 @@ function addFolder(AppContext $ctx, array $row, string $binUserId): void {
 		":parent"      => uuidToBin($row["parent"]),
 		":userid"      => $binUserId,
 		":context"     => $row["context"] ?? "places",
-		":name"        => $row["name"] ?? "",
-		":description" => $row["description"] ?? "",
+		":name"        => $row["name"] ?? null,
+		":description" => $row["description"] ?? null,
 		":srt"         => (float) ($row["srt"] ?? 0),
 		":geomarks"    => (int) ($row["geomarks"] ?? 0),
 	]);
@@ -572,15 +545,29 @@ function updateFolder(AppContext $ctx, array $row, string $binUserId): void {
 	]);
 }
 
-// SEC Session check
-
-if (!isValidSession($ctx, $binUserId, $binSessionId)) {
-	throw new Exception("Invalid or expired session.");
-}
-
 // SEC Transaction
 
-try {
+apiRun($ctx, function () use ($ctx, $config) {
+	$raw = file_get_contents("php://input");
+	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+	$binUserId = uuidToBin($data["userid"]);
+	$binSessionId = uuidToBin($data["sessionid"]);
+	$list = $data["data"] ?? [];
+
+	$faults = [];
+	/*
+	4: places limit,
+	5: routes limit,
+	6: folders limit
+	*/
+
+	if (!isValidSession($ctx, $binUserId, $binSessionId)) {
+		throw new ApiException(401, "invalid_session");
+	}
+	if ($data["userid"] === $config["testaccountuuid"]) {
+		throw new ApiException(403, "test_account");
+	}
+
 	$ctx->db->beginTransaction();
 
 	$quotedBinUserId = $ctx->db->quote($binUserId);
@@ -709,16 +696,5 @@ try {
 	}
 
 	$ctx->db->commit();
-
-} catch (Throwable $e) {
-	error_log($e->getMessage());
-	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
-	if (!in_array(1, $faults, true)) $faults[] = 1;
-}
-
-header("Content-Type: application/json");
-echo json_encode(
-	$faults,
-	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK,
-);
-exit();
+	apiSuccess($faults);
+});

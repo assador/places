@@ -1,35 +1,11 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set("display_errors", "1");
-
-/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
-set_exception_handler(function($e) {
-	header("Content-Type: application/json");
-	http_response_code(500);
-	echo $e->getMessage();
-	echo "\nfile: {$e->getFile()}";
-	echo "\nline: {$e->getLine()}";
-	exit;
-});
-*/
+ini_set("display_errors", "0");
 
 require_once __DIR__ . "/bootstrap.php";
 
-$raw = file_get_contents("php://input");
-$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-$binUserId = uuidToBin($data["userid"]);
-$binSessionId = uuidToBin($data["sessionid"]);
-
-// SEC Check
-
-if (!isValidSession($ctx, $binUserId, $binSessionId)) {
-	throw new Exception("Invalid or expired session.");
-}
-
-function castSettingValue(?string $value, int $type)
-	: null|bool|float|int|string
-{
+function castSettingValue(?string $value, int $type): null|bool|float|int|string {
 	if ($value === null) return null;
 	return match ($type) {
 		0 => null,
@@ -40,12 +16,17 @@ function castSettingValue(?string $value, int $type)
 	};
 }
 
-$settings = [];
+apiRun($ctx, function () use ($ctx) {
+	$raw = file_get_contents("php://input");
+	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+	$binUserId = uuidToBin($data["userid"]);
+	$binSessionId = uuidToBin($data["sessionid"]);
 
-// SEC Transaction
+	if (!isValidSession($ctx, $binUserId, $binSessionId)) {
+		throw new ApiException(401, "invalid_session");
+	}
 
-try {
-	$ctx->db->beginTransaction();
+	$result = [];
 
 	$stmt = $ctx->db->query("
 		SELECT `id`, `groupid`, `type`, `baseval`, `name`, `description`, `srt`
@@ -104,7 +85,7 @@ try {
 				$enumList[] = $enumItem;
 			}
 		}
-		$settings[(string) $id] = [
+		$result[(string) $id] = [
 			"valtype" => $type,
 			"baseval" => $baseval,
 			"folderid" => (string) $item["groupid"],
@@ -122,15 +103,5 @@ try {
 		;
 	}
 
-	$ctx->db->commit();
-
-} catch (Throwable $e) {
-	error_log($e->getMessage());
-	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
-}
-
-header("Content-Type: application/json");
-echo json_encode(
-	$settings,
-	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-);
+	apiSuccess($result);
+});

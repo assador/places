@@ -980,7 +980,7 @@ const selectPlaces = (text?: string | null): void => {
 	for (const id in mainStore.places) {
 		if (!Object.hasOwn(mainStore.places, id)) continue;
 		if (!text) { mainStore.places[id].show = true; continue; }
-		if (regexp.test(mainStore.places[id].name)) {
+		if (mainStore.places[id].name && regexp.test(mainStore.places[id].name)) {
 			mainStore.places[id].show = true;
 		} else {
 			mainStore.places[id].show = false;

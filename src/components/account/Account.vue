@@ -140,7 +140,8 @@ import { useRouter } from 'vue-router';
 import { useMainStore } from '@/stores/main';
 import { Account } from '@/types';
 import { isAccount } from '@/guards';
-import { accountSaveRoutine } from '@/shared/account';
+import { accountSaveRoutine } from '@/services/account';
+import { ennobleError } from '@/shared/response';
 import Header from '@/components/Header.vue';
 import Messages from '@/components/Messages.vue';
 
@@ -160,11 +161,16 @@ const close = (event?: Event): void => {
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
 }
-const accountSubmit = (): void => {
-	if (isAccount(account.value)) {
-		accountSaveRoutine(account.value);
-	} else {
-		mainStore.setMessage(mainStore.t.m.paged.incorrectFields, 3);
+const accountSubmit = async (): Promise<void> => {
+	if (!isAccount(account.value)) {
+		mainStore.setMessage(mainStore.t.m.errors.other.incorrectFields, 3);
+		return;
+	}
+	try {
+		await accountSaveRoutine(account.value);
+		mainStore.setMessage(mainStore.t.m.response.success.ok);
+	} catch (error) {
+		mainStore.setMessage(ennobleError(error));
 	}
 };
 </script>

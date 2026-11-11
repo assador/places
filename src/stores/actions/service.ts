@@ -25,7 +25,7 @@ async function fetchAltitude(
 	parseFn: (data: unknown) => number | null,
 ) {
 	try {
-		const { data } = await api.get(url, { silent: true });
+		const data = await api.get(url, { silent: true });
 		return parseFn(data);
 	} catch {
 		return null;

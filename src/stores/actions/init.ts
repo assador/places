@@ -23,23 +23,20 @@ import {
 	initPointFactory,
 	initRouteFactory,
 } from '@/stores/actions/entity';
+import { normalizeOptionalStringFields } from '@/shared/common';
 
 export function useActionsInit(
 	store: StoreMain,
 ): ActionsInit {
 
-	const toSafeString = (value: unknown): string | undefined => {
-		if (value === undefined || value === null) return undefined;
-		if (typeof value === 'string') return value;
-		return String(value);
-	};
 	const reset = (): void => {
 		store.$resetToDefault();
 	};
 	const unload = (): void => {
 		store.refreshing.value = true;
 		reset();
-		localStorage.clear();
+		localStorage.removeItem('places-useruuid');
+		localStorage.removeItem('places-session');
 	};
 	const takeAwayFromBuffer = async (): Promise<void> => {
 		if (!store.user.value || store.user.value.testaccount) return;
@@ -114,8 +111,7 @@ export function useActionsInit(
 		for (const id in folders) {
 			if (!Object.hasOwn(folders, id)) continue;
 			const folder = folders[id];
-			if ('name' in folder) folder.name = toSafeString(folder.name) ?? '';
-			if ('description' in folder) folder.description = toSafeString(folder.description);
+			normalizeOptionalStringFields(folder, ['name', 'description']);
 			folder.type = 'folder';
 			folder.added = added;
 			folder.deleted = deleted;
@@ -136,8 +132,7 @@ export function useActionsInit(
 		for (const id in places) {
 			if (!Object.hasOwn(places, id)) continue;
 			const place = places[id];
-			if ('name' in place) place.name = toSafeString(place.name) ?? '';
-			if ('description' in place) place.description = toSafeString(place.description);
+			normalizeOptionalStringFields(place, ['name', 'description', 'link']);
 			place.type = 'place';
 			place.added = added;
 			place.deleted = deleted;
@@ -150,12 +145,10 @@ export function useActionsInit(
 		for (const id in routes) {
 			if (!Object.hasOwn(routes, id)) continue;
 			const route = routes[id];
-			if ('name' in route) route.name = toSafeString(route.name) ?? '';
-			if ('description' in route) route.description = toSafeString(route.description);
-			if ('points' in route && Array.isArray(route.points)) {
+			normalizeOptionalStringFields(route, ['name', 'description', 'link']);
+			if (Object.hasOwn(route, 'points') && Array.isArray(route.points)) {
 				for (const pd of route.points) {
-					if ('name' in pd) pd.name = toSafeString(pd.name) ?? '';
-					if ('description' in pd) pd.description = toSafeString(pd.description);
+					normalizeOptionalStringFields(pd, ['name', 'description']);
 				}
 			}
 			route.type = 'route';
@@ -170,15 +163,14 @@ export function useActionsInit(
 	};
 	const setServerConfig = async (): Promise<void> => {
 		try {
-			const { data } = await api.post(`get_config.php`, {
+			const data = await api.post(`get_config.php`, {
 				userid: localStorage.getItem('places-useruuid'),
 				sessionid: localStorage.getItem('places-session'),
 			});
 			store.serverConfig.value = data;
 		} catch (error) {
-			console.error(error);
-			store.setMessage(store.t.value.m.popup.cannotGetData);
 			store.serverConfig.value = null;
+			throw error;
 		}
 	};
 	const setUser = async (): Promise<void> => {
@@ -196,7 +188,7 @@ export function useActionsInit(
 			return undefined;
 		};
 		try {
-			const { data } = await api.post(`get_account.php`, {
+			const data = await api.post(`get_account.php`, {
 				userid: localStorage.getItem('places-useruuid'),
 				sessionid: localStorage.getItem('places-session'),
 			});
@@ -207,9 +199,8 @@ export function useActionsInit(
 			);
 			store.user.value = data;
 		} catch (error) {
-			console.error(error);
-			store.setMessage(store.t.value.m.popup.cannotGetData);
 			store.user.value = null;
+			throw error;
 		}
 	};
 	const setEntities = async (): Promise<void> => {
@@ -235,7 +226,7 @@ export function useActionsInit(
 		if (!uuid) return;
 
 		try {
-			const { data } = await api.post(`get_entities.php`, {
+			const data = await api.post(`get_entities.php`, {
 				userid: localStorage.getItem('places-useruuid'),
 				sessionid: localStorage.getItem('places-session'),
 			});
@@ -249,8 +240,7 @@ export function useActionsInit(
 			store.setFirstCurrentRoute();
 			store.setFirstCurrentPlace();
 		} catch (error) {
-			console.error(error);
-			store.setMessage(store.t.value.m.popup.cannotGetDataFromDb);
+			store.setMessage(store.t.value.m.errors.other.cannotGetDataFromDb);
 			await entitiesReady({
 				folders: {},
 				points: {},
@@ -259,6 +249,7 @@ export function useActionsInit(
 				commonPlaces: {},
 				commonRoutes: {},
 			});
+			throw error;
 		}
 	};
 

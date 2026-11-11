@@ -102,7 +102,7 @@ export function useActionsSettings(
 	const setSettingsGroups = async (): Promise<void> => {
 		clearSettingsGroups();
 		try {
-			const { data } = await api.get('get_settings_groups.php');
+			const data = await api.get('get_settings_groups.php');
 			if (Array.isArray(data)) {
 				const groups: Record<string, Folder> = {};
 				const createFolder = initFolderFactory(() => store.user.value?.id ?? null);
@@ -117,9 +117,9 @@ export function useActionsSettings(
 				Object.assign(store.settings.value.groups, groups);
 			}
 		} catch (error) {
-			console.error(error);
-			store.setMessage(store.t.value.m.popup.cannotGetData);
+			store.setMessage(store.t.value.m.errors.other.cannotGetData);
 			clearSettingsGroups();
+			throw error;
 		}
 	};
 	const setUserSettings = async (): Promise<void> => {
@@ -128,7 +128,7 @@ export function useActionsSettings(
 		if (!userid) return;
 		clearUserSettings();
 		try {
-			const { data } = await api.post(
+			const data = await api.post(
 				`get_settings_users.php`,
 				{ userid, sessionid },
 			);
@@ -137,9 +137,9 @@ export function useActionsSettings(
 				Object.assign(store.settings.value.user, settings);
 			}
 		} catch (error) {
-			console.error(error);
-			store.setMessage(store.t.value.m.popup.cannotGetData);
+			store.setMessage(store.t.value.m.errors.other.cannotGetData);
 			clearUserSettings();
+			throw error;
 		}
 	};
 
@@ -190,14 +190,14 @@ export function useActionsSettingsAdmin(
 		if (!userid) return;
 		clearUserSettingsVoc();
 		try {
-			const { data } = await api.get('get_settings_users_voc.php?id=' + userid);
+			const data = await api.get('get_settings_users_voc.php?id=' + userid);
 			if (data) {
 				const voc = combUserSettingsVoc(data);
 				Object.assign(store.settings.value.usersvoc, voc);
 			}
 		} catch (error) {
-			console.error(error);
 			clearUserSettingsVoc();
+			throw error;
 		}
 	};
 

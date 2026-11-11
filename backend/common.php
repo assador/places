@@ -1,9 +1,10 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set("display_errors", "0");
 
-function isValidSession(AppContext $ctx, string $binUserId, string $binSessionId): bool {
+function isValidSession(AppContext $ctx, ?string $binUserId, ?string $binSessionId): bool {
+	if (empty($binUserId) || empty($binSessionId)) return false;
 	$stmt = $ctx->db->prepare("
 		SELECT 1 FROM `sessions`
 		WHERE `id` = :sessionid AND `userid` = :userid
@@ -15,12 +16,40 @@ function isValidSession(AppContext $ctx, string $binUserId, string $binSessionId
 	if (!$stmt->fetch()) return false;
 	return true;
 }
-function testAccountCheck(AppContext $ctx, string $testaccountuuid, string $uuid) {
-	$query = $ctx->db->prepare("SELECT id FROM users WHERE id = :id");
-	$query->bindValue(':id', uuidToBin($uuid), PDO::PARAM_LOB);
-	$query->execute();
-	$result = $query->fetch(PDO::FETCH_ASSOC);
-	return (!!$result && $result["id"] === uuidToBin($testaccountuuid) ? true : false);
+function userGroupsSatisfyConditions(AppContext $ctx, string $binUserId, array $conds): bool {
+	if (empty($binUserId) || empty($conds)) return false;
+
+	$sql = "
+		SELECT `id`, `parent` FROM `groups`
+		WHERE `id` IN (
+			SELECT `group` FROM `usergroup`
+			WHERE `user` = :user_id
+		)
+	";
+	$params = [":user_id" => $binUserId];
+
+	$paramIndex = 0; 
+	$sqlBlocks = [];
+
+	foreach ($conds as $group) {
+		if (!is_array($group) || empty($group)) continue;
+
+		$groupSqlParts = [];
+		foreach ($group as $key => $val) {
+			if (!is_string($val) && !is_bool($val)) continue; 
+			$placeholder = ":" . $key . "_" . $paramIndex++;
+			$groupSqlParts[] = "`$key` = $placeholder";
+			$params[$placeholder] = is_bool($val) ? (int)$val : $val;
+		}
+		if (!empty($groupSqlParts)) {
+			$sqlBlocks[] = "(" . implode(" OR ", $groupSqlParts) . ")";
+		}
+	}
+	if (!empty($sqlBlocks)) $sql .= " AND " . implode(" AND ", $sqlBlocks);
+
+	$stmt = $ctx->db->prepare($sql);
+	$stmt->execute($params);
+	return (bool) $stmt->fetch();
 }
 function passwordHashCheck(AppContext $ctx, string $id, string $password): bool {
 	$query = $ctx->db->prepare("SELECT `password` FROM `users` WHERE `id` = :id LIMIT 1");
@@ -29,6 +58,13 @@ function passwordHashCheck(AppContext $ctx, string $id, string $password): bool 
 	$result = $query->fetch(PDO::FETCH_ASSOC);
 	if (!$result) return false;
 	return password_verify($password, $result["password"]);
+}
+function optionalizeStringFields(array &$rec, array $keys): void {
+	foreach ($keys as $key) {
+		if (!is_string($rec[$key] ?? null)) {
+			unset($rec[$key]);
+		}
+	}
 }
 function generateRandomString($length = 32) {
 	$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -55,7 +91,8 @@ function isUuid(string $uuid): bool {
 }
 function uuidToBin(?string $uuid): ?string {
 	if (
-		!is_string($uuid) || !preg_match(
+		!is_string($uuid) ||
+		!preg_match(
 			'/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
 			$uuid
 		)
@@ -75,7 +112,8 @@ function binToUuid(?string $bin): ?string {
 		substr($hex, 8, 4) . '-' .
 		substr($hex, 12, 4) . '-' .
 		substr($hex, 16, 4) . '-' .
-		substr($hex, 20, 12);
+		substr($hex, 20, 12)
+	;
 }
 function createSession(AppContext $ctx, string $userIdBin, array $payload = []): string {
 	/*

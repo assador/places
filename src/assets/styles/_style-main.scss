@@ -249,9 +249,6 @@ $filter-brightness-03: brightness(0%);
 	.border_1,
 	td, th,
 	table.border_1 > * > tr > :is(td, th),
-	.auth-login {
-		border: 1px solid var(--color-12);
-	}
 	.border_2,
 	.pre, pre, .drag-clone,
 	.block_01, .block_02, .block_03, .block_04, .block_05, .block_11 {

@@ -116,7 +116,8 @@
 import { ref, onMounted, onBeforeUpdate } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
-import { accountDeletionRoutine } from '@/shared/account';
+import { accountDeletionRoutine } from '@/services/account';
+import { ennobleError } from '@/shared/response';
 
 const mainStore = useMainStore();
 const router = useRouter();
@@ -135,19 +136,24 @@ onBeforeUpdate(() => {
 const close = (): void => {
 	router.back();
 };
-const accountDeletionSubmit = async () => {
+const accountDeletionSubmit = async (): Promise<void> => {
 	if (!mainStore.user) return;
 	if (mainStore.user.testaccount) {
-		mainStore.setMessage(mainStore.t.m.paged.taCannotBeDeleted, 3);
+		mainStore.setMessage(mainStore.t.m.errors.authreg.taCannotBeDeleted, 3);
 		return;
 	}
-	accountDeletionRoutine(
-		mainStore.user.id,
-		leavePlaces.value,
-		leaveImages.value,
-	);
-	mainStore.unload();
-	router.push({ name: 'Auth' });
+	try {
+		await accountDeletionRoutine(
+			mainStore.user.id,
+			leavePlaces.value,
+			leaveImages.value,
+		);
+		mainStore.unload();
+		mainStore.setMessage(mainStore.t.m.response.success.ok);
+		router.push({ name: 'Auth' });
+	} catch (error) {
+		mainStore.setMessage(ennobleError(error));
+	}
 };
 const accountDeletionConditionsChange = (event: Event): void => {
 	switch ((event.currentTarget as Element).id) {

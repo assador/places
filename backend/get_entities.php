@@ -1,35 +1,38 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set("display_errors", "1");
-
-/* “Let there be light!” the beaver said. Debug with smile, that’s what we get.
-set_exception_handler(function($e) {
-	header("Content-Type: application/json");
-	http_response_code(500);
-	echo $e->getMessage();
-	echo "\nfile: {$e->getFile()}";
-	echo "\nline: {$e->getLine()}";
-	exit;
-});
-*/
+ini_set("display_errors", "0");
 
 require_once __DIR__ . "/bootstrap.php";
-
-$raw = file_get_contents("php://input");
-$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-$binUserId = uuidToBin($data["userid"]);
-$binSessionId = uuidToBin($data["sessionid"]);
-
-// SEC Check
-
-if (!isValidSession($ctx, $binUserId, $binSessionId)) {
-	throw new Exception("Invalid or expired session.");
-}
 
 // SEC Points
 
 function getPoints(AppContext $ctx, string $binUserId): array {
+	// Without common, for a while
+	$stmt = $ctx->db->prepare("
+	SELECT DISTINCT
+		pt.id,
+		pt.latitude,
+		pt.longitude,
+		pt.altitude
+	FROM points pt
+	WHERE
+		EXISTS (
+			SELECT 1
+			FROM places pl
+			WHERE pl.pointid = pt.id
+				AND (pl.userid = :uid)
+		)
+		OR
+		EXISTS (
+			SELECT 1
+			FROM pointroute ptk
+			JOIN routes rt ON rt.id = ptk.routeid
+			WHERE ptk.pointid = pt.id
+				AND (rt.userid = :uid)
+		);
+	");
+/*
 	$stmt = $ctx->db->prepare("
 	SELECT DISTINCT
 		pt.id,
@@ -53,12 +56,12 @@ function getPoints(AppContext $ctx, string $binUserId): array {
 				AND (rt.userid = :uid OR rt.common = 1)
 		);
 	");
+*/
 	$stmt->bindValue(":uid", $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
-	$points_bin = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 	$points = [];
-	foreach ($points_bin as $idx => $row) {
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 		$row["id"] = binToUuid($row["id"]);
 		$points[$row["id"]] = $row;
 	}
@@ -68,6 +71,28 @@ function getPoints(AppContext $ctx, string $binUserId): array {
 // SEC Images
 
 function getImages(AppContext $ctx, string $binUserId): array {
+	// Without common, for a while
+	$stmt = $ctx->db->prepare("
+		SELECT i.*
+		FROM images i
+		WHERE i.committed = 1
+		AND (
+			EXISTS (
+				SELECT 1
+				FROM places p
+				WHERE p.id = i.placeid
+					AND (p.userid = :uid)
+			)
+			OR
+			EXISTS (
+				SELECT 1
+				FROM routes r
+				WHERE r.id = i.routeid
+					AND (r.userid = :uid)
+			)
+		)
+	");
+/*
 	$stmt = $ctx->db->prepare("
 		SELECT i.*
 		FROM images i
@@ -88,6 +113,7 @@ function getImages(AppContext $ctx, string $binUserId): array {
 			)
 		)
 	");
+*/
 	$stmt->bindValue(':uid', $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 
@@ -104,11 +130,19 @@ function getImages(AppContext $ctx, string $binUserId): array {
 // SEC Places
 
 function getPlaces(AppContext $ctx, string $binUserId): array {
+	// Without common, for a while
+	$stmt = $ctx->db->prepare("
+		SELECT p.*
+		FROM places p
+		WHERE p.userid = :uid
+	");
+/*
 	$stmt = $ctx->db->prepare("
 		SELECT p.*
 		FROM places p
 		WHERE p.userid = :uid OR p.common = 1
 	");
+*/
 	$stmt->bindValue(':uid', $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 
@@ -127,6 +161,7 @@ function getPlaces(AppContext $ctx, string $binUserId): array {
 		} else {
 			unset($row["time"]);
 		}
+		optionalizeStringFields($row, ['name', 'description', 'link']);
 		if ($row["userid"] === $userid) {
 			$places["places"][$row["id"]] = $row;
 		} elseif ($row["common"] == 1) {
@@ -139,11 +174,19 @@ function getPlaces(AppContext $ctx, string $binUserId): array {
 // SEC Routes
 
 function getRoutes(AppContext $ctx, string $binUserId): array {
+	// Without common, for a while
+	$stmt = $ctx->db->prepare("
+		SELECT r.*
+		FROM routes r
+		WHERE r.userid = :uid
+	");
+/*
 	$stmt = $ctx->db->prepare("
 		SELECT r.*
 		FROM routes r
 		WHERE r.userid = :uid OR r.common = 1
 	");
+*/
 	$stmt->bindValue(':uid', $binUserId, PDO::PARAM_LOB);
 	$stmt->execute();
 
@@ -161,6 +204,7 @@ function getRoutes(AppContext $ctx, string $binUserId): array {
 		} else {
 			unset($row["time"]);
 		}
+		optionalizeStringFields($row, ['name', 'description']);
 		if ($row["userid"] === $userid) {
 			$routes["routes"][$row["id"]] = $row;
 		} elseif ($row["common"] == 1) {
@@ -185,14 +229,13 @@ function getRoutes(AppContext $ctx, string $binUserId): array {
 	foreach ($all($routes["routes"], $routes["commonRoutes"]) as &$row) {
 		$routePointsStmt->bindValue(":routeid", uuidToBin($row["id"]), PDO::PARAM_LOB);
 		$routePointsStmt->execute();
-		$pointRows = $routePointsStmt->fetchAll(PDO::FETCH_ASSOC);
 		$points = [];
-		foreach ($pointRows as $pointRow) {
-			$points[] = [
-				"id"          => binToUuid($pointRow["pointid"]),
-				"name"        => $pointRow["name"] ?? "",
-				"description" => $pointRow["description"] ?? "",
-			];
+		while ($pointRow = $routePointsStmt->fetch(PDO::FETCH_ASSOC)) {
+			$point = ["id" => binToUuid($pointRow["pointid"])];
+			foreach (["name", "description"] as $key) {
+				if ($pointRow[$key] !== null) $point[$key] = $pointRow[$key];
+			}
+			$points[] = $point;
 		}
 		$row["points"] = $points;
 	}
@@ -210,22 +253,27 @@ function getFolders(AppContext $ctx, string $binUserId): array {
 	$stmt->execute();
 
 	$folders = [];
-	foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 		$row["id"] = binToUuid($row["id"]);
 		$row["parent"] = binToUuid($row["parent"]);
 		$row["userid"] = binToUuid($row["userid"]);
+		optionalizeStringFields($row, ['name', 'description']);
 		$folders[$row["id"]] = $row;
 	}
 	return $folders;
 }
 
-$images = [];
-$places = [];
-$routes = [];
+apiRun($ctx, function () use ($ctx) {
+	$raw = file_get_contents("php://input");
+	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+	$binUserId = uuidToBin($data["userid"]);
+	$binSessionId = uuidToBin($data["sessionid"]);
 
-// SEC Transaction
+	if (!isValidSession($ctx, $binUserId, $binSessionId)) {
+		throw new ApiException(401, "invalid_session");
+	}
 
-try {
+	// Read a consistent snapshot for the whole entity tree.
 	$ctx->db->beginTransaction();
 
 	$images = getImages($ctx, $binUserId);
@@ -251,22 +299,17 @@ try {
 		}
 	}
 
+	$folders = getFolders($ctx, $binUserId);
+	$points = getPoints($ctx, $binUserId);
+
 	$ctx->db->commit();
 
-} catch (Throwable $e) {
-	error_log($e->getMessage());
-	if ($ctx->db->inTransaction()) $ctx->db->rollBack();
-}
-
-header("Content-Type: application/json");
-echo json_encode(
-	[
-		"folders"      => getFolders($ctx, $binUserId),
-		"points"       => getPoints($ctx, $binUserId),
+	apiSuccess([
 		"places"       => $places["places"],
 		"routes"       => $routes["routes"],
 		"commonPlaces" => $places["commonPlaces"],
 		"commonRoutes" => $routes["commonRoutes"],
-	],
-	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
-);
+		"folders"      => $folders,
+		"points"       => $points,
+	], JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+});

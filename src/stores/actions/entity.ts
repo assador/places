@@ -49,10 +49,7 @@ function _defaultPlace(userId: string | null): Place {
 		id: crypto.randomUUID(),
 		userid: userId,
 		folderid: null,
-		name: '',
-		description: '',
 		pointid: '',
-		link: '',
 		time: new Date().getTime(),
 		images: {},
 		srt: 10,
@@ -72,9 +69,6 @@ function _defaultRoute(userId: string | null): Route {
 		userid: userId,
 		folderid: null,
 		points: [],
-		name: '',
-		description: '',
-		link: '',
 		time: new Date().getTime(),
 		images: {},
 		srt: 10,
@@ -94,8 +88,6 @@ function _defaultFolder(userId: string | null): Folder {
 		userid: userId,
 		parent: null,
 		context: 'places',
-		name: '',
-		description: '',
 		srt: 10,
 		geomarks: 1,
 		common: false,
@@ -671,7 +663,7 @@ export function useActionsEntity(
 			}
 			geoLocation.centerTo(location);
 			return { id: id, of: of };
-		} catch (error: unknown) {
+		} catch (error) {
 			console.error(error);
 			store.setMessage(store.t.value.m.errors.other.other, 5);
 			return null;
