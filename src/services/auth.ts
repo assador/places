@@ -34,8 +34,6 @@ export const logged = async (): Promise<void> => {
 	await mainStore.setUserSettings();
 	await mainStore.setEntities();
 	mainStore.ready = true;
-	mainStore.openTreeToCurrent(mainStore.currentPlace);
-	mainStore.openTreeToCurrent(mainStore.currentRoute);
 	ping.init();
 	buffer.init();
 };

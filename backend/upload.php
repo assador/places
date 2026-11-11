@@ -21,6 +21,10 @@ apiRun($ctx, function () use ($ctx, $config) {
 
 	$files = [];
 	$faults = [];
+	/*
+	3: Unsupported MIME type
+	4: File size exceeded
+	*/
 	$writtenFiles = [];
 
 	$finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -124,7 +128,7 @@ apiRun($ctx, function () use ($ctx, $config) {
 
 				else {
 					$imagick = new Imagick($file["tmp_name"]);
-					
+
 					if (
 						$imagick->getImageWidth() > $config["images"]["big"]["width"] ||
 						$imagick->getImageHeight() > $config["images"]["big"]["height"]
@@ -139,7 +143,7 @@ apiRun($ctx, function () use ($ctx, $config) {
 						$size = strlen($imagick->getImageBlob());
 						$wasResized = true;
 					}
-					
+
 					if ($acceptsize >= 0 && $size > $acceptsize) {
 						if (!in_array(4, $faults, true)) $faults[] = 4;
 						continue;
@@ -153,9 +157,9 @@ apiRun($ctx, function () use ($ctx, $config) {
 							throw new RuntimeException("Failed to write big image");
 						}
 					}
-					
+
 					$writtenFiles[] = $pathBig;
-					
+
 					$imagick->resizeImage(
 						$config["images"]["small"]["width"],
 						$config["images"]["small"]["height"],
@@ -163,11 +167,11 @@ apiRun($ctx, function () use ($ctx, $config) {
 						1,
 						true
 					);
-					
+
 					if (!$imagick->writeImage($pathSmall)) {
 						throw new RuntimeException("Failed to write small image");
 					}
-					
+
 					$writtenFiles[] = $pathSmall;
 				}
 

@@ -758,6 +758,8 @@ onMounted(async () => {
 	document.addEventListener('keyup', keyup, false);
 	window.addEventListener('resize', windowResize, false);
 	setBusy(false);
+	mainStore.openTreeToCurrent(mainStore.currentPlace);
+	mainStore.openTreeToCurrent(mainStore.currentRoute);
 	if (mainStore.first) {
 		mainStore.first = false;
 		mainStore.backupState();

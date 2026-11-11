@@ -32,21 +32,6 @@ interface UploadedFile {
 	size: number;
 	type: string;
 }
-const isValidUploadResponse = (data: unknown): data is [number[], UploadedFile[]] => {
-	return (
-		Array.isArray(data) &&
-		data.length === 2 &&
-		Array.isArray(data[0]) &&
-		Array.isArray(data[1]) &&
-		data[1].every(f =>
-			f && typeof f === 'object' &&
-			'id' in f && typeof f.id === 'string' &&
-			'file' in f && typeof f.file === 'string' &&
-			'size' in f && typeof f.size === 'number' &&
-			'type' in f && typeof f.type === 'string'
-		)
-	);
-};
 
 const uploadImages = async (payload: EntityCollection): Promise<void> => {
 	const mainStore = useMainStore();
@@ -78,78 +63,63 @@ const uploadImages = async (payload: EntityCollection): Promise<void> => {
 	collectFromEntities(payload.routes);
 	if (!pendingImages.length) return;
 
-	try {
-		const formData = new FormData();
-		pendingImages.forEach(p => formData.append(p.id, p.raw));
-		formData.append('userid', userid);
-		formData.append('sessionid', sessionid);
+	const formData = new FormData();
+	pendingImages.forEach(p => formData.append(p.id, p.raw));
+	formData.append('userid', userid);
+	formData.append('sessionid', sessionid);
 
-		const data = await api.post('upload.php', formData, { silent: true });
-		if (!isValidUploadResponse(data)) {
-			throw new Error(
-				typeof data === 'string'
-					? data
-					: mainStore.t.m.response.errorsServer.internalError,
-			);
-		}
-		const [errorCodes, uploadedFiles] = data;
+	const [errorCodes, uploadedFiles] = await api.post('upload.php', formData, { silent: true });
 
-		errorCodes.forEach((code: number) => {
-			switch (code) {
-				case 2:
-					mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
-					break;
-				case 3:
-					mainStore.setMessage(mainStore.t.m.popup.filesNotImages, 3);
-					break;
-				case 4: {
-					const limitBytes = Number(mainStore.serverConfig?.rights?.photosize);
-					if (limitBytes > 0) {
-						const maxMb = (limitBytes / 1048576).toFixed(3);
-						mainStore.setMessage(
-							`${mainStore.t.m.popup.filesTooLarge} ${maxMb} Mb.`, 3
-						);
-					} else {
-						mainStore.setMessage(
-							mainStore.t.m.popup.filesTooLarge + '\n' +
-							mainStore.t.m.errors.server.maxLimit
-						, 3);
-					}
-					break;
+	errorCodes.forEach((code: number) => {
+		switch (code) {
+			case 2:
+				mainStore.setMessage(mainStore.t.m.popup.taNotAllowFileUploads, 3);
+				break;
+			case 3:
+				mainStore.setMessage(mainStore.t.m.popup.filesNotImages, 3);
+				break;
+			case 4: {
+				const limitBytes = Number(mainStore.serverConfig?.rights?.photosize);
+				if (limitBytes > 0) {
+					const maxMb = (limitBytes / 1048576).toFixed(3);
+					mainStore.setMessage(
+						`${mainStore.t.m.popup.filesTooLarge} ${maxMb} Mb.`, 3
+					);
+				} else {
+					mainStore.setMessage(
+						mainStore.t.m.popup.filesTooLarge + '\n' +
+						mainStore.t.m.errors.server.maxLimit
+					, 3);
 				}
+				break;
+			}
+		}
+	});
+	if (uploadedFiles.length) {
+		const serverFilesMap = Object.fromEntries(
+			uploadedFiles.map((f: UploadedFile) => [f.id, f]),
+		);
+		pendingImages.forEach(pi => {
+			const serverFile = serverFilesMap[pi.id];
+			if (!serverFile || !isImageableEntity(pi.entity)) return;
+
+			if (pi.entity.id && pi.entity?.images?.[pi.id]) {
+				const context = pi.entity.type + 's';
+				if (!isImageableContext(context)) return;
+
+				const entity = mainStore[context][pi.entity.id];
+				if (!entity) return;
+
+				const image = pi.entity.images[pi.id];
+				delete image.new;
+				delete image.raw;
+
+				Object.assign(image, serverFile);
+				if (!isImage(image)) return;
+
+				mainStore.upsertImage({ image, entity });
 			}
 		});
-		if (uploadedFiles.length) {
-			const serverFilesMap = Object.fromEntries(
-				uploadedFiles.map(f => [f.id, f]),
-			);
-			pendingImages.forEach(pi => {
-				const serverFile = serverFilesMap[pi.id];
-				if (!serverFile || !isImageableEntity(pi.entity)) return;
-
-				if (pi.entity.id && pi.entity?.images?.[pi.id]) {
-					const context = pi.entity.type + 's';
-					if (!isImageableContext(context)) return;
-
-					const entity = mainStore[context][pi.entity.id];
-					if (!entity) return;
-
-					const image = pi.entity.images[pi.id];
-					delete image.new;
-					delete image.raw;
-
-					Object.assign(image, serverFile);
-					if (!isImage(image)) return;
-
-					mainStore.upsertImage({ image, entity });
-				}
-			});
-		}
-	} catch (error) {
-		mainStore.setMessage(
-			`${mainStore.t.m.popup.filesUploadError} ${error}`,
-		);
-		throw error;
 	}
 };
 

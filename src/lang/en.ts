@@ -286,8 +286,8 @@ export const getT = () => ({
 		popup: {
 			file: 'File',
 			fileNotImage: 'is not an image and will not be uploaded.',
-			filesNotImages: 'Some files are not images and have not been uploaded.',
-			filesTooLarge: `Some files are too large and have not been uploaded.`,
+			filesNotImages: 'Some files are of an unsupported type and were not uploaded.',
+			filesTooLarge: `Some files are too large and were not uploaded.`,
 			filesUploadedSuccessfully: 'Files was uploaded successfully.',
 			filesUploadError: 'An error has occurred when uploading files.',
 			fileTooLarge: 'is too large and will not be uploaded.',
@@ -299,7 +299,7 @@ export const getT = () => ({
 			pointsCountExceeded: 'The maximum number of points allowed for your current role has been exceeded.',
 			routesCountExceeded: 'The maximum number of routes allowed for your current role has been exceeded.',
 			savedToDb: 'Changes have been saved to the database.',
-			taNotAllowFileUploads: 'The test account does not allow file uploads.',
+			taNotAllowFileUploads: 'The demo account does not allow file uploads.',
 			testAccount: `This is a demo account — feel free to try everything.
 Your data is temporary and will be cleared when you log out.`,
 			testOnSave: `Saved locally only (demo mode).
@@ -311,8 +311,8 @@ Your data won’t be saved to your account and will be cleared when you log o
 				loginTaken: 'This account is taken, please choose another one.',
 				passwordsNotMatch: 'The passwords you entered do not match.',
 				regError: 'An error occurred while registering.',
-				taCannotBeChanged: 'You are logged in with a test account that cannot be changed.',
-				taCannotBeDeleted: 'You are logged in with a test account that cannot be deleted.',
+				taCannotBeChanged: 'You are logged in with a demo account that cannot be changed.',
+				taCannotBeDeleted: 'You are logged in with a demo account that cannot be deleted.',
 				wrongLoginPassword: 'Wrong login or password.',
 			},
 			geo: {
@@ -351,6 +351,7 @@ Your data won’t be saved to your account and will be cleared when you log o
 				insufficientPermissions: 'You do not have the necessary permissions to perform this action.',
 				invalidRequest: 'Invalid request to the server.',
 				nothingToDo: 'There’s nothing for me to do here. If you’re bored, we could just talk…',
+				testAccount: 'This action is not available for a demo account.',
 				userDataConflict: 'The account details are incorrect.',
 				wrongAccount: 'The account details are incorrect.',
 			},
