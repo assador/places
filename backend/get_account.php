@@ -31,6 +31,8 @@ apiRun($ctx, function () use ($ctx, $config) {
 	$result["homeplace"] = binToUuid($result["homeplace"]);
 	$result["confirmed"] = (bool) $result["confirmed"];
 	$result["testaccount"] = (bool) $result["id"] === $config["testaccountuuid"];
+	if ($result["name"] === null) unset($result["name"]);
+	if ($result["phone"] === null) unset($result["phone"]);
 	$result["groups"] = [];
 
 	$stmt = $ctx->db->prepare("

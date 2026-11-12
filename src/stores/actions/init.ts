@@ -1,4 +1,5 @@
 import api from '@/api';
+import { ApiError } from '@/api';
 import { buffer } from '@/services/buffer';
 import { StoreMain, ActionsInit } from '@/stores/types';
 import {
@@ -174,8 +175,8 @@ export function useActionsInit(
 		}
 	};
 	const setUser = async (): Promise<void> => {
-		const sanitizeUserData = (raw: any): User | undefined => {
-			if (!raw || typeof raw !== 'object' && Array.isArray(raw)) return undefined;
+		const sanitizeUserData = (raw: unknown): User | null => {
+			if (!isRecord(raw)) return null;
 			const sntzd: Record<string, unknown> = {
 				...raw,
 				confirmed: raw.confirmed == 1 || raw.confirmed === true,
@@ -184,8 +185,10 @@ export function useActionsInit(
 				deleted: false,
 				updated: false,
 			};
+			if (sntzd.name === null) delete sntzd.name;
+			if (sntzd.phone === null) delete sntzd.phone;
 			if (isUser(sntzd)) return sntzd;
-			return undefined;
+			return null;
 		};
 		try {
 			const data = await api.post(`get_account.php`, {
@@ -193,18 +196,15 @@ export function useActionsInit(
 				sessionid: localStorage.getItem('places-session'),
 			});
 			const user = sanitizeUserData(data);
-			if (!user) throw new Error(
-				store.t.value.m.errors.server.invalidResponseUser + ': ' +
-				JSON.stringify(data)
-			);
-			store.user.value = data;
+			if (user === null) throw new ApiError(200, 'invalid_response');
+			store.user.value = user;
 		} catch (error) {
 			store.user.value = null;
 			throw error;
 		}
 	};
 	const setEntities = async (): Promise<void> => {
-		const sanitizeEntitiesData = (raw: any): Record<string, Record<string, Record<string, unknown>>> => {
+		const sanitizeEntitiesData = (raw: unknown): Record<string, Record<string, Record<string, unknown>>> => {
 			const entities = { folders: {}, points: {}, places: {}, routes: {} };
 			if (!isRecord(raw)) return entities;
 

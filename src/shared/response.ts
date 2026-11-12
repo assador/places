@@ -8,6 +8,7 @@ const RESPONSES = {
 	internal_error           : 'internalError',
 	invalid_credentials      : 'invalidCredentials',
 	invalid_request          : 'invalidRequest',
+	invalid_response         : 'invalidResponse',
 	invalid_session          : 'invalidSession',
 	invalid_token            : 'invalidToken',
 	mail_error               : 'mailError',

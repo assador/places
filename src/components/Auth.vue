@@ -289,7 +289,7 @@ const authRegSubmit = async (): Promise<void> => {
 			regPhone: regPhone.value,
 		});
 	} catch (error) {
-		login.value.message = ennobleError(error);
+		reg.value.message = ennobleError(error);
 	}
 };
 const authForgotSubmit = async (): Promise<void> => {
@@ -300,7 +300,7 @@ const authForgotSubmit = async (): Promise<void> => {
 	try {
 		await forgotRoutine(forgotEmail.value);
 	} catch (error) {
-		login.value.message = ennobleError(error);
+		forgot.value.message = ennobleError(error);
 	}
 };
 

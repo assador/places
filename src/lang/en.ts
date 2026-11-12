@@ -368,6 +368,7 @@ Your data won’t be saved to your account and will be cleared when you log o
 			},
 			success: {
 				ok: 'Successfully.',
+				invalidResponse: 'The server returned data in an unexpected format.',
 			},
 			unknown: {
 				message: 'The server rejected the request for an unknown reason.',
