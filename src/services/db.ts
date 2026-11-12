@@ -165,7 +165,7 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 			await buffer.for(mainStore.user.id).clearHome();
 		}
 		mainStore.savedToDB('entities', payload);
-		mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
+		mainStore.setMessage(mainStore.t.m.response.success.saved, 3);
 	} catch (error) {
 		mainStore.setMessage(ennobleError(error));
 	} finally {
@@ -228,7 +228,7 @@ const saveSettings = async (
 			await buffer.for(mainStore.user.id).clearSettings();
 		}
 		mainStore.savedToDB('settings', payload);
-		mainStore.setMessage(mainStore.t.m.popup.savedToDb, 3);
+		mainStore.setMessage(mainStore.t.m.response.success.saved, 3);
 	} catch (error) {
 		mainStore.setMessage(ennobleError(error));
 	} finally {

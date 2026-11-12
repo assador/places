@@ -168,7 +168,8 @@ const accountSubmit = async (): Promise<void> => {
 	}
 	try {
 		await accountSaveRoutine(account.value);
-		mainStore.setMessage(mainStore.t.m.response.success.ok);
+		await mainStore.setUser();
+		mainStore.setMessage(mainStore.t.m.response.success.saved);
 	} catch (error) {
 		mainStore.setMessage(ennobleError(error));
 	}
@@ -185,9 +186,6 @@ const accountSubmit = async (): Promise<void> => {
 	grid-template-rows: auto 1fr;
 	position: absolute;
 	top: 0; right: 0; bottom: 0; left: 0;
-	& > * {
-		position: relative;
-	}
 	&-form {
 		display: flex;
 		width: 50%;

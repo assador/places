@@ -3,94 +3,22 @@
 		<div
 			v-if="show"
 			class="popup"
-			@click.stop="close()"
+			@click.stop="close"
 		>
 			<div class="popup-content centered acoount-delete">
 				<div class="brand">
-					<h1 class="margin_bottom_0">
+					<h1>
 						{{ mainStore.t.i.captions.deletingAccount }}
 					</h1>
-					<p>{{ mainStore.t.i.text.whatToDoWithAll }}:</p>
 				</div>
 				<form
-					class="acoount-delete__form margin_bottom_0"
+					class="acoount-delete__form margin_bottom_0 narrower"
 					@click.stop
-					@submit.prevent="accountDeletionSubmit()"
+					@submit.prevent="accountDeletionSubmit"
 				>
-					<fieldset>
-						<h2>
-							{{ mainStore.t.i.captions.places }}
-						</h2>
-						<label>
-							<input
-								id="placesLeaveNone"
-								v-model="leavePlaces"
-								name="places"
-								type="radio"
-								value="none"
-								@change="e => accountDeletionConditionsChange(e)"
-							/>
-							<span>
-								{{ mainStore.t.i.inputs.daDeletePlaces }}
-							</span>
-						</label>
-						<label>
-							<input
-								id="placesLeaveCommon"
-								v-model="leavePlaces"
-								name="places"
-								type="radio"
-								value="common"
-								@change="e => accountDeletionConditionsChange(e)"
-							/>
-							<span>
-								{{ mainStore.t.i.inputs.daLeaveOnlyCommonPlaces }}
-							</span>
-						</label>
-						<label>
-							<input
-								id="placesLeaveAll"
-								v-model="leavePlaces"
-								name="places"
-								type="radio"
-								value="all"
-								@change="e => accountDeletionConditionsChange(e)"
-							/>
-							<span>
-								{{ mainStore.t.i.inputs.daLeaveAllPlaces }}
-							</span>
-						</label>
-					</fieldset>
-					<fieldset>
-						<h2>
-							{{ mainStore.t.i.captions.images }}
-						</h2>
-						<label>
-							<input
-								id="imagesLeaveNone"
-								v-model="leaveImages"
-								name="images"
-								type="radio"
-								value="none"
-								@change="e => accountDeletionConditionsChange(e)"
-							/>
-							<span>
-								{{ mainStore.t.i.inputs.daDeleteImages }}
-							</span>
-						</label>
-						<label>
-							<input
-								id="imagesLeaveAll"
-								v-model="leaveImages"
-								name="images"
-								type="radio"
-								value="all"
-								@change="e => accountDeletionConditionsChange(e)"
-							/>
-							<span>
-								{{ mainStore.t.i.inputs.daLeaveImages }}
-							</span>
-						</label>
+					<fieldset class="acoount-delete__form__warning">
+						<p>{{ mainStore.t.i.text.permanentlyDeleteAccount }}</p>
+						<p><strong>{{ mainStore.t.i.text.irreversibleAction }}</strong></p>
 					</fieldset>
 					<fieldset class="acoount-delete__form__buttons">
 						<button type="submit">
@@ -103,7 +31,7 @@
 				</form>
 				<button
 					class="link close"
-					@click.stop="close()"
+					@click.stop="close"
 				>
 					×
 				</button>
@@ -113,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUpdate } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import { accountDeletionRoutine } from '@/services/account';
@@ -127,9 +55,6 @@ const leaveImages = ref('none');
 const show = ref(false);
 
 onMounted(() => {
-	show.value = true;
-});
-onBeforeUpdate(() => {
 	show.value = true;
 });
 
@@ -155,18 +80,6 @@ const accountDeletionSubmit = async (): Promise<void> => {
 		mainStore.setMessage(ennobleError(error));
 	}
 };
-const accountDeletionConditionsChange = (event: Event): void => {
-	switch ((event.currentTarget as Element).id) {
-		case 'placesLeaveNone' :
-			document.getElementById('imagesLeaveNone')!.click();
-			break;
-		case 'imagesLeaveAll' :
-			if ((document.getElementById('placesLeaveNone') as HTMLInputElement)!.checked) {
-				document.getElementById('placesLeaveCommon')!.click();
-			}
-			break;
-	}
-};
 </script>
 
 <style lang="scss" scoped>
@@ -175,16 +88,14 @@ const accountDeletionConditionsChange = (event: Event): void => {
 		display: flex;
 		flex-flow: column nowrap;
 		gap: 50px;
-		label {
-			display: flex;
-			gap: 6px;
-			align-items: baseline;
+		&__warning {
+			text-align: center;
 		}
 		&__buttons {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 8px;
-			justify-content: center;
+			gap: 20px;
+			justify-content: space-between;
 		}
 	}
 }

@@ -387,6 +387,9 @@ onMounted(async () => {
 }
 .auth-footer {
 	margin-top: 12px;
+	&.buttons {
+		flex-flow: column nowrap;
+	}
 }
 @media screen and (max-width: 720px) {
 	.auth {

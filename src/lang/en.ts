@@ -85,6 +85,7 @@ export const getT = () => ({
 			from: 'from',
 			h: 'elev.',
 			includeFlights: 'Include flights between',
+			irreversibleAction: 'This action cannot be undone.',
 			km: 'km',
 			lmb: 'LMB',
 			loading: 'Loading…',
@@ -96,11 +97,11 @@ export const getT = () => ({
 			offlineSaving: 'All changes are saved only on your device\nAnd only when you click the “Save” button',
 			online: 'You are online',
 			onlineSaving: 'All changes are saved in the database on the server\nBut only when you click the “Save” button',
+			permanentlyDeleteAccount: 'Your account will be permanently deleted and cannot be recovered. All associated data will be deleted as well, including places, routes, folders, images, and points.',
 			rmb: 'RMB',
 			shift: 'Shift',
 			specifyFormatToExport: 'Specify the format of file to export places',
 			specifyPlacesToExport: 'Choose the places to export',
-			whatToDoWithAll: 'Specify what to do with your legacy on the service and confirm the deletion of the account',
 			whatToDoWithFolder: 'Please specify what to do with the contents of the folder being deleted',
 			yes: 'yes',
 		},
@@ -298,7 +299,6 @@ export const getT = () => ({
 			placesCountExceeded: 'The maximum number of places allowed for your current role has been exceeded.',
 			pointsCountExceeded: 'The maximum number of points allowed for your current role has been exceeded.',
 			routesCountExceeded: 'The maximum number of routes allowed for your current role has been exceeded.',
-			savedToDb: 'Changes have been saved to the database.',
 			taNotAllowFileUploads: 'The demo account does not allow file uploads.',
 			testAccount: `This is a demo account — feel free to try everything.
 Your data is temporary and will be cleared when you log out.`,
@@ -369,6 +369,7 @@ Your data won’t be saved to your account and will be cleared when you log o
 			success: {
 				ok: 'Successfully.',
 				invalidResponse: 'The server returned data in an unexpected format.',
+				saved: 'Changes have been saved to the database.',
 			},
 			unknown: {
 				message: 'The server rejected the request for an unknown reason.',
