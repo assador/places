@@ -1,66 +1,134 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set("display_errors", "0");
 
-require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . "/bootstrap.php";
 
-$input = json_decode(
-	file_get_contents("php://input"),
-	true,
-	512,
-	JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-);
+apiRun($ctx, function () use ($ctx, $config) {
+	$raw = file_get_contents("php://input");
+	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
-$query = $ctx->db->prepare("
-	SELECT u.id, u.name
-	FROM `users` u
-	WHERE u.email = :email
-		AND NOT EXISTS (
-			SELECT 1
-			FROM `sessions` s
-			WHERE s.userid = u.id
-				AND s.reason = 1
-				AND s.expiresat > :now
+	if (!is_array($data)) {
+		throw new ApiException(400, "invalid_request");
+	}
+	$email = $data["forgotEmail"] ?? null;
+	if (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+		throw new ApiException(400, "invalid_request");
+	}
+
+	$ctx->db->beginTransaction();
+
+	$stmt = $ctx->db->prepare("
+		SELECT `u`.`id`, `u`.`name`
+		FROM `users` `u`
+		WHERE `u`.`email` = :email
+		FOR UPDATE
+	");
+	$stmt->execute([":email" => $email]);
+
+	$user = $stmt->fetch(PDO::FETCH_ASSOC);
+	if (!$user) {
+		$ctx->db->commit();
+		apiSuccess();
+	}
+	$userId = $user["id"];
+
+	$stmt = $ctx->db->prepare("
+		SELECT 1
+		FROM `sessions`
+		WHERE `userid` = :userid
+			AND `reason` = 1
+			AND `expiresat` > :now
+		LIMIT 1
+	");
+	$stmt->execute([
+		":userid" => $userId,
+		":now"    => (int) (microtime(true) * 1000),
+	]);
+
+	if ($stmt->fetchColumn()) {
+		$ctx->db->commit();
+		apiSuccess();
+	}
+	$sessionUuid = createSession($ctx, $userId, [
+		"lifetime" => 3600,
+		"reason"   => 1,
+	]);
+
+	$ctx->db->commit();
+
+	$htmlName = !empty($user["name"])
+		? ", " . htmlspecialchars(
+			$user["name"],
+			ENT_QUOTES | ENT_SUBSTITUTE,
+			"UTF-8"
+		)
+		: ""
+	;
+	$host = rtrim($config["host"], "/");
+	$resetUrl = $host
+		. "/backend/change_password.php?session="
+		. rawurlencode($sessionUuid)
+	;
+	$htmlHost = htmlspecialchars(
+		$host,
+		ENT_QUOTES | ENT_SUBSTITUTE,
+		"UTF-8"
+	);
+	$htmlResetUrl = htmlspecialchars(
+		$resetUrl,
+		ENT_QUOTES | ENT_SUBSTITUTE,
+		"UTF-8"
+	);
+
+	$message = '<!doctype html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8">
+	<title>Восстановление пароля пользователя сервиса «Места»</title>
+</head>
+<body>
+	<h1>Восстановление пароля пользователя сервиса «Места»</h1>
+	<p>Здравствуйте' . $htmlName . '!</p>
+	<p>
+		Ваш e-mail был указан для восстановления пароля пользователя
+		<a href="' . $htmlHost . '">Персонального ГеоОрганайзера «Места»</a>.
+	</p>
+	<p>Если вы этого не делали, просто проигнорируйте это письмо.</p>
+	<p>
+		В противном случае для создания нового пароля вашего аккаунта
+		перейдите по ссылке в течение часа:
+		<a href="' . $htmlResetUrl . '">' . $htmlResetUrl . '</a>
+	</p>
+</body>
+</html>';
+
+	$cleanupSession = static function () use ($ctx, $sessionUuid, $userId): void {
+		try {
+			$sessionBin = uuidToBin($sessionUuid);
+			if ($sessionBin === null || !deleteSession($ctx, $sessionBin, $userId)) {
+				error_log("Failed to delete password reset session after mail failure");
+			}
+		} catch (Throwable $e) {
+			error_log("Failed to clean up password reset session: " . (string) $e);
+		}
+	};
+	try {
+		$sent = sendMail(
+			$email,
+			"Восстановление пароля пользователя сервиса «Места»",
+			$message,
+			$config,
 		);
-");
-$query->bindValue(':email', $input["forgotEmail"]);
-$query->bindValue(':now', (int) (microtime(true) * 1000));
-$query->execute();
+	} catch (Throwable $e) {
+		$cleanupSession();
+		throw $e;
+	}
+	if (!$sent) {
+		$cleanupSession();
+		throw new ApiException(500, "mail_error");
+	}
 
-$result = $query->fetch(PDO::FETCH_ASSOC);
-if(!$result) {
-	throw new Exception("Wrong account.");
-}
-$id = $result["id"];
-$name = $result["name"];
-$sessionUuid = createSession($ctx, $id, [ 'lifetime' => 3600, 'reason' => 1 ]);
-
-$message = '
-	<html>
-	<head>
-		<title>Восстановление пароля пользователя сервиса «Места»</title>
-	</head>
-	<body>
-		<h1>Восстановление пароля пользователя сервиса «Места»</h1>
-		<p>
-			Здравствуйте' . ($name != "" && $name != null ? ', ' . $name : '') . '!
-		<p>
-			Ваш e-mail был указан для восстановления пароля пользователя
-			<a href="' . $config['host'] . '">Персонального ГеоОрганайзера «Места»</a>. Если вы этого не делали, просто проигнорируйте это письмо.
-			В противном случае для создания нового пароля вашего аккаунта перейдите по ссылке: 
-			<a href="' . $config['host'] . '/backend/change_password.php?session=' . $sessionUuid . '">' . $config['host'] . '/backend/change_password.php?session=' . $sessionUuid . '</a> в течение часа.
-		</p>
-	</body>
-	</html>
-';
-
-$sent = sendMail(
-	$input["forgotEmail"],
-	"Восстановление пароля пользователя сервиса «Места»",
-	$message,
-	$config,
-);
-if (!$sent) {
-	throw new Exception("Error sending email.");
-}
+	apiSuccess();
+});

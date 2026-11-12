@@ -350,6 +350,8 @@ export const getT = () => ({
 			errorsClient: {
 				insufficientPermissions: 'У вас нет необходимых прав для выполнения этого действия.',
 				invalidRequest: 'Некорректный запрос к серверу.',
+				invalidSession: 'Сессия недействительна или истекла.',
+				invalidToken: 'Токен недействителен или срок его действия истёк.',
 				nothingToDo: 'Мне тут и делать нечего. Если вам скучно, можем просто поговорить…',
 				testAccount: 'Это действие недоступно для демо-аккаунта.',
 				userDataConflict: 'Данные аккаунта некорректны.',
@@ -358,6 +360,7 @@ export const getT = () => ({
 			errorsServer: {
 				internalError: 'Неверный ответ сервера.',
 				mailError: 'При отправке вам письма произошла ошибка.',
+				noResponse: 'Сервер не отвечает.',
 			},
 			info: {
 			},

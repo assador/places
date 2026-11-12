@@ -151,7 +151,7 @@ function createSession(AppContext $ctx, string $userIdBin, array $payload = []):
 
 	return $sessionUuid;
 }
-function deleteSession(AppContext $ctx, string $sessionIdBin, string $userIdBin): void {
+function deleteSession(AppContext $ctx, string $sessionIdBin, string $userIdBin): bool {
 	$query = $ctx->db->prepare("
 		DELETE FROM `sessions`
 		WHERE id = :id AND userid = :userid
@@ -159,8 +159,9 @@ function deleteSession(AppContext $ctx, string $sessionIdBin, string $userIdBin)
 	$query->bindValue(':id', $sessionIdBin, PDO::PARAM_LOB);
 	$query->bindValue(':userid', $userIdBin, PDO::PARAM_LOB);
 	$query->execute();
+	return $query->rowCount() === 1;
 }
-function getSession(AppContext $ctx, string $sessionIdBin, $reason = null) {
+function getSession(AppContext $ctx, string $sessionIdBin, ?int $reason = null): ?array {
 	$query = $ctx->db->prepare("
 		SELECT 
 			s.userid, 
@@ -174,7 +175,7 @@ function getSession(AppContext $ctx, string $sessionIdBin, $reason = null) {
 			AND (s.expiresat IS NULL OR s.expiresat > :now)
 	");
 	$query->bindValue(':id', $sessionIdBin, PDO::PARAM_LOB);
-	$query->bindValue(':reason', $reason);
+	$query->bindValue(':reason', $reason, $reason === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
 	$query->bindValue(':now', (int)(microtime(true) * 1000));
 	$query->execute();
 

@@ -1,13 +1,9 @@
-import { reactive } from 'vue';
 import api from '@/api';
 import { ping } from '@/services/ping';
 import { buffer } from '@/services/buffer';
 import { confirm } from '@/services/confirm';
 import { useMainStore } from '@/stores/main';
 
-export const login = reactive({
-	message: '',
-});
 export const loginRoutine = async (
 	user: { authLogin: string, authPassword: string },
 ): Promise<void> => {

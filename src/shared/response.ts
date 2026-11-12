@@ -9,6 +9,7 @@ const RESPONSES = {
 	invalid_credentials      : 'invalidCredentials',
 	invalid_request          : 'invalidRequest',
 	invalid_session          : 'invalidSession',
+	invalid_token            : 'invalidToken',
 	mail_error               : 'mailError',
 	no_response              : 'noResponse',
 	nothing_to_do            : 'nothingToDo',

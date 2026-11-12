@@ -70,7 +70,7 @@
 			</form>
 			<form
 				class="auth-forgot hidden"
-				@submit.prevent="authForgot"
+				@submit.prevent="authForgotSubmit"
 			>
 				<div>{{ mainStore.t.i.text.emailToSendPassword }}</div>
 				<input
@@ -215,11 +215,11 @@ import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import type { usePWAInstall } from '@/shared/usepwainstall';
 
-import { logged, login, loginRoutine } from '@/services/auth';
+import { logged, loginRoutine } from '@/services/auth';
+import { forgotRoutine } from '@/services/forgot';
+import { regRoutine } from '@/services/reg';
 import { setBusy } from '@/services/common';
 import { constants } from '@/shared/constants';
-import { reg, regRoutine } from '@/shared/reg';
-import { forgot, forgotRoutine } from '@/shared/forgot';
 import { ennobleError } from '@/shared/response';
 
 import Dashboard from '@/components/Dashboard.vue';
@@ -240,6 +240,10 @@ const regEmail = ref('');
 const regPhone = ref('');
 const forgotEmail = ref('');
 
+const login = ref({ message: '' });
+const forgot = ref({ message: '' });
+const reg = ref({ message: '' });
+
 const passwordShowHide = (input: HTMLInputElement): void => {
 	input.type = input.type === 'password' ? input.type = 'text' : 'password';
 }
@@ -254,7 +258,7 @@ const authLoginSubmit = async (): Promise<void> => {
 		await logged();
 		router.push({ name: 'Home' });
 	} catch (error) {
-		login.message = ennobleError(error);
+		login.value.message = ennobleError(error);
 	} finally {
 		mainStore.setBusy(false);
 	}
@@ -263,35 +267,43 @@ const testAuth = (): void => {
 	authLogin.value = authPassword.value = 'test';
 	authLoginSubmit();
 }
-const authRegSubmit = (): boolean => {
+const authRegSubmit = async (): Promise<void> => {
 	if (
 		!regLogin.value ||
 		!regPassword.value ||
 		!regPasswordRepeat.value ||
 		!regEmail.value
 	) {
-		return false;
+		return;
 	}
 	if (regPassword.value !== regPasswordRepeat.value) {
-		reg.message = mainStore.t.m.errors.authreg.passwordsNotMatch;
-		return false;
+		reg.value.message = mainStore.t.m.errors.authreg.passwordsNotMatch;
+		return;
 	}
-	regRoutine({
-		regLogin: regLogin.value,
-		regPassword: regPassword.value,
-		regName: regName.value,
-		regEmail: regEmail.value,
-		regPhone: regPhone.value,
-	}, mainStore.t);
-	return true;
-};
-const authForgot = (): void => {
-	if (!document.getElementById('forgot-email-input')!.classList.contains('value_wrong')) {
-		forgotRoutine({ forgotEmail: forgotEmail.value }, mainStore.t);
-	} else {
-		forgot.message = mainStore.t.m.errors.mail.incorrectEmail;
+	try {
+		await regRoutine({
+			regLogin: regLogin.value,
+			regPassword: regPassword.value,
+			regName: regName.value,
+			regEmail: regEmail.value,
+			regPhone: regPhone.value,
+		});
+	} catch (error) {
+		login.value.message = ennobleError(error);
 	}
 };
+const authForgotSubmit = async (): Promise<void> => {
+	if (document.getElementById('forgot-email-input')!.classList.contains('value_wrong')) {
+		forgot.value.message = mainStore.t.m.errors.mail.incorrectEmail;
+		return;
+	}
+	try {
+		await forgotRoutine(forgotEmail.value);
+	} catch (error) {
+		login.value.message = ennobleError(error);
+	}
+};
+
 onMounted(async () => {
 	await nextTick();
 	setBusy(false);

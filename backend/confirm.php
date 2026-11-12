@@ -1,59 +1,120 @@
 <?php
-require_once __DIR__ . '/bootstrap.php';
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set("display_errors", "0");
+
+require_once __DIR__ . "/bootstrap.php";
+
+header("Content-Type: text/html; charset=UTF-8");
+
+$success = '<!doctype html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8">
+	<title>Регистрация подтверждена</title>
+</head>
+<body>
+	<h1>Успешно</h1>
+	<p>
+		Ваша регистрация успешно подтвержена. Теперь вы можете
+		<a href="/auth">авторизоваться</a> на сервисе под своим логином.
+	</p>
+</body>
+</html>
+';
+
+$failure = '<!doctype html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8">
+	<title>Регистрация отклонена</title>
+</head>
+<body>
+	<h1>Неуспешно</h1>
+	<p>
+		Токен недействителен.
+		Возможно, прошёл отведённый срок подтверждения регистрации,
+		или аккаунт уже активирован.
+	</p>
+</body>
+</html>
+';
+
+$error = '<!doctype html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8">
+	<title>Ошибка</title>
+</head>
+<body>
+	<h1>Ошибка</h1>
+	<p>
+		Не удалось подтвердить регистрацию.
+		Попробуйте открыть ссылку ещё раз позже.
+	</p>
+</body>
+</html>
+';
 
 $token = $_GET["token"] ?? null;
+
 if (!$token) {
-	die('Токен не передан.');
+	http_response_code(403);
+	echo $failure;
+	exit;
 }
 
 try {
 	$ctx->db->beginTransaction();
-	$update = $ctx->db->prepare("
-		UPDATE `users`
-		SET `confirmed` = 1
+
+	$stmt = $ctx->db->prepare("
+		SELECT `id`
+		FROM `users`
 		WHERE `token` = :token
 			AND `confirmed` = 0
+		LIMIT 1
 	");
-	$update->execute([
+	$stmt->execute([
 		":token" => $token,
 	]);
-	if ($update->rowCount() > 0) {
-		$select = $ctx->db->prepare("
-			SELECT `id` FROM `users` WHERE `token` = :token LIMIT 1
-		");
-		$select->execute([
-			":token" => $token,
-		]);
-		$user = $select->fetch(PDO::FETCH_ASSOC);
 
-		$insert = $ctx->db->prepare("
-			INSERT INTO `usergroup` (`user`, `group`, `enabled`)
-			VALUES (:userid, 'beginners', 1)
-		");
-		$insert->execute([
-			":userid" => $user["id"],
-		]);
+	$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-		$ctx->db->commit();
-		echo '
-			<h1>Успешно</h1>
-			<p>
-				Ваша регистрация успешно подтвержена. Теперь вы можете
-				<a href="/auth">авторизоваться</a> на сервисе под своим логином.
-			</p>
-		';
-	} else {
+	if ($user === false) {
 		$ctx->db->rollBack();
-		echo '
-			<h1>Неуспешно</h1>
-			<p>
-				Токен недействителен.
-				Возможно, прошёл отведённый срок подтверждения регистрации,
-				или аккаунт уже активирован.
-			</p>
-		';
+		http_response_code(403);
+		echo $failure;
+		exit;
 	}
-} catch (Exception $e) {
-	$ctx->db->rollBack();
-	error_log($e->getMessage());
+
+	$stmt = $ctx->db->prepare("
+		UPDATE `users`
+		SET `confirmed` = 1
+		WHERE `id` = :id
+	");
+	$stmt->execute([
+		":id" => $user["id"],
+	]);
+
+	$stmt = $ctx->db->prepare("
+		INSERT INTO `usergroup` (`user`, `group`, `enabled`)
+		VALUES (:userid, 'beginners', 1)
+	");
+	$stmt->execute([
+		":userid" => $user["id"],
+	]);
+
+	$ctx->db->commit();
+
+	echo $success;
+}
+catch (Throwable $e) {
+	if ($ctx->db->inTransaction()) {
+		$ctx->db->rollBack();
+	}
+
+	error_log((string) $e);
+
+	http_response_code(500);
+	echo $error;
 }

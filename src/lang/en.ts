@@ -349,7 +349,9 @@ Your data won’t be saved to your account and will be cleared when you log o
 		response: {
 			errorsClient: {
 				insufficientPermissions: 'You do not have the necessary permissions to perform this action.',
-				invalidRequest: 'Invalid request to the server.',
+				invalidRequest: 'Invalid request to the server.',
+				invalidSession: 'The session is invalid or has expired.',
+				invalidToken: 'The token is invalid or has expired.',
 				nothingToDo: 'There’s nothing for me to do here. If you’re bored, we could just talk…',
 				testAccount: 'This action is not available for a demo account.',
 				userDataConflict: 'The account details are incorrect.',
@@ -358,6 +360,7 @@ Your data won’t be saved to your account and will be cleared when you log o
 			errorsServer: {
 				internalError: 'Invalid server response.',
 				mailError: 'An error occurred while sending an email to you.',
+				noResponse: 'The_server is not responding.',
 			},
 			info: {
 			},
