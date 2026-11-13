@@ -21,5 +21,6 @@ const component = inject('component');
 const sections = computed(() => ({
 	users: mainStore.t.i.captions.users,
 	groups: mainStore.t.i.captions.groups,
+	settings: mainStore.t.i.captions.settings,
 }));
 </script>

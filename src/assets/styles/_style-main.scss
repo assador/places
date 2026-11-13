@@ -873,6 +873,14 @@ $filter-brightness-03: brightness(0%);
 			grid-template-columns: subgrid;
 			grid-column: 1 / -1;
 			align-items: baseline;
+			&:first-child {
+				position: sticky;
+				top: 0;
+				padding-bottom: 12px;
+				z-index: 1;
+				background: var(--color-62);
+				border: 1px solid var(--color-60);
+			}
 			&:is(:not(:last-child)) {
 				border-bottom: 1px solid var(--color-60);
 			}

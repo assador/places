@@ -190,7 +190,7 @@ export interface ActionsEntity {
 	) => string;
 }
 export interface ActionsImport {
-	addImported: (p: { mime: string; text: string; }) => void;
+	addImported: (p: { mime: string; text: string; }) => Promise<void>;
 	selectToExport: (type: FolderContext, id: string, checked: boolean) => void;
 	toggleToExport: (type: FolderContext, id: string) => void;
 }

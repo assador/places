@@ -7,6 +7,7 @@ import {
 	Route,
 	ImportExportFormat,
 } from '@/types';
+import { isEntityCollection } from '@/guards';
 
 // SEC Export
 
@@ -118,15 +119,20 @@ export const generateJSON = ({
 // SEC Import
 
 export const entitiesFromJSON = (text: string): EntityCollection => {
+	let data: unknown;
+	const mainStore = useMainStore();
 	try {
-		const entities: EntityCollection = JSON.parse(text);
-		return entities;
-	} catch (e) {
-		console.error(e);
-		return {};
+		data = JSON.parse(text);
+	} catch {
+		throw new Error(mainStore.t.m.popup.parsingImportError);
 	}
-}
+	if (!isEntityCollection(data)) {
+		throw new Error(mainStore.t.m.popup.parsingImportError);
+	}
+	return data;
+};
 export const entitiesFromGPX = (text: string): EntityCollection => {
+	const mainStore = useMainStore();
 	try {
 		const folderId = crypto.randomUUID();
 		const entities: EntityCollection = {
@@ -189,10 +195,12 @@ export const entitiesFromGPX = (text: string): EntityCollection => {
 			}
 			(entities.routes ??= []).push(route);
 		}
+		if (!isEntityCollection(entities)) {
+			throw new Error(mainStore.t.m.popup.parsingImportError);
+		}
 		return entities;
-	} catch (e) {
-		console.error(e);
-		return {};
+	} catch {
+		throw new Error(mainStore.t.m.popup.parsingImportError);
 	}
 }
 export const exportPlaces = (format: ImportExportFormat = 'json'): void => {

@@ -30,6 +30,7 @@ export function useActionsImport(
 					...f,
 					id: targetId,
 					parent: mappedParent,
+					userid: store.user.value?.id ?? f.userid,
 				},
 				silent: true,
 			});
@@ -68,13 +69,15 @@ export function useActionsImport(
 					id: p.id,
 					pointid: pointId,
 					folderid: mappedFolderId,
+					userid: store.user.value?.id ?? p.userid,
 				},
 				silent: true,
 			});
 		}
 	};
-	const addImported = ({ mime, text }: { mime: string; text: string }): void => {
-		store.setBusy(true);
+	const addImported = async (
+		{ mime, text }: { mime: string; text: string }
+	): Promise<void> => {
 		let entities: EntityCollection = {};
 		const idMap = new Map<string, string>();
 
@@ -86,11 +89,6 @@ export function useActionsImport(
 				entities = entitiesFromGPX(text);
 				break;
 		}
-		if (!entities) {
-			store.setMessage(store.t.value.m.popup.parsingImportError);
-			store.setBusy(false);
-			return;
-		}
 
 		if (entities.folders) addImportedFolders(entities.folders, idMap);
 		store.inspectOrphanFolders();
@@ -98,7 +96,6 @@ export function useActionsImport(
 		if (!entities.points) {
 			store.saved.value = false;
 			store.backupState();
-			store.setBusy(false);
 			return;
 		}
 
@@ -114,7 +111,6 @@ export function useActionsImport(
 
 		store.saved.value = false;
 		store.backupState();
-		store.setBusy(false);
 	};
 	const selectToExport = (type: FolderContext, id: string, checked: boolean): void => {
 		const set = store.selectedToExport.value[type];

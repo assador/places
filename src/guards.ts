@@ -3,6 +3,7 @@ import {
 	BufferCollectionKey, BUFFER_COLLECTION_KEYS,
 	BufferEntityCollectionKey, BUFFER_ENTITY_COLLECTION_KEYS,
 	DictKey, DICT_KEYS,
+	EntityCollection,
 	EntityCollectionKey, ENTITY_COLLECTION_KEYS,
 	Folder,
 	Group,
@@ -305,6 +306,61 @@ export const isFileInput = (value: unknown): value is HTMLInputElement & { files
 		value.files === null
 	) {
 		return false;
+	}
+	return true;
+};
+
+// SEC import
+
+export const isImportedFolder = (value: unknown): value is Partial<Folder> => {
+	return (
+		isRecord(value) &&
+		typeof value.id === 'string' &&
+		(typeof value.parent === 'string' || value.parent === null)
+	);
+};
+export const isImportedPoint = (value: unknown): value is Partial<Point> => {
+	return (
+		isRecord(value) &&
+		typeof value.id === 'string' &&
+		typeof value.latitude === 'number' &&
+		typeof value.longitude === 'number'
+	);
+};
+export const isImportedPlace = (value: unknown): value is Partial<Place> => {
+	return (
+		isRecord(value) &&
+		typeof value.id === 'string' &&
+		typeof value.pointid === 'string' &&
+		(typeof value.folderid === 'string' || value.folderid === null)
+	);
+};
+export const isImportedRoute = (value: unknown): value is Partial<Route> => {
+	return (
+		isRecord(value) &&
+		typeof value.id === 'string' &&
+		typeof value.pointid === 'string' &&
+		(typeof value.folderid === 'string' || value.folderid === null) &&
+		Array.isArray(value.points)
+	);
+};
+export const isEntityCollection = (value: unknown): value is EntityCollection => {
+	if (!isRecord(value)) return false;
+
+	const guards = {
+		folders: isImportedFolder,
+		points: isImportedPoint,
+		places: isImportedPlace,
+		routes: isImportedRoute,
+	};
+	for (const key of BUFFER_ENTITY_COLLECTION_KEYS) {
+		const collection = value[key];
+		if (
+			collection !== undefined &&
+			(!Array.isArray(collection) || !collection.every(guards[key]))
+		) {
+			return false;
+		}
 	}
 	return true;
 };

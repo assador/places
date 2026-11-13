@@ -1,79 +1,81 @@
 <template>
 	<div class="popup popup-export">
-		<div class="popup-content centered">
+		<div class="centered">
+			<div class="popup-content">
 
-			<h2
-				class="import-button imp_02"
-				@click.stop="importFromFileInput?.click()"
-			>
-				<input
-					id="import-from-file-input"
-					ref="importFromFileInput"
-					name="jsonFile"
-					type="file"
-					accept=".json,.gpx,text/xml,application/json"
-					@change="importFromFile"
-				/>
-				<div class="import-button__text">
-					{{ mainStore.t.i.captions.importPlaces }}
-				</div>
-				<button class="import-button__button button-iconed icon icon-plus-circled" />
-			</h2>
-
-
-			<h2 class="imp_02">
-				{{ mainStore.t.i.captions.exportPlaces }}
-			</h2>
-			<form
-				class="popup-export__form"
-				@submit.prevent="handleExportSubmit"
-			>
-				<p class="margin_bottom_0">
-					{{ mainStore.t.i.text.specifyFormatToExport }}:
-				</p>
-				<fieldset class="popup-export__settings margin_bottom">
-					<label>
-						<input
-							name="mime"
-							type="radio"
-							checked
-							value="json"
-						/>
-						<span>JSON</span>
-						<span
-							class="icon icon_s icon-help"
-							@click.stop.prevent="mainStore.setMessage(mainStore.t.i.text.descJson)"
-						/>
-					</label>
-					<label>
-						<input
-							name="mime"
-							type="radio"
-							value="gpx"
-						/>
-						<span>GPX</span>
-						<span
-							class="icon icon_s icon-help"
-							@click.stop.prevent="mainStore.setMessage(mainStore.t.i.text.descGpx)"
-						/>
-					</label>
-				</fieldset>
-				<p>{{ mainStore.t.i.text.specifyPlacesToExport }}:</p>
-				<div
-					v-if="
-						Object.keys(mainStore.places).length ||
-						Object.keys(mainStore.folders).length
-					"
-					class="popup-export__tree menu"
+				<h2
+					class="import-button imp_02"
+					@click.stop="importFromFileInput?.click()"
 				>
-					<Tree instanceid="popupexporttree" what="places" :editable="false" />
-				</div>
-				<fieldset class="popup-export__buttons">
-					<button type="submit">
-						{{ mainStore.t.i.buttons.export }}
-					</button>
-				</fieldset>
-			</form>
+					<input
+						id="import-from-file-input"
+						ref="importFromFileInput"
+						name="jsonFile"
+						type="file"
+						accept=".json,.gpx,text/xml,application/json"
+						@change="importFromFile"
+					/>
+					<div class="import-button__text">
+						{{ mainStore.t.i.captions.importPlaces }}
+					</div>
+					<button class="import-button__button button-iconed icon icon-plus-circled" />
+				</h2>
+				<p v-if="message">{{ message }}</p>
+	
+				<h2 class="imp_02">
+					{{ mainStore.t.i.captions.exportPlaces }}
+				</h2>
+				<form
+					class="popup-export__form"
+					@submit.prevent="handleExportSubmit"
+				>
+					<p class="margin_bottom_0">
+						{{ mainStore.t.i.text.specifyFormatToExport }}:
+					</p>
+					<fieldset class="popup-export__settings margin_bottom">
+						<label>
+							<input
+								name="mime"
+								type="radio"
+								checked
+								value="json"
+							/>
+							<span>JSON</span>
+							<span
+								class="icon icon_s icon-help"
+								@click.stop.prevent="mainStore.setMessage(mainStore.t.i.text.descJson)"
+							/>
+						</label>
+						<label>
+							<input
+								name="mime"
+								type="radio"
+								value="gpx"
+							/>
+							<span>GPX</span>
+							<span
+								class="icon icon_s icon-help"
+								@click.stop.prevent="mainStore.setMessage(mainStore.t.i.text.descGpx)"
+							/>
+						</label>
+					</fieldset>
+					<p>{{ mainStore.t.i.text.specifyPlacesToExport }}:</p>
+					<div
+						v-if="
+							Object.keys(mainStore.places).length ||
+							Object.keys(mainStore.folders).length
+						"
+						class="popup-export__tree menu"
+					>
+						<Tree instanceid="popupexporttree" what="places" :editable="false" />
+					</div>
+					<fieldset class="popup-export__buttons">
+						<button type="submit">
+							{{ mainStore.t.i.buttons.export }}
+						</button>
+					</fieldset>
+				</form>
+			</div>
 		</div>
 		<button
 			class="link close"
@@ -95,6 +97,7 @@ import Tree from '@/components/tree/Tree.vue';
 const mainStore = useMainStore();
 const showPopupExchange = inject<Ref<boolean>>('showPopupExchange');
 const importFromFileInput = ref<HTMLInputElement | null>(null);
+const message = ref<string | null>(null);
 
 const handleExportSubmit = (e: Event) => {
 	const formElement = e.currentTarget as HTMLFormElement;
@@ -115,8 +118,18 @@ const importFromFile = async () => {
 	const reader = new FileReader();
 	reader.onload = async (event: ProgressEvent<FileReader>) => {
 		await nextTick();
-		mainStore.addImported({ mime, text: event.target?.result as string });
-		input.value = '';
+		try {
+			message.value = mainStore.t.i.text.loading;
+			await mainStore.addImported({ mime, text: event.target?.result as string });
+			message.value = mainStore.t.m.response.success.ok;
+		} catch (error) {
+			message.value = error instanceof Error
+				? error.message
+				: mainStore.t.m.errors.other.other
+			;
+		} finally {
+			input.value = '';
+		}
 	};
 	reader.readAsText(file);
 };
@@ -124,7 +137,13 @@ const importFromFile = async () => {
 
 <style lang="scss" scoped>
 .popup-content {
-	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	max-height: 100%;
+	text-align: center;
+	& > * {
+		min-height: 0;
+	}
 }
 .import-button {
 	display: flex;
