@@ -150,8 +150,13 @@
 				class="control-buttons"
 			>
 				<button
+					type="button"
 					class="button-iconed icon icon-plus-circled"
-					:class="{ 'button-pressed': !Object.keys(mainStore[folder.context]).length }"
+					:class="{
+						'button-pressed':
+							folder.context !== 'settingsvoc' &&
+							!Object.keys(mainStore[folder.context]).length
+					}"
 					:title="
 						folder.context === 'places'
 							? mainStore.t.i.hints.addPlace
@@ -380,7 +385,7 @@ import {
 } from '@/types';
 import { isPlace, isRoute } from '@/guards';
 import { common } from '@/services/common';
-import { usePointerDnD, handleDrop } from '@/services/dnd';
+import { usePointerDnD } from '@/services/dnd';
 import { roundTo } from '@/shared/common';
 
 interface TreeBranchProps {
@@ -482,6 +487,7 @@ const selectFolderToExport = (id: string | null, select: boolean): void => {
 	}
 };
 watch(() => mainStore.selectedToExport[props.what], (newIds) => {
+	if (props.what === 'settingsvoc') return;
 	const checkedFolders = new Set<string>();
 	if (newIds) {
 		for (const id of newIds) {
@@ -537,7 +543,6 @@ const noop = () => {};
 const dnd = computed(() => {
 	if (!props.editable) return null;
 	return usePointerDnD({
-	    handleDrop,
 	    canAcceptDrop,
 	    updateHighlights,
 	    onDragStateChange: (value) => { dragging.value = value; },

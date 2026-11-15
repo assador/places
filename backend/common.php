@@ -115,6 +115,16 @@ function binToUuid(?string $bin): ?string {
 		substr($hex, 20, 12)
 	;
 }
+function castSettingValue(?string $value, int $type): null|bool|float|int|string {
+	if ($value === null) return null;
+	return match ($type) {
+		0 => null,
+		1 => trim($value, "0\x00") !== '',
+		2 => is_numeric($value) ? $value + 0 : 0,
+		3 => $value,
+		default => null,
+	};
+}
 function createSession(AppContext $ctx, string $userIdBin, array $payload = []): string {
 	/*
 		$payload['reason'] === null  -- Ordinary session

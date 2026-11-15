@@ -1,6 +1,7 @@
 <template>
 	<div class="action-button-group">
 		<button
+			type="button"
 			class="action-button"
 			:title="mainStore.t.i.hints.centerTo"
 			@click="() => { if (!centerTo()) mainStore.setMessage('Ахахаха!!!', 3); }"
@@ -9,6 +10,7 @@
 		</button>
 		<button
 			v-if="common.compact === 2"
+			type="button"
 			class="action-button"
 			:title="mainStore.t.i.hints.hideCells"
 			@click="hideCells"

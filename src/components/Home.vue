@@ -87,6 +87,7 @@
 				/>
 				<span class="control-buttons">
 					<button
+						type="button"
 						class="button-iconed"
 						:title="mainStore.t.i.buttons.find"
 						@click="selectPlaces(searchInput?.value)"
@@ -94,6 +95,7 @@
 						<span>↪</span>
 					</button>
 					<button
+						type="button"
 						class="button-iconed icon icon-cross-45-circled"
 						:title="mainStore.t.i.buttons.clear"
 						@click="
@@ -123,12 +125,14 @@
 				/>
 				<span class="control-buttons">
 					<button
+						type="button"
 						class="button-iconed"
 						@click="mainStore.showInRange(mainStore.range)"
 					>
 						<span>↪</span>
 					</button>
 					<button
+						type="button"
 						class="button-iconed icon icon-cross-45-circled"
 						:title="mainStore.t.i.buttons.clear"
 						@click="
@@ -180,6 +184,7 @@
 							<button
 								v-for="(_, index) in commonRoutesPagesCount"
 								:key="index"
+								type="button"
 								class="link pseudo_button"
 								:class="{ un_imp: index + 1 === mainStore.commonPlacesPage }"
 								@click="mainStore.commonPlacesPage = index + 1;"
@@ -220,6 +225,7 @@
 						<button
 							v-for="(_, index) in commonPlacesPagesCount"
 							:key="index"
+							type="button"
 							class="link pseudo_button"
 							:class="{ un_imp: index + 1 === mainStore.commonPlacesPage }"
 							@click="mainStore.commonPlacesPage = index + 1;"
@@ -271,6 +277,7 @@
 					<ControlsMarkers />
 					<ControlsOther />
 					<button
+						type="button"
 						class="action-button"
 						:class="{ 'button-pressed': basicFulled }"
 						:title="mainStore.t.i.hints.fullscreen"
@@ -302,6 +309,7 @@
 					<ControlsState v-if="common.compact === 2" />
 					<button
 						v-if="common.compact !== 2"
+						type="button"
 						class="action-button"
 						:class="{ 'button-pressed': basicFulled }"
 						:title="mainStore.t.i.hints.fullscreen"
@@ -344,6 +352,7 @@
 				class="nobr"
 			>
 				<button
+					type="button"
 					@click="popupDonate.show = !popupDonate.show"
 				>
 					{{ mainStore.t.i.buttons.donate }}
@@ -380,6 +389,7 @@
 		<div id="ui-buttons-right">
 			<button
 				v-if="basicFulled"
+				type="button"
 				class="action-button"
 				:class="{ 'button-pressed': basicFulled }"
 				:title="mainStore.t.i.hints.fullscreen"
@@ -393,28 +403,40 @@
 			id="sbb-top"
 			@click="sideShowHide('top')"
 		>
-			<button :class="{ disclosed: cells.top, 'button-pressed': cells.top }" />
+			<button
+				type="button"
+				:class="{ disclosed: cells.top, 'button-pressed': cells.top }"
+			/>
 		</div>
 		<div
 			v-if="common.compact === 2"
 			id="sbb-right"
 			@click="sideShowHide('right')"
 		>
-			<button :class="{ disclosed: cells.right, 'button-pressed': cells.right }" />
+			<button
+				type="button"
+				:class="{ disclosed: cells.right, 'button-pressed': cells.right }"
+			/>
 		</div>
 		<div
 			v-if="common.compact === 2"
 			id="sbb-bottom"
 			@click="sideShowHide('bottom')"
 		>
-			<button :class="{ disclosed: cells.bottom, 'button-pressed': cells.bottom }" />
+			<button
+				type="button"
+				:class="{ disclosed: cells.bottom, 'button-pressed': cells.bottom }"
+			/>
 		</div>
 		<div
 			v-if="common.compact === 2"
 			id="sbb-left"
 			@click="sideShowHide('left')"
 		>
-			<button :class="{ disclosed: cells.left, 'button-pressed': cells.left }" />
+			<button
+				type="button"
+				:class="{ disclosed: cells.left, 'button-pressed': cells.left }"
+			/>
 		</div>
 		<div
 			v-if="common.compact !== 2"
@@ -476,6 +498,7 @@
 			</select>
 			<button
 				v-if="mainStore.activeMapIndex === 0"
+				type="button"
 				id="actions-tiles"
 				class="action-button"
 				:title="mainStore.t.i.maps.mapImport"

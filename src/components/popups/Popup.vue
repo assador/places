@@ -12,6 +12,7 @@
 			>
 				<button
 					v-if="props.closeButton"
+					type="button"
 					class="link close"
 					@click.stop="close()"
 				>

@@ -9,6 +9,7 @@
 	>
 		<template #popupSlot>
 			<button
+				type="button"
 				class="link point-info-copy"
 				@click.stop="copyCoords(common.pointInfo.point)"
 			>
@@ -91,6 +92,7 @@
 							@click.stop="if (isFileInput(inputUploadFiles)) { inputUploadFiles.click(); }"
 						>
 							<button
+								type="button"
 								:title="mainStore.t.i.buttons.addPhotos"
 								class="button-iconed icon icon-plus-circled"
 							/>
@@ -115,6 +117,7 @@
 						/>
 						<button
 							v-if="isPlace(common.pointInfo.of)"
+							type="button"
 							class="button-iconed icon icon-cross-45-circled"
 							:title="mainStore.t.i.buttons.deletePlace"
 							@click.stop="deletePlace(common.pointInfo.of.id)"
@@ -125,6 +128,7 @@
 								common.pointInfo.of.id !== 'tempspack' &&
 								typeof common.pointInfo.index === 'number'
 							"
+							type="button"
 							class="button-iconed icon icon-cross-45-circled"
 							:title="mainStore.t.i.buttons.deletePoint"
 							@click.stop="deletePoint(common.pointInfo.index, common.pointInfo.of)"
@@ -134,13 +138,19 @@
 						v-if="confirmPlaceDelete?.show"
 						class="point-info-confirm"
 					>
-						<button @click.stop="confirmPlaceDelete.accept()">
+						<button
+							type="button"
+							@click.stop="confirmPlaceDelete.accept()"
+						>
 							{{ mainStore.t.i.buttons.yes }}
 						</button>
 						<h4 class="margin_bottom_0">
 							{{ confirmPlaceDelete.message }}
 						</h4>
-						<button @click.stop="confirmPlaceDelete.cancel()">
+						<button
+							type="button"
+							@click.stop="confirmPlaceDelete.cancel()"
+						>
 							{{ mainStore.t.i.buttons.no }}
 						</button>
 					</div>
@@ -148,19 +158,26 @@
 						v-if="confirmPointDelete?.show"
 						class="point-info-confirm"
 					>
-						<button @click.stop="confirmPointDelete.accept()">
+						<button
+							type="button"
+							@click.stop="confirmPointDelete.accept()"
+						>
 							{{ mainStore.t.i.buttons.yes }}
 						</button>
 						<h4 class="margin_bottom_0">
 							{{ confirmPointDelete.message }}
 						</h4>
-						<button @click.stop="confirmPointDelete.cancel()">
+						<button
+							type="button"
+							@click.stop="confirmPointDelete.cancel()"
+						>
 							{{ mainStore.t.i.buttons.no }}
 						</button>
 					</div>
 					<div class="point-info-buttons">
 						<button
 							v-if="!isPlace(common.pointInfo.of)"
+							type="button"
 							@click.stop="placeFromPoint"
 						>
 							{{ mainStore.t.i.buttons.makePlace }}

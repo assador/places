@@ -24,11 +24,13 @@
 				class="control-buttons"
 			>
 				<button
+					type="button"
 					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addTemp"
 					@click="mainStore.upsertPoint({ where: mainStore.temps })"
 				/>
 				<button
+					type="button"
 					class="button-iconed icon icon-cross-45-circled"
 					:title="mainStore.t.i.hints.deleteAllTemps"
 					@click="mainStore.deleteAllTemps()"
@@ -39,6 +41,7 @@
 				class="control-buttons"
 			>
 				<button
+					type="button"
 					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addRoutePoint"
 					@click="() => {
@@ -54,6 +57,7 @@
 				class="control-buttons"
 			>
 				<button
+					type="button"
 					class="button-iconed icon icon-plus-circled"
 					:title="mainStore.t.i.hints.addPoint"
 					@click="() => {
@@ -65,6 +69,7 @@
 					}"
 				/>
 				<button
+					type="button"
 					class="button-iconed icon icon-cross-45-circled"
 					:title="mainStore.t.i.buttons.clear"
 					@click="mainStore.deleteAllMeasurePoints()"
@@ -91,6 +96,7 @@
 				</div>
 				<button
 					v-if="mainStore.currentPointId"
+					type="button"
 					class="link"
 					@pointerup="e => {
 						const fat = points.find(p => p.id === mainStore.currentPointId);
@@ -202,7 +208,7 @@
 import { ref, computed } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { common } from '@/services/common';
-import { usePointerDnD, handleDrop } from '@/services/dnd';
+import { usePointerDnD } from '@/services/dnd';
 import { calculatePopupPosition } from '@/shared/common';
 import {
 	Route,
@@ -313,7 +319,6 @@ const updateHighlights = (target: HTMLElement | null) => {
 	}
 };
 const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
-	handleDrop,
 	canAcceptDrop,
 	updateHighlights,
 	onDragStateChange: (value) => { dragging.value = value; },

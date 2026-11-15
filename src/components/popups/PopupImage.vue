@@ -35,6 +35,7 @@
 					<span class="icon icon-triangle" />
 				</a>
 				<button
+					type="button"
 					class="link close"
 					@click.stop="close"
 				>

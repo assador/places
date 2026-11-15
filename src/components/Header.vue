@@ -32,6 +32,7 @@
 								{{ mainStore.t.i.captions.admin }}
 							</router-link>
 							<button
+								type="button"
 								class="link menu-link message border_1"
 								@click="() => { logout(); router.push({ name: 'Auth' }); }"
 							>
@@ -41,6 +42,7 @@
 					</Popup>
 				</span>
 				<button
+					type="button"
 					class="link"
 					@pointerdown.stop.prevent="e => {
 						if (popupProps.show) {

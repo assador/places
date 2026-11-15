@@ -144,7 +144,7 @@ export const useMainStore = defineStore('main', () => {
 		saved: ref<boolean>(true),
 		savedSettings: ref<boolean>(true),
 		saving: ref<boolean>(false),
-		selectedToExport: ref<Record<FolderContext, string[]>>({
+		selectedToExport: ref<Partial<Record<FolderContext, string[]>>>({
 			places: [],
 			routes: [],
 			settings: [],

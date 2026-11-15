@@ -3,12 +3,14 @@
 		<h1 class="margin_bottom_0">{{ mainStore.t.i.captions.groups }}</h1>
 		<div class="control-panel">
 			<button
+				type="button"
 				:title="mainStore.t.i.buttons.viewTable"
 				@click="tableMode = 1"
 			>
 				<img src="@/assets/icons/dark/list.svg" />
 			</button>
 			<button
+				type="button"
 				:title="mainStore.t.i.buttons.viewTiles"
 				@click="tableMode = 2"
 			>
@@ -41,11 +43,13 @@
 				@click="sortBy(key)"
 			>
 				<div
+					v-if="key === adminStore.groupsSortBy"
 					class="icon icon-triangle"
 					:class="isReverse ? 'icon-triangle_down' : 'icon-triangle_up'"
 				/>
 				<button
 					v-if="fields[key]"
+					type="button"
 					class="link"
 				>
 					{{ fields[key].caption }}
@@ -54,7 +58,7 @@
 		</div>
 		<div
 			v-for="n in groupsArray.length"
-			:key="getGroup(n).id"
+			:key="n"
 			:class="{ active: getGroup(n).checked }"
 			@click="getGroup(n).checked = !getGroup(n).checked"
 		>
@@ -130,6 +134,13 @@ const getFieldValue = (group: Group, key: keyof Group): unknown => {
 		: value
 	;
 };
+const sortBy = (key: keyof Group): void => {
+	if (key !== adminStore.groupsSortBy) {
+		adminStore.groupsSortBy = key;
+	} else {
+		isReverse.value = !isReverse.value;
+	}
+};
 
 const check = (id: string, val: boolean): void => {
 	adminStore.groups[id].checked = val;
@@ -153,13 +164,6 @@ const checkAll = (val: boolean): void => {
 	for (const id in adminStore.groups) {
 		if (!Object.hasOwn(adminStore.groups, id)) continue;
 		check(id, val);
-	}
-};
-const sortBy = (key: keyof Group): void => {
-	if (key !== adminStore.groupsSortBy) {
-		adminStore.groupsSortBy = key;
-	} else {
-		isReverse.value = !isReverse.value;
 	}
 };
 </script>

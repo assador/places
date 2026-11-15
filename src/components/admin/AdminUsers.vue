@@ -3,12 +3,14 @@
 		<h1 class="margin_bottom_0">{{ mainStore.t.i.captions.users }}</h1>
 		<div class="control-panel">
 			<button
+				type="button"
 				:title="mainStore.t.i.buttons.viewTable"
 				@click="tableMode = 1"
 			>
 				<img src="@/assets/icons/dark/list.svg" />
 			</button>
 			<button
+				type="button"
 				:title="mainStore.t.i.buttons.viewTiles"
 				@click="tableMode = 2"
 			>
@@ -16,6 +18,7 @@
 			</button>
 	<!--
 			<button
+				type="button"
 				:title="mainStore.t.i.buttons.viewHybrid"
 				@click="tableMode = 3"
 			>
@@ -49,11 +52,13 @@
 				@click="sortBy(key)"
 			>
 				<div
+					v-if="key === adminStore.usersSortBy"
 					class="icon icon-triangle"
 					:class="isReverse ? 'icon-triangle_down' : 'icon-triangle_up'"
 				/>
 				<button
 					v-if="fields[key]"
+					type="button"
 					class="link"
 				>
 					{{ fields[key].caption }}
@@ -62,7 +67,7 @@
 		</div>
 		<div
 			v-for="n in usersArray.length"
-			:key="getUser(n).id"
+			:key="n"
 			:class="{ active: getUser(n).checked }"
 			@click="getUser(n).checked = !getUser(n).checked"
 		>
@@ -154,6 +159,13 @@ const getFieldValue = (user: User, key: keyof User): unknown => {
 		: value
 	;
 };
+const sortBy = (key: keyof User): void => {
+	if (key !== adminStore.usersSortBy) {
+		adminStore.usersSortBy = key;
+	} else {
+		isReverse.value = !isReverse.value;
+	}
+};
 
 const check = (id: string, val: boolean): void => {
 	adminStore.users[id].checked = val;
@@ -177,13 +189,6 @@ const checkAll = (val: boolean): void => {
 	for (const id in adminStore.users) {
 		if (!Object.hasOwn(adminStore.users, id)) continue;
 		check(id, val);
-	}
-};
-const sortBy = (key: keyof User): void => {
-	if (key !== adminStore.usersSortBy) {
-		adminStore.usersSortBy = key;
-	} else {
-		isReverse.value = !isReverse.value;
 	}
 };
 </script>

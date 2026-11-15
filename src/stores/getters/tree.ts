@@ -1,14 +1,15 @@
 import { computed } from 'vue';
-import { StoreMainStateRefs } from '@/stores/types';
+import { StoreAdminStateRefs, StoreMainStateRefs } from '@/stores/types';
 import { initFolderFactory } from '@/stores/actions/entity';
 import _ from 'lodash';
 import { Folder, FolderContext } from '@/types';
+import { isStoreAdminStateRefs } from '@/guards';
 
 export function useGettersTree(
-	state: StoreMainStateRefs,
+	state: StoreMainStateRefs | StoreAdminStateRefs,
 ) {
 	const getFolders = (context: FolderContext): Record<string, Folder> => {
-		return state.treeParams.value[context].folders;
+		return state.treeParams.value[context]?.folders ?? {};
 	};
 	const allChildrenMap = (context: FolderContext): Record<string, Record<string, Folder>> => {
 		const folders = getFolders(context);
@@ -35,7 +36,7 @@ export function useGettersTree(
 	const buildTree = (context: FolderContext): Folder | undefined => {
 		const folders = getFolders(context);
 		if (!folders) return;
-		const createFolder = initFolderFactory(() => state.user.value?.id ?? null);
+		const createFolder = initFolderFactory(() => null);
 		const prepareNode = (parent: Folder): Folder => {
 			const folder = parent.id ? folders[parent.id] : parent;
 			if (!folder) return parent;
@@ -57,8 +58,8 @@ export function useGettersTree(
 			id: null,
 			parent: null,
 			srt: context === 'places' ? 20 : 10,
-			name: state.t.value.i.captions[context],
-			userid: state.user.value?.id ?? null,
+			name: isStoreAdminStateRefs(state) ? undefined : state.t.value.i.captions[context],
+			userid: isStoreAdminStateRefs(state) ? null : state.user.value?.id ?? null,
 		});
 		Object.defineProperty(tree, 'open', {
 			get: () => state.treeParams.value[context].open,
@@ -77,11 +78,15 @@ export function useGettersTree(
 	const treeSettings = computed((): Folder | undefined => {
 		return buildTree('settings');
 	});
+	const treeSettingsVoc = computed((): Folder | undefined => {
+		return buildTree('settingsvoc');
+	});
 	const trees = computed(() => {
 		const result = {} as {
 			readonly places: Folder;
 			readonly routes: Folder;
 			readonly settings: Folder;
+			readonly settingsvoc: Folder;
 		};
 		Object.defineProperties(result, {
 			places: {
@@ -94,6 +99,10 @@ export function useGettersTree(
 			},
 			settings: {
 				get: () => treeSettings.value,
+				enumerable: true,
+			},
+			settingsvoc: {
+				get: () => treeSettingsVoc.value,
 				enumerable: true,
 			},
 		});
@@ -136,9 +145,9 @@ export function useGettersTree(
 		if (onlyFolders) return folderIds;
 		const collection = new Set<string>();
 		const source =
-			context === 'settings'
-				? state[context].value.user
-				: state[context].value
+			isStoreAdminStateRefs(state)
+				? state.settings.value.usersvoc
+				: state.settings.value.user
 		;
 		for (const itemId in source) {
 			const itemFolderId = source[itemId].folderid;

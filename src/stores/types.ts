@@ -26,7 +26,7 @@ import {
 	Tree,
 	User,
 } from '@/types';
-import { Setting, SettingCollection, SettingsMain, SettingsAdmin } from '@/types/settings';
+import { Setting, SettingCollection, SettingsMain, SettingsAdmin, SettingsVocRec } from '@/types/settings';
 
 export type EntityAppendMode =
 	| 'change' // change the existing one
@@ -218,19 +218,13 @@ export interface ActionsService {
 	setPointAltitude: (entity: Point) => Promise<void>;
 }
 export interface ActionsSettings {
+	changeSetting: (p: { entity: Setting; change: Partial<Setting>; }) => void;
 	clearSettings: () => void;
 	clearSettingsGroups: () => void;
 	clearUserSettings: () => void;
 	resetUserSettings: (ids?: string[]) => void;
-	changeSetting: (p: { entity: Setting; change: Partial<Setting>; }) => void;
 	setSettingsGroups: () => Promise<void>;
 	setUserSettings: () => Promise<void>;
-}
-export interface ActionsSettingsAdmin {
-	clearSettings: () => void;
-	clearUserSettingsVoc: () => void;
-	resetUserSettingsVoc: () => void;
-	setUserSettingsVoc: () => Promise<void>;
 }
 export interface ActionsUI {
 	setBusy: (busy: boolean) => void;
@@ -273,9 +267,10 @@ export type StoreMain =
 
 export interface AdminState {
 	settings: SettingsAdmin,
+	treeParams: Record<string, Tree>;
 	users: Record<string, User>,
 	groups: Record<string, Group>,
-	settingsSortBy: SettingKey,
+	settingsSortBy: SettingsVocRecKey,
 	usersSortBy: UserKey,
 	groupsSortBy: GroupKey,
 }
@@ -286,20 +281,39 @@ export type StoreAdminStateRefs = {
 
 export type GettersAdmin = ReturnType<typeof useGettersAdmin>;
 
-export type SettingKey = keyof Setting;
 export type UserKey = keyof User;
 export type GroupKey = keyof Group;
 export type UserGroupKey = UserKey & GroupKey;
+export type SettingKey = keyof Setting;
+export type SettingsVocRecKey = keyof SettingsVocRec;
 
 export interface ActionsAdmin {
 	setUsers: (ids?: string[]) => Promise<void>;
 	setGroups: () => Promise<void>;
+	setSettings: () => Promise<void>;
+}
+export interface ActionsEntityAdmin {
+	changeFolder: (p: { entity: Folder, change: Partial<Folder> }) => void;
+}
+export interface ActionsSettingsAdmin {
+	changeSettingsVocRec: (p: { entity: SettingsVocRec; change: Partial<SettingsVocRec>; }) => void;
+	clearSettings: () => void;
+	clearSettingsGroups: () => void;
+	clearUserSettingsVoc: () => void;
+	resetUserSettingsVoc: () => void;
+	setSettingsGroups: () => Promise<void>;
+	setUserSettingsVoc: () => Promise<void>;
+}
+export interface ActionsUIAdmin {
+	folderOpenClose: (p: { folder: Folder; open?: boolean; }) => void;
 }
 
 export type StoreAdmin =
 	StoreAdminStateRefs &
 	GettersAdmin &
+	GettersTree &
 	ActionsAdmin &
-	ActionsSettings &
-	ActionsSettingsAdmin
+	ActionsEntityAdmin &
+	ActionsSettingsAdmin &
+	ActionsUIAdmin
 ;

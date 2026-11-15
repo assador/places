@@ -9,43 +9,31 @@
 				class="settings-form"
 				@submit.prevent="settingsSubmit"
 			>
-				<table class="table_form">
-					<tbody>
-						<tr class="back_0">
-							<th />
-							<td colspan="2">
-								<Tree
-									instanceid="settingstree"
-									what="settings"
-									:editable="false"
-								/>
-							</td>
-						</tr>
-						<tr class="settings-form-buttons back_0">
-							<th />
-							<td>
-								<button type="submit">
-									{{ mainStore.t.i.buttons.save }}
-								</button>
-								<button
-									type="button"
-									@click="e => close(e)"
-								>
-									{{ mainStore.t.i.buttons.back }}
-								</button>
-							</td>
-							<td>
-								<button
-									type="button"
-									:title="mainStore.t.s.extra.resetUserSettings"
-									@click="mainStore.resetUserSettings()"
-								>
-									{{ mainStore.t.i.buttons.reset }}
-								</button>
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<fieldset class="settings-tree">
+					<Tree
+						instanceid="settingstree"
+						what="settings"
+						:editable="false"
+					/>
+				</fieldset>
+				<fieldset class="settings-form__buttons">
+					<button type="submit">
+						{{ mainStore.t.i.buttons.save }}
+					</button>
+					<button
+						type="button"
+						@click="e => close(e)"
+					>
+						{{ mainStore.t.i.buttons.back }}
+					</button>
+					<button
+						type="button"
+						:title="mainStore.t.s.extra.resetUserSettings"
+						@click="mainStore.resetUserSettings()"
+					>
+						{{ mainStore.t.i.buttons.reset }}
+					</button>
+				</fieldset>
 			</form>
 			<router-view />
 		</div>
@@ -86,65 +74,32 @@ onMounted(async () => {
 	overflow: visible;
 	z-index: 1;
 }
-.settings {
-	display: grid;
-	grid-template-rows: auto 1fr;
-	position: absolute;
-	top: 0; right: 0; bottom: 0; left: 0;
-	& > * {
-		position: relative;
-	}
-	&-form {
+.settings-form {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	&__buttons {
 		display: flex;
-		width: 50%;
-		fieldset {
-			margin: 1em;
-		}
-		label {
-			display: block;
-		}
-		&-buttons {
-			td {
-				padding-top: 18px;
-				vertical-align: top;
-				}
-			th + td {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 8px;
-			}
-			td:last-child {
-				text-align: right;
-			}
-		}
+		gap: 8px;
+		justify-content: space-between;
 	}
-	.button-iconed {
+}
+.button-iconed {
+	right: 5px;
+	margin-top: -22px;
+	&:hover {
 		right: 5px;
 		margin-top: -22px;
-		&:hover {
-			right: 5px;
-			margin-top: -22px;
-			filter: brightness(130%);
-		}
-		&::before {
-			margin-top: 0;
-			transform: scale(0.8);
-			background-color: var(--color-25);
-		}
+		filter: brightness(130%);
 	}
-	input[type=text] + .button-iconed::before {
-		mask-image: url('@/assets/icons/eye-open-1-circled.svg');
+	&::before {
+		margin-top: 0;
+		transform: scale(0.8);
+		background-color: var(--color-25);
 	}
 }
-@media screen and (max-width: 1000px) {
-	.settings-form {
-		width: 75%;
-	}
-}
-@media screen and (max-width: 800px) {
-	.settings-form {
-		width: 100%;
-	}
+input[type=text] + .button-iconed::before {
+	mask-image: url('@/assets/icons/eye-open-1-circled.svg');
 }
 @media screen and (max-width: 450px) {
 	.centered {

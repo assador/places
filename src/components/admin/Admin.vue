@@ -8,6 +8,7 @@
 			<div id="top-right" class="app-cell">
 				<div class="control-buttons">
 					<button
+						type="button"
 						id="actions-home"
 						class="action-button"
 						:title="mainStore.t.i.buttons.home"
@@ -17,6 +18,7 @@
 						<span>{{ mainStore.t.i.buttons.home }}</span>
 					</button>
 					<button
+						type="button"
 						id="actions-exit"
 						class="action-button"
 						:title="mainStore.t.i.hints.exit"
@@ -67,7 +69,7 @@ onMounted(async () => {
 		router.push({ name: 'Home' });
 		mainStore.setMessage(ennobleError(error));
 	}
-})
+});
 
 const component = ref('users');
 provide('component', component);
@@ -104,12 +106,8 @@ const components: Record<string, { name: string, component: Component }> = {
 	grid-template-rows: auto 1fr;
 }
 #admin-basic {
-	position: absolute;
-	top: 0; right: 0; bottom: 0; left: 0;
 	display: grid;
-	grid-template-rows: auto auto 1fr;
-	gap: 12px;
-	padding: 12px;
+	gap: 20px;
 }
 #basic-right nav > * {
 	margin-bottom: 8px;

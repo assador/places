@@ -1,6 +1,7 @@
 import {
 	StoreMain,
 	ActionsEntity,
+	ActionsEntityAdmin,
 	BaseUpsertParams,
 	UpsertPointParams,
 	UpsertPlaceParams,
@@ -1002,5 +1003,19 @@ export function useActionsEntity(
 		upsertPoint,
 		upsertRoute,
 		upsertRouteFollowing,
+	};
+};
+
+export function useActionsEntityAdmin(): ActionsEntityAdmin {
+
+	const changeFolder = (
+		{ entity, change }: { entity: Folder; change: Partial<Folder>; }
+	): void => {
+		Object.assign(entity, change);
+		entity.updated = true;
+	};
+
+	return {
+		changeFolder,
 	};
 };

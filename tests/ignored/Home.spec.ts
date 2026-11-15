@@ -108,6 +108,7 @@ function createMainStoreState(): MainState {
 			places: [],
 			routes: [],
 			settings: [],
+			settingsvoc: [],
 		},
 		serverConfig: null,
 		settings: settings.value,

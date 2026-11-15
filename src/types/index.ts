@@ -215,7 +215,7 @@ export type EntityPartial =
 	| Partial<Image>
 ;
 
-export const TREE_ITEM_TYPES = ['folder', 'place', 'route', 'setting'] as const;
+export const TREE_ITEM_TYPES = ['folder', 'place', 'route', 'setting', 'settingvocrec'] as const;
 export type TreeItemType = typeof TREE_ITEM_TYPES[number];
 
 export type Context =
@@ -226,6 +226,7 @@ export type Context =
 	| 'points'
 	| 'routes'
 	| 'settings'
+	| 'settingsvoc'
 	| 'temps'
 ;
 export type PointContext =
@@ -236,6 +237,7 @@ export type MetaEntityContext =
 	| 'places'
 	| 'routes'
 	| 'settings'
+	| 'settingsvoc'
 ;
 export type PointInfoContext =
 	| 'measure'
@@ -257,6 +259,7 @@ export type FolderContext =
 	| 'places'
 	| 'routes'
 	| 'settings'
+	| 'settingsvoc'
 ;
 export type ImportExportFormat =
 	| 'gpx'
@@ -301,7 +304,7 @@ export interface PopupEntityMenuProps extends PopupProps {
 
 export interface DragPayload {
 	id: string | null;
-	type: 'folder' | 'place' | 'route' | 'point' | 'image' | 'setting';
+	type: 'folder' | 'place' | 'route' | 'point' | 'image' | 'setting' | 'settingsvocrec';
 	context: string;
 }
 export interface DragEntityPayload extends DragPayload {

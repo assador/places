@@ -8,7 +8,8 @@ export interface SettingEnum {
 	srt: number;
 	extra?: string;
 }
-export interface SettingsVocRec {
+export interface SettingEntity {
+	type: string;
 	id: string;
 	valtype: number;
 	baseval: SettingType;
@@ -22,7 +23,10 @@ export interface SettingsVocRec {
 	deleted?: boolean;
 	updated?: boolean;
 }
-export interface Setting extends SettingsVocRec {
+export interface SettingsVocRec extends SettingEntity {
+	type: 'settingsvocrec';
+}
+export interface Setting extends SettingEntity {
 	type: 'setting';
 	val: SettingType;
 }

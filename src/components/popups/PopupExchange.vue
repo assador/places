@@ -18,7 +18,10 @@
 					<div class="import-button__text">
 						{{ mainStore.t.i.captions.importPlaces }}
 					</div>
-					<button class="import-button__button button-iconed icon icon-plus-circled" />
+					<button
+						type="button"
+						class="import-button__button button-iconed icon icon-plus-circled"
+					/>
 				</h2>
 				<p v-if="message">{{ message }}</p>
 	
@@ -78,6 +81,7 @@
 			</div>
 		</div>
 		<button
+			type="button"
 			class="link close"
 			@click="showPopupExchange = false"
 		>

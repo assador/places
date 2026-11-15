@@ -1,4 +1,4 @@
-import { StoreMain, ActionsUI } from '@/stores/types';
+import { StoreMain, StoreAdmin, ActionsUI, ActionsUIAdmin } from '@/stores/types';
 import { Place, Route, Folder, GeomarksState, FolderContext } from '@/types';
 import { isFolder, isPlace, isRoute } from '@/guards';
 import { constants } from '@/shared/constants';
@@ -285,5 +285,26 @@ export function useActionsUI(
 		showHideGeomarks,
 		showInRange,
 		updateMap,
+	};
+};
+
+export function useActionsUIAdmin(
+	store: StoreAdmin,
+): ActionsUIAdmin {
+
+	const folderOpenClose = (
+		{ folder, open }:
+		{ folder: Folder; open?: boolean; }
+	): void => {
+		const targetOpen = open !== undefined ? open : !folder.open;
+		const folders = store.treeParams.value[folder.context].folders;
+		if (folder) {
+			if (folder.virtual) store.trees.value[folder.context].open = targetOpen;
+			else if (folder.id) folders[folder.id].open = targetOpen;
+		}
+	};
+
+	return {
+		folderOpenClose,
 	};
 };

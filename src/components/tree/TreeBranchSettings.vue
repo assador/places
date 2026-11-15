@@ -322,7 +322,7 @@ import {
 import { Setting } from '@/types/settings';
 import { isSetting } from '@/guards';
 import { common } from '@/services/common';
-import { usePointerDnD, handleDrop } from '@/services/dnd';
+import { usePointerDnD } from '@/services/dnd';
 
 interface TreeBranchProps {
 	instanceid?: string | null;
@@ -378,6 +378,7 @@ const selectFolderToExport = (id: string | null, select: boolean): void => {
 	}
 };
 watch(() => mainStore.selectedToExport[props.what], (newIds) => {
+	if (props.what === 'settingsvoc') return;
 	const checkedFolders = new Set<string>();
 	if (newIds) {
 		for (const id of newIds) {
@@ -433,7 +434,6 @@ const noop = () => {};
 const dnd = computed(() => {
 	if (!props.editable) return null;
 	return usePointerDnD({
-	    handleDrop,
 	    canAcceptDrop,
 	    updateHighlights,
 	    onDragStateChange: (value) => { dragging.value = value; },
@@ -569,6 +569,7 @@ ul {
 	grid-column: span 3;
 	display: grid;
 	grid-template-columns: subgrid;
+	border-left: 1px solid var(--color-60);
 	&:hover {
 		box-shadow: none;
 	}
@@ -578,12 +579,6 @@ ul {
 	padding: 2px 8px 6px 8px;
 	&.draggable {
 		padding-left: 30px;
-	}
-	.dragging-area {
-		top: 50%; right: auto; bottom: auto; left: 0;
-		transform: translateY(-50%);
-		width: 16px; height: 16px;
-		opacity: 0.2;
 	}
 	&__content {
 		grid-column: span 3;
@@ -674,9 +669,11 @@ ul {
 }
 .dragging-area {
 	position: absolute;
-	top: 0; right: 0; bottom: 0; left: 0;
+	top: 50%; right: auto; bottom: auto; left: 0;
+	transform: translateY(-50%);
+	width: 16px; height: 16px;
 	z-index: 30;
-	opacity: 0;
+	opacity: 0.2;
 	cursor: pointer;
 }
 .dragging .dragging-area {

@@ -1,6 +1,7 @@
 <template>
 	<div class="action-button-group">
 		<button
+			type="button"
 			id="actions-offline"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.offlineMode }"
@@ -41,6 +42,7 @@
 			<span>{{ mainStore.t.i.buttons.undo }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-redo"
 			:disabled="mainStore.stateBackupsIndex === mainStore.stateBackups.length - 1"
 			class="action-button"
@@ -52,6 +54,7 @@
 			<span>{{ mainStore.t.i.buttons.redo }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-save"
 			class="action-button"
 			:class="{ 'button-pressed': !mainStore.saved }"

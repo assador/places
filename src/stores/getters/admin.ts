@@ -1,5 +1,11 @@
 import { User, Group } from '@/types';
-import { StoreAdminStateRefs, UserKey, GroupKey } from '@/stores/types';
+import { SettingsVocRec } from '@/types/settings';
+import {
+	StoreAdminStateRefs,
+	UserKey,
+	GroupKey,
+	SettingsVocRecKey,
+} from '@/stores/types';
 
 export function useGettersAdmin(
 	state: StoreAdminStateRefs,
@@ -18,15 +24,19 @@ export function useGettersAdmin(
 			});
 		});
 	}
-	const getSorted = ({ what, by }:
-		| { what: 'groups'; by: GroupKey; }
-		| { what: 'users'; by: UserKey; }
-	): (Group | User)[] | undefined => {
+	const getSorted = ({ what, by, of }:
+		| { what: 'groups'; by: GroupKey; of?: Record<string, Group>; }
+		| { what: 'users'; by: UserKey; of?: Record<string, User>; }
+		| { what: 'settings'; by: SettingsVocRecKey; of?: Record<string, SettingsVocRec>; }
+	): (Group | User | SettingsVocRec)[] | undefined => {
 		if (what === 'groups') {
 			const arr: Group[] = Object.values(state.groups.value);
 			return sorted(arr, by);
 		} else if (what === 'users') {
 			const arr: User[] = Object.values(state.users.value);
+			return sorted(arr, by);
+		} else if (what === 'settings') {
+			const arr: SettingsVocRec[] = Object.values(of ? of : state.settings.value.usersvoc);
 			return sorted(arr, by);
 		}
 		return undefined;

@@ -22,10 +22,12 @@ import {
 	BufferSettingCollectionKey, BUFFER_SETTING_COLLECTION_KEYS,
 	Setting,
 	SettingCollectionKey, SETTING_COLLECTION_KEYS,
+	SettingEntity,
 	SettingEnum,
 	SettingType,
 	SettingsVocRec,
 } from '@/types/settings';
+import { StoreMainStateRefs, StoreAdminStateRefs } from '@/stores/types';
 
 export const isOptionalString = (value: unknown): boolean =>
 	value === undefined || typeof value === 'string'
@@ -69,7 +71,7 @@ export const isUser = (value: unknown): value is User => {
 		!isOptionalString(value.phone) ||
 		!isOptionalNumber(value.lastupdates) ||
 		!isOptionalNumber(value.confirmbefore)/* ||
-		('groups' in value && !isGroups(value.groups))*/
+		(Object.hasOwn(value, 'groups') && !isGroups(value.groups))*/
 	) {
 		return false;
 	}
@@ -125,7 +127,7 @@ export const isSettingEnum = (value: unknown): value is SettingEnum => {
 	}
 	return true;
 };
-export const isSettingsVocRec = (value: unknown): value is SettingsVocRec => {
+export const isSettingEntity = (value: unknown): value is SettingEntity => {
 	if (
 		!isRecord(value) ||
 		typeof value.id !== 'string' ||
@@ -146,9 +148,40 @@ export const isSettingsVocRec = (value: unknown): value is SettingsVocRec => {
 };
 export const isSetting = (value: unknown): value is Setting => {
 	if (
-		!isSettingsVocRec(value) ||
-		(value as Setting).type !== 'setting' ||
-		!isSettingType((value as Setting).type)
+		!isRecord(value) ||
+		typeof value.id !== 'string' ||
+		typeof value.srt !== 'number' ||
+		typeof value.valtype !== 'number' ||
+		(typeof value.folderid !== 'string' && value.folderid !== null) ||
+		!isSettingType(value.baseval) ||
+		!isOptionalString(value.name) ||
+		!isOptionalString(value.description) ||
+		(value.enum !== undefined && (
+			!Array.isArray(value.enum) ||
+			!value.enum.every(isSettingEnum)
+		)) ||
+		value.type !== 'setting' ||
+		!isSettingType(value.val)
+	) {
+		return false;
+	}
+	return true;
+};
+export const isSettingsVocRec = (value: unknown): value is SettingsVocRec => {
+	if (
+		!isRecord(value) ||
+		typeof value.id !== 'string' ||
+		typeof value.srt !== 'number' ||
+		typeof value.valtype !== 'number' ||
+		(typeof value.folderid !== 'string' && value.folderid !== null) ||
+		!isSettingType(value.baseval) ||
+		!isOptionalString(value.name) ||
+		!isOptionalString(value.description) ||
+		(value.enum !== undefined && (
+			!Array.isArray(value.enum) ||
+			!value.enum.every(isSettingEnum)
+		)) ||
+		value.type !== 'settingsvocrec'
 	) {
 		return false;
 	}
@@ -176,7 +209,11 @@ export const isPoint = (value: unknown): value is Point => {
 		typeof value.id !== 'string' ||
 		typeof value.latitude !== 'number' ||
 		typeof value.longitude !== 'number' ||
-		('altitude' in value && value.altitude !== null && !isOptionalNumber(value.altitude))
+		(
+			Object.hasOwn(value, 'altitude') &&
+			value.altitude !== null &&
+			typeof value.altitude !== 'number'
+		)
 	) {
 		return false;
 	}
@@ -310,7 +347,22 @@ export const isFileInput = (value: unknown): value is HTMLInputElement & { files
 	return true;
 };
 
-// SEC import
+// SEC Stores
+
+export const isStoreMainStateRefs = (value: unknown): value is StoreMainStateRefs => {
+	return (
+		isRecord(value) &&
+		Object.hasOwn(value, 'user')
+	);
+};
+export const isStoreAdminStateRefs = (value: unknown): value is StoreAdminStateRefs => {
+	return (
+		isRecord(value) &&
+		Object.hasOwn(value, 'users')
+	);
+};
+
+// SEC Import
 
 export const isImportedFolder = (value: unknown): value is Partial<Folder> => {
 	return (

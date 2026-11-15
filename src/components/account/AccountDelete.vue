@@ -30,6 +30,7 @@
 					</fieldset>
 				</form>
 				<button
+					type="button"
 					class="link close"
 					@click.stop="close"
 				>

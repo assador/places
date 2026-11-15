@@ -12,6 +12,7 @@
 				{{ object.name }}
 			</h2>
 			<button
+				type="button"
 				class="link menu-link message border_1"
 				@pointerdown.stop
 				@pointerup.stop

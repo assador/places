@@ -104,9 +104,12 @@ export function useActionsAdmin(
 			throw error;
 		}
 	};
+	const setSettings = async (): Promise<void> => {
+	};
 
 	return {
 		setUsers,
 		setGroups,
+		setSettings,
 	};
 };

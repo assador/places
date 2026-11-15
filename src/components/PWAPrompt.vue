@@ -1,6 +1,7 @@
 <template>
 	<button
 		v-if="installPWAEnabled"
+		type="button"
 		id="prompt-button"
 		class="important"
 		@click="installPWA"

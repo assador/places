@@ -11,12 +11,14 @@
 			" />
 			<AboutEn v-else />
 			<button
+				type="button"
 				class="link close"
 				@click.prevent="close"
 			>
 				×
 			</button>
 			<button
+				type="button"
 				class="link up"
 				@click.prevent="scrollToTop"
 			>

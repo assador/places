@@ -77,6 +77,7 @@
 		@click.stop="if (isFileInput(inputUploadFiles)) { inputUploadFiles.click(); }"
 	>
 		<button
+			type="button"
 			class="images-add__button button-iconed icon icon-plus-circled"
 		/>
 		<div class="images-add__text">
@@ -108,7 +109,7 @@ import { useMainStore } from '@/stores/main';
 import { Image } from '@/types';
 import { isFileInput } from '@/guards';
 import { addImages } from '@/services/common';
-import { usePointerDnD, handleDrop } from '@/services/dnd';
+import { usePointerDnD } from '@/services/dnd';
 import PopupImage from '@/components/popups/PopupImage.vue';
 
 export interface ImagesProps {
@@ -153,7 +154,6 @@ const updateHighlights = (target: HTMLElement | null) => {
 	}
 };
 const { onPointerDown, onPointerMove, onPointerUp } = usePointerDnD({
-    handleDrop,
     updateHighlights,
     canAcceptDrop: (target) => target.dataset.entityId !== mainStore.currentDrag?.id,
     onDragStateChange: (value) => { dragging.value = value; },

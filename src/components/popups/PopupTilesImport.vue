@@ -16,13 +16,19 @@
 						class="tiles-add__input"
 						@change="handleFileSelect"
 					/>
-					<button class="tiles-add__button button-iconed icon icon-plus-circled" />
+					<button
+						type="button"
+						class="tiles-add__button button-iconed icon icon-plus-circled"
+					/>
 					<div class="tiles-add__text">
 						{{ mainStore.t.i.maps.chooseTilesZip }}
 					</div>
 				</div>
 				<div>
-					<button @click="onClearTiles">
+					<button
+						type="button"
+						@click="onClearTiles"
+					>
 						{{ mainStore.t.i.maps.clearTileDatabase }}
 					</button>
 				</div>
@@ -47,6 +53,7 @@
 			</div>
 		</div>
 		<button
+			type="button"
 			class="link close"
 			@click="showPopupImportTiles = false"
 		>

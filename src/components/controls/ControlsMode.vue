@@ -1,6 +1,7 @@
 <template>
 	<div class="action-button-group">
 		<button
+			type="button"
 			id="mode-normal"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.mode === 'normal' }"
@@ -12,6 +13,7 @@
 			<span>{{ mainStore.t.i.buttons.normal }}</span>
 		</button>
 		<button
+			type="button"
 			id="mode-routes"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.mode === 'routes' }"
@@ -23,6 +25,7 @@
 			<span>{{ mainStore.t.i.buttons.routes }}</span>
 		</button>
 		<button
+			type="button"
 			id="mode-measure"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.mode === 'measure' }"

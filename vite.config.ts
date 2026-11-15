@@ -39,7 +39,7 @@ export default defineConfig({
 				navigateFallbackDenylist: [/^\/backend/],
 				runtimeCaching: [
 					{
-						urlPattern: /^\/(backend|raw)\/.*$/,
+						urlPattern: /^\/(backend|raw)(?:\/|$)/,
 						handler: 'NetworkOnly',
 					}, {
 						urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webmanifest|woff2?)$/,
@@ -61,7 +61,6 @@ export default defineConfig({
 		alias: {
 			'@': fileURLToPath(new URL('./src', import.meta.url)),
 		},
-		// extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
 	},
 	define: {
 		'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),

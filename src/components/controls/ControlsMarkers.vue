@@ -1,6 +1,7 @@
 <template>
 	<div class="action-button-group">
 		<button
+			type="button"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.markersShow }"
 			:title="mainStore.t.i.hints.shMarkers"
@@ -9,6 +10,7 @@
 			<span class="icon icon-geomark-1" />
 		</button>
 		<button
+			type="button"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.centerMarkerShow }"
 			:title="mainStore.t.i.hints.shCenter"

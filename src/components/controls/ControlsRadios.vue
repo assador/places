@@ -1,6 +1,7 @@
 <template>
 	<div class="action-button-group">
 		<button
+			type="button"
 			id="actions-places"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.placesShow.show }"
@@ -12,6 +13,7 @@
 			<span>{{ mainStore.t.i.buttons.places }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-routes"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.routesShow.show }"
@@ -23,6 +25,7 @@
 			<span>{{ mainStore.t.i.buttons.routes }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-points"
 			class="action-button"
 			:class="{ 'button-pressed': mainStore.tempsShow.show }"
@@ -34,6 +37,7 @@
 			<span>{{ mainStore.t.i.buttons.points }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-range"
 			class="action-button actions-button_bigger"
 			:class="{ 'button-pressed': mainStore.rangeShow }"
@@ -50,6 +54,7 @@
 			<span>{{ mainStore.t.i.buttons.range }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-edit-folders"
 			class="action-button"
 			:class="{ 'button-pressed': common.folderEditability }"

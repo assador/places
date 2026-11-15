@@ -187,6 +187,7 @@
 		</div>
 		<div class="auth-footer buttons">
 			<button
+				type="button"
 				:title="mainStore.t.i.hints.about"
 				@click="router.push({
 					name: 'AuthText',
@@ -197,6 +198,7 @@
 			</button>
 			<button
 				v-if="pwa?.installPWAEnabled"
+				type="button"
 				id="prompt-button"
 				class="important"
 				@click="pwa?.installPWA"

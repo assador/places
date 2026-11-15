@@ -1,6 +1,7 @@
 <template>
 	<div class="action-button-group">
 		<button
+			type="button"
 			class="action-button"
 			:title="mainStore.t.i.hints.getLocation"
 			@click="geoLocation.centerTo()"
@@ -8,6 +9,7 @@
 			<span class="icon icon-center-net" />
 		</button>
 		<button
+			type="button"
 			class="action-button"
 			:disabled="mainStore.mode === 'routes' && !mainStore.currentRoute"
 			:title="

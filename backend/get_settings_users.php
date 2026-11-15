@@ -5,17 +5,6 @@ ini_set("display_errors", "0");
 
 require_once __DIR__ . "/bootstrap.php";
 
-function castSettingValue(?string $value, int $type): null|bool|float|int|string {
-	if ($value === null) return null;
-	return match ($type) {
-		0 => null,
-		1 => trim($value, "0\x00") !== '',
-		2 => is_numeric($value) ? $value + 0 : 0,
-		3 => $value,
-		default => null,
-	};
-}
-
 apiRun($ctx, function () use ($ctx) {
 	$raw = file_get_contents("php://input");
 	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);

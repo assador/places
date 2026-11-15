@@ -2,6 +2,7 @@
 	<div class="action-button-group">
 		<ControlsState v-if="common.compact !== 2" />
 		<button
+			type="button"
 			id="actions-exchange"
 			class="action-button"
 			:title="mainStore.t.i.hints.exchange"
@@ -12,6 +13,7 @@
 			<span>{{ mainStore.t.i.buttons.exchange }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-install"
 			class="action-button"
 			:title="mainStore.t.i.hints.install"
@@ -22,6 +24,7 @@
 			<span>{{ mainStore.t.i.buttons.install }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-about"
 			class="action-button"
 			:title="mainStore.t.i.hints.about"
@@ -37,6 +40,7 @@
 			<span>{{ mainStore.t.i.buttons.help }}</span>
 		</button>
 		<button
+			type="button"
 			id="actions-exit"
 			class="action-button"
 			:title="mainStore.t.i.hints.exit"

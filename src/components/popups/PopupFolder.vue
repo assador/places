@@ -39,7 +39,10 @@
 						<button type="submit">
 							{{ mainStore.t.i.buttons.createFolder }}
 						</button>
-						<button @click="close()">
+						<button
+							type="button"
+							@click="close()"
+						>
 							{{ mainStore.t.i.buttons.cancel }}
 						</button>
 					</fieldset>
@@ -48,6 +51,7 @@
 					</div>
 				</form>
 				<button
+					type="button"
 					class="link close"
 					@click="close()"
 				>

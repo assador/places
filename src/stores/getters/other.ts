@@ -1,5 +1,10 @@
 import { computed } from 'vue';
-import { StoreMainStateRefs, GettersEntity, GettersSettings, GettersTree } from '@/stores/types';
+import {
+	StoreMainStateRefs,
+	GettersEntity,
+	GettersSettings,
+	GettersTree
+} from '@/stores/types';
 import {
 	Folder,
 	FolderContext,
@@ -77,7 +82,7 @@ export function useGettersOther(
 	};
 	const getNeighbourIds = (
 		id: string,
-		type: 'folder' | 'place' | 'route' | 'setting',
+		type: TreeItemType,
 		context: FolderContext,
 	): string[] | undefined => {
 		const dict = getDict(type, context);
