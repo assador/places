@@ -172,6 +172,12 @@ export const calculatePopupPosition = (e: PointerEvent) => {
 		right: isLeft ? 'auto' : `${width - x + offset}px`,
 	};
 };
+export const hasOwnKeys = (dict: Record<string, unknown>): boolean => {
+	for (const key in dict) {
+		if (Object.hasOwn(dict, key)) return true;
+	}
+	return false;
+};
 export const anyInDict = (dict: Record<string, unknown>): unknown | undefined => {
 	for (const key in dict) {
 		if (Object.hasOwn(dict, key)) return dict[key];

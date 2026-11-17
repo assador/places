@@ -192,7 +192,7 @@
 					:data-entity-type="object.type"
 					:data-entity-context="props.what"
 				>
-					<span
+					<div
 						v-if="instanceid === 'popupexporttree'"
 						class="tree-item-checkbox-container"
 						>
@@ -209,18 +209,18 @@
 							)"
 							@click.stop
 						/>
-					</span>
-					<span
+					</div>
+					<div
 						class="tree-item__content"
 						:class="{ placeholder: !object.name }"
 					>
-						<span class="tree-item__name">
+						<div class="tree-item__name">
 							{{
 								mainStore.t.s.name[object.name as DictionaryNameKey] ||
 								mainStore.t.i.captions.untitled
 							}}
-						</span>
-						<span class="tree-item__control">
+						</div>
+						<div class="tree-item__control">
 							<select
 								v-if="object.enum?.length"
 								:value="mainStore.settings.user[object.id].val"
@@ -239,14 +239,14 @@
 									{{ mainStore.t.s.extra[o.extra as DictionaryExtraKey] ?? o.val }}
 								</option>
 							</select>
-						</span>
-						<span
+						</div>
+						<div
 							class="tree-item__reset icon icon-undo"
 							:title="mainStore.t.s.extra.resetUserSetting"
 							@click="mainStore.resetUserSettings([object.id])"
 						/>
-					</span>
-					<span
+					</div>
+					<div
 						v-if="props.editable"
 						class="dragging-area icon icon-expand"
 						@pointerdown.stop="e => onPointerDown(e, {
@@ -258,7 +258,7 @@
 					    @pointerup.stop="e => onPointerUp(e, () => {})"
 						@pointercancel.stop="onPointerUp"
 					/>
-					<span
+					<div
 						v-if="props.editable"
 						class="sorting-area sorting-area-before"
 						:class="{
@@ -268,7 +268,7 @@
 								mainStore.currentDrag?.position === 'before'
 						}"
 					/>
-					<span
+					<div
 						v-if="props.editable"
 						class="sorting-area sorting-area-after"
 						:class="{
@@ -334,7 +334,6 @@ interface TreeBranchProps {
 const props = withDefaults(defineProps<TreeBranchProps>(), {
 	instanceid: null,
 	editable: true,
-	parent: null,
 });
 
 const mainStore = useMainStore();

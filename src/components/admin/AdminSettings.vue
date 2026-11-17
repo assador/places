@@ -1,37 +1,72 @@
 <template>
 	<div class="admin-settings__header">
 		<h1 class="margin_bottom_0">{{ mainStore.t.i.captions.settings }}</h1>
-		<div class="control-panel">
-			<button
-				type="button"
-				:title="mainStore.t.i.buttons.viewTable"
-				@click="treeMode = 1"
-			>
-				<img src="@/assets/icons/dark/list.svg" />
-			</button>
-			<button
-				type="button"
-				:title="mainStore.t.i.buttons.viewTiles"
-				@click="treeMode = 2"
-			>
-				<img src="@/assets/icons/dark/tiles.svg" />
-			</button>
-		</div>
 	</div>
-	<form
-		class="settings-form"
-		@submit.prevent="settingsSubmit"
+	<div class="admin-settings__voc"
 	>
-		<fieldset class="settings-voc-tree">
+		<div class="admin-settings__voc__tree">
 			<Tree
 				instanceid="settingsvoctree"
 				what="settingsvoc"
 				:editable="true"
 			/>
-		</fieldset>
-		<fieldset class="settings-form__buttons">
+		</div>
+		<div
+			v-if="orphansArray.length"
+			class="admin-settings__voc__orphans"
+		>
+			<h2>{{ mainStore.t.i.captions.orphans }}</h2>
+			<div
+				class="folder-items table table-1"
+				:style="{
+					gridTemplateColumns: [
+						'auto',
+						...keysArray.map(getColumnWidth),
+					].join(' '),
+				}"
+			>
+				<div class="tree-item">
+					<div>
+						<input
+							type="checkbox"
+							:checked="checked === 1"
+							.indeterminate="checked === 2"
+							:title="mainStore.t.i.buttons[checked ? 'uncheckAll' : 'checkAll']"
+							@change="checkAll(checked === 2 ? true : !checked)"
+						/>
+					</div>
+					<h3
+						v-for="key in keysArray"
+						:key="key"
+						class="table-column-caption margin_bottom_0"
+						:class="'tree-item__' + key"
+						@click="sortBy(key)"
+					>
+						<div
+							v-if="key === adminStore.settingsSortBy"
+							class="icon icon-triangle"
+							:class="isReverse ? 'icon-triangle_down' : 'icon-triangle_up'"
+						/>
+						<button
+							v-if="fields[key]"
+							type="button"
+							class="link"
+						>
+							{{ fields[key].caption }}
+						</button>
+					</h3>
+				</div>
+				<TreeBranchSettingsVocRecs
+					:array="orphansArray"
+					:what="'settingsvoc'"
+					:editable="true"
+				/>
+			</div>
+		</div>
+		<div class="admin-settings__voc__buttons">
 			<button
-				type="submit"
+				type="button"
+				@click="settingsSubmit"
 			>
 				{{ mainStore.t.i.buttons.save }}
 			</button>
@@ -42,48 +77,154 @@
 			>
 				{{ mainStore.t.i.buttons.reset }}
 			</button>
-		</fieldset>
-	</form>
+		</div>
+	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { SettingsVocRec } from '@/types/settings';
 import { saveSettingsUsersVoc } from '@/services/db';
+import { hasOwnKeys } from '@/shared/common';
 import { ennobleError } from '@/shared/response';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import Tree from '@/components/tree/Tree.vue';
+import TreeBranchSettingsVocRecs from '@/components/tree/TreeBranchSettingsVocRecs.vue';
 
 const mainStore = useMainStore();
 const adminStore = useAdminStore();
 
-const treeMode = ref(1);
+const isReverse = ref(false);
+
+const sortBy = (key: keyof SettingsVocRec): void => {
+	if (key !== adminStore.settingsSortBy) {
+		adminStore.settingsSortBy = key;
+	} else {
+		isReverse.value = !isReverse.value;
+	}
+};
+
+const check = (id: string, val: boolean): void => {
+	adminStore.settings.usersvoc[id].checked = val;
+};
+const checked = computed((): number => {
+	let prev: boolean | undefined;
+	for (const id in adminStore.settings.usersvoc) {
+		if (!Object.hasOwn(adminStore.settings.usersvoc, id)) continue;
+		const current = Boolean(adminStore.settings.usersvoc[id].checked);
+		if (prev === undefined) {
+			prev = current;
+			continue;
+		} else {
+			if (current !== prev) return 2;
+		}
+		prev = current;
+	}
+	return Number(prev);
+});
+const checkAll = (val: boolean): void => {
+	for (const id in adminStore.settings.usersvoc) {
+		if (!Object.hasOwn(adminStore.settings.usersvoc, id)) continue;
+		check(id, val);
+	}
+};
+
+const groupIdsArray = computed(() => {
+	const array: string[] = [];
+	for (const id in adminStore.settings.groups) {
+		if (!Object.hasOwn(adminStore.settings.groups, id)) continue;
+		array.push(id);
+	}
+	return array;
+});
+const orphansArray = computed(() => {
+	const array: SettingsVocRec[] = [];
+	for (const id in adminStore.settings.usersvoc) {
+		if (!Object.hasOwn(adminStore.settings.usersvoc, id)) continue;
+		const s = adminStore.settings.usersvoc[id];
+		if (s.folderid !== null && !groupIdsArray.value.includes(s.folderid)) array.push(s);
+	}
+	return array;
+});
+
+type Field<K extends keyof SettingsVocRec> = {
+	enabled: boolean;
+	caption: string;
+	formatter?: (value: Exclude<SettingsVocRec[K], undefined>) => unknown;
+};
+type Fields = {
+	[K in keyof SettingsVocRec]?: Field<K>;
+};
+
+const fields = ref<Fields>({
+	id            : { enabled: true, caption: mainStore.t.i.captions.id },
+	name          : { enabled: true, caption: mainStore.t.i.captions.name },
+	description   : { enabled: true, caption: mainStore.t.i.captions.description },
+	valtype       : { enabled: true, caption: mainStore.t.i.captions.type },
+	enum          : { enabled: true, caption: mainStore.t.i.captions.default },
+	folderid      : { enabled: true, caption: mainStore.t.i.captions.folder },
+	srt           : { enabled: true, caption: mainStore.t.i.captions.srt },
+});
+
+const keysArray = computed(() =>
+	(Object.keys(fields.value) as (keyof SettingsVocRec)[])
+		.filter(key => fields.value[key]?.enabled)
+);
+const columnWidths: Record<string, string> = {
+	id: '6em',
+	folderid: '6em',
+	srt: '7em',
+};
+const getColumnWidth = (key: string) => columnWidths[key] ?? 'minmax(0, 1fr)';
 
 const settingsSubmit = (): void => {
 	saveSettingsUsersVoc();
 };
 
 onMounted(async () => {
-	mainStore.setBusy(true);
-	try {
-		await adminStore.setSettingsGroups();
-		await adminStore.setUserSettingsVoc();
-		adminStore.trees.settingsvoc.open = true;
-	} catch (error) {
-		mainStore.setMessage(ennobleError(error));
-	} finally {
-		mainStore.setBusy(false);
+	if (!hasOwnKeys(adminStore.settings.groups)) {
+		mainStore.setBusy(true);
+		try {
+			await adminStore.setSettingsGroups();
+			adminStore.trees.settingsvoc.open = true;
+		} catch (error) {
+			mainStore.setMessage(ennobleError(error));
+		} finally {
+			mainStore.setBusy(false);
+		}
+	}
+	if (!hasOwnKeys(adminStore.settings.usersvoc)) {
+		mainStore.setBusy(true);
+		try {
+			await adminStore.setUserSettingsVoc();
+		} catch (error) {
+			mainStore.setMessage(ennobleError(error));
+		} finally {
+			mainStore.setBusy(false);
+		}
 	}
 });
 </script>
 
 <style lang="scss" scoped>
+@use '@/assets/styles/tree-settingsvoc';
 .admin-settings {
 	&__header {
 		display: grid;
 		grid-template-columns: 1fr auto;
 		gap: 12px;
 		align-items: center;
+	}
+	&__voc {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		&__buttons {
+			display: flex;
+			gap: 8px;
+			justify-content: space-between;
+		}
 	}
 }
 .control-panel {
@@ -92,16 +233,6 @@ onMounted(async () => {
 	flex-wrap: wrap;
 	button:not(:where(.link)) {
 		min-width: 32px;
-	}
-}
-.settings-form {
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	&__buttons {
-		display: flex;
-		gap: 8px;
-		justify-content: space-between;
 	}
 }
 </style>

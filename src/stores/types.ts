@@ -2,6 +2,7 @@ import { Ref } from 'vue';
 import { useGettersAdmin } from '@/stores/getters/admin';
 import { useGettersEntity } from '@/stores/getters/entity';
 import { useGettersOther } from '@/stores/getters/other';
+import { useGettersOtherAdmin } from '@/stores/getters/other';
 import { useGettersRelate } from '@/stores/getters/relate';
 import { useGettersSettings } from '@/stores/getters/settings';
 import { useGettersTree } from '@/stores/getters/tree';
@@ -266,13 +267,16 @@ export type StoreMain =
 // SEC Admin
 
 export interface AdminState {
+	groups: Record<string, Group>,
+	groupsSortBy: GroupKey,
+	savedGroups: boolean;
+	savedSettings: boolean;
+	savedUsers: boolean;
 	settings: SettingsAdmin,
+	settingsSortBy: SettingsVocRecKey,
 	treeParams: Record<string, Tree>;
 	users: Record<string, User>,
-	groups: Record<string, Group>,
-	settingsSortBy: SettingsVocRecKey,
 	usersSortBy: UserKey,
-	groupsSortBy: GroupKey,
 }
 
 export type StoreAdminStateRefs = {
@@ -280,12 +284,14 @@ export type StoreAdminStateRefs = {
 };
 
 export type GettersAdmin = ReturnType<typeof useGettersAdmin>;
+export type GettersOtherAdmin = ReturnType<typeof useGettersOtherAdmin>;
 
-export type UserKey = keyof User;
+export type AdminStateKey = keyof AdminState;
 export type GroupKey = keyof Group;
-export type UserGroupKey = UserKey & GroupKey;
 export type SettingKey = keyof Setting;
 export type SettingsVocRecKey = keyof SettingsVocRec;
+export type UserGroupKey = UserKey & GroupKey;
+export type UserKey = keyof User;
 
 export interface ActionsAdmin {
 	setUsers: (ids?: string[]) => Promise<void>;
@@ -311,6 +317,7 @@ export interface ActionsUIAdmin {
 export type StoreAdmin =
 	StoreAdminStateRefs &
 	GettersAdmin &
+	GettersOtherAdmin &
 	GettersTree &
 	ActionsAdmin &
 	ActionsEntityAdmin &

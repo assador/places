@@ -1,10 +1,11 @@
 import {
-	StoreMain,
 	ActionsEntity,
 	ActionsEntityAdmin,
 	BaseUpsertParams,
-	UpsertPointParams,
+	StoreAdmin,
+	StoreMain,
 	UpsertPlaceParams,
+	UpsertPointParams,
 } from '@/stores/types';
 import {
 	Folder,
@@ -1006,13 +1007,16 @@ export function useActionsEntity(
 	};
 };
 
-export function useActionsEntityAdmin(): ActionsEntityAdmin {
+export function useActionsEntityAdmin(
+	store: StoreAdmin,
+): ActionsEntityAdmin {
 
 	const changeFolder = (
 		{ entity, change }: { entity: Folder; change: Partial<Folder>; }
 	): void => {
 		Object.assign(entity, change);
 		entity.updated = true;
+		if (entity.context === 'settingsvoc') store.savedSettings.value = false;
 	};
 
 	return {

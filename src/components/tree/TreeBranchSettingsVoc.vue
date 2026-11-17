@@ -31,8 +31,17 @@
 <!-- SEC Folder  -->
 
 			<div
-				class="tree-folder"
-			    @pointerup.stop.prevent="adminStore.folderOpenClose({ folder })"
+				class="tree-folder sorting-area-onto"
+				:class="{
+					highlighted:
+						String(folder.id) === dragTargetId &&
+						folder.context === dragTargetContext &&
+						mainStore.currentDrag?.position === 'onto'
+					,
+				}"
+				@pointermove="onPointerMove"
+				@pointerup.stop.prevent="onPointerUp"
+				@pointercancel="onPointerUp"
 				@contextmenu.stop.prevent="e => common.toggleEntityMenuPopup(
 					e,
 					folder.id ? folders[folder.id] : adminStore.trees[folder.context],
@@ -44,9 +53,14 @@
 					class="tree-folder__content"
 				>
 					<div
-						class="icon icon-triangle"
-						:class="folder.open ? 'icon-triangle_down' : 'icon-triangle_right'"
-					/>
+						class="tree-folder__arrow"
+						@pointerup.stop.prevent="adminStore.folderOpenClose({ folder })"
+					>
+						<div
+							class="icon icon-triangle"
+							:class="folder.open ? 'icon-triangle_down' : 'icon-triangle_right'"
+						/>
+					</div>
 					<h2
 						v-if="folder.virtual"
 						class="color-01"
@@ -89,14 +103,9 @@
 				</div>
 				<div
 					v-if="props.editable"
-					class="dragging-area icon icon-expand sorting-area-onto"
+					class="dragging-area icon icon-expand"
 					:class="{
 						draggable: !folder.virtual && props.editable,
-						highlighted:
-							String(folder.id) === dragTargetId &&
-							folder.context === dragTargetContext &&
-							mainStore.currentDrag?.position === 'onto'
-						,
 					}"
 					@pointerdown="e => onPointerDown(e, {
 						id: folder.id,
@@ -104,9 +113,6 @@
 						context: props.what,
 						nondraggable: folder.virtual || !props.editable,
 					})"
-				    @pointermove="onPointerMove"
-				    @pointerup.stop.prevent="e => onPointerUp(e)"
-				    @pointercancel="onPointerUp"
 				/>
 			</div>
 		</div>
@@ -127,13 +133,19 @@
 			</ul>
 		</div>
 		<div
+			v-if="settingsArray.length"
 			class="folder-items table table-1"
 			:class="{
 				'folder_open': folder.open,
 				'folder_closed': !folder.open,
 				'unparented': !folder.id,
 			}"
-			:style="`grid-template-columns: auto repeat(${keysArray.length}, auto);`"
+			:style="{
+				gridTemplateColumns: [
+					'auto',
+					...keysArray.map(getColumnWidth),
+				].join(' '),
+			}"
 		>
 			<div class="tree-item">
 				<div>
@@ -149,6 +161,7 @@
 					v-for="key in keysArray"
 					:key="key"
 					class="table-column-caption margin_bottom_0"
+					:class="'tree-item__' + key"
 					@click="sortBy(key)"
 				>
 					<div
@@ -166,99 +179,14 @@
 				</h3>
 			</div>
 
-<!-- SEC Setting  -->
+<!-- SEC SettingsVocRec  -->
 
-			<template
-				v-for="n in settingsArray.length"
-				:key="n"
-			>
-				<template v-for="object in [getSetting(n)]" :key="object.id">
-					<label
-						:id="'setting-' + object.id"
-						:type="object.type"
-						:srt="object.srt"
-						:title="mainStore.t.s.name[object.name as DictionaryNameKey]"
-						class="tree-item"
-						:class="{
-							active: object.checked,
-							chosen: false,
-							back_1: object.added || object.updated || object.deleted,
-							draggable: props.editable,
-							dragging: dragging,
-						}"
-						:data-entity-id="object.id"
-						:data-entity-type="object.type"
-						:data-entity-context="props.what"
-					>
-						<span class="setting-actions">
-							<input
-								type="checkbox"
-								:checked="object.checked"
-							/>
-						</span>
-						<template
-							v-for="key in keysArray"
-							:key="key"
-						>
-							<span v-if="key === 'enum'">
-								<select
-									v-if="object.enum?.length"
-									v-model="object.baseval"
-								>
-									<option
-										v-for="(opt, idx) in object.enum"
-										:key="idx"
-										:value="opt.val"
-									>
-										{{ opt.val }}
-									</option>
-								</select>
-								<span v-else>
-									{{ object.baseval }}
-								</span>
-							</span>
-							<span
-								v-else
-								:class="{ impvalue: key === adminStore.settingsSortBy }"
-							>
-								{{ getFieldValue(object, key) }}
-							</span>
-						</template>
-						<span
-							v-if="props.editable"
-							class="dragging-area icon icon-expand"
-							@pointerdown.stop="e => onPointerDown(e, {
-								id: object.id,
-								type: object.type,
-								context: props.what,
-							})"
-						    @pointermove.stop="onPointerMove"
-						    @pointerup.stop="e => onPointerUp(e, () => {})"
-							@pointercancel.stop="onPointerUp"
-						/>
-						<span
-							v-if="props.editable"
-							class="sorting-area sorting-area-before"
-							:class="{
-								'sorting-area-border-top':
-									object.id === dragTargetId &&
-									object.type === mainStore.currentDrag?.type &&
-									mainStore.currentDrag?.position === 'before'
-							}"
-						/>
-						<span
-							v-if="props.editable"
-							class="sorting-area sorting-area-after"
-							:class="{
-								'sorting-area-border-bottom':
-									object.id === dragTargetId &&
-									object.type === mainStore.currentDrag?.type &&
-									mainStore.currentDrag?.position === 'after'
-							}"
-						/>
-					</label>
-				</template>
-			</template>
+			<TreeBranchSettingsVocRecs
+				:array="settingsArray"
+				:what="props.what"
+				:editable="props.editable"
+			/>
+
 		</div>
 		<div
 			v-if="!folder.virtual && props.editable"
@@ -301,6 +229,7 @@ import {
 import { SettingsVocRec } from '@/types/settings';
 import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
+import TreeBranchSettingsVocRecs from '@/components/tree/TreeBranchSettingsVocRecs.vue';
 
 interface TreeBranchProps {
 	instanceid?: string | null;
@@ -312,7 +241,6 @@ interface TreeBranchProps {
 const props = withDefaults(defineProps<TreeBranchProps>(), {
 	instanceid: null,
 	editable: true,
-	parent: null,
 });
 
 const mainStore = useMainStore();
@@ -336,7 +264,7 @@ const fields = ref<Fields>({
 	id            : { enabled: true, caption: mainStore.t.i.captions.id },
 	name          : { enabled: true, caption: mainStore.t.i.captions.name },
 	description   : { enabled: true, caption: mainStore.t.i.captions.description },
-	valtype       : { enabled: true, caption: mainStore.t.i.captions.login },
+	valtype       : { enabled: true, caption: mainStore.t.i.captions.type },
 	enum          : { enabled: true, caption: mainStore.t.i.captions.default },
 	folderid      : { enabled: true, caption: mainStore.t.i.captions.folder },
 	srt           : { enabled: true, caption: mainStore.t.i.captions.srt },
@@ -367,21 +295,13 @@ const settingsArray = computed(() => {
 	}) as SettingsVocRec[]);
 });
 
-const getSetting = (n: number) =>
-	settingsArray.value[isReverse.value ? settingsArray.value.length - n : n - 1]
-;
-const getFieldValue = (user: SettingsVocRec, key: keyof SettingsVocRec): unknown => {
-	const field = fields.value[key];
-	const value = user[key];
-
-	if (field?.formatter && value !== undefined) {
-		return field.formatter(value as never);
-	}
-	return typeof value === 'boolean'
-		? (!value ? mainStore.t.i.text.no : mainStore.t.i.text.yes)
-		: value
-	;
+const columnWidths: Record<string, string> = {
+	id: '6em',
+	folderid: '6em',
+	srt: '7em',
 };
+const getColumnWidth = (key: string) => columnWidths[key] ?? 'minmax(0, 1fr)';
+
 const sortBy = (key: keyof SettingsVocRec): void => {
 	if (key !== adminStore.settingsSortBy) {
 		adminStore.settingsSortBy = key;
@@ -454,8 +374,9 @@ const dnd = computed(() => {
 	    updateHighlights,
 	    onDragStateChange: (value) => { dragging.value = value; },
 		overrides: {
-			treeParams: adminStore.treeParams,
 			changeFolder: adminStore.changeFolder,
+			getSrts: adminStore.getSrts,
+			treeParams: adminStore.treeParams,
 		}
 	});
 });
@@ -469,6 +390,7 @@ const onPointerUp = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+@use '@/assets/styles/tree-settingsvoc';
 ul {
 	padding-left: 0;
 }
@@ -476,7 +398,7 @@ ul {
 	display: flex;
 	flex-direction: column;
 	position: relative;
-	padding-left: 28px;
+	padding-left: 23px;
 	&::before {
 		display: none;
 	}
@@ -519,10 +441,6 @@ ul {
 				display: block;
 			}
 		}
-		.icon-triangle {
-			margin-top: 6px;
-			cursor: pointer;
-		}
 		input, textarea {
 			min-width: 0;
 		}
@@ -558,16 +476,24 @@ ul {
 		float: none;
 	}
 }
-.tree-item, .tree-folder {
+.tree-folder {
 	position: relative;
-	gap: 8px;
+	flex: 1 0 auto;
+	display: flex;
+	flex-flow: row nowrap;
+	z-index: 0;
 	touch-action: none;
 	user-select: none;
 	h2 {
 		line-height: 1;
 	}
 	&__content {
+		flex: 1 0 auto;
+		display: flex;
+		gap: 4px;
+		padding: 4px 0 4px 16px;
 		min-height: 1lh;
+		cursor: pointer;
 	}
 	&__controls {
 		display: flex;
@@ -578,25 +504,22 @@ ul {
 		justify-content: right;
 		z-index: 40;
 	}
-}
-.tree-folder {
-	flex: 1 0 auto;
-	display: flex;
-	flex-flow: row nowrap;
-	z-index: 0;
-	&__content {
-		flex: 1 0 auto;
+	&__arrow {
 		display: flex;
-		gap: 8px;
-		padding: 4px 0 4px 30px;
-		align-items: baseline;
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+		height: 100%;
 		cursor: pointer;
+		.icon-triangle {
+			cursor: pointer;
+		}
 	}
 	&__fields {
 		display: flex;
 		gap: 8px;
-		align-items: baseline;
-		cursor: defalut;
+		align-items: center;
+		cursor: auto;
 	}
 }
 @media (pointer: coarse) {
@@ -617,32 +540,10 @@ ul {
 	display: grid !important;
 	grid-template-columns: auto 1fr;
 	padding: 6px 0;
-	border-left: 1px solid var(--color-60);
 }
 :not(:is(.folder-root)) > .folder-items:is(:not(.unparented)) {
 	display: block;
-	margin-left: 7px;
-}
-.tree-item {
-	padding: 4px 8px 4px 48px;
-	align-items: baseline;
-	&:hover {
-		box-shadow: none;
-	}
-	&:is(:not(.back_1)):hover {
-		background: none;
-	}
-	&__name {
-		text-align: right;
-	}
-	&__reset {
-		top: 5px;
-		cursor: pointer;
-	}
-	.dragging-area {
-		top: 17px; left: 20px;
-		transform: none;
-	}
+	margin-left: 50px;
 }
 #settings-header {
 	z-index: 10;
@@ -659,40 +560,6 @@ ul {
 		}
 	}
 }
-.icon-triangle {
-	flex: 0 0 10px;
-	width: 10px; height: 10px;
-	min-width: 0; min-height: 0;
-	line-height: 0;
-	&::before {
-		background-color: var(--color-23);
-	}
-}
-.tree-item .tree-item-checkbox-container {
-	margin-right: 8px;
-}
-.table {
-	overflow: auto;
-	.impvalue {
-		margin-top: -0.3rem;
-		font-size: 1.5em;
-	}
-	&-column-caption {
-		display: flex;
-		gap: 8px;
-		align-items: baseline;
-		cursor: pointer;
-	}
-	& > * {
-		cursor: pointer;
-	}
-	&.table-2 > * > :first-child {
-		margin-bottom: 12px;
-	}
-}
-.setting-actions {
-	display: flex;
-}
 .sorting-area {
 	position: absolute;
 	right: 0; left: 0;
@@ -700,7 +567,6 @@ ul {
 	z-index: 20;
 	-webkit-tap-highlight-color: transparent;
 	-webkit-touch-callout: none;
-	user-select: none;
 }
 .sorting-area-before {
 	top: 0; bottom: auto;

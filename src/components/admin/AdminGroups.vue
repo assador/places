@@ -81,8 +81,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Group } from '@/types';
+import { hasOwnKeys } from '@/shared/common';
+import { ennobleError } from '@/shared/response';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 
@@ -166,6 +168,19 @@ const checkAll = (val: boolean): void => {
 		check(id, val);
 	}
 };
+
+onMounted(async () => {
+	if (!hasOwnKeys(adminStore.groups)) {
+		mainStore.setBusy(true);
+		try {
+			await adminStore.setGroups();
+		} catch (error) {
+			mainStore.setMessage(ennobleError(error));
+		} finally {
+			mainStore.setBusy(false);
+		}
+	}
+});
 </script>
 
 <style lang="scss" scoped>

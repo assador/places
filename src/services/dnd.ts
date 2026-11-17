@@ -6,6 +6,7 @@ import {
 	DragPointInListPayload,
 	DragRoutePayload,
 	DragSettingPayload,
+	DragSettingsVocRecPayload,
 	Place,
 	Route,
 	Measure,
@@ -125,7 +126,12 @@ const handleFolderDropped = (
 };
 
 const handleEntityDropped = (
-	payload: DragPlacePayload | DragRoutePayload | DragSettingPayload,
+	payload:
+		| DragPlacePayload
+		| DragRoutePayload
+		| DragSettingPayload
+		| DragSettingsVocRecPayload
+	,
 	target: HTMLElement,
 	store: DnDStore,
 ): void => {
@@ -187,6 +193,15 @@ const handleEntityDropped = (
 		});
 	}
 	if (payload.context === 'settings') {
+		store.changeSetting({
+			entity: entity as Setting,
+			change: {
+				srt,
+				folderid: parentId,
+			},
+		});
+	}
+	if (payload.context === 'settingsvoc') {
 		store.changeSetting({
 			entity: entity as Setting,
 			change: {
@@ -388,11 +403,13 @@ const handleDrop = (
 		case 'place':
 		case 'route':
 		case 'setting':
+		case 'settingsvocrec':
 			handleEntityDropped(
 				payload as
 					| DragPlacePayload
 					| DragRoutePayload
 					| DragSettingPayload
+					| DragSettingsVocRecPayload
 				,
 				target,
 				store,

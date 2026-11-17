@@ -336,6 +336,10 @@ export interface DragSettingPayload extends DragEntityPayload {
 	context: 'settings';
 	id: string;
 }
+export interface DragSettingsVocRecPayload extends DragEntityPayload {
+	context: 'settingsvoc';
+	id: string;
+}
 export interface DragPointInListPayload extends DragEntityPayload {
 	context: 'routes' | 'measure';
 	id: string;

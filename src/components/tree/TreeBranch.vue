@@ -242,7 +242,7 @@
 				:data-entity-type="object.type"
 				:data-entity-context="props.what"
 			>
-				<span
+				<div
 					v-if="instanceid === 'popupexporttree'"
 					class="tree-item-checkbox-container"
 					>
@@ -259,14 +259,14 @@
 						)"
 						@click.stop
 					/>
-				</span>
-				<span
+				</div>
+				<div
 					class="tree-item__content"
 					:class="{ placeholder: !object.name }"
 				>
 					{{ object.name || mainStore.t.i.captions.untitled }}
-				</span>
-				<span
+				</div>
+				<div
 					class="dragging-area"
 					@pointerdown.stop="e => onPointerDown(e, {
 						id: object.id,
@@ -288,8 +288,8 @@
 					}"
 				>
 					{{ object.name || mainStore.t.i.captions.untitled }}
-				</span>
-				<span
+				</div>
+				<div
 					class="sorting-area sorting-area-before"
 					:class="{
 						'sorting-area-border-top':
@@ -298,7 +298,7 @@
 							mainStore.currentDrag?.position === 'before'
 					}"
 				/>
-				<span
+				<div
 					class="sorting-area sorting-area-after"
 					:class="{
 						'sorting-area-border-bottom':
@@ -398,7 +398,6 @@ interface TreeBranchProps {
 const props = withDefaults(defineProps<TreeBranchProps>(), {
 	instanceid: null,
 	editable: true,
-	parent: null,
 });
 
 const mainStore = useMainStore();

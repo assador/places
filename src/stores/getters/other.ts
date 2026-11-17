@@ -1,5 +1,6 @@
 import { computed } from 'vue';
 import {
+	StoreAdminStateRefs,
 	StoreMainStateRefs,
 	GettersEntity,
 	GettersSettings,
@@ -275,5 +276,89 @@ export function useGettersOther(
 		getDistance,
 		getPointInfo,
 		getAllImages,
+	};
+}
+
+export function useGettersOtherAdmin(
+	state: StoreAdminStateRefs,
+) {
+	const getDict = (
+		type: TreeItemType,
+	): Record<string, Folder | Place | Route | Setting> | undefined => {
+		switch (type) {
+			case 'folder': return state.settings.value.groups;
+			default: return undefined;
+		}
+	};
+	const getNeighbourIds = (
+		id: string,
+		type: TreeItemType,
+	): string[] | undefined => {
+		const dict = getDict(type);
+		if (!dict) return undefined;
+		const item = dict[id];
+		if (!item) return undefined;
+
+		const isFolders = type === 'folder';
+		const parentId =
+			isFolders
+				? (item as Folder).parent
+				: (item as Place | Route).folderid
+		;
+		const neighbours: Record<string, number> = {};
+		for (const key in dict) {
+			if (!Object.hasOwn(dict, key)) continue;
+			const neighbour = dict[key];
+			const neighbourParentId =
+				isFolders
+					? (neighbour as Folder).parent
+					: (neighbour as Place | Route).folderid
+			;
+			if (neighbourParentId === parentId) neighbours[String(neighbour.id)] = neighbour.srt;
+		}
+		return Object.keys(neighbours).sort((a, b) => neighbours[a] - neighbours[b]);
+	};
+	const getSrts = (
+		id: string,
+		type: TreeItemType,
+	): {
+		before: number;
+		after: number;
+		min: number;
+		max: number;
+		previous: number | undefined;
+		next: number | undefined;
+	} | undefined => {
+		let before: number | undefined;
+		let after: number | undefined;
+		let previous: number | undefined = undefined;
+		let next: number | undefined = undefined;
+		const dict = getDict(type);
+		if (!dict) return undefined;
+		const item = dict[id];
+		if (!item) return undefined;
+		const neighbourIds = getNeighbourIds(id, type);
+		if (!neighbourIds) return undefined;
+		const min = dict[neighbourIds[0]].srt;
+		const max = dict[neighbourIds[neighbourIds.length - 1]].srt;
+		const index = neighbourIds.indexOf(id);
+		if (index === 0) {
+			before = item.srt / 2;
+		} else {
+			previous = dict[neighbourIds[index - 1]].srt;
+			before = (item.srt - previous) / 2 + previous;
+		}
+		if (index === neighbourIds.length - 1) {
+			after = item.srt + 10;
+		} else {
+			next = dict[neighbourIds[index + 1]].srt;
+			after = (next - item.srt) / 2 + item.srt;
+		}
+		return { before, after, min, max, previous, next };
+	};
+
+	return {
+		getNeighbourIds,
+		getSrts,
 	};
 }

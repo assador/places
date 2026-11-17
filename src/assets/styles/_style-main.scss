@@ -314,6 +314,16 @@ $filter-brightness-03: brightness(0%);
 	#messages, .messages, .popup {
 		background-color: var(--color-03);
 	}
+	.back_4 {
+		background-color: var(--color-28);
+		border-color: var(--color-30) var(--color-32) var(--color-34) var(--color-36);
+		box-shadow: 0 0 8px var(--color-39) !important;
+	}
+	.back_5 {
+		background-color: var(--color-28);
+		border-color: var(--color-48);
+		box-shadow: 0 0 0px 1000px var(--color-61) inset;
+	}
 	tr:hover {
 		background-color: var(--color-17);
 	}

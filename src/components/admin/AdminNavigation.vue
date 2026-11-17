@@ -4,7 +4,10 @@
 			v-for="(section, key) in sections"
 			:key="key"
 			class="tree-item block_01"
-			:class="{' active': key === component}"
+			:class="{
+				back_5: key === component,
+				back_4: !saved(key),
+			}"
 			@click="component = key"
 		>
 			{{ section }}
@@ -13,14 +16,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { useAdminStore } from '@/stores/admin';
 
 const mainStore = useMainStore();
-const component = inject('component');
+const adminStore = useAdminStore();
+
+const component = inject<Ref<string>>('component');
+
 const sections = computed(() => ({
 	users: mainStore.t.i.captions.users,
 	groups: mainStore.t.i.captions.groups,
 	settings: mainStore.t.i.captions.settings,
 }));
+const saved = (key: string) => {
+	switch (key) {
+		case 'users':
+			return adminStore.savedUsers;
+		case 'groups':
+			return adminStore.savedGroups;
+		case 'settings':
+			return adminStore.savedSettings;
+		default:
+			return undefined;
+	}
+};
 </script>
