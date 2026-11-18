@@ -25,7 +25,7 @@
 					].join(' '),
 				}"
 			>
-				<div class="tree-item">
+				<div class="tree-item formed">
 					<div>
 						<input
 							type="checkbox"
@@ -48,18 +48,19 @@
 							:class="isReverse ? 'icon-triangle_down' : 'icon-triangle_up'"
 						/>
 						<button
-							v-if="fields[key]"
+							v-if="settingsVocRecFields[key]"
 							type="button"
 							class="link"
 						>
-							{{ fields[key].caption }}
+							{{ settingsVocRecFields[key].caption }}
 						</button>
 					</h3>
 				</div>
 				<TreeBranchSettingsVocRecs
-					:array="orphansArray"
 					:what="'settingsvoc'"
+					:rows="orphansArray"
 					:editable="true"
+					:reverse="isReverse"
 				/>
 			</div>
 		</div>
@@ -84,7 +85,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { SettingsVocRec } from '@/types/settings';
-import { saveSettingsUsersVoc } from '@/services/db';
+import { SettingsVocRecFields, settingsVocRecFields } from '@/shared/settings';
+import { saveSettingsAdmin } from '@/services/db';
 import { hasOwnKeys } from '@/shared/common';
 import { ennobleError } from '@/shared/response';
 import { useMainStore } from '@/stores/main';
@@ -97,39 +99,12 @@ const adminStore = useAdminStore();
 
 const isReverse = ref(false);
 
-const sortBy = (key: keyof SettingsVocRec): void => {
-	if (key !== adminStore.settingsSortBy) {
-		adminStore.settingsSortBy = key;
-	} else {
-		isReverse.value = !isReverse.value;
-	}
-};
-
-const check = (id: string, val: boolean): void => {
-	adminStore.settings.usersvoc[id].checked = val;
-};
-const checked = computed((): number => {
-	let prev: boolean | undefined;
-	for (const id in adminStore.settings.usersvoc) {
-		if (!Object.hasOwn(adminStore.settings.usersvoc, id)) continue;
-		const current = Boolean(adminStore.settings.usersvoc[id].checked);
-		if (prev === undefined) {
-			prev = current;
-			continue;
-		} else {
-			if (current !== prev) return 2;
-		}
-		prev = current;
-	}
-	return Number(prev);
+const hiddenFields = ref<Partial<Record<keyof SettingsVocRecFields, boolean>>>({
 });
-const checkAll = (val: boolean): void => {
-	for (const id in adminStore.settings.usersvoc) {
-		if (!Object.hasOwn(adminStore.settings.usersvoc, id)) continue;
-		check(id, val);
-	}
-};
-
+const keysArray = computed(() =>
+    (Object.keys(settingsVocRecFields) as (keyof SettingsVocRec)[])
+        .filter(key => settingsVocRecFields[key] && !hiddenFields.value[key])
+);
 const groupIdsArray = computed(() => {
 	const array: string[] = [];
 	for (const id in adminStore.settings.groups) {
@@ -148,29 +123,6 @@ const orphansArray = computed(() => {
 	return array;
 });
 
-type Field<K extends keyof SettingsVocRec> = {
-	enabled: boolean;
-	caption: string;
-	formatter?: (value: Exclude<SettingsVocRec[K], undefined>) => unknown;
-};
-type Fields = {
-	[K in keyof SettingsVocRec]?: Field<K>;
-};
-
-const fields = ref<Fields>({
-	id            : { enabled: true, caption: mainStore.t.i.captions.id },
-	name          : { enabled: true, caption: mainStore.t.i.captions.name },
-	description   : { enabled: true, caption: mainStore.t.i.captions.description },
-	valtype       : { enabled: true, caption: mainStore.t.i.captions.type },
-	enum          : { enabled: true, caption: mainStore.t.i.captions.default },
-	folderid      : { enabled: true, caption: mainStore.t.i.captions.folder },
-	srt           : { enabled: true, caption: mainStore.t.i.captions.srt },
-});
-
-const keysArray = computed(() =>
-	(Object.keys(fields.value) as (keyof SettingsVocRec)[])
-		.filter(key => fields.value[key]?.enabled)
-);
 const columnWidths: Record<string, string> = {
 	id: '6em',
 	folderid: '6em',
@@ -178,8 +130,39 @@ const columnWidths: Record<string, string> = {
 };
 const getColumnWidth = (key: string) => columnWidths[key] ?? 'minmax(0, 1fr)';
 
+const sortBy = (key: keyof SettingsVocRec): void => {
+	if (key !== adminStore.settingsSortBy) {
+		adminStore.settingsSortBy = key;
+	} else {
+		isReverse.value = !isReverse.value;
+	}
+};
+
+const check = (id: string, val: boolean): void => {
+	adminStore.settings.usersvoc[id].checked = val;
+};
+const checked = computed((): number => {
+	let prev: boolean | undefined;
+	for (const row of orphansArray.value) {
+		const current = Boolean(row.checked);
+		if (prev === undefined) {
+			prev = current;
+			continue;
+		} else {
+			if (current !== prev) return 2;
+		}
+		prev = current;
+	}
+	return Number(prev);
+});
+const checkAll = (val: boolean): void => {
+	for (const row of orphansArray.value) {
+		check(row.id, val);
+	}
+};
+
 const settingsSubmit = (): void => {
-	saveSettingsUsersVoc();
+	saveSettingsAdmin();
 };
 
 onMounted(async () => {

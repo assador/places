@@ -40,6 +40,7 @@ $col-35: rgb(200, 177, 160);
 $col-36: rgb(0, 0, 0);
 
 $filter-hue-rotate-01: hue-rotate(0deg);
+$filter-hue-rotate-02: hue-rotate(180deg);
 
 $filter-saturate-01: saturate(0%);
 $filter-saturate-02: saturate(0%);
@@ -128,6 +129,7 @@ $filter-brightness-03: brightness(0%);
 	$filter-01: $filter-hue-rotate-01 $filter-saturate-01 $filter-brightness-01;
 	$filter-02: $filter-hue-rotate-01 $filter-saturate-02 $filter-brightness-02;
 	$filter-03: $filter-hue-rotate-01 $filter-saturate-03 $filter-brightness-03;
+	$filter-error: $filter-hue-rotate-02;
 
 	--color-01: #{$color-01};
 	--color-02: #{$color-02};
@@ -206,6 +208,7 @@ $filter-brightness-03: brightness(0%);
 	--filter-01: #{$filter-01};
 	--filter-02: #{$filter-02};
 	--filter-03: #{$filter-03};
+	--filter-error: #{$filter-error};
 
 	* {
 		scrollbar-width: thin;
@@ -324,6 +327,10 @@ $filter-brightness-03: brightness(0%);
 		border-color: var(--color-48);
 		box-shadow: 0 0 0px 1000px var(--color-61) inset;
 	}
+	.back_error {
+		background-color: var(--color-18);
+		filter: var(--filter-error);
+	}
 	tr:hover {
 		background-color: var(--color-17);
 	}
@@ -396,7 +403,7 @@ $filter-brightness-03: brightness(0%);
 	}
 	.tree-item.active,
 	.tree-item.chosen,
-	.tree-item:hover,
+	.tree-item:is(:not(.formed)):hover,
 	.tree-item.activated-by-function,
 	::-webkit-scrollbar-thumb {
 		background-color: var(--color-28);

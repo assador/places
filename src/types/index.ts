@@ -180,7 +180,15 @@ export interface FirstShow {
 
 // SEC Types
 
-export const DICT_KEYS = ['folders', 'points', 'places', 'routes', 'user', 'groups'] as const;
+export const DICT_KEYS = [
+	'folders',
+	'groups',
+	'places',
+	'points',
+	'routes',
+	'user',
+	'usersvoc',
+] as const;
 export type DictKey = typeof DICT_KEYS[number];
 
 export const IMAGEABLE_CONTEXT = ['places', 'routes'] as const;

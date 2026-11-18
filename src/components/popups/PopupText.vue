@@ -7,7 +7,7 @@
 		>
 			<About v-if="
 				props.what === 'about' &&
-				mainStore.settings.user[SettingKey.Lang]?.val === 'ru'
+				mainStore.settings.user[SettingKeyEnum.Lang]?.val === 'ru'
 			" />
 			<AboutEn v-else />
 			<button
@@ -32,7 +32,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter, useRoute } from 'vue-router';
-import { SettingKey } from '@/types/settings';
+import { SettingKeyEnum } from '@/types/settings';
 import About from '@/components/About.vue';
 import AboutEn from '@/components/AboutEn.vue';
 

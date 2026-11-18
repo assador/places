@@ -35,6 +35,9 @@ input[type="number"] {
 	&.table-2 > * > :first-child {
 		margin-bottom: 12px;
 	}
+	.tree-item {
+		box-shadow: none;
+	}
 }
 .tree-item {
 	position: relative;
@@ -45,12 +48,6 @@ input[type="number"] {
 	align-items: center;
 	border: 1px solid var(--color-60);
 	border-top: none;
-	&:hover {
-		box-shadow: none;
-	}
-	&:is(:not(.back_1)):hover {
-		background: none;
-	}
 	&__name {
 		text-align: right;
 	}

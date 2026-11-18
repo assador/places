@@ -42,7 +42,10 @@ export interface SettingsAdmin extends Settings {
 	usersvoc: Record<string, SettingsVocRec>;
 }
 
-export const SETTING_COLLECTION_KEYS = ['user', 'groups'] as const;
+export type SettingKey = keyof Setting;
+export type SettingsVocRecKey = keyof SettingsVocRec;
+
+export const SETTING_COLLECTION_KEYS = ['groups', 'user', 'usersvoc'] as const;
 export type SettingCollectionKey = typeof SETTING_COLLECTION_KEYS[number];
 export interface SettingCollection {
 	groups?: Partial<Folder>[];
@@ -54,7 +57,7 @@ export const BUFFER_SETTING_COLLECTION_KEYS = ['user', 'groups'] as const;
 export type BufferSettingCollectionKey = typeof BUFFER_SETTING_COLLECTION_KEYS[number];
 export type BufferSettingCollection = SettingCollection;
 
-export enum SettingKey {
+export enum SettingKeyEnum {
 	Lang = '1',
 	ColorTheme = '2',
 };

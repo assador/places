@@ -15,7 +15,7 @@ import {
     Mode,
     Tree,
 } from '@/types';
-import { SettingKey, SettingsMain } from '@/types/settings';
+import { SettingKeyEnum, SettingsMain } from '@/types/settings';
 
 import { constants } from '@/shared/constants';
 import { getT } from '@/lang/ru';
@@ -78,7 +78,7 @@ export const useMainStore = defineStore('main', () => {
 			get entities() { return settings.value.user; },
 		},
 	});
-	const currentLang = computed(() => settings.value.user[SettingKey.Lang]?.val ?? 'ru');
+	const currentLang = computed(() => settings.value.user[SettingKeyEnum.Lang]?.val ?? 'ru');
 	const translation = shallowRef<Dictionary>(getT());
 
 	watch(currentLang, async (newLang) => {

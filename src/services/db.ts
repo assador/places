@@ -8,7 +8,6 @@ import {
 } from '@/types';
 import {
 	BufferSettingCollection,
-	Setting,
 	SettingCollection,
 } from '@/types/settings';
 import {
@@ -23,6 +22,7 @@ import {
 import api from '@/api';
 import { buffer } from '@/services/buffer';
 import { useMainStore } from '@/stores/main';
+import { useAdminStore } from '@/stores/admin';
 import { toRawDeep } from '@/shared/common';
 import { ennobleError } from '@/shared/response';
 
@@ -173,38 +173,33 @@ export const saveEntities = async (payload?: EntityCollection): Promise<void> =>
 	}
 };
 
-const saveSettings = async (
-	payload: SettingCollection | null,
-	voc: boolean,
-): Promise<void> => {
+export const saveSettings = async (payload?: SettingCollection): Promise<void> => {
 	const mainStore = useMainStore();
 	if (mainStore.saving || !mainStore.user || mainStore.user.testaccount) return;
 	mainStore.saving = true;
 
 	try {
 		let buffered = await syncBuffer('settings');
-		if (!payload) payload = mainStore.getAllModifiedSettings;
+		const modified = payload ?? mainStore.getAllModifiedSettings;
 
 		if (mainStore.offlineMode || !mainStore.online) {
-			mainStore.savedToDB('settings', payload);
+			mainStore.savedToDB('settings', modified);
 			return;
 		}
 
 		if (!buffered) buffered = await buffer.getOf(mainStore.user.id);
 
 		if (buffered.settings && Object.keys(buffered.settings).length) {
-			if (!voc && buffered.settings.user?.length) {
-				const data: Partial<Setting>[] = [];
-				for (const setting of buffered.settings.user) {
-					data.push({
-						id: setting.id,
-						val: setting.val,
-						valtype: setting.valtype,
-						added: setting.added,
-						updated: setting.updated,
-						deleted: setting.deleted,
-					});
-				}
+			if (buffered.settings.user?.length) {
+
+				const data = buffered.settings.user.map((setting) => ({
+					id: setting.id,
+					val: setting.val,
+					valtype: setting.valtype,
+					added: setting.added,
+					updated: setting.updated,
+					deleted: setting.deleted,
+				}));
 				await api.post(
 					`set_settings_users.php`,
 					{
@@ -214,20 +209,10 @@ const saveSettings = async (
 					},
 					{ silent: true },
 				);
-			} else {
-				await api.post(
-					`set_settings_users_voc.php`,
-					{
-						data: buffered.settings,
-						userid: localStorage.getItem('places-useruuid'),
-						sessionid: localStorage.getItem('places-session'),
-					},
-					{ silent: true },
-				);
 			}
 			await buffer.for(mainStore.user.id).clearSettings();
 		}
-		mainStore.savedToDB('settings', payload);
+		mainStore.savedToDB('settings', modified);
 		mainStore.setMessage(mainStore.t.m.response.success.saved, 3);
 	} catch (error) {
 		mainStore.setMessage(ennobleError(error));
@@ -235,11 +220,42 @@ const saveSettings = async (
 		mainStore.saving = false;
 	}
 };
-export const saveSettingsUsers = (payload?: SettingCollection): void => {
-	saveSettings(payload ?? null, false);
-}
-export const saveSettingsUsersVoc = (payload?: SettingCollection): void => {
-	saveSettings(payload ?? null, true);
+export const saveSettingsAdmin = async (payload?: SettingCollection): Promise<void> => {
+	const mainStore = useMainStore();
+	const adminStore = useAdminStore();
+	if (adminStore.saving) return;
+	adminStore.saving = true;
+
+	try {
+		const modified = payload ?? adminStore.getAllModifiedSettings;
+
+		if (modified.groups && modified.groups.length) {
+			const data = modified.groups.map((group) => ({
+				id: group.id,
+				parent: group.parent,
+				name: group.name ?? null,
+				description: group.description ?? null,
+				added: group.added,
+				updated: group.updated,
+				deleted: group.deleted,
+			}));
+			await api.post(
+				`set_settings_groups.php`,
+				{
+					data: data,
+					userid: localStorage.getItem('places-useruuid'),
+					sessionid: localStorage.getItem('places-session'),
+				},
+				{ silent: true },
+			);
+		}
+		adminStore.savedToDB('settings', modified);
+		mainStore.setMessage(mainStore.t.m.response.success.saved, 3);
+	} catch (error) {
+		mainStore.setMessage(ennobleError(error));
+	} finally {
+		adminStore.saving = false;
+	}
 }
 
 let syncQueue = Promise.resolve<BufferItems | null>(null);

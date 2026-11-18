@@ -10,6 +10,7 @@ import { useGettersSettingsAdmin } from './getters/settings';
 import { useGettersTree } from './getters/tree';
 
 import { useActionsAdmin } from './actions/admin';
+import { useActionsDBAdmin } from './actions/db';
 import { useActionsEntityAdmin } from './actions/entity';
 import { useActionsSettingsAdmin } from './actions/settings';
 import { useActionsUIAdmin } from './actions/ui';
@@ -34,6 +35,7 @@ export const useAdminStore = defineStore('admin', () => {
 		savedGroups: ref<boolean>(true),
 		savedSettings: ref<boolean>(true),
 		savedUsers: ref<boolean>(true),
+		saving: ref<boolean>(false),
 		settings,
 		settingsSortBy: ref<string>('id'),
 		treeParams,
@@ -44,25 +46,27 @@ export const useAdminStore = defineStore('admin', () => {
 	// const state = shallowReactive({ ...store });
 
 	const gettersAdmin         = useGettersAdmin(store);
-	const gettersOther         = useGettersOtherAdmin(store);
+	const gettersOtherAdmin    = useGettersOtherAdmin(store);
 	const gettersSettingsAdmin = useGettersSettingsAdmin(store);
 	const gettersTree          = useGettersTree(store);
 
 	const getters = {
 		...gettersAdmin,
-		...gettersOther,
+		...gettersOtherAdmin,
 		...gettersSettingsAdmin,
 		...gettersTree,
 	};
 	Object.assign(store, getters);
 
 	const actionsAdmin         = useActionsAdmin(store);
+	const actionsDBAdmin       = useActionsDBAdmin(store);
 	const actionsEntityAdmin   = useActionsEntityAdmin(store);
 	const actionsSettingsAdmin = useActionsSettingsAdmin(store);
 	const actionsUIAdmin       = useActionsUIAdmin(store);
 
 	const actions = {
 		...actionsAdmin,
+		...actionsDBAdmin,
 		...actionsEntityAdmin,
 		...actionsSettingsAdmin,
 		...actionsUIAdmin,

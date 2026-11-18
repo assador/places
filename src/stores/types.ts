@@ -1,10 +1,9 @@
 import { Ref } from 'vue';
 import { useGettersAdmin } from '@/stores/getters/admin';
 import { useGettersEntity } from '@/stores/getters/entity';
-import { useGettersOther } from '@/stores/getters/other';
-import { useGettersOtherAdmin } from '@/stores/getters/other';
+import { useGettersOther, useGettersOtherAdmin } from '@/stores/getters/other';
 import { useGettersRelate } from '@/stores/getters/relate';
-import { useGettersSettings } from '@/stores/getters/settings';
+import { useGettersSettings, useGettersSettingsAdmin } from '@/stores/getters/settings';
 import { useGettersTree } from '@/stores/getters/tree';
 import {
 	Dictionary,
@@ -27,7 +26,14 @@ import {
 	Tree,
 	User,
 } from '@/types';
-import { Setting, SettingCollection, SettingsMain, SettingsAdmin, SettingsVocRec } from '@/types/settings';
+import {
+	Setting,
+	SettingCollection,
+	SettingsAdmin,
+	SettingsMain,
+	SettingsVocRec,
+	SettingsVocRecKey,
+} from '@/types/settings';
 
 export type EntityAppendMode =
 	| 'change' // change the existing one
@@ -272,6 +278,7 @@ export interface AdminState {
 	savedGroups: boolean;
 	savedSettings: boolean;
 	savedUsers: boolean;
+	saving: boolean;
 	settings: SettingsAdmin,
 	settingsSortBy: SettingsVocRecKey,
 	treeParams: Record<string, Tree>;
@@ -285,18 +292,23 @@ export type StoreAdminStateRefs = {
 
 export type GettersAdmin = ReturnType<typeof useGettersAdmin>;
 export type GettersOtherAdmin = ReturnType<typeof useGettersOtherAdmin>;
+export type GettersSettingsAdmin = ReturnType<typeof useGettersSettingsAdmin>;
 
 export type AdminStateKey = keyof AdminState;
 export type GroupKey = keyof Group;
-export type SettingKey = keyof Setting;
-export type SettingsVocRecKey = keyof SettingsVocRec;
 export type UserGroupKey = UserKey & GroupKey;
 export type UserKey = keyof User;
 
 export interface ActionsAdmin {
 	setUsers: (ids?: string[]) => Promise<void>;
 	setGroups: () => Promise<void>;
-	setSettings: () => Promise<void>;
+}
+export interface ActionsDBAdmin {
+	savedToDB: (
+		context: 'users' | 'groups' | 'settings',
+		payload: Partial<User>[] | Partial<Group>[] | SettingCollection,
+	) => void;
+	updateSavedStatus: () => void;
 }
 export interface ActionsEntityAdmin {
 	changeFolder: (p: { entity: Folder, change: Partial<Folder> }) => void;
@@ -318,8 +330,10 @@ export type StoreAdmin =
 	StoreAdminStateRefs &
 	GettersAdmin &
 	GettersOtherAdmin &
+	GettersSettingsAdmin &
 	GettersTree &
 	ActionsAdmin &
+	ActionsDBAdmin &
 	ActionsEntityAdmin &
 	ActionsSettingsAdmin &
 	ActionsUIAdmin

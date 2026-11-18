@@ -144,11 +144,7 @@ export function useGettersTree(
 		collectFolderIds(id);
 		if (onlyFolders) return folderIds;
 		const collection = new Set<string>();
-		const source =
-			isStoreAdminStateRefs(state)
-				? state.settings.value.usersvoc
-				: state.settings.value.user
-		;
+		const source = state.treeParams.value[context]?.entities ?? {};
 		for (const itemId in source) {
 			const itemFolderId = source[itemId].folderid;
 			if (

@@ -4,7 +4,7 @@
 		id="container"
 		:class="[
 			'colortheme-' +
-			(mainStore.settings.user[SettingKey.ColorTheme]?.val ?? 'brown')
+			(mainStore.settings.user[SettingKeyEnum.ColorTheme]?.val ?? 'brown')
 		]"
 	>
 		<div id="popup-root" />
@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import { ref, provide, onMounted } from 'vue'
 import { PopupProps } from '@/types';
-import { SettingKey } from '@/types/settings';
+import { SettingKeyEnum } from '@/types/settings';
 import { useMainStore } from '@/stores/main';
 import { usePWAInstall } from '@/shared/usepwainstall';
 

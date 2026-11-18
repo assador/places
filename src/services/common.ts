@@ -2,9 +2,10 @@ import { ref } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { calculatePopupPosition } from '@/shared/common';
 import {
+	EntityCollection,
 	FatPointsPack,
 	Folder,
-	EntityCollection,
+	Group,
 	Image,
 	Measure,
 	MetaEntityContext,
@@ -15,6 +16,7 @@ import {
 	PopupPosition,
 	PopupProps,
 	Route,
+	User,
 } from '@/types';
 import { SettingCollection } from '@/types/settings';
 
@@ -165,9 +167,16 @@ export const isEntityCollectionEmpty = (pkg: EntityCollection | null | undefined
 export const isSettingCollectionEmpty = (pkg: SettingCollection | null | undefined): boolean => {
 	if (!pkg) return true;
 	return (
+		(!pkg.groups || pkg.groups.length === 0) &&
 		(!pkg.user || pkg.user.length === 0) &&
-		(!pkg.groups || pkg.groups.length === 0) 
+		(!pkg.usersvoc || pkg.usersvoc.length === 0)
 	);
+};
+export const isGroupsCollectionEmpty = (pkg: Partial<Group>[] | null | undefined): boolean => {
+	return (!pkg || pkg.length === 0);
+};
+export const isUsersCollectionEmpty = (pkg: Partial<User>[] | null | undefined): boolean => {
+	return (!pkg || pkg.length === 0);
 };
 export const setBusy = (value: boolean): void => {
 	const mainStore = useMainStore();

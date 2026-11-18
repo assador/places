@@ -6,7 +6,7 @@
 		>
 			<option
 				v-for="(l, i) in
-					mainStore.settings.user[SettingKey.Lang]?.enum
+					mainStore.settings.user[SettingKeyEnum.Lang]?.enum
 					?? vocLangs
 				"
 				:key="i"
@@ -21,7 +21,7 @@
 		>
 			<option
 				v-for="(c, i) in
-					mainStore.settings.user[SettingKey.ColorTheme]?.enum
+					mainStore.settings.user[SettingKeyEnum.ColorTheme]?.enum
 					?? vocColorThemes
 				"
 				:key="i"
@@ -39,7 +39,7 @@
 import { computed } from 'vue';
 import { Dictionary } from '@/types';
 import {
-	SettingKey,
+	SettingKeyEnum,
 	SettingType,
 	vocLangs,
 	vocColorThemes
@@ -57,33 +57,33 @@ const createSetting = initSettingFactory(
 );
 
 const lang = computed({
-	get: () => mainStore.settings.user[SettingKey.Lang]?.val ?? 'ru',
+	get: () => mainStore.settings.user[SettingKeyEnum.Lang]?.val ?? 'ru',
 	set: (val) => {
-		if (!mainStore.settings.user[SettingKey.Lang]) { // If unauthorized
-			mainStore.settings.user[SettingKey.Lang] = createSetting({
-				id: SettingKey.Lang,
+		if (!mainStore.settings.user[SettingKeyEnum.Lang]) { // If unauthorized
+			mainStore.settings.user[SettingKeyEnum.Lang] = createSetting({
+				id: SettingKeyEnum.Lang,
 				val: 'ru',
 				baseval: 'ru',
 			});
 		}
 		mainStore.changeSetting({
-			entity: mainStore.settings.user[SettingKey.Lang],
+			entity: mainStore.settings.user[SettingKeyEnum.Lang],
 			change: { val: val },
 		});
 	},
 });
 const theme = computed({
-	get: () => mainStore.settings.user[SettingKey.ColorTheme]?.val ?? 'brown',
+	get: () => mainStore.settings.user[SettingKeyEnum.ColorTheme]?.val ?? 'brown',
 	set: (val) => {
-		if (!mainStore.settings.user[SettingKey.ColorTheme]) { // If unauthorized
-			mainStore.settings.user[SettingKey.ColorTheme] = createSetting({
-				id: SettingKey.ColorTheme,
+		if (!mainStore.settings.user[SettingKeyEnum.ColorTheme]) { // If unauthorized
+			mainStore.settings.user[SettingKeyEnum.ColorTheme] = createSetting({
+				id: SettingKeyEnum.ColorTheme,
 				val: 'brown',
 				baseval: 'brown',
 			});
 		}
 		mainStore.changeSetting({
-			entity: mainStore.settings.user[SettingKey.ColorTheme],
+			entity: mainStore.settings.user[SettingKeyEnum.ColorTheme],
 			change: { val: val },
 		});
 	},

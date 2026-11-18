@@ -1,6 +1,6 @@
 <template>
 	<template
-		v-for="n in props.array.length"
+		v-for="n in props.rows.length"
 		:key="n"
 	>
 		<template v-for="object in [getSetting(n)]" :key="object.id">
@@ -8,14 +8,20 @@
 				:id="'setting-' + object.id"
 				:type="object.type"
 				:srt="object.srt"
-				:title="mainStore.t.s.name[object.name as DictionaryNameKey]"
-				class="tree-item"
+				:title="
+					mainStore.t.s.name[object.name as DictionaryNameKey] +
+					(!isValidSettingsVocRec(object) ? (
+						'\n' + mainStore.t.m.errors.other.incorrectFields
+					) : '')
+				"
+				class="tree-item formed"
 				:class="{
 					active: object.checked,
 					chosen: false,
 					back_1: object.added || object.updated || object.deleted,
 					draggable: props.editable,
 					dragging: dragging,
+					back_error: !isValidSettingsVocRec(object),
 				}"
 				:data-entity-id="object.id"
 				:data-entity-type="object.type"
@@ -37,7 +43,8 @@
 					>
 						<select
 							v-if="object.enum?.length"
-							v-model="object.baseval"
+							:value="object.baseval"
+							@change="changeValue(object, 'baseval', $event)"
 						>
 							<option
 								v-for="(opt, idx) in object.enum"
@@ -48,14 +55,21 @@
 							</option>
 						</select>
 						<span v-else>
-							{{ object.baseval }}
+							<input
+								type="text"
+								:value="object.baseval"
+								@change="changeValue(object, 'baseval', $event)"
+							/>
 						</span>
 					</div>
 					<div
 						v-else-if="key === 'valtype'"
 						:class="{ back_1: key === adminStore.settingsSortBy }"
 					>
-						<select v-model="object.valtype">
+						<select
+							:value="object.valtype"
+							@change="changeValue(object, 'valtype', $event)"
+						>
 							<option
 								v-for="(t, k) in types"
 								:key="k"
@@ -66,12 +80,13 @@
 						</select>
 					</div>
 					<div
-						v-else-if="key === 'srt'"
+						v-else-if="key === 'srt' || key === 'id' || key === 'folderid'"
 						:class="{ back_1: key === adminStore.settingsSortBy }"
 					>
 						<input
-							v-model="object.srt"
 							type="number"
+							:value="object[key]"
+							@change="changeValue(object, key, $event)"
 						/>
 					</div>
 					<div
@@ -79,12 +94,9 @@
 						:class="{ back_1: key === adminStore.settingsSortBy }"
 					>
 						<input
+							type="text"
 							:value="object[key]"
-							:type="
-								['id', 'folderid'].includes(key)
-								? 'number' : 'text'
-							"
-							@input="object.folderid = ($event.target as HTMLInputElement).value"
+							@change="changeValue(object, key, $event)"
 						/>
 					</div>
 				</template>
@@ -109,24 +121,26 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { FolderContext, Dictionary } from '@/types';
 import { SettingsVocRec } from '@/types/settings';
+import { SettingsVocRecFields, settingsVocRecFields } from '@/shared/settings';
+import { isValidSettingsVocRec } from '@/guards';
 import { usePointerDnD } from '@/services/dnd';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 
 interface TreeBranchProps {
-	editable?: boolean;
 	what: FolderContext;
-	array: SettingsVocRec[];
+	rows: SettingsVocRec[];
+	editable?: boolean;
+	reverse?: boolean;
 }
 const props = withDefaults(defineProps<TreeBranchProps>(), {
 	editable: true,
+	reverse: false,
 });
 type DictionaryNameKey = keyof Dictionary['s']['name'];
 
 const mainStore = useMainStore();
 const adminStore = useAdminStore();
-
-const isReverse = ref(false);
 
 const types = {
 	0: 'null',
@@ -135,33 +149,31 @@ const types = {
 	3: 'string',
 } as const;
 
-type Field<K extends keyof SettingsVocRec> = {
-	enabled: boolean;
-	caption: string;
-	formatter?: (value: Exclude<SettingsVocRec[K], undefined>) => unknown;
-};
-type Fields = {
-	[K in keyof SettingsVocRec]?: Field<K>;
-};
-
-const fields = ref<Fields>({
-	id            : { enabled: true, caption: mainStore.t.i.captions.id },
-	name          : { enabled: true, caption: mainStore.t.i.captions.name },
-	description   : { enabled: true, caption: mainStore.t.i.captions.description },
-	valtype       : { enabled: true, caption: mainStore.t.i.captions.type },
-	enum          : { enabled: true, caption: mainStore.t.i.captions.default },
-	folderid      : { enabled: true, caption: mainStore.t.i.captions.folder },
-	srt           : { enabled: true, caption: mainStore.t.i.captions.srt },
+const hiddenFields = ref<Partial<Record<keyof SettingsVocRecFields, boolean>>>({
 });
-
 const keysArray = computed(() =>
-	(Object.keys(fields.value) as (keyof SettingsVocRec)[])
-		.filter(key => fields.value[key]?.enabled)
+    (Object.keys(settingsVocRecFields) as (keyof SettingsVocRec)[])
+        .filter(key => settingsVocRecFields[key] && !hiddenFields.value[key])
 );
 
 const getSetting = (n: number) =>
-	props.array[isReverse.value ? props.array.length - n : n - 1]
+	props.rows[props.reverse ? props.rows.length - n : n - 1]
 ;
+
+const changeValue = <K extends keyof SettingsVocRec>(
+	o: SettingsVocRec,
+	k: K,
+	e: Event,
+) => {
+	const raw = (e.target as HTMLInputElement).value;
+	const field = settingsVocRecFields[k];
+	const value = field?.parser ? field.parser(raw) : raw;
+
+	adminStore.changeSettingsVocRec({
+		entity: o,
+		change: { [k]: value } as Pick<SettingsVocRec, K>,
+	});
+};
 
 // SEC DnD
 

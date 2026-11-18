@@ -133,7 +133,7 @@
 			</ul>
 		</div>
 		<div
-			v-if="settingsArray.length"
+			v-if="rowsArray.length"
 			class="folder-items table table-1"
 			:class="{
 				'folder_open': folder.open,
@@ -147,7 +147,7 @@
 				].join(' '),
 			}"
 		>
-			<div class="tree-item">
+			<div class="tree-item formed">
 				<div>
 					<input
 						type="checkbox"
@@ -170,11 +170,11 @@
 						:class="isReverse ? 'icon-triangle_down' : 'icon-triangle_up'"
 					/>
 					<button
-						v-if="fields[key]"
+						v-if="settingsVocRecFields[key]"
 						type="button"
 						class="link"
 					>
-						{{ fields[key].caption }}
+						{{ settingsVocRecFields[key].caption }}
 					</button>
 				</h3>
 			</div>
@@ -182,9 +182,10 @@
 <!-- SEC SettingsVocRec  -->
 
 			<TreeBranchSettingsVocRecs
-				:array="settingsArray"
 				:what="props.what"
+				:rows="rowsArray"
 				:editable="props.editable"
+				:reverse="isReverse"
 			/>
 
 		</div>
@@ -221,12 +222,9 @@ export default {
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
-import {
-	Dictionary,
-	Folder,
-	FolderContext,
-} from '@/types';
+import { Dictionary, Folder, FolderContext } from '@/types';
 import { SettingsVocRec } from '@/types/settings';
+import { SettingsVocRecFields, settingsVocRecFields } from '@/shared/settings';
 import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
 import TreeBranchSettingsVocRecs from '@/components/tree/TreeBranchSettingsVocRecs.vue';
@@ -251,25 +249,6 @@ const isReverse = ref(false);
 type DictionaryNameKey = keyof Dictionary['s']['name'];
 type DictionaryDescKey = keyof Dictionary['s']['desc'];
 
-type Field<K extends keyof SettingsVocRec> = {
-	enabled: boolean;
-	caption: string;
-	formatter?: (value: Exclude<SettingsVocRec[K], undefined>) => unknown;
-};
-type Fields = {
-	[K in keyof SettingsVocRec]?: Field<K>;
-};
-
-const fields = ref<Fields>({
-	id            : { enabled: true, caption: mainStore.t.i.captions.id },
-	name          : { enabled: true, caption: mainStore.t.i.captions.name },
-	description   : { enabled: true, caption: mainStore.t.i.captions.description },
-	valtype       : { enabled: true, caption: mainStore.t.i.captions.type },
-	enum          : { enabled: true, caption: mainStore.t.i.captions.default },
-	folderid      : { enabled: true, caption: mainStore.t.i.captions.folder },
-	srt           : { enabled: true, caption: mainStore.t.i.captions.srt },
-});
-
 const folders = computed((): Record<string, Folder> => {
 	return adminStore.treeParams[props.what].folders;
 });
@@ -283,16 +262,21 @@ const entities = computed((): Record<string, SettingsVocRec> => {
 	}
 	return recs;
 });
+
+const hiddenFields = ref<Partial<Record<keyof SettingsVocRecFields, boolean>>>({
+});
 const keysArray = computed(() =>
-	(Object.keys(fields.value) as (keyof SettingsVocRec)[])
-		.filter(key => fields.value[key]?.enabled)
+    (Object.keys(settingsVocRecFields) as (keyof SettingsVocRec)[])
+        .filter(key => settingsVocRecFields[key] && !hiddenFields.value[key])
 );
-const settingsArray = computed(() => {
-	return (adminStore.getSorted({
+const rowsArray = computed(() => {
+	const key = adminStore.settingsSortBy;
+	const by = settingsVocRecFields[key]?.sortBy ?? key;
+	return adminStore.getSorted({
 		what: 'settings',
-		by: adminStore.settingsSortBy,
+		by,
 		of: entities.value,
-	}) as SettingsVocRec[]);
+	}) as SettingsVocRec[];
 });
 
 const columnWidths: Record<string, string> = {
@@ -315,9 +299,8 @@ const check = (id: string, val: boolean): void => {
 };
 const checked = computed((): number => {
 	let prev: boolean | undefined;
-	for (const id in adminStore.settings.usersvoc) {
-		if (!Object.hasOwn(adminStore.settings.usersvoc, id)) continue;
-		const current = Boolean(adminStore.settings.usersvoc[id].checked);
+	for (const row of rowsArray.value) {
+		const current = Boolean(row.checked);
 		if (prev === undefined) {
 			prev = current;
 			continue;
@@ -329,9 +312,8 @@ const checked = computed((): number => {
 	return Number(prev);
 });
 const checkAll = (val: boolean): void => {
-	for (const id in adminStore.settings.usersvoc) {
-		if (!Object.hasOwn(adminStore.settings.usersvoc, id)) continue;
-		check(id, val);
+	for (const row of rowsArray.value) {
+		check(row.id, val);
 	}
 };
 

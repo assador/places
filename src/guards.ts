@@ -187,6 +187,25 @@ export const isSettingsVocRec = (value: unknown): value is SettingsVocRec => {
 	}
 	return true;
 };
+export const isValidSettingValue = (value: unknown, valtype: number): value is SettingType => {
+	switch (valtype) {
+		case 0: return value === null;
+		case 1: return typeof value === 'boolean';
+		case 2: return typeof value === 'number' && Number.isFinite(value);
+		case 3: return typeof value === 'string';
+		default: return false;
+	}
+};
+export const isValidSettingsVocRec = (entity: unknown): entity is SettingsVocRec => {
+	if (!isSettingsVocRec(entity)) return false;
+	if (!isValidSettingValue(entity.baseval, entity.valtype)) return false;
+	if (entity.enum) {
+		for (const item of entity.enum) {
+			if (!isValidSettingValue(item.val, entity.valtype)) return false;
+		}
+	}
+	return true;
+};
 export const isFolder = (value: unknown): value is Folder => {
 	if (
 		!isRecord(value) ||
