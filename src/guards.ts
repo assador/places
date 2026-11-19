@@ -38,6 +38,12 @@ export const isOptionalNumber = (value: unknown): boolean =>
 export const isOptionalBoolean = (value: unknown): boolean =>
 	value === undefined || typeof value === 'boolean'
 ;
+export const isOptionalNullNumericString = (value: unknown): boolean => {
+	if (value === null) return true;
+	if (typeof value !== 'string') return false;
+	const num = Number(value);
+	return Number.isSafeInteger(num) && num > 0 && String(num) === value;
+};
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => {
 	return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -198,6 +204,8 @@ export const isValidSettingValue = (value: unknown, valtype: number): value is S
 };
 export const isValidSettingsVocRec = (entity: unknown): entity is SettingsVocRec => {
 	if (!isSettingsVocRec(entity)) return false;
+	if (!isOptionalNullNumericString(entity.id)) return false;
+	if (!isOptionalNullNumericString(entity.folderid)) return false;
 	if (!isValidSettingValue(entity.baseval, entity.valtype)) return false;
 	if (entity.enum) {
 		for (const item of entity.enum) {

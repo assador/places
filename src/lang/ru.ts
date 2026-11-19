@@ -345,6 +345,7 @@ export const getT = () => ({
 				cannotSendDataToDb: 'Не могу внести данные в базу данных.',
 				failedToLoadDictionary: 'Не удалось загрузить словарь для языка',
 				incorrectFields: 'Некоторые поля заполнены некорректно.',
+				incorrectValue: 'Некорректное значение.',
 				other: 'Неизвестная ошибка',
 				savingDataError: 'При сохранении данных произошла ошибка.',
 			},

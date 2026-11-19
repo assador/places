@@ -345,6 +345,7 @@ Your data won’t be saved to your account and will be cleared when you log o
 				cannotSendDataToDb: 'Can’t send the data to the database.',
 				failedToLoadDictionary: 'Failed to load dictionary for language',
 				incorrectFields: 'Some fields are not filled in correctly.',
+				incorrectValue: 'Incorrect value.',
 				other: 'unknown error',
 				savingDataError: 'An error occurred while saving the data.',
 			},

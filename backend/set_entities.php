@@ -583,7 +583,7 @@ apiRun($ctx, function () use ($ctx, $config) {
 	$groupId = $visiting["id"] ?? null;
 
 // SEC Transaction Points
-	
+
 	if (!empty($list["points"])) {
 		$sqlDelPoint = "
 			DELETE FROM points
@@ -603,7 +603,7 @@ apiRun($ctx, function () use ($ctx, $config) {
 	}
 
 // SEC Transaction Folders
-	
+
 	if (!empty($list["folders"])) {
 		$sqlDelFolder = "
 			DELETE FROM folders

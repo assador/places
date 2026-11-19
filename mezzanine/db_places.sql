@@ -589,7 +589,7 @@ CREATE TABLE `settings_groups` (
   `parent` smallint(5) unsigned DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `description` varchar(2044) DEFAULT NULL,
-  `srt` double DEFAULT 10,
+  `srt` double NOT NULL DEFAULT 10,
   PRIMARY KEY (`id`),
   KEY `parent` (`parent`),
   CONSTRAINT `fk_settings_groups_parent` FOREIGN KEY (`parent`) REFERENCES `settings_groups` (`id`) ON DELETE NO ACTION
@@ -606,7 +606,7 @@ DROP TABLE IF EXISTS `settings_users`;
 CREATE TABLE `settings_users` (
   `userid` binary(16) NOT NULL,
   `settingid` smallint(5) unsigned NOT NULL,
-  `value` varbinary(255) NOT NULL,
+  `value` varbinary(255) DEFAULT NULL,
   `updated` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`userid`,`settingid`),
   KEY `settingid` (`settingid`),
@@ -625,11 +625,11 @@ CREATE TABLE `settings_users_voc` (
   `id` smallint(5) unsigned NOT NULL,
   `groupid` smallint(5) unsigned DEFAULT NULL,
   `type` tinyint(3) unsigned NOT NULL,
-  `baseval` varbinary(255) NOT NULL,
+  `baseval` varbinary(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `description` varchar(2044) DEFAULT NULL,
   `public` tinyint(1) NOT NULL DEFAULT 1,
-  `srt` double DEFAULT 10,
+  `srt` double NOT NULL DEFAULT 10,
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   CONSTRAINT `fk_settings_users_voc_groupid` FOREIGN KEY (`groupid`) REFERENCES `settings_groups` (`id`) ON DELETE NO ACTION
@@ -646,7 +646,7 @@ DROP TABLE IF EXISTS `settings_users_voc_options`;
 CREATE TABLE `settings_users_voc_options` (
   `settingid` smallint(5) unsigned NOT NULL,
   `value` varbinary(255) NOT NULL,
-  `srt` double DEFAULT 10,
+  `srt` double NOT NULL DEFAULT 10,
   `enabled` tinyint(1) NOT NULL DEFAULT 1,
   `extra` blob DEFAULT NULL,
   UNIQUE KEY `uq_settingid_value` (`settingid`,`value`),
@@ -789,4 +789,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-11-11  1:54:41
+-- Dump completed on 2026-11-19  0:08:22

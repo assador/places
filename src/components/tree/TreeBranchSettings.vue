@@ -563,19 +563,17 @@ ul {
 	display: grid !important;
 	grid-template-columns: auto 1fr auto;
 	padding: 6px 0;
+	.tree-item, .tree-item:hover {
+		box-shadow: none;
+		background: none;
+	}
 }
 .tree-item {
 	grid-column: span 3;
 	display: grid;
 	grid-template-columns: subgrid;
-	border-left: 1px solid var(--color-60);
-	&:hover {
-		box-shadow: none;
-	}
-	&:is(:not(.back_1)):hover {
-		background: none;
-	}
 	padding: 2px 8px 6px 8px;
+	border-left: 1px solid var(--color-60);
 	&.draggable {
 		padding-left: 30px;
 	}
@@ -593,7 +591,9 @@ ul {
 		top: 5px;
 		cursor: pointer;
 	}
-}
+	.tree-item-checkbox-container {
+		margin-right: 8px;
+	}}
 .tree-folder {
 	flex: 1 0 auto;
 	display: flex;
@@ -647,9 +647,6 @@ ul {
 	&::before {
 		background-color: var(--color-23);
 	}
-}
-.tree-item .tree-item-checkbox-container {
-	margin-right: 8px;
 }
 .sorting-area {
 	position: absolute;

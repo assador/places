@@ -4,7 +4,7 @@ export type SettingsContext = 'user' | 'admin';
 export type SettingType = null | boolean | number | string;
 
 export interface SettingEnum {
-	val: SettingType;
+	val: Exclude<SettingType, null>;
 	srt: number;
 	extra?: string;
 }
@@ -25,6 +25,7 @@ export interface SettingEntity {
 }
 export interface SettingsVocRec extends SettingEntity {
 	type: 'settingsvocrec';
+	public?: boolean;
 }
 export interface Setting extends SettingEntity {
 	type: 'setting';
@@ -42,6 +43,30 @@ export interface SettingsAdmin extends Settings {
 	usersvoc: Record<string, SettingsVocRec>;
 }
 
+export interface SettingsGroup {
+	id: number;
+	parent: number | null,
+	srt: number,
+	name?: string;
+	description?: string;
+	added?: boolean;
+	deleted?: boolean;
+	updated?: boolean;
+}
+export interface SettingsUsersVocRec {
+	id: number;
+	groupid: number | null,
+	type: number;
+	baseval: SettingType;
+	srt: number;
+	public: boolean;
+	name?: string;
+	description?: string;
+	added?: boolean;
+	deleted?: boolean;
+	updated?: boolean;
+}
+
 export type SettingKey = keyof Setting;
 export type SettingsVocRecKey = keyof SettingsVocRec;
 
@@ -51,6 +76,13 @@ export interface SettingCollection {
 	groups?: Partial<Folder>[];
 	user?: Partial<Setting>[];
 	usersvoc?: Partial<SettingsVocRec>[];
+}
+
+export const SETTING_COLLECTION_TO_BACK_KEYS = ['groups', 'usersvoc'] as const;
+export type SettingCollectionToBackKey = typeof SETTING_COLLECTION_TO_BACK_KEYS[number];
+export interface SettingCollectionToBack {
+	groups?: Partial<SettingsGroup>[];
+	usersvoc?: Partial<SettingsUsersVocRec>[];
 }
 
 export const BUFFER_SETTING_COLLECTION_KEYS = ['user', 'groups'] as const;

@@ -225,22 +225,15 @@ export const saveSettingsAdmin = async (payload?: SettingCollection): Promise<vo
 	const adminStore = useAdminStore();
 	if (adminStore.saving) return;
 	adminStore.saving = true;
+	let changesSaved = false;
 
 	try {
 		const modified = payload ?? adminStore.getAllModifiedSettings;
+		const data = adminStore.getSettingsToBack(modified);
 
-		if (modified.groups && modified.groups.length) {
-			const data = modified.groups.map((group) => ({
-				id: group.id,
-				parent: group.parent,
-				name: group.name ?? null,
-				description: group.description ?? null,
-				added: group.added,
-				updated: group.updated,
-				deleted: group.deleted,
-			}));
+		if (data.groups?.length || data.usersvoc?.length) {
 			await api.post(
-				`set_settings_groups.php`,
+				`set_settings.php`,
 				{
 					data: data,
 					userid: localStorage.getItem('places-useruuid'),
@@ -248,9 +241,12 @@ export const saveSettingsAdmin = async (payload?: SettingCollection): Promise<vo
 				},
 				{ silent: true },
 			);
+			changesSaved = true;
 		}
-		adminStore.savedToDB('settings', modified);
-		mainStore.setMessage(mainStore.t.m.response.success.saved, 3);
+		if (changesSaved) {
+			adminStore.savedToDB('settings', modified);
+			mainStore.setMessage(mainStore.t.m.response.success.saved, 3);
+		}
 	} catch (error) {
 		mainStore.setMessage(ennobleError(error));
 	} finally {

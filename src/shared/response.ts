@@ -3,6 +3,8 @@ import { Dictionary } from '@/types';
 import { hasOwnStringKey } from '@/guards';
 import { useMainStore } from '@/stores/main';
 
+export const VALIDATION_ERROR = 'ValidationError';
+
 const RESPONSES = {
 	insufficient_permissions : 'insufficientPermissions',
 	internal_error           : 'internalError',
@@ -45,7 +47,12 @@ export const ennobleApiError = (error: ApiError): string => {
 	return res[sec][key];
 };
 export const ennobleError = (error: unknown): string => {
-	if (error instanceof ApiError) return ennobleApiError(error);
+	if (error instanceof ApiError) {
+		return ennobleApiError(error);
+	}
+	if (error instanceof Error && error.name === VALIDATION_ERROR) {
+		return error.message;
+	}
 	const mainStore = useMainStore();
 	return mainStore.t.m.response.unknown.message;
 };
