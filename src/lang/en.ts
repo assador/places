@@ -58,6 +58,7 @@ export const getT = () => ({
 			pointsMeasure: 'Ruler points',
 			pointsRoute: 'Route points',
 			pointsTemporary: 'Temporary',
+			public: 'Public',
 			range: 'Show everything only within a specified radius of the current place (km)',
 			reg: 'Registration',
 			repeatPassword: 'Repeat password',

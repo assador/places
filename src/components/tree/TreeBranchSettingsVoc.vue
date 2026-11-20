@@ -174,7 +174,11 @@
 						type="button"
 						class="link"
 					>
-						{{ settingsVocRecFields[key].caption }}
+						{{
+							key === 'public'
+							? settingsVocRecFields[key].caption.slice(0, 3) + '.'
+							: settingsVocRecFields[key].caption
+						}}
 					</button>
 				</h3>
 			</div>
@@ -224,7 +228,7 @@ import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { Dictionary, Folder, FolderContext } from '@/types';
 import { SettingsVocRec } from '@/types/settings';
-import { SettingsVocRecFields, settingsVocRecFields } from '@/shared/settings';
+import { SettingsVocRecFields, useSettingsVocRecFields } from '@/shared/settings';
 import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
 import TreeBranchSettingsVocRecs from '@/components/tree/TreeBranchSettingsVocRecs.vue';
@@ -263,15 +267,16 @@ const entities = computed((): Record<string, SettingsVocRec> => {
 	return recs;
 });
 
+const settingsVocRecFields = useSettingsVocRecFields();
 const hiddenFields = ref<Partial<Record<keyof SettingsVocRecFields, boolean>>>({
 });
 const keysArray = computed(() =>
-    (Object.keys(settingsVocRecFields) as (keyof SettingsVocRec)[])
-        .filter(key => settingsVocRecFields[key] && !hiddenFields.value[key])
+    (Object.keys(settingsVocRecFields.value) as (keyof SettingsVocRec)[])
+        .filter(key => settingsVocRecFields.value[key] && !hiddenFields.value[key])
 );
 const rowsArray = computed(() => {
 	const key = adminStore.settingsSortBy;
-	const by = settingsVocRecFields[key]?.sortBy ?? key;
+	const by = settingsVocRecFields.value[key]?.sortBy ?? key;
 	return adminStore.getSorted({
 		what: 'settings',
 		by,
@@ -283,6 +288,7 @@ const columnWidths: Record<string, string> = {
 	id: '6em',
 	folderid: '6em',
 	srt: '7em',
+	public: '4em',
 };
 const getColumnWidth = (key: string) => columnWidths[key] ?? 'minmax(0, 1fr)';
 

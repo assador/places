@@ -58,6 +58,7 @@ export const getT = () => ({
 			pointsMeasure: 'Точки линейки',
 			pointsRoute: 'Точки маршрута',
 			pointsTemporary: 'Временные',
+			public: 'Публичность',
 			range: 'Показывать всё только в заданном радиусе от текущего места (км)',
 			reg: 'Регистрация',
 			repeatPassword: 'Повторите пароль',

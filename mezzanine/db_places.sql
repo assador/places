@@ -591,8 +591,7 @@ CREATE TABLE `settings_groups` (
   `description` varchar(2044) DEFAULT NULL,
   `srt` double NOT NULL DEFAULT 10,
   PRIMARY KEY (`id`),
-  KEY `parent` (`parent`),
-  CONSTRAINT `fk_settings_groups_parent` FOREIGN KEY (`parent`) REFERENCES `settings_groups` (`id`) ON DELETE NO ACTION
+  KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -631,8 +630,7 @@ CREATE TABLE `settings_users_voc` (
   `public` tinyint(1) NOT NULL DEFAULT 1,
   `srt` double NOT NULL DEFAULT 10,
   PRIMARY KEY (`id`),
-  KEY `groupid` (`groupid`),
-  CONSTRAINT `fk_settings_users_voc_groupid` FOREIGN KEY (`groupid`) REFERENCES `settings_groups` (`id`) ON DELETE NO ACTION
+  KEY `groupid` (`groupid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -789,4 +787,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-11-19  0:08:22
+-- Dump completed on 2026-11-19 21:51:57

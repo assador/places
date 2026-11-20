@@ -64,9 +64,13 @@
 				/>
 			</div>
 		</div>
+		<div v-if="!adminStore.isValidSettingsVoc">
+			{{ mainStore.t.m.errors.other.incorrectFields }}
+		</div>
 		<div class="admin-settings__voc__buttons">
 			<button
 				type="button"
+				:disabled="!adminStore.isValidSettingsVoc"
 				@click="settingsSubmit"
 			>
 				{{ mainStore.t.i.buttons.save }}
@@ -85,7 +89,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { SettingsVocRec } from '@/types/settings';
-import { SettingsVocRecFields, settingsVocRecFields } from '@/shared/settings';
+import { SettingsVocRecFields, useSettingsVocRecFields } from '@/shared/settings';
 import { saveSettingsAdmin } from '@/services/db';
 import { hasOwnKeys } from '@/shared/common';
 import { ennobleError } from '@/shared/response';
@@ -99,11 +103,12 @@ const adminStore = useAdminStore();
 
 const isReverse = ref(false);
 
+const settingsVocRecFields = useSettingsVocRecFields();
 const hiddenFields = ref<Partial<Record<keyof SettingsVocRecFields, boolean>>>({
 });
 const keysArray = computed(() =>
-    (Object.keys(settingsVocRecFields) as (keyof SettingsVocRec)[])
-        .filter(key => settingsVocRecFields[key] && !hiddenFields.value[key])
+    (Object.keys(settingsVocRecFields.value) as (keyof SettingsVocRec)[])
+        .filter(key => settingsVocRecFields.value[key] && !hiddenFields.value[key])
 );
 const groupIdsArray = computed(() => {
 	const array: string[] = [];

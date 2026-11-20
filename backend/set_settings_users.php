@@ -5,21 +5,6 @@ ini_set("display_errors", "0");
 
 require_once __DIR__ . "/bootstrap.php";
 
-function prepareSettingValue(mixed $value, int $type): string {
-	if ($value === null) return "";
-	$rawString = match ($type) {
-		0 => "",
-		1 => $value ? "1" : "0",
-		2 => (string) $value,
-		3 => is_array($value) || is_object($value)
-			? json_encode($value, JSON_UNESCAPED_UNICODE)
-			: (string) $value
-		,
-		default => "",
-	};
-	return mb_strcut($rawString, 0, 255, "8bit");
-}
-
 apiRun($ctx, function () use ($ctx, $config) {
 	$raw = file_get_contents("php://input");
 	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);

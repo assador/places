@@ -119,6 +119,14 @@ export function useGettersSettingsAdmin(
 			}),
 		};
 	};
+	const isValidSettingsVoc = computed((): boolean => {
+		const voc = state.settings.value.usersvoc;
+		for (const id in voc) {
+			if (!Object.hasOwn(voc, id)) continue;
+			if (!isValidSettingsVocRec(voc[id])) return false;
+		}
+		return true;
+	});
 	const getAllModifiedSettings = computed((): SettingCollection => {
 		return {
 			groups: collectModifiedSettings(state.settings.value.groups),
@@ -147,5 +155,6 @@ export function useGettersSettingsAdmin(
 		getSettings,
 		getSettingsToBack,
 		getSettingsUsersVoc,
+		isValidSettingsVoc,
 	};
 };

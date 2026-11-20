@@ -125,6 +125,20 @@ function castSettingValue(?string $value, int $type): null|bool|float|int|string
 		default => null,
 	};
 }
+function prepareSettingValue(mixed $value, int $type): ?string {
+	if ($value === null) return null;
+	$rawString = match ($type) {
+		0 => null,
+		1 => $value ? "1" : "0",
+		2 => (string) $value,
+		3 => is_array($value) || is_object($value)
+			? json_encode($value, JSON_UNESCAPED_UNICODE)
+			: (string) $value
+		,
+		default => null,
+	};
+	return $rawString === null ? null : mb_strcut($rawString, 0, 255, "8bit");
+}
 function createSession(AppContext $ctx, string $userIdBin, array $payload = []): string {
 	/*
 		$payload['reason'] === null  -- Ordinary session

@@ -134,7 +134,12 @@
 						{{ mainStore.t.i.captions[folder.context] }}
 					</h2>
 					<div v-else>
-						{{ mainStore.t.s.name[folder.name as DictionaryNameKey] }}
+						{{
+							mainStore.t.s.name[folder.name as DictionaryNameKey] ||
+							folder.name ||
+							folder.description ||
+							mainStore.t.i.captions.folder
+						}}
 					</div>
 				</div>
 			</div>

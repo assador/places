@@ -37,12 +37,10 @@
 					v-for="key in keysArray"
 					:key="key"
 				>
-					<div
-						v-if="key === 'enum'"
-						:class="{ back_1: key === adminStore.settingsSortBy }"
-					>
+					<div v-if="key === 'enum'">
 						<select
 							v-if="object.enum?.length"
+							:class="{ focused: key === adminStore.settingsSortBy }"
 							:value="object.baseval"
 							@change="changeValue(object, 'baseval', $event)"
 						>
@@ -57,16 +55,15 @@
 						<span v-else>
 							<input
 								type="text"
+								:class="{ focused: key === adminStore.settingsSortBy }"
 								:value="object.baseval"
 								@change="changeValue(object, 'baseval', $event)"
 							/>
 						</span>
 					</div>
-					<div
-						v-else-if="key === 'valtype'"
-						:class="{ back_1: key === adminStore.settingsSortBy }"
-					>
+					<div v-else-if="key === 'valtype'">
 						<select
+							:class="{ focused: key === adminStore.settingsSortBy }"
 							:value="object.valtype"
 							@change="changeValue(object, 'valtype', $event)"
 						>
@@ -79,22 +76,30 @@
 							</option>
 						</select>
 					</div>
-					<div
-						v-else-if="key === 'srt' || key === 'id' || key === 'folderid'"
-						:class="{ back_1: key === adminStore.settingsSortBy }"
-					>
+					<div v-else-if="key === 'srt' || key === 'id' || key === 'folderid'">
 						<input
 							type="number"
+							:class="{ focused: key === adminStore.settingsSortBy }"
 							:value="object[key]"
 							@change="changeValue(object, key, $event)"
 						/>
 					</div>
-					<div
-						v-else
-						:class="{ back_1: key === adminStore.settingsSortBy }"
-					>
+					<div v-else-if="key === 'public'">
+						<input
+							type="checkbox"
+							:checked="object.public"
+							@change="changeValue(
+								object,
+								'public',
+								$event,
+								($event.target as HTMLInputElement).checked
+							)"
+						/>
+					</div>
+					<div v-else>
 						<input
 							type="text"
+							:class="{ focused: key === adminStore.settingsSortBy }"
 							:value="object[key]"
 							@change="changeValue(object, key, $event)"
 						/>
@@ -121,7 +126,7 @@
 import { ref, Ref, computed, inject } from 'vue';
 import { FolderContext, Dictionary } from '@/types';
 import { SettingsVocRec } from '@/types/settings';
-import { SettingsVocRecFields, settingsVocRecFields } from '@/shared/settings';
+import { SettingsVocRecFields, useSettingsVocRecFields } from '@/shared/settings';
 import { isValidSettingsVocRec } from '@/guards';
 import { usePointerDnD } from '@/services/dnd';
 import { useMainStore } from '@/stores/main';
@@ -149,11 +154,12 @@ const types = {
 	3: 'string',
 } as const;
 
+const settingsVocRecFields = useSettingsVocRecFields();
 const hiddenFields = ref<Partial<Record<keyof SettingsVocRecFields, boolean>>>({
 });
 const keysArray = computed(() =>
-    (Object.keys(settingsVocRecFields) as (keyof SettingsVocRec)[])
-        .filter(key => settingsVocRecFields[key] && !hiddenFields.value[key])
+    (Object.keys(settingsVocRecFields.value) as (keyof SettingsVocRec)[])
+        .filter(key => settingsVocRecFields.value[key] && !hiddenFields.value[key])
 );
 
 const getSetting = (n: number) =>
@@ -164,11 +170,11 @@ const changeValue = <K extends keyof SettingsVocRec>(
 	o: SettingsVocRec,
 	k: K,
 	e: Event,
+	r?: unknown,
 ) => {
 	const raw = (e.target as HTMLInputElement).value;
-	const field = settingsVocRecFields[k];
-	const value = field?.parser ? field.parser(raw) : raw;
-
+	const field = settingsVocRecFields.value[k];
+	const value = r !== undefined ? r : (field?.parser ? field.parser(raw) : raw);
 	adminStore.changeSettingsVocRec({
 		entity: o,
 		change: { [k]: value } as Pick<SettingsVocRec, K>,

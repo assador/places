@@ -20,7 +20,7 @@ apiRun($ctx, function () use ($ctx) {
 	$stmt = $ctx->db->query("
 		SELECT `id`, `groupid`, `type`, `baseval`, `name`, `description`, `srt`
 		FROM `settings_users_voc`
-		WHERE `public` = TRUE
+		WHERE `public` = 1
 	");
 	$voc = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

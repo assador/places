@@ -53,8 +53,9 @@ apiRun($ctx, function () use ($ctx) {
 		$result[(string) $id] = [
 			"valtype" => $type,
 			"baseval" => $baseval,
-			"folderid" => (string) $item["groupid"],
 			"srt" => $srt,
+			"public" => (bool) $item["public"],
+			"folderid" => (string) $item["groupid"],
 		]
 			+ ($enumList ? ["enum" => $enumList] : [])
 			+ array_filter([
