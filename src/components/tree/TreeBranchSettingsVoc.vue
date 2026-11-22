@@ -142,12 +142,14 @@
 			}"
 			:style="{
 				gridTemplateColumns: [
-					'auto',
+					'auto', 'auto', 'auto', 'auto',
 					...keysArray.map(getColumnWidth),
 				].join(' '),
 			}"
 		>
 			<div class="tree-item formed">
+				<div />
+				<div />
 				<div>
 					<input
 						type="checkbox"
@@ -157,6 +159,7 @@
 						@change="checkAll(checked === 2 ? true : !checked)"
 					/>
 				</div>
+				<div />
 				<h3
 					v-for="key in keysArray"
 					:key="key"
@@ -285,7 +288,7 @@ const rowsArray = computed(() => {
 });
 
 const columnWidths: Record<string, string> = {
-	id: '6em',
+	id: '3em',
 	folderid: '6em',
 	srt: '7em',
 	public: '4em',

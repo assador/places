@@ -12,6 +12,7 @@
 				{{ object.name }}
 			</h2>
 			<button
+				v-if="object.type !== 'settingsvocrec'"
 				type="button"
 				class="link menu-link message border_1"
 				@pointerdown.stop
@@ -63,9 +64,13 @@
 			<button
 				class="link menu-link message border_1"
 				:title="object.type !== 'folder' ? (
-					mainStore.t.i.hints[context === 'places' ? 'addPlace' : 'addRoute'] + ' ' +
+					mainStore.t.i.hints[
+						context === 'places' ? 'addPlace' :
+						context === 'routes' ? 'addRoute' :
+						'addSetting'
+					] + ' ' +
 					mainStore.t.i.hints.addNext
-				) : ''"
+				) : undefined"
 				@pointerdown.stop
 				@pointerup.stop
 				@click.stop="() => {
@@ -79,6 +84,8 @@
 						});
 					} else if (object.type === 'route') {
 						mainStore.upsertRouteFollowing(object);
+					} else if (object.type === 'settingsvocrec') {
+						adminStore.upsertSettingsVocRecFollowing(object);
 					} else if (object.type === 'folder' && context === 'places') {
 						mainStore.upsertPlace({
 							props: {
@@ -89,13 +96,19 @@
 						});
 					} else if (object.type === 'folder' && context === 'routes') {
 						mainStore.upsertRoute({ props: { folderid: object.id } });
+					} else if (object.type === 'folder' && context === 'settings') {
+						adminStore.upsertSettingsVocRec({ props: { folderid: object.id } });
 					}
 					if (context === 'places') focusCurrent(currentPlaceNameInputRef);
-					else focusCurrent(currentRouteNameInputRef);
+					else if (context === 'routes') focusCurrent(currentRouteNameInputRef);
 				}"
 			>
 				<span class="icon icon-plus-circled" />
-				{{ mainStore.t.i.hints[context === 'places' ? 'addPlace' : 'addRoute'] }}
+				{{ mainStore.t.i.hints[
+					context === 'places' ? 'addPlace' :
+					context === 'routes' ? 'addRoute' :
+					'addSetting'
+				] }}
 			</button>
 			<button
 				v-if="
@@ -183,6 +196,12 @@
 							},
 						});
 						show = false;
+					} else if (object.type === 'settingsvocrec') {
+						if (!object.deleted) {
+							adminStore.deleteInSettings({ [object.id]: object });
+						} else {
+							adminStore.restoreInSettings({ [object.id]: object });
+						}
 					} else {
 						mainStore.deleteEntities({
 							[object.id]: object,
@@ -196,9 +215,12 @@
 				}`" />
 				{{
 					mainStore.t.i.buttons[
-						object.type === 'place' ? 'deletePlace'
-						: object.type === 'route' ? 'deleteRoute'
-						: 'deleteFolder'
+						object.type === 'place' ? 'deletePlace' :
+						object.type === 'route' ? 'deleteRoute' :
+						object.type === 'settingsvocrec' ? (
+							!object.deleted ? 'deleteSetting' : 'restoreSetting'
+						) :
+						'deleteFolder'
 					]
 				}}
 			</button>
@@ -243,6 +265,7 @@
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
 import { useMainStore } from '@/stores/main';
+import { useAdminStore } from '@/stores/admin';
 import { useRouter } from 'vue-router';
 import { Folder } from '@/types';
 import { isPlace, isFileInput } from '@/guards';
@@ -251,6 +274,7 @@ import { useGeolocation } from '@/services/geolocation';
 import Popup from '@/components/popups/Popup.vue';
 
 const mainStore = useMainStore();
+const adminStore = useAdminStore();
 const router = useRouter();
 const geoLocation = useGeolocation();
 

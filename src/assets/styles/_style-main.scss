@@ -304,6 +304,7 @@ $filter-brightness-03: brightness(0%);
 		background: none !important;
 	}
 	.back_1,
+	.back_updated,
 	.drag-clone,
 	.block_01, .block_02, .block_03, .block_04, .block_05, .block_11, pre, .pre,
 	:is(#sbs-top, #sbs-bottom, #sbs-right, #sbs-left):hover {
@@ -317,6 +318,9 @@ $filter-brightness-03: brightness(0%);
 	#messages, .messages, .popup {
 		background-color: var(--color-03);
 	}
+	.back_added {
+		background-color: var(--color-28);
+	}
 	.back_4 {
 		background-color: var(--color-28);
 		border-color: var(--color-30) var(--color-32) var(--color-34) var(--color-36);
@@ -326,6 +330,9 @@ $filter-brightness-03: brightness(0%);
 		background-color: var(--color-28);
 		border-color: var(--color-48);
 		box-shadow: 0 0 0px 1000px var(--color-61) inset;
+	}
+	.back_deleted {
+		background-color: var(--color-01);
 	}
 	.back_error {
 		background-color: var(--color-18);

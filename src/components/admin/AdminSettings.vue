@@ -20,12 +20,13 @@
 				class="folder-items table table-1"
 				:style="{
 					gridTemplateColumns: [
-						'auto',
+						'auto', 'auto', 'auto',
 						...keysArray.map(getColumnWidth),
 					].join(' '),
 				}"
 			>
 				<div class="tree-item formed">
+					<div /><div />
 					<div>
 						<input
 							type="checkbox"
@@ -52,7 +53,11 @@
 							type="button"
 							class="link"
 						>
-							{{ settingsVocRecFields[key].caption }}
+							{{
+								key === 'public'
+								? settingsVocRecFields[key].caption.slice(0, 3) + '.'
+								: settingsVocRecFields[key].caption
+							}}
 						</button>
 					</h3>
 				</div>
@@ -84,6 +89,7 @@
 			</button>
 		</div>
 	</div>
+	<PopupEntityMenu />
 </template>
 
 <script setup lang="ts">
@@ -97,6 +103,7 @@ import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import Tree from '@/components/tree/Tree.vue';
 import TreeBranchSettingsVocRecs from '@/components/tree/TreeBranchSettingsVocRecs.vue';
+import PopupEntityMenu from '@/components/popups/PopupEntityMenu.vue';
 
 const mainStore = useMainStore();
 const adminStore = useAdminStore();

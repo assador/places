@@ -44,12 +44,18 @@ input[type="number"] {
 	gap: 8px;
 	touch-action: none;
 	user-select: none;
-	padding: 4px 8px 4px 28px;
+	padding: 4px 8px 4px 8px;
 	align-items: center;
 	border: 1px solid var(--color-60);
 	border-top: none;
-	&__name {
+	&__id, &__name {
 		text-align: right;
+	}
+	&__baseval {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 4px;
+		align-items: center;
 	}
 	&__reset {
 		top: 5px;
@@ -58,6 +64,12 @@ input[type="number"] {
 	.tree-item-checkbox-container {
 		margin-right: 8px;
 	}
+}
+.setting-drag, .setting-menu {
+	width: 16px; height: 16px;
+	opacity: 0.2;
+	z-index: 30;
+	cursor: pointer;
 }
 .setting-actions {
 	display: flex;
@@ -76,14 +88,6 @@ input[type="number"] {
 }
 .sorting-area-after {
 	top: auto; bottom: -1px;
-}
-.dragging-area {
-	position: absolute;
-	top: 7px; right: auto; bottom: auto; left: 6px;
-	width: 16px; height: 16px;
-	opacity: 0.2;
-	z-index: 30;
-	cursor: pointer;
 }
 .dragging .dragging-area {
 	z-index: 0;

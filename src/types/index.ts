@@ -303,7 +303,7 @@ export interface PopupProps {
 	position: PopupPosition;
 }
 export interface PopupEntityMenuProps extends PopupProps {
-	object: Folder | Place | Route | null;
+	object: Folder | Place | Route | SettingsVocRec | null;
 	context: MetaEntityContext | null;
 	lastEvent: PointerEvent | null;
 }

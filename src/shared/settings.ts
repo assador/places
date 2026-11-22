@@ -33,7 +33,7 @@ export const useSettingsVocRecFields = () => {
 			caption: mainStore.t.i.captions.type,
 			parser: (value) => Number(value),
 		},
-		enum: {
+		baseval: {
 			caption: mainStore.t.i.captions.default,
 			sortBy: 'baseval',
 		},

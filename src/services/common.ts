@@ -18,7 +18,7 @@ import {
 	Route,
 	User,
 } from '@/types';
-import { SettingCollection } from '@/types/settings';
+import { SettingCollection, SettingsVocRec } from '@/types/settings';
 
 const _compact = ref(0);
 const _folderEditability = ref(false);
@@ -138,7 +138,7 @@ export const common = {
 	},
 	toggleEntityMenuPopup(
 		e: PointerEvent,
-		entity: Place | Route | Folder | null,
+		entity: Place | Route | Folder | SettingsVocRec | null,
 		context: MetaEntityContext,
 	): void {
 		if (_popupEntityMenu.value.show && entity && entity.id === _popupEntityMenu.value.object?.id) {

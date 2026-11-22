@@ -10,10 +10,10 @@
   <defs
      id="defs1" />
   <g
-     id="g3">
+     id="g1">
     <path
-       id="text2-6"
-       style="font-size:50.8px;font-family:Cantarell;-inkscape-font-specification:Cantarell;display:inline;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.500001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:0.5"
+       id="path1"
+       style="stroke:none;fill:#ff0000;fill-opacity:1"
        d="M 10 0 L 6 4 L 14 4 L 10 0 z M 4 6 L 0 10 L 4 14 L 4 6 z M 16 6 L 16 14 L 20 10 L 16 6 z M 6 16 L 10 20 L 14 16 L 6 16 z " />
   </g>
 </svg>

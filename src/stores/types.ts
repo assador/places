@@ -318,9 +318,18 @@ export interface ActionsSettingsAdmin {
 	clearSettings: () => void;
 	clearSettingsGroups: () => void;
 	clearUserSettingsVoc: () => void;
+	deleteInSettings: (objects: Record<string, Folder | SettingsVocRec>) => void;
 	resetUserSettingsVoc: () => void;
+	restoreInSettings: (objects: Record<string, Folder | SettingsVocRec>) => void;
 	setSettingsGroups: () => Promise<void>;
 	setUserSettingsVoc: () => Promise<void>;
+	upsertSettingsVocRec: (
+		params?: BaseUpsertParams<SettingsVocRec>
+	) => SettingsVocRec | null;
+	upsertSettingsVocRecFollowing: (
+		entity: SettingsVocRec | null | undefined,
+		params?: BaseUpsertParams<SettingsVocRec>,
+	) => SettingsVocRec | null;
 }
 export interface ActionsUIAdmin {
 	folderOpenClose: (p: { folder: Folder; open?: boolean; }) => void;

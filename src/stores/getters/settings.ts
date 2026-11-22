@@ -133,9 +133,6 @@ export function useGettersSettingsAdmin(
 			usersvoc: collectModifiedSettings(state.settings.value.usersvoc),
 		};
 	});
-	const getAllModifiedSettingsToBack = computed((): SettingCollectionToBack => {
-		return getSettingsToBack(getAllModifiedSettings.value);
-	});
 	const getSettingsGroups = computed((): Record<string, Folder> => {
 		return state.settings.value.groups;
 	});
@@ -151,7 +148,6 @@ export function useGettersSettingsAdmin(
 
 	return {
 		getAllModifiedSettings,
-		getAllModifiedSettingsToBack,
 		getSettings,
 		getSettingsToBack,
 		getSettingsUsersVoc,

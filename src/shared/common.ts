@@ -220,3 +220,21 @@ export const toRawDeep = <T>(val: T): T => {
 	}
 	return cleanObj as T;
 }
+export const nextStringedNumericKey = (rec: Record<string, unknown>): string => {
+	let max = 0;
+	for (const id in rec) {
+		if (!Object.hasOwn(rec, id)) continue;
+		let numeric = true;
+		for (let i = 0; i < id.length; i++) {
+			const code = id.charCodeAt(i);
+			if (code < 48 || code > 57 || (i === 0 && code === 48)) {
+				numeric = false;
+				break;
+			}
+		}
+		if (!numeric) continue;
+		const num = Number(id);
+		if (Number.isSafeInteger(num) && num > max) max = num;
+	}
+	return String(max + 1);
+};
