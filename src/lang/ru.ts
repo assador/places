@@ -77,6 +77,8 @@ export const getT = () => ({
 			untitled: 'Без названия',
 			user: 'Пользователь',
 			users: 'Пользователи',
+			value: 'Значение',
+			valueExtra: 'Экстра-значение',
 			values: 'Значения',
 		},
 		text: {

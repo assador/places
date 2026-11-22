@@ -115,6 +115,9 @@ const components: Record<string, { name: string, component: Component }> = {
 		#top-right {
 			display: block;
 		}
+		#basic-basic {
+			padding: 12px;
+		}
 		#basic-right {
 			margin: 0;
 			padding: 12px;

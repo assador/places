@@ -25,7 +25,7 @@ apiRun($ctx, function () use ($ctx, $config) {
 	$ctx->db->beginTransaction();
 
 // SEC Transaction Groups
-	
+
 	if (!empty($list["groups"])) {
 		$insertSql = "
 			INSERT INTO `settings_groups` (
@@ -40,13 +40,13 @@ apiRun($ctx, function () use ($ctx, $config) {
 				`srt`         = VALUES(`srt`)
 		";
 		$insertStmt = $ctx->db->prepare($insertSql);
-	
+
 		$deleteSql = "
 			DELETE FROM `settings_groups`
 			WHERE `id` = :id
 		";
 		$deleteStmt = $ctx->db->prepare($deleteSql);
-	
+
 		foreach ($list["groups"] as $row) {
 			if (!empty($row["deleted"])) {
 				$deleteStmt->execute([
@@ -65,8 +65,14 @@ apiRun($ctx, function () use ($ctx, $config) {
 	}
 
 // SEC Transaction Voc recs
-	
+
 	if (!empty($list["usersvoc"])) {
+		$deleteSql = "
+			DELETE FROM `settings_users_voc`
+			WHERE `id` = :id
+		";
+		$deleteStmt = $ctx->db->prepare($deleteSql);
+
 		$insertSql = "
 			INSERT INTO `settings_users_voc` (
 				`id`, `groupid`, `type`, `baseval`, `name`, `description`, `public`, `srt`
@@ -83,17 +89,26 @@ apiRun($ctx, function () use ($ctx, $config) {
 				`srt`         = VALUES(`srt`)
 		";
 		$insertStmt = $ctx->db->prepare($insertSql);
-	
-		$deleteSql = "
-			DELETE FROM `settings_users_voc`
-			WHERE `id` = :id
+
+		$deleteEnumSql = "
+			DELETE FROM `settings_users_voc_options`
+			WHERE `settingid` = :settingid
 		";
-		$deleteStmt = $ctx->db->prepare($deleteSql);
-	
+		$deleteEnumStmt = $ctx->db->prepare($deleteEnumSql);
+
+		$insertEnumSql = "
+			INSERT INTO `settings_users_voc_options` (
+				`settingid`, `value`, `srt`, `enabled`, `extra`
+			) VALUES (
+				:settingid, :value, :srt, :enabled, :extra
+			)
+		";
+		$insertEnumStmt = $ctx->db->prepare($insertEnumSql);
+
 		foreach ($list["usersvoc"] as $row) {
 			if (!empty($row["deleted"])) {
 				$deleteStmt->execute([
-					":id"     => (int) $row["id"],
+					":id" => (int) $row["id"],
 				]);
 			} elseif (!empty($row["added"]) || !empty($row["updated"])) {
 				$insertStmt->execute([
@@ -106,6 +121,23 @@ apiRun($ctx, function () use ($ctx, $config) {
 					":public"      => !empty($row["public"]) ? 1 : 0,
 					":srt"         => (float) ($row["srt"] ?? 10),
 				]);
+				$deleteEnumStmt->execute([
+					":settingid" => (int) $row["id"],
+				]);
+				if ((int) $row["type"] !== 0 && !empty($row["enum"]) && is_array($row["enum"])) {
+					foreach ($row["enum"] as $enum) {
+						$insertEnumStmt->execute([
+							":settingid"   => (int) $row["id"],
+							":value"       => prepareSettingValue($enum["val"], (int) $row["type"]),
+							":srt"         => (float) ($enum["srt"] ?? 10),
+							":enabled"     => !empty($enum["enabled"]) ? 1 : 0,
+							":extra"       => isset($enum["extra"])
+								? mb_strcut((string) $enum["extra"], 0, 255, "8bit")
+								: null
+							,
+						]);
+					}
+				}
 			}
 		}
 	}

@@ -246,6 +246,7 @@ export const saveSettingsAdmin = async (payload?: SettingCollection): Promise<vo
 		if (changesSaved) {
 			adminStore.savedToDB('settings', modified);
 			mainStore.setMessage(mainStore.t.m.response.success.saved, 3);
+			await mainStore.setUserSettings();
 		}
 	} catch (error) {
 		mainStore.setMessage(ennobleError(error));

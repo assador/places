@@ -325,6 +325,11 @@ export interface ActionsSettingsAdmin {
 		idx: number,
 		val: Exclude<SettingType, null>,
 	}) => boolean;
+	changeExtraInSettingEnum: (p: {
+		rec: SettingsVocRec,
+		idx: number,
+		ext: string | null,
+	}) => boolean;
 	deleteValueFromSettingEnum: (p: {
 		rec: SettingsVocRec,
 		idx: number,

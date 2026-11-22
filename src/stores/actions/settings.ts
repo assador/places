@@ -247,15 +247,17 @@ export function useActionsSettingsAdmin(
 		() => '',
 	);
 
-	const addValueToSettingEnum = ({ rec, idx, val }: {
+	const addValueToSettingEnum = ({ rec, idx, val, ext }: {
 		rec: SettingsVocRec,
 		idx?: number | null,
 		val?: Exclude<SettingType, null>,
+		ext?: string,
 	}): boolean => {
 		if (rec.valtype === 0) return false;
 		if (val !== undefined && !isValidSettingValue(val, rec.valtype)) return false;
 		if (typeof idx === 'number' && (!rec.enum || !rec.enum[idx])) return false;
 		if (!rec.enum) rec.enum = [];
+		const extra = ext?.trim();
 		const srt =
 			idx === undefined ? (rec.enum.length ? rec.enum[rec.enum.length - 1].srt + 10 : 10) :
 			idx === null ? (rec.enum[0] ? rec.enum[0].srt / 2 : 10) :
@@ -270,6 +272,8 @@ export function useActionsSettingsAdmin(
 			val: val === undefined
 				? rec.valtype === 1 ? false : rec.valtype === 2 ? 0 : ''
 				: val
+			,
+			...(extra && { extra }),
 		};
 		if (idx === undefined) rec.enum.push(obj);
 		else if (idx === null) rec.enum.splice(0, 0, obj);
@@ -284,6 +288,18 @@ export function useActionsSettingsAdmin(
 	}): boolean => {
 		if (!rec.enum || !rec.enum[idx] || !isValidSettingValue(val, rec.valtype)) return false;
 		rec.enum[idx].val = val;
+		rec.updated = true;
+		return true;
+	};
+	const changeExtraInSettingEnum = ({ rec, idx, ext }: {
+		rec: SettingsVocRec,
+		idx: number,
+		ext: string | null,
+	}): boolean => {
+		if (!rec.enum || !rec.enum[idx]) return false;
+		const extra = ext?.trim();
+		if (extra) rec.enum[idx].extra = extra;
+		else delete rec.enum[idx].extra;
 		rec.updated = true;
 		return true;
 	};
@@ -490,6 +506,7 @@ export function useActionsSettingsAdmin(
 	return {
 		addValueToSettingEnum,
 		changeValueInSettingEnum,
+		changeExtraInSettingEnum,
 		deleteValueFromSettingEnum,
 		changeSettingsVocRec,
 		clearSettings,

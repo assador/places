@@ -160,7 +160,7 @@
 		</template>
 	</template>
 	<Popup
-		class="messages"
+		class="setting-enum-popup messages"
 		:show="popupProps.show"
 		:position="popupProps.position"
 		:closeOnClick="false"
@@ -169,12 +169,10 @@
 		<template #popupSlot>
 			<div
 				v-if="currentRec"
-				class="setting-enums"
+				class="setting-enum"
 			>
 				<h2>{{ mainStore.t.i.captions.listOfValues }}</h2>
-				<div>
-					<div />
-					<div />
+				<div class="setting-enum__before">
 					<div
 						class="icon icon-plus-circled"
 						@click.stop="adminStore.addValueToSettingEnum({
@@ -191,6 +189,7 @@
 						<input
 							type="text"
 							class="fieldswidth_100"
+							:placeholder="mainStore.t.i.captions.value"
 							:value="e.val"
 							@change="e => {
 								if (!currentRec) return;
@@ -212,6 +211,22 @@
 							}"
 						/>
 					</div>
+					<div>
+						<input
+							type="text"
+							class="fieldswidth_100"
+							:placeholder="mainStore.t.i.captions.valueExtra"
+							:value="e.extra ?? ''"
+							@change="e => {
+								if (!currentRec) return;
+								adminStore.changeExtraInSettingEnum({
+									rec: currentRec,
+									idx: n,
+									ext: (e.target as HTMLInputElement).value || null,
+								});
+							}"
+						/>
+					</div>
 					<div
 						class="icon icon-cross-45-circled"
 						@click.stop="adminStore.deleteValueFromSettingEnum({
@@ -227,9 +242,7 @@
 						})"
 					/>
 				</div>
-				<div>
-					<div />
-					<div />
+				<div class="setting-enum__after">
 					<div
 						class="icon icon-plus-circled"
 						@click.stop="adminStore.addValueToSettingEnum({ rec: currentRec })"

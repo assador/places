@@ -112,6 +112,7 @@ export function useGettersSettingsAdmin(
 					public: setting.public ?? false,
 					...(name && { name }),
 					...(description && { description }),
+					...(setting.enum && { enum: setting.enum }),
 					added: setting.added,
 					deleted: setting.deleted,
 					updated: setting.updated,

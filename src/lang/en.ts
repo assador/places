@@ -77,6 +77,8 @@ export const getT = () => ({
 			untitled: 'Untitled',
 			user: 'User',
 			users: 'Users',
+			value: 'Value',
+			valueExtra: 'Extra value',
 			values: 'Values',
 		},
 		text: {
