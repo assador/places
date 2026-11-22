@@ -35,6 +35,7 @@ export const getT = () => ({
 			importPlaces: 'Импортировать места',
 			latitude: 'Широта',
 			link: 'Ссылка',
+			listOfValues: 'Список значений',
 			login: 'Логин',
 			longitude: 'Долгота',
 			measure: 'Расстояние',

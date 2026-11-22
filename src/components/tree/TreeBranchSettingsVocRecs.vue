@@ -9,10 +9,11 @@
 				:type="object.type"
 				:srt="object.srt"
 				:title="
-					mainStore.t.s.name[object.name as DictionaryNameKey] +
-					(!isValidSettingsVocRec(object) ? (
-						'\n' + mainStore.t.m.errors.other.incorrectFields
-					) : null)
+					mainStore.t.s.name[object.name as DictionaryNameKey] ??
+					mainStore.t.i.captions.untitled
+						+ (!isValidSettingsVocRec(object) ? (
+							'\n' + mainStore.t.m.errors.other.incorrectFields
+						) : '')
 				"
 				class="tree-item formed"
 				:class="{
@@ -98,11 +99,17 @@
 						</span>
 						<span
 							class="setting-menu icon icon-menu"
-							@click.stop.prevent="e => common.toggleEntityMenuPopup(
-								e,
-								object,
-								props.what,
-							)"
+							@click.stop="e => {
+								if (popupProps.show) {
+									currentRec = null;
+									popupProps.show = false;
+								}
+								else {
+									currentRec = object;
+									popupProps.position = calculatePopupPosition(e);
+									popupProps.show = true;
+								}
+							}"
 						/>
 					</div>
 					<div v-else-if="key === 'valtype'">
@@ -152,18 +159,100 @@
 			</div>
 		</template>
 	</template>
+	<Popup
+		class="messages"
+		:show="popupProps.show"
+		:position="popupProps.position"
+		:closeOnClick="false"
+		@update:show="popupProps.show = $event"
+	>
+		<template #popupSlot>
+			<div
+				v-if="currentRec"
+				class="setting-enums"
+			>
+				<h2>{{ mainStore.t.i.captions.listOfValues }}</h2>
+				<div>
+					<div />
+					<div />
+					<div
+						class="icon icon-plus-circled"
+						@click.stop="adminStore.addValueToSettingEnum({
+							rec: currentRec,
+							idx: null,
+						})"
+					/>
+				</div>
+				<div
+					v-for="(e, n) in currentRec.enum"
+					:key="n"
+				>
+					<div>
+						<input
+							type="text"
+							class="fieldswidth_100"
+							:value="e.val"
+							@change="e => {
+								if (!currentRec) return;
+								const v = convertSettingValue(
+									(e.target as HTMLInputElement).value,
+									currentRec.valtype,
+								);
+								if (v === null) {
+									(e.target as HTMLInputElement).value =
+										String(currentRec.enum?.[n]?.val ?? '')
+									;
+									return;
+								}
+								adminStore.changeValueInSettingEnum({
+									rec: currentRec,
+									idx: n,
+									val: v,
+								});
+							}"
+						/>
+					</div>
+					<div
+						class="icon icon-cross-45-circled"
+						@click.stop="adminStore.deleteValueFromSettingEnum({
+							rec: currentRec,
+							idx: n,
+						})"
+					/>
+					<div
+						class="icon icon-plus-circled"
+						@click.stop="adminStore.addValueToSettingEnum({
+							rec: currentRec,
+							idx: n,
+						})"
+					/>
+				</div>
+				<div>
+					<div />
+					<div />
+					<div
+						class="icon icon-plus-circled"
+						@click.stop="adminStore.addValueToSettingEnum({ rec: currentRec })"
+					/>
+				</div>
+			</div>
+		</template>
+	</Popup>
 </template>
 
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
-import { FolderContext, Dictionary } from '@/types';
+import { FolderContext, Dictionary, PopupProps } from '@/types';
 import { SettingsVocRec } from '@/types/settings';
+import { convertSettingValue } from '@/stores/actions/settings';
+import { calculatePopupPosition } from '@/shared/common';
 import { SettingsVocRecFields, useSettingsVocRecFields } from '@/shared/settings';
 import { isValidSettingsVocRec } from '@/guards';
 import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
+import Popup from '@/components/popups/Popup.vue';
 
 interface TreeBranchProps {
 	what: FolderContext;
@@ -194,7 +283,7 @@ const keysArray = computed(() =>
     (Object.keys(settingsVocRecFields.value) as (keyof SettingsVocRec)[])
         .filter(key => settingsVocRecFields.value[key] && !hiddenFields.value[key])
 );
-
+const currentRec = ref<SettingsVocRec | null>(null);
 const getSetting = (n: number) =>
 	props.rows[props.reverse ? props.rows.length - n : n - 1]
 ;
@@ -264,6 +353,16 @@ const onPointerMove = computed(() => dnd.value?.onPointerMove || noop);
 const onPointerUp = computed(() => {
 	if (dnd.value) return dnd.value.onPointerUp;
 	return (_event: PointerEvent, click?: () => void) => click?.();
+});
+
+const popupProps = ref<PopupProps>({
+	show: false,
+	position: {
+		top: 'auto',
+		right: 'auto',
+		bottom: 'auto',
+		left: 'auto',
+	},
 });
 </script>
 

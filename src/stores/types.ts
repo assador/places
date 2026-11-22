@@ -29,6 +29,7 @@ import {
 import {
 	Setting,
 	SettingCollection,
+	SettingType,
 	SettingsAdmin,
 	SettingsMain,
 	SettingsVocRec,
@@ -314,6 +315,20 @@ export interface ActionsEntityAdmin {
 	changeFolder: (p: { entity: Folder, change: Partial<Folder> }) => void;
 }
 export interface ActionsSettingsAdmin {
+	addValueToSettingEnum: (p: {
+		rec: SettingsVocRec,
+		idx?: number | null,
+		val?: Exclude<SettingType, null>,
+	}) => boolean;
+	changeValueInSettingEnum: (p: {
+		rec: SettingsVocRec,
+		idx: number,
+		val: Exclude<SettingType, null>,
+	}) => boolean;
+	deleteValueFromSettingEnum: (p: {
+		rec: SettingsVocRec,
+		idx: number,
+	}) => boolean;
 	changeSettingsVocRec: (p: { entity: SettingsVocRec; change: Partial<SettingsVocRec>; }) => void;
 	clearSettings: () => void;
 	clearSettingsGroups: () => void;

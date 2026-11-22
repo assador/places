@@ -1,7 +1,7 @@
 import api from '@/api';
 import { Folder, FolderContext } from '@/types';
-import { Setting, SettingType, SettingsVocRec } from '@/types/settings';
-import { isSetting, isSettingsVocRec } from '@/guards';
+import { Setting, SettingEnum, SettingType, SettingsVocRec } from '@/types/settings';
+import { isSetting, isSettingsVocRec, isValidSettingValue } from '@/guards';
 import {
 	ActionsSettings,
 	ActionsSettingsAdmin,
@@ -247,6 +247,55 @@ export function useActionsSettingsAdmin(
 		() => '',
 	);
 
+	const addValueToSettingEnum = ({ rec, idx, val }: {
+		rec: SettingsVocRec,
+		idx?: number | null,
+		val?: Exclude<SettingType, null>,
+	}): boolean => {
+		if (rec.valtype === 0) return false;
+		if (val !== undefined && !isValidSettingValue(val, rec.valtype)) return false;
+		if (typeof idx === 'number' && (!rec.enum || !rec.enum[idx])) return false;
+		if (!rec.enum) rec.enum = [];
+		const srt =
+			idx === undefined ? (rec.enum.length ? rec.enum[rec.enum.length - 1].srt + 10 : 10) :
+			idx === null ? (rec.enum[0] ? rec.enum[0].srt / 2 : 10) :
+			(
+				rec.enum[idx + 1]
+					? rec.enum[idx].srt + (rec.enum[idx + 1].srt - rec.enum[idx].srt) / 2
+					: rec.enum[idx].srt + 10
+			)
+		;
+		const obj: SettingEnum = {
+			srt: srt,
+			val: val === undefined
+				? rec.valtype === 1 ? false : rec.valtype === 2 ? 0 : ''
+				: val
+		};
+		if (idx === undefined) rec.enum.push(obj);
+		else if (idx === null) rec.enum.splice(0, 0, obj);
+		else rec.enum.splice(idx + 1, 0, obj);
+		rec.updated = true;
+		return true;
+	};
+	const changeValueInSettingEnum = ({ rec, idx, val }: {
+		rec: SettingsVocRec,
+		idx: number,
+		val: Exclude<SettingType, null>,
+	}): boolean => {
+		if (!rec.enum || !rec.enum[idx] || !isValidSettingValue(val, rec.valtype)) return false;
+		rec.enum[idx].val = val;
+		rec.updated = true;
+		return true;
+	};
+	const deleteValueFromSettingEnum = ({ rec, idx }: {
+		rec: SettingsVocRec,
+		idx: number,
+	}): boolean => {
+		if (!rec.enum || !rec.enum[idx]) return false;
+		rec.enum.splice(idx, 1);
+		rec.updated = true;
+		return true;
+	};
 	const deleteInSettings = (objects: Record<string, Folder | SettingsVocRec>): void => {
 		for (const id in objects) {
 			if (!Object.hasOwn(objects, id)) continue;
@@ -439,13 +488,16 @@ export function useActionsSettingsAdmin(
 	};
 
 	return {
+		addValueToSettingEnum,
+		changeValueInSettingEnum,
+		deleteValueFromSettingEnum,
 		changeSettingsVocRec,
 		clearSettings,
 		clearSettingsGroups,
 		clearUserSettingsVoc,
 		deleteInSettings,
-		resetUserSettingsVoc,
 		restoreInSettings,
+		resetUserSettingsVoc,
 		setSettingsGroups,
 		setUserSettingsVoc,
 		upsertSettingsVocRec,

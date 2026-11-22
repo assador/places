@@ -74,6 +74,26 @@ input[type="number"] {
 .setting-actions {
 	display: flex;
 }
+.setting-enums {
+	display: grid;
+	grid-template-columns: 1fr auto auto;
+	gap: 8px;
+	margin: 17px;
+	h2 {
+		margin: -2.5em 0 0 0 !important;
+	}
+	& > * {
+		display: grid;
+		grid-template-columns: subgrid;
+		grid-column: 1 / -1;
+		align-items: center;
+	}
+	.icon {
+		width: 14px;
+		height: 14px;
+		cursor: pointer;
+	}
+}
 .sorting-area {
 	position: absolute;
 	right: 0; left: 0;
