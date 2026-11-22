@@ -374,8 +374,13 @@ export function useActionsSettingsAdmin(
 		let rec: SettingsVocRec | null = null;
 		const folderId = props?.folderid || object?.folderid || null;
 
-		let srt = findInDictByMinMaxKey(where, 'srt', r => r.folderid === folderId).max?.val;
-		if (typeof srt !== 'number') srt = 10; else srt += 10;
+		let srt = 10;
+		if (typeof props?.srt === 'number') {
+			srt = props.srt;
+		} else {
+			const max = findInDictByMinMaxKey(where, 'srt', r => r.folderid === folderId).max?.val;
+			if (typeof max !== 'number') srt = 10; else srt += 10;
+		}
 
 		switch (mode) {
 			case 'move':

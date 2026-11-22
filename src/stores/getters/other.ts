@@ -23,7 +23,7 @@ import {
 
 import { constants } from '@/shared/constants';
 import { distanceOnSphere } from '@/shared/common';
-import { Setting } from '@/types/settings';
+import { Setting, SettingsVocRec } from '@/types/settings';
 
 export function useGettersOther(
 	state: StoreMainStateRefs,
@@ -284,9 +284,10 @@ export function useGettersOtherAdmin(
 ) {
 	const getDict = (
 		type: TreeItemType,
-	): Record<string, Folder | Place | Route | Setting> | undefined => {
+	): Record<string, Folder | Place | Route | Setting | SettingsVocRec> | undefined => {
 		switch (type) {
 			case 'folder': return state.settings.value.groups;
+			case 'settingvocrec': return state.settings.value.usersvoc;
 			default: return undefined;
 		}
 	};
