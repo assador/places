@@ -318,12 +318,19 @@ export interface ActionsSettingsAdmin {
 	addValueToSettingEnum: (p: {
 		rec: SettingsVocRec,
 		idx?: number | null,
-		val?: Exclude<SettingType, null>,
+		val?: Exclude<SettingType, null | boolean>,
+		enb?: boolean,
+		ext?: string,
 	}) => boolean;
 	changeValueInSettingEnum: (p: {
 		rec: SettingsVocRec,
 		idx: number,
-		val: Exclude<SettingType, null>,
+		val: Exclude<SettingType, null | boolean>,
+	}) => boolean;
+	changeEnabledInSettingEnum: (p: {
+		rec: SettingsVocRec,
+		idx: number,
+		enb: boolean,
 	}) => boolean;
 	changeExtraInSettingEnum: (p: {
 		rec: SettingsVocRec,

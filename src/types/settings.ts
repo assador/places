@@ -4,8 +4,9 @@ export type SettingsContext = 'user' | 'admin';
 export type SettingType = null | boolean | number | string;
 
 export interface SettingEnum {
-	val: Exclude<SettingType, null>;
+	val: Exclude<SettingType, null | boolean>;
 	srt: number;
+	enabled: boolean;
 	extra?: string;
 }
 export interface SettingEntity {

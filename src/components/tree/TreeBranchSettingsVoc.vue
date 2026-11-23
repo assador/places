@@ -53,6 +53,19 @@
 					class="tree-folder__content"
 				>
 					<div
+						v-if="props.editable"
+						class="tree-folder__drag dragging-area icon icon-expand"
+						:class="{
+							draggable: !folder.virtual && props.editable,
+						}"
+						@pointerdown="e => onPointerDown(e, {
+							id: folder.id,
+							type: folder.type,
+							context: props.what,
+							nondraggable: folder.virtual || !props.editable,
+						})"
+					/>
+					<div
 						class="tree-folder__arrow"
 						@pointerup.stop.prevent="adminStore.folderOpenClose({ folder })"
 					>
@@ -72,10 +85,11 @@
 						class="tree-folder__fields"
 					>
 						<input
+							type="text"
+							class="tree-folder__name"
 							:value="folder.name"
 							:title="mainStore.t.s.name[folder.name as DictionaryNameKey]"
 							:placeholder="mainStore.t.i.captions.name"
-							class="tree-folder__name"
 							@change="e => {
 								if (!props.editable) return;
 								adminStore.changeFolder({
@@ -86,10 +100,11 @@
 							@click.stop.prevent
 						/>
 						<input
+							type="text"
+							class="tree-folder__description"
 							:value="folder.description"
 							:title="mainStore.t.s.desc[folder.description as DictionaryDescKey]"
 							:placeholder="mainStore.t.i.captions.description"
-							class="tree-folder__description"
 							@change="e => {
 								if (!props.editable) return;
 								adminStore.changeFolder({
@@ -99,21 +114,36 @@
 							}"
 							@click.stop.prevent
 						/>
+						<input
+							type="number"
+							class="tree-folder__srt"
+							:value="folder.srt"
+							:title="mainStore.t.i.captions.srt"
+							@change="e => {
+								if (!props.editable) return;
+								adminStore.changeFolder({
+									entity: folder,
+									change: { srt: Number((e.currentTarget as HTMLInputElement).value) },
+								});
+							}"
+							@click.stop.prevent
+						/>
+						<div class="tree-folder__ids">
+							ID:
+							<strong>{{ folder.id }}</strong>
+							{{ mainStore.t.i.text.of }}
+							<strong>{{ folder.parent ?? 'null' }}</strong>
+						</div>
+						<div
+							class="tree-folder__menu icon icon-menu"
+							@click.stop.prevent="e => common.toggleEntityMenuPopup(
+								e,
+								folder,
+								props.what,
+							)"
+						/>
 					</div>
 				</div>
-				<div
-					v-if="props.editable"
-					class="dragging-area icon icon-expand"
-					:class="{
-						draggable: !folder.virtual && props.editable,
-					}"
-					@pointerdown="e => onPointerDown(e, {
-						id: folder.id,
-						type: folder.type,
-						context: props.what,
-						nondraggable: folder.virtual || !props.editable,
-					})"
-				/>
 			</div>
 		</div>
 		<div class="folder-subfolders">
@@ -132,6 +162,9 @@
 				/>
 			</ul>
 		</div>
+
+<!-- SEC SettingsVoc  -->
+
 		<div
 			v-if="rowsArray.length"
 			class="folder-items table table-1"
@@ -290,7 +323,7 @@ const rowsArray = computed(() => {
 const columnWidths: Record<string, string> = {
 	id: '3em',
 	folderid: '6em',
-	srt: '7em',
+	srt: '6em',
 	public: '4em',
 };
 const getColumnWidth = (key: string) => columnWidths[key] ?? 'minmax(0, 1fr)';
@@ -482,24 +515,22 @@ ul {
 		flex: 1 0 auto;
 		display: flex;
 		gap: 4px;
-		padding: 4px 0 4px 16px;
+		padding: 4px 0;
 		min-height: 1lh;
+		align-items: center;
 		cursor: pointer;
 	}
-	&__controls {
-		display: flex;
-		gap: 8px;
-		padding: 2px 0 3px 0;
-		flex-wrap: wrap;
-		align-items: start;
-		justify-content: right;
-		z-index: 40;
+	&__drag, &__menu {
+		width: 16px; height: 16px;
+		opacity: 0.2;
+		z-index: 30;
+		cursor: pointer;
 	}
 	&__arrow {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 30px;
+		width: 22px;
 		height: 100%;
 		cursor: pointer;
 		.icon-triangle {
@@ -507,10 +538,28 @@ ul {
 		}
 	}
 	&__fields {
-		display: flex;
-		gap: 8px;
+		--tree-gap: 8px;
+		--tree-number-width: 6em;
+		flex: 1 0 auto;
+		display: grid;
+		grid-template-columns:
+			minmax(0, max(0px, calc(
+				100% - 50vw - var(--tree-gap)
+			)))
+			minmax(0, 1fr)
+			minmax(0, var(--tree-number-width))
+			auto
+			auto
+		;
+		gap: var(--tree-gap);
 		align-items: center;
+		padding-left: 4px;
 		cursor: auto;
+	}
+	&__ids {
+		width: 80px;
+		white-space: nowrap;
+		text-align: right;
 	}
 }
 @media (pointer: coarse) {
@@ -564,15 +613,6 @@ ul {
 }
 .sorting-area-after {
 	top: auto; bottom: -1px;
-}
-.dragging-area {
-	position: absolute;
-	top: 50%; right: auto; bottom: auto; left: 0;
-	transform: translateY(-50%);
-	width: 16px; height: 16px;
-	opacity: 0.2;
-	z-index: 30;
-	cursor: pointer;
 }
 .dragging .dragging-area {
 	z-index: 0;

@@ -12,7 +12,7 @@ apiRun($ctx, function () use ($ctx) {
 	$voc = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 	$stmtOptions = $ctx->db->query("
-		SELECT o.`settingid`, o.`value`, o.`srt`, o.`extra`
+		SELECT o.`settingid`, o.`value`, o.`srt`, o.`enabled`, o.`extra`
 		FROM `settings_users_voc_options` o
 		INNER JOIN `settings_users_voc` v ON v.`id` = o.`settingid`
 		ORDER BY o.`settingid` ASC, o.`srt` ASC
@@ -34,8 +34,9 @@ apiRun($ctx, function () use ($ctx) {
 		if (isset($vocOptions[$id])) {
 			foreach ($vocOptions[$id] as $opt) {
 				$enumItem = [
-					"val" => castSettingValue($opt["value"], $type),
-					"srt" => (float) $opt["srt"],
+					"val"     => castSettingValue($opt["value"], $type),
+					"srt"     => (float) $opt["srt"],
+					"enabled" => (bool) $opt["enabled"],
 				];
 				if ($opt["extra"] !== null) {
 					/*

@@ -247,13 +247,14 @@ export function useActionsSettingsAdmin(
 		() => '',
 	);
 
-	const addValueToSettingEnum = ({ rec, idx, val, ext }: {
+	const addValueToSettingEnum = ({ rec, idx, val, enb, ext }: {
 		rec: SettingsVocRec,
 		idx?: number | null,
-		val?: Exclude<SettingType, null>,
+		val?: Exclude<SettingType, null | boolean>,
+		enb?: boolean,
 		ext?: string,
 	}): boolean => {
-		if (rec.valtype === 0) return false;
+		if (rec.valtype < 2) return false;
 		if (val !== undefined && !isValidSettingValue(val, rec.valtype)) return false;
 		if (typeof idx === 'number' && (!rec.enum || !rec.enum[idx])) return false;
 		if (!rec.enum) rec.enum = [];
@@ -270,9 +271,10 @@ export function useActionsSettingsAdmin(
 		const obj: SettingEnum = {
 			srt: srt,
 			val: val === undefined
-				? rec.valtype === 1 ? false : rec.valtype === 2 ? 0 : ''
+				? rec.valtype === 2 ? 0 : ''
 				: val
 			,
+			enabled: enb ?? true,
 			...(extra && { extra }),
 		};
 		if (idx === undefined) rec.enum.push(obj);
@@ -284,10 +286,20 @@ export function useActionsSettingsAdmin(
 	const changeValueInSettingEnum = ({ rec, idx, val }: {
 		rec: SettingsVocRec,
 		idx: number,
-		val: Exclude<SettingType, null>,
+		val: Exclude<SettingType, null | boolean>,
 	}): boolean => {
 		if (!rec.enum || !rec.enum[idx] || !isValidSettingValue(val, rec.valtype)) return false;
 		rec.enum[idx].val = val;
+		rec.updated = true;
+		return true;
+	};
+	const changeEnabledInSettingEnum = ({ rec, idx, enb }: {
+		rec: SettingsVocRec,
+		idx: number,
+		enb: boolean,
+	}): boolean => {
+		if (!rec.enum || !rec.enum[idx]) return false;
+		rec.enum[idx].enabled = enb;
 		rec.updated = true;
 		return true;
 	};
@@ -343,22 +355,26 @@ export function useActionsSettingsAdmin(
 			: entity.baseval
 		;
 		const normalizedChange = { ...change };
-
 		if (change.baseval !== undefined || change.valtype !== undefined) {
 			normalizedChange.baseval = convertSettingValue(newBaseval, newType);
 		}
 		if (change.valtype !== undefined && change.valtype !== entity.valtype) {
-			const enumSource = change.enum ?? entity.enum;
-			if (newType === 0) {
-				normalizedChange.enum = undefined;
-			} else if (enumSource) {
-				const seen = new Set<Exclude<SettingType, null>>();
-				normalizedChange.enum = enumSource.flatMap((option) => {
-					const val = convertSettingValue(option.val, newType);
-					if (val === null || seen.has(val)) return [];
-					seen.add(val);
-					return [{ ...option, val }];
-				});
+			if (newType < 2) {
+				delete entity.enum;
+				delete normalizedChange.enum;
+			} else {
+				const enumSource = change.enum ?? entity.enum;
+				if (enumSource) {
+					const seen = new Set<Exclude<SettingType, null | boolean>>();
+					normalizedChange.enum = enumSource.flatMap((option) => {
+						const val = convertSettingValue(option.val, newType) as Exclude<
+							SettingType, null | boolean
+						>;
+						if (seen.has(val)) return [];
+						seen.add(val);
+						return [{ ...option, val }];
+					});
+				}
 			}
 		}
 		Object.assign(entity, normalizedChange);
@@ -506,6 +522,7 @@ export function useActionsSettingsAdmin(
 	return {
 		addValueToSettingEnum,
 		changeValueInSettingEnum,
+		changeEnabledInSettingEnum,
 		changeExtraInSettingEnum,
 		deleteValueFromSettingEnum,
 		changeSettingsVocRec,

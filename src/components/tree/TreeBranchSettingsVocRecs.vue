@@ -89,6 +89,20 @@
 								{{ opt.val }}
 							</option>
 						</select>
+						<input
+							v-else-if="object.valtype === 1"
+							type="checkbox"
+							:checked="object.baseval === true"
+							.indeterminate="object.baseval === null"
+							:class="{ focused: key === adminStore.settingsSortBy }"
+							@change="changeValue(
+								object,
+								'baseval',
+								$event,
+								($event.target as HTMLInputElement).checked,
+							)"
+						/>
+						<span v-else-if="object.valtype === 0" />
 						<span v-else>
 							<input
 								type="text"
@@ -98,6 +112,7 @@
 							/>
 						</span>
 						<span
+							v-if="object.valtype > 1"
 							class="setting-menu icon icon-menu"
 							@click.stop="e => {
 								if (popupProps.show) {
@@ -110,6 +125,10 @@
 									popupProps.show = true;
 								}
 							}"
+						/>
+						<span
+							v-else
+							class="setting-menu"
 						/>
 					</div>
 					<div v-else-if="key === 'valtype'">
@@ -168,7 +187,7 @@
 	>
 		<template #popupSlot>
 			<div
-				v-if="currentRec"
+				v-if="currentRec && currentRec.valtype > 1"
 				class="setting-enum"
 			>
 				<h2>{{ mainStore.t.i.captions.listOfValues }}</h2>
@@ -187,6 +206,21 @@
 				>
 					<div>
 						<input
+							type="checkbox"
+							:placeholder="mainStore.t.i.captions[e.enabled ? 'enabled' : 'disabled']"
+							:checked="e.enabled"
+							@change="e => {
+								if (!currentRec) return;
+								adminStore.changeEnabledInSettingEnum({
+									rec: currentRec,
+									idx: n,
+									enb: (e.target as HTMLInputElement).checked,
+								});
+							}"
+						/>
+					</div>
+					<div>
+						<input
 							type="text"
 							class="fieldswidth_100"
 							:placeholder="mainStore.t.i.captions.value"
@@ -197,7 +231,7 @@
 									(e.target as HTMLInputElement).value,
 									currentRec.valtype,
 								);
-								if (v === null) {
+								if (v === null || typeof v === 'boolean') {
 									(e.target as HTMLInputElement).value =
 										String(currentRec.enum?.[n]?.val ?? '')
 									;
