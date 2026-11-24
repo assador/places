@@ -83,7 +83,7 @@
 			<button
 				type="button"
 				:title="mainStore.t.s.extra.resetUserSettingsVoc"
-				@click="adminStore.resetUserSettingsVoc()"
+				@click="settingsReset"
 			>
 				{{ mainStore.t.i.buttons.reset }}
 			</button>
@@ -97,7 +97,6 @@ import { ref, computed, onMounted } from 'vue';
 import { SettingsVocRec } from '@/types/settings';
 import { SettingsVocRecFields, useSettingsVocRecFields } from '@/shared/settings';
 import { saveSettingsAdmin } from '@/services/db';
-import { hasOwnKeys } from '@/shared/common';
 import { ennobleError } from '@/shared/response';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
@@ -176,30 +175,19 @@ const checkAll = (val: boolean): void => {
 const settingsSubmit = (): void => {
 	saveSettingsAdmin();
 };
-
-onMounted(async () => {
-	if (!hasOwnKeys(adminStore.settings.groups)) {
-		mainStore.setBusy(true);
-		try {
-			await adminStore.setSettingsGroups();
-			adminStore.trees.settingsvoc.open = true;
-		} catch (error) {
-			mainStore.setMessage(ennobleError(error));
-		} finally {
-			mainStore.setBusy(false);
-		}
+const settingsReset = async (): Promise<void> => {
+	mainStore.setBusy(true);
+	try {
+		await adminStore.setSettingsGroups();
+		await adminStore.setUserSettingsVoc();
+		adminStore.trees.settingsvoc.open = true;
+	} catch (error) {
+		mainStore.setMessage(ennobleError(error));
+	} finally {
+		mainStore.setBusy(false);
 	}
-	if (!hasOwnKeys(adminStore.settings.usersvoc)) {
-		mainStore.setBusy(true);
-		try {
-			await adminStore.setUserSettingsVoc();
-		} catch (error) {
-			mainStore.setMessage(ennobleError(error));
-		} finally {
-			mainStore.setBusy(false);
-		}
-	}
-});
+};
+onMounted(() => settingsReset());
 </script>
 
 <style lang="scss" scoped>

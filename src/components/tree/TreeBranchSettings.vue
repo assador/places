@@ -222,13 +222,14 @@
 						<div class="tree-item__name">
 							{{
 								mainStore.t.s.name[object.name as DictionaryNameKey] ||
+								object.name ||
 								mainStore.t.i.captions.untitled
 							}}
 						</div>
 						<div class="tree-item__control">
 							<select
 								v-if="object.enum?.length"
-								:value="mainStore.settings.user[object.id].val"
+								:value="object.val"
 								@change="e => {
 									mainStore.changeSetting({
 										entity: object,
@@ -244,6 +245,31 @@
 									{{ mainStore.t.s.extra[o.extra as DictionaryExtraKey] ?? o.val }}
 								</option>
 							</select>
+							<input
+								v-else-if="object.valtype === 1"
+								type="checkbox"
+								:checked="object.val === true"
+								.indeterminate="object.val === null"
+								@change="e => {
+									mainStore.changeSetting({
+										entity: object,
+										change: { val: (e.currentTarget as HTMLInputElement).checked },
+									});
+								}"
+							/>
+							<span v-else-if="object.valtype === 0" />
+							<span v-else>
+								<input
+									type="text"
+									:value="object.val"
+									@change="e => {
+										mainStore.changeSetting({
+											entity: object,
+											change: { val: (e.currentTarget as HTMLInputElement).value },
+										});
+									}"
+								/>
+							</span>
 						</div>
 						<div
 							class="tree-item__reset icon icon-undo"

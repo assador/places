@@ -178,7 +178,7 @@ export function useActionsUI(
 				if (!Object.hasOwn(siblingFolders, id)) continue;
 				const f = siblingFolders[id];
 				if (f.context === context) {
-					if (visibility === null) visibility = f.geomarks;
+					if (visibility === null) visibility = f.geomarks ?? null;
 					else if (visibility !== f.geomarks) {
 						isPartial = true;
 						break;

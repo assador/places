@@ -177,6 +177,7 @@ export const getT = () => ({
 			redo: 'Redo',
 			register: 'Register',
 			reset: 'Reset',
+			restoreFolder: 'Restore folder',
 			restoreSetting: 'Restore setting',
 			routes: 'Routes',
 			save: 'Save',

@@ -589,8 +589,13 @@ export function useActionsEntity(
 		let folder: Folder | null = null;
 		const parentId = props?.parent || object?.parent || null;
 
-		let srt = findInDictByMinMaxKey(where, 'srt', f => f.parent === parentId).max?.val;
-		if (typeof srt !== 'number') srt = 10; else srt += 10;
+		let srt = 10;
+		if (typeof props?.srt === 'number') {
+			srt = props.srt;
+		} else {
+			const max = findInDictByMinMaxKey(where, 'srt', f => f.parent === parentId).max?.val;
+			if (typeof max !== 'number') srt = 10; else srt += 10;
+		}
 
 		if (mode === 'new') {
 			// Check folders limit

@@ -350,6 +350,7 @@ export interface ActionsSettingsAdmin {
 	restoreInSettings: (objects: Record<string, Folder | SettingsVocRec>) => void;
 	setSettingsGroups: () => Promise<void>;
 	setUserSettingsVoc: () => Promise<void>;
+	upsertFolder: (params?: BaseUpsertParams<Folder>) => Folder | null;
 	upsertSettingsVocRec: (
 		params?: BaseUpsertParams<SettingsVocRec>
 	) => SettingsVocRec | null;

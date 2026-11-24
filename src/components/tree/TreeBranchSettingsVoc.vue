@@ -33,6 +33,10 @@
 			<div
 				class="tree-folder sorting-area-onto"
 				:class="{
+					back_added: folder.added,
+					back_updated: folder.updated,
+					back_deleted: folder.deleted,
+					back_error: !isFolder(folder),
 					highlighted:
 						String(folder.id) === dragTargetId &&
 						folder.context === dragTargetContext &&
@@ -133,6 +137,11 @@
 							<strong>{{ folder.id }}</strong>
 							{{ mainStore.t.i.text.of }}
 							<strong>{{ folder.parent ?? 'null' }}</strong>
+						</div>
+						<div class="tree-folder__status">
+							<span v-if="folder.added">A</span>
+							<span v-if="folder.updated">U</span>
+							<span v-if="folder.deleted">D</span>
 						</div>
 						<div
 							class="tree-folder__menu icon icon-menu"
@@ -264,6 +273,7 @@ import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
 import { Dictionary, Folder, FolderContext } from '@/types';
 import { SettingsVocRec } from '@/types/settings';
+import { isFolder } from '@/guards';
 import { SettingsVocRecFields, useSettingsVocRecFields } from '@/shared/settings';
 import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
@@ -505,6 +515,7 @@ ul {
 	flex: 1 0 auto;
 	display: flex;
 	flex-flow: row nowrap;
+	margin: 0 -4px;
 	z-index: 0;
 	touch-action: none;
 	user-select: none;
@@ -515,7 +526,7 @@ ul {
 		flex: 1 0 auto;
 		display: flex;
 		gap: 4px;
-		padding: 4px 0;
+		padding: 4px;
 		min-height: 1lh;
 		align-items: center;
 		cursor: pointer;
@@ -550,16 +561,22 @@ ul {
 			minmax(0, var(--tree-number-width))
 			auto
 			auto
+			auto
 		;
 		gap: var(--tree-gap);
 		align-items: center;
 		padding-left: 4px;
 		cursor: auto;
 	}
-	&__ids {
-		width: 80px;
+	&__ids, &__status {
 		white-space: nowrap;
 		text-align: right;
+	}
+	&__ids {
+		width: 80px;
+	}
+	&__status {
+		width: 30px;
 	}
 }
 @media (pointer: coarse) {

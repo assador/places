@@ -17,7 +17,7 @@ export function useGettersTree(
 		for (const id in folders) {
 			if (!Object.hasOwn(folders, id)) continue;
 			const pId = String(folders[id].parent || null);
-			if (!folders[id].deleted) {
+			if (!folders[id].deleted || folders[id].context === 'settingsvoc') {
 				if (!map[pId]) map[pId] = {};
 				map[pId][id] = folders[id];
 			}

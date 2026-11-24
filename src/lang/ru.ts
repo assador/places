@@ -177,6 +177,7 @@ export const getT = () => ({
 			redo: 'Вернуть',
 			register: 'Зарегистрироваться',
 			reset: 'Сбросить',
+			restoreFolder: 'Восстановить папку',
 			restoreSetting: 'Восстановить настройку',
 			routes: 'Маршруты',
 			save: 'Сохранить',

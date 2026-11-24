@@ -1,7 +1,17 @@
 import api from '@/api';
 import { Folder, FolderContext } from '@/types';
-import { Setting, SettingEnum, SettingType, SettingsVocRec } from '@/types/settings';
-import { isSetting, isSettingsVocRec, isValidSettingValue } from '@/guards';
+import {
+	Setting,
+	SettingEnum,
+	SettingType,
+	SettingsVocRec,
+} from '@/types/settings';
+import {
+	isFolder,
+	isSetting,
+	isValidSettingValue,
+	isValidSettingsVocRec,
+} from '@/guards';
 import {
 	ActionsSettings,
 	ActionsSettingsAdmin,
@@ -9,12 +19,28 @@ import {
 	StoreAdmin,
 	StoreMain,
 } from '@/stores/types';
-import { initFolderFactory } from '@/stores/actions/entity';
 import { useMainStore } from '@/stores/main';
 import { findInDictByMinMaxKey, nextStringedNumericKey } from '@/shared/common';
 
 // SEC Factories
 
+function _defaultFolder(id: string | null): Folder {
+	return {
+		type: 'folder',
+		id,
+		userid: null,
+		parent: null,
+		context: 'settingsvoc',
+		srt: 10,
+		common: false,
+		open: false,
+		enabled: true,
+		show: true,
+		added: false,
+		deleted: false,
+		updated: false,
+	};
+}
 function _defaultSetting(
 	id: string,
 	valtype: number,
@@ -23,10 +49,10 @@ function _defaultSetting(
 ): Setting {
 	return {
 		type: 'setting',
-		id: id,
-		valtype: valtype,
-		val: val,
-		baseval: baseval,
+		id,
+		valtype,
+		val,
+		baseval,
 		folderid: null,
 		srt: 10,
 		added: false,
@@ -41,9 +67,9 @@ function _defaultSettingsVocRec(
 ): SettingsVocRec {
 	return {
 		type: 'settingsvocrec',
-		id: id,
-		valtype: valtype,
-		baseval: baseval,
+		id,
+		valtype,
+		baseval,
 		folderid: null,
 		srt: 10,
 		added: false,
@@ -54,6 +80,14 @@ function _defaultSettingsVocRec(
 
 // SEC Creating Settings
 
+export function initFolderFactory(getId: () => string | null) {
+	return function createFolder(overrides?: Partial<Folder>): Folder {
+		return {
+			..._defaultFolder(getId()),
+			...overrides,
+		};
+	};
+};
 export function initSettingFactory(
 	getId: () => string,
 	getValType: () => number,
@@ -127,16 +161,20 @@ export function convertSettingValue (value: SettingType, type: number): SettingT
 async function getSettingsGroups(context: FolderContext): Promise<Record<string, Folder>> {
 	const groups: Record<string, Folder> = {};
 	const data = await api.get('get_settings_groups.php');
-	if (Array.isArray(data)) {
-		const createFolder = initFolderFactory(() => null);
-		for (const groupData of data) {
-			groupData.id = String(groupData.id);
-			if (groupData.parent) groupData.parent = String(groupData.parent);
-			groups[groupData.id] = createFolder({
-				...groupData,
-				context: context,
-			});
-		}
+	if (!Array.isArray(data)) return {};
+	const createFolder = initFolderFactory(() => null);
+	for (const groupData of data) {
+		const name = groupData.name?.trim();
+		const description = groupData.description?.trim();
+		const group: Partial<Folder> = {
+			id: String(groupData.id),
+			parent: groupData.parent === null ? null : String(groupData.parent),
+			srt: Number(groupData.srt),
+			...(name && { name }),
+			...(description && { description }),
+		};
+		const folder = createFolder({ ...group, context });
+		if (isFolder(folder) && typeof group.id === 'string') groups[group.id] = folder;
 	}
 	return groups;
 };
@@ -241,6 +279,9 @@ export function useActionsSettingsAdmin(
 	store: StoreAdmin,
 ): ActionsSettingsAdmin {
 
+	const createFolder = initFolderFactory(
+		() => nextStringedNumericKey(store.settings.value.groups),
+	);
 	const createSettingsVocRec = initSettingsVocRecFactory(
 		() => nextStringedNumericKey(store.settings.value.usersvoc),
 		() => 3,
@@ -389,22 +430,6 @@ export function useActionsSettingsAdmin(
 	const clearSettingsGroups = (): void => {
 		store.settings.value.groups = {};
 	};
-	const combUserSettingsVoc = (
-		source: Record<string, Record<string, unknown>>
-	): Record<string, SettingsVocRec> => {
-		const voc: Record<string, SettingsVocRec> = {};
-		for (const id in source) {
-			if (!Object.hasOwn(source, id)) continue;
-			const rec = source[id];
-			rec.type = 'settingsvocrec';
-			rec.id = String(id);
-			rec.added = false;
-			rec.deleted = false;
-			rec.updated = false;
-			if (isSettingsVocRec(rec)) voc[id] = rec;
-		}
-		return voc;
-	};
 	const clearUserSettingsVoc = (): void => {
 		store.settings.value.usersvoc = {};
 	};
@@ -424,15 +449,36 @@ export function useActionsSettingsAdmin(
 		}
 	};
 	const setUserSettingsVoc = async (): Promise<void> => {
+		clearUserSettingsVoc();
 		const userid = localStorage.getItem('places-useruuid');
 		if (!userid) return;
-		clearUserSettingsVoc();
 		try {
 			const data = await api.get('get_settings_users_voc.php?id=' + userid);
-			if (data) {
-				const voc = combUserSettingsVoc(data);
-				Object.assign(store.settings.value.usersvoc, voc);
+			if (!data) return;
+			const voc: Record<string, SettingsVocRec> = {};
+			for (const id in data) {
+				if (!Object.hasOwn(data, id)) continue;
+				const vocData = data[id];
+				const enm = vocData.enum;
+				const name = vocData.name?.trim();
+				const description = vocData.description?.trim();
+				const rec: Partial<SettingsVocRec> = {
+					id,
+					type: 'settingsvocrec',
+					folderid: vocData.folderid === null ? null : String(vocData.folderid),
+					srt: Number(vocData.srt),
+					valtype: Number(vocData.valtype),
+					baseval: vocData.baseval,
+					...(Array.isArray(enm) && enm.length && { enum: enm }),
+					...(name && { name }),
+					...(description && { description }),
+					added: false,
+					deleted: false,
+					updated: false,
+				};
+				if (isValidSettingsVocRec(rec)) voc[rec.id] = rec;
 			}
+			Object.assign(store.settings.value.usersvoc, voc);
 		} catch (error) {
 			clearUserSettingsVoc();
 			throw error;
@@ -441,6 +487,52 @@ export function useActionsSettingsAdmin(
 
 // SEC Upserting Entities
 
+	const upsertFolder = (params: BaseUpsertParams<Folder> = {}): Folder | null => {
+		const {
+			object,
+			props,
+			where = store.settings.value.groups,
+			mode = 'new',
+			silent = false,
+		} = params;
+
+		let folder: Folder | null = null;
+		const parentId = props?.parent || object?.parent || null;
+
+		let srt = 10;
+		if (typeof props?.srt === 'number') {
+			srt = props.srt;
+		} else {
+			const max = findInDictByMinMaxKey(where, 'srt', f => f.parent === parentId).max?.val;
+			if (typeof max !== 'number') srt = 10; else srt += 10;
+		}
+
+		switch (mode) {
+			case 'move':
+				if (!object) return null;
+				Object.assign(object, { updated: true }, props);
+				folder = object;
+				break;
+			case 'change':
+				if (!object) return null;
+				Object.assign(object, { updated: true, deleted: false }, props);
+				folder = object;
+				break;
+			case 'new':
+				folder = createFolder({
+					...props,
+					parent: parentId,
+					srt: srt,
+					added: true,
+				});
+				if (folder.id) where[folder.id] = folder;
+				break;
+		}
+		if (!silent && folder) {
+			store.savedSettings.value = false;
+		}
+		return folder;
+	};
 	const upsertSettingsVocRec = (
 		params: BaseUpsertParams<SettingsVocRec> = {}
 	): SettingsVocRec | null => {
@@ -534,6 +626,7 @@ export function useActionsSettingsAdmin(
 		resetUserSettingsVoc,
 		setSettingsGroups,
 		setUserSettingsVoc,
+		upsertFolder,
 		upsertSettingsVocRec,
 		upsertSettingsVocRecFollowing,
 	};

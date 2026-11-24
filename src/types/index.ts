@@ -60,8 +60,8 @@ export interface Folder extends Entity {
 	name?: string;
 	description?: string;
 	srt: number;
-	geomarks: GeomarksState;
 	open: boolean;
+	geomarks?: GeomarksState;
 	children?: Record<string, Folder> | Folder[];
 }
 export interface Point extends Entity {

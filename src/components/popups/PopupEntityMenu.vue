@@ -12,7 +12,7 @@
 				{{ object.name }}
 			</h2>
 			<button
-				v-if="object.type !== 'settingsvocrec'"
+				v-if="context !== 'settingsvoc' && object.type !== 'settingsvocrec'"
 				type="button"
 				class="link menu-link message border_1"
 				@pointerdown.stop
@@ -96,7 +96,7 @@
 						});
 					} else if (object.type === 'folder' && context === 'routes') {
 						mainStore.upsertRoute({ props: { folderid: object.id } });
-					} else if (object.type === 'folder' && context === 'settings') {
+					} else if (object.type === 'folder' && context === 'settingsvoc') {
 						adminStore.upsertSettingsVocRec({ props: { folderid: object.id } });
 					}
 					if (context === 'places') focusCurrent(currentPlaceNameInputRef);
@@ -167,13 +167,22 @@
 				@pointerup.stop
 				@click.stop="() => {
 					if (!object) return;
-					router.push({
-						name: 'HomeFolder',
-						query: {
-							parent: object.id,
-							context: (object as Folder).context,
-						},
-					});
+					if (context !== 'settingsvoc') {
+						router.push({
+							name: 'HomeFolder',
+							query: {
+								parent: object.id,
+								context: (object as Folder).context,
+							},
+						});
+					} else {
+						adminStore.upsertFolder({
+							props: {
+								parent: object.id,
+								context: context,
+							},
+						});
+					}
 					show = false;
 				}"
 			>
@@ -187,25 +196,30 @@
 				@pointerup.stop
 				@click.stop="() => {
 					if (!object) return;
-					if (object.type === 'folder') {
-						router.push({
-							name: 'HomeDeleteFolder',
-							params: {
-								id: object.id,
-								type: (object as Folder).context,
-							},
-						});
-						show = false;
-					} else if (object.type === 'settingsvocrec') {
+					if (context !== 'settingsvoc' && object.type !== 'settingsvocrec') {
+						if (object.type === 'folder') {
+							router.push({
+								name: 'HomeDeleteFolder',
+								params: {
+									id: object.id,
+									type: (object as Folder).context,
+								},
+							});
+							show = false;
+						} else {
+							mainStore.deleteEntities({
+								[object.id]: object,
+							})
+						}
+					} else if (
+						typeof object.id === 'string' &&
+						(object.type === 'settingsvocrec' || object.type === 'folder')
+					) {
 						if (!object.deleted) {
 							adminStore.deleteInSettings({ [object.id]: object });
 						} else {
 							adminStore.restoreInSettings({ [object.id]: object });
 						}
-					} else {
-						mainStore.deleteEntities({
-							[object.id]: object,
-						})
 					}
 					show = false;
 				}"
@@ -220,6 +234,7 @@
 						object.type === 'settingsvocrec' ? (
 							!object.deleted ? 'deleteSetting' : 'restoreSetting'
 						) :
+						object.type === 'folder' && object.deleted ? 'restoreFolder' :
 						'deleteFolder'
 					]
 				}}
