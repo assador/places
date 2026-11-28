@@ -36,7 +36,7 @@ CREATE TABLE `folders` (
   KEY `idx_userid_parent` (`userid`,`parent`),
   KEY `idx_folders_context` (`context`),
   CONSTRAINT `fk_folders_users` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -271,7 +271,7 @@ CREATE TABLE `places` (
   KEY `idx_common` (`common`),
   CONSTRAINT `fk_places_folder` FOREIGN KEY (`folderid`) REFERENCES `folders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_places_user` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -498,7 +498,7 @@ CREATE TABLE `routes` (
   KEY `idx_routes_userid` (`userid`),
   KEY `idx_routes_folderid` (`folderid`),
   CONSTRAINT `fk_routes_user` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -578,6 +578,23 @@ CREATE TABLE `sessions` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `settings_enums`
+--
+
+DROP TABLE IF EXISTS `settings_enums`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `settings_enums` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `type` tinyint(3) unsigned NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(2044) DEFAULT NULL,
+  `srt` double NOT NULL DEFAULT 10,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `settings_groups`
 --
 
@@ -592,7 +609,28 @@ CREATE TABLE `settings_groups` (
   `srt` double NOT NULL DEFAULT 10,
   PRIMARY KEY (`id`),
   KEY `parent` (`parent`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `settings_options`
+--
+
+DROP TABLE IF EXISTS `settings_options`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `settings_options` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `enumid` smallint(5) unsigned NOT NULL,
+  `value` varbinary(255) NOT NULL,
+  `srt` double NOT NULL DEFAULT 10,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `extra` blob DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_enumid_value` (`enumid`,`value`),
+  KEY `enumid` (`enumid`),
+  CONSTRAINT `fk_settings_options_enumid` FOREIGN KEY (`enumid`) REFERENCES `settings_enums` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -610,7 +648,7 @@ CREATE TABLE `settings_users` (
   PRIMARY KEY (`userid`,`settingid`),
   KEY `settingid` (`settingid`),
   CONSTRAINT `fk_settings_users_settingid` FOREIGN KEY (`settingid`) REFERENCES `settings_users_voc` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -625,32 +663,16 @@ CREATE TABLE `settings_users_voc` (
   `groupid` smallint(5) unsigned DEFAULT NULL,
   `type` tinyint(3) unsigned NOT NULL,
   `baseval` varbinary(255) DEFAULT NULL,
+  `enumid` smallint(5) unsigned DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `description` varchar(2044) DEFAULT NULL,
   `public` tinyint(1) NOT NULL DEFAULT 1,
   `srt` double NOT NULL DEFAULT 10,
   PRIMARY KEY (`id`),
-  KEY `groupid` (`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `settings_users_voc_options`
---
-
-DROP TABLE IF EXISTS `settings_users_voc_options`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `settings_users_voc_options` (
-  `settingid` smallint(5) unsigned NOT NULL,
-  `value` varbinary(255) NOT NULL,
-  `srt` double NOT NULL DEFAULT 10,
-  `enabled` tinyint(1) NOT NULL DEFAULT 1,
-  `extra` blob DEFAULT NULL,
-  UNIQUE KEY `uq_settingid_value` (`settingid`,`value`),
-  KEY `settingid` (`settingid`),
-  CONSTRAINT `fk_settings_users_voc_options_settingid` FOREIGN KEY (`settingid`) REFERENCES `settings_users_voc` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `groupid` (`groupid`),
+  KEY `enumid` (`enumid`),
+  CONSTRAINT `fk_settings_users_voc_enumid` FOREIGN KEY (`enumid`) REFERENCES `settings_enums` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -694,7 +716,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `uniq_login` (`login`),
   UNIQUE KEY `uniq_email` (`email`),
   KEY `idx_confirmed` (`confirmed`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -787,4 +809,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-11-19 21:51:57
+-- Dump completed on 2026-11-28 20:44:03

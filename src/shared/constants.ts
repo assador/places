@@ -1,5 +1,5 @@
 export const constants = {
-	version: 'v6.7.20:1 beta',
+	version: 'v6.7.21:1 beta', // I have more fingers and toes than Torvalds does.
 	keybindings: {
 		Digit1 : 'normal mode',
 		Digit2 : 'routes mode',
