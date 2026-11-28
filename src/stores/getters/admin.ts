@@ -6,6 +6,7 @@ import {
 	UserKey,
 	GroupKey,
 } from '@/stores/types';
+import { getArrayOfRecordsSortedByKey } from '@/shared/common';
 
 function collectModified<T extends Group | User>(c: Record<string, T>): T[] {
 	const modified: T[] = [];
@@ -20,19 +21,6 @@ function collectModified<T extends Group | User>(c: Record<string, T>): T[] {
 	}
 	return modified;
 };
-function sorted<T>(arr: T[], key: keyof T): T[] {
-	return arr.slice().sort((a, b) => {
-		const valA = a[key];
-		const valB = b[key];
-		if (typeof valA === 'number' && typeof valB === 'number') return valA - valB;
-		const strA = String(valA ?? '');
-		const strB = String(valB ?? '');
-		return strA.localeCompare(strB, undefined, {
-			numeric: true,
-			sensitivity: 'base',
-		});
-	});
-}
 
 export function useGettersAdmin(
 	state: StoreAdminStateRefs,
@@ -51,13 +39,13 @@ export function useGettersAdmin(
 	): (Group | User | SettingsVocRec)[] | undefined => {
 		if (what === 'groups') {
 			const arr: Group[] = Object.values(state.groups.value);
-			return sorted(arr, by);
+			return getArrayOfRecordsSortedByKey(arr, by);
 		} else if (what === 'users') {
 			const arr: User[] = Object.values(state.users.value);
-			return sorted(arr, by);
+			return getArrayOfRecordsSortedByKey(arr, by);
 		} else if (what === 'settings') {
 			const arr: SettingsVocRec[] = Object.values(of ? of : state.settings.value.usersvoc);
-			return sorted(arr, by);
+			return getArrayOfRecordsSortedByKey(arr, by);
 		}
 		return undefined;
 	};

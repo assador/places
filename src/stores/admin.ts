@@ -18,7 +18,9 @@ import { useActionsUIAdmin } from './actions/ui';
 export const useAdminStore = defineStore('admin', () => {
 
 	const settings = ref<SettingsAdmin>({
+		enums: {},
 		groups: {},
+		options: {},
 		usersvoc: {},
 	});
 	const treeParams = ref<Record<string, Tree>>({

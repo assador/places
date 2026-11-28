@@ -66,7 +66,7 @@ apiRun($ctx, function () use ($ctx, $config) {
 
 // SEC Transaction Voc recs
 
-	if (!empty($list["usersvoc"])) {
+	if (!empty($list["voc"])) {
 		$deleteSql = "
 			DELETE FROM `settings_users_voc`
 			WHERE `id` = :id
@@ -91,21 +91,21 @@ apiRun($ctx, function () use ($ctx, $config) {
 		$insertStmt = $ctx->db->prepare($insertSql);
 
 		$deleteEnumSql = "
-			DELETE FROM `settings_users_voc_options`
-			WHERE `settingid` = :settingid
+			DELETE FROM `settings_options`
+			WHERE `enumid` = :enumid
 		";
 		$deleteEnumStmt = $ctx->db->prepare($deleteEnumSql);
 
 		$insertEnumSql = "
-			INSERT INTO `settings_users_voc_options` (
-				`settingid`, `value`, `srt`, `enabled`, `extra`
+			INSERT INTO `settings_options` (
+				`enumid`, `value`, `srt`, `enabled`, `extra`
 			) VALUES (
-				:settingid, :value, :srt, :enabled, :extra
+				:enumid, :value, :srt, :enabled, :extra
 			)
 		";
 		$insertEnumStmt = $ctx->db->prepare($insertEnumSql);
 
-		foreach ($list["usersvoc"] as $row) {
+		foreach ($list["voc"] as $row) {
 			if (!empty($row["deleted"])) {
 				$deleteStmt->execute([
 					":id" => (int) $row["id"],
@@ -122,12 +122,12 @@ apiRun($ctx, function () use ($ctx, $config) {
 					":srt"         => (float) ($row["srt"] ?? 10),
 				]);
 				$deleteEnumStmt->execute([
-					":settingid" => (int) $row["id"],
+					":enumid" => (int) $row["id"],
 				]);
 				if ((int) $row["type"] !== 0 && !empty($row["enum"]) && is_array($row["enum"])) {
 					foreach ($row["enum"] as $enum) {
 						$insertEnumStmt->execute([
-							":settingid"   => (int) $row["id"],
+							":enumid"      => (int) $row["id"],
 							":value"       => prepareSettingValue($enum["val"], (int) $row["type"]),
 							":srt"         => (float) ($enum["srt"] ?? 10),
 							":enabled"     => !empty($enum["enabled"]) ? 1 : 0,

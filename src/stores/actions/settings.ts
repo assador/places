@@ -1,17 +1,26 @@
-import api from '@/api';
 import { Folder, FolderContext } from '@/types';
 import {
 	Setting,
-	SettingEnum,
 	SettingType,
+	SettingsEnum,
+	SettingsOption,
 	SettingsVocRec,
+	typeNumber,
 } from '@/types/settings';
 import {
 	isFolder,
 	isSetting,
-	isValidSettingValue,
-	isValidSettingsVocRec,
+	isSettingsEnum,
+	isSettingsOption,
+	isSettingsVocRec,
 } from '@/guards';
+import {
+	routineGetSettingsEnums,
+	routineGetSettingsOptions,
+	routineGetSettingsGroups,
+	routineGetSettingsUser,
+	routineGetSettingsUsersVoc,
+} from '@/services/settings';
 import {
 	ActionsSettings,
 	ActionsSettingsAdmin,
@@ -42,36 +51,32 @@ function _defaultFolder(id: string | null): Folder {
 	};
 }
 function _defaultSetting(
-	id: string,
-	valtype: number,
+	id: string | null,
 	val: SettingType,
-	baseval: SettingType,
 ): Setting {
 	return {
 		type: 'setting',
-		id,
-		valtype,
+		id: id === null ? crypto.randomUUID() : id,
 		val,
-		baseval,
-		folderid: null,
-		srt: 10,
 		added: false,
 		deleted: false,
 		updated: false,
 	};
 }
 function _defaultSettingsVocRec(
-	id: string,
+	id: string | null,
 	valtype: number,
 	baseval: SettingType,
 ): SettingsVocRec {
 	return {
 		type: 'settingsvocrec',
-		id,
+		id: id === null ? crypto.randomUUID() : id,
 		valtype,
 		baseval,
 		folderid: null,
 		srt: 10,
+		public: true,
+		checked: false,
 		added: false,
 		deleted: false,
 		updated: false,
@@ -90,13 +95,11 @@ export function initFolderFactory(getId: () => string | null) {
 };
 export function initSettingFactory(
 	getId: () => string,
-	getValType: () => number,
 	getVal: () => SettingType,
-	getBaseVal: () => SettingType,
 ) {
 	return function createSetting(overrides?: Partial<Setting>): Setting {
 		return {
-			..._defaultSetting(getId(), getValType(), getVal(), getBaseVal()),
+			..._defaultSetting(getId(), getVal()),
 			...overrides,
 		};
 	};
@@ -158,25 +161,114 @@ export function convertSettingValue (value: SettingType, type: number): SettingT
 	}
 };
 
+async function getSettingsEnums(): Promise<Record<string, SettingsEnum>> {
+	const dbEnums = await routineGetSettingsEnums();
+	const enums: Record<string, SettingsEnum> = {};
+	for (const id in dbEnums) {
+		if (!Object.hasOwn(dbEnums, id)) continue;
+		const dbEnum = dbEnums[id];
+		const name = dbEnum.name?.trim();
+		const description = dbEnum.description?.trim();
+		const enm: Partial<SettingsEnum> = {
+			id,
+			type: 'settingsenum',
+			valtype: dbEnum.type,
+			srt: dbEnum.srt,
+			...(name && { name }),
+			...(description && { description }),
+			added: false,
+			deleted: false,
+			updated: false,
+		};
+		if (isSettingsEnum(enm)) enums[id] = enm;
+	}
+	return enums;
+};
+async function getSettingsOptions(): Promise<Record<string, SettingsOption>> {
+	const dbOptions = await routineGetSettingsOptions();
+	const options: Record<string, SettingsOption> = {};
+	for (const id in dbOptions) {
+		if (!Object.hasOwn(dbOptions, id)) continue;
+		const dbOption = dbOptions[id];
+		const opt: Partial<SettingsOption> = {
+			id,
+			type: 'settingsoption',
+			val: dbOption.value,
+			srt: dbOption.srt,
+			enabled: dbOption.enabled,
+			enumid: String(dbOption.enumid),
+			...(dbOption.extra !== undefined && { extra: dbOption.extra }),
+			added: false,
+			deleted: false,
+			updated: false,
+		};
+		if (isSettingsOption(opt)) options[id] = opt;
+	}
+	return options;
+};
 async function getSettingsGroups(context: FolderContext): Promise<Record<string, Folder>> {
-	const groups: Record<string, Folder> = {};
-	const data = await api.get('get_settings_groups.php');
-	if (!Array.isArray(data)) return {};
 	const createFolder = initFolderFactory(() => null);
-	for (const groupData of data) {
-		const name = groupData.name?.trim();
-		const description = groupData.description?.trim();
+	const dbGroups = await routineGetSettingsGroups();
+	const groups: Record<string, Folder> = {};
+	for (const id in dbGroups) {
+		if (!Object.hasOwn(dbGroups, id)) continue;
+		const dbGroup = dbGroups[id];
+		const name = dbGroup.name?.trim();
+		const description = dbGroup.description?.trim();
 		const group: Partial<Folder> = {
-			id: String(groupData.id),
-			parent: groupData.parent === null ? null : String(groupData.parent),
-			srt: Number(groupData.srt),
+			id,
+			parent: dbGroup.parent === null ? null : String(dbGroup.parent),
+			srt: dbGroup.srt,
 			...(name && { name }),
 			...(description && { description }),
 		};
 		const folder = createFolder({ ...group, context });
-		if (isFolder(folder) && typeof group.id === 'string') groups[group.id] = folder;
+		if (isFolder(folder)) groups[id] = folder;
 	}
 	return groups;
+};
+async function getSettingsUsersVoc(): Promise<Record<string, SettingsVocRec>> {
+	const dbVoc = await routineGetSettingsUsersVoc();
+	const voc: Record<string, SettingsVocRec> = {};
+	for (const id in dbVoc) {
+		if (!Object.hasOwn(dbVoc, id)) continue;
+		const dbVocRec = dbVoc[id];
+		const name = dbVocRec.name?.trim();
+		const description = dbVocRec.description?.trim();
+		const rec: Partial<SettingsVocRec> = {
+			id,
+			type: 'settingsvocrec',
+			valtype: dbVocRec.type,
+			baseval: dbVocRec.baseval,
+			srt: dbVocRec.srt,
+			public: dbVocRec.public,
+			folderid: dbVocRec.groupid === null ? null : String(dbVocRec.groupid),
+			...(dbVocRec.enumid !== undefined && { enumid: String(dbVocRec.enumid) }),
+			...(name && { name }),
+			...(description && { description }),
+			checked: false,
+			added: false,
+			deleted: false,
+			updated: false,
+		};
+		if (isSettingsVocRec(rec)) voc[id] = rec;
+	}
+	return voc;
+};
+async function getSettingsUser(): Promise<Record<string, Setting>> {
+	const dbSettings = await routineGetSettingsUser();
+	const settings: Record<string, Setting> = {};
+	for (const id in dbSettings) {
+		if (!Object.hasOwn(dbSettings, id)) continue;
+		const dbSetting = dbSettings[id];
+		const setting: Partial<Setting> = {
+			id,
+			type: 'setting',
+			val: dbSetting.value,
+		};
+		if (isSetting(setting)) settings[id] = setting;
+	}
+	return settings;
 };
 
 // SEC Stores
@@ -185,53 +277,88 @@ export function useActionsSettings(
 	store: StoreMain,
 ): ActionsSettings {
 
-	const changeSetting = (
-		{ entity, change }: { entity: Setting; change: Partial<Setting>; }
-	): void => {
-		Object.assign(entity, change);
-		entity.updated = true;
-		store.savedSettings.value = false;
-	};
+	const createSetting = initSettingFactory(
+		() => crypto.randomUUID(),
+		() => 3,
+	);
+
 	const clearSettings = (): void => {
 		store.settings.value = {
-			user: {},
+			enums: {},
 			groups: {},
+			options: {},
+			usersvoc: {},
+			user: {},
 		};
+	};
+	const clearSettingsEnums = (): void => {
+		store.settings.value.enums = {};
 	};
 	const clearSettingsGroups = (): void => {
 		store.settings.value.groups = {};
 	};
-	const clearUserSettings = (): void => {
+	const clearSettingsOptions = (): void => {
+		store.settings.value.options = {};
+	};
+	const clearSettingsUsersVoc = (): void => {
+		store.settings.value.usersvoc = {};
+	};
+	const clearSettingsUser = (): void => {
 		store.settings.value.user = {};
 	};
-	const combUserSettings = (
-		source: Record<string, Record<string, unknown>>
-	): Record<string, Setting> => {
-		const settings: Record<string, Setting> = {};
-		for (const id in source) {
-			if (!Object.hasOwn(source, id)) continue;
-			const setting = source[id];
-			setting.type = 'setting';
-			setting.id = String(id);
-			setting.added = false;
-			setting.deleted = false;
-			setting.updated = false;
-			if (isSetting(setting)) settings[id] = setting;
-		}
-		return settings;
-	};
-	const resetUserSettings = (ids?: string[]): void => {
+	const resetSettingsUser = (ids?: string[]): void => {
 		if (!ids) ids = Object.keys(store.settings.value.user);
 		for (const id of ids) {
 			const setting = store.settings.value.user[id];
 			if (!setting) continue;
-			setting.val = setting.baseval;
-			setting.updated = true;
+			setting.deleted = true;
 		}
+	};
+	const setSetting = (rec: SettingsVocRec, val: SettingType): void => {
+		const value =
+			typeNumber[typeof val] === rec.valtype
+				? val
+				: convertSettingValue(val, rec.valtype)
+		;
+		const setting = store.settings.value.user[rec.id];
+		if (setting) {
+			setting.val = value;
+			setting.updated = true;
+			setting.deleted = false;
+		} else {
+			store.settings.value.user[rec.id] = createSetting({
+				id: rec.id,
+				val: value,
+				added: true,
+			});
+		}
+		store.savedSettings.value = false;
 	};
 
 // SEC DB
 
+	const setSettingsEnums = async (): Promise<void> => {
+		clearSettingsEnums();
+		try {
+			const enums = await getSettingsEnums();
+			Object.assign(store.settings.value.enums, enums);
+		} catch (error) {
+			store.setMessage(store.t.value.m.errors.other.cannotGetData);
+			clearSettingsEnums();
+			throw error;
+		}
+	};
+	const setSettingsOptions = async (): Promise<void> => {
+		clearSettingsOptions();
+		try {
+			const options = await getSettingsOptions();
+			Object.assign(store.settings.value.options, options);
+		} catch (error) {
+			store.setMessage(store.t.value.m.errors.other.cannotGetData);
+			clearSettingsOptions();
+			throw error;
+		}
+	};
 	const setSettingsGroups = async (): Promise<void> => {
 		clearSettingsGroups();
 		try {
@@ -243,35 +370,49 @@ export function useActionsSettings(
 			throw error;
 		}
 	};
-	const setUserSettings = async (): Promise<void> => {
-		const userid = localStorage.getItem('places-useruuid');
-		const sessionid = localStorage.getItem('places-session');
-		if (!userid) return;
-		clearUserSettings();
+	const setSettingsUsersVoc = async (): Promise<void> => {
+		clearSettingsUsersVoc();
 		try {
-			const data = await api.post(
-				`get_settings_users.php`,
-				{ userid, sessionid },
-			);
-			if (data) {
-				const settings = combUserSettings(data);
-				Object.assign(store.settings.value.user, settings);
+			const voc = await getSettingsUsersVoc();
+			Object.assign(store.settings.value.usersvoc, voc);
+		} catch (error) {
+			store.setMessage(store.t.value.m.errors.other.cannotGetData);
+			clearSettingsUsersVoc();
+			throw error;
+		}
+	};
+	const setSettingsUser = async (): Promise<void> => {
+		const oldSettings = { ...store.settings.value.user };
+		clearSettingsUser();
+		try {
+			const settings = await getSettingsUser();
+			Object.assign(store.settings.value.user, settings);
+			for (const id in oldSettings) {
+				if (!Object.hasOwn(oldSettings, id)) continue;
+				if (Object.hasOwn(store.settings.value.user, id)) continue;
+				store.settings.value.user[id] = oldSettings[id];
 			}
 		} catch (error) {
 			store.setMessage(store.t.value.m.errors.other.cannotGetData);
-			clearUserSettings();
+			clearSettingsUser();
 			throw error;
 		}
 	};
 
 	return {
-		changeSetting,
 		clearSettings,
+		clearSettingsEnums,
 		clearSettingsGroups,
-		clearUserSettings,
-		resetUserSettings,
+		clearSettingsOptions,
+		clearSettingsUsersVoc,
+		clearSettingsUser,
+		resetSettingsUser,
+		setSetting,
+		setSettingsEnums,
 		setSettingsGroups,
-		setUserSettings,
+		setSettingsOptions,
+		setSettingsUsersVoc,
+		setSettingsUser,
 	};
 };
 
@@ -295,6 +436,7 @@ export function useActionsSettingsAdmin(
 		enb?: boolean,
 		ext?: string,
 	}): boolean => {
+/*
 		if (rec.valtype < 2) return false;
 		if (val !== undefined && !isValidSettingValue(val, rec.valtype)) return false;
 		if (typeof idx === 'number' && (!rec.enum || !rec.enum[idx])) return false;
@@ -322,6 +464,7 @@ export function useActionsSettingsAdmin(
 		else if (idx === null) rec.enum.splice(0, 0, obj);
 		else rec.enum.splice(idx + 1, 0, obj);
 		rec.updated = true;
+*/
 		return true;
 	};
 	const changeValueInSettingEnum = ({ rec, idx, val }: {
@@ -329,9 +472,11 @@ export function useActionsSettingsAdmin(
 		idx: number,
 		val: Exclude<SettingType, null | boolean>,
 	}): boolean => {
+/*
 		if (!rec.enum || !rec.enum[idx] || !isValidSettingValue(val, rec.valtype)) return false;
 		rec.enum[idx].val = val;
 		rec.updated = true;
+*/
 		return true;
 	};
 	const changeEnabledInSettingEnum = ({ rec, idx, enb }: {
@@ -339,9 +484,11 @@ export function useActionsSettingsAdmin(
 		idx: number,
 		enb: boolean,
 	}): boolean => {
+/*
 		if (!rec.enum || !rec.enum[idx]) return false;
 		rec.enum[idx].enabled = enb;
 		rec.updated = true;
+*/
 		return true;
 	};
 	const changeExtraInSettingEnum = ({ rec, idx, ext }: {
@@ -349,20 +496,24 @@ export function useActionsSettingsAdmin(
 		idx: number,
 		ext: string | null,
 	}): boolean => {
+/*
 		if (!rec.enum || !rec.enum[idx]) return false;
 		const extra = ext?.trim();
 		if (extra) rec.enum[idx].extra = extra;
 		else delete rec.enum[idx].extra;
 		rec.updated = true;
+*/
 		return true;
 	};
 	const deleteValueFromSettingEnum = ({ rec, idx }: {
 		rec: SettingsVocRec,
 		idx: number,
 	}): boolean => {
+/*
 		if (!rec.enum || !rec.enum[idx]) return false;
 		rec.enum.splice(idx, 1);
 		rec.updated = true;
+*/
 		return true;
 	};
 	const deleteInSettings = (objects: Record<string, Folder | SettingsVocRec>): void => {
@@ -386,24 +537,16 @@ export function useActionsSettingsAdmin(
 			if (obj.deleted) obj.deleted = false;
 		}
 	};
-	const changeSettingsVocRec = (
+	const changeSettingsEnum = (
 		{ entity, change }:
-		{ entity: SettingsVocRec; change: Partial<SettingsVocRec>; }
+		{ entity: SettingsEnum; change: Partial<SettingsEnum>; }
 	): void => {
-		const newType = change.valtype ?? entity.valtype;
-		const newBaseval = change.baseval !== undefined
-			? change.baseval
-			: entity.baseval
-		;
 		const normalizedChange = { ...change };
-		if (change.baseval !== undefined || change.valtype !== undefined) {
-			normalizedChange.baseval = convertSettingValue(newBaseval, newType);
-		}
 		if (change.valtype !== undefined && change.valtype !== entity.valtype) {
-			if (newType < 2) {
-				delete entity.enum;
-				delete normalizedChange.enum;
+			if (change.valtype < 2) {
+				normalizedChange.valtype = entity.valtype;
 			} else {
+/*
 				const enumSource = change.enum ?? entity.enum;
 				if (enumSource) {
 					const seen = new Set<Exclude<SettingType, null | boolean>>();
@@ -416,25 +559,81 @@ export function useActionsSettingsAdmin(
 						return [{ ...option, val }];
 					});
 				}
+*/
 			}
+		}
+		Object.assign(entity, normalizedChange);
+		entity.updated = true;
+	};
+	const changeSettingsVocRec = (
+		{ entity, change }:
+		{ entity: SettingsVocRec; change: Partial<SettingsVocRec>; }
+	): void => {
+		const normalizedChange = { ...change };
+		if (change.enumid !== undefined && change.enumid !== entity.enumid) {
+			normalizedChange.valtype = store.settings.value.enums[change.enumid]?.valtype ?? 0;
+			normalizedChange.baseval = null;
+		} else if (change.baseval !== undefined || change.valtype !== undefined) {
+			const newType = change.valtype ?? entity.valtype;
+			const newBaseval = change.baseval !== undefined
+				? change.baseval
+				: entity.baseval
+			;
+			normalizedChange.baseval = convertSettingValue(newBaseval, newType);
+		}
+		if (change.valtype !== undefined && change.valtype !== entity.valtype) {
+			delete entity.enumid;
+			delete normalizedChange.enumid;
 		}
 		Object.assign(entity, normalizedChange);
 		entity.updated = true;
 	};
 	const clearSettings = (): void => {
 		store.settings.value = {
-			usersvoc: {},
+			enums: {},
 			groups: {},
+			options: {},
+			usersvoc: {},
 		};
+	};
+	const clearSettingsEnums = (): void => {
+		store.settings.value.enums = {};
 	};
 	const clearSettingsGroups = (): void => {
 		store.settings.value.groups = {};
 	};
-	const clearUserSettingsVoc = (): void => {
+	const clearSettingsOptions = (): void => {
+		store.settings.value.options = {};
+	};
+	const clearSettingsUsersVoc = (): void => {
 		store.settings.value.usersvoc = {};
 	};
-	const resetUserSettingsVoc = async (): Promise<void> => {
-		await setUserSettingsVoc();
+	const resetSettingsUsersVoc = async (): Promise<void> => {
+		await setSettingsUsersVoc();
+	};
+	const setSettingsEnums = async (): Promise<void> => {
+		clearSettingsEnums();
+		try {
+			const enums = await getSettingsEnums();
+			Object.assign(store.settings.value.enums, enums);
+		} catch (error) {
+			const mainStore = useMainStore();
+			mainStore.setMessage(mainStore.t.m.errors.other.cannotGetData);
+			clearSettingsEnums();
+			throw error;
+		}
+	};
+	const setSettingsOptions = async (): Promise<void> => {
+		clearSettingsOptions();
+		try {
+			const options = await getSettingsOptions();
+			Object.assign(store.settings.value.options, options);
+		} catch (error) {
+			const mainStore = useMainStore();
+			mainStore.setMessage(mainStore.t.m.errors.other.cannotGetData);
+			clearSettingsOptions();
+			throw error;
+		}
 	};
 	const setSettingsGroups = async (): Promise<void> => {
 		clearSettingsGroups();
@@ -448,39 +647,15 @@ export function useActionsSettingsAdmin(
 			throw error;
 		}
 	};
-	const setUserSettingsVoc = async (): Promise<void> => {
-		clearUserSettingsVoc();
-		const userid = localStorage.getItem('places-useruuid');
-		if (!userid) return;
+	const setSettingsUsersVoc = async (): Promise<void> => {
+		clearSettingsUsersVoc();
 		try {
-			const data = await api.get('get_settings_users_voc.php?id=' + userid);
-			if (!data) return;
-			const voc: Record<string, SettingsVocRec> = {};
-			for (const id in data) {
-				if (!Object.hasOwn(data, id)) continue;
-				const vocData = data[id];
-				const enm = vocData.enum;
-				const name = vocData.name?.trim();
-				const description = vocData.description?.trim();
-				const rec: Partial<SettingsVocRec> = {
-					id,
-					type: 'settingsvocrec',
-					folderid: vocData.folderid === null ? null : String(vocData.folderid),
-					srt: Number(vocData.srt),
-					valtype: Number(vocData.valtype),
-					baseval: vocData.baseval,
-					...(Array.isArray(enm) && enm.length && { enum: enm }),
-					...(name && { name }),
-					...(description && { description }),
-					added: false,
-					deleted: false,
-					updated: false,
-				};
-				if (isValidSettingsVocRec(rec)) voc[rec.id] = rec;
-			}
+			const voc = await getSettingsUsersVoc();
 			Object.assign(store.settings.value.usersvoc, voc);
 		} catch (error) {
-			clearUserSettingsVoc();
+			const mainStore = useMainStore();
+			mainStore.setMessage(mainStore.t.m.errors.other.cannotGetData);
+			clearSettingsUsersVoc();
 			throw error;
 		}
 	};
@@ -617,15 +792,20 @@ export function useActionsSettingsAdmin(
 		changeEnabledInSettingEnum,
 		changeExtraInSettingEnum,
 		deleteValueFromSettingEnum,
+		changeSettingsEnum,
 		changeSettingsVocRec,
 		clearSettings,
+		clearSettingsEnums,
 		clearSettingsGroups,
-		clearUserSettingsVoc,
+		clearSettingsOptions,
+		clearSettingsUsersVoc,
 		deleteInSettings,
 		restoreInSettings,
-		resetUserSettingsVoc,
+		resetSettingsUsersVoc,
+		setSettingsEnums,
 		setSettingsGroups,
-		setUserSettingsVoc,
+		setSettingsOptions,
+		setSettingsUsersVoc,
 		upsertFolder,
 		upsertSettingsVocRec,
 		upsertSettingsVocRecFollowing,

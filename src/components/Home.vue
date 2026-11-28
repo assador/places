@@ -853,8 +853,8 @@ const keyup = (e: KeyboardEvent): void => {
 		isPrefixActive.value = false;
 		return;
 	}
-	const shortcut = (constants.shortcuts as Record<string, string>)[e.code];
-	if (!shortcut) {
+	const keybinding = (constants.keybindings as Record<string, string>)[e.code];
+	if (!keybinding) {
 		isPrefixActive.value = false;
 		return;
 	}
@@ -877,7 +877,7 @@ const keyup = (e: KeyboardEvent): void => {
 		'undo': () => mainStore.undo(),
 		'redo': () => mainStore.redo(),
 	};
-	const action = actions[shortcut];
+	const action = actions[keybinding];
 	if (action) action();
 	isPrefixActive.value = false;
 };

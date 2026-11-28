@@ -27,7 +27,10 @@ export const logged = async (): Promise<void> => {
 	const mainStore = useMainStore();
 	await mainStore.setUser();
 	await mainStore.setServerConfig();
-	await mainStore.setUserSettings();
+	await mainStore.setSettingsEnums();
+	await mainStore.setSettingsOptions();
+	await mainStore.setSettingsUsersVoc();
+	await mainStore.setSettingsUser();
 	await mainStore.setEntities();
 	mainStore.ready = true;
 	ping.init();

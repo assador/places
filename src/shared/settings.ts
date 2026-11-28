@@ -37,6 +37,10 @@ export const useSettingsVocRecFields = () => {
 			caption: mainStore.t.i.captions.default,
 			sortBy: 'baseval',
 		},
+		enumid: {
+			caption: mainStore.t.i.captions.enum,
+			parser: (value) => value,
+		},
 		folderid: {
 			caption: mainStore.t.i.captions.folder,
 			parser: (value) => (value === '' ? null : value),

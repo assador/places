@@ -180,7 +180,6 @@
 				:key="object.id"
 			>
 				<label
-					v-if="isSetting(object)"
 					:id="'setting-' + object.id"
 					:type="object.type"
 					:srt="object.srt"
@@ -228,45 +227,47 @@
 						</div>
 						<div class="tree-item__control">
 							<select
-								v-if="object.enum?.length"
-								:value="object.val"
+								v-if="object.enumid !== undefined"
+								class="fieldwidth_100"
+								:value="mainStore.getSettingValue(object.id)"
 								@change="e => {
-									mainStore.changeSetting({
-										entity: object,
-										change: { val: (e.currentTarget as HTMLSelectElement).value },
-									});
+									mainStore.setSetting(
+										object,
+										(e.currentTarget as HTMLSelectElement).value,
+									);
 								}"
 							>
 								<option
-									v-for="(o, i) in object.enum"
+									v-for="(o, i) in mainStore.getOptionsForEnumId(object.enumid)"
 									:key="i"
 									:value="o.val"
 								>
-									{{ mainStore.t.s.extra[o.extra as DictionaryExtraKey] ?? o.val }}
+									{{ mainStore.getOptionLabel(o) }}
 								</option>
 							</select>
 							<input
 								v-else-if="object.valtype === 1"
 								type="checkbox"
-								:checked="object.val === true"
-								.indeterminate="object.val === null"
+								:checked="mainStore.getSettingValue(object.id) === true"
+								.indeterminate="mainStore.getSettingValue(object.id) === null"
 								@change="e => {
-									mainStore.changeSetting({
-										entity: object,
-										change: { val: (e.currentTarget as HTMLInputElement).checked },
-									});
+									mainStore.setSetting(
+										object,
+										(e.currentTarget as HTMLInputElement).checked,
+									);
 								}"
 							/>
 							<span v-else-if="object.valtype === 0" />
 							<span v-else>
 								<input
 									type="text"
-									:value="object.val"
+									class="fieldwidth_100"
+									:value="mainStore.getSettingValue(object.id)"
 									@change="e => {
-										mainStore.changeSetting({
-											entity: object,
-											change: { val: (e.currentTarget as HTMLInputElement).value },
-										});
+										mainStore.setSetting(
+											object,
+											(e.currentTarget as HTMLInputElement).value,
+										);
 									}"
 								/>
 							</span>
@@ -274,7 +275,7 @@
 						<div
 							class="tree-item__reset icon icon-undo"
 							:title="mainStore.t.s.extra.resetUserSetting"
-							@click="mainStore.resetUserSettings([object.id])"
+							@click="mainStore.resetSettingsUser([object.id])"
 						/>
 					</div>
 					<div
@@ -350,8 +351,7 @@ import {
 	Folder,
 	FolderContext,
 } from '@/types';
-import { Setting } from '@/types/settings';
-import { isSetting } from '@/guards';
+import { SettingsVocRec } from '@/types/settings';
 import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
 
@@ -371,14 +371,13 @@ const mainStore = useMainStore();
 
 type DictionaryNameKey = keyof Dictionary['s']['name'];
 type DictionaryDescKey = keyof Dictionary['s']['desc'];
-type DictionaryExtraKey = keyof Dictionary['s']['extra'];
 
 const folders = computed((): Record<string, Folder> => {
 	return mainStore.treeParams[props.what].folders;
 });
-const settings = computed((): Setting[] => {
-	const array: Setting[] = [];
-	const dict = mainStore.settings.user;
+const settings = computed((): SettingsVocRec[] => {
+	const array: SettingsVocRec[] = [];
+	const dict = mainStore.settings.usersvoc;
 	for (const id in dict) {
 		if (!Object.hasOwn(dict, id)) continue;
 		const s = dict[id];
@@ -386,7 +385,7 @@ const settings = computed((): Setting[] => {
 	}
 	return _.chain(array).sortBy('srt').value();
 });
-const entities = computed((): Setting[] => {
+const entities = computed((): SettingsVocRec[] => {
 	switch (props.what) {
 		case 'settings':
 			return settings.value;
@@ -414,7 +413,7 @@ watch(() => mainStore.selectedToExport[props.what], (newIds) => {
 		for (const id of newIds) {
 			const directFolderId =
 				props.what === 'settings'
-					? mainStore[props.what].user[id]?.folderid
+					? mainStore[props.what].usersvoc[id]?.folderid
 					: mainStore[props.what][id]?.folderid
 			;
 			if (directFolderId) {

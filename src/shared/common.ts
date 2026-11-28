@@ -133,6 +133,19 @@ export const findInDictByMinMaxKey = (
 	}
 	return { min, max };
 };
+export function getArrayOfRecordsSortedByKey<T>(arr: T[], key: keyof T): T[] {
+	return arr.slice().sort((a, b) => {
+		const valA = a[key];
+		const valB = b[key];
+		if (typeof valA === 'number' && typeof valB === 'number') return valA - valB;
+		const strA = String(valA ?? '');
+		const strB = String(valB ?? '');
+		return strA.localeCompare(strB, undefined, {
+			numeric: true,
+			sensitivity: 'base',
+		});
+	});
+}
 /**
  * Distance in kilometers between points on a sphere with coordinates in degrees.
  */
@@ -237,4 +250,10 @@ export const nextStringedNumericKey = (rec: Record<string, unknown>): string => 
 		if (Number.isSafeInteger(num) && num > max) max = num;
 	}
 	return String(max + 1);
+};
+export const getBrowserLanguage = (): string => {
+	const lang = navigator.language.toLowerCase();
+	if (lang.startsWith('ru')) return 'ru';
+	if (lang.startsWith('zh')) return 'zh';
+	return 'en';
 };

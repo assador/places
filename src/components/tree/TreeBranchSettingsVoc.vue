@@ -424,7 +424,7 @@ const onPointerUp = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/tree-settingsvoc';
+@use '@/assets/styles/tree/settingsvoc';
 ul {
 	padding-left: 0;
 }

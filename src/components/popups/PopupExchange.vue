@@ -24,7 +24,7 @@
 					/>
 				</h2>
 				<p v-if="message">{{ message }}</p>
-	
+
 				<h2 class="imp_02">
 					{{ mainStore.t.i.captions.exportPlaces }}
 				</h2>

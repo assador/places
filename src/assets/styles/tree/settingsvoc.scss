@@ -47,12 +47,6 @@ input[type="number"] {
 	&__id, &__name {
 		text-align: right;
 	}
-	&__baseval {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 4px;
-		align-items: center;
-	}
 	&__reset {
 		top: 5px;
 		cursor: pointer;

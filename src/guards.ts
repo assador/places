@@ -20,11 +20,16 @@ import {
 } from '@/types';
 import {
 	BufferSettingCollectionKey, BUFFER_SETTING_COLLECTION_KEYS,
+	DBSettingsEnum,
+	DBSettingsGroup,
+	DBSettingsOption,
+	DBSettingsUser,
+	DBSettingsVocRec,
 	Setting,
 	SettingCollectionKey, SETTING_COLLECTION_KEYS,
-	SettingEntity,
-	SettingEnum,
 	SettingType,
+	SettingsEnum,
+	SettingsOption,
 	SettingsVocRec,
 } from '@/types/settings';
 import { StoreMainStateRefs, StoreAdminStateRefs } from '@/stores/types';
@@ -38,6 +43,11 @@ export const isOptionalNumber = (value: unknown): boolean =>
 export const isOptionalBoolean = (value: unknown): boolean =>
 	value === undefined || typeof value === 'boolean'
 ;
+export const isNullNumericString = (value: unknown): boolean => {
+	if (typeof value !== 'string') return false;
+	const num = Number(value);
+	return Number.isSafeInteger(num) && num > 0 && String(num) === value;
+};
 export const isOptionalNullNumericString = (value: unknown): boolean => {
 	if (value === null) return true;
 	if (typeof value !== 'string') return false;
@@ -122,77 +132,90 @@ export const isSettingType = (value: unknown): value is SettingType =>
 	typeof value === 'number' ||
 	typeof value === 'string'
 ;
-export const isSettingEnum = (value: unknown): value is SettingEnum => {
-	if (
-		!isRecord(value) ||
-		typeof value.srt !== 'number' ||
-		!isSettingType(value.val) ||
-		!isOptionalString(value.extra)
-	) {
-		return false;
-	}
-	return true;
-};
-export const isSettingEntity = (value: unknown): value is SettingEntity => {
-	if (
-		!isRecord(value) ||
-		typeof value.id !== 'string' ||
-		typeof value.srt !== 'number' ||
-		typeof value.valtype !== 'number' ||
-		(typeof value.folderid !== 'string' && value.folderid !== null) ||
-		!isSettingType(value.baseval) ||
-		!isOptionalString(value.name) ||
-		!isOptionalString(value.description) ||
-		(value.enum !== undefined && (
-			!Array.isArray(value.enum) ||
-			!value.enum.every(isSettingEnum)
-		))
-	) {
-		return false;
-	}
-	return true;
-};
-export const isSetting = (value: unknown): value is Setting => {
-	if (
-		!isRecord(value) ||
-		typeof value.id !== 'string' ||
-		typeof value.srt !== 'number' ||
-		typeof value.valtype !== 'number' ||
-		(typeof value.folderid !== 'string' && value.folderid !== null) ||
-		!isSettingType(value.baseval) ||
-		!isOptionalString(value.name) ||
-		!isOptionalString(value.description) ||
-		(value.enum !== undefined && (
-			!Array.isArray(value.enum) ||
-			!value.enum.every(isSettingEnum)
-		)) ||
-		value.type !== 'setting' ||
-		!isSettingType(value.val)
-	) {
-		return false;
-	}
-	return true;
-};
-export const isSettingsVocRec = (value: unknown): value is SettingsVocRec => {
-	if (
-		!isRecord(value) ||
-		typeof value.id !== 'string' ||
-		typeof value.srt !== 'number' ||
-		typeof value.valtype !== 'number' ||
-		(typeof value.folderid !== 'string' && value.folderid !== null) ||
-		!isSettingType(value.baseval) ||
-		!isOptionalString(value.name) ||
-		!isOptionalString(value.description) ||
-		(value.enum !== undefined && (
-			!Array.isArray(value.enum) ||
-			!value.enum.every(isSettingEnum)
-		)) ||
-		value.type !== 'settingsvocrec'
-	) {
-		return false;
-	}
-	return true;
-};
+export const isDBSettingsEnum = (value: unknown): value is DBSettingsEnum =>
+	isRecord(value) &&
+	typeof value.id === 'number' &&
+	typeof value.type === 'number' &&
+	typeof value.srt === 'number' &&
+	isOptionalString(value.name) &&
+	isOptionalString(value.description)
+;
+export const isDBSettingsGroup = (value: unknown): value is DBSettingsGroup =>
+	isRecord(value) &&
+	typeof value.id === 'number' &&
+	typeof value.srt === 'number' &&
+	(typeof value.parent === 'number' || value.parent === null) &&
+	isOptionalString(value.name) &&
+	isOptionalString(value.description)
+;
+export const isDBSettingsOption = (value: unknown): value is DBSettingsOption =>
+	isRecord(value) &&
+	typeof value.id === 'number' &&
+	typeof value.enumid === 'number' &&
+	typeof value.srt === 'number' &&
+	typeof value.enabled === 'boolean' &&
+	isSettingType(value.value) &&
+	value.value !== null &&
+	typeof value.value !== 'boolean' &&
+	isOptionalString(value.extra)
+;
+export const isDBSettingsVocRec = (value: unknown): value is DBSettingsVocRec =>
+	isRecord(value) &&
+	typeof value.id === 'number' &&
+	typeof value.type === 'number' &&
+	typeof value.srt === 'number' &&
+	typeof value.public === 'boolean' &&
+	(typeof value.groupid === 'number' || value.groupid === null) &&
+	isSettingType(value.baseval) &&
+	isOptionalNumber(value.enumid) &&
+	isOptionalString(value.name) &&
+	isOptionalString(value.description)
+;
+export const isDBSettingsUser = (value: unknown): value is DBSettingsUser =>
+	isRecord(value) &&
+	typeof value.settingid === 'number' &&
+	isSettingType(value.value)
+;
+export const isSettingsEnum = (value: unknown): value is SettingsEnum =>
+	isRecord(value) &&
+	value.type === 'settingsenum' &&
+	typeof value.id === 'string' &&
+	typeof value.valtype === 'number' &&
+	typeof value.srt === 'number' &&
+	isOptionalString(value.name) &&
+	isOptionalString(value.description)
+;
+export const isSettingsOption = (value: unknown): value is SettingsOption =>
+	isRecord(value) &&
+	value.type === 'settingsoption' &&
+	typeof value.id === 'string' &&
+	typeof value.enumid === 'string' &&
+	typeof value.srt === 'number' &&
+	typeof value.enabled === 'boolean' &&
+	isSettingType(value.val) &&
+	value.val !== null &&
+	typeof value.val !== 'boolean' &&
+	isOptionalString(value.extra)
+;
+export const isSetting = (value: unknown): value is Setting =>
+	isRecord(value) &&
+	value.type === 'setting' &&
+	typeof value.id === 'string' &&
+	isSettingType(value.val)
+;
+export const isSettingsVocRec = (value: unknown): value is SettingsVocRec =>
+	isRecord(value) &&
+	value.type === 'settingsvocrec' &&
+	typeof value.id === 'string' &&
+	typeof value.valtype === 'number' &&
+	typeof value.srt === 'number' &&
+	typeof value.public === 'boolean' &&
+	(typeof value.folderid === 'string' || value.folderid === null) &&
+	isSettingType(value.baseval) &&
+	isOptionalString(value.enumid) &&
+	isOptionalString(value.name) &&
+	isOptionalString(value.description)
+;
 export const isValidSettingValue = (value: unknown, valtype: number): value is SettingType => {
 	switch (valtype) {
 		case 0: return value === null;
@@ -202,18 +225,21 @@ export const isValidSettingValue = (value: unknown, valtype: number): value is S
 		default: return false;
 	}
 };
-export const isValidSettingsVocRec = (entity: unknown): entity is SettingsVocRec => {
-	if (!isSettingsVocRec(entity)) return false;
-	if (!isOptionalNullNumericString(entity.id)) return false;
-	if (!isOptionalNullNumericString(entity.folderid)) return false;
-	if (!isValidSettingValue(entity.baseval, entity.valtype)) return false;
-	if (entity.enum) {
-		for (const item of entity.enum) {
-			if (!isValidSettingValue(item.val, entity.valtype)) return false;
-		}
-	}
-	return true;
-};
+export const isValidSettingsEnum = (entity: unknown): entity is SettingsEnum =>
+	isSettingsEnum(entity) &&
+	isNullNumericString(entity.id)
+;
+export const isValidSettingsOption = (entity: unknown): entity is SettingsOption =>
+	isSettingsOption(entity) &&
+	isNullNumericString(entity.id) &&
+	isNullNumericString(entity.enumid)
+;
+export const isValidSettingsVocRec = (entity: unknown): entity is SettingsVocRec =>
+	isSettingsVocRec(entity) &&
+	isNullNumericString(entity.id) &&
+	isOptionalNullNumericString(entity.folderid) &&
+	isValidSettingValue(entity.baseval, entity.valtype)
+;
 export const isFolder = (value: unknown): value is Folder => {
 	if (
 		!isRecord(value) ||

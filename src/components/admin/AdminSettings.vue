@@ -2,8 +2,69 @@
 	<div class="admin-settings__header">
 		<h1 class="margin_bottom_0">{{ mainStore.t.i.captions.settings }}</h1>
 	</div>
-	<div class="admin-settings__voc"
-	>
+	<div class="admin-settings__warnings">
+		<div v-if="
+			!adminStore.isValidSettingsEnums ||
+			!adminStore.isValidSettingsOptions ||
+			!adminStore.isValidSettingsVoc
+		">
+			{{ mainStore.t.m.errors.other.incorrectFields }}
+		</div>
+		<div v-if="
+			Object.keys(adminStore.getAllModifiedSettingsEnums).length > 0 ||
+			Object.keys(adminStore.getAllModifiedSettingsOptions).length > 0 ||
+			Object.keys(adminStore.getAllModifiedUsersSettingsVoc).length > 0
+		">
+			{{ mainStore.t.i.text.notSaved }}
+		</div>
+	</div>
+	<div class="admin-settings__enums">
+		<AdminSettingsEnums />
+		<div v-if="!adminStore.isValidSettingsEnums">
+			{{ mainStore.t.m.errors.other.incorrectFields }}
+		</div>
+		<div class="admin-settings__buttons">
+			<button
+				type="button"
+				:class="{ important: Object.keys(adminStore.getAllModifiedSettingsEnums).length > 0 }"
+				:disabled="!adminStore.isValidSettingsEnums"
+				@click="settingsEnumsSubmit"
+			>
+				{{ mainStore.t.i.buttons.save }}
+			</button>
+			<button
+				type="button"
+				:title="mainStore.t.s.extra.resetSettingsEnums"
+				@click="settingsEnumsReset"
+			>
+				{{ mainStore.t.i.buttons.reset }}
+			</button>
+		</div>
+	</div>
+	<div class="admin-settings__options">
+		<AdminSettingsOptions />
+		<div v-if="!adminStore.isValidSettingsOptions">
+			{{ mainStore.t.m.errors.other.incorrectFields }}
+		</div>
+		<div class="admin-settings__buttons">
+			<button
+				type="button"
+				:class="{ important: Object.keys(adminStore.getAllModifiedSettingsOptions).length > 0 }"
+				:disabled="!adminStore.isValidSettingsOptions"
+				@click="settingsOptionsSubmit"
+			>
+				{{ mainStore.t.i.buttons.save }}
+			</button>
+			<button
+				type="button"
+				:title="mainStore.t.s.extra.resetSettingsOptions"
+				@click="settingsOptionsReset"
+			>
+				{{ mainStore.t.i.buttons.reset }}
+			</button>
+		</div>
+	</div>
+	<div class="admin-settings__voc">
 		<div class="admin-settings__voc__tree">
 			<Tree
 				instanceid="settingsvoctree"
@@ -72,18 +133,19 @@
 		<div v-if="!adminStore.isValidSettingsVoc">
 			{{ mainStore.t.m.errors.other.incorrectFields }}
 		</div>
-		<div class="admin-settings__voc__buttons">
+		<div class="admin-settings__buttons">
 			<button
 				type="button"
+				:class="{ important: Object.keys(adminStore.getAllModifiedUsersSettingsVoc).length > 0 }"
 				:disabled="!adminStore.isValidSettingsVoc"
-				@click="settingsSubmit"
+				@click="settingsUsersVocSubmit"
 			>
 				{{ mainStore.t.i.buttons.save }}
 			</button>
 			<button
 				type="button"
 				:title="mainStore.t.s.extra.resetUserSettingsVoc"
-				@click="settingsReset"
+				@click="settingsVocReset"
 			>
 				{{ mainStore.t.i.buttons.reset }}
 			</button>
@@ -100,6 +162,8 @@ import { saveSettingsAdmin } from '@/services/db';
 import { ennobleError } from '@/shared/response';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
+import AdminSettingsEnums from '@/components/admin/AdminSettingsEnums.vue';
+import AdminSettingsOptions from '@/components/admin/AdminSettingsOptions.vue';
 import Tree from '@/components/tree/Tree.vue';
 import TreeBranchSettingsVocRecs from '@/components/tree/TreeBranchSettingsVocRecs.vue';
 import PopupEntityMenu from '@/components/popups/PopupEntityMenu.vue';
@@ -172,14 +236,40 @@ const checkAll = (val: boolean): void => {
 	}
 };
 
-const settingsSubmit = (): void => {
-	saveSettingsAdmin();
+const settingsEnumsSubmit = (): void => {
+	saveSettingsAdmin(adminStore.getAllModifiedSettingsEnums);
 };
-const settingsReset = async (): Promise<void> => {
+const settingsOptionsSubmit = (): void => {
+	saveSettingsAdmin(adminStore.getAllModifiedSettingsOptions);
+};
+const settingsEnumsReset = async (): Promise<void> => {
+	mainStore.setBusy(true);
+	try {
+		await adminStore.setSettingsEnums();
+	} catch (error) {
+		mainStore.setMessage(ennobleError(error));
+	} finally {
+		mainStore.setBusy(false);
+	}
+};
+const settingsOptionsReset = async (): Promise<void> => {
+	mainStore.setBusy(true);
+	try {
+		await adminStore.setSettingsOptions();
+	} catch (error) {
+		mainStore.setMessage(ennobleError(error));
+	} finally {
+		mainStore.setBusy(false);
+	}
+};
+const settingsUsersVocSubmit = (): void => {
+	saveSettingsAdmin(adminStore.getAllModifiedUsersSettingsVoc);
+};
+const settingsVocReset = async (): Promise<void> => {
 	mainStore.setBusy(true);
 	try {
 		await adminStore.setSettingsGroups();
-		await adminStore.setUserSettingsVoc();
+		await adminStore.setSettingsUsersVoc();
 		adminStore.trees.settingsvoc.open = true;
 	} catch (error) {
 		mainStore.setMessage(ennobleError(error));
@@ -187,11 +277,24 @@ const settingsReset = async (): Promise<void> => {
 		mainStore.setBusy(false);
 	}
 };
-onMounted(() => settingsReset());
+onMounted(async () => {
+	mainStore.setBusy(true);
+	try {
+		await adminStore.setSettingsEnums();
+		await adminStore.setSettingsOptions();
+		await adminStore.setSettingsGroups();
+		await adminStore.setSettingsUsersVoc();
+		adminStore.trees.settingsvoc.open = true;
+	} catch (error) {
+		mainStore.setMessage(ennobleError(error));
+	} finally {
+		mainStore.setBusy(false);
+	}
+});
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/tree-settingsvoc';
+@use '@/assets/styles/tree/settingsvoc';
 .admin-settings {
 	&__header {
 		display: grid;
@@ -199,15 +302,15 @@ onMounted(() => settingsReset());
 		gap: 12px;
 		align-items: center;
 	}
-	&__voc {
+	&__buttons {
+		display: flex;
+		gap: 8px;
+		justify-content: space-between;
+	}
+	&__voc, &__enums, &__options {
 		display: flex;
 		flex-direction: column;
 		gap: 20px;
-		&__buttons {
-			display: flex;
-			gap: 8px;
-			justify-content: space-between;
-		}
 	}
 }
 .control-panel {

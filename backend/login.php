@@ -17,7 +17,7 @@ apiRun($ctx, function () use ($ctx) {
 	");
 	$query->execute([ ":login" => $data["authLogin"] ]);
 	$result = $query->fetch(PDO::FETCH_ASSOC);
-	
+
 	if (!$result || !password_verify($data["authPassword"], $result["password"]))  {
 		throw new ApiException(401, "invalid_credentials");
 	}

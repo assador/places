@@ -76,17 +76,18 @@
 						class="tree-item__baseval"
 					>
 						<select
-							v-if="object.enum?.length"
+							v-if="object.enumid !== undefined"
+							class="fieldwidth_100"
 							:class="{ focused: key === adminStore.settingsSortBy }"
 							:value="object.baseval"
 							@change="changeValue(object, 'baseval', $event)"
 						>
 							<option
-								v-for="(opt, idx) in object.enum"
-								:key="idx"
-								:value="opt.val"
+								v-for="(o, i) in adminStore.getOptionsForEnumId(object.enumid)"
+								:key="i"
+								:value="o.val"
 							>
-								{{ opt.val }}
+								{{ o.val }}
 							</option>
 						</select>
 						<input
@@ -111,25 +112,6 @@
 								@change="changeValue(object, 'baseval', $event)"
 							/>
 						</span>
-						<span
-							v-if="object.valtype > 1"
-							class="setting-menu icon icon-menu"
-							@click.stop="e => {
-								if (popupProps.show) {
-									currentRec = null;
-									popupProps.show = false;
-								}
-								else {
-									currentRec = object;
-									popupProps.position = calculatePopupPosition(e);
-									popupProps.show = true;
-								}
-							}"
-						/>
-						<span
-							v-else
-							class="setting-menu"
-						/>
 					</div>
 					<div v-else-if="key === 'valtype'">
 						<select
@@ -143,6 +125,26 @@
 								:value="k"
 							>
 								{{ t }}
+							</option>
+						</select>
+					</div>
+					<div
+						v-else-if="key === 'enumid'"
+						class="tree-item__enumid"
+					>
+						<select
+							v-if="Object.keys(adminStore.settings.enums).length"
+							class="fieldwidth_100"
+							:class="{ focused: key === adminStore.settingsSortBy }"
+							:value="object.enumid"
+							@change="changeValue(object, 'enumid', $event)"
+						>
+							<option
+								v-for="e in adminStore.settings.enums"
+								:key="e.id"
+								:value="e.id"
+							>
+								{{ e.name ? e.name : e.description ? e.id : e.id }}
 							</option>
 						</select>
 					</div>
@@ -178,128 +180,18 @@
 			</div>
 		</template>
 	</template>
-	<Popup
-		class="setting-enum-popup messages"
-		:show="popupProps.show"
-		:position="popupProps.position"
-		:closeOnClick="false"
-		@update:show="popupProps.show = $event"
-	>
-		<template #popupSlot>
-			<div
-				v-if="currentRec && currentRec.valtype > 1"
-				class="setting-enum"
-			>
-				<h2>{{ mainStore.t.i.captions.listOfValues }}</h2>
-				<div class="setting-enum__before">
-					<div
-						class="icon icon-plus-circled"
-						@click.stop="adminStore.addValueToSettingEnum({
-							rec: currentRec,
-							idx: null,
-						})"
-					/>
-				</div>
-				<div
-					v-for="(e, n) in currentRec.enum"
-					:key="n"
-				>
-					<div>
-						<input
-							type="checkbox"
-							:placeholder="mainStore.t.i.captions[e.enabled ? 'enabled' : 'disabled']"
-							:checked="e.enabled"
-							@change="e => {
-								if (!currentRec) return;
-								adminStore.changeEnabledInSettingEnum({
-									rec: currentRec,
-									idx: n,
-									enb: (e.target as HTMLInputElement).checked,
-								});
-							}"
-						/>
-					</div>
-					<div>
-						<input
-							type="text"
-							class="fieldswidth_100"
-							:placeholder="mainStore.t.i.captions.value"
-							:value="e.val"
-							@change="e => {
-								if (!currentRec) return;
-								const v = convertSettingValue(
-									(e.target as HTMLInputElement).value,
-									currentRec.valtype,
-								);
-								if (v === null || typeof v === 'boolean') {
-									(e.target as HTMLInputElement).value =
-										String(currentRec.enum?.[n]?.val ?? '')
-									;
-									return;
-								}
-								adminStore.changeValueInSettingEnum({
-									rec: currentRec,
-									idx: n,
-									val: v,
-								});
-							}"
-						/>
-					</div>
-					<div>
-						<input
-							type="text"
-							class="fieldswidth_100"
-							:placeholder="mainStore.t.i.captions.valueExtra"
-							:value="e.extra ?? ''"
-							@change="e => {
-								if (!currentRec) return;
-								adminStore.changeExtraInSettingEnum({
-									rec: currentRec,
-									idx: n,
-									ext: (e.target as HTMLInputElement).value || null,
-								});
-							}"
-						/>
-					</div>
-					<div
-						class="icon icon-cross-45-circled"
-						@click.stop="adminStore.deleteValueFromSettingEnum({
-							rec: currentRec,
-							idx: n,
-						})"
-					/>
-					<div
-						class="icon icon-plus-circled"
-						@click.stop="adminStore.addValueToSettingEnum({
-							rec: currentRec,
-							idx: n,
-						})"
-					/>
-				</div>
-				<div class="setting-enum__after">
-					<div
-						class="icon icon-plus-circled"
-						@click.stop="adminStore.addValueToSettingEnum({ rec: currentRec })"
-					/>
-				</div>
-			</div>
-		</template>
-	</Popup>
 </template>
 
 <script setup lang="ts">
 import { ref, Ref, computed, inject } from 'vue';
-import { FolderContext, Dictionary, PopupProps } from '@/types';
+import { FolderContext, Dictionary } from '@/types';
 import { SettingsVocRec } from '@/types/settings';
-import { convertSettingValue } from '@/stores/actions/settings';
-import { calculatePopupPosition } from '@/shared/common';
 import { SettingsVocRecFields, useSettingsVocRecFields } from '@/shared/settings';
 import { isValidSettingsVocRec } from '@/guards';
 import { common } from '@/services/common';
 import { usePointerDnD } from '@/services/dnd';
 import { useMainStore } from '@/stores/main';
 import { useAdminStore } from '@/stores/admin';
-import Popup from '@/components/popups/Popup.vue';
 
 interface TreeBranchProps {
 	what: FolderContext;
@@ -330,7 +222,6 @@ const keysArray = computed(() =>
     (Object.keys(settingsVocRecFields.value) as (keyof SettingsVocRec)[])
         .filter(key => settingsVocRecFields.value[key] && !hiddenFields.value[key])
 );
-const currentRec = ref<SettingsVocRec | null>(null);
 const getSetting = (n: number) =>
 	props.rows[props.reverse ? props.rows.length - n : n - 1]
 ;
@@ -401,18 +292,8 @@ const onPointerUp = computed(() => {
 	if (dnd.value) return dnd.value.onPointerUp;
 	return (_event: PointerEvent, click?: () => void) => click?.();
 });
-
-const popupProps = ref<PopupProps>({
-	show: false,
-	position: {
-		top: 'auto',
-		right: 'auto',
-		bottom: 'auto',
-		left: 'auto',
-	},
-});
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/tree-settingsvoc';
+@use '@/assets/styles/tree/settingsvoc';
 </style>

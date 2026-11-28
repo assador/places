@@ -2,10 +2,7 @@
 	<div
 		ref="container"
 		id="container"
-		:class="[
-			'colortheme-' +
-			(mainStore.settings.user[SettingKeyEnum.ColorTheme]?.val ?? 'brown')
-		]"
+		:class="[`colortheme-${currentTheme}`]"
 	>
 		<div id="popup-root" />
 		<PopupConfirm />
@@ -25,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, onMounted } from 'vue'
+import { ref, computed, provide, onMounted } from 'vue'
 import { PopupProps } from '@/types';
 import { SettingKeyEnum } from '@/types/settings';
 import { useMainStore } from '@/stores/main';
@@ -47,6 +44,11 @@ const popupBusy = ref<PopupProps>({
 		bottom: '0',
 		left: '0',
 	},
+});
+const currentTheme = computed(() => {
+	const theme = mainStore.settings.user[SettingKeyEnum.ColorTheme];
+	if (theme && !theme.deleted) return theme.val;
+	return 'brown';
 });
 const isMounted = ref(false);
 

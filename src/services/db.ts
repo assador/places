@@ -190,26 +190,16 @@ export const saveSettings = async (payload?: SettingCollection): Promise<void> =
 		if (!buffered) buffered = await buffer.getOf(mainStore.user.id);
 
 		if (buffered.settings && Object.keys(buffered.settings).length) {
-			if (buffered.settings.user?.length) {
-
-				const data = buffered.settings.user.map((setting) => ({
-					id: setting.id,
-					val: setting.val,
-					valtype: setting.valtype,
-					added: setting.added,
-					updated: setting.updated,
-					deleted: setting.deleted,
-				}));
-				await api.post(
-					`set_settings_users.php`,
-					{
-						data: data,
-						userid: localStorage.getItem('places-useruuid'),
-						sessionid: localStorage.getItem('places-session'),
-					},
-					{ silent: true },
-				);
-			}
+			const data = mainStore.getSettingsToBack(buffered.settings);
+			await api.post(
+				`set_settings_users.php`,
+				{
+					data: data,
+					userid: localStorage.getItem('places-useruuid'),
+					sessionid: localStorage.getItem('places-session'),
+				},
+				{ silent: true },
+			);
 			await buffer.for(mainStore.user.id).clearSettings();
 		}
 		mainStore.savedToDB('settings', modified);
@@ -246,7 +236,7 @@ export const saveSettingsAdmin = async (payload?: SettingCollection): Promise<vo
 		if (changesSaved) {
 			adminStore.savedToDB('settings', modified);
 			mainStore.setMessage(mainStore.t.m.response.success.saved, 3);
-			await mainStore.setUserSettings();
+			await mainStore.setSettingsUser();
 		}
 	} catch (error) {
 		mainStore.setMessage(ennobleError(error));

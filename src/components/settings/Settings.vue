@@ -29,7 +29,7 @@
 					<button
 						type="button"
 						:title="mainStore.t.s.extra.resetUserSettings"
-						@click="mainStore.resetUserSettings()"
+						@click="mainStore.resetSettingsUser()"
 					>
 						{{ mainStore.t.i.buttons.reset }}
 					</button>

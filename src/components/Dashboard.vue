@@ -1,33 +1,47 @@
 <template>
 	<div id="dashboard">
 		<select
-			v-model="lang"
 			id="dashboard-langs"
+			:value="mainStore.getSettingValue(SettingKeyEnum.Lang)"
+			@change="e => {
+				mainStore.setSetting(
+					mainStore.settings.usersvoc[SettingKeyEnum.Lang],
+					(e.currentTarget as HTMLSelectElement).value,
+				);
+			}"
 		>
 			<option
 				v-for="(l, i) in
-					mainStore.settings.user[SettingKeyEnum.Lang]?.enum
-					?? vocLangs
+					mainStore.getOptionsForEnumId(
+						mainStore.settings.usersvoc[SettingKeyEnum.Lang]?.enumid,
+					) ?? vocLangs
 				"
 				:key="i"
 				:value="l.val"
 			>
-				{{ getOptionLabel(l) }}
+				{{ mainStore.getOptionLabel(l) }}
 			</option>
 		</select>
 		<select
-			v-model="theme"
 			id="dashboard-colorthemes"
+			:value="mainStore.getSettingValue(SettingKeyEnum.ColorTheme)"
+			@change="e => {
+				mainStore.setSetting(
+					mainStore.settings.usersvoc[SettingKeyEnum.ColorTheme],
+					(e.currentTarget as HTMLSelectElement).value,
+				);
+			}"
 		>
 			<option
 				v-for="(c, i) in
-					mainStore.settings.user[SettingKeyEnum.ColorTheme]?.enum
-					?? vocColorThemes
+					mainStore.getOptionsForEnumId(
+						mainStore.settings.usersvoc[SettingKeyEnum.ColorTheme]?.enumid,
+					) ?? vocColorThemes
 				"
 				:key="i"
 				:value="c.val"
 			>
-				{{ getOptionLabel(c) }}
+				{{ mainStore.getOptionLabel(c) }}
 			</option>
 		</select>
 		<div id="dashboard-controls-choosemap" />
@@ -36,67 +50,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Dictionary } from '@/types';
 import {
 	SettingKeyEnum,
-	SettingType,
 	vocLangs,
 	vocColorThemes
 } from '@/types/settings';
-import { initSettingFactory } from '@/stores/actions/settings';
 import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();
-
-const createSetting = initSettingFactory(
-	() => crypto.randomUUID(),
-	() => 3,
-	() => '',
-	() => '',
-);
-
-const lang = computed({
-	get: () => mainStore.settings.user[SettingKeyEnum.Lang]?.val ?? 'ru',
-	set: (val) => {
-		if (!mainStore.settings.user[SettingKeyEnum.Lang]) { // If unauthorized
-			mainStore.settings.user[SettingKeyEnum.Lang] = createSetting({
-				id: SettingKeyEnum.Lang,
-				val: 'ru',
-				baseval: 'ru',
-			});
-		}
-		mainStore.changeSetting({
-			entity: mainStore.settings.user[SettingKeyEnum.Lang],
-			change: { val: val },
-		});
-	},
-});
-const theme = computed({
-	get: () => mainStore.settings.user[SettingKeyEnum.ColorTheme]?.val ?? 'brown',
-	set: (val) => {
-		if (!mainStore.settings.user[SettingKeyEnum.ColorTheme]) { // If unauthorized
-			mainStore.settings.user[SettingKeyEnum.ColorTheme] = createSetting({
-				id: SettingKeyEnum.ColorTheme,
-				val: 'brown',
-				baseval: 'brown',
-			});
-		}
-		mainStore.changeSetting({
-			entity: mainStore.settings.user[SettingKeyEnum.ColorTheme],
-			change: { val: val },
-		});
-	},
-});
-
-type DictionaryExtraKey = keyof Dictionary['s']['extra'];
-const getOptionLabel = (opt: { val: SettingType; extra?: string }): string => {
-	if (!opt.extra) return String(opt.val);
-	if (opt.extra in mainStore.t.s.extra) {
-		return mainStore.t.s.extra[opt.extra as DictionaryExtraKey];
-	}
-	return opt.extra;
-}
 </script>
 
 <style lang="scss" scoped>

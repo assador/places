@@ -114,7 +114,9 @@ export function useActionsDBAdmin(
 			case 'settings': {
 				if (!isRecord(payload)) return;
 				const dicts = {
+					enums: store.settings.value.enums,
 					groups: store.settings.value.groups,
+					options: store.settings.value.options,
 					usersvoc: store.settings.value.usersvoc,
 				};
 				for (const key of Object.keys(payload)) {

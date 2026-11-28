@@ -27,11 +27,11 @@ import {
 	User,
 } from '@/types';
 import {
-	Setting,
 	SettingCollection,
 	SettingType,
 	SettingsAdmin,
 	SettingsMain,
+	SettingsEnum,
 	SettingsVocRec,
 	SettingsVocRecKey,
 } from '@/types/settings';
@@ -226,13 +226,19 @@ export interface ActionsService {
 	setPointAltitude: (entity: Point) => Promise<void>;
 }
 export interface ActionsSettings {
-	changeSetting: (p: { entity: Setting; change: Partial<Setting>; }) => void;
 	clearSettings: () => void;
+	clearSettingsEnums: () => void;
 	clearSettingsGroups: () => void;
-	clearUserSettings: () => void;
-	resetUserSettings: (ids?: string[]) => void;
+	clearSettingsOptions: () => void;
+	clearSettingsUsersVoc: () => void;
+	clearSettingsUser: () => void;
+	resetSettingsUser: (ids?: string[]) => void;
+	setSetting: (rec: SettingsVocRec, val: SettingType) => void;
+	setSettingsEnums: () => Promise<void>;
 	setSettingsGroups: () => Promise<void>;
-	setUserSettings: () => Promise<void>;
+	setSettingsOptions: () => Promise<void>;
+	setSettingsUsersVoc: () => Promise<void>;
+	setSettingsUser: () => Promise<void>;
 }
 export interface ActionsUI {
 	setBusy: (busy: boolean) => void;
@@ -341,15 +347,20 @@ export interface ActionsSettingsAdmin {
 		rec: SettingsVocRec,
 		idx: number,
 	}) => boolean;
+	changeSettingsEnum: (p: { entity: SettingsEnum; change: Partial<SettingsEnum>; }) => void;
 	changeSettingsVocRec: (p: { entity: SettingsVocRec; change: Partial<SettingsVocRec>; }) => void;
 	clearSettings: () => void;
+	clearSettingsEnums: () => void;
 	clearSettingsGroups: () => void;
-	clearUserSettingsVoc: () => void;
+	clearSettingsOptions: () => void;
+	clearSettingsUsersVoc: () => void;
 	deleteInSettings: (objects: Record<string, Folder | SettingsVocRec>) => void;
-	resetUserSettingsVoc: () => void;
+	resetSettingsUsersVoc: () => void;
 	restoreInSettings: (objects: Record<string, Folder | SettingsVocRec>) => void;
+	setSettingsEnums: () => Promise<void>;
 	setSettingsGroups: () => Promise<void>;
-	setUserSettingsVoc: () => Promise<void>;
+	setSettingsOptions: () => Promise<void>;
+	setSettingsUsersVoc: () => Promise<void>;
 	upsertFolder: (params?: BaseUpsertParams<Folder>) => Folder | null;
 	upsertSettingsVocRec: (
 		params?: BaseUpsertParams<SettingsVocRec>

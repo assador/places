@@ -212,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, nextTick, onMounted } from 'vue';
+import { ref, computed, inject, nextTick, onMounted } from 'vue';
 import { useMainStore } from '@/stores/main';
 import { useRouter } from 'vue-router';
 import type { usePWAInstall } from '@/shared/usepwainstall';
@@ -223,6 +223,9 @@ import { regRoutine } from '@/services/reg';
 import { setBusy } from '@/services/common';
 import { constants } from '@/shared/constants';
 import { ennobleError } from '@/shared/response';
+import { initSettingsVocRecFactory, initSettingFactory } from '@/stores/actions/settings';
+import { getBrowserLanguage } from '@/shared/common';
+import { SettingKeyEnum } from '@/types/settings';
 
 import Dashboard from '@/components/Dashboard.vue';
 import Messages from '@/components/Messages.vue';
@@ -306,7 +309,34 @@ const authForgotSubmit = async (): Promise<void> => {
 	}
 };
 
+const createSettingsVocRec = initSettingsVocRecFactory(
+	() => crypto.randomUUID(),
+	() => 3,
+	() => '',
+);
+const createSetting = initSettingFactory(
+	() => crypto.randomUUID(),
+	() => '',
+);
+const langDefault = computed(() => getBrowserLanguage());
+
 onMounted(async () => {
+	mainStore.settings.usersvoc[SettingKeyEnum.Lang] = createSettingsVocRec({
+		id: SettingKeyEnum.Lang,
+		baseval: langDefault.value,
+	});
+	mainStore.settings.usersvoc[SettingKeyEnum.ColorTheme] = createSettingsVocRec({
+		id: SettingKeyEnum.ColorTheme,
+		baseval: 'brown',
+	});
+	mainStore.settings.user[SettingKeyEnum.Lang] = createSetting({
+		id: SettingKeyEnum.Lang,
+		val: langDefault.value,
+	});
+	mainStore.settings.user[SettingKeyEnum.ColorTheme] = createSetting({
+		id: SettingKeyEnum.ColorTheme,
+		val: 'brown',
+	});
 	await nextTick();
 	setBusy(false);
 });

@@ -19,6 +19,7 @@ import { SettingKeyEnum, SettingsMain } from '@/types/settings';
 
 import { constants } from '@/shared/constants';
 import { getT } from '@/lang/ru';
+import { getBrowserLanguage } from '@/shared/common';
 
 import { useGettersEntity } from './getters/entity';
 import { useGettersOther } from './getters/other';
@@ -55,7 +56,10 @@ export const useMainStore = defineStore('main', () => {
 	const places = ref<Record<string, Place>>({});
 	const routes = ref<Record<string, Route>>({});
 	const settings = ref<SettingsMain>({
+		enums: {},
 		groups: {},
+		options: {},
+		usersvoc: {},
 		user: {},
 	});
 	const treeParams = ref<Record<string, Tree>>({
@@ -78,7 +82,11 @@ export const useMainStore = defineStore('main', () => {
 			get entities() { return settings.value.user; },
 		},
 	});
-	const currentLang = computed(() => settings.value.user[SettingKeyEnum.Lang]?.val ?? 'ru');
+	const currentLang = computed(() => {
+		const lang = settings.value.user[SettingKeyEnum.Lang];
+		if (lang && !lang.deleted) return lang.val;
+		return getBrowserLanguage();
+	});
 	const translation = shallowRef<Dictionary>(getT());
 
 	watch(currentLang, async (newLang) => {

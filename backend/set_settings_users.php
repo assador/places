@@ -6,11 +6,12 @@ ini_set("display_errors", "0");
 require_once __DIR__ . "/bootstrap.php";
 
 apiRun($ctx, function () use ($ctx, $config) {
+
 	$raw = file_get_contents("php://input");
 	$data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
 	$list = $data["data"] ?? [];
-	if (empty($list)) apiSuccess();
+	if (empty($list) || empty($list["user"])) apiSuccess();
 
 	$binUserId = uuidToBin($data["userid"]);
 	$binSessionId = uuidToBin($data["sessionid"]);
@@ -24,12 +25,12 @@ apiRun($ctx, function () use ($ctx, $config) {
 
 	$ctx->db->beginTransaction();
 
-	$usersVocStmt = $ctx->db->query("
-		SELECT `id`, `type`, `baseval`
+	$stmt = $ctx->db->query("
+		SELECT `id`, `type`
 		FROM `settings_users_voc`
 		WHERE `public` = TRUE
 	");
-	$voc = $usersVocStmt->fetchAll(PDO::FETCH_UNIQUE);
+	$voc = $stmt->fetchAll(PDO::FETCH_UNIQUE);
 
 	$insertSql = "
 		INSERT INTO `settings_users` (
@@ -49,29 +50,25 @@ apiRun($ctx, function () use ($ctx, $config) {
 	";
 	$deleteStmt = $ctx->db->prepare($deleteSql);
 
-	foreach ($list as $row) {
-		if (
-			!isset($voc[$row["id"]]) ||
-			(int) $voc[$row["id"]]["type"] !== (int) $row["valtype"]
-		) {
-			$ctx->db->rollBack();
-			echo json_encode([1], JSON_NUMERIC_CHECK);
-			exit;
+	foreach ($list["user"] as $row) {
+		if (!isset($voc[$row["settingid"]])) {
+			throw new ApiException(400, "invalid_request");
 		}
-		if (!empty($row["updated"])) {
-			if ($row["val"] === $voc[$row["id"]]["baseval"]) {
-				$deleteStmt->execute([
-					":userid"    => $binUserId,
-					":settingid" => (int) $row["id"],
-				]);
-			} else {
-				$insertStmt->execute([
-					":userid"    => $binUserId,
-					":settingid" => (int) ($row["id"]),
-					":value"     => prepareSettingValue($row["val"], $row["valtype"]),
-					":updated"   => (int) (microtime(true) * 1000),
-				]);
-			}
+		if (!empty($row["deleted"])) {
+			$deleteStmt->execute([
+				":userid"    => $binUserId,
+				":settingid" => (int) $row["settingid"],
+			]);
+		} elseif (!empty($row["added"]) || !empty($row["updated"])) {
+			$insertStmt->execute([
+				":userid"    => $binUserId,
+				":settingid" => (int) ($row["settingid"]),
+				":value"     => prepareSettingValue(
+					$row["value"],
+					(int) $voc[$row["settingid"]]["type"],
+				),
+				":updated"   => (int) (microtime(true) * 1000),
+			]);
 		}
 	}
 

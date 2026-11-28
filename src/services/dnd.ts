@@ -28,7 +28,6 @@ type DnDStoreOverrides = Partial<Pick<
 	| 'changeFolder'
 	| 'changePlace'
 	| 'changeRoute'
-	| 'changeSetting'
 	| 'measure'
 	| 'places'
 	| 'routes'
@@ -43,7 +42,6 @@ type DnDStore = Pick<
 	| 'changeFolder'
 	| 'changePlace'
 	| 'changeRoute'
-	| 'changeSetting'
 	| 'measure'
 	| 'places'
 	| 'routes'
@@ -60,7 +58,6 @@ const getStore = (
 	changeFolder: overrides?.changeFolder ?? mainStore.changeFolder,
 	changePlace: overrides?.changePlace ?? mainStore.changePlace,
 	changeRoute: overrides?.changeRoute ?? mainStore.changeRoute,
-	changeSetting: overrides?.changeSetting ?? mainStore.changeSetting,
 	measure: overrides?.measure ?? mainStore.measure,
 	places: overrides?.places ?? mainStore.places,
 	routes: overrides?.routes ?? mainStore.routes,
@@ -186,24 +183,6 @@ const handleEntityDropped = (
 	if (payload.context === 'routes') {
 		store.changeRoute({
 			entity: entity as Route,
-			change: {
-				srt,
-				folderid: parentId,
-			},
-		});
-	}
-	if (payload.context === 'settings') {
-		store.changeSetting({
-			entity: entity as Setting,
-			change: {
-				srt,
-				folderid: parentId,
-			},
-		});
-	}
-	if (payload.context === 'settingsvoc') {
-		store.changeSetting({
-			entity: entity as Setting,
 			change: {
 				srt,
 				folderid: parentId,
